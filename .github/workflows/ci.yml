@@ -171,7 +171,7 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           cache-from: type=registry,ref=${{ env.REPO }}/build-cache:${{ matrix.target }}-${{ matrix.task }}
           cache-to: |
-            ${{ github.event_name != 'pull_request' && 'type=registry,mode=max,compression=zstd,compression-level=20,ref=${{ env.REPO }}/build-cache:${{ matrix.target }}-${{ matrix.task }}' || '' }}
+            ${{ github.event_name != 'pull_request' && format('type=registry,mode=max,compression=zstd,compression-level=20,ref={0}/build-cache:{1}-{2}', env.REPO, matrix.target, matrix.task) || '' }}
           build-args: |
             SERVE_UI_INDEX=${{ startsWith(github.ref, 'refs/tags/') && 'file:///var/lib/seal/ui' || 'https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html' }}
       - name: Setup Cosign
