@@ -1,0 +1,202 @@
+name: CI
+
+permissions:
+  contents: read
+
+env:
+  REPO: "sealio"
+  VERSION: "${{ github.ref_name }}"
+  BUILD_PLATFORMS: "linux/amd64,linux/arm64"
+  PARALLELIZE: "false"
+  GO_VERSION: "1.19.5"
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'release/*'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - 'main'
+      - 'release/*'
+  workflow_dispatch: { }
+
+jobs:
+
+  skip:
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: write
+    outputs:
+      should: ${{ steps.duplicate.outputs.should_skip }}
+    steps:
+      - name: Check Duplicate
+        id: duplicate
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          github_token: "${{ github.token }}"
+          paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
+          do_not_skip: '["workflow_dispatch", "push"]'
+        continue-on-error: true
+
+  check:
+    needs:
+      - skip
+    if: ${{ needs.skip.outputs.should != 'true' }}
+    timeout-minutes: 10
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          path: |
+            ~/.cache/golangci-lint
+            ~/.cache/go-build
+            ~/go/pkg
+            ${{ github.workspace }}/.sbin
+      - name: Check
+        run: make ci-check
+        env:
+          LINT_DIRTY: "true"
+
+  publish_without_package:
+    needs:
+      - skip
+      - check
+    timeout-minutes: 10
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg
+      - name: Publish
+        run: make ci-publish
+        env:
+          PACKAGE_BUILD: "false"
+      - name: Archive Publish Result
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.dist/package
+          key: archive-${{ runner.os }}-${{ github.sha }}
+
+  publish_package:
+    needs:
+      - publish_without_package
+    permissions:
+      actions: write
+      id-token: write
+    timeout-minutes: 15
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: seal
+            task: server
+          - target: seal
+            task: agent
+    steps:
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          image: tonistiigi/binfmt:qemu-v7.0.0
+          platforms: "arm64"
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login DockerHub
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.CI_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.CI_DOCKERHUB_PASSWORD }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Unarchive Publish Result
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.dist/package
+          key: archive-${{ runner.os }}-${{ github.sha }}
+      - name: Get Metadata
+        id: metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REPO }}/${{ matrix.target }}-${{ matrix.task }}
+      - name: Package
+        uses: docker/build-push-action@v3
+        id: package
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          file: .dist/package/${{ matrix.target }}/${{ matrix.task }}/image/Dockerfile
+          context: .dist/package/${{ matrix.target }}/${{ matrix.task }}/
+          platforms: ${{ env.BUILD_PLATFORMS }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REPO }}/build-cache:${{ matrix.target }}-${{ matrix.task }}
+          cache-to: type=registry,mode=max,compression=zstd,compression-level=20,ref=${{ env.REPO }}/build-cache:${{ matrix.target }}-${{ matrix.task }}
+      - name: Setup Cosign
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: sigstore/cosign-installer@v2.8.1
+        with:
+          cosign-release: v1.13.1
+      - name: Prove
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          
+          # login
+          cosign login "docker.io" -u "${DOCKERHUB_USERNAME}" -p "${DOCKERHUB_PASSWORD}"
+          
+          # prove
+          curl -o slsa-generator --retry 3 --retry-all-errors --retry-delay 3 -sSfL \
+            "https://github.com/slsa-framework/slsa-github-generator/releases/download/${SLSA_GITHUB_GENERATOR_VERSION}/${SLSA_GITHUB_GENERATOR}"
+          chmod a+x slsa-generator
+          predicate_name="predicate.json"
+          ./slsa-generator generate --predicate="${predicate_name}"
+          cosign attest --predicate="${predicate_name}" \
+            --type slsaprovenance \
+            --force \
+            "${UNTRUSTED_IMAGE}@${UNTRUSTED_DIGEST}"
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+          SLSA_GITHUB_GENERATOR: "slsa-generator-container-linux-amd64"
+          SLSA_GITHUB_GENERATOR_VERSION: "v1.4.0"
+          GITHUB_CONTEXT: "${{ toJSON(github) }}"
+          UNTRUSTED_IMAGE: "${{ env.REPO }}/${{ matrix.target }}-${{ matrix.task }}"
+          UNTRUSTED_DIGEST: "${{ steps.package.outputs.digest }}"
+          DOCKERHUB_USERNAME: "${{ secrets.CI_DOCKERHUB_USERNAME }}"
+          DOCKERHUB_PASSWORD: "${{ secrets.CI_DOCKERHUB_PASSWORD }}"
+        continue-on-error: true

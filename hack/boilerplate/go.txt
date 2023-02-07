@@ -1,0 +1,4 @@
+// SPDX-FileCopyrightText: 2023 Seal, Inc
+// SPDX-License-Identifier: Apache-2.0
+
+// GENERATED, DO NOT EDIT.

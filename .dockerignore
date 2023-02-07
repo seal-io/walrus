@@ -1,0 +1,28 @@
+# Files
+.DS_Store
+*.lock
+*.test
+*.out
+*.swp
+*.swo
+# *.db
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.log
+
+# Dirs
+/.idea
+/.vscode
+/.kube
+/.terraform
+/.vagrant
+/.bundle
+/.cache
+/.docker
+/.entc
+# /.sbin
+# /.dist
+/certs

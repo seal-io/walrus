@@ -1,0 +1,9 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "model/fields/additional" }}
+    {{- /* Add AccessToken fields to the "Token" entity. */}}
+    {{- if eq $.Name "Token" }}
+        // AccessToken is the token used for authentication. It does not store in the database and only shows up on creation.
+        AccessToken string `json:"accessToken,omitempty"`
+    {{- end }}
+{{ end }}

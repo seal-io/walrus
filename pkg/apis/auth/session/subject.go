@@ -1,0 +1,264 @@
+package session
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/seal-io/seal/pkg/dao/schema"
+)
+
+const (
+	authnSubjectGroupKey = "authn_subject_group"
+	authnSubjectNameKey  = "authn_subject_name"
+)
+
+func StoreSubjectAuthnInfo(c *gin.Context, group, name string) {
+	c.Set(authnSubjectGroupKey, group)
+	c.Set(authnSubjectNameKey, name)
+}
+
+const (
+	authzSubjectRolesKey    = "authz_subject_roles"
+	authzSubjectPoliciesKey = "authz_subject_policies"
+)
+
+func StoreSubjectAuthzInfo(c *gin.Context, roles schema.SubjectRoles, policies schema.RolePolicies) {
+	c.Set(authzSubjectRolesKey, roles)
+	c.Set(authzSubjectPoliciesKey, policies)
+}
+
+const (
+	authzSubjectCurrentOperationKey = "authz_subject_current_operation"
+)
+
+func StoreSubjectCurrentOperation(c *gin.Context, operation Operation) {
+	c.Set(authzSubjectCurrentOperationKey, operation)
+}
+
+func ParseSubjectKey(s string) (group, name string, err error) {
+	var ss = strings.SplitN(s, "/", 2)
+	if len(ss) != 2 {
+		return "", "", fmt.Errorf("invalid cached subject: %s", s)
+	}
+	return ss[0], ss[1], nil
+}
+
+func ToSubjectKey(group, name string) string {
+	return group + "/" + name
+}
+
+// LoadSubject loads the subject from the given gin.Context.
+func LoadSubject(c *gin.Context) (s Subject) {
+	s.Group = c.GetString(authnSubjectGroupKey)
+	s.Name = c.GetString(authnSubjectNameKey)
+	if v, exist := c.Get(authzSubjectRolesKey); exist {
+		s.Roles = v.(schema.SubjectRoles)
+	}
+	if v, exist := c.Get(authzSubjectPoliciesKey); exist {
+		s.Policies = v.(schema.RolePolicies)
+	}
+	return
+}
+
+// LoadSubjectCurrentOperation loads the current operation of the subject from the given gin.Context.
+func LoadSubjectCurrentOperation(c *gin.Context) (o Operation) {
+	if v, exist := c.Get(authzSubjectCurrentOperationKey); exist {
+		return v.(Operation)
+	}
+	return
+}
+
+type Subject struct {
+	Group    string
+	Name     string
+	Roles    schema.SubjectRoles
+	Policies schema.RolePolicies
+}
+
+// IsAnonymous return true if this subject has not been authenticated.
+func (s Subject) IsAnonymous() bool {
+	return s.Group == "" || s.Name == ""
+}
+
+// Key returns the key of this subject.
+func (s Subject) Key() string {
+	return ToSubjectKey(s.Group, s.Name)
+}
+
+// Enforce returns true if this subject has permission to access the given resource.
+func (s Subject) Enforce(c *gin.Context, resource string) bool {
+	var action = c.Request.Method
+	var id = c.Param("id")
+	var url = c.FullPath()
+	for i := 0; i < len(s.Policies); i++ {
+		var rp = &s.Policies[i]
+		if enforce(rp, action, resource, id, url) {
+			return true
+		}
+	}
+	return false
+}
+
+func enforce(rp *schema.RolePolicy, action, resource, id, url string) (allow bool) {
+	// check actions
+	switch len(rp.Actions) {
+	case 0:
+		return
+	case 1:
+		if rp.Actions[0] == "*" {
+			if hasAny(rp.ActionExcludes, action) {
+				// excluded action
+				return
+			}
+		} else if rp.Actions[0] != action {
+			// unexpected action
+			return
+		}
+	default:
+		if !hasAny(rp.Actions, action) {
+			// unexpected action
+			return
+		}
+	}
+
+	// check resources
+	switch len(rp.Resources) {
+	default:
+		if !hasAny(rp.Resources, resource) {
+			// unexpected resource
+			return
+		}
+		return true
+	case 1:
+		if rp.Resources[0] == "*" {
+			if hasAny(rp.ResourceExcludes, resource) {
+				// excluded resource
+				return
+			}
+		} else if rp.Resources[0] != resource {
+			// unexpected resource
+			return
+		}
+
+		// check resource ids
+		switch len(rp.ObjectIDs) {
+		default:
+			if !hasAny(rp.ObjectIDs, id) {
+				// unexpected resource id
+				return
+			}
+		case 1:
+			if rp.ObjectIDs[0] == "*" {
+				if hasAny(rp.ObjectIDExcludes, id) {
+					// excluded resource id
+					return
+				}
+			} else if rp.ObjectIDs[0] != id {
+				// unexpected resource id
+				return
+			}
+		case 0:
+		}
+		return true
+	case 0:
+	}
+
+	// check none resource urls
+	return hasAny(rp.Paths, url)
+}
+
+// Give returns Permission of the given resource.
+func (s Subject) Give(resource string) (p Permission) {
+	for i := 0; i < len(s.Policies); i++ {
+		var rp = &s.Policies[i]
+		var pk, pv = getPermission(rp, resource)
+		for k, idx := range getOperators() {
+			if pk&k == 0 {
+				continue
+			}
+			p[idx] = p[idx].merge(pv)
+		}
+		if pk == operatingAny {
+			return
+		}
+	}
+	return
+}
+
+func getPermission(rp *schema.RolePolicy, resource string) (pk operator, pv Operation) {
+	// check resources
+	switch len(rp.Resources) {
+	case 0:
+		return
+	case 1:
+		if rp.Resources[0] == "*" {
+			if hasAny(rp.ResourceExcludes, resource) {
+				// excluded resource
+				return
+			}
+		} else if rp.Resources[0] != resource {
+			// unexpected resource
+			return
+		}
+	default:
+		if !hasAny(rp.Resources, resource) {
+			// unexpected resource
+			return
+		}
+	}
+
+	// check actions
+	switch len(rp.Actions) {
+	case 0:
+		return
+	default:
+		for i := range rp.Actions {
+			switch rp.Actions[i] {
+			case http.MethodGet:
+				pk |= operatingGet
+			case http.MethodPost:
+				pk |= operatingPost
+			case http.MethodPut:
+				pk |= operatingPut
+			case http.MethodDelete:
+				pk |= operatingDelete
+			case "*":
+				pk |= operatingAny
+			}
+		}
+	}
+
+	// check resource ids
+	switch len(rp.ObjectIDs) {
+	default:
+		pv.includes = rp.ObjectIDs
+		return
+	case 1:
+		if rp.ObjectIDs[0] == "*" {
+			// checkout resource exclude ids
+			if len(rp.ObjectIDExcludes) != 0 {
+				pv.excludes = rp.ObjectIDExcludes
+				return
+			}
+		} else {
+			pv.includes = rp.ObjectIDs
+		}
+	case 0:
+	}
+
+	// check scope
+	pv.scope = rp.Scope
+	return
+}
+
+func hasAny(ss []string, s string) bool {
+	for i := 0; i < len(ss); i++ {
+		if ss[i] == s {
+			return true
+		}
+	}
+	return false
+}

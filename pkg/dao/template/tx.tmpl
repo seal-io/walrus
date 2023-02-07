@@ -1,0 +1,31 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "tx/additional/clientset" }}
+
+{{- range $n := $.Nodes }}
+// {{ plural $n.Name }} implements the ClientSet.
+func (tx *Tx) {{ plural $n.Name }}() *{{ $n.Name }}Client {
+    return tx.{{ $n.Name }}
+}
+{{- end }}
+
+{{ end }}
+
+{{ define "tx/additional/withtx" }}
+
+// WithTx gives a new transactional client in the callback function,
+// if already in a transaction, this will keep in the same transaction.
+func (tx *Tx) WithTx(ctx context.Context, callback func(tx *Tx) error) error {
+    return callback(tx)
+}
+
+{{ end }}
+
+{{ define "tx/additional/dialect" }}
+
+// Dialect returns the dialect name of the driver.
+func (tx *Tx) Dialect() string {
+    return tx.driver.Dialect()
+}
+
+{{ end }}
