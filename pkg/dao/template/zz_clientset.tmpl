@@ -1,0 +1,31 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "clientset" }}
+
+{{ template "header" $ }}
+
+// ClientSet is an interface that allows getting all clients.
+type ClientSet interface {
+    {{- range $n := $.Nodes }}
+    // {{ plural $n.Name }} returns the client for interacting with the {{ $n.Name }} builders.
+    {{ plural $n.Name }}() *{{ $n.Name }}Client
+    {{ end }}
+
+    // WithTx gives a new transactional client in the callback function,
+    // if already in a transaction, this will keep in the same transaction.
+    WithTx(context.Context, func(tx *Tx) error) error
+
+    // Dialect returns the dialect name of the driver.
+    Dialect() string
+}
+
+{{ range $n := $.Nodes }}
+// {{ $n.Name }}ClientGetter is an interface that allows getting {{ $n.Name }}Client.
+type {{ $n.Name }}ClientGetter interface {
+    // {{ plural $n.Name }} returns the client for interacting with the {{ $n.Name }} builders.
+    {{ plural $n.Name }}() *{{ $n.Name }}Client
+}
+
+{{- end }}
+
+{{ end }}

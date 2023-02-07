@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+source "${ROOT_DIR}/hack/lib/init.sh"
+
+function generate() {
+  local target="$1"
+  local task="$2"
+  local path="$3"
+
+  go run -mod=mod "${path}"
+}
+
+function dispatch() {
+  local target="$1"
+  local path="$2"
+
+  shift 2
+  local specified_targets="$*"
+  if [[ -n ${specified_targets} ]] && [[ ! ${specified_targets} =~ ${target} ]]; then
+    return
+  fi
+
+  local tasks=()
+  # shellcheck disable=SC2086
+  IFS=" " read -r -a tasks <<<"$(seal::util::find_subdirs ${path}/gen)"
+
+  for task in "${tasks[@]}"; do
+    seal::log::debug "generating ${target} ${task}"
+    if [[ "${PARALLELIZE:-true}" == "false" ]]; then
+      generate "${target}" "${task}" "${path}/gen/${task}"
+    else
+      generate "${target}" "${task}" "${path}/gen/${task}" &
+    fi
+  done
+}
+
+#
+# main
+#
+
+seal::log::info "+++ GENERATE +++"
+
+dispatch "seal" "${ROOT_DIR}" "$@"
+
+if [[ "${PARALLELIZE:-true}" == "true" ]]; then
+  seal::util::wait_jobs || seal::log::fatal "--- GENERATE ---"
+fi
+seal::log::info "--- GENERATE ---"
