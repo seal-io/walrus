@@ -1,0 +1,58 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "client/additional/clientset" }}
+
+{{- range $n := $.Nodes }}
+// {{ plural $n.Name }} implements the ClientSet.
+func (c *Client) {{ plural $n.Name }}() *{{ $n.Name }}Client {
+    return c.{{ $n.Name }}
+}
+{{- end }}
+
+{{ end }}
+
+{{ define "client/additional/withtx" }}
+
+// WithTx gives a new transactional client in the callback function,
+// if already in a transaction, this will keep in the same transaction.
+func (c *Client) WithTx(ctx context.Context, fn func(tx *Tx) error) (err error) {
+    var tx *Tx
+    tx, err = c.Tx(ctx)
+    if err != nil {
+        return
+    }
+    defer func() {
+        if v := recover(); v != nil {
+            switch vt := v.(type) {
+            case error:
+                err = fmt.Errorf("panic as %w", vt)
+            default:
+                err = fmt.Errorf("panic as %v", v)
+            }
+            if txErr := tx.Rollback(); txErr != nil {
+                err = fmt.Errorf("try to rollback as received %w, but failed: %v", err, txErr)
+            }
+        }
+    }()
+    if err = fn(tx); err != nil {
+        if txErr := tx.Rollback(); txErr != nil {
+            err = fmt.Errorf("try to rollback as received %w, but failed: %v", err, txErr)
+		}
+        return
+    }
+    if txErr := tx.Commit(); txErr != nil {
+        err = fmt.Errorf("try to commit, but failed: %v", txErr)
+    }
+    return
+}
+
+{{ end }}
+
+{{ define "client/additional/dialect" }}
+
+// Dialect returns the dialect name of the driver.
+func (c *Client) Dialect() string {
+    return c.driver.Dialect()
+}
+
+{{ end }}

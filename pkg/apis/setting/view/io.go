@@ -1,0 +1,110 @@
+package view
+
+import (
+	"context"
+	"errors"
+	"net/http"
+
+	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/oid"
+)
+
+// Basic APIs
+
+type UpdateRequest struct {
+	ID    oid.ID  `uri:"id"`
+	Value *string `json:"value"`
+
+	Name string `json:"-"`
+}
+
+func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(1) {
+		return errors.New("invalid id: blank")
+	}
+	if r.Value == nil {
+		return errors.New("invalid input: nil value")
+	}
+
+	var confirmSetting = []predicate.Setting{
+		setting.Private(false),
+		setting.Editable(true),
+	}
+	switch {
+	case r.ID.IsNaive():
+		confirmSetting = append(confirmSetting, setting.ID(r.ID))
+	default:
+		var keys = r.ID.Split()
+		confirmSetting = append(confirmSetting, setting.Name(keys[0]))
+	}
+	var settingEntity, err = modelClient.Settings().Query().
+		Where(confirmSetting...).
+		Select(setting.FieldName, setting.FieldValue).
+		Only(ctx)
+	if err != nil {
+		if model.IsNotFound(err) {
+			return runtime.Error(http.StatusBadRequest, "invalid setting: not found")
+		}
+		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting setting: %w", err)
+	}
+	if *r.Value == settingEntity.Value {
+		return errors.New("invalid input: nothing update")
+	}
+	r.Name = settingEntity.Name
+
+	return nil
+}
+
+type GetRequest struct {
+	ID oid.ID `uri:"id"`
+}
+
+func (r GetRequest) Validate() error {
+	if !r.ID.Valid(1) {
+		return errors.New("invalid id: blank")
+	}
+	return nil
+}
+
+type GetResponse = model.Setting
+
+// Batch APIs
+
+type CollectionUpdateRequest []*UpdateRequest
+
+func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) error {
+	if len(r) == 0 {
+		return errors.New("invalid input: empty list")
+	}
+	for _, i := range r {
+		var err = i.ValidateWith(ctx, input)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type CollectionGetRequest struct {
+	runtime.RequestPagination `query:",inline"`
+
+	IDs []oid.ID `query:"id,omitempty"`
+}
+
+func (r CollectionGetRequest) Validate() error {
+	for i := range r.IDs {
+		if !r.IDs[i].Valid(1) {
+			return errors.New("invalid id: blank")
+		}
+	}
+	return nil
+}
+
+type CollectionGetResponse = model.Settings
+
+// Extensional APIs
