@@ -74,6 +74,8 @@ jobs:
             ~/.cache/go-build
             ~/go/pkg
             ${{ github.workspace }}/.sbin
+      - name: Check Commit Message
+        uses: aevea/commitsar@v0.20.1
       - name: Check
         run: make ci-check
         env:
