@@ -5,8 +5,10 @@
 # following variables:
 #
 #    GOLANGCI_LINT_VERSION  -  The Golangci-lint version, default is v1.50.1.
+#        COMMITSAR_VERSION  -  The Commitsar version, default is v0.20.1.
 
 golangci_lint_version=${GOLANGCI_LINT_VERSION:-"v1.50.1"}
+commitsar_version=${COMMITSAR_VERSION:-"v0.20.1"}
 
 function seal::lint::golangci_lint::install() {
   curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${ROOT_DIR}/.sbin" "${golangci_lint_version}"
@@ -96,4 +98,54 @@ function seal::format::run() {
 
   seal::log::debug "goimports $*"
   $(seal::format::goimports::bin) "$@"
+}
+
+function seal::commit::commitsar::install() {
+  local os
+  os="$(seal::util::get_raw_os)"
+  local arch
+  arch="$(seal::util::get_raw_arch)"
+  curl --retry 3 --retry-all-errors --retry-delay 3 \
+    -o /tmp/commitsar.tar.gz \
+    -sSfL "https://github.com/aevea/commitsar/releases/download/${commitsar_version}/commitsar_${commitsar_version#v}_${os}_${arch}.tar.gz"
+  tar -zxvf /tmp/commitsar.tar.gz \
+    --directory "${ROOT_DIR}/.sbin" \
+    --no-same-owner \
+    --exclude ./LICENSE \
+    --exclude ./*.md
+  chmod a+x "${ROOT_DIR}/.sbin/commitsar"
+}
+
+function seal::commit::commitsar::validate() {
+  # shellcheck disable=SC2046
+  if [[ -n "$(command -v $(seal::commit::commitsar::bin))" ]]; then
+    if [[ $($(seal::commit::commitsar::bin) version 2>&1 | cut -d " " -f 7 2>&1 | head -n 1 | xargs echo -n) == "${commitsar_version#v}" ]]; then
+      return 0
+    fi
+  fi
+
+  seal::log::info "installing commitsar ${commitsar_version}"
+  if seal::commit::commitsar::install; then
+    seal::log::info "commitsar $($(seal::commit::commitsar::bin) version 2>&1 | cut -d " " -f 7 2>&1 | head -n 1 | xargs echo -n)"
+    return 0
+  fi
+  seal::log::error "no commitsar available"
+  return 1
+}
+
+function seal::commit::commitsar::bin() {
+  local bin="commitsar"
+  if [[ -f "${ROOT_DIR}/.sbin/commitsar" ]]; then
+    bin="${ROOT_DIR}/.sbin/commitsar"
+  fi
+  echo -n "${bin}"
+}
+
+function seal::commit::lint() {
+  if ! seal::commit::commitsar::validate; then
+    seal::log::fatal "cannot execute commitsar as client is not found"
+  fi
+
+  seal::log::debug "commitsar $*"
+  $(seal::commit::commitsar::bin) "$@"
 }

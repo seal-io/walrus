@@ -58,6 +58,8 @@ function after() {
 
 seal::log::info "+++ LINT +++"
 
+seal::commit::lint "${ROOT_DIR}"
+
 dispatch "utils" "${ROOT_DIR}/staging/utils" "$@"
 dispatch "seal" "${ROOT_DIR}" "$@"
 
