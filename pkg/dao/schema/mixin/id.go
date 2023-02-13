@@ -13,7 +13,7 @@ type ID struct {
 func (ID) Fields() []ent.Field {
 	// keep the json tag in camel case
 	return []ent.Field{
-		oid.Field(),
+		oid.Field("id", "ID of the resource."),
 	}
 }
 

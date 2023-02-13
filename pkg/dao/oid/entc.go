@@ -11,9 +11,9 @@ import (
 	"github.com/sony/sonyflake"
 )
 
-func Field() ent.Field {
-	return field.Other("id", ID("")).
-		Comment("The ID of resource.").
+func Field(name, comment string) ent.Field {
+	return field.Other(name, ID("")).
+		Comment(comment).
 		SchemaType(map[string]string{
 			dialect.MySQL:    "bigint",
 			dialect.Postgres: "bigint",
