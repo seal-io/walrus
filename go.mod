@@ -30,7 +30,7 @@ require (
 
 require (
 	ariga.io/atlas v0.9.1-0.20230119145809-92243f7c55cb // indirect
-	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/alitto/pond v1.8.3 // indirect
 	github.com/allegro/bigcache/v3 v3.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -69,13 +69,14 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
-	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
