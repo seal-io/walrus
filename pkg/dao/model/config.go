@@ -38,16 +38,30 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Role    []ent.Hook
-		Setting []ent.Hook
-		Subject []ent.Hook
-		Token   []ent.Hook
+		Application         []ent.Hook
+		ApplicationResource []ent.Hook
+		ApplicationRevision []ent.Hook
+		Connector           []ent.Hook
+		Environment         []ent.Hook
+		Module              []ent.Hook
+		Project             []ent.Hook
+		Role                []ent.Hook
+		Setting             []ent.Hook
+		Subject             []ent.Hook
+		Token               []ent.Hook
 	}
 	inters struct {
-		Role    []ent.Interceptor
-		Setting []ent.Interceptor
-		Subject []ent.Interceptor
-		Token   []ent.Interceptor
+		Application         []ent.Interceptor
+		ApplicationResource []ent.Interceptor
+		ApplicationRevision []ent.Interceptor
+		Connector           []ent.Interceptor
+		Environment         []ent.Interceptor
+		Module              []ent.Interceptor
+		Project             []ent.Interceptor
+		Role                []ent.Interceptor
+		Setting             []ent.Interceptor
+		Subject             []ent.Interceptor
+		Token               []ent.Interceptor
 	}
 )
 

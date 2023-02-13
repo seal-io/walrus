@@ -12,6 +12,90 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
+// The ApplicationFunc type is an adapter to allow the use of ordinary
+// function as Application mutator.
+type ApplicationFunc func(context.Context, *model.ApplicationMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ApplicationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationMutation", m)
+}
+
+// The ApplicationResourceFunc type is an adapter to allow the use of ordinary
+// function as ApplicationResource mutator.
+type ApplicationResourceFunc func(context.Context, *model.ApplicationResourceMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationResourceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ApplicationResourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationResourceMutation", m)
+}
+
+// The ApplicationRevisionFunc type is an adapter to allow the use of ordinary
+// function as ApplicationRevision mutator.
+type ApplicationRevisionFunc func(context.Context, *model.ApplicationRevisionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationRevisionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ApplicationRevisionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationRevisionMutation", m)
+}
+
+// The ConnectorFunc type is an adapter to allow the use of ordinary
+// function as Connector mutator.
+type ConnectorFunc func(context.Context, *model.ConnectorMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConnectorFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ConnectorMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ConnectorMutation", m)
+}
+
+// The EnvironmentFunc type is an adapter to allow the use of ordinary
+// function as Environment mutator.
+type EnvironmentFunc func(context.Context, *model.EnvironmentMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnvironmentFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.EnvironmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.EnvironmentMutation", m)
+}
+
+// The ModuleFunc type is an adapter to allow the use of ordinary
+// function as Module mutator.
+type ModuleFunc func(context.Context, *model.ModuleMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModuleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ModuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleMutation", m)
+}
+
+// The ProjectFunc type is an adapter to allow the use of ordinary
+// function as Project mutator.
+type ProjectFunc func(context.Context, *model.ProjectMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProjectFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ProjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ProjectMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *model.RoleMutation) (model.Value, error)

@@ -9,6 +9,27 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Application is the predicate function for application builders.
+type Application func(*sql.Selector)
+
+// ApplicationResource is the predicate function for applicationresource builders.
+type ApplicationResource func(*sql.Selector)
+
+// ApplicationRevision is the predicate function for applicationrevision builders.
+type ApplicationRevision func(*sql.Selector)
+
+// Connector is the predicate function for connector builders.
+type Connector func(*sql.Selector)
+
+// Environment is the predicate function for environment builders.
+type Environment func(*sql.Selector)
+
+// Module is the predicate function for module builders.
+type Module func(*sql.Selector)
+
+// Project is the predicate function for project builders.
+type Project func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

@@ -17,6 +17,20 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Application is the client for interacting with the Application builders.
+	Application *ApplicationClient
+	// ApplicationResource is the client for interacting with the ApplicationResource builders.
+	ApplicationResource *ApplicationResourceClient
+	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
+	ApplicationRevision *ApplicationRevisionClient
+	// Connector is the client for interacting with the Connector builders.
+	Connector *ConnectorClient
+	// Environment is the client for interacting with the Environment builders.
+	Environment *EnvironmentClient
+	// Module is the client for interacting with the Module builders.
+	Module *ModuleClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Setting is the client for interacting with the Setting builders.
@@ -156,6 +170,13 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Application = NewApplicationClient(tx.config)
+	tx.ApplicationResource = NewApplicationResourceClient(tx.config)
+	tx.ApplicationRevision = NewApplicationRevisionClient(tx.config)
+	tx.Connector = NewConnectorClient(tx.config)
+	tx.Environment = NewEnvironmentClient(tx.config)
+	tx.Module = NewModuleClient(tx.config)
+	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
@@ -169,7 +190,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Role.QueryXXX(), the query will be executed
+// applies a query, for example: Application.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
@@ -222,6 +243,41 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 }
 
 var _ dialect.Driver = (*txDriver)(nil)
+
+// Applications implements the ClientSet.
+func (tx *Tx) Applications() *ApplicationClient {
+	return tx.Application
+}
+
+// ApplicationResources implements the ClientSet.
+func (tx *Tx) ApplicationResources() *ApplicationResourceClient {
+	return tx.ApplicationResource
+}
+
+// ApplicationRevisions implements the ClientSet.
+func (tx *Tx) ApplicationRevisions() *ApplicationRevisionClient {
+	return tx.ApplicationRevision
+}
+
+// Connectors implements the ClientSet.
+func (tx *Tx) Connectors() *ConnectorClient {
+	return tx.Connector
+}
+
+// Environments implements the ClientSet.
+func (tx *Tx) Environments() *EnvironmentClient {
+	return tx.Environment
+}
+
+// Modules implements the ClientSet.
+func (tx *Tx) Modules() *ModuleClient {
+	return tx.Module
+}
+
+// Projects implements the ClientSet.
+func (tx *Tx) Projects() *ProjectClient {
+	return tx.Project
+}
 
 // Roles implements the ClientSet.
 func (tx *Tx) Roles() *RoleClient {

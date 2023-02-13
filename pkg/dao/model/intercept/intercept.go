@@ -71,6 +71,195 @@ func (f TraverseFunc) Traverse(ctx context.Context, q model.Query) error {
 	return f(ctx, query)
 }
 
+// The ApplicationFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ApplicationFunc func(context.Context, *model.ApplicationQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ApplicationFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ApplicationQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ApplicationQuery", q)
+}
+
+// The TraverseApplication type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseApplication func(context.Context, *model.ApplicationQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseApplication) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseApplication) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationQuery", q)
+}
+
+// The ApplicationResourceFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ApplicationResourceFunc func(context.Context, *model.ApplicationResourceQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ApplicationResourceFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ApplicationResourceQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ApplicationResourceQuery", q)
+}
+
+// The TraverseApplicationResource type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseApplicationResource func(context.Context, *model.ApplicationResourceQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseApplicationResource) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseApplicationResource) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationResourceQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationResourceQuery", q)
+}
+
+// The ApplicationRevisionFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ApplicationRevisionFunc func(context.Context, *model.ApplicationRevisionQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ApplicationRevisionFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ApplicationRevisionQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ApplicationRevisionQuery", q)
+}
+
+// The TraverseApplicationRevision type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseApplicationRevision func(context.Context, *model.ApplicationRevisionQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseApplicationRevision) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseApplicationRevision) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationRevisionQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationRevisionQuery", q)
+}
+
+// The ConnectorFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ConnectorFunc func(context.Context, *model.ConnectorQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ConnectorFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ConnectorQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ConnectorQuery", q)
+}
+
+// The TraverseConnector type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseConnector func(context.Context, *model.ConnectorQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseConnector) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseConnector) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ConnectorQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ConnectorQuery", q)
+}
+
+// The EnvironmentFunc type is an adapter to allow the use of ordinary function as a Querier.
+type EnvironmentFunc func(context.Context, *model.EnvironmentQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f EnvironmentFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.EnvironmentQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.EnvironmentQuery", q)
+}
+
+// The TraverseEnvironment type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseEnvironment func(context.Context, *model.EnvironmentQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseEnvironment) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseEnvironment) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.EnvironmentQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.EnvironmentQuery", q)
+}
+
+// The ModuleFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModuleFunc func(context.Context, *model.ModuleQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModuleFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ModuleQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ModuleQuery", q)
+}
+
+// The TraverseModule type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModule func(context.Context, *model.ModuleQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModule) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModule) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ModuleQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ModuleQuery", q)
+}
+
+// The ProjectFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ProjectFunc func(context.Context, *model.ProjectQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ProjectFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ProjectQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ProjectQuery", q)
+}
+
+// The TraverseProject type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseProject func(context.Context, *model.ProjectQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseProject) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseProject) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ProjectQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ProjectQuery", q)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
 type RoleFunc func(context.Context, *model.RoleQuery) (model.Value, error)
 
@@ -182,6 +371,20 @@ func (f TraverseToken) Traverse(ctx context.Context, q model.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
+	case *model.ApplicationQuery:
+		return &query[*model.ApplicationQuery, predicate.Application]{typ: model.TypeApplication, tq: q}, nil
+	case *model.ApplicationResourceQuery:
+		return &query[*model.ApplicationResourceQuery, predicate.ApplicationResource]{typ: model.TypeApplicationResource, tq: q}, nil
+	case *model.ApplicationRevisionQuery:
+		return &query[*model.ApplicationRevisionQuery, predicate.ApplicationRevision]{typ: model.TypeApplicationRevision, tq: q}, nil
+	case *model.ConnectorQuery:
+		return &query[*model.ConnectorQuery, predicate.Connector]{typ: model.TypeConnector, tq: q}, nil
+	case *model.EnvironmentQuery:
+		return &query[*model.EnvironmentQuery, predicate.Environment]{typ: model.TypeEnvironment, tq: q}, nil
+	case *model.ModuleQuery:
+		return &query[*model.ModuleQuery, predicate.Module]{typ: model.TypeModule, tq: q}, nil
+	case *model.ProjectQuery:
+		return &query[*model.ProjectQuery, predicate.Project]{typ: model.TypeProject, tq: q}, nil
 	case *model.RoleQuery:
 		return &query[*model.RoleQuery, predicate.Role]{typ: model.TypeRole, tq: q}, nil
 	case *model.SettingQuery:

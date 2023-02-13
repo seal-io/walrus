@@ -153,6 +153,174 @@ func DenyMutationOperationRule(op model.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
+// The ApplicationQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ApplicationQueryRuleFunc func(context.Context, *model.ApplicationQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ApplicationQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ApplicationQuery", q)
+}
+
+// The ApplicationMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ApplicationMutationRuleFunc func(context.Context, *model.ApplicationMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ApplicationMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ApplicationMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationMutation", m)
+}
+
+// The ApplicationResourceQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ApplicationResourceQueryRuleFunc func(context.Context, *model.ApplicationResourceQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ApplicationResourceQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationResourceQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ApplicationResourceQuery", q)
+}
+
+// The ApplicationResourceMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ApplicationResourceMutationRuleFunc func(context.Context, *model.ApplicationResourceMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ApplicationResourceMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ApplicationResourceMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationResourceMutation", m)
+}
+
+// The ApplicationRevisionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ApplicationRevisionQueryRuleFunc func(context.Context, *model.ApplicationRevisionQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ApplicationRevisionQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationRevisionQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ApplicationRevisionQuery", q)
+}
+
+// The ApplicationRevisionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ApplicationRevisionMutationRuleFunc func(context.Context, *model.ApplicationRevisionMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ApplicationRevisionMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ApplicationRevisionMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationRevisionMutation", m)
+}
+
+// The ConnectorQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ConnectorQueryRuleFunc func(context.Context, *model.ConnectorQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ConnectorQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ConnectorQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ConnectorQuery", q)
+}
+
+// The ConnectorMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ConnectorMutationRuleFunc func(context.Context, *model.ConnectorMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ConnectorMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ConnectorMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ConnectorMutation", m)
+}
+
+// The EnvironmentQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EnvironmentQueryRuleFunc func(context.Context, *model.EnvironmentQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f EnvironmentQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.EnvironmentQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.EnvironmentQuery", q)
+}
+
+// The EnvironmentMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EnvironmentMutationRuleFunc func(context.Context, *model.EnvironmentMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f EnvironmentMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.EnvironmentMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.EnvironmentMutation", m)
+}
+
+// The ModuleQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ModuleQueryRuleFunc func(context.Context, *model.ModuleQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ModuleQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ModuleQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ModuleQuery", q)
+}
+
+// The ModuleMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ModuleMutationRuleFunc func(context.Context, *model.ModuleMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ModuleMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ModuleMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ModuleMutation", m)
+}
+
+// The ProjectQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ProjectQueryRuleFunc func(context.Context, *model.ProjectQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ProjectQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ProjectQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ProjectQuery", q)
+}
+
+// The ProjectMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ProjectMutationRuleFunc func(context.Context, *model.ProjectMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ProjectMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ProjectMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ProjectMutation", m)
+}
+
 // The RoleQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type RoleQueryRuleFunc func(context.Context, *model.RoleQuery) error
@@ -284,6 +452,20 @@ var _ QueryMutationRule = FilterFunc(nil)
 
 func queryFilter(q model.Query) (Filter, error) {
 	switch q := q.(type) {
+	case *model.ApplicationQuery:
+		return q.Filter(), nil
+	case *model.ApplicationResourceQuery:
+		return q.Filter(), nil
+	case *model.ApplicationRevisionQuery:
+		return q.Filter(), nil
+	case *model.ConnectorQuery:
+		return q.Filter(), nil
+	case *model.EnvironmentQuery:
+		return q.Filter(), nil
+	case *model.ModuleQuery:
+		return q.Filter(), nil
+	case *model.ProjectQuery:
+		return q.Filter(), nil
 	case *model.RoleQuery:
 		return q.Filter(), nil
 	case *model.SettingQuery:
@@ -299,6 +481,20 @@ func queryFilter(q model.Query) (Filter, error) {
 
 func mutationFilter(m model.Mutation) (Filter, error) {
 	switch m := m.(type) {
+	case *model.ApplicationMutation:
+		return m.Filter(), nil
+	case *model.ApplicationResourceMutation:
+		return m.Filter(), nil
+	case *model.ApplicationRevisionMutation:
+		return m.Filter(), nil
+	case *model.ConnectorMutation:
+		return m.Filter(), nil
+	case *model.EnvironmentMutation:
+		return m.Filter(), nil
+	case *model.ModuleMutation:
+		return m.Filter(), nil
+	case *model.ProjectMutation:
+		return m.Filter(), nil
 	case *model.RoleMutation:
 		return m.Filter(), nil
 	case *model.SettingMutation:

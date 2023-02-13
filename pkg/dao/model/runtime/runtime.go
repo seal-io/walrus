@@ -8,6 +8,13 @@ package runtime
 import (
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
@@ -19,6 +26,125 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	applicationMixin := schema.Application{}.Mixin()
+	applicationMixinHooks0 := applicationMixin[0].Hooks()
+	application.Hooks[0] = applicationMixinHooks0[0]
+	applicationMixinFields2 := applicationMixin[2].Fields()
+	_ = applicationMixinFields2
+	applicationFields := schema.Application{}.Fields()
+	_ = applicationFields
+	// applicationDescCreateTime is the schema descriptor for createTime field.
+	applicationDescCreateTime := applicationMixinFields2[0].Descriptor()
+	// application.DefaultCreateTime holds the default value on creation for the createTime field.
+	application.DefaultCreateTime = applicationDescCreateTime.Default.(func() time.Time)
+	// applicationDescUpdateTime is the schema descriptor for updateTime field.
+	applicationDescUpdateTime := applicationMixinFields2[1].Descriptor()
+	// application.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	application.DefaultUpdateTime = applicationDescUpdateTime.Default.(func() time.Time)
+	// application.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	application.UpdateDefaultUpdateTime = applicationDescUpdateTime.UpdateDefault.(func() time.Time)
+	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
+	applicationresourceMixinHooks0 := applicationresourceMixin[0].Hooks()
+	applicationresource.Hooks[0] = applicationresourceMixinHooks0[0]
+	applicationresourceMixinFields3 := applicationresourceMixin[3].Fields()
+	_ = applicationresourceMixinFields3
+	applicationresourceFields := schema.ApplicationResource{}.Fields()
+	_ = applicationresourceFields
+	// applicationresourceDescCreateTime is the schema descriptor for createTime field.
+	applicationresourceDescCreateTime := applicationresourceMixinFields3[0].Descriptor()
+	// applicationresource.DefaultCreateTime holds the default value on creation for the createTime field.
+	applicationresource.DefaultCreateTime = applicationresourceDescCreateTime.Default.(func() time.Time)
+	// applicationresourceDescUpdateTime is the schema descriptor for updateTime field.
+	applicationresourceDescUpdateTime := applicationresourceMixinFields3[1].Descriptor()
+	// applicationresource.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
+	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	applicationresource.UpdateDefaultUpdateTime = applicationresourceDescUpdateTime.UpdateDefault.(func() time.Time)
+	applicationrevisionMixin := schema.ApplicationRevision{}.Mixin()
+	applicationrevisionMixinHooks0 := applicationrevisionMixin[0].Hooks()
+	applicationrevision.Hooks[0] = applicationrevisionMixinHooks0[0]
+	applicationrevisionMixinFields3 := applicationrevisionMixin[3].Fields()
+	_ = applicationrevisionMixinFields3
+	applicationrevisionFields := schema.ApplicationRevision{}.Fields()
+	_ = applicationrevisionFields
+	// applicationrevisionDescCreateTime is the schema descriptor for createTime field.
+	applicationrevisionDescCreateTime := applicationrevisionMixinFields3[0].Descriptor()
+	// applicationrevision.DefaultCreateTime holds the default value on creation for the createTime field.
+	applicationrevision.DefaultCreateTime = applicationrevisionDescCreateTime.Default.(func() time.Time)
+	// applicationrevisionDescUpdateTime is the schema descriptor for updateTime field.
+	applicationrevisionDescUpdateTime := applicationrevisionMixinFields3[1].Descriptor()
+	// applicationrevision.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	applicationrevision.DefaultUpdateTime = applicationrevisionDescUpdateTime.Default.(func() time.Time)
+	// applicationrevision.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	applicationrevision.UpdateDefaultUpdateTime = applicationrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
+	connectorMixin := schema.Connector{}.Mixin()
+	connectorMixinHooks0 := connectorMixin[0].Hooks()
+	connector.Hooks[0] = connectorMixinHooks0[0]
+	connectorMixinFields3 := connectorMixin[3].Fields()
+	_ = connectorMixinFields3
+	connectorFields := schema.Connector{}.Fields()
+	_ = connectorFields
+	// connectorDescCreateTime is the schema descriptor for createTime field.
+	connectorDescCreateTime := connectorMixinFields3[0].Descriptor()
+	// connector.DefaultCreateTime holds the default value on creation for the createTime field.
+	connector.DefaultCreateTime = connectorDescCreateTime.Default.(func() time.Time)
+	// connectorDescUpdateTime is the schema descriptor for updateTime field.
+	connectorDescUpdateTime := connectorMixinFields3[1].Descriptor()
+	// connector.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	connector.DefaultUpdateTime = connectorDescUpdateTime.Default.(func() time.Time)
+	// connector.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	connector.UpdateDefaultUpdateTime = connectorDescUpdateTime.UpdateDefault.(func() time.Time)
+	environmentMixin := schema.Environment{}.Mixin()
+	environmentMixinHooks0 := environmentMixin[0].Hooks()
+	environment.Hooks[0] = environmentMixinHooks0[0]
+	environmentMixinFields2 := environmentMixin[2].Fields()
+	_ = environmentMixinFields2
+	environmentFields := schema.Environment{}.Fields()
+	_ = environmentFields
+	// environmentDescCreateTime is the schema descriptor for createTime field.
+	environmentDescCreateTime := environmentMixinFields2[0].Descriptor()
+	// environment.DefaultCreateTime holds the default value on creation for the createTime field.
+	environment.DefaultCreateTime = environmentDescCreateTime.Default.(func() time.Time)
+	// environmentDescUpdateTime is the schema descriptor for updateTime field.
+	environmentDescUpdateTime := environmentMixinFields2[1].Descriptor()
+	// environment.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	environment.DefaultUpdateTime = environmentDescUpdateTime.Default.(func() time.Time)
+	// environment.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	environment.UpdateDefaultUpdateTime = environmentDescUpdateTime.UpdateDefault.(func() time.Time)
+	moduleMixin := schema.Module{}.Mixin()
+	moduleMixinHooks0 := moduleMixin[0].Hooks()
+	module.Hooks[0] = moduleMixinHooks0[0]
+	moduleMixinFields3 := moduleMixin[3].Fields()
+	_ = moduleMixinFields3
+	moduleFields := schema.Module{}.Fields()
+	_ = moduleFields
+	// moduleDescCreateTime is the schema descriptor for createTime field.
+	moduleDescCreateTime := moduleMixinFields3[0].Descriptor()
+	// module.DefaultCreateTime holds the default value on creation for the createTime field.
+	module.DefaultCreateTime = moduleDescCreateTime.Default.(func() time.Time)
+	// moduleDescUpdateTime is the schema descriptor for updateTime field.
+	moduleDescUpdateTime := moduleMixinFields3[1].Descriptor()
+	// module.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	module.DefaultUpdateTime = moduleDescUpdateTime.Default.(func() time.Time)
+	// module.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	module.UpdateDefaultUpdateTime = moduleDescUpdateTime.UpdateDefault.(func() time.Time)
+	projectMixin := schema.Project{}.Mixin()
+	projectMixinHooks0 := projectMixin[0].Hooks()
+	project.Hooks[0] = projectMixinHooks0[0]
+	projectMixinFields2 := projectMixin[2].Fields()
+	_ = projectMixinFields2
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescCreateTime is the schema descriptor for createTime field.
+	projectDescCreateTime := projectMixinFields2[0].Descriptor()
+	// project.DefaultCreateTime holds the default value on creation for the createTime field.
+	project.DefaultCreateTime = projectDescCreateTime.Default.(func() time.Time)
+	// projectDescUpdateTime is the schema descriptor for updateTime field.
+	projectDescUpdateTime := projectMixinFields2[1].Descriptor()
+	// project.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	project.DefaultUpdateTime = projectDescUpdateTime.Default.(func() time.Time)
+	// project.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	project.UpdateDefaultUpdateTime = projectDescUpdateTime.UpdateDefault.(func() time.Time)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinHooks0 := roleMixin[0].Hooks()
 	role.Hooks[0] = roleMixinHooks0[0]

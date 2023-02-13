@@ -22,7 +22,7 @@ import (
 type Role struct {
 	config `json:"-"`
 	// ID of the ent.
-	// The ID of resource.
+	// ID of the resource.
 	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
