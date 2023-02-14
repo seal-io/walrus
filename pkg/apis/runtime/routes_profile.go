@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"net/http"
 	"path"
 	"reflect"
 	"strings"
@@ -40,9 +41,6 @@ var categories = []ProfileCategory{
 // InputProfile defines the type profile of the input argument.
 type InputProfile struct {
 	ProfileProperty
-
-	// Router specifies the router configuration of the input argument.
-	Router *ProfileRouter
 }
 
 // OutputProfile defines the type profile of the output result.
@@ -163,24 +161,10 @@ func GetInputProfile(t reflect.Type) *InputProfile {
 
 	var p InputProfile
 
-	t = decodeTypePointer(t)
-	if t.Kind() == reflect.Struct {
-		for i := 0; i < t.NumField(); i++ {
-			var f = t.Field(i)
-			var v = f.Tag.Get("route")
-			if !isTagBlank(v) {
-				var m, sp = getTagAttribute(v)
-				if m == "" || sp == "" {
-					continue
-				}
-				p.Router = &ProfileRouter{
-					Method:  strings.ToUpper(m),
-					SubPath: path.Join("/", sp),
-				}
-				break
-			}
-		}
+	if t.Kind() == reflect.Func {
+		t = t.In(1)
 	}
+	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
 	for _, category := range categories {
 		var vs = sets.New[string]()
@@ -190,17 +174,22 @@ func GetInputProfile(t reflect.Type) *InputProfile {
 	return &p
 }
 
-// GetOutputProfile parses the given reflect.Type members as an OutputProfile.
-func GetOutputProfile(ts ...reflect.Type) *OutputProfile {
-	if len(ts) == 0 {
+// GetOutputProfile parses the given reflect.Type as an OutputProfile.
+func GetOutputProfile(t reflect.Type) *OutputProfile {
+	if t == nil {
 		return nil
 	}
 
 	var p OutputProfile
 
-	p.Page = len(ts) > 1
+	if t.Kind() == reflect.Func {
+		p.Page = t.NumOut() > 2
+	}
 
-	var t = decodeTypePointer(ts[0])
+	if t.Kind() == reflect.Func {
+		t = t.Out(0)
+	}
+	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
 	for _, category := range categories {
 		var vs = sets.New[string]()
@@ -208,6 +197,39 @@ func GetOutputProfile(ts ...reflect.Type) *OutputProfile {
 	}
 
 	return &p
+}
+
+// getProfileRouter parses the given reflect.Type as an ProfileRouter.
+func getProfileRouter(t reflect.Type) *ProfileRouter {
+	if t == nil {
+		return nil
+	}
+
+	t = decodeTypePointer(t)
+	if t.Kind() != reflect.Struct {
+		return nil
+	}
+	for i := 0; i < t.NumField(); i++ {
+		var f = t.Field(i)
+		var v = f.Tag.Get("route")
+		if !isTagBlank(v) {
+			var m, sp = getTagAttribute(v)
+			if m == "" || sp == "" {
+				continue
+			}
+			m = strings.ToUpper(m)
+			switch m {
+			default:
+				continue
+			case http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodGet:
+			}
+			return &ProfileRouter{
+				Method:  m,
+				SubPath: path.Join("/", sp),
+			}
+		}
+	}
+	return nil
 }
 
 func getProfileProperties(vs sets.Set[string], category string, t reflect.Type) []ProfileProperty {

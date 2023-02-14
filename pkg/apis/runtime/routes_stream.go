@@ -20,7 +20,7 @@ func isUpgradeStreamRequest(c *gin.Context) bool {
 	return websocket.IsWebSocketUpgrade(c.Request)
 }
 
-func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value) {
+func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	var logger = log.WithName("restful")
 
 	const (
@@ -63,8 +63,9 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value) {
 	}
 
 	g.Go(func() error {
-		var inputs = make([]reflect.Value, 0, 1)
+		var inputs = make([]reflect.Value, 0, 2)
 		inputs = append(inputs, reflect.ValueOf(rs))
+		inputs = append(inputs, ri)
 		_ = mr.Call(inputs)
 		return context.Canceled // escape
 	})
