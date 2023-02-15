@@ -30,8 +30,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldDriver holds the string denoting the driver field in the database.
-	FieldDriver = "driver"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// FieldConfigVersion holds the string denoting the configversion field in the database.
 	FieldConfigVersion = "config_version"
 	// FieldConfigData holds the string denoting the configdata field in the database.
@@ -66,7 +66,7 @@ var Columns = []string{
 	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldDriver,
+	FieldType,
 	FieldConfigVersion,
 	FieldConfigData,
 }

@@ -126,27 +126,29 @@ func (mu *ModuleUpdate) SetVersion(s string) *ModuleUpdate {
 	return mu
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (mu *ModuleUpdate) SetInputSchema(m map[string]interface{}) *ModuleUpdate {
-	mu.mutation.SetInputSchema(m)
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (mu *ModuleUpdate) SetNillableVersion(s *string) *ModuleUpdate {
+	if s != nil {
+		mu.SetVersion(*s)
+	}
 	return mu
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (mu *ModuleUpdate) ClearInputSchema() *ModuleUpdate {
-	mu.mutation.ClearInputSchema()
+// ClearVersion clears the value of the "version" field.
+func (mu *ModuleUpdate) ClearVersion() *ModuleUpdate {
+	mu.mutation.ClearVersion()
 	return mu
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (mu *ModuleUpdate) SetOutputSchema(m map[string]interface{}) *ModuleUpdate {
-	mu.mutation.SetOutputSchema(m)
+// SetSchema sets the "schema" field.
+func (mu *ModuleUpdate) SetSchema(ts *types.ModuleSchema) *ModuleUpdate {
+	mu.mutation.SetSchema(ts)
 	return mu
 }
 
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (mu *ModuleUpdate) ClearOutputSchema() *ModuleUpdate {
-	mu.mutation.ClearOutputSchema()
+// ClearSchema clears the value of the "schema" field.
+func (mu *ModuleUpdate) ClearSchema() *ModuleUpdate {
+	mu.mutation.ClearSchema()
 	return mu
 }
 
@@ -284,17 +286,14 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.Version(); ok {
 		_spec.SetField(module.FieldVersion, field.TypeString, value)
 	}
-	if value, ok := mu.mutation.InputSchema(); ok {
-		_spec.SetField(module.FieldInputSchema, field.TypeJSON, value)
+	if mu.mutation.VersionCleared() {
+		_spec.ClearField(module.FieldVersion, field.TypeString)
 	}
-	if mu.mutation.InputSchemaCleared() {
-		_spec.ClearField(module.FieldInputSchema, field.TypeJSON)
+	if value, ok := mu.mutation.Schema(); ok {
+		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
 	}
-	if value, ok := mu.mutation.OutputSchema(); ok {
-		_spec.SetField(module.FieldOutputSchema, field.TypeJSON, value)
-	}
-	if mu.mutation.OutputSchemaCleared() {
-		_spec.ClearField(module.FieldOutputSchema, field.TypeJSON)
+	if mu.mutation.SchemaCleared() {
+		_spec.ClearField(module.FieldSchema, field.TypeJSON)
 	}
 	if mu.mutation.ApplicationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -479,27 +478,29 @@ func (muo *ModuleUpdateOne) SetVersion(s string) *ModuleUpdateOne {
 	return muo
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (muo *ModuleUpdateOne) SetInputSchema(m map[string]interface{}) *ModuleUpdateOne {
-	muo.mutation.SetInputSchema(m)
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (muo *ModuleUpdateOne) SetNillableVersion(s *string) *ModuleUpdateOne {
+	if s != nil {
+		muo.SetVersion(*s)
+	}
 	return muo
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (muo *ModuleUpdateOne) ClearInputSchema() *ModuleUpdateOne {
-	muo.mutation.ClearInputSchema()
+// ClearVersion clears the value of the "version" field.
+func (muo *ModuleUpdateOne) ClearVersion() *ModuleUpdateOne {
+	muo.mutation.ClearVersion()
 	return muo
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (muo *ModuleUpdateOne) SetOutputSchema(m map[string]interface{}) *ModuleUpdateOne {
-	muo.mutation.SetOutputSchema(m)
+// SetSchema sets the "schema" field.
+func (muo *ModuleUpdateOne) SetSchema(ts *types.ModuleSchema) *ModuleUpdateOne {
+	muo.mutation.SetSchema(ts)
 	return muo
 }
 
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (muo *ModuleUpdateOne) ClearOutputSchema() *ModuleUpdateOne {
-	muo.mutation.ClearOutputSchema()
+// ClearSchema clears the value of the "schema" field.
+func (muo *ModuleUpdateOne) ClearSchema() *ModuleUpdateOne {
+	muo.mutation.ClearSchema()
 	return muo
 }
 
@@ -661,17 +662,14 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	if value, ok := muo.mutation.Version(); ok {
 		_spec.SetField(module.FieldVersion, field.TypeString, value)
 	}
-	if value, ok := muo.mutation.InputSchema(); ok {
-		_spec.SetField(module.FieldInputSchema, field.TypeJSON, value)
+	if muo.mutation.VersionCleared() {
+		_spec.ClearField(module.FieldVersion, field.TypeString)
 	}
-	if muo.mutation.InputSchemaCleared() {
-		_spec.ClearField(module.FieldInputSchema, field.TypeJSON)
+	if value, ok := muo.mutation.Schema(); ok {
+		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
 	}
-	if value, ok := muo.mutation.OutputSchema(); ok {
-		_spec.SetField(module.FieldOutputSchema, field.TypeJSON, value)
-	}
-	if muo.mutation.OutputSchemaCleared() {
-		_spec.ClearField(module.FieldOutputSchema, field.TypeJSON)
+	if muo.mutation.SchemaCleared() {
+		_spec.ClearField(module.FieldSchema, field.TypeJSON)
 	}
 	if muo.mutation.ApplicationCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -36,8 +36,8 @@ type Connector struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Driver type of the connector.
-	Driver string `json:"driver"`
+	// Type of the connector.
+	Type string `json:"type"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion"`
 	// Connector config data.
@@ -85,7 +85,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case connector.FieldLabels, connector.FieldConfigData:
 			values[i] = new([]byte)
-		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldDriver, connector.FieldConfigVersion:
+		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -158,11 +158,11 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				c.UpdateTime = new(time.Time)
 				*c.UpdateTime = value.Time
 			}
-		case connector.FieldDriver:
+		case connector.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field driver", values[i])
+				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				c.Driver = value.String
+				c.Type = value.String
 			}
 		case connector.FieldConfigVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -241,8 +241,8 @@ func (c *Connector) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("driver=")
-	builder.WriteString(c.Driver)
+	builder.WriteString("type=")
+	builder.WriteString(c.Type)
 	builder.WriteString(", ")
 	builder.WriteString("configVersion=")
 	builder.WriteString(c.ConfigVersion)

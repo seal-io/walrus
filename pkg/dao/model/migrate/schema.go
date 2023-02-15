@@ -175,7 +175,7 @@ var (
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "driver", Type: field.TypeString},
+		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
 		{Name: "config_data", Type: field.TypeJSON, Nullable: true},
 	}
@@ -261,9 +261,8 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "source", Type: field.TypeString},
-		{Name: "version", Type: field.TypeString},
-		{Name: "input_schema", Type: field.TypeJSON, Nullable: true},
-		{Name: "output_schema", Type: field.TypeJSON, Nullable: true},
+		{Name: "version", Type: field.TypeString, Nullable: true},
+		{Name: "schema", Type: field.TypeJSON, Nullable: true},
 	}
 	// ModulesTable holds the schema information for the "modules" table.
 	ModulesTable = &schema.Table{

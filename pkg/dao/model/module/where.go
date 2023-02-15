@@ -530,6 +530,16 @@ func VersionHasSuffix(v string) predicate.Module {
 	return predicate.Module(sql.FieldHasSuffix(FieldVersion, v))
 }
 
+// VersionIsNil applies the IsNil predicate on the "version" field.
+func VersionIsNil() predicate.Module {
+	return predicate.Module(sql.FieldIsNull(FieldVersion))
+}
+
+// VersionNotNil applies the NotNil predicate on the "version" field.
+func VersionNotNil() predicate.Module {
+	return predicate.Module(sql.FieldNotNull(FieldVersion))
+}
+
 // VersionEqualFold applies the EqualFold predicate on the "version" field.
 func VersionEqualFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldEqualFold(FieldVersion, v))
@@ -540,24 +550,14 @@ func VersionContainsFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldContainsFold(FieldVersion, v))
 }
 
-// InputSchemaIsNil applies the IsNil predicate on the "inputSchema" field.
-func InputSchemaIsNil() predicate.Module {
-	return predicate.Module(sql.FieldIsNull(FieldInputSchema))
+// SchemaIsNil applies the IsNil predicate on the "schema" field.
+func SchemaIsNil() predicate.Module {
+	return predicate.Module(sql.FieldIsNull(FieldSchema))
 }
 
-// InputSchemaNotNil applies the NotNil predicate on the "inputSchema" field.
-func InputSchemaNotNil() predicate.Module {
-	return predicate.Module(sql.FieldNotNull(FieldInputSchema))
-}
-
-// OutputSchemaIsNil applies the IsNil predicate on the "outputSchema" field.
-func OutputSchemaIsNil() predicate.Module {
-	return predicate.Module(sql.FieldIsNull(FieldOutputSchema))
-}
-
-// OutputSchemaNotNil applies the NotNil predicate on the "outputSchema" field.
-func OutputSchemaNotNil() predicate.Module {
-	return predicate.Module(sql.FieldNotNull(FieldOutputSchema))
+// SchemaNotNil applies the NotNil predicate on the "schema" field.
+func SchemaNotNil() predicate.Module {
+	return predicate.Module(sql.FieldNotNull(FieldSchema))
 }
 
 // HasApplication applies the HasEdge predicate on the "application" edge.

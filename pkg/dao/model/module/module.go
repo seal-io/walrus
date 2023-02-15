@@ -30,10 +30,8 @@ const (
 	FieldSource = "source"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
-	// FieldInputSchema holds the string denoting the inputschema field in the database.
-	FieldInputSchema = "input_schema"
-	// FieldOutputSchema holds the string denoting the outputschema field in the database.
-	FieldOutputSchema = "output_schema"
+	// FieldSchema holds the string denoting the schema field in the database.
+	FieldSchema = "schema"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
 	// EdgeApplicationModuleRelationships holds the string denoting the applicationmodulerelationships edge name in mutations.
@@ -65,8 +63,7 @@ var Columns = []string{
 	FieldLabels,
 	FieldSource,
 	FieldVersion,
-	FieldInputSchema,
-	FieldOutputSchema,
+	FieldSchema,
 }
 
 var (
