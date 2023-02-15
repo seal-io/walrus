@@ -111,9 +111,9 @@ func (cc *ConnectorCreate) SetNillableUpdateTime(t *time.Time) *ConnectorCreate 
 	return cc
 }
 
-// SetDriver sets the "driver" field.
-func (cc *ConnectorCreate) SetDriver(s string) *ConnectorCreate {
-	cc.mutation.SetDriver(s)
+// SetType sets the "type" field.
+func (cc *ConnectorCreate) SetType(s string) *ConnectorCreate {
+	cc.mutation.SetType(s)
 	return cc
 }
 
@@ -215,8 +215,8 @@ func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Connector.updateTime"`)}
 	}
-	if _, ok := cc.mutation.Driver(); !ok {
-		return &ValidationError{Name: "driver", err: errors.New(`model: missing required field "Connector.driver"`)}
+	if _, ok := cc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "Connector.type"`)}
 	}
 	if _, ok := cc.mutation.ConfigVersion(); !ok {
 		return &ValidationError{Name: "configVersion", err: errors.New(`model: missing required field "Connector.configVersion"`)}
@@ -292,9 +292,9 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := cc.mutation.Driver(); ok {
-		_spec.SetField(connector.FieldDriver, field.TypeString, value)
-		_node.Driver = value
+	if value, ok := cc.mutation.GetType(); ok {
+		_spec.SetField(connector.FieldType, field.TypeString, value)
+		_node.Type = value
 	}
 	if value, ok := cc.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
@@ -476,15 +476,15 @@ func (u *ConnectorUpsert) UpdateUpdateTime() *ConnectorUpsert {
 	return u
 }
 
-// SetDriver sets the "driver" field.
-func (u *ConnectorUpsert) SetDriver(v string) *ConnectorUpsert {
-	u.Set(connector.FieldDriver, v)
+// SetType sets the "type" field.
+func (u *ConnectorUpsert) SetType(v string) *ConnectorUpsert {
+	u.Set(connector.FieldType, v)
 	return u
 }
 
-// UpdateDriver sets the "driver" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateDriver() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldDriver)
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateType() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldType)
 	return u
 }
 
@@ -681,17 +681,17 @@ func (u *ConnectorUpsertOne) UpdateUpdateTime() *ConnectorUpsertOne {
 	})
 }
 
-// SetDriver sets the "driver" field.
-func (u *ConnectorUpsertOne) SetDriver(v string) *ConnectorUpsertOne {
+// SetType sets the "type" field.
+func (u *ConnectorUpsertOne) SetType(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetDriver(v)
+		s.SetType(v)
 	})
 }
 
-// UpdateDriver sets the "driver" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateDriver() *ConnectorUpsertOne {
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateType() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateDriver()
+		s.UpdateType()
 	})
 }
 
@@ -1056,17 +1056,17 @@ func (u *ConnectorUpsertBulk) UpdateUpdateTime() *ConnectorUpsertBulk {
 	})
 }
 
-// SetDriver sets the "driver" field.
-func (u *ConnectorUpsertBulk) SetDriver(v string) *ConnectorUpsertBulk {
+// SetType sets the "type" field.
+func (u *ConnectorUpsertBulk) SetType(v string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetDriver(v)
+		s.SetType(v)
 	})
 }
 
-// UpdateDriver sets the "driver" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateDriver() *ConnectorUpsertBulk {
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateType() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateDriver()
+		s.UpdateType()
 	})
 }
 

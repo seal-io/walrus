@@ -117,15 +117,17 @@ func (mc *ModuleCreate) SetVersion(s string) *ModuleCreate {
 	return mc
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (mc *ModuleCreate) SetInputSchema(m map[string]interface{}) *ModuleCreate {
-	mc.mutation.SetInputSchema(m)
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (mc *ModuleCreate) SetNillableVersion(s *string) *ModuleCreate {
+	if s != nil {
+		mc.SetVersion(*s)
+	}
 	return mc
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (mc *ModuleCreate) SetOutputSchema(m map[string]interface{}) *ModuleCreate {
-	mc.mutation.SetOutputSchema(m)
+// SetSchema sets the "schema" field.
+func (mc *ModuleCreate) SetSchema(ts *types.ModuleSchema) *ModuleCreate {
+	mc.mutation.SetSchema(ts)
 	return mc
 }
 
@@ -206,9 +208,6 @@ func (mc *ModuleCreate) check() error {
 	if _, ok := mc.mutation.Source(); !ok {
 		return &ValidationError{Name: "source", err: errors.New(`model: missing required field "Module.source"`)}
 	}
-	if _, ok := mc.mutation.Version(); !ok {
-		return &ValidationError{Name: "version", err: errors.New(`model: missing required field "Module.version"`)}
-	}
 	return nil
 }
 
@@ -284,13 +283,9 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		_spec.SetField(module.FieldVersion, field.TypeString, value)
 		_node.Version = value
 	}
-	if value, ok := mc.mutation.InputSchema(); ok {
-		_spec.SetField(module.FieldInputSchema, field.TypeJSON, value)
-		_node.InputSchema = value
-	}
-	if value, ok := mc.mutation.OutputSchema(); ok {
-		_spec.SetField(module.FieldOutputSchema, field.TypeJSON, value)
-		_node.OutputSchema = value
+	if value, ok := mc.mutation.Schema(); ok {
+		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
+		_node.Schema = value
 	}
 	if nodes := mc.mutation.ApplicationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -476,39 +471,27 @@ func (u *ModuleUpsert) UpdateVersion() *ModuleUpsert {
 	return u
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (u *ModuleUpsert) SetInputSchema(v map[string]interface{}) *ModuleUpsert {
-	u.Set(module.FieldInputSchema, v)
+// ClearVersion clears the value of the "version" field.
+func (u *ModuleUpsert) ClearVersion() *ModuleUpsert {
+	u.SetNull(module.FieldVersion)
 	return u
 }
 
-// UpdateInputSchema sets the "inputSchema" field to the value that was provided on create.
-func (u *ModuleUpsert) UpdateInputSchema() *ModuleUpsert {
-	u.SetExcluded(module.FieldInputSchema)
+// SetSchema sets the "schema" field.
+func (u *ModuleUpsert) SetSchema(v *types.ModuleSchema) *ModuleUpsert {
+	u.Set(module.FieldSchema, v)
 	return u
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (u *ModuleUpsert) ClearInputSchema() *ModuleUpsert {
-	u.SetNull(module.FieldInputSchema)
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *ModuleUpsert) UpdateSchema() *ModuleUpsert {
+	u.SetExcluded(module.FieldSchema)
 	return u
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (u *ModuleUpsert) SetOutputSchema(v map[string]interface{}) *ModuleUpsert {
-	u.Set(module.FieldOutputSchema, v)
-	return u
-}
-
-// UpdateOutputSchema sets the "outputSchema" field to the value that was provided on create.
-func (u *ModuleUpsert) UpdateOutputSchema() *ModuleUpsert {
-	u.SetExcluded(module.FieldOutputSchema)
-	return u
-}
-
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (u *ModuleUpsert) ClearOutputSchema() *ModuleUpsert {
-	u.SetNull(module.FieldOutputSchema)
+// ClearSchema clears the value of the "schema" field.
+func (u *ModuleUpsert) ClearSchema() *ModuleUpsert {
+	u.SetNull(module.FieldSchema)
 	return u
 }
 
@@ -689,45 +672,31 @@ func (u *ModuleUpsertOne) UpdateVersion() *ModuleUpsertOne {
 	})
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (u *ModuleUpsertOne) SetInputSchema(v map[string]interface{}) *ModuleUpsertOne {
+// ClearVersion clears the value of the "version" field.
+func (u *ModuleUpsertOne) ClearVersion() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
-		s.SetInputSchema(v)
+		s.ClearVersion()
 	})
 }
 
-// UpdateInputSchema sets the "inputSchema" field to the value that was provided on create.
-func (u *ModuleUpsertOne) UpdateInputSchema() *ModuleUpsertOne {
+// SetSchema sets the "schema" field.
+func (u *ModuleUpsertOne) SetSchema(v *types.ModuleSchema) *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateInputSchema()
+		s.SetSchema(v)
 	})
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (u *ModuleUpsertOne) ClearInputSchema() *ModuleUpsertOne {
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *ModuleUpsertOne) UpdateSchema() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
-		s.ClearInputSchema()
+		s.UpdateSchema()
 	})
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (u *ModuleUpsertOne) SetOutputSchema(v map[string]interface{}) *ModuleUpsertOne {
+// ClearSchema clears the value of the "schema" field.
+func (u *ModuleUpsertOne) ClearSchema() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
-		s.SetOutputSchema(v)
-	})
-}
-
-// UpdateOutputSchema sets the "outputSchema" field to the value that was provided on create.
-func (u *ModuleUpsertOne) UpdateOutputSchema() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateOutputSchema()
-	})
-}
-
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (u *ModuleUpsertOne) ClearOutputSchema() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearOutputSchema()
+		s.ClearSchema()
 	})
 }
 
@@ -1071,45 +1040,31 @@ func (u *ModuleUpsertBulk) UpdateVersion() *ModuleUpsertBulk {
 	})
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (u *ModuleUpsertBulk) SetInputSchema(v map[string]interface{}) *ModuleUpsertBulk {
+// ClearVersion clears the value of the "version" field.
+func (u *ModuleUpsertBulk) ClearVersion() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
-		s.SetInputSchema(v)
+		s.ClearVersion()
 	})
 }
 
-// UpdateInputSchema sets the "inputSchema" field to the value that was provided on create.
-func (u *ModuleUpsertBulk) UpdateInputSchema() *ModuleUpsertBulk {
+// SetSchema sets the "schema" field.
+func (u *ModuleUpsertBulk) SetSchema(v *types.ModuleSchema) *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateInputSchema()
+		s.SetSchema(v)
 	})
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (u *ModuleUpsertBulk) ClearInputSchema() *ModuleUpsertBulk {
+// UpdateSchema sets the "schema" field to the value that was provided on create.
+func (u *ModuleUpsertBulk) UpdateSchema() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
-		s.ClearInputSchema()
+		s.UpdateSchema()
 	})
 }
 
-// SetOutputSchema sets the "outputSchema" field.
-func (u *ModuleUpsertBulk) SetOutputSchema(v map[string]interface{}) *ModuleUpsertBulk {
+// ClearSchema clears the value of the "schema" field.
+func (u *ModuleUpsertBulk) ClearSchema() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
-		s.SetOutputSchema(v)
-	})
-}
-
-// UpdateOutputSchema sets the "outputSchema" field to the value that was provided on create.
-func (u *ModuleUpsertBulk) UpdateOutputSchema() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateOutputSchema()
-	})
-}
-
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (u *ModuleUpsertBulk) ClearOutputSchema() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearOutputSchema()
+		s.ClearSchema()
 	})
 }
 

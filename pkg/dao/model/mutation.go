@@ -3495,7 +3495,7 @@ type ConnectorMutation struct {
 	statusMessage      *string
 	createTime         *time.Time
 	updateTime         *time.Time
-	_driver            *string
+	_type              *string
 	configVersion      *string
 	configData         *map[string]interface{}
 	clearedFields      map[string]struct{}
@@ -3915,40 +3915,40 @@ func (m *ConnectorMutation) ResetUpdateTime() {
 	m.updateTime = nil
 }
 
-// SetDriver sets the "driver" field.
-func (m *ConnectorMutation) SetDriver(s string) {
-	m._driver = &s
+// SetType sets the "type" field.
+func (m *ConnectorMutation) SetType(s string) {
+	m._type = &s
 }
 
-// Driver returns the value of the "driver" field in the mutation.
-func (m *ConnectorMutation) Driver() (r string, exists bool) {
-	v := m._driver
+// GetType returns the value of the "type" field in the mutation.
+func (m *ConnectorMutation) GetType() (r string, exists bool) {
+	v := m._type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDriver returns the old "driver" field's value of the Connector entity.
+// OldType returns the old "type" field's value of the Connector entity.
 // If the Connector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldDriver(ctx context.Context) (v string, err error) {
+func (m *ConnectorMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDriver is only allowed on UpdateOne operations")
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDriver requires an ID field in the mutation")
+		return v, errors.New("OldType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDriver: %w", err)
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
 	}
-	return oldValue.Driver, nil
+	return oldValue.Type, nil
 }
 
-// ResetDriver resets all changes to the "driver" field.
-func (m *ConnectorMutation) ResetDriver() {
-	m._driver = nil
+// ResetType resets all changes to the "type" field.
+func (m *ConnectorMutation) ResetType() {
+	m._type = nil
 }
 
 // SetConfigVersion sets the "configVersion" field.
@@ -4146,8 +4146,8 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.updateTime != nil {
 		fields = append(fields, connector.FieldUpdateTime)
 	}
-	if m._driver != nil {
-		fields = append(fields, connector.FieldDriver)
+	if m._type != nil {
+		fields = append(fields, connector.FieldType)
 	}
 	if m.configVersion != nil {
 		fields = append(fields, connector.FieldConfigVersion)
@@ -4177,8 +4177,8 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case connector.FieldUpdateTime:
 		return m.UpdateTime()
-	case connector.FieldDriver:
-		return m.Driver()
+	case connector.FieldType:
+		return m.GetType()
 	case connector.FieldConfigVersion:
 		return m.ConfigVersion()
 	case connector.FieldConfigData:
@@ -4206,8 +4206,8 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCreateTime(ctx)
 	case connector.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case connector.FieldDriver:
-		return m.OldDriver(ctx)
+	case connector.FieldType:
+		return m.OldType(ctx)
 	case connector.FieldConfigVersion:
 		return m.OldConfigVersion(ctx)
 	case connector.FieldConfigData:
@@ -4270,12 +4270,12 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
-	case connector.FieldDriver:
+	case connector.FieldType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDriver(v)
+		m.SetType(v)
 		return nil
 	case connector.FieldConfigVersion:
 		v, ok := value.(string)
@@ -4394,8 +4394,8 @@ func (m *ConnectorMutation) ResetField(name string) error {
 	case connector.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case connector.FieldDriver:
-		m.ResetDriver()
+	case connector.FieldType:
+		m.ResetType()
 		return nil
 	case connector.FieldConfigVersion:
 		m.ResetConfigVersion()
@@ -5755,8 +5755,7 @@ type ModuleMutation struct {
 	labels             *map[string]string
 	source             *string
 	version            *string
-	inputSchema        *map[string]interface{}
-	outputSchema       *map[string]interface{}
+	schema             **types.ModuleSchema
 	clearedFields      map[string]struct{}
 	application        map[types.ID]struct{}
 	removedapplication map[types.ID]struct{}
@@ -6205,107 +6204,71 @@ func (m *ModuleMutation) OldVersion(ctx context.Context) (v string, err error) {
 	return oldValue.Version, nil
 }
 
+// ClearVersion clears the value of the "version" field.
+func (m *ModuleMutation) ClearVersion() {
+	m.version = nil
+	m.clearedFields[module.FieldVersion] = struct{}{}
+}
+
+// VersionCleared returns if the "version" field was cleared in this mutation.
+func (m *ModuleMutation) VersionCleared() bool {
+	_, ok := m.clearedFields[module.FieldVersion]
+	return ok
+}
+
 // ResetVersion resets all changes to the "version" field.
 func (m *ModuleMutation) ResetVersion() {
 	m.version = nil
+	delete(m.clearedFields, module.FieldVersion)
 }
 
-// SetInputSchema sets the "inputSchema" field.
-func (m *ModuleMutation) SetInputSchema(value map[string]interface{}) {
-	m.inputSchema = &value
+// SetSchema sets the "schema" field.
+func (m *ModuleMutation) SetSchema(ts *types.ModuleSchema) {
+	m.schema = &ts
 }
 
-// InputSchema returns the value of the "inputSchema" field in the mutation.
-func (m *ModuleMutation) InputSchema() (r map[string]interface{}, exists bool) {
-	v := m.inputSchema
+// Schema returns the value of the "schema" field in the mutation.
+func (m *ModuleMutation) Schema() (r *types.ModuleSchema, exists bool) {
+	v := m.schema
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldInputSchema returns the old "inputSchema" field's value of the Module entity.
+// OldSchema returns the old "schema" field's value of the Module entity.
 // If the Module object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModuleMutation) OldInputSchema(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *ModuleMutation) OldSchema(ctx context.Context) (v *types.ModuleSchema, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInputSchema is only allowed on UpdateOne operations")
+		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInputSchema requires an ID field in the mutation")
+		return v, errors.New("OldSchema requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInputSchema: %w", err)
+		return v, fmt.Errorf("querying old value for OldSchema: %w", err)
 	}
-	return oldValue.InputSchema, nil
+	return oldValue.Schema, nil
 }
 
-// ClearInputSchema clears the value of the "inputSchema" field.
-func (m *ModuleMutation) ClearInputSchema() {
-	m.inputSchema = nil
-	m.clearedFields[module.FieldInputSchema] = struct{}{}
+// ClearSchema clears the value of the "schema" field.
+func (m *ModuleMutation) ClearSchema() {
+	m.schema = nil
+	m.clearedFields[module.FieldSchema] = struct{}{}
 }
 
-// InputSchemaCleared returns if the "inputSchema" field was cleared in this mutation.
-func (m *ModuleMutation) InputSchemaCleared() bool {
-	_, ok := m.clearedFields[module.FieldInputSchema]
+// SchemaCleared returns if the "schema" field was cleared in this mutation.
+func (m *ModuleMutation) SchemaCleared() bool {
+	_, ok := m.clearedFields[module.FieldSchema]
 	return ok
 }
 
-// ResetInputSchema resets all changes to the "inputSchema" field.
-func (m *ModuleMutation) ResetInputSchema() {
-	m.inputSchema = nil
-	delete(m.clearedFields, module.FieldInputSchema)
-}
-
-// SetOutputSchema sets the "outputSchema" field.
-func (m *ModuleMutation) SetOutputSchema(value map[string]interface{}) {
-	m.outputSchema = &value
-}
-
-// OutputSchema returns the value of the "outputSchema" field in the mutation.
-func (m *ModuleMutation) OutputSchema() (r map[string]interface{}, exists bool) {
-	v := m.outputSchema
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOutputSchema returns the old "outputSchema" field's value of the Module entity.
-// If the Module object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModuleMutation) OldOutputSchema(ctx context.Context) (v map[string]interface{}, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOutputSchema is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOutputSchema requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOutputSchema: %w", err)
-	}
-	return oldValue.OutputSchema, nil
-}
-
-// ClearOutputSchema clears the value of the "outputSchema" field.
-func (m *ModuleMutation) ClearOutputSchema() {
-	m.outputSchema = nil
-	m.clearedFields[module.FieldOutputSchema] = struct{}{}
-}
-
-// OutputSchemaCleared returns if the "outputSchema" field was cleared in this mutation.
-func (m *ModuleMutation) OutputSchemaCleared() bool {
-	_, ok := m.clearedFields[module.FieldOutputSchema]
-	return ok
-}
-
-// ResetOutputSchema resets all changes to the "outputSchema" field.
-func (m *ModuleMutation) ResetOutputSchema() {
-	m.outputSchema = nil
-	delete(m.clearedFields, module.FieldOutputSchema)
+// ResetSchema resets all changes to the "schema" field.
+func (m *ModuleMutation) ResetSchema() {
+	m.schema = nil
+	delete(m.clearedFields, module.FieldSchema)
 }
 
 // AddApplicationIDs adds the "application" edge to the Application entity by ids.
@@ -6396,7 +6359,7 @@ func (m *ModuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModuleMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 9)
 	if m.status != nil {
 		fields = append(fields, module.FieldStatus)
 	}
@@ -6421,11 +6384,8 @@ func (m *ModuleMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, module.FieldVersion)
 	}
-	if m.inputSchema != nil {
-		fields = append(fields, module.FieldInputSchema)
-	}
-	if m.outputSchema != nil {
-		fields = append(fields, module.FieldOutputSchema)
+	if m.schema != nil {
+		fields = append(fields, module.FieldSchema)
 	}
 	return fields
 }
@@ -6451,10 +6411,8 @@ func (m *ModuleMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case module.FieldVersion:
 		return m.Version()
-	case module.FieldInputSchema:
-		return m.InputSchema()
-	case module.FieldOutputSchema:
-		return m.OutputSchema()
+	case module.FieldSchema:
+		return m.Schema()
 	}
 	return nil, false
 }
@@ -6480,10 +6438,8 @@ func (m *ModuleMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldSource(ctx)
 	case module.FieldVersion:
 		return m.OldVersion(ctx)
-	case module.FieldInputSchema:
-		return m.OldInputSchema(ctx)
-	case module.FieldOutputSchema:
-		return m.OldOutputSchema(ctx)
+	case module.FieldSchema:
+		return m.OldSchema(ctx)
 	}
 	return nil, fmt.Errorf("unknown Module field %s", name)
 }
@@ -6549,19 +6505,12 @@ func (m *ModuleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
-	case module.FieldInputSchema:
-		v, ok := value.(map[string]interface{})
+	case module.FieldSchema:
+		v, ok := value.(*types.ModuleSchema)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetInputSchema(v)
-		return nil
-	case module.FieldOutputSchema:
-		v, ok := value.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOutputSchema(v)
+		m.SetSchema(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Module field %s", name)
@@ -6605,11 +6554,11 @@ func (m *ModuleMutation) ClearedFields() []string {
 	if m.FieldCleared(module.FieldLabels) {
 		fields = append(fields, module.FieldLabels)
 	}
-	if m.FieldCleared(module.FieldInputSchema) {
-		fields = append(fields, module.FieldInputSchema)
+	if m.FieldCleared(module.FieldVersion) {
+		fields = append(fields, module.FieldVersion)
 	}
-	if m.FieldCleared(module.FieldOutputSchema) {
-		fields = append(fields, module.FieldOutputSchema)
+	if m.FieldCleared(module.FieldSchema) {
+		fields = append(fields, module.FieldSchema)
 	}
 	return fields
 }
@@ -6637,11 +6586,11 @@ func (m *ModuleMutation) ClearField(name string) error {
 	case module.FieldLabels:
 		m.ClearLabels()
 		return nil
-	case module.FieldInputSchema:
-		m.ClearInputSchema()
+	case module.FieldVersion:
+		m.ClearVersion()
 		return nil
-	case module.FieldOutputSchema:
-		m.ClearOutputSchema()
+	case module.FieldSchema:
+		m.ClearSchema()
 		return nil
 	}
 	return fmt.Errorf("unknown Module nullable field %s", name)
@@ -6675,11 +6624,8 @@ func (m *ModuleMutation) ResetField(name string) error {
 	case module.FieldVersion:
 		m.ResetVersion()
 		return nil
-	case module.FieldInputSchema:
-		m.ResetInputSchema()
-		return nil
-	case module.FieldOutputSchema:
-		m.ResetOutputSchema()
+	case module.FieldSchema:
+		m.ResetSchema()
 		return nil
 	}
 	return fmt.Errorf("unknown Module field %s", name)

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Module is the model entity for the Module schema.
@@ -37,11 +38,9 @@ type Module struct {
 	// Source of the module.
 	Source string `json:"source"`
 	// Version of the module.
-	Version string `json:"version"`
-	// Input schema of the module.
-	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
-	// Output schema of the module.
-	OutputSchema map[string]interface{} `json:"outputSchema,omitempty"`
+	Version string `json:"version,omitempty"`
+	// Schema of the module
+	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleQuery when eager-loading is set.
 	Edges ModuleEdges `json:"edges,omitempty"`
@@ -83,7 +82,7 @@ func (*Module) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case module.FieldLabels, module.FieldInputSchema, module.FieldOutputSchema:
+		case module.FieldLabels, module.FieldSchema:
 			values[i] = new([]byte)
 		case module.FieldID, module.FieldStatus, module.FieldStatusMessage, module.FieldDescription, module.FieldSource, module.FieldVersion:
 			values[i] = new(sql.NullString)
@@ -162,20 +161,12 @@ func (m *Module) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Version = value.String
 			}
-		case module.FieldInputSchema:
+		case module.FieldSchema:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field inputSchema", values[i])
+				return fmt.Errorf("unexpected type %T for field schema", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &m.InputSchema); err != nil {
-					return fmt.Errorf("unmarshal field inputSchema: %w", err)
-				}
-			}
-		case module.FieldOutputSchema:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field outputSchema", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &m.OutputSchema); err != nil {
-					return fmt.Errorf("unmarshal field outputSchema: %w", err)
+				if err := json.Unmarshal(*value, &m.Schema); err != nil {
+					return fmt.Errorf("unmarshal field schema: %w", err)
 				}
 			}
 		}
@@ -244,11 +235,8 @@ func (m *Module) String() string {
 	builder.WriteString("version=")
 	builder.WriteString(m.Version)
 	builder.WriteString(", ")
-	builder.WriteString("inputSchema=")
-	builder.WriteString(fmt.Sprintf("%v", m.InputSchema))
-	builder.WriteString(", ")
-	builder.WriteString("outputSchema=")
-	builder.WriteString(fmt.Sprintf("%v", m.OutputSchema))
+	builder.WriteString("schema=")
+	builder.WriteString(fmt.Sprintf("%v", m.Schema))
 	builder.WriteByte(')')
 	return builder.String()
 }

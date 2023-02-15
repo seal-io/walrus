@@ -120,9 +120,9 @@ func (cu *ConnectorUpdate) SetUpdateTime(t time.Time) *ConnectorUpdate {
 	return cu
 }
 
-// SetDriver sets the "driver" field.
-func (cu *ConnectorUpdate) SetDriver(s string) *ConnectorUpdate {
-	cu.mutation.SetDriver(s)
+// SetType sets the "type" field.
+func (cu *ConnectorUpdate) SetType(s string) *ConnectorUpdate {
+	cu.mutation.SetType(s)
 	return cu
 }
 
@@ -281,8 +281,8 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := cu.mutation.Driver(); ok {
-		_spec.SetField(connector.FieldDriver, field.TypeString, value)
+	if value, ok := cu.mutation.GetType(); ok {
+		_spec.SetField(connector.FieldType, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
@@ -470,9 +470,9 @@ func (cuo *ConnectorUpdateOne) SetUpdateTime(t time.Time) *ConnectorUpdateOne {
 	return cuo
 }
 
-// SetDriver sets the "driver" field.
-func (cuo *ConnectorUpdateOne) SetDriver(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetDriver(s)
+// SetType sets the "type" field.
+func (cuo *ConnectorUpdateOne) SetType(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetType(s)
 	return cuo
 }
 
@@ -655,8 +655,8 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if value, ok := cuo.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := cuo.mutation.Driver(); ok {
-		_spec.SetField(connector.FieldDriver, field.TypeString, value)
+	if value, ok := cuo.mutation.GetType(); ok {
+		_spec.SetField(connector.FieldType, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)

@@ -139,7 +139,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			connector.FieldStatusMessage: {Type: field.TypeString, Column: connector.FieldStatusMessage},
 			connector.FieldCreateTime:    {Type: field.TypeTime, Column: connector.FieldCreateTime},
 			connector.FieldUpdateTime:    {Type: field.TypeTime, Column: connector.FieldUpdateTime},
-			connector.FieldDriver:        {Type: field.TypeString, Column: connector.FieldDriver},
+			connector.FieldType:          {Type: field.TypeString, Column: connector.FieldType},
 			connector.FieldConfigVersion: {Type: field.TypeString, Column: connector.FieldConfigVersion},
 			connector.FieldConfigData:    {Type: field.TypeJSON, Column: connector.FieldConfigData},
 		},
@@ -204,8 +204,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			module.FieldLabels:        {Type: field.TypeJSON, Column: module.FieldLabels},
 			module.FieldSource:        {Type: field.TypeString, Column: module.FieldSource},
 			module.FieldVersion:       {Type: field.TypeString, Column: module.FieldVersion},
-			module.FieldInputSchema:   {Type: field.TypeJSON, Column: module.FieldInputSchema},
-			module.FieldOutputSchema:  {Type: field.TypeJSON, Column: module.FieldOutputSchema},
+			module.FieldSchema:        {Type: field.TypeJSON, Column: module.FieldSchema},
 		},
 	}
 	graph.Nodes[8] = &sqlgraph.Node{
@@ -1094,9 +1093,9 @@ func (f *ConnectorFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(connector.FieldUpdateTime))
 }
 
-// WhereDriver applies the entql string predicate on the driver field.
-func (f *ConnectorFilter) WhereDriver(p entql.StringP) {
-	f.Where(p.Field(connector.FieldDriver))
+// WhereType applies the entql string predicate on the type field.
+func (f *ConnectorFilter) WhereType(p entql.StringP) {
+	f.Where(p.Field(connector.FieldType))
 }
 
 // WhereConfigVersion applies the entql string predicate on the configVersion field.
@@ -1407,14 +1406,9 @@ func (f *ModuleFilter) WhereVersion(p entql.StringP) {
 	f.Where(p.Field(module.FieldVersion))
 }
 
-// WhereInputSchema applies the entql json.RawMessage predicate on the inputSchema field.
-func (f *ModuleFilter) WhereInputSchema(p entql.BytesP) {
-	f.Where(p.Field(module.FieldInputSchema))
-}
-
-// WhereOutputSchema applies the entql json.RawMessage predicate on the outputSchema field.
-func (f *ModuleFilter) WhereOutputSchema(p entql.BytesP) {
-	f.Where(p.Field(module.FieldOutputSchema))
+// WhereSchema applies the entql json.RawMessage predicate on the schema field.
+func (f *ModuleFilter) WhereSchema(p entql.BytesP) {
+	f.Where(p.Field(module.FieldSchema))
 }
 
 // WhereHasApplication applies a predicate to check if query has an edge application.

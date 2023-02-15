@@ -91,9 +91,9 @@ func UpdateTime(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// Driver applies equality check predicate on the "driver" field. It's identical to DriverEQ.
-func Driver(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldDriver, v))
+// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
+func Type(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldType, v))
 }
 
 // ConfigVersion applies equality check predicate on the "configVersion" field. It's identical to ConfigVersionEQ.
@@ -481,69 +481,69 @@ func UpdateTimeLTE(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// DriverEQ applies the EQ predicate on the "driver" field.
-func DriverEQ(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldDriver, v))
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldType, v))
 }
 
-// DriverNEQ applies the NEQ predicate on the "driver" field.
-func DriverNEQ(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldNEQ(FieldDriver, v))
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldType, v))
 }
 
-// DriverIn applies the In predicate on the "driver" field.
-func DriverIn(vs ...string) predicate.Connector {
-	return predicate.Connector(sql.FieldIn(FieldDriver, vs...))
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldIn(FieldType, vs...))
 }
 
-// DriverNotIn applies the NotIn predicate on the "driver" field.
-func DriverNotIn(vs ...string) predicate.Connector {
-	return predicate.Connector(sql.FieldNotIn(FieldDriver, vs...))
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldNotIn(FieldType, vs...))
 }
 
-// DriverGT applies the GT predicate on the "driver" field.
-func DriverGT(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldGT(FieldDriver, v))
+// TypeGT applies the GT predicate on the "type" field.
+func TypeGT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGT(FieldType, v))
 }
 
-// DriverGTE applies the GTE predicate on the "driver" field.
-func DriverGTE(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldGTE(FieldDriver, v))
+// TypeGTE applies the GTE predicate on the "type" field.
+func TypeGTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGTE(FieldType, v))
 }
 
-// DriverLT applies the LT predicate on the "driver" field.
-func DriverLT(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldLT(FieldDriver, v))
+// TypeLT applies the LT predicate on the "type" field.
+func TypeLT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLT(FieldType, v))
 }
 
-// DriverLTE applies the LTE predicate on the "driver" field.
-func DriverLTE(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldLTE(FieldDriver, v))
+// TypeLTE applies the LTE predicate on the "type" field.
+func TypeLTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLTE(FieldType, v))
 }
 
-// DriverContains applies the Contains predicate on the "driver" field.
-func DriverContains(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldContains(FieldDriver, v))
+// TypeContains applies the Contains predicate on the "type" field.
+func TypeContains(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContains(FieldType, v))
 }
 
-// DriverHasPrefix applies the HasPrefix predicate on the "driver" field.
-func DriverHasPrefix(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldHasPrefix(FieldDriver, v))
+// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
+func TypeHasPrefix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasPrefix(FieldType, v))
 }
 
-// DriverHasSuffix applies the HasSuffix predicate on the "driver" field.
-func DriverHasSuffix(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldHasSuffix(FieldDriver, v))
+// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
+func TypeHasSuffix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasSuffix(FieldType, v))
 }
 
-// DriverEqualFold applies the EqualFold predicate on the "driver" field.
-func DriverEqualFold(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEqualFold(FieldDriver, v))
+// TypeEqualFold applies the EqualFold predicate on the "type" field.
+func TypeEqualFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEqualFold(FieldType, v))
 }
 
-// DriverContainsFold applies the ContainsFold predicate on the "driver" field.
-func DriverContainsFold(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldContainsFold(FieldDriver, v))
+// TypeContainsFold applies the ContainsFold predicate on the "type" field.
+func TypeContainsFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContainsFold(FieldType, v))
 }
 
 // ConfigVersionEQ applies the EQ predicate on the "configVersion" field.
