@@ -23,11 +23,11 @@ func (Connector) Mixin() []ent.Mixin {
 func (Connector) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("driver").
-			Comment("Driver type of the connector"),
+			Comment("Driver type of the connector."),
 		field.String("configVersion").
-			Comment("Connector config version"),
+			Comment("Connector config version."),
 		field.JSON("configData", map[string]interface{}{}).
-			Comment("Connector config data").
+			Comment("Connector config data.").
 			Optional(),
 	}
 }
