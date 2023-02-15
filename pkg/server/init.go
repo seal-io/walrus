@@ -24,8 +24,9 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		init func(context.Context, initOptions) error
 	}
 	var inits = []initor{
-		{name: "settings", init: r.initSettings},
+		{name: "modules", init: r.initModules},
 		{name: "roles", init: r.initRoles},
+		{name: "settings", init: r.initSettings},
 		{name: "subjects", init: r.initSubjects},
 	}
 	if r.EnableAuthn {
