@@ -23,10 +23,10 @@ func (Environment) Mixin() []ent.Mixin {
 func (Environment) Fields() []ent.Field {
 	return []ent.Field{
 		field.JSON("connectorIDs", []oid.ID{}).
-			Comment("ID of connectors of the environment").
+			Comment("ID of connectors of the environment.").
 			Optional(),
 		field.JSON("variables", map[string]interface{}{}).
-			Comment("Variables of the environment").
+			Comment("Variables of the environment.").
 			Optional(),
 	}
 }

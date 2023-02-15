@@ -24,11 +24,11 @@ func (ApplicationResource) Mixin() []ent.Mixin {
 func (ApplicationResource) Fields() []ent.Field {
 	return []ent.Field{
 		oid.Field("applicationID").
-			Comment("ID of the application to which the revision belongs").
+			Comment("ID of the application to which the revision belongs.").
 			Immutable(),
 		field.String("module").
-			Comment("Module that generates the resource"),
+			Comment("Module that generates the resource."),
 		field.String("type").
-			Comment("Resource type"),
+			Comment("Resource type."),
 	}
 }

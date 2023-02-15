@@ -23,14 +23,14 @@ func (Module) Mixin() []ent.Mixin {
 func (Module) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("source").
-			Comment("Source of the module"),
+			Comment("Source of the module."),
 		field.String("version").
-			Comment("Version of the module"),
+			Comment("Version of the module."),
 		field.JSON("inputSchema", map[string]interface{}{}).
-			Comment("Input schema of the module").
+			Comment("Input schema of the module.").
 			Optional(),
 		field.JSON("outputSchema", map[string]interface{}{}).
-			Comment("Output schema of the module").
+			Comment("Output schema of the module.").
 			Optional(),
 	}
 }

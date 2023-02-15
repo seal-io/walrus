@@ -13,9 +13,9 @@ func (Status) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("status").
 			Optional().
-			Comment("Status of the resource"),
+			Comment("Status of the resource."),
 		field.String("statusMessage").
 			Optional().
-			Comment("extra message for status, like error details"),
+			Comment("Extra message for status, like error details."),
 	}
 }
