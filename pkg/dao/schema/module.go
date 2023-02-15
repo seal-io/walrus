@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 type Module struct {
@@ -34,12 +35,10 @@ func (Module) Fields() []ent.Field {
 		field.String("source").
 			Comment("Source of the module."),
 		field.String("version").
-			Comment("Version of the module."),
-		field.JSON("inputSchema", map[string]interface{}{}).
-			Comment("Input schema of the module.").
+			Comment("Version of the module.").
 			Optional(),
-		field.JSON("outputSchema", map[string]interface{}{}).
-			Comment("Output schema of the module.").
+		field.JSON("schema", &types.ModuleSchema{}).
+			Comment("Schema of the module").
 			Optional(),
 	}
 }
