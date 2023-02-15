@@ -11,15 +11,17 @@ import (
 	"github.com/sony/sonyflake"
 )
 
-func Field(name, comment string) ent.Field {
-	return field.Other(name, ID("")).
-		Comment(comment).
-		SchemaType(map[string]string{
-			dialect.MySQL:    "bigint",
-			dialect.Postgres: "bigint",
-			dialect.SQLite:   "integer",
-		}).
-		Immutable()
+func Field(name string) *fieldBuilder {
+	return &fieldBuilder{
+		desc: field.String(name).
+			GoType(ID("")).
+			SchemaType(map[string]string{
+				dialect.MySQL:    "bigint",
+				dialect.Postgres: "bigint",
+				dialect.SQLite:   "integer",
+			}).
+			Descriptor(),
+	}
 }
 
 func Hook() ent.Hook {

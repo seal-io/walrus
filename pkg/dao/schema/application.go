@@ -22,8 +22,12 @@ func (Application) Mixin() []ent.Mixin {
 
 func (Application) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("projectID", "ID of the project to which the application belongs"),
-		oid.Field("environmentID", "ID of the environment to which the application deploys"),
+		oid.Field("projectID").
+			Comment("ID of the project to which the application belongs").
+			Immutable(),
+		oid.Field("environmentID").
+			Comment("ID of the environment to which the application deploys").
+			Immutable(),
 		field.JSON("modules", []ApplicationModule{}).
 			Comment("Application modules"),
 	}

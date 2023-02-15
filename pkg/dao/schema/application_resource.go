@@ -23,7 +23,9 @@ func (ApplicationResource) Mixin() []ent.Mixin {
 
 func (ApplicationResource) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("applicationID", "ID of the application to which the revision belongs"),
+		oid.Field("applicationID").
+			Comment("ID of the application to which the revision belongs").
+			Immutable(),
 		field.String("module").
 			Comment("Module that generates the resource"),
 		field.String("type").

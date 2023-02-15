@@ -23,8 +23,12 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 
 func (ApplicationRevision) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("applicationID", "ID of the application to which the revision belongs"),
-		oid.Field("environmentID", "ID of the environment to which the application deploys"),
+		oid.Field("applicationID").
+			Comment("ID of the application to which the revision belongs").
+			Immutable(),
+		oid.Field("environmentID").
+			Comment("ID of the environment to which the application deploys").
+			Immutable(),
 		field.JSON("modules", []ApplicationModule{}).
 			Comment("Application modules"),
 		field.JSON("inputVariables", map[string]interface{}{}).
