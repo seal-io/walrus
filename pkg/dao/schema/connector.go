@@ -30,8 +30,8 @@ func (Connector) Indexes() []ent.Index {
 
 func (Connector) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("driver").
-			Comment("Driver type of the connector."),
+		field.String("type").
+			Comment("Type of the connector."),
 		field.String("configVersion").
 			Comment("Connector config version."),
 		field.JSON("configData", map[string]interface{}{}).
