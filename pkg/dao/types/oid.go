@@ -77,7 +77,7 @@ func (i ID) matchKeyLength(l int) bool {
 	case 1:
 		return true
 	}
-	return strings.Index(string(i), defaultSeparator)+1 == l
+	return strings.Count(string(i), defaultSeparator)+1 == l
 }
 
 // Split splits the composited key with default separator into an array,
