@@ -392,7 +392,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			}
 			if rv, ok := ri.Interface().(Validator); ok {
 				if err := rv.Validate(); err != nil {
-					_ = c.Error(Errorw(http.StatusBadRequest, err)).
+					_ = c.Error(err).
 						SetType(gin.ErrorTypeBind)
 					return
 				}
@@ -401,7 +401,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				hv, ok := h.(ValidatingInput)
 				if ok {
 					if err := rv.ValidateWith(c, hv.Validating()); err != nil {
-						_ = c.Error(Errorw(http.StatusBadRequest, err)).
+						_ = c.Error(err).
 							SetType(gin.ErrorTypeBind)
 						return
 					}

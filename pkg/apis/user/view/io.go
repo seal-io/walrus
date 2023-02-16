@@ -94,10 +94,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo, subject.FieldLoginTo).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid user: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting user: %w", err)
+		return err
 	}
 	r.Name = userEntity.Name
 	r.Group = userEntity.Group
@@ -140,10 +137,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid user: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting user: %w", err)
+		return err
 	}
 	r.ID = userEntity.ID
 	r.Name = userEntity.Name
@@ -242,10 +236,7 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid user: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting user: %w", err)
+		return err
 	}
 	if *userEntity.MountTo {
 		return runtime.Error(http.StatusBadRequest, "invalid user: already mounting")
