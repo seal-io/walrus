@@ -9,53 +9,55 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.ApplicationRevision {
+func ID(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.ApplicationRevision {
+func IDEQ(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.ApplicationRevision {
+func IDNEQ(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.ApplicationRevision {
+func IDIn(ids ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.ApplicationRevision {
+func IDNotIn(ids ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.ApplicationRevision {
+func IDGT(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.ApplicationRevision {
+func IDGTE(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.ApplicationRevision {
+func IDLT(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.ApplicationRevision {
+func IDLTE(id types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldID, id))
 }
 
@@ -80,12 +82,12 @@ func UpdateTime(v time.Time) predicate.ApplicationRevision {
 }
 
 // ApplicationID applies equality check predicate on the "applicationID" field. It's identical to ApplicationIDEQ.
-func ApplicationID(v oid.ID) predicate.ApplicationRevision {
+func ApplicationID(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldApplicationID, v))
 }
 
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentID(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
@@ -330,83 +332,143 @@ func UpdateTimeLTE(v time.Time) predicate.ApplicationRevision {
 }
 
 // ApplicationIDEQ applies the EQ predicate on the "applicationID" field.
-func ApplicationIDEQ(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDEQ(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDNEQ applies the NEQ predicate on the "applicationID" field.
-func ApplicationIDNEQ(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDNEQ(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDIn applies the In predicate on the "applicationID" field.
-func ApplicationIDIn(vs ...oid.ID) predicate.ApplicationRevision {
+func ApplicationIDIn(vs ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDNotIn applies the NotIn predicate on the "applicationID" field.
-func ApplicationIDNotIn(vs ...oid.ID) predicate.ApplicationRevision {
+func ApplicationIDNotIn(vs ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDGT applies the GT predicate on the "applicationID" field.
-func ApplicationIDGT(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDGT(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldApplicationID, v))
 }
 
 // ApplicationIDGTE applies the GTE predicate on the "applicationID" field.
-func ApplicationIDGTE(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDGTE(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldApplicationID, v))
 }
 
 // ApplicationIDLT applies the LT predicate on the "applicationID" field.
-func ApplicationIDLT(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDLT(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldApplicationID, v))
 }
 
 // ApplicationIDLTE applies the LTE predicate on the "applicationID" field.
-func ApplicationIDLTE(v oid.ID) predicate.ApplicationRevision {
+func ApplicationIDLTE(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldApplicationID, v))
 }
 
+// ApplicationIDContains applies the Contains predicate on the "applicationID" field.
+func ApplicationIDContains(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContains(FieldApplicationID, vc))
+}
+
+// ApplicationIDHasPrefix applies the HasPrefix predicate on the "applicationID" field.
+func ApplicationIDHasPrefix(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldApplicationID, vc))
+}
+
+// ApplicationIDHasSuffix applies the HasSuffix predicate on the "applicationID" field.
+func ApplicationIDHasSuffix(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldApplicationID, vc))
+}
+
+// ApplicationIDEqualFold applies the EqualFold predicate on the "applicationID" field.
+func ApplicationIDEqualFold(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldApplicationID, vc))
+}
+
+// ApplicationIDContainsFold applies the ContainsFold predicate on the "applicationID" field.
+func ApplicationIDContainsFold(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldApplicationID, vc))
+}
+
 // EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
-func EnvironmentIDEQ(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDEQ(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDNEQ applies the NEQ predicate on the "environmentID" field.
-func EnvironmentIDNEQ(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDNEQ(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDIn applies the In predicate on the "environmentID" field.
-func EnvironmentIDIn(vs ...oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDIn(vs ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDNotIn applies the NotIn predicate on the "environmentID" field.
-func EnvironmentIDNotIn(vs ...oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDNotIn(vs ...types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDGT applies the GT predicate on the "environmentID" field.
-func EnvironmentIDGT(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDGT(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDGTE applies the GTE predicate on the "environmentID" field.
-func EnvironmentIDGTE(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDGTE(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLT applies the LT predicate on the "environmentID" field.
-func EnvironmentIDLT(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDLT(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLTE applies the LTE predicate on the "environmentID" field.
-func EnvironmentIDLTE(v oid.ID) predicate.ApplicationRevision {
+func EnvironmentIDLTE(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDContains applies the Contains predicate on the "environmentID" field.
+func EnvironmentIDContains(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContains(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environmentID" field.
+func EnvironmentIDHasPrefix(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environmentID" field.
+func EnvironmentIDHasSuffix(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDEqualFold applies the EqualFold predicate on the "environmentID" field.
+func EnvironmentIDEqualFold(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDContainsFold applies the ContainsFold predicate on the "environmentID" field.
+func EnvironmentIDContainsFold(v types.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }
 
 // InputPlanEQ applies the EQ predicate on the "inputPlan" field.
@@ -537,6 +599,39 @@ func OutputEqualFold(v string) predicate.ApplicationRevision {
 // OutputContainsFold applies the ContainsFold predicate on the "output" field.
 func OutputContainsFold(v string) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldOutput, v))
+}
+
+// HasApplication applies the HasEdge predicate on the "application" edge.
+func HasApplication() predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
+func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ApplicationInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

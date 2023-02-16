@@ -15,9 +15,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ProjectUpdate is the builder for updating Project entities.
@@ -34,15 +36,89 @@ func (pu *ProjectUpdate) Where(ps ...predicate.Project) *ProjectUpdate {
 	return pu
 }
 
+// SetName sets the "name" field.
+func (pu *ProjectUpdate) SetName(s string) *ProjectUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetDescription sets the "description" field.
+func (pu *ProjectUpdate) SetDescription(s string) *ProjectUpdate {
+	pu.mutation.SetDescription(s)
+	return pu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableDescription(s *string) *ProjectUpdate {
+	if s != nil {
+		pu.SetDescription(*s)
+	}
+	return pu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (pu *ProjectUpdate) ClearDescription() *ProjectUpdate {
+	pu.mutation.ClearDescription()
+	return pu
+}
+
+// SetLabels sets the "labels" field.
+func (pu *ProjectUpdate) SetLabels(m map[string]string) *ProjectUpdate {
+	pu.mutation.SetLabels(m)
+	return pu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (pu *ProjectUpdate) ClearLabels() *ProjectUpdate {
+	pu.mutation.ClearLabels()
+	return pu
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (pu *ProjectUpdate) SetUpdateTime(t time.Time) *ProjectUpdate {
 	pu.mutation.SetUpdateTime(t)
 	return pu
 }
 
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (pu *ProjectUpdate) AddApplicationIDs(ids ...types.ID) *ProjectUpdate {
+	pu.mutation.AddApplicationIDs(ids...)
+	return pu
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (pu *ProjectUpdate) AddApplications(a ...*Application) *ProjectUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pu.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 	return pu.mutation
+}
+
+// ClearApplications clears all "applications" edges to the Application entity.
+func (pu *ProjectUpdate) ClearApplications() *ProjectUpdate {
+	pu.mutation.ClearApplications()
+	return pu
+}
+
+// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
+func (pu *ProjectUpdate) RemoveApplicationIDs(ids ...types.ID) *ProjectUpdate {
+	pu.mutation.RemoveApplicationIDs(ids...)
+	return pu
+}
+
+// RemoveApplications removes "applications" edges to Application entities.
+func (pu *ProjectUpdate) RemoveApplications(a ...*Application) *ProjectUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pu.RemoveApplicationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -99,7 +175,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: project.FieldID,
 			},
 		},
@@ -111,8 +187,80 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := pu.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Description(); ok {
+		_spec.SetField(project.FieldDescription, field.TypeString, value)
+	}
+	if pu.mutation.DescriptionCleared() {
+		_spec.ClearField(project.FieldDescription, field.TypeString)
+	}
+	if value, ok := pu.mutation.Labels(); ok {
+		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
+	}
+	if pu.mutation.LabelsCleared() {
+		_spec.ClearField(project.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := pu.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
+	}
+	if pu.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Application
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !pu.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
@@ -138,15 +286,89 @@ type ProjectUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetName sets the "name" field.
+func (puo *ProjectUpdateOne) SetName(s string) *ProjectUpdateOne {
+	puo.mutation.SetName(s)
+	return puo
+}
+
+// SetDescription sets the "description" field.
+func (puo *ProjectUpdateOne) SetDescription(s string) *ProjectUpdateOne {
+	puo.mutation.SetDescription(s)
+	return puo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableDescription(s *string) *ProjectUpdateOne {
+	if s != nil {
+		puo.SetDescription(*s)
+	}
+	return puo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (puo *ProjectUpdateOne) ClearDescription() *ProjectUpdateOne {
+	puo.mutation.ClearDescription()
+	return puo
+}
+
+// SetLabels sets the "labels" field.
+func (puo *ProjectUpdateOne) SetLabels(m map[string]string) *ProjectUpdateOne {
+	puo.mutation.SetLabels(m)
+	return puo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (puo *ProjectUpdateOne) ClearLabels() *ProjectUpdateOne {
+	puo.mutation.ClearLabels()
+	return puo
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (puo *ProjectUpdateOne) SetUpdateTime(t time.Time) *ProjectUpdateOne {
 	puo.mutation.SetUpdateTime(t)
 	return puo
 }
 
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (puo *ProjectUpdateOne) AddApplicationIDs(ids ...types.ID) *ProjectUpdateOne {
+	puo.mutation.AddApplicationIDs(ids...)
+	return puo
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (puo *ProjectUpdateOne) AddApplications(a ...*Application) *ProjectUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return puo.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 	return puo.mutation
+}
+
+// ClearApplications clears all "applications" edges to the Application entity.
+func (puo *ProjectUpdateOne) ClearApplications() *ProjectUpdateOne {
+	puo.mutation.ClearApplications()
+	return puo
+}
+
+// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
+func (puo *ProjectUpdateOne) RemoveApplicationIDs(ids ...types.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveApplicationIDs(ids...)
+	return puo
+}
+
+// RemoveApplications removes "applications" edges to Application entities.
+func (puo *ProjectUpdateOne) RemoveApplications(a ...*Application) *ProjectUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return puo.RemoveApplicationIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -210,7 +432,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: project.FieldID,
 			},
 		},
@@ -239,8 +461,80 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			}
 		}
 	}
+	if value, ok := puo.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Description(); ok {
+		_spec.SetField(project.FieldDescription, field.TypeString, value)
+	}
+	if puo.mutation.DescriptionCleared() {
+		_spec.ClearField(project.FieldDescription, field.TypeString)
+	}
+	if value, ok := puo.mutation.Labels(); ok {
+		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
+	}
+	if puo.mutation.LabelsCleared() {
+		_spec.ClearField(project.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := puo.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
+	}
+	if puo.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Application
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !puo.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = puo.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, puo.schemaConfig)

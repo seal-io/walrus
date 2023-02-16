@@ -195,7 +195,7 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   subject.Table,
 			Columns: subject.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: subject.FieldID,
 			},
 		},
@@ -431,7 +431,7 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Table:   subject.Table,
 			Columns: subject.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: subject.FieldID,
 			},
 		},

@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // RoleQuery is the builder for querying Role entities.
@@ -89,8 +89,8 @@ func (rq *RoleQuery) FirstX(ctx context.Context) *Role {
 
 // FirstID returns the first Role ID from the query.
 // Returns a *NotFoundError when no Role ID was found.
-func (rq *RoleQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (rq *RoleQuery) FirstID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func (rq *RoleQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rq *RoleQuery) FirstIDX(ctx context.Context) oid.ID {
+func (rq *RoleQuery) FirstIDX(ctx context.Context) types.ID {
 	id, err := rq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +140,8 @@ func (rq *RoleQuery) OnlyX(ctx context.Context) *Role {
 // OnlyID is like Only, but returns the only Role ID in the query.
 // Returns a *NotSingularError when more than one Role ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rq *RoleQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (rq *RoleQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (rq *RoleQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rq *RoleQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (rq *RoleQuery) OnlyIDX(ctx context.Context) types.ID {
 	id, err := rq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,8 +185,8 @@ func (rq *RoleQuery) AllX(ctx context.Context) []*Role {
 }
 
 // IDs executes the query and returns a list of Role IDs.
-func (rq *RoleQuery) IDs(ctx context.Context) ([]oid.ID, error) {
-	var ids []oid.ID
+func (rq *RoleQuery) IDs(ctx context.Context) ([]types.ID, error) {
+	var ids []types.ID
 	ctx = setContextOp(ctx, rq.ctx, "IDs")
 	if err := rq.Select(role.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (rq *RoleQuery) IDs(ctx context.Context) ([]oid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rq *RoleQuery) IDsX(ctx context.Context) []oid.ID {
+func (rq *RoleQuery) IDsX(ctx context.Context) []types.ID {
 	ids, err := rq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -385,7 +385,7 @@ func (rq *RoleQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   role.Table,
 			Columns: role.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: role.FieldID,
 			},
 		},

@@ -19,6 +19,8 @@ type Tx struct {
 	config
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
+	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
+	ApplicationModuleRelationship *ApplicationModuleRelationshipClient
 	// ApplicationResource is the client for interacting with the ApplicationResource builders.
 	ApplicationResource *ApplicationResourceClient
 	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
@@ -27,6 +29,8 @@ type Tx struct {
 	Connector *ConnectorClient
 	// Environment is the client for interacting with the Environment builders.
 	Environment *EnvironmentClient
+	// EnvironmentConnectorRelationship is the client for interacting with the EnvironmentConnectorRelationship builders.
+	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
 	// Project is the client for interacting with the Project builders.
@@ -171,10 +175,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Application = NewApplicationClient(tx.config)
+	tx.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(tx.config)
 	tx.ApplicationResource = NewApplicationResourceClient(tx.config)
 	tx.ApplicationRevision = NewApplicationRevisionClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
 	tx.Environment = NewEnvironmentClient(tx.config)
+	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
 	tx.Module = NewModuleClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
@@ -249,6 +255,11 @@ func (tx *Tx) Applications() *ApplicationClient {
 	return tx.Application
 }
 
+// ApplicationModuleRelationships implements the ClientSet.
+func (tx *Tx) ApplicationModuleRelationships() *ApplicationModuleRelationshipClient {
+	return tx.ApplicationModuleRelationship
+}
+
 // ApplicationResources implements the ClientSet.
 func (tx *Tx) ApplicationResources() *ApplicationResourceClient {
 	return tx.ApplicationResource
@@ -267,6 +278,11 @@ func (tx *Tx) Connectors() *ConnectorClient {
 // Environments implements the ClientSet.
 func (tx *Tx) Environments() *EnvironmentClient {
 	return tx.Environment
+}
+
+// EnvironmentConnectorRelationships implements the ClientSet.
+func (tx *Tx) EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient {
+	return tx.EnvironmentConnectorRelationship
 }
 
 // Modules implements the ClientSet.

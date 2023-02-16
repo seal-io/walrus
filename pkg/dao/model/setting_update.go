@@ -161,7 +161,7 @@ func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   setting.Table,
 			Columns: setting.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: setting.FieldID,
 			},
 		},
@@ -349,7 +349,7 @@ func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err e
 			Table:   setting.Table,
 			Columns: setting.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: setting.FieldID,
 			},
 		},

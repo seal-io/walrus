@@ -17,7 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // TokenCreate is the builder for creating a Token entity.
@@ -89,8 +89,8 @@ func (tc *TokenCreate) SetNillableExpiration(i *int) *TokenCreate {
 }
 
 // SetID sets the "id" field.
-func (tc *TokenCreate) SetID(o oid.ID) *TokenCreate {
-	tc.mutation.SetID(o)
+func (tc *TokenCreate) SetID(t types.ID) *TokenCreate {
+	tc.mutation.SetID(t)
 	return tc
 }
 
@@ -180,7 +180,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -197,7 +197,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: token.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: token.FieldID,
 			},
 		}
@@ -507,7 +507,7 @@ func (u *TokenUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *TokenUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *TokenUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -521,7 +521,7 @@ func (u *TokenUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *TokenUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *TokenUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

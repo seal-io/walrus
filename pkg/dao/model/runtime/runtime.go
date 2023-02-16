@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -43,40 +45,91 @@ func init() {
 	application.DefaultUpdateTime = applicationDescUpdateTime.Default.(func() time.Time)
 	// application.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	application.UpdateDefaultUpdateTime = applicationDescUpdateTime.UpdateDefault.(func() time.Time)
+	applicationmodulerelationshipMixin := schema.ApplicationModuleRelationship{}.Mixin()
+	applicationmodulerelationshipMixinFields0 := applicationmodulerelationshipMixin[0].Fields()
+	_ = applicationmodulerelationshipMixinFields0
+	applicationmodulerelationshipFields := schema.ApplicationModuleRelationship{}.Fields()
+	_ = applicationmodulerelationshipFields
+	// applicationmodulerelationshipDescCreateTime is the schema descriptor for createTime field.
+	applicationmodulerelationshipDescCreateTime := applicationmodulerelationshipMixinFields0[0].Descriptor()
+	// applicationmodulerelationship.DefaultCreateTime holds the default value on creation for the createTime field.
+	applicationmodulerelationship.DefaultCreateTime = applicationmodulerelationshipDescCreateTime.Default.(func() time.Time)
+	// applicationmodulerelationshipDescUpdateTime is the schema descriptor for updateTime field.
+	applicationmodulerelationshipDescUpdateTime := applicationmodulerelationshipMixinFields0[1].Descriptor()
+	// applicationmodulerelationship.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	applicationmodulerelationship.DefaultUpdateTime = applicationmodulerelationshipDescUpdateTime.Default.(func() time.Time)
+	// applicationmodulerelationship.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	applicationmodulerelationship.UpdateDefaultUpdateTime = applicationmodulerelationshipDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationmodulerelationshipDescApplicationID is the schema descriptor for application_id field.
+	applicationmodulerelationshipDescApplicationID := applicationmodulerelationshipFields[0].Descriptor()
+	// applicationmodulerelationship.ApplicationIDValidator is a validator for the "application_id" field. It is called by the builders before save.
+	applicationmodulerelationship.ApplicationIDValidator = applicationmodulerelationshipDescApplicationID.Validators[0].(func(string) error)
+	// applicationmodulerelationshipDescModuleID is the schema descriptor for module_id field.
+	applicationmodulerelationshipDescModuleID := applicationmodulerelationshipFields[1].Descriptor()
+	// applicationmodulerelationship.ModuleIDValidator is a validator for the "module_id" field. It is called by the builders before save.
+	applicationmodulerelationship.ModuleIDValidator = applicationmodulerelationshipDescModuleID.Validators[0].(func(string) error)
+	// applicationmodulerelationshipDescName is the schema descriptor for name field.
+	applicationmodulerelationshipDescName := applicationmodulerelationshipFields[2].Descriptor()
+	// applicationmodulerelationship.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	applicationmodulerelationship.NameValidator = applicationmodulerelationshipDescName.Validators[0].(func(string) error)
 	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
 	applicationresourceMixinHooks0 := applicationresourceMixin[0].Hooks()
 	applicationresource.Hooks[0] = applicationresourceMixinHooks0[0]
-	applicationresourceMixinFields3 := applicationresourceMixin[3].Fields()
-	_ = applicationresourceMixinFields3
+	applicationresourceMixinFields2 := applicationresourceMixin[2].Fields()
+	_ = applicationresourceMixinFields2
 	applicationresourceFields := schema.ApplicationResource{}.Fields()
 	_ = applicationresourceFields
 	// applicationresourceDescCreateTime is the schema descriptor for createTime field.
-	applicationresourceDescCreateTime := applicationresourceMixinFields3[0].Descriptor()
+	applicationresourceDescCreateTime := applicationresourceMixinFields2[0].Descriptor()
 	// applicationresource.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationresource.DefaultCreateTime = applicationresourceDescCreateTime.Default.(func() time.Time)
 	// applicationresourceDescUpdateTime is the schema descriptor for updateTime field.
-	applicationresourceDescUpdateTime := applicationresourceMixinFields3[1].Descriptor()
+	applicationresourceDescUpdateTime := applicationresourceMixinFields2[1].Descriptor()
 	// applicationresource.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationresource.UpdateDefaultUpdateTime = applicationresourceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationresourceDescConnectorID is the schema descriptor for connectorID field.
+	applicationresourceDescConnectorID := applicationresourceFields[1].Descriptor()
+	// applicationresource.ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
+	applicationresource.ConnectorIDValidator = applicationresourceDescConnectorID.Validators[0].(func(string) error)
+	// applicationresourceDescModule is the schema descriptor for module field.
+	applicationresourceDescModule := applicationresourceFields[2].Descriptor()
+	// applicationresource.ModuleValidator is a validator for the "module" field. It is called by the builders before save.
+	applicationresource.ModuleValidator = applicationresourceDescModule.Validators[0].(func(string) error)
+	// applicationresourceDescMode is the schema descriptor for mode field.
+	applicationresourceDescMode := applicationresourceFields[3].Descriptor()
+	// applicationresource.ModeValidator is a validator for the "mode" field. It is called by the builders before save.
+	applicationresource.ModeValidator = applicationresourceDescMode.Validators[0].(func(string) error)
+	// applicationresourceDescType is the schema descriptor for type field.
+	applicationresourceDescType := applicationresourceFields[4].Descriptor()
+	// applicationresource.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	applicationresource.TypeValidator = applicationresourceDescType.Validators[0].(func(string) error)
+	// applicationresourceDescName is the schema descriptor for name field.
+	applicationresourceDescName := applicationresourceFields[5].Descriptor()
+	// applicationresource.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	applicationresource.NameValidator = applicationresourceDescName.Validators[0].(func(string) error)
 	applicationrevisionMixin := schema.ApplicationRevision{}.Mixin()
 	applicationrevisionMixinHooks0 := applicationrevisionMixin[0].Hooks()
 	applicationrevision.Hooks[0] = applicationrevisionMixinHooks0[0]
-	applicationrevisionMixinFields3 := applicationrevisionMixin[3].Fields()
-	_ = applicationrevisionMixinFields3
+	applicationrevisionMixinFields2 := applicationrevisionMixin[2].Fields()
+	_ = applicationrevisionMixinFields2
 	applicationrevisionFields := schema.ApplicationRevision{}.Fields()
 	_ = applicationrevisionFields
 	// applicationrevisionDescCreateTime is the schema descriptor for createTime field.
-	applicationrevisionDescCreateTime := applicationrevisionMixinFields3[0].Descriptor()
+	applicationrevisionDescCreateTime := applicationrevisionMixinFields2[0].Descriptor()
 	// applicationrevision.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationrevision.DefaultCreateTime = applicationrevisionDescCreateTime.Default.(func() time.Time)
 	// applicationrevisionDescUpdateTime is the schema descriptor for updateTime field.
-	applicationrevisionDescUpdateTime := applicationrevisionMixinFields3[1].Descriptor()
+	applicationrevisionDescUpdateTime := applicationrevisionMixinFields2[1].Descriptor()
 	// applicationrevision.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	applicationrevision.DefaultUpdateTime = applicationrevisionDescUpdateTime.Default.(func() time.Time)
 	// applicationrevision.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationrevision.UpdateDefaultUpdateTime = applicationrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationrevisionDescEnvironmentID is the schema descriptor for environmentID field.
+	applicationrevisionDescEnvironmentID := applicationrevisionFields[1].Descriptor()
+	// applicationrevision.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	applicationrevision.EnvironmentIDValidator = applicationrevisionDescEnvironmentID.Validators[0].(func(string) error)
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connector.Hooks[0] = connectorMixinHooks0[0]
@@ -111,19 +164,34 @@ func init() {
 	environment.DefaultUpdateTime = environmentDescUpdateTime.Default.(func() time.Time)
 	// environment.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	environment.UpdateDefaultUpdateTime = environmentDescUpdateTime.UpdateDefault.(func() time.Time)
+	environmentconnectorrelationshipMixin := schema.EnvironmentConnectorRelationship{}.Mixin()
+	environmentconnectorrelationshipMixinFields0 := environmentconnectorrelationshipMixin[0].Fields()
+	_ = environmentconnectorrelationshipMixinFields0
+	environmentconnectorrelationshipFields := schema.EnvironmentConnectorRelationship{}.Fields()
+	_ = environmentconnectorrelationshipFields
+	// environmentconnectorrelationshipDescCreateTime is the schema descriptor for createTime field.
+	environmentconnectorrelationshipDescCreateTime := environmentconnectorrelationshipMixinFields0[0].Descriptor()
+	// environmentconnectorrelationship.DefaultCreateTime holds the default value on creation for the createTime field.
+	environmentconnectorrelationship.DefaultCreateTime = environmentconnectorrelationshipDescCreateTime.Default.(func() time.Time)
+	// environmentconnectorrelationshipDescEnvironmentID is the schema descriptor for environment_id field.
+	environmentconnectorrelationshipDescEnvironmentID := environmentconnectorrelationshipFields[0].Descriptor()
+	// environmentconnectorrelationship.EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
+	environmentconnectorrelationship.EnvironmentIDValidator = environmentconnectorrelationshipDescEnvironmentID.Validators[0].(func(string) error)
+	// environmentconnectorrelationshipDescConnectorID is the schema descriptor for connector_id field.
+	environmentconnectorrelationshipDescConnectorID := environmentconnectorrelationshipFields[1].Descriptor()
+	// environmentconnectorrelationship.ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
+	environmentconnectorrelationship.ConnectorIDValidator = environmentconnectorrelationshipDescConnectorID.Validators[0].(func(string) error)
 	moduleMixin := schema.Module{}.Mixin()
-	moduleMixinHooks0 := moduleMixin[0].Hooks()
-	module.Hooks[0] = moduleMixinHooks0[0]
-	moduleMixinFields3 := moduleMixin[3].Fields()
-	_ = moduleMixinFields3
+	moduleMixinFields1 := moduleMixin[1].Fields()
+	_ = moduleMixinFields1
 	moduleFields := schema.Module{}.Fields()
 	_ = moduleFields
 	// moduleDescCreateTime is the schema descriptor for createTime field.
-	moduleDescCreateTime := moduleMixinFields3[0].Descriptor()
+	moduleDescCreateTime := moduleMixinFields1[0].Descriptor()
 	// module.DefaultCreateTime holds the default value on creation for the createTime field.
 	module.DefaultCreateTime = moduleDescCreateTime.Default.(func() time.Time)
 	// moduleDescUpdateTime is the schema descriptor for updateTime field.
-	moduleDescUpdateTime := moduleMixinFields3[1].Descriptor()
+	moduleDescUpdateTime := moduleMixinFields1[1].Descriptor()
 	// module.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	module.DefaultUpdateTime = moduleDescUpdateTime.Default.(func() time.Time)
 	// module.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.

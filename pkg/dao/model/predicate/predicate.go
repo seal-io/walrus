@@ -12,6 +12,9 @@ import (
 // Application is the predicate function for application builders.
 type Application func(*sql.Selector)
 
+// ApplicationModuleRelationship is the predicate function for applicationmodulerelationship builders.
+type ApplicationModuleRelationship func(*sql.Selector)
+
 // ApplicationResource is the predicate function for applicationresource builders.
 type ApplicationResource func(*sql.Selector)
 
@@ -23,6 +26,9 @@ type Connector func(*sql.Selector)
 
 // Environment is the predicate function for environment builders.
 type Environment func(*sql.Selector)
+
+// EnvironmentConnectorRelationship is the predicate function for environmentconnectorrelationship builders.
+type EnvironmentConnectorRelationship func(*sql.Selector)
 
 // Module is the predicate function for module builders.
 type Module func(*sql.Selector)

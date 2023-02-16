@@ -17,8 +17,8 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // SubjectCreate is the builder for creating a Subject entity.
@@ -160,8 +160,8 @@ func (sc *SubjectCreate) SetNillableBuiltin(b *bool) *SubjectCreate {
 }
 
 // SetID sets the "id" field.
-func (sc *SubjectCreate) SetID(o oid.ID) *SubjectCreate {
-	sc.mutation.SetID(o)
+func (sc *SubjectCreate) SetID(t types.ID) *SubjectCreate {
+	sc.mutation.SetID(t)
 	return sc
 }
 
@@ -306,7 +306,7 @@ func (sc *SubjectCreate) sqlSave(ctx context.Context) (*Subject, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -323,7 +323,7 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: subject.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: subject.FieldID,
 			},
 		}
@@ -711,7 +711,7 @@ func (u *SubjectUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *SubjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *SubjectUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -725,7 +725,7 @@ func (u *SubjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *SubjectUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *SubjectUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

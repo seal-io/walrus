@@ -49,7 +49,7 @@ func (ard *ApplicationRevisionDelete) sqlExec(ctx context.Context) (int, error) 
 		Node: &sqlgraph.NodeSpec{
 			Table: applicationrevision.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		},

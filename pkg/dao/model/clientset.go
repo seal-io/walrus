@@ -12,6 +12,9 @@ type ClientSet interface {
 	// Applications returns the client for interacting with the Application builders.
 	Applications() *ApplicationClient
 
+	// ApplicationModuleRelationships returns the client for interacting with the ApplicationModuleRelationship builders.
+	ApplicationModuleRelationships() *ApplicationModuleRelationshipClient
+
 	// ApplicationResources returns the client for interacting with the ApplicationResource builders.
 	ApplicationResources() *ApplicationResourceClient
 
@@ -23,6 +26,9 @@ type ClientSet interface {
 
 	// Environments returns the client for interacting with the Environment builders.
 	Environments() *EnvironmentClient
+
+	// EnvironmentConnectorRelationships returns the client for interacting with the EnvironmentConnectorRelationship builders.
+	EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient
 
 	// Modules returns the client for interacting with the Module builders.
 	Modules() *ModuleClient
@@ -56,6 +62,12 @@ type ApplicationClientGetter interface {
 	Applications() *ApplicationClient
 }
 
+// ApplicationModuleRelationshipClientGetter is an interface that allows getting ApplicationModuleRelationshipClient.
+type ApplicationModuleRelationshipClientGetter interface {
+	// ApplicationModuleRelationships returns the client for interacting with the ApplicationModuleRelationship builders.
+	ApplicationModuleRelationships() *ApplicationModuleRelationshipClient
+}
+
 // ApplicationResourceClientGetter is an interface that allows getting ApplicationResourceClient.
 type ApplicationResourceClientGetter interface {
 	// ApplicationResources returns the client for interacting with the ApplicationResource builders.
@@ -78,6 +90,12 @@ type ConnectorClientGetter interface {
 type EnvironmentClientGetter interface {
 	// Environments returns the client for interacting with the Environment builders.
 	Environments() *EnvironmentClient
+}
+
+// EnvironmentConnectorRelationshipClientGetter is an interface that allows getting EnvironmentConnectorRelationshipClient.
+type EnvironmentConnectorRelationshipClientGetter interface {
+	// EnvironmentConnectorRelationships returns the client for interacting with the EnvironmentConnectorRelationship builders.
+	EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient
 }
 
 // ModuleClientGetter is an interface that allows getting ModuleClient.

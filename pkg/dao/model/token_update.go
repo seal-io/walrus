@@ -144,7 +144,7 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   token.Table,
 			Columns: token.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: token.FieldID,
 			},
 		},
@@ -318,7 +318,7 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error
 			Table:   token.Table,
 			Columns: token.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: token.FieldID,
 			},
 		},

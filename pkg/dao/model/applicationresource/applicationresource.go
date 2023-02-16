@@ -26,12 +26,27 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldApplicationID holds the string denoting the applicationid field in the database.
 	FieldApplicationID = "application_id"
+	// FieldConnectorID holds the string denoting the connectorid field in the database.
+	FieldConnectorID = "connector_id"
 	// FieldModule holds the string denoting the module field in the database.
 	FieldModule = "module"
+	// FieldMode holds the string denoting the mode field in the database.
+	FieldMode = "mode"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// EdgeApplication holds the string denoting the application edge name in mutations.
+	EdgeApplication = "application"
 	// Table holds the table name of the applicationresource in the database.
 	Table = "application_resources"
+	// ApplicationTable is the table that holds the application relation/edge.
+	ApplicationTable = "application_resources"
+	// ApplicationInverseTable is the table name for the Application entity.
+	// It exists in this package in order to avoid circular dependency with the "application" package.
+	ApplicationInverseTable = "applications"
+	// ApplicationColumn is the table column denoting the application relation/edge.
+	ApplicationColumn = "application_id"
 )
 
 // Columns holds all SQL columns for applicationresource fields.
@@ -42,8 +57,11 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldApplicationID,
+	FieldConnectorID,
 	FieldModule,
+	FieldMode,
 	FieldType,
+	FieldName,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -69,6 +87,16 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
+	ConnectorIDValidator func(string) error
+	// ModuleValidator is a validator for the "module" field. It is called by the builders before save.
+	ModuleValidator func(string) error
+	// ModeValidator is a validator for the "mode" field. It is called by the builders before save.
+	ModeValidator func(string) error
+	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	TypeValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

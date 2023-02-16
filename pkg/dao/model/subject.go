@@ -14,16 +14,15 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Subject is the model entity for the Subject schema.
 type Subject struct {
 	config `json:"-"`
 	// ID of the ent.
-	// ID of the resource.
-	ID oid.ID `json:"id,omitempty"`
+	ID types.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -55,14 +54,14 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case subject.FieldRoles, subject.FieldPaths:
 			values[i] = new([]byte)
-		case subject.FieldID:
-			values[i] = new(oid.ID)
 		case subject.FieldMountTo, subject.FieldLoginTo, subject.FieldBuiltin:
 			values[i] = new(sql.NullBool)
 		case subject.FieldKind, subject.FieldGroup, subject.FieldName, subject.FieldDescription:
 			values[i] = new(sql.NullString)
 		case subject.FieldCreateTime, subject.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
+		case subject.FieldID:
+			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Subject", columns[i])
 		}
@@ -79,7 +78,7 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case subject.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*types.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				s.ID = *value

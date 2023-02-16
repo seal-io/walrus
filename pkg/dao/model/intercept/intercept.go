@@ -98,6 +98,33 @@ func (f TraverseApplication) Traverse(ctx context.Context, q model.Query) error 
 	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationQuery", q)
 }
 
+// The ApplicationModuleRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ApplicationModuleRelationshipFunc func(context.Context, *model.ApplicationModuleRelationshipQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ApplicationModuleRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ApplicationModuleRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ApplicationModuleRelationshipQuery", q)
+}
+
+// The TraverseApplicationModuleRelationship type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseApplicationModuleRelationship func(context.Context, *model.ApplicationModuleRelationshipQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseApplicationModuleRelationship) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseApplicationModuleRelationship) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationModuleRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationModuleRelationshipQuery", q)
+}
+
 // The ApplicationResourceFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ApplicationResourceFunc func(context.Context, *model.ApplicationResourceQuery) (model.Value, error)
 
@@ -204,6 +231,33 @@ func (f TraverseEnvironment) Traverse(ctx context.Context, q model.Query) error 
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.EnvironmentQuery", q)
+}
+
+// The EnvironmentConnectorRelationshipFunc type is an adapter to allow the use of ordinary function as a Querier.
+type EnvironmentConnectorRelationshipFunc func(context.Context, *model.EnvironmentConnectorRelationshipQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f EnvironmentConnectorRelationshipFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.EnvironmentConnectorRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.EnvironmentConnectorRelationshipQuery", q)
+}
+
+// The TraverseEnvironmentConnectorRelationship type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseEnvironmentConnectorRelationship func(context.Context, *model.EnvironmentConnectorRelationshipQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseEnvironmentConnectorRelationship) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseEnvironmentConnectorRelationship) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.EnvironmentConnectorRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.EnvironmentConnectorRelationshipQuery", q)
 }
 
 // The ModuleFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -373,6 +427,8 @@ func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
 	case *model.ApplicationQuery:
 		return &query[*model.ApplicationQuery, predicate.Application]{typ: model.TypeApplication, tq: q}, nil
+	case *model.ApplicationModuleRelationshipQuery:
+		return &query[*model.ApplicationModuleRelationshipQuery, predicate.ApplicationModuleRelationship]{typ: model.TypeApplicationModuleRelationship, tq: q}, nil
 	case *model.ApplicationResourceQuery:
 		return &query[*model.ApplicationResourceQuery, predicate.ApplicationResource]{typ: model.TypeApplicationResource, tq: q}, nil
 	case *model.ApplicationRevisionQuery:
@@ -381,6 +437,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ConnectorQuery, predicate.Connector]{typ: model.TypeConnector, tq: q}, nil
 	case *model.EnvironmentQuery:
 		return &query[*model.EnvironmentQuery, predicate.Environment]{typ: model.TypeEnvironment, tq: q}, nil
+	case *model.EnvironmentConnectorRelationshipQuery:
+		return &query[*model.EnvironmentConnectorRelationshipQuery, predicate.EnvironmentConnectorRelationship]{typ: model.TypeEnvironmentConnectorRelationship, tq: q}, nil
 	case *model.ModuleQuery:
 		return &query[*model.ModuleQuery, predicate.Module]{typ: model.TypeModule, tq: q}, nil
 	case *model.ProjectQuery:

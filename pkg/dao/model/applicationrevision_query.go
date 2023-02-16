@@ -15,20 +15,22 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationRevisionQuery is the builder for querying ApplicationRevision entities.
 type ApplicationRevisionQuery struct {
 	config
-	ctx        *QueryContext
-	order      []OrderFunc
-	inters     []Interceptor
-	predicates []predicate.ApplicationRevision
-	modifiers  []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []OrderFunc
+	inters          []Interceptor
+	predicates      []predicate.ApplicationRevision
+	withApplication *ApplicationQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -65,6 +67,31 @@ func (arq *ApplicationRevisionQuery) Order(o ...OrderFunc) *ApplicationRevisionQ
 	return arq
 }
 
+// QueryApplication chains the current query on the "application" edge.
+func (arq *ApplicationRevisionQuery) QueryApplication() *ApplicationQuery {
+	query := (&ApplicationClient{config: arq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, selector),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.ApplicationTable, applicationrevision.ApplicationColumn),
+		)
+		schemaConfig := arq.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first ApplicationRevision entity from the query.
 // Returns a *NotFoundError when no ApplicationRevision was found.
 func (arq *ApplicationRevisionQuery) First(ctx context.Context) (*ApplicationRevision, error) {
@@ -89,8 +116,8 @@ func (arq *ApplicationRevisionQuery) FirstX(ctx context.Context) *ApplicationRev
 
 // FirstID returns the first ApplicationRevision ID from the query.
 // Returns a *NotFoundError when no ApplicationRevision ID was found.
-func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = arq.Limit(1).IDs(setContextOp(ctx, arq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +129,7 @@ func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id oid.ID, er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) FirstIDX(ctx context.Context) oid.ID {
+func (arq *ApplicationRevisionQuery) FirstIDX(ctx context.Context) types.ID {
 	id, err := arq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +167,8 @@ func (arq *ApplicationRevisionQuery) OnlyX(ctx context.Context) *ApplicationRevi
 // OnlyID is like Only, but returns the only ApplicationRevision ID in the query.
 // Returns a *NotSingularError when more than one ApplicationRevision ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = arq.Limit(2).IDs(setContextOp(ctx, arq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +184,7 @@ func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id oid.ID, err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (arq *ApplicationRevisionQuery) OnlyIDX(ctx context.Context) types.ID {
 	id, err := arq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,8 +212,8 @@ func (arq *ApplicationRevisionQuery) AllX(ctx context.Context) []*ApplicationRev
 }
 
 // IDs executes the query and returns a list of ApplicationRevision IDs.
-func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) ([]oid.ID, error) {
-	var ids []oid.ID
+func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) ([]types.ID, error) {
+	var ids []types.ID
 	ctx = setContextOp(ctx, arq.ctx, "IDs")
 	if err := arq.Select(applicationrevision.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -195,7 +222,7 @@ func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) ([]oid.ID, error) 
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) IDsX(ctx context.Context) []oid.ID {
+func (arq *ApplicationRevisionQuery) IDsX(ctx context.Context) []types.ID {
 	ids, err := arq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -250,15 +277,27 @@ func (arq *ApplicationRevisionQuery) Clone() *ApplicationRevisionQuery {
 		return nil
 	}
 	return &ApplicationRevisionQuery{
-		config:     arq.config,
-		ctx:        arq.ctx.Clone(),
-		order:      append([]OrderFunc{}, arq.order...),
-		inters:     append([]Interceptor{}, arq.inters...),
-		predicates: append([]predicate.ApplicationRevision{}, arq.predicates...),
+		config:          arq.config,
+		ctx:             arq.ctx.Clone(),
+		order:           append([]OrderFunc{}, arq.order...),
+		inters:          append([]Interceptor{}, arq.inters...),
+		predicates:      append([]predicate.ApplicationRevision{}, arq.predicates...),
+		withApplication: arq.withApplication.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
 	}
+}
+
+// WithApplication tells the query-builder to eager-load the nodes that are connected to
+// the "application" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationRevisionQuery) WithApplication(opts ...func(*ApplicationQuery)) *ApplicationRevisionQuery {
+	query := (&ApplicationClient{config: arq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arq.withApplication = query
+	return arq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -337,8 +376,11 @@ func (arq *ApplicationRevisionQuery) prepareQuery(ctx context.Context) error {
 
 func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ApplicationRevision, error) {
 	var (
-		nodes = []*ApplicationRevision{}
-		_spec = arq.querySpec()
+		nodes       = []*ApplicationRevision{}
+		_spec       = arq.querySpec()
+		loadedTypes = [1]bool{
+			arq.withApplication != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ApplicationRevision).scanValues(nil, columns)
@@ -346,6 +388,7 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ApplicationRevision{config: arq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = arq.schemaConfig.ApplicationRevision
@@ -362,7 +405,43 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := arq.withApplication; query != nil {
+		if err := arq.loadApplication(ctx, query, nodes, nil,
+			func(n *ApplicationRevision, e *Application) { n.Edges.Application = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (arq *ApplicationRevisionQuery) loadApplication(ctx context.Context, query *ApplicationQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *Application)) error {
+	ids := make([]types.ID, 0, len(nodes))
+	nodeids := make(map[types.ID][]*ApplicationRevision)
+	for i := range nodes {
+		fk := nodes[i].ApplicationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(application.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (arq *ApplicationRevisionQuery) sqlCount(ctx context.Context) (int, error) {
@@ -385,7 +464,7 @@ func (arq *ApplicationRevisionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   applicationrevision.Table,
 			Columns: applicationrevision.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		},

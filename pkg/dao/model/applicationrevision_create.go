@@ -16,9 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/oid"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationRevisionCreate is the builder for creating a ApplicationRevision entity.
@@ -86,20 +86,20 @@ func (arc *ApplicationRevisionCreate) SetNillableUpdateTime(t *time.Time) *Appli
 }
 
 // SetApplicationID sets the "applicationID" field.
-func (arc *ApplicationRevisionCreate) SetApplicationID(o oid.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetApplicationID(o)
+func (arc *ApplicationRevisionCreate) SetApplicationID(t types.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetApplicationID(t)
 	return arc
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (arc *ApplicationRevisionCreate) SetEnvironmentID(o oid.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetEnvironmentID(o)
+func (arc *ApplicationRevisionCreate) SetEnvironmentID(t types.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetEnvironmentID(t)
 	return arc
 }
 
 // SetModules sets the "modules" field.
-func (arc *ApplicationRevisionCreate) SetModules(sm []schema.ApplicationModule) *ApplicationRevisionCreate {
-	arc.mutation.SetModules(sm)
+func (arc *ApplicationRevisionCreate) SetModules(tm []types.ApplicationModule) *ApplicationRevisionCreate {
+	arc.mutation.SetModules(tm)
 	return arc
 }
 
@@ -122,9 +122,14 @@ func (arc *ApplicationRevisionCreate) SetOutput(s string) *ApplicationRevisionCr
 }
 
 // SetID sets the "id" field.
-func (arc *ApplicationRevisionCreate) SetID(o oid.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetID(o)
+func (arc *ApplicationRevisionCreate) SetID(t types.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetID(t)
 	return arc
+}
+
+// SetApplication sets the "application" edge to the Application entity.
+func (arc *ApplicationRevisionCreate) SetApplication(a *Application) *ApplicationRevisionCreate {
+	return arc.SetApplicationID(a.ID)
 }
 
 // Mutation returns the ApplicationRevisionMutation object of the builder.
@@ -195,6 +200,11 @@ func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "ApplicationRevision.environmentID"`)}
 	}
+	if v, ok := arc.mutation.EnvironmentID(); ok {
+		if err := applicationrevision.EnvironmentIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "environmentID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.environmentID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.Modules(); !ok {
 		return &ValidationError{Name: "modules", err: errors.New(`model: missing required field "ApplicationRevision.modules"`)}
 	}
@@ -206,6 +216,9 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.Output(); !ok {
 		return &ValidationError{Name: "output", err: errors.New(`model: missing required field "ApplicationRevision.output"`)}
+	}
+	if _, ok := arc.mutation.ApplicationID(); !ok {
+		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationRevision.application"`)}
 	}
 	return nil
 }
@@ -222,7 +235,7 @@ func (arc *ApplicationRevisionCreate) sqlSave(ctx context.Context) (*Application
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -239,7 +252,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		_spec = &sqlgraph.CreateSpec{
 			Table: applicationrevision.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		}
@@ -266,12 +279,8 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		_spec.SetField(applicationrevision.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := arc.mutation.ApplicationID(); ok {
-		_spec.SetField(applicationrevision.FieldApplicationID, field.TypeOther, value)
-		_node.ApplicationID = value
-	}
 	if value, ok := arc.mutation.EnvironmentID(); ok {
-		_spec.SetField(applicationrevision.FieldEnvironmentID, field.TypeOther, value)
+		_spec.SetField(applicationrevision.FieldEnvironmentID, field.TypeString, value)
 		_node.EnvironmentID = value
 	}
 	if value, ok := arc.mutation.Modules(); ok {
@@ -289,6 +298,27 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.Output(); ok {
 		_spec.SetField(applicationrevision.FieldOutput, field.TypeString, value)
 		_node.Output = value
+	}
+	if nodes := arc.mutation.ApplicationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationrevision.ApplicationTable,
+			Columns: []string{applicationrevision.ApplicationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ApplicationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -391,7 +421,7 @@ func (u *ApplicationRevisionUpsert) UpdateUpdateTime() *ApplicationRevisionUpser
 }
 
 // SetModules sets the "modules" field.
-func (u *ApplicationRevisionUpsert) SetModules(v []schema.ApplicationModule) *ApplicationRevisionUpsert {
+func (u *ApplicationRevisionUpsert) SetModules(v []types.ApplicationModule) *ApplicationRevisionUpsert {
 	u.Set(applicationrevision.FieldModules, v)
 	return u
 }
@@ -552,7 +582,7 @@ func (u *ApplicationRevisionUpsertOne) UpdateUpdateTime() *ApplicationRevisionUp
 }
 
 // SetModules sets the "modules" field.
-func (u *ApplicationRevisionUpsertOne) SetModules(v []schema.ApplicationModule) *ApplicationRevisionUpsertOne {
+func (u *ApplicationRevisionUpsertOne) SetModules(v []types.ApplicationModule) *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.SetModules(v)
 	})
@@ -623,7 +653,7 @@ func (u *ApplicationRevisionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -637,7 +667,7 @@ func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id oid.ID, err e
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationRevisionUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ApplicationRevisionUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -884,7 +914,7 @@ func (u *ApplicationRevisionUpsertBulk) UpdateUpdateTime() *ApplicationRevisionU
 }
 
 // SetModules sets the "modules" field.
-func (u *ApplicationRevisionUpsertBulk) SetModules(v []schema.ApplicationModule) *ApplicationRevisionUpsertBulk {
+func (u *ApplicationRevisionUpsertBulk) SetModules(v []types.ApplicationModule) *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.SetModules(v)
 	})

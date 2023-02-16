@@ -11,51 +11,51 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.Setting {
+func ID(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.Setting {
+func IDEQ(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.Setting {
+func IDNEQ(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.Setting {
+func IDIn(ids ...types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.Setting {
+func IDNotIn(ids ...types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.Setting {
+func IDGT(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.Setting {
+func IDGTE(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.Setting {
+func IDLT(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.Setting {
+func IDLTE(id types.ID) predicate.Setting {
 	return predicate.Setting(sql.FieldLTE(FieldID, id))
 }
 

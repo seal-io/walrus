@@ -16,8 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ModuleCreate is the builder for creating a Module entity.
@@ -84,6 +85,26 @@ func (mc *ModuleCreate) SetNillableUpdateTime(t *time.Time) *ModuleCreate {
 	return mc
 }
 
+// SetDescription sets the "description" field.
+func (mc *ModuleCreate) SetDescription(s string) *ModuleCreate {
+	mc.mutation.SetDescription(s)
+	return mc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (mc *ModuleCreate) SetNillableDescription(s *string) *ModuleCreate {
+	if s != nil {
+		mc.SetDescription(*s)
+	}
+	return mc
+}
+
+// SetLabels sets the "labels" field.
+func (mc *ModuleCreate) SetLabels(m map[string]string) *ModuleCreate {
+	mc.mutation.SetLabels(m)
+	return mc
+}
+
 // SetSource sets the "source" field.
 func (mc *ModuleCreate) SetSource(s string) *ModuleCreate {
 	mc.mutation.SetSource(s)
@@ -109,9 +130,24 @@ func (mc *ModuleCreate) SetOutputSchema(m map[string]interface{}) *ModuleCreate 
 }
 
 // SetID sets the "id" field.
-func (mc *ModuleCreate) SetID(o oid.ID) *ModuleCreate {
-	mc.mutation.SetID(o)
+func (mc *ModuleCreate) SetID(s string) *ModuleCreate {
+	mc.mutation.SetID(s)
 	return mc
+}
+
+// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
+func (mc *ModuleCreate) AddApplicationIDs(ids ...types.ID) *ModuleCreate {
+	mc.mutation.AddApplicationIDs(ids...)
+	return mc
+}
+
+// AddApplication adds the "application" edges to the Application entity.
+func (mc *ModuleCreate) AddApplication(a ...*Application) *ModuleCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return mc.AddApplicationIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
@@ -121,9 +157,7 @@ func (mc *ModuleCreate) Mutation() *ModuleMutation {
 
 // Save creates the Module in the database.
 func (mc *ModuleCreate) Save(ctx context.Context) (*Module, error) {
-	if err := mc.defaults(); err != nil {
-		return nil, err
-	}
+	mc.defaults()
 	return withHooks[*Module, ModuleMutation](ctx, mc.sqlSave, mc.mutation, mc.hooks)
 }
 
@@ -150,22 +184,15 @@ func (mc *ModuleCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (mc *ModuleCreate) defaults() error {
+func (mc *ModuleCreate) defaults() {
 	if _, ok := mc.mutation.CreateTime(); !ok {
-		if module.DefaultCreateTime == nil {
-			return fmt.Errorf("model: uninitialized module.DefaultCreateTime (forgotten import model/runtime?)")
-		}
 		v := module.DefaultCreateTime()
 		mc.mutation.SetCreateTime(v)
 	}
 	if _, ok := mc.mutation.UpdateTime(); !ok {
-		if module.DefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized module.DefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := module.DefaultUpdateTime()
 		mc.mutation.SetUpdateTime(v)
 	}
-	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -197,10 +224,10 @@ func (mc *ModuleCreate) sqlSave(ctx context.Context) (*Module, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Module.ID type: %T", _spec.ID.Value)
 		}
 	}
 	mc.mutation.id = &_node.ID
@@ -214,7 +241,7 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: module.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: module.FieldID,
 			},
 		}
@@ -223,7 +250,7 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 	_spec.OnConflict = mc.conflict
 	if id, ok := mc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := mc.mutation.Status(); ok {
 		_spec.SetField(module.FieldStatus, field.TypeString, value)
@@ -241,6 +268,14 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		_spec.SetField(module.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if value, ok := mc.mutation.Description(); ok {
+		_spec.SetField(module.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := mc.mutation.Labels(); ok {
+		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := mc.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 		_node.Source = value
@@ -256,6 +291,30 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.OutputSchema(); ok {
 		_spec.SetField(module.FieldOutputSchema, field.TypeJSON, value)
 		_node.OutputSchema = value
+	}
+	if nodes := mc.mutation.ApplicationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = mc.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: mc.config, mutation: newApplicationModuleRelationshipMutation(mc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -354,6 +413,42 @@ func (u *ModuleUpsert) SetUpdateTime(v time.Time) *ModuleUpsert {
 // UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
 func (u *ModuleUpsert) UpdateUpdateTime() *ModuleUpsert {
 	u.SetExcluded(module.FieldUpdateTime)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *ModuleUpsert) SetDescription(v string) *ModuleUpsert {
+	u.Set(module.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ModuleUpsert) UpdateDescription() *ModuleUpsert {
+	u.SetExcluded(module.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ModuleUpsert) ClearDescription() *ModuleUpsert {
+	u.SetNull(module.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *ModuleUpsert) SetLabels(v map[string]string) *ModuleUpsert {
+	u.Set(module.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ModuleUpsert) UpdateLabels() *ModuleUpsert {
+	u.SetExcluded(module.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ModuleUpsert) ClearLabels() *ModuleUpsert {
+	u.SetNull(module.FieldLabels)
 	return u
 }
 
@@ -524,6 +619,48 @@ func (u *ModuleUpsertOne) UpdateUpdateTime() *ModuleUpsertOne {
 	})
 }
 
+// SetDescription sets the "description" field.
+func (u *ModuleUpsertOne) SetDescription(v string) *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ModuleUpsertOne) UpdateDescription() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ModuleUpsertOne) ClearDescription() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ModuleUpsertOne) SetLabels(v map[string]string) *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ModuleUpsertOne) UpdateLabels() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ModuleUpsertOne) ClearLabels() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetSource sets the "source" field.
 func (u *ModuleUpsertOne) SetSource(v string) *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
@@ -610,7 +747,7 @@ func (u *ModuleUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ModuleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ModuleUpsertOne) ID(ctx context.Context) (id string, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -624,7 +761,7 @@ func (u *ModuleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ModuleUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ModuleUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -861,6 +998,48 @@ func (u *ModuleUpsertBulk) SetUpdateTime(v time.Time) *ModuleUpsertBulk {
 func (u *ModuleUpsertBulk) UpdateUpdateTime() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ModuleUpsertBulk) SetDescription(v string) *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ModuleUpsertBulk) UpdateDescription() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ModuleUpsertBulk) ClearDescription() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ModuleUpsertBulk) SetLabels(v map[string]string) *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ModuleUpsertBulk) UpdateLabels() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ModuleUpsertBulk) ClearLabels() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearLabels()
 	})
 }
 

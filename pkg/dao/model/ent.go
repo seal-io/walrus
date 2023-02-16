@@ -16,10 +16,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -53,17 +55,19 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		application.Table:         application.ValidColumn,
-		applicationresource.Table: applicationresource.ValidColumn,
-		applicationrevision.Table: applicationrevision.ValidColumn,
-		connector.Table:           connector.ValidColumn,
-		environment.Table:         environment.ValidColumn,
-		module.Table:              module.ValidColumn,
-		project.Table:             project.ValidColumn,
-		role.Table:                role.ValidColumn,
-		setting.Table:             setting.ValidColumn,
-		subject.Table:             subject.ValidColumn,
-		token.Table:               token.ValidColumn,
+		application.Table:                      application.ValidColumn,
+		applicationmodulerelationship.Table:    applicationmodulerelationship.ValidColumn,
+		applicationresource.Table:              applicationresource.ValidColumn,
+		applicationrevision.Table:              applicationrevision.ValidColumn,
+		connector.Table:                        connector.ValidColumn,
+		environment.Table:                      environment.ValidColumn,
+		environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
+		module.Table:                           module.ValidColumn,
+		project.Table:                          project.ValidColumn,
+		role.Table:                             role.ValidColumn,
+		setting.Table:                          setting.ValidColumn,
+		subject.Table:                          subject.ValidColumn,
+		token.Table:                            token.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

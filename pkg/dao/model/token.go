@@ -13,15 +13,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Token is the model entity for the Token schema.
 type Token struct {
 	config `json:"-"`
 	// ID of the ent.
-	// ID of the resource.
-	ID oid.ID `json:"id,omitempty"`
+	ID types.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -34,8 +33,8 @@ type Token struct {
 	Name string `json:"name"`
 	// Expiration in seconds.
 	Expiration *int `json:"expiration,omitempty"`
-
-	// AccessToken is the token used for authentication. It does not store in the database and only shows up on creation.
+	// [EXTENSION] AccessToken is the token used for authentication.
+	// It does not store in the database and only shows up after created.
 	AccessToken string `json:"accessToken,omitempty"`
 }
 
@@ -44,14 +43,14 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case token.FieldID:
-			values[i] = new(oid.ID)
 		case token.FieldExpiration:
 			values[i] = new(sql.NullInt64)
 		case token.FieldCasdoorTokenName, token.FieldCasdoorTokenOwner, token.FieldName:
 			values[i] = new(sql.NullString)
 		case token.FieldCreateTime, token.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
+		case token.FieldID:
+			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Token", columns[i])
 		}
@@ -68,7 +67,7 @@ func (t *Token) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case token.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*types.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				t.ID = *value

@@ -16,8 +16,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // EnvironmentCreate is the builder for creating a Environment entity.
@@ -26,6 +28,32 @@ type EnvironmentCreate struct {
 	mutation *EnvironmentMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetName sets the "name" field.
+func (ec *EnvironmentCreate) SetName(s string) *EnvironmentCreate {
+	ec.mutation.SetName(s)
+	return ec
+}
+
+// SetDescription sets the "description" field.
+func (ec *EnvironmentCreate) SetDescription(s string) *EnvironmentCreate {
+	ec.mutation.SetDescription(s)
+	return ec
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ec *EnvironmentCreate) SetNillableDescription(s *string) *EnvironmentCreate {
+	if s != nil {
+		ec.SetDescription(*s)
+	}
+	return ec
+}
+
+// SetLabels sets the "labels" field.
+func (ec *EnvironmentCreate) SetLabels(m map[string]string) *EnvironmentCreate {
+	ec.mutation.SetLabels(m)
+	return ec
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -56,12 +84,6 @@ func (ec *EnvironmentCreate) SetNillableUpdateTime(t *time.Time) *EnvironmentCre
 	return ec
 }
 
-// SetConnectorIDs sets the "connectorIDs" field.
-func (ec *EnvironmentCreate) SetConnectorIDs(o []oid.ID) *EnvironmentCreate {
-	ec.mutation.SetConnectorIDs(o)
-	return ec
-}
-
 // SetVariables sets the "variables" field.
 func (ec *EnvironmentCreate) SetVariables(m map[string]interface{}) *EnvironmentCreate {
 	ec.mutation.SetVariables(m)
@@ -69,9 +91,39 @@ func (ec *EnvironmentCreate) SetVariables(m map[string]interface{}) *Environment
 }
 
 // SetID sets the "id" field.
-func (ec *EnvironmentCreate) SetID(o oid.ID) *EnvironmentCreate {
-	ec.mutation.SetID(o)
+func (ec *EnvironmentCreate) SetID(t types.ID) *EnvironmentCreate {
+	ec.mutation.SetID(t)
 	return ec
+}
+
+// AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
+func (ec *EnvironmentCreate) AddConnectorIDs(ids ...types.ID) *EnvironmentCreate {
+	ec.mutation.AddConnectorIDs(ids...)
+	return ec
+}
+
+// AddConnectors adds the "connectors" edges to the Connector entity.
+func (ec *EnvironmentCreate) AddConnectors(c ...*Connector) *EnvironmentCreate {
+	ids := make([]types.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return ec.AddConnectorIDs(ids...)
+}
+
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (ec *EnvironmentCreate) AddApplicationIDs(ids ...types.ID) *EnvironmentCreate {
+	ec.mutation.AddApplicationIDs(ids...)
+	return ec
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (ec *EnvironmentCreate) AddApplications(a ...*Application) *EnvironmentCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ec.AddApplicationIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -130,6 +182,9 @@ func (ec *EnvironmentCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ec *EnvironmentCreate) check() error {
+	if _, ok := ec.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Environment.name"`)}
+	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Environment.createTime"`)}
 	}
@@ -151,7 +206,7 @@ func (ec *EnvironmentCreate) sqlSave(ctx context.Context) (*Environment, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -168,7 +223,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: environment.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: environment.FieldID,
 			},
 		}
@@ -179,6 +234,18 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := ec.mutation.Name(); ok {
+		_spec.SetField(environment.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := ec.mutation.Description(); ok {
+		_spec.SetField(environment.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := ec.mutation.Labels(); ok {
+		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := ec.mutation.CreateTime(); ok {
 		_spec.SetField(environment.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -187,13 +254,53 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := ec.mutation.ConnectorIDs(); ok {
-		_spec.SetField(environment.FieldConnectorIDs, field.TypeJSON, value)
-		_node.ConnectorIDs = value
-	}
 	if value, ok := ec.mutation.Variables(); ok {
 		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
 		_node.Variables = value
+	}
+	if nodes := ec.mutation.ConnectorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = ec.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: ec.config, mutation: newEnvironmentConnectorRelationshipMutation(ec.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = ec.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -202,7 +309,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Environment.Create().
-//		SetCreateTime(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -211,7 +318,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ec *EnvironmentCreate) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertOne {
@@ -247,6 +354,54 @@ type (
 	}
 )
 
+// SetName sets the "name" field.
+func (u *EnvironmentUpsert) SetName(v string) *EnvironmentUpsert {
+	u.Set(environment.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *EnvironmentUpsert) UpdateName() *EnvironmentUpsert {
+	u.SetExcluded(environment.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *EnvironmentUpsert) SetDescription(v string) *EnvironmentUpsert {
+	u.Set(environment.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *EnvironmentUpsert) UpdateDescription() *EnvironmentUpsert {
+	u.SetExcluded(environment.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *EnvironmentUpsert) ClearDescription() *EnvironmentUpsert {
+	u.SetNull(environment.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *EnvironmentUpsert) SetLabels(v map[string]string) *EnvironmentUpsert {
+	u.Set(environment.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *EnvironmentUpsert) UpdateLabels() *EnvironmentUpsert {
+	u.SetExcluded(environment.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsert) ClearLabels() *EnvironmentUpsert {
+	u.SetNull(environment.FieldLabels)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *EnvironmentUpsert) SetUpdateTime(v time.Time) *EnvironmentUpsert {
 	u.Set(environment.FieldUpdateTime, v)
@@ -256,24 +411,6 @@ func (u *EnvironmentUpsert) SetUpdateTime(v time.Time) *EnvironmentUpsert {
 // UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
 func (u *EnvironmentUpsert) UpdateUpdateTime() *EnvironmentUpsert {
 	u.SetExcluded(environment.FieldUpdateTime)
-	return u
-}
-
-// SetConnectorIDs sets the "connectorIDs" field.
-func (u *EnvironmentUpsert) SetConnectorIDs(v []oid.ID) *EnvironmentUpsert {
-	u.Set(environment.FieldConnectorIDs, v)
-	return u
-}
-
-// UpdateConnectorIDs sets the "connectorIDs" field to the value that was provided on create.
-func (u *EnvironmentUpsert) UpdateConnectorIDs() *EnvironmentUpsert {
-	u.SetExcluded(environment.FieldConnectorIDs)
-	return u
-}
-
-// ClearConnectorIDs clears the value of the "connectorIDs" field.
-func (u *EnvironmentUpsert) ClearConnectorIDs() *EnvironmentUpsert {
-	u.SetNull(environment.FieldConnectorIDs)
 	return u
 }
 
@@ -346,6 +483,62 @@ func (u *EnvironmentUpsertOne) Update(set func(*EnvironmentUpsert)) *Environment
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *EnvironmentUpsertOne) SetName(v string) *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *EnvironmentUpsertOne) UpdateName() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *EnvironmentUpsertOne) SetDescription(v string) *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *EnvironmentUpsertOne) UpdateDescription() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *EnvironmentUpsertOne) ClearDescription() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *EnvironmentUpsertOne) SetLabels(v map[string]string) *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *EnvironmentUpsertOne) UpdateLabels() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsertOne) ClearLabels() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *EnvironmentUpsertOne) SetUpdateTime(v time.Time) *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
@@ -357,27 +550,6 @@ func (u *EnvironmentUpsertOne) SetUpdateTime(v time.Time) *EnvironmentUpsertOne 
 func (u *EnvironmentUpsertOne) UpdateUpdateTime() *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetConnectorIDs sets the "connectorIDs" field.
-func (u *EnvironmentUpsertOne) SetConnectorIDs(v []oid.ID) *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetConnectorIDs(v)
-	})
-}
-
-// UpdateConnectorIDs sets the "connectorIDs" field to the value that was provided on create.
-func (u *EnvironmentUpsertOne) UpdateConnectorIDs() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateConnectorIDs()
-	})
-}
-
-// ClearConnectorIDs clears the value of the "connectorIDs" field.
-func (u *EnvironmentUpsertOne) ClearConnectorIDs() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearConnectorIDs()
 	})
 }
 
@@ -418,7 +590,7 @@ func (u *EnvironmentUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -432,7 +604,7 @@ func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *EnvironmentUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *EnvironmentUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -534,7 +706,7 @@ func (ecb *EnvironmentCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ecb *EnvironmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertBulk {
@@ -616,6 +788,62 @@ func (u *EnvironmentUpsertBulk) Update(set func(*EnvironmentUpsert)) *Environmen
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *EnvironmentUpsertBulk) SetName(v string) *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *EnvironmentUpsertBulk) UpdateName() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *EnvironmentUpsertBulk) SetDescription(v string) *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *EnvironmentUpsertBulk) UpdateDescription() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *EnvironmentUpsertBulk) ClearDescription() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *EnvironmentUpsertBulk) SetLabels(v map[string]string) *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *EnvironmentUpsertBulk) UpdateLabels() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsertBulk) ClearLabels() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *EnvironmentUpsertBulk) SetUpdateTime(v time.Time) *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
@@ -627,27 +855,6 @@ func (u *EnvironmentUpsertBulk) SetUpdateTime(v time.Time) *EnvironmentUpsertBul
 func (u *EnvironmentUpsertBulk) UpdateUpdateTime() *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetConnectorIDs sets the "connectorIDs" field.
-func (u *EnvironmentUpsertBulk) SetConnectorIDs(v []oid.ID) *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetConnectorIDs(v)
-	})
-}
-
-// UpdateConnectorIDs sets the "connectorIDs" field to the value that was provided on create.
-func (u *EnvironmentUpsertBulk) UpdateConnectorIDs() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateConnectorIDs()
-	})
-}
-
-// ClearConnectorIDs clears the value of the "connectorIDs" field.
-func (u *EnvironmentUpsertBulk) ClearConnectorIDs() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearConnectorIDs()
 	})
 }
 
