@@ -1,0 +1,64 @@
+package schema
+
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+
+	"github.com/seal-io/seal/pkg/dao/oid"
+)
+
+type EnvironmentConnector struct {
+	// ID of connector that configure to the environment.
+	ConnectorID oid.ID `json:"connectorID"`
+}
+
+type EnvironmentConnectorRelationship struct {
+	relationSchema
+}
+
+func (EnvironmentConnectorRelationship) Annotations() []Annotation {
+	return []Annotation{
+		field.ID("environment_id", "connector_id"),
+	}
+}
+
+func (EnvironmentConnectorRelationship) Fields() []ent.Field {
+	return []ent.Field{
+		oid.Field("environment_id").
+			Comment("ID of the environment to which the relationship connects.").
+			StructTag(`json:"environmentID"`).
+			NotEmpty().
+			Immutable(),
+		oid.Field("connector_id").
+			Comment("ID of the connector to which the relationship connects.").
+			StructTag(`json:"connectorID"`).
+			NotEmpty().
+			Immutable(),
+	}
+}
+
+func (EnvironmentConnectorRelationship) Edges() []ent.Edge {
+	// NB(thxCode): entc cannot recognize camel case field name on edge with `Through`.
+	return []ent.Edge{
+		edge.To("environment", Environment.Type).
+			Field("environment_id").
+			Comment("Environments that connect to the relationship.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		edge.To("connector", Connector.Type).
+			Field("connector_id").
+			Comment("Connectors that connect to the relationship.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Restrict,
+			}),
+	}
+}

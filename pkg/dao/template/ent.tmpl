@@ -1,9 +1,82 @@
 {{/* gotype: entgo.io/ent/entc/gen.Graph */}}
 
-{{ define "model/fields/additional" }}
-    {{- /* Add AccessToken fields to the "Token" entity. */}}
-    {{- if eq $.Name "Token" }}
-        // AccessToken is the token used for authentication. It does not store in the database and only shows up on creation.
+{{- define "model/fields/additional" -}}
+    {{- /* Add fields to the "Token" entity. */}}
+    {{- if eq $.Name "Token" -}}
+        // [EXTENSION] AccessToken is the token used for authentication.
+		// It does not store in the database and only shows up after created.
         AccessToken string `json:"accessToken,omitempty"`
     {{- end }}
-{{ end }}
+
+	{{- /* Add fields to the "Environment" entity. */}}
+    {{- if eq $.Name "Environment" -}}
+        // [EXTENSION] Connectors is the collection of the related connectors.
+        // It does not store in the database and only uses for creating or updating.
+        Connectors []schema.EnvironmentConnector `json:"connectors,omitempty"`
+    {{- end }}
+
+    {{- /* Add fields to the "Application" entity. */}}
+    {{- if eq $.Name "Application" -}}
+        // [EXTENSION] Modules is the collection of the related modules.
+        // It does not store in the database and only uses for creating or updating.
+        Modules []schema.ApplicationModule `json:"modules,omitempty"`
+    {{- end }}
+{{- end }}
+
+{{- define "model/additional/jsonencode" -}}
+{{- if $.Edges }}
+    {{- /* Add jsonencode to the "Environment" entity. */}}
+    {{- if eq $.Name "Environment" }}
+        // MarshalJSON implements the json.Marshaler interface.
+        func ({{ $.Receiver }} *{{ $.Name }}) MarshalJSON() ([]byte, error) {
+            type Alias {{ $.Name }}
+            // mutate `.Edges.EnvironmentConnectorRelationships` to `.Connectors`.
+            if len({{ $.Receiver }}.Edges.EnvironmentConnectorRelationships) != 0 {
+                for _, r := range {{ $.Receiver }}.Edges.EnvironmentConnectorRelationships {
+					if r == nil {
+						continue
+					}
+                    {{ $.Receiver }}.Connectors = append({{ $.Receiver }}.Connectors,
+                        schema.EnvironmentConnector{
+                            ConnectorID: r.ConnectorID,
+                        })
+                }
+                {{ $.Receiver }}.Edges.EnvironmentConnectorRelationships = nil // release
+            }
+            return json.Marshal(&struct {
+                *Alias `json:",inline"`
+			}{
+                Alias: (*Alias)({{ $.Receiver }}),
+            })
+        }
+	{{- end }}
+
+    {{- /* Add jsonencode to the "Application" entity. */}}
+    {{- if eq $.Name "Application" }}
+        // MarshalJSON implements the json.Marshaler interface.
+        func ({{ $.Receiver }} *{{ $.Name }}) MarshalJSON() ([]byte, error) {
+            type Alias {{ $.Name }}
+            // mutate `.Edges.ApplicationModuleRelationships` to `.Modules`.
+            if len({{ $.Receiver }}.Edges.ApplicationModuleRelationships) != 0 {
+                for _, r := range {{ $.Receiver }}.Edges.ApplicationModuleRelationships {
+                    if r == nil {
+                        continue
+					}
+                    {{ $.Receiver }}.Modules = append({{ $.Receiver }}.Modules,
+						schema.ApplicationModule{
+						    ModuleID:  r.ModuleID,
+							Name:      r.Name,
+							Variables: r.Variables,
+						})
+                }
+                {{ $.Receiver }}.Edges.ApplicationModuleRelationships = nil // release
+            }
+            return json.Marshal(&struct {
+                *Alias `json:",inline"`
+            }{
+                Alias: (*Alias)({{ $.Receiver }}),
+            })
+        }
+    {{- end }}
+{{- end }}
+{{- end }}

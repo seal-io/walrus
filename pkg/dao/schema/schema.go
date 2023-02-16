@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	ents "entgo.io/ent/schema"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
@@ -16,3 +17,15 @@ func (schema) Mixin() []ent.Mixin {
 		mixin.Time{},
 	}
 }
+
+type relationSchema struct {
+	ent.Schema
+}
+
+func (relationSchema) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.CreateTime{},
+	}
+}
+
+type Annotation = ents.Annotation
