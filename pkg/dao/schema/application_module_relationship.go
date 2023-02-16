@@ -6,18 +6,9 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types/id"
 )
-
-type ApplicationModule struct {
-	// ID of module that configure to the application.
-	ModuleID string `json:"moduleID"`
-	// Name of the module customized to the application.
-	Name string `json:"name"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
-}
 
 type ApplicationModuleRelationship struct {
 	relationSchema
@@ -37,7 +28,7 @@ func (ApplicationModuleRelationship) Annotations() []Annotation {
 
 func (ApplicationModuleRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("application_id").
+		id.Field("application_id").
 			Comment("ID of the application to which the relationship connects.").
 			StructTag(`json:"applicationID"`).
 			NotEmpty().

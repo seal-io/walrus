@@ -1,4 +1,4 @@
-package oid
+package id
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 type fieldBuilder struct {
@@ -31,7 +33,7 @@ func (b *fieldBuilder) NotEmpty() *fieldBuilder {
 }
 
 // Default sets the default value of the field.
-func (b *fieldBuilder) Default(v ID) *fieldBuilder {
+func (b *fieldBuilder) Default(v types.ID) *fieldBuilder {
 	b.desc.Default = v
 	return b
 }

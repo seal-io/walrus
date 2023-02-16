@@ -12,14 +12,14 @@
     {{- if eq $.Name "Environment" -}}
         // [EXTENSION] Connectors is the collection of the related connectors.
         // It does not store in the database and only uses for creating or updating.
-        Connectors []schema.EnvironmentConnector `json:"connectors,omitempty"`
+        Connectors []types.EnvironmentConnector `json:"connectors,omitempty"`
     {{- end }}
 
     {{- /* Add fields to the "Application" entity. */}}
     {{- if eq $.Name "Application" -}}
         // [EXTENSION] Modules is the collection of the related modules.
         // It does not store in the database and only uses for creating or updating.
-        Modules []schema.ApplicationModule `json:"modules,omitempty"`
+        Modules []types.ApplicationModule `json:"modules,omitempty"`
     {{- end }}
 {{- end }}
 
@@ -37,7 +37,7 @@
 						continue
 					}
                     {{ $.Receiver }}.Connectors = append({{ $.Receiver }}.Connectors,
-                        schema.EnvironmentConnector{
+                        types.EnvironmentConnector{
                             ConnectorID: r.ConnectorID,
                         })
                 }
@@ -63,7 +63,7 @@
                         continue
 					}
                     {{ $.Receiver }}.Modules = append({{ $.Receiver }}.Modules,
-						schema.ApplicationModule{
+						types.ApplicationModule{
 						    ModuleID:  r.ModuleID,
 							Name:      r.Name,
 							Variables: r.Variables,

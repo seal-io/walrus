@@ -5,8 +5,9 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/id"
 )
 
 type ApplicationRevision struct {
@@ -23,15 +24,15 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 
 func (ApplicationRevision) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("applicationID").
+		id.Field("applicationID").
 			Comment("ID of the application to which the revision belongs.").
 			Immutable(),
-		oid.Field("environmentID").
+		id.Field("environmentID").
 			Comment("ID of the environment to which the application deploys, " +
 				"uses for redundancy but not correlation constraint.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("modules", []ApplicationModule{}).
+		field.JSON("modules", []types.ApplicationModule{}).
 			Comment("Application modules."),
 		field.JSON("inputVariables", map[string]interface{}{}).
 			Comment("Input variables of the revision."),
