@@ -1,4 +1,4 @@
-package oid
+package types
 
 import (
 	"database/sql/driver"
@@ -7,10 +7,12 @@ import (
 	"strings"
 )
 
-func New(id uint64) ID {
+func NewID(id uint64) ID {
 	return ID(strconv.FormatUint(id, 10))
 }
 
+// ID shows the primary key in string but stores in big integer,
+// also be good at catching composited primary keys.
 type ID string
 
 func (i ID) String() string {
@@ -36,7 +38,8 @@ func (i *ID) Scan(src any) error {
 	return errors.New("not a valid ID")
 }
 
-// Valid returns true if the given ID is a naive ID or composited ID.
+// Valid returns true if the given ID is a naive ID or composited ID,
+// giving zero key length means the ID must be a naive ID.
 func (i ID) Valid(keyLength int) bool {
 	if i.IsNaive() {
 		return true

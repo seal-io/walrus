@@ -6,13 +6,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types/id"
 )
-
-type EnvironmentConnector struct {
-	// ID of connector that configure to the environment.
-	ConnectorID oid.ID `json:"connectorID"`
-}
 
 type EnvironmentConnectorRelationship struct {
 	relationSchema
@@ -26,12 +21,12 @@ func (EnvironmentConnectorRelationship) Annotations() []Annotation {
 
 func (EnvironmentConnectorRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("environment_id").
+		id.Field("environment_id").
 			Comment("ID of the environment to which the relationship connects.").
 			StructTag(`json:"environmentID"`).
 			NotEmpty().
 			Immutable(),
-		oid.Field("connector_id").
+		id.Field("connector_id").
 			Comment("ID of the connector to which the relationship connects.").
 			StructTag(`json:"connectorID"`).
 			NotEmpty().

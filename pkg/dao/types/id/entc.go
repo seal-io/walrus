@@ -1,4 +1,4 @@
-package oid
+package id
 
 import (
 	"context"
@@ -9,12 +9,14 @@ import (
 	"entgo.io/ent/entc/integration/ent/hook"
 	"entgo.io/ent/schema/field"
 	"github.com/sony/sonyflake"
+
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func Field(name string) *fieldBuilder {
 	return &fieldBuilder{
 		desc: field.String(name).
-			GoType(ID("")).
+			GoType(types.ID("")).
 			SchemaType(map[string]string{
 				dialect.MySQL:    "bigint",
 				dialect.Postgres: "bigint",
@@ -26,7 +28,7 @@ func Field(name string) *fieldBuilder {
 
 func Hook() ent.Hook {
 	type setter interface {
-		SetID(ID)
+		SetID(types.ID)
 	}
 	var g = sonyflake.NewSonyflake(sonyflake.Settings{})
 	var h = func(n ent.Mutator) ent.Mutator {
@@ -39,7 +41,7 @@ func Hook() ent.Hook {
 			if err != nil {
 				return "", fmt.Errorf("error generating id: %w", err)
 			}
-			is.SetID(New(id))
+			is.SetID(types.NewID(id))
 			return n.Mutate(ctx, m)
 		})
 	}

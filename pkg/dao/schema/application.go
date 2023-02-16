@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types/id"
 )
 
 type Application struct {
@@ -30,10 +30,10 @@ func (Application) Indexes() []ent.Index {
 
 func (Application) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("projectID").
+		id.Field("projectID").
 			Comment("ID of the project to which the application belongs.").
 			Immutable(),
-		oid.Field("environmentID").
+		id.Field("environmentID").
 			Comment("ID of the environment to which the application deploys.").
 			Immutable(),
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
@@ -30,7 +30,7 @@ func (r CreateRequest) Validate() error {
 type CreateResponse = model.Token
 
 type DeleteRequest struct {
-	ID oid.ID `uri:"id"`
+	ID types.ID `uri:"id"`
 }
 
 func (r DeleteRequest) Validate() error {
@@ -41,7 +41,7 @@ func (r DeleteRequest) Validate() error {
 }
 
 type GetRequest struct {
-	ID oid.ID `uri:"id"`
+	ID types.ID `uri:"id"`
 }
 
 func (r GetRequest) Validate() error {

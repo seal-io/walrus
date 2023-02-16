@@ -10,8 +10,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
@@ -63,7 +63,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type DeleteRequest struct {
-	ID oid.ID `uri:"id"`
+	ID types.ID `uri:"id"`
 
 	Group   string `json:"-"`
 	Name    string `json:"-"`
@@ -110,7 +110,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type UpdateRequest struct {
-	ID          oid.ID              `uri:"id"`
+	ID          types.ID            `uri:"id"`
 	Description string              `json:"description,omitempty"`
 	Roles       schema.SubjectRoles `json:"roles,omitempty"`
 	Password    string              `json:"password,omitempty"`
@@ -202,7 +202,7 @@ type CollectionGetResponse = []*model.Subject
 type RouteMountRequest struct {
 	_ struct{} `route:"POST=/mount"`
 
-	ID    oid.ID              `uri:"id"`
+	ID    types.ID            `uri:"id"`
 	Group string              `json:"group"`
 	Roles schema.SubjectRoles `json:"roles,omitempty"`
 
