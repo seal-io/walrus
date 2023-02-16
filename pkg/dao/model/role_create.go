@@ -17,8 +17,8 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/oid"
 	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -126,8 +126,8 @@ func (rc *RoleCreate) SetNillableSession(b *bool) *RoleCreate {
 }
 
 // SetID sets the "id" field.
-func (rc *RoleCreate) SetID(o oid.ID) *RoleCreate {
-	rc.mutation.SetID(o)
+func (rc *RoleCreate) SetID(t types.ID) *RoleCreate {
+	rc.mutation.SetID(t)
 	return rc
 }
 
@@ -251,7 +251,7 @@ func (rc *RoleCreate) sqlSave(ctx context.Context) (*Role, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -268,7 +268,7 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: role.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: role.FieldID,
 			},
 		}
@@ -520,7 +520,7 @@ func (u *RoleUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *RoleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *RoleUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -534,7 +534,7 @@ func (u *RoleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *RoleUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *RoleUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

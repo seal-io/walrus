@@ -177,6 +177,30 @@ func (f ApplicationMutationRuleFunc) EvalMutation(ctx context.Context, m model.M
 	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationMutation", m)
 }
 
+// The ApplicationModuleRelationshipQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ApplicationModuleRelationshipQueryRuleFunc func(context.Context, *model.ApplicationModuleRelationshipQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ApplicationModuleRelationshipQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ApplicationModuleRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ApplicationModuleRelationshipQuery", q)
+}
+
+// The ApplicationModuleRelationshipMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ApplicationModuleRelationshipMutationRuleFunc func(context.Context, *model.ApplicationModuleRelationshipMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ApplicationModuleRelationshipMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ApplicationModuleRelationshipMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationModuleRelationshipMutation", m)
+}
+
 // The ApplicationResourceQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ApplicationResourceQueryRuleFunc func(context.Context, *model.ApplicationResourceQuery) error
@@ -271,6 +295,30 @@ func (f EnvironmentMutationRuleFunc) EvalMutation(ctx context.Context, m model.M
 		return f(ctx, m)
 	}
 	return Denyf("model/privacy: unexpected mutation type %T, expect *model.EnvironmentMutation", m)
+}
+
+// The EnvironmentConnectorRelationshipQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EnvironmentConnectorRelationshipQueryRuleFunc func(context.Context, *model.EnvironmentConnectorRelationshipQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f EnvironmentConnectorRelationshipQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.EnvironmentConnectorRelationshipQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.EnvironmentConnectorRelationshipQuery", q)
+}
+
+// The EnvironmentConnectorRelationshipMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EnvironmentConnectorRelationshipMutationRuleFunc func(context.Context, *model.EnvironmentConnectorRelationshipMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f EnvironmentConnectorRelationshipMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.EnvironmentConnectorRelationshipMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.EnvironmentConnectorRelationshipMutation", m)
 }
 
 // The ModuleQueryRuleFunc type is an adapter to allow the use of ordinary
@@ -454,6 +502,8 @@ func queryFilter(q model.Query) (Filter, error) {
 	switch q := q.(type) {
 	case *model.ApplicationQuery:
 		return q.Filter(), nil
+	case *model.ApplicationModuleRelationshipQuery:
+		return q.Filter(), nil
 	case *model.ApplicationResourceQuery:
 		return q.Filter(), nil
 	case *model.ApplicationRevisionQuery:
@@ -461,6 +511,8 @@ func queryFilter(q model.Query) (Filter, error) {
 	case *model.ConnectorQuery:
 		return q.Filter(), nil
 	case *model.EnvironmentQuery:
+		return q.Filter(), nil
+	case *model.EnvironmentConnectorRelationshipQuery:
 		return q.Filter(), nil
 	case *model.ModuleQuery:
 		return q.Filter(), nil
@@ -483,6 +535,8 @@ func mutationFilter(m model.Mutation) (Filter, error) {
 	switch m := m.(type) {
 	case *model.ApplicationMutation:
 		return m.Filter(), nil
+	case *model.ApplicationModuleRelationshipMutation:
+		return m.Filter(), nil
 	case *model.ApplicationResourceMutation:
 		return m.Filter(), nil
 	case *model.ApplicationRevisionMutation:
@@ -490,6 +544,8 @@ func mutationFilter(m model.Mutation) (Filter, error) {
 	case *model.ConnectorMutation:
 		return m.Filter(), nil
 	case *model.EnvironmentMutation:
+		return m.Filter(), nil
+	case *model.EnvironmentConnectorRelationshipMutation:
 		return m.Filter(), nil
 	case *model.ModuleMutation:
 		return m.Filter(), nil

@@ -13,69 +13,150 @@ import (
 var (
 	// ApplicationsColumns holds the columns for the "applications" table.
 	ApplicationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "project_id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "environment_id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "modules", Type: field.TypeJSON},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationsTable holds the schema information for the "applications" table.
 	ApplicationsTable = &schema.Table{
 		Name:       "applications",
 		Columns:    ApplicationsColumns,
 		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "applications_environments_applications",
+				Columns:    []*schema.Column{ApplicationsColumns[6]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "applications_projects_applications",
+				Columns:    []*schema.Column{ApplicationsColumns[7]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "application_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationsColumns[2]},
+				Columns: []*schema.Column{ApplicationsColumns[5]},
+			},
+			{
+				Name:    "application_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationsColumns[7], ApplicationsColumns[1]},
+			},
+		},
+	}
+	// ApplicationModuleRelationshipsColumns holds the columns for the "application_module_relationships" table.
+	ApplicationModuleRelationshipsColumns = []*schema.Column{
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "variables", Type: field.TypeJSON, Nullable: true},
+		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "module_id", Type: field.TypeString},
+	}
+	// ApplicationModuleRelationshipsTable holds the schema information for the "application_module_relationships" table.
+	ApplicationModuleRelationshipsTable = &schema.Table{
+		Name:       "application_module_relationships",
+		Columns:    ApplicationModuleRelationshipsColumns,
+		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[4], ApplicationModuleRelationshipsColumns[5]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "application_module_relationships_applications_application",
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[4]},
+				RefColumns: []*schema.Column{ApplicationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "application_module_relationships_modules_module",
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
+				RefColumns: []*schema.Column{ModulesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applicationmodulerelationship_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[1]},
 			},
 		},
 	}
 	// ApplicationResourcesColumns holds the columns for the "application_resources" table.
 	ApplicationResourcesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "application_id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "module", Type: field.TypeString},
+		{Name: "mode", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationResourcesTable holds the schema information for the "application_resources" table.
 	ApplicationResourcesTable = &schema.Table{
 		Name:       "application_resources",
 		Columns:    ApplicationResourcesColumns,
 		PrimaryKey: []*schema.Column{ApplicationResourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "application_resources_applications_resources",
+				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				RefColumns: []*schema.Column{ApplicationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "applicationresource_update_time",
 				Unique:  false,
 				Columns: []*schema.Column{ApplicationResourcesColumns[4]},
 			},
+			{
+				Name:    "applicationresource_application_id_connector_id_module_mode_type_name",
+				Unique:  true,
+				Columns: []*schema.Column{ApplicationResourcesColumns[10], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8], ApplicationResourcesColumns[9]},
+			},
 		},
 	}
 	// ApplicationRevisionsColumns holds the columns for the "application_revisions" table.
 	ApplicationRevisionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "application_id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "environment_id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "modules", Type: field.TypeJSON},
 		{Name: "input_variables", Type: field.TypeJSON},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
+		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationRevisionsTable holds the schema information for the "application_revisions" table.
 	ApplicationRevisionsTable = &schema.Table{
 		Name:       "application_revisions",
 		Columns:    ApplicationRevisionsColumns,
 		PrimaryKey: []*schema.Column{ApplicationRevisionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "application_revisions_applications_revisions",
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[10]},
+				RefColumns: []*schema.Column{ApplicationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "applicationrevision_update_time",
@@ -86,7 +167,10 @@ var (
 	}
 	// ConnectorsColumns holds the columns for the "connectors" table.
 	ConnectorsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
@@ -104,16 +188,23 @@ var (
 			{
 				Name:    "connector_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ConnectorsColumns[4]},
+				Columns: []*schema.Column{ConnectorsColumns[7]},
+			},
+			{
+				Name:    "connector_name",
+				Unique:  true,
+				Columns: []*schema.Column{ConnectorsColumns[1]},
 			},
 		},
 	}
 	// EnvironmentsColumns holds the columns for the "environments" table.
 	EnvironmentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "connector_ids", Type: field.TypeJSON, Nullable: true},
 		{Name: "variables", Type: field.TypeJSON, Nullable: true},
 	}
 	// EnvironmentsTable holds the schema information for the "environments" table.
@@ -125,17 +216,50 @@ var (
 			{
 				Name:    "environment_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{EnvironmentsColumns[2]},
+				Columns: []*schema.Column{EnvironmentsColumns[5]},
+			},
+			{
+				Name:    "environment_name",
+				Unique:  true,
+				Columns: []*schema.Column{EnvironmentsColumns[1]},
+			},
+		},
+	}
+	// EnvironmentConnectorRelationshipsColumns holds the columns for the "environment_connector_relationships" table.
+	EnvironmentConnectorRelationshipsColumns = []*schema.Column{
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// EnvironmentConnectorRelationshipsTable holds the schema information for the "environment_connector_relationships" table.
+	EnvironmentConnectorRelationshipsTable = &schema.Table{
+		Name:       "environment_connector_relationships",
+		Columns:    EnvironmentConnectorRelationshipsColumns,
+		PrimaryKey: []*schema.Column{EnvironmentConnectorRelationshipsColumns[1], EnvironmentConnectorRelationshipsColumns[2]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "environment_connector_relationships_environments_environment",
+				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[1]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "environment_connector_relationships_connectors_connector",
+				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[2]},
+				RefColumns: []*schema.Column{ConnectorsColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 	}
 	// ModulesColumns holds the columns for the "modules" table.
 	ModulesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "source", Type: field.TypeString},
 		{Name: "version", Type: field.TypeString},
 		{Name: "input_schema", Type: field.TypeJSON, Nullable: true},
@@ -156,7 +280,10 @@ var (
 	}
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 	}
@@ -169,13 +296,18 @@ var (
 			{
 				Name:    "project_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ProjectsColumns[2]},
+				Columns: []*schema.Column{ProjectsColumns[5]},
+			},
+			{
+				Name:    "project_name",
+				Unique:  true,
+				Columns: []*schema.Column{ProjectsColumns[1]},
 			},
 		},
 	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "domain", Type: field.TypeString, Default: "system"},
@@ -205,7 +337,7 @@ var (
 	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
@@ -234,7 +366,7 @@ var (
 	}
 	// SubjectsColumns holds the columns for the "subjects" table.
 	SubjectsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "kind", Type: field.TypeString, Default: "user"},
@@ -267,7 +399,7 @@ var (
 	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "casdoor_token_name", Type: field.TypeString},
@@ -296,10 +428,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ApplicationsTable,
+		ApplicationModuleRelationshipsTable,
 		ApplicationResourcesTable,
 		ApplicationRevisionsTable,
 		ConnectorsTable,
 		EnvironmentsTable,
+		EnvironmentConnectorRelationshipsTable,
 		ModulesTable,
 		ProjectsTable,
 		RolesTable,
@@ -310,4 +444,12 @@ var (
 )
 
 func init() {
+	ApplicationsTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	ApplicationsTable.ForeignKeys[1].RefTable = ProjectsTable
+	ApplicationModuleRelationshipsTable.ForeignKeys[0].RefTable = ApplicationsTable
+	ApplicationModuleRelationshipsTable.ForeignKeys[1].RefTable = ModulesTable
+	ApplicationResourcesTable.ForeignKeys[0].RefTable = ApplicationsTable
+	ApplicationRevisionsTable.ForeignKeys[0].RefTable = ApplicationsTable
+	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 }

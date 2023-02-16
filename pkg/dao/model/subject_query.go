@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // SubjectQuery is the builder for querying Subject entities.
@@ -89,8 +89,8 @@ func (sq *SubjectQuery) FirstX(ctx context.Context) *Subject {
 
 // FirstID returns the first Subject ID from the query.
 // Returns a *NotFoundError when no Subject ID was found.
-func (sq *SubjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SubjectQuery) FirstID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func (sq *SubjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SubjectQuery) FirstIDX(ctx context.Context) oid.ID {
+func (sq *SubjectQuery) FirstIDX(ctx context.Context) types.ID {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +140,8 @@ func (sq *SubjectQuery) OnlyX(ctx context.Context) *Subject {
 // OnlyID is like Only, but returns the only Subject ID in the query.
 // Returns a *NotSingularError when more than one Subject ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SubjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SubjectQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
+	var ids []types.ID
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (sq *SubjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SubjectQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (sq *SubjectQuery) OnlyIDX(ctx context.Context) types.ID {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,8 +185,8 @@ func (sq *SubjectQuery) AllX(ctx context.Context) []*Subject {
 }
 
 // IDs executes the query and returns a list of Subject IDs.
-func (sq *SubjectQuery) IDs(ctx context.Context) ([]oid.ID, error) {
-	var ids []oid.ID
+func (sq *SubjectQuery) IDs(ctx context.Context) ([]types.ID, error) {
+	var ids []types.ID
 	ctx = setContextOp(ctx, sq.ctx, "IDs")
 	if err := sq.Select(subject.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (sq *SubjectQuery) IDs(ctx context.Context) ([]oid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SubjectQuery) IDsX(ctx context.Context) []oid.ID {
+func (sq *SubjectQuery) IDsX(ctx context.Context) []types.ID {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -385,7 +385,7 @@ func (sq *SubjectQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   subject.Table,
 			Columns: subject.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: subject.FieldID,
 			},
 		},

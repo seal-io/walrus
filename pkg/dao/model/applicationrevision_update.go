@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationRevisionUpdate is the builder for updating ApplicationRevision entities.
@@ -83,14 +83,14 @@ func (aru *ApplicationRevisionUpdate) SetUpdateTime(t time.Time) *ApplicationRev
 }
 
 // SetModules sets the "modules" field.
-func (aru *ApplicationRevisionUpdate) SetModules(sm []schema.ApplicationModule) *ApplicationRevisionUpdate {
-	aru.mutation.SetModules(sm)
+func (aru *ApplicationRevisionUpdate) SetModules(tm []types.ApplicationModule) *ApplicationRevisionUpdate {
+	aru.mutation.SetModules(tm)
 	return aru
 }
 
-// AppendModules appends sm to the "modules" field.
-func (aru *ApplicationRevisionUpdate) AppendModules(sm []schema.ApplicationModule) *ApplicationRevisionUpdate {
-	aru.mutation.AppendModules(sm)
+// AppendModules appends tm to the "modules" field.
+func (aru *ApplicationRevisionUpdate) AppendModules(tm []types.ApplicationModule) *ApplicationRevisionUpdate {
+	aru.mutation.AppendModules(tm)
 	return aru
 }
 
@@ -159,6 +159,14 @@ func (aru *ApplicationRevisionUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (aru *ApplicationRevisionUpdate) check() error {
+	if _, ok := aru.mutation.ApplicationID(); aru.mutation.ApplicationCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationRevision.application"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aru *ApplicationRevisionUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApplicationRevisionUpdate {
 	aru.modifiers = append(aru.modifiers, modifiers...)
@@ -166,12 +174,15 @@ func (aru *ApplicationRevisionUpdate) Modify(modifiers ...func(u *sql.UpdateBuil
 }
 
 func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := aru.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationrevision.Table,
 			Columns: applicationrevision.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		},
@@ -286,14 +297,14 @@ func (aruo *ApplicationRevisionUpdateOne) SetUpdateTime(t time.Time) *Applicatio
 }
 
 // SetModules sets the "modules" field.
-func (aruo *ApplicationRevisionUpdateOne) SetModules(sm []schema.ApplicationModule) *ApplicationRevisionUpdateOne {
-	aruo.mutation.SetModules(sm)
+func (aruo *ApplicationRevisionUpdateOne) SetModules(tm []types.ApplicationModule) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetModules(tm)
 	return aruo
 }
 
-// AppendModules appends sm to the "modules" field.
-func (aruo *ApplicationRevisionUpdateOne) AppendModules(sm []schema.ApplicationModule) *ApplicationRevisionUpdateOne {
-	aruo.mutation.AppendModules(sm)
+// AppendModules appends tm to the "modules" field.
+func (aruo *ApplicationRevisionUpdateOne) AppendModules(tm []types.ApplicationModule) *ApplicationRevisionUpdateOne {
+	aruo.mutation.AppendModules(tm)
 	return aruo
 }
 
@@ -369,6 +380,14 @@ func (aruo *ApplicationRevisionUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (aruo *ApplicationRevisionUpdateOne) check() error {
+	if _, ok := aruo.mutation.ApplicationID(); aruo.mutation.ApplicationCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationRevision.application"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aruo *ApplicationRevisionUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApplicationRevisionUpdateOne {
 	aruo.modifiers = append(aruo.modifiers, modifiers...)
@@ -376,12 +395,15 @@ func (aruo *ApplicationRevisionUpdateOne) Modify(modifiers ...func(u *sql.Update
 }
 
 func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *ApplicationRevision, err error) {
+	if err := aruo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationrevision.Table,
 			Columns: applicationrevision.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		},

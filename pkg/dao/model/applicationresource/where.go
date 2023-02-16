@@ -9,53 +9,55 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.ApplicationResource {
+func ID(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.ApplicationResource {
+func IDEQ(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.ApplicationResource {
+func IDNEQ(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.ApplicationResource {
+func IDIn(ids ...types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.ApplicationResource {
+func IDNotIn(ids ...types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.ApplicationResource {
+func IDGT(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.ApplicationResource {
+func IDGTE(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.ApplicationResource {
+func IDLT(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.ApplicationResource {
+func IDLTE(id types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLTE(FieldID, id))
 }
 
@@ -80,8 +82,13 @@ func UpdateTime(v time.Time) predicate.ApplicationResource {
 }
 
 // ApplicationID applies equality check predicate on the "applicationID" field. It's identical to ApplicationIDEQ.
-func ApplicationID(v oid.ID) predicate.ApplicationResource {
+func ApplicationID(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldApplicationID, v))
+}
+
+// ConnectorID applies equality check predicate on the "connectorID" field. It's identical to ConnectorIDEQ.
+func ConnectorID(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldConnectorID, v))
 }
 
 // Module applies equality check predicate on the "module" field. It's identical to ModuleEQ.
@@ -89,9 +96,19 @@ func Module(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldModule, v))
 }
 
+// Mode applies equality check predicate on the "mode" field. It's identical to ModeEQ.
+func Mode(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldMode, v))
+}
+
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldType, v))
+}
+
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldName, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -325,43 +342,143 @@ func UpdateTimeLTE(v time.Time) predicate.ApplicationResource {
 }
 
 // ApplicationIDEQ applies the EQ predicate on the "applicationID" field.
-func ApplicationIDEQ(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDEQ(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDNEQ applies the NEQ predicate on the "applicationID" field.
-func ApplicationIDNEQ(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDNEQ(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldNEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDIn applies the In predicate on the "applicationID" field.
-func ApplicationIDIn(vs ...oid.ID) predicate.ApplicationResource {
+func ApplicationIDIn(vs ...types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDNotIn applies the NotIn predicate on the "applicationID" field.
-func ApplicationIDNotIn(vs ...oid.ID) predicate.ApplicationResource {
+func ApplicationIDNotIn(vs ...types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldNotIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDGT applies the GT predicate on the "applicationID" field.
-func ApplicationIDGT(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDGT(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldGT(FieldApplicationID, v))
 }
 
 // ApplicationIDGTE applies the GTE predicate on the "applicationID" field.
-func ApplicationIDGTE(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDGTE(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldGTE(FieldApplicationID, v))
 }
 
 // ApplicationIDLT applies the LT predicate on the "applicationID" field.
-func ApplicationIDLT(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDLT(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLT(FieldApplicationID, v))
 }
 
 // ApplicationIDLTE applies the LTE predicate on the "applicationID" field.
-func ApplicationIDLTE(v oid.ID) predicate.ApplicationResource {
+func ApplicationIDLTE(v types.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLTE(FieldApplicationID, v))
+}
+
+// ApplicationIDContains applies the Contains predicate on the "applicationID" field.
+func ApplicationIDContains(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContains(FieldApplicationID, vc))
+}
+
+// ApplicationIDHasPrefix applies the HasPrefix predicate on the "applicationID" field.
+func ApplicationIDHasPrefix(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldApplicationID, vc))
+}
+
+// ApplicationIDHasSuffix applies the HasSuffix predicate on the "applicationID" field.
+func ApplicationIDHasSuffix(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldApplicationID, vc))
+}
+
+// ApplicationIDEqualFold applies the EqualFold predicate on the "applicationID" field.
+func ApplicationIDEqualFold(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldApplicationID, vc))
+}
+
+// ApplicationIDContainsFold applies the ContainsFold predicate on the "applicationID" field.
+func ApplicationIDContainsFold(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldApplicationID, vc))
+}
+
+// ConnectorIDEQ applies the EQ predicate on the "connectorID" field.
+func ConnectorIDEQ(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldConnectorID, v))
+}
+
+// ConnectorIDNEQ applies the NEQ predicate on the "connectorID" field.
+func ConnectorIDNEQ(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldConnectorID, v))
+}
+
+// ConnectorIDIn applies the In predicate on the "connectorID" field.
+func ConnectorIDIn(vs ...types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldConnectorID, vs...))
+}
+
+// ConnectorIDNotIn applies the NotIn predicate on the "connectorID" field.
+func ConnectorIDNotIn(vs ...types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldConnectorID, vs...))
+}
+
+// ConnectorIDGT applies the GT predicate on the "connectorID" field.
+func ConnectorIDGT(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldConnectorID, v))
+}
+
+// ConnectorIDGTE applies the GTE predicate on the "connectorID" field.
+func ConnectorIDGTE(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldConnectorID, v))
+}
+
+// ConnectorIDLT applies the LT predicate on the "connectorID" field.
+func ConnectorIDLT(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldConnectorID, v))
+}
+
+// ConnectorIDLTE applies the LTE predicate on the "connectorID" field.
+func ConnectorIDLTE(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldConnectorID, v))
+}
+
+// ConnectorIDContains applies the Contains predicate on the "connectorID" field.
+func ConnectorIDContains(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContains(FieldConnectorID, vc))
+}
+
+// ConnectorIDHasPrefix applies the HasPrefix predicate on the "connectorID" field.
+func ConnectorIDHasPrefix(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldConnectorID, vc))
+}
+
+// ConnectorIDHasSuffix applies the HasSuffix predicate on the "connectorID" field.
+func ConnectorIDHasSuffix(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldConnectorID, vc))
+}
+
+// ConnectorIDEqualFold applies the EqualFold predicate on the "connectorID" field.
+func ConnectorIDEqualFold(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldConnectorID, vc))
+}
+
+// ConnectorIDContainsFold applies the ContainsFold predicate on the "connectorID" field.
+func ConnectorIDContainsFold(v types.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldConnectorID, vc))
 }
 
 // ModuleEQ applies the EQ predicate on the "module" field.
@@ -429,6 +546,71 @@ func ModuleContainsFold(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldModule, v))
 }
 
+// ModeEQ applies the EQ predicate on the "mode" field.
+func ModeEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldMode, v))
+}
+
+// ModeNEQ applies the NEQ predicate on the "mode" field.
+func ModeNEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldMode, v))
+}
+
+// ModeIn applies the In predicate on the "mode" field.
+func ModeIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldMode, vs...))
+}
+
+// ModeNotIn applies the NotIn predicate on the "mode" field.
+func ModeNotIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldMode, vs...))
+}
+
+// ModeGT applies the GT predicate on the "mode" field.
+func ModeGT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldMode, v))
+}
+
+// ModeGTE applies the GTE predicate on the "mode" field.
+func ModeGTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldMode, v))
+}
+
+// ModeLT applies the LT predicate on the "mode" field.
+func ModeLT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldMode, v))
+}
+
+// ModeLTE applies the LTE predicate on the "mode" field.
+func ModeLTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldMode, v))
+}
+
+// ModeContains applies the Contains predicate on the "mode" field.
+func ModeContains(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContains(FieldMode, v))
+}
+
+// ModeHasPrefix applies the HasPrefix predicate on the "mode" field.
+func ModeHasPrefix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldMode, v))
+}
+
+// ModeHasSuffix applies the HasSuffix predicate on the "mode" field.
+func ModeHasSuffix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldMode, v))
+}
+
+// ModeEqualFold applies the EqualFold predicate on the "mode" field.
+func ModeEqualFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldMode, v))
+}
+
+// ModeContainsFold applies the ContainsFold predicate on the "mode" field.
+func ModeContainsFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldMode, v))
+}
+
 // TypeEQ applies the EQ predicate on the "type" field.
 func TypeEQ(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldType, v))
@@ -492,6 +674,104 @@ func TypeEqualFold(v string) predicate.ApplicationResource {
 // TypeContainsFold applies the ContainsFold predicate on the "type" field.
 func TypeContainsFold(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldType, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldName, v))
+}
+
+// HasApplication applies the HasEdge predicate on the "application" edge.
+func HasApplication() predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
+func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ApplicationInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

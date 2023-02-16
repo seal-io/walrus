@@ -16,8 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ProjectCreate is the builder for creating a Project entity.
@@ -26,6 +27,32 @@ type ProjectCreate struct {
 	mutation *ProjectMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetName sets the "name" field.
+func (pc *ProjectCreate) SetName(s string) *ProjectCreate {
+	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *ProjectCreate) SetDescription(s string) *ProjectCreate {
+	pc.mutation.SetDescription(s)
+	return pc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pc *ProjectCreate) SetNillableDescription(s *string) *ProjectCreate {
+	if s != nil {
+		pc.SetDescription(*s)
+	}
+	return pc
+}
+
+// SetLabels sets the "labels" field.
+func (pc *ProjectCreate) SetLabels(m map[string]string) *ProjectCreate {
+	pc.mutation.SetLabels(m)
+	return pc
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -57,9 +84,24 @@ func (pc *ProjectCreate) SetNillableUpdateTime(t *time.Time) *ProjectCreate {
 }
 
 // SetID sets the "id" field.
-func (pc *ProjectCreate) SetID(o oid.ID) *ProjectCreate {
-	pc.mutation.SetID(o)
+func (pc *ProjectCreate) SetID(t types.ID) *ProjectCreate {
+	pc.mutation.SetID(t)
 	return pc
+}
+
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (pc *ProjectCreate) AddApplicationIDs(ids ...types.ID) *ProjectCreate {
+	pc.mutation.AddApplicationIDs(ids...)
+	return pc
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (pc *ProjectCreate) AddApplications(a ...*Application) *ProjectCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pc.AddApplicationIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -118,6 +160,9 @@ func (pc *ProjectCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProjectCreate) check() error {
+	if _, ok := pc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Project.name"`)}
+	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Project.createTime"`)}
 	}
@@ -139,7 +184,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -156,7 +201,7 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: project.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: project.FieldID,
 			},
 		}
@@ -167,6 +212,18 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := pc.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := pc.mutation.Description(); ok {
+		_spec.SetField(project.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := pc.mutation.Labels(); ok {
+		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := pc.mutation.CreateTime(); ok {
 		_spec.SetField(project.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -175,6 +232,26 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if nodes := pc.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = pc.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -182,7 +259,7 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Project.Create().
-//		SetCreateTime(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -191,7 +268,7 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ProjectUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (pc *ProjectCreate) OnConflict(opts ...sql.ConflictOption) *ProjectUpsertOne {
@@ -226,6 +303,54 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetName sets the "name" field.
+func (u *ProjectUpsert) SetName(v string) *ProjectUpsert {
+	u.Set(project.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateName() *ProjectUpsert {
+	u.SetExcluded(project.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *ProjectUpsert) SetDescription(v string) *ProjectUpsert {
+	u.Set(project.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateDescription() *ProjectUpsert {
+	u.SetExcluded(project.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ProjectUpsert) ClearDescription() *ProjectUpsert {
+	u.SetNull(project.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *ProjectUpsert) SetLabels(v map[string]string) *ProjectUpsert {
+	u.Set(project.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateLabels() *ProjectUpsert {
+	u.SetExcluded(project.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsert) ClearLabels() *ProjectUpsert {
+	u.SetNull(project.FieldLabels)
+	return u
+}
 
 // SetUpdateTime sets the "updateTime" field.
 func (u *ProjectUpsert) SetUpdateTime(v time.Time) *ProjectUpsert {
@@ -290,6 +415,62 @@ func (u *ProjectUpsertOne) Update(set func(*ProjectUpsert)) *ProjectUpsertOne {
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *ProjectUpsertOne) SetName(v string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateName() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ProjectUpsertOne) SetDescription(v string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateDescription() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ProjectUpsertOne) ClearDescription() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ProjectUpsertOne) SetLabels(v map[string]string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateLabels() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsertOne) ClearLabels() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ProjectUpsertOne) SetUpdateTime(v time.Time) *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
@@ -320,7 +501,7 @@ func (u *ProjectUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ProjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ProjectUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -334,7 +515,7 @@ func (u *ProjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ProjectUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ProjectUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -436,7 +617,7 @@ func (pcb *ProjectCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ProjectUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (pcb *ProjectCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProjectUpsertBulk {
@@ -516,6 +697,62 @@ func (u *ProjectUpsertBulk) Update(set func(*ProjectUpsert)) *ProjectUpsertBulk 
 		set(&ProjectUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *ProjectUpsertBulk) SetName(v string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateName() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ProjectUpsertBulk) SetDescription(v string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateDescription() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ProjectUpsertBulk) ClearDescription() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ProjectUpsertBulk) SetLabels(v map[string]string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateLabels() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsertBulk) ClearLabels() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearLabels()
+	})
 }
 
 // SetUpdateTime sets the "updateTime" field.

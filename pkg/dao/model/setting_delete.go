@@ -49,7 +49,7 @@ func (sd *SettingDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: setting.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: setting.FieldID,
 			},
 		},

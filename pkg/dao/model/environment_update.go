@@ -13,13 +13,14 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // EnvironmentUpdate is the builder for updating Environment entities.
@@ -36,27 +37,47 @@ func (eu *EnvironmentUpdate) Where(ps ...predicate.Environment) *EnvironmentUpda
 	return eu
 }
 
+// SetName sets the "name" field.
+func (eu *EnvironmentUpdate) SetName(s string) *EnvironmentUpdate {
+	eu.mutation.SetName(s)
+	return eu
+}
+
+// SetDescription sets the "description" field.
+func (eu *EnvironmentUpdate) SetDescription(s string) *EnvironmentUpdate {
+	eu.mutation.SetDescription(s)
+	return eu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (eu *EnvironmentUpdate) SetNillableDescription(s *string) *EnvironmentUpdate {
+	if s != nil {
+		eu.SetDescription(*s)
+	}
+	return eu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (eu *EnvironmentUpdate) ClearDescription() *EnvironmentUpdate {
+	eu.mutation.ClearDescription()
+	return eu
+}
+
+// SetLabels sets the "labels" field.
+func (eu *EnvironmentUpdate) SetLabels(m map[string]string) *EnvironmentUpdate {
+	eu.mutation.SetLabels(m)
+	return eu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (eu *EnvironmentUpdate) ClearLabels() *EnvironmentUpdate {
+	eu.mutation.ClearLabels()
+	return eu
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 	eu.mutation.SetUpdateTime(t)
-	return eu
-}
-
-// SetConnectorIDs sets the "connectorIDs" field.
-func (eu *EnvironmentUpdate) SetConnectorIDs(o []oid.ID) *EnvironmentUpdate {
-	eu.mutation.SetConnectorIDs(o)
-	return eu
-}
-
-// AppendConnectorIDs appends o to the "connectorIDs" field.
-func (eu *EnvironmentUpdate) AppendConnectorIDs(o []oid.ID) *EnvironmentUpdate {
-	eu.mutation.AppendConnectorIDs(o)
-	return eu
-}
-
-// ClearConnectorIDs clears the value of the "connectorIDs" field.
-func (eu *EnvironmentUpdate) ClearConnectorIDs() *EnvironmentUpdate {
-	eu.mutation.ClearConnectorIDs()
 	return eu
 }
 
@@ -72,9 +93,81 @@ func (eu *EnvironmentUpdate) ClearVariables() *EnvironmentUpdate {
 	return eu
 }
 
+// AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
+func (eu *EnvironmentUpdate) AddConnectorIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.AddConnectorIDs(ids...)
+	return eu
+}
+
+// AddConnectors adds the "connectors" edges to the Connector entity.
+func (eu *EnvironmentUpdate) AddConnectors(c ...*Connector) *EnvironmentUpdate {
+	ids := make([]types.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return eu.AddConnectorIDs(ids...)
+}
+
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (eu *EnvironmentUpdate) AddApplicationIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.AddApplicationIDs(ids...)
+	return eu
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (eu *EnvironmentUpdate) AddApplications(a ...*Application) *EnvironmentUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return eu.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
+}
+
+// ClearConnectors clears all "connectors" edges to the Connector entity.
+func (eu *EnvironmentUpdate) ClearConnectors() *EnvironmentUpdate {
+	eu.mutation.ClearConnectors()
+	return eu
+}
+
+// RemoveConnectorIDs removes the "connectors" edge to Connector entities by IDs.
+func (eu *EnvironmentUpdate) RemoveConnectorIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveConnectorIDs(ids...)
+	return eu
+}
+
+// RemoveConnectors removes "connectors" edges to Connector entities.
+func (eu *EnvironmentUpdate) RemoveConnectors(c ...*Connector) *EnvironmentUpdate {
+	ids := make([]types.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return eu.RemoveConnectorIDs(ids...)
+}
+
+// ClearApplications clears all "applications" edges to the Application entity.
+func (eu *EnvironmentUpdate) ClearApplications() *EnvironmentUpdate {
+	eu.mutation.ClearApplications()
+	return eu
+}
+
+// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
+func (eu *EnvironmentUpdate) RemoveApplicationIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveApplicationIDs(ids...)
+	return eu
+}
+
+// RemoveApplications removes "applications" edges to Application entities.
+func (eu *EnvironmentUpdate) RemoveApplications(a ...*Application) *EnvironmentUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return eu.RemoveApplicationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -131,7 +224,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   environment.Table,
 			Columns: environment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: environment.FieldID,
 			},
 		},
@@ -143,25 +236,155 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := eu.mutation.Name(); ok {
+		_spec.SetField(environment.FieldName, field.TypeString, value)
+	}
+	if value, ok := eu.mutation.Description(); ok {
+		_spec.SetField(environment.FieldDescription, field.TypeString, value)
+	}
+	if eu.mutation.DescriptionCleared() {
+		_spec.ClearField(environment.FieldDescription, field.TypeString)
+	}
+	if value, ok := eu.mutation.Labels(); ok {
+		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
+	}
+	if eu.mutation.LabelsCleared() {
+		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := eu.mutation.ConnectorIDs(); ok {
-		_spec.SetField(environment.FieldConnectorIDs, field.TypeJSON, value)
-	}
-	if value, ok := eu.mutation.AppendedConnectorIDs(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, environment.FieldConnectorIDs, value)
-		})
-	}
-	if eu.mutation.ConnectorIDsCleared() {
-		_spec.ClearField(environment.FieldConnectorIDs, field.TypeJSON)
 	}
 	if value, ok := eu.mutation.Variables(); ok {
 		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
 	}
 	if eu.mutation.VariablesCleared() {
 		_spec.ClearField(environment.FieldVariables, field.TypeJSON)
+	}
+	if eu.mutation.ConnectorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		createE := &EnvironmentConnectorRelationshipCreate{config: eu.config, mutation: newEnvironmentConnectorRelationshipMutation(eu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedConnectorsIDs(); len(nodes) > 0 && !eu.mutation.ConnectorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: eu.config, mutation: newEnvironmentConnectorRelationshipMutation(eu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.ConnectorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: eu.config, mutation: newEnvironmentConnectorRelationshipMutation(eu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eu.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.Application
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !eu.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = eu.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, eu.schemaConfig)
@@ -187,27 +410,47 @@ type EnvironmentUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetName sets the "name" field.
+func (euo *EnvironmentUpdateOne) SetName(s string) *EnvironmentUpdateOne {
+	euo.mutation.SetName(s)
+	return euo
+}
+
+// SetDescription sets the "description" field.
+func (euo *EnvironmentUpdateOne) SetDescription(s string) *EnvironmentUpdateOne {
+	euo.mutation.SetDescription(s)
+	return euo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (euo *EnvironmentUpdateOne) SetNillableDescription(s *string) *EnvironmentUpdateOne {
+	if s != nil {
+		euo.SetDescription(*s)
+	}
+	return euo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (euo *EnvironmentUpdateOne) ClearDescription() *EnvironmentUpdateOne {
+	euo.mutation.ClearDescription()
+	return euo
+}
+
+// SetLabels sets the "labels" field.
+func (euo *EnvironmentUpdateOne) SetLabels(m map[string]string) *EnvironmentUpdateOne {
+	euo.mutation.SetLabels(m)
+	return euo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (euo *EnvironmentUpdateOne) ClearLabels() *EnvironmentUpdateOne {
+	euo.mutation.ClearLabels()
+	return euo
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOne {
 	euo.mutation.SetUpdateTime(t)
-	return euo
-}
-
-// SetConnectorIDs sets the "connectorIDs" field.
-func (euo *EnvironmentUpdateOne) SetConnectorIDs(o []oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.SetConnectorIDs(o)
-	return euo
-}
-
-// AppendConnectorIDs appends o to the "connectorIDs" field.
-func (euo *EnvironmentUpdateOne) AppendConnectorIDs(o []oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.AppendConnectorIDs(o)
-	return euo
-}
-
-// ClearConnectorIDs clears the value of the "connectorIDs" field.
-func (euo *EnvironmentUpdateOne) ClearConnectorIDs() *EnvironmentUpdateOne {
-	euo.mutation.ClearConnectorIDs()
 	return euo
 }
 
@@ -223,9 +466,81 @@ func (euo *EnvironmentUpdateOne) ClearVariables() *EnvironmentUpdateOne {
 	return euo
 }
 
+// AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
+func (euo *EnvironmentUpdateOne) AddConnectorIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddConnectorIDs(ids...)
+	return euo
+}
+
+// AddConnectors adds the "connectors" edges to the Connector entity.
+func (euo *EnvironmentUpdateOne) AddConnectors(c ...*Connector) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return euo.AddConnectorIDs(ids...)
+}
+
+// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
+func (euo *EnvironmentUpdateOne) AddApplicationIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddApplicationIDs(ids...)
+	return euo
+}
+
+// AddApplications adds the "applications" edges to the Application entity.
+func (euo *EnvironmentUpdateOne) AddApplications(a ...*Application) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return euo.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
+}
+
+// ClearConnectors clears all "connectors" edges to the Connector entity.
+func (euo *EnvironmentUpdateOne) ClearConnectors() *EnvironmentUpdateOne {
+	euo.mutation.ClearConnectors()
+	return euo
+}
+
+// RemoveConnectorIDs removes the "connectors" edge to Connector entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveConnectorIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveConnectorIDs(ids...)
+	return euo
+}
+
+// RemoveConnectors removes "connectors" edges to Connector entities.
+func (euo *EnvironmentUpdateOne) RemoveConnectors(c ...*Connector) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return euo.RemoveConnectorIDs(ids...)
+}
+
+// ClearApplications clears all "applications" edges to the Application entity.
+func (euo *EnvironmentUpdateOne) ClearApplications() *EnvironmentUpdateOne {
+	euo.mutation.ClearApplications()
+	return euo
+}
+
+// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveApplicationIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveApplicationIDs(ids...)
+	return euo
+}
+
+// RemoveApplications removes "applications" edges to Application entities.
+func (euo *EnvironmentUpdateOne) RemoveApplications(a ...*Application) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return euo.RemoveApplicationIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -289,7 +604,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Table:   environment.Table,
 			Columns: environment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: environment.FieldID,
 			},
 		},
@@ -318,25 +633,155 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			}
 		}
 	}
+	if value, ok := euo.mutation.Name(); ok {
+		_spec.SetField(environment.FieldName, field.TypeString, value)
+	}
+	if value, ok := euo.mutation.Description(); ok {
+		_spec.SetField(environment.FieldDescription, field.TypeString, value)
+	}
+	if euo.mutation.DescriptionCleared() {
+		_spec.ClearField(environment.FieldDescription, field.TypeString)
+	}
+	if value, ok := euo.mutation.Labels(); ok {
+		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
+	}
+	if euo.mutation.LabelsCleared() {
+		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := euo.mutation.ConnectorIDs(); ok {
-		_spec.SetField(environment.FieldConnectorIDs, field.TypeJSON, value)
-	}
-	if value, ok := euo.mutation.AppendedConnectorIDs(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, environment.FieldConnectorIDs, value)
-		})
-	}
-	if euo.mutation.ConnectorIDsCleared() {
-		_spec.ClearField(environment.FieldConnectorIDs, field.TypeJSON)
 	}
 	if value, ok := euo.mutation.Variables(); ok {
 		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
 	}
 	if euo.mutation.VariablesCleared() {
 		_spec.ClearField(environment.FieldVariables, field.TypeJSON)
+	}
+	if euo.mutation.ConnectorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
+		createE := &EnvironmentConnectorRelationshipCreate{config: euo.config, mutation: newEnvironmentConnectorRelationshipMutation(euo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedConnectorsIDs(); len(nodes) > 0 && !euo.mutation.ConnectorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: euo.config, mutation: newEnvironmentConnectorRelationshipMutation(euo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.ConnectorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: euo.config, mutation: newEnvironmentConnectorRelationshipMutation(euo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.Application
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !euo.mutation.ApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.ApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = euo.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, euo.schemaConfig)

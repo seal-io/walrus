@@ -49,7 +49,7 @@ func (ed *EnvironmentDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: environment.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: environment.FieldID,
 			},
 		},

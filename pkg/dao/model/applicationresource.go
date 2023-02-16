@@ -12,30 +12,61 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationResource is the model entity for the ApplicationResource schema.
 type ApplicationResource struct {
 	config `json:"-"`
 	// ID of the ent.
-	// ID of the resource.
-	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource
+	ID types.ID `json:"id,omitempty"`
+	// Status of the resource.
 	Status string `json:"status,omitempty"`
-	// extra message for status, like error details
+	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// ID of the application to which the revision belongs
-	ApplicationID oid.ID `json:"applicationID"`
-	// Module that generates the resource
+	// ID of the application to which the resource belongs.
+	ApplicationID types.ID `json:"applicationID"`
+	// ID of the connector to which the resource deploys, uses for redundancy but not correlation constraint.
+	ConnectorID types.ID `json:"connectorID"`
+	// Name of the module that generates the resource.
 	Module string `json:"module"`
-	// Resource type
+	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
+	Mode string `json:"mode"`
+	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
 	Type string `json:"type"`
+	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
+	Name string `json:"name"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
+	Edges ApplicationResourceEdges `json:"edges,omitempty"`
+}
+
+// ApplicationResourceEdges holds the relations/edges for other nodes in the graph.
+type ApplicationResourceEdges struct {
+	// Application to which the resource belongs.
+	Application *Application `json:"application,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// ApplicationOrErr returns the Application value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApplicationResourceEdges) ApplicationOrErr() (*Application, error) {
+	if e.loadedTypes[0] {
+		if e.Application == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: application.Label}
+		}
+		return e.Application, nil
+	}
+	return nil, &NotLoadedError{edge: "application"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,12 +74,12 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationresource.FieldID, applicationresource.FieldApplicationID:
-			values[i] = new(oid.ID)
-		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldType:
+		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationresource.FieldCreateTime, applicationresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
+		case applicationresource.FieldID, applicationresource.FieldApplicationID, applicationresource.FieldConnectorID:
+			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationResource", columns[i])
 		}
@@ -65,7 +96,7 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 	for i := range columns {
 		switch columns[i] {
 		case applicationresource.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*types.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
@@ -97,10 +128,16 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				*ar.UpdateTime = value.Time
 			}
 		case applicationresource.FieldApplicationID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*types.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field applicationID", values[i])
 			} else if value != nil {
 				ar.ApplicationID = *value
+			}
+		case applicationresource.FieldConnectorID:
+			if value, ok := values[i].(*types.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
+			} else if value != nil {
+				ar.ConnectorID = *value
 			}
 		case applicationresource.FieldModule:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -108,15 +145,32 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.Module = value.String
 			}
+		case applicationresource.FieldMode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mode", values[i])
+			} else if value.Valid {
+				ar.Mode = value.String
+			}
 		case applicationresource.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
 				ar.Type = value.String
 			}
+		case applicationresource.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				ar.Name = value.String
+			}
 		}
 	}
 	return nil
+}
+
+// QueryApplication queries the "application" edge of the ApplicationResource entity.
+func (ar *ApplicationResource) QueryApplication() *ApplicationQuery {
+	return NewApplicationResourceClient(ar.config).QueryApplication(ar)
 }
 
 // Update returns a builder for updating this ApplicationResource.
@@ -161,11 +215,20 @@ func (ar *ApplicationResource) String() string {
 	builder.WriteString("applicationID=")
 	builder.WriteString(fmt.Sprintf("%v", ar.ApplicationID))
 	builder.WriteString(", ")
+	builder.WriteString("connectorID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.ConnectorID))
+	builder.WriteString(", ")
 	builder.WriteString("module=")
 	builder.WriteString(ar.Module)
 	builder.WriteString(", ")
+	builder.WriteString("mode=")
+	builder.WriteString(ar.Mode)
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(ar.Type)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(ar.Name)
 	builder.WriteByte(')')
 	return builder.String()
 }

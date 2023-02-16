@@ -17,8 +17,12 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/oid"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationCreate is the builder for creating a Application entity.
@@ -27,6 +31,32 @@ type ApplicationCreate struct {
 	mutation *ApplicationMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetName sets the "name" field.
+func (ac *ApplicationCreate) SetName(s string) *ApplicationCreate {
+	ac.mutation.SetName(s)
+	return ac
+}
+
+// SetDescription sets the "description" field.
+func (ac *ApplicationCreate) SetDescription(s string) *ApplicationCreate {
+	ac.mutation.SetDescription(s)
+	return ac
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ac *ApplicationCreate) SetNillableDescription(s *string) *ApplicationCreate {
+	if s != nil {
+		ac.SetDescription(*s)
+	}
+	return ac
+}
+
+// SetLabels sets the "labels" field.
+func (ac *ApplicationCreate) SetLabels(m map[string]string) *ApplicationCreate {
+	ac.mutation.SetLabels(m)
+	return ac
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -58,27 +88,76 @@ func (ac *ApplicationCreate) SetNillableUpdateTime(t *time.Time) *ApplicationCre
 }
 
 // SetProjectID sets the "projectID" field.
-func (ac *ApplicationCreate) SetProjectID(o oid.ID) *ApplicationCreate {
-	ac.mutation.SetProjectID(o)
+func (ac *ApplicationCreate) SetProjectID(t types.ID) *ApplicationCreate {
+	ac.mutation.SetProjectID(t)
 	return ac
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (ac *ApplicationCreate) SetEnvironmentID(o oid.ID) *ApplicationCreate {
-	ac.mutation.SetEnvironmentID(o)
-	return ac
-}
-
-// SetModules sets the "modules" field.
-func (ac *ApplicationCreate) SetModules(sm []schema.ApplicationModule) *ApplicationCreate {
-	ac.mutation.SetModules(sm)
+func (ac *ApplicationCreate) SetEnvironmentID(t types.ID) *ApplicationCreate {
+	ac.mutation.SetEnvironmentID(t)
 	return ac
 }
 
 // SetID sets the "id" field.
-func (ac *ApplicationCreate) SetID(o oid.ID) *ApplicationCreate {
-	ac.mutation.SetID(o)
+func (ac *ApplicationCreate) SetID(t types.ID) *ApplicationCreate {
+	ac.mutation.SetID(t)
 	return ac
+}
+
+// SetProject sets the "project" edge to the Project entity.
+func (ac *ApplicationCreate) SetProject(p *Project) *ApplicationCreate {
+	return ac.SetProjectID(p.ID)
+}
+
+// SetEnvironment sets the "environment" edge to the Environment entity.
+func (ac *ApplicationCreate) SetEnvironment(e *Environment) *ApplicationCreate {
+	return ac.SetEnvironmentID(e.ID)
+}
+
+// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+func (ac *ApplicationCreate) AddResourceIDs(ids ...types.ID) *ApplicationCreate {
+	ac.mutation.AddResourceIDs(ids...)
+	return ac
+}
+
+// AddResources adds the "resources" edges to the ApplicationResource entity.
+func (ac *ApplicationCreate) AddResources(a ...*ApplicationResource) *ApplicationCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ac.AddResourceIDs(ids...)
+}
+
+// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
+func (ac *ApplicationCreate) AddRevisionIDs(ids ...types.ID) *ApplicationCreate {
+	ac.mutation.AddRevisionIDs(ids...)
+	return ac
+}
+
+// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
+func (ac *ApplicationCreate) AddRevisions(a ...*ApplicationRevision) *ApplicationCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ac.AddRevisionIDs(ids...)
+}
+
+// AddModuleIDs adds the "modules" edge to the Module entity by IDs.
+func (ac *ApplicationCreate) AddModuleIDs(ids ...string) *ApplicationCreate {
+	ac.mutation.AddModuleIDs(ids...)
+	return ac
+}
+
+// AddModules adds the "modules" edges to the Module entity.
+func (ac *ApplicationCreate) AddModules(m ...*Module) *ApplicationCreate {
+	ids := make([]string, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ac.AddModuleIDs(ids...)
 }
 
 // Mutation returns the ApplicationMutation object of the builder.
@@ -137,6 +216,9 @@ func (ac *ApplicationCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *ApplicationCreate) check() error {
+	if _, ok := ac.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Application.name"`)}
+	}
 	if _, ok := ac.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Application.createTime"`)}
 	}
@@ -149,8 +231,11 @@ func (ac *ApplicationCreate) check() error {
 	if _, ok := ac.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "Application.environmentID"`)}
 	}
-	if _, ok := ac.mutation.Modules(); !ok {
-		return &ValidationError{Name: "modules", err: errors.New(`model: missing required field "Application.modules"`)}
+	if _, ok := ac.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Application.project"`)}
+	}
+	if _, ok := ac.mutation.EnvironmentID(); !ok {
+		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Application.environment"`)}
 	}
 	return nil
 }
@@ -167,7 +252,7 @@ func (ac *ApplicationCreate) sqlSave(ctx context.Context) (*Application, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -184,7 +269,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: application.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: application.FieldID,
 			},
 		}
@@ -195,6 +280,18 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := ac.mutation.Name(); ok {
+		_spec.SetField(application.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := ac.mutation.Description(); ok {
+		_spec.SetField(application.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := ac.mutation.Labels(); ok {
+		_spec.SetField(application.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := ac.mutation.CreateTime(); ok {
 		_spec.SetField(application.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -203,17 +300,111 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := ac.mutation.ProjectID(); ok {
-		_spec.SetField(application.FieldProjectID, field.TypeOther, value)
-		_node.ProjectID = value
+	if nodes := ac.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   application.ProjectTable,
+			Columns: []string{application.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
+		}
+		edge.Schema = ac.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if value, ok := ac.mutation.EnvironmentID(); ok {
-		_spec.SetField(application.FieldEnvironmentID, field.TypeOther, value)
-		_node.EnvironmentID = value
+	if nodes := ac.mutation.EnvironmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   application.EnvironmentTable,
+			Columns: []string{application.EnvironmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: environment.FieldID,
+				},
+			},
+		}
+		edge.Schema = ac.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EnvironmentID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if value, ok := ac.mutation.Modules(); ok {
-		_spec.SetField(application.FieldModules, field.TypeJSON, value)
-		_node.Modules = value
+	if nodes := ac.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   application.ResourcesTable,
+			Columns: []string{application.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = ac.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   application.RevisionsTable,
+			Columns: []string{application.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = ac.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.ModulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   application.ModulesTable,
+			Columns: application.ModulesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: module.FieldID,
+				},
+			},
+		}
+		edge.Schema = ac.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: ac.config, mutation: newApplicationModuleRelationshipMutation(ac.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -222,7 +413,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Application.Create().
-//		SetCreateTime(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -231,7 +422,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ac *ApplicationCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationUpsertOne {
@@ -267,6 +458,54 @@ type (
 	}
 )
 
+// SetName sets the "name" field.
+func (u *ApplicationUpsert) SetName(v string) *ApplicationUpsert {
+	u.Set(application.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ApplicationUpsert) UpdateName() *ApplicationUpsert {
+	u.SetExcluded(application.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *ApplicationUpsert) SetDescription(v string) *ApplicationUpsert {
+	u.Set(application.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ApplicationUpsert) UpdateDescription() *ApplicationUpsert {
+	u.SetExcluded(application.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ApplicationUpsert) ClearDescription() *ApplicationUpsert {
+	u.SetNull(application.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *ApplicationUpsert) SetLabels(v map[string]string) *ApplicationUpsert {
+	u.Set(application.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ApplicationUpsert) UpdateLabels() *ApplicationUpsert {
+	u.SetExcluded(application.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ApplicationUpsert) ClearLabels() *ApplicationUpsert {
+	u.SetNull(application.FieldLabels)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationUpsert) SetUpdateTime(v time.Time) *ApplicationUpsert {
 	u.Set(application.FieldUpdateTime, v)
@@ -276,18 +515,6 @@ func (u *ApplicationUpsert) SetUpdateTime(v time.Time) *ApplicationUpsert {
 // UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
 func (u *ApplicationUpsert) UpdateUpdateTime() *ApplicationUpsert {
 	u.SetExcluded(application.FieldUpdateTime)
-	return u
-}
-
-// SetModules sets the "modules" field.
-func (u *ApplicationUpsert) SetModules(v []schema.ApplicationModule) *ApplicationUpsert {
-	u.Set(application.FieldModules, v)
-	return u
-}
-
-// UpdateModules sets the "modules" field to the value that was provided on create.
-func (u *ApplicationUpsert) UpdateModules() *ApplicationUpsert {
-	u.SetExcluded(application.FieldModules)
 	return u
 }
 
@@ -348,6 +575,62 @@ func (u *ApplicationUpsertOne) Update(set func(*ApplicationUpsert)) *Application
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *ApplicationUpsertOne) SetName(v string) *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ApplicationUpsertOne) UpdateName() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ApplicationUpsertOne) SetDescription(v string) *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ApplicationUpsertOne) UpdateDescription() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ApplicationUpsertOne) ClearDescription() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ApplicationUpsertOne) SetLabels(v map[string]string) *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ApplicationUpsertOne) UpdateLabels() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ApplicationUpsertOne) ClearLabels() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationUpsertOne) SetUpdateTime(v time.Time) *ApplicationUpsertOne {
 	return u.Update(func(s *ApplicationUpsert) {
@@ -359,20 +642,6 @@ func (u *ApplicationUpsertOne) SetUpdateTime(v time.Time) *ApplicationUpsertOne 
 func (u *ApplicationUpsertOne) UpdateUpdateTime() *ApplicationUpsertOne {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetModules sets the "modules" field.
-func (u *ApplicationUpsertOne) SetModules(v []schema.ApplicationModule) *ApplicationUpsertOne {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.SetModules(v)
-	})
-}
-
-// UpdateModules sets the "modules" field to the value that was provided on create.
-func (u *ApplicationUpsertOne) UpdateModules() *ApplicationUpsertOne {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.UpdateModules()
 	})
 }
 
@@ -392,7 +661,7 @@ func (u *ApplicationUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ApplicationUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -406,7 +675,7 @@ func (u *ApplicationUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ApplicationUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -508,7 +777,7 @@ func (acb *ApplicationCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (acb *ApplicationCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationUpsertBulk {
@@ -596,6 +865,62 @@ func (u *ApplicationUpsertBulk) Update(set func(*ApplicationUpsert)) *Applicatio
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *ApplicationUpsertBulk) SetName(v string) *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ApplicationUpsertBulk) UpdateName() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ApplicationUpsertBulk) SetDescription(v string) *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ApplicationUpsertBulk) UpdateDescription() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ApplicationUpsertBulk) ClearDescription() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ApplicationUpsertBulk) SetLabels(v map[string]string) *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ApplicationUpsertBulk) UpdateLabels() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ApplicationUpsertBulk) ClearLabels() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationUpsertBulk) SetUpdateTime(v time.Time) *ApplicationUpsertBulk {
 	return u.Update(func(s *ApplicationUpsert) {
@@ -607,20 +932,6 @@ func (u *ApplicationUpsertBulk) SetUpdateTime(v time.Time) *ApplicationUpsertBul
 func (u *ApplicationUpsertBulk) UpdateUpdateTime() *ApplicationUpsertBulk {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetModules sets the "modules" field.
-func (u *ApplicationUpsertBulk) SetModules(v []schema.ApplicationModule) *ApplicationUpsertBulk {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.SetModules(v)
-	})
-}
-
-// UpdateModules sets the "modules" field to the value that was provided on create.
-func (u *ApplicationUpsertBulk) UpdateModules() *ApplicationUpsertBulk {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.UpdateModules()
 	})
 }
 

@@ -7,11 +7,14 @@ package model
 
 import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -26,31 +29,58 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 11)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 13)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   application.Table,
 			Columns: application.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: application.FieldID,
 			},
 		},
 		Type: "Application",
 		Fields: map[string]*sqlgraph.FieldSpec{
+			application.FieldName:          {Type: field.TypeString, Column: application.FieldName},
+			application.FieldDescription:   {Type: field.TypeString, Column: application.FieldDescription},
+			application.FieldLabels:        {Type: field.TypeJSON, Column: application.FieldLabels},
 			application.FieldCreateTime:    {Type: field.TypeTime, Column: application.FieldCreateTime},
 			application.FieldUpdateTime:    {Type: field.TypeTime, Column: application.FieldUpdateTime},
-			application.FieldProjectID:     {Type: field.TypeOther, Column: application.FieldProjectID},
-			application.FieldEnvironmentID: {Type: field.TypeOther, Column: application.FieldEnvironmentID},
-			application.FieldModules:       {Type: field.TypeJSON, Column: application.FieldModules},
+			application.FieldProjectID:     {Type: field.TypeString, Column: application.FieldProjectID},
+			application.FieldEnvironmentID: {Type: field.TypeString, Column: application.FieldEnvironmentID},
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
+			Table:   applicationmodulerelationship.Table,
+			Columns: applicationmodulerelationship.Columns,
+			CompositeID: []*sqlgraph.FieldSpec{
+				{
+					Type:   field.TypeString,
+					Column: applicationmodulerelationship.FieldApplicationID,
+				},
+				{
+					Type:   field.TypeString,
+					Column: applicationmodulerelationship.FieldModuleID,
+				},
+			},
+		},
+		Type: "ApplicationModuleRelationship",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			applicationmodulerelationship.FieldCreateTime:    {Type: field.TypeTime, Column: applicationmodulerelationship.FieldCreateTime},
+			applicationmodulerelationship.FieldUpdateTime:    {Type: field.TypeTime, Column: applicationmodulerelationship.FieldUpdateTime},
+			applicationmodulerelationship.FieldApplicationID: {Type: field.TypeString, Column: applicationmodulerelationship.FieldApplicationID},
+			applicationmodulerelationship.FieldModuleID:      {Type: field.TypeString, Column: applicationmodulerelationship.FieldModuleID},
+			applicationmodulerelationship.FieldName:          {Type: field.TypeString, Column: applicationmodulerelationship.FieldName},
+			applicationmodulerelationship.FieldVariables:     {Type: field.TypeJSON, Column: applicationmodulerelationship.FieldVariables},
+		},
+	}
+	graph.Nodes[2] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationresource.Table,
 			Columns: applicationresource.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationresource.FieldID,
 			},
 		},
@@ -60,17 +90,20 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationresource.FieldStatusMessage: {Type: field.TypeString, Column: applicationresource.FieldStatusMessage},
 			applicationresource.FieldCreateTime:    {Type: field.TypeTime, Column: applicationresource.FieldCreateTime},
 			applicationresource.FieldUpdateTime:    {Type: field.TypeTime, Column: applicationresource.FieldUpdateTime},
-			applicationresource.FieldApplicationID: {Type: field.TypeOther, Column: applicationresource.FieldApplicationID},
+			applicationresource.FieldApplicationID: {Type: field.TypeString, Column: applicationresource.FieldApplicationID},
+			applicationresource.FieldConnectorID:   {Type: field.TypeString, Column: applicationresource.FieldConnectorID},
 			applicationresource.FieldModule:        {Type: field.TypeString, Column: applicationresource.FieldModule},
+			applicationresource.FieldMode:          {Type: field.TypeString, Column: applicationresource.FieldMode},
 			applicationresource.FieldType:          {Type: field.TypeString, Column: applicationresource.FieldType},
+			applicationresource.FieldName:          {Type: field.TypeString, Column: applicationresource.FieldName},
 		},
 	}
-	graph.Nodes[2] = &sqlgraph.Node{
+	graph.Nodes[3] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationrevision.Table,
 			Columns: applicationrevision.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationrevision.FieldID,
 			},
 		},
@@ -80,25 +113,28 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationrevision.FieldStatusMessage:  {Type: field.TypeString, Column: applicationrevision.FieldStatusMessage},
 			applicationrevision.FieldCreateTime:     {Type: field.TypeTime, Column: applicationrevision.FieldCreateTime},
 			applicationrevision.FieldUpdateTime:     {Type: field.TypeTime, Column: applicationrevision.FieldUpdateTime},
-			applicationrevision.FieldApplicationID:  {Type: field.TypeOther, Column: applicationrevision.FieldApplicationID},
-			applicationrevision.FieldEnvironmentID:  {Type: field.TypeOther, Column: applicationrevision.FieldEnvironmentID},
+			applicationrevision.FieldApplicationID:  {Type: field.TypeString, Column: applicationrevision.FieldApplicationID},
+			applicationrevision.FieldEnvironmentID:  {Type: field.TypeString, Column: applicationrevision.FieldEnvironmentID},
 			applicationrevision.FieldModules:        {Type: field.TypeJSON, Column: applicationrevision.FieldModules},
 			applicationrevision.FieldInputVariables: {Type: field.TypeJSON, Column: applicationrevision.FieldInputVariables},
 			applicationrevision.FieldInputPlan:      {Type: field.TypeString, Column: applicationrevision.FieldInputPlan},
 			applicationrevision.FieldOutput:         {Type: field.TypeString, Column: applicationrevision.FieldOutput},
 		},
 	}
-	graph.Nodes[3] = &sqlgraph.Node{
+	graph.Nodes[4] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   connector.Table,
 			Columns: connector.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: connector.FieldID,
 			},
 		},
 		Type: "Connector",
 		Fields: map[string]*sqlgraph.FieldSpec{
+			connector.FieldName:          {Type: field.TypeString, Column: connector.FieldName},
+			connector.FieldDescription:   {Type: field.TypeString, Column: connector.FieldDescription},
+			connector.FieldLabels:        {Type: field.TypeJSON, Column: connector.FieldLabels},
 			connector.FieldStatus:        {Type: field.TypeString, Column: connector.FieldStatus},
 			connector.FieldStatusMessage: {Type: field.TypeString, Column: connector.FieldStatusMessage},
 			connector.FieldCreateTime:    {Type: field.TypeTime, Column: connector.FieldCreateTime},
@@ -108,29 +144,53 @@ var schemaGraph = func() *sqlgraph.Schema {
 			connector.FieldConfigData:    {Type: field.TypeJSON, Column: connector.FieldConfigData},
 		},
 	}
-	graph.Nodes[4] = &sqlgraph.Node{
+	graph.Nodes[5] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   environment.Table,
 			Columns: environment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: environment.FieldID,
 			},
 		},
 		Type: "Environment",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			environment.FieldCreateTime:   {Type: field.TypeTime, Column: environment.FieldCreateTime},
-			environment.FieldUpdateTime:   {Type: field.TypeTime, Column: environment.FieldUpdateTime},
-			environment.FieldConnectorIDs: {Type: field.TypeJSON, Column: environment.FieldConnectorIDs},
-			environment.FieldVariables:    {Type: field.TypeJSON, Column: environment.FieldVariables},
+			environment.FieldName:        {Type: field.TypeString, Column: environment.FieldName},
+			environment.FieldDescription: {Type: field.TypeString, Column: environment.FieldDescription},
+			environment.FieldLabels:      {Type: field.TypeJSON, Column: environment.FieldLabels},
+			environment.FieldCreateTime:  {Type: field.TypeTime, Column: environment.FieldCreateTime},
+			environment.FieldUpdateTime:  {Type: field.TypeTime, Column: environment.FieldUpdateTime},
+			environment.FieldVariables:   {Type: field.TypeJSON, Column: environment.FieldVariables},
 		},
 	}
-	graph.Nodes[5] = &sqlgraph.Node{
+	graph.Nodes[6] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   environmentconnectorrelationship.Table,
+			Columns: environmentconnectorrelationship.Columns,
+			CompositeID: []*sqlgraph.FieldSpec{
+				{
+					Type:   field.TypeString,
+					Column: environmentconnectorrelationship.FieldEnvironmentID,
+				},
+				{
+					Type:   field.TypeString,
+					Column: environmentconnectorrelationship.FieldConnectorID,
+				},
+			},
+		},
+		Type: "EnvironmentConnectorRelationship",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			environmentconnectorrelationship.FieldCreateTime:    {Type: field.TypeTime, Column: environmentconnectorrelationship.FieldCreateTime},
+			environmentconnectorrelationship.FieldEnvironmentID: {Type: field.TypeString, Column: environmentconnectorrelationship.FieldEnvironmentID},
+			environmentconnectorrelationship.FieldConnectorID:   {Type: field.TypeString, Column: environmentconnectorrelationship.FieldConnectorID},
+		},
+	}
+	graph.Nodes[7] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   module.Table,
 			Columns: module.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: module.FieldID,
 			},
 		},
@@ -140,33 +200,38 @@ var schemaGraph = func() *sqlgraph.Schema {
 			module.FieldStatusMessage: {Type: field.TypeString, Column: module.FieldStatusMessage},
 			module.FieldCreateTime:    {Type: field.TypeTime, Column: module.FieldCreateTime},
 			module.FieldUpdateTime:    {Type: field.TypeTime, Column: module.FieldUpdateTime},
+			module.FieldDescription:   {Type: field.TypeString, Column: module.FieldDescription},
+			module.FieldLabels:        {Type: field.TypeJSON, Column: module.FieldLabels},
 			module.FieldSource:        {Type: field.TypeString, Column: module.FieldSource},
 			module.FieldVersion:       {Type: field.TypeString, Column: module.FieldVersion},
 			module.FieldInputSchema:   {Type: field.TypeJSON, Column: module.FieldInputSchema},
 			module.FieldOutputSchema:  {Type: field.TypeJSON, Column: module.FieldOutputSchema},
 		},
 	}
-	graph.Nodes[6] = &sqlgraph.Node{
+	graph.Nodes[8] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: project.FieldID,
 			},
 		},
 		Type: "Project",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			project.FieldCreateTime: {Type: field.TypeTime, Column: project.FieldCreateTime},
-			project.FieldUpdateTime: {Type: field.TypeTime, Column: project.FieldUpdateTime},
+			project.FieldName:        {Type: field.TypeString, Column: project.FieldName},
+			project.FieldDescription: {Type: field.TypeString, Column: project.FieldDescription},
+			project.FieldLabels:      {Type: field.TypeJSON, Column: project.FieldLabels},
+			project.FieldCreateTime:  {Type: field.TypeTime, Column: project.FieldCreateTime},
+			project.FieldUpdateTime:  {Type: field.TypeTime, Column: project.FieldUpdateTime},
 		},
 	}
-	graph.Nodes[7] = &sqlgraph.Node{
+	graph.Nodes[9] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   role.Table,
 			Columns: role.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: role.FieldID,
 			},
 		},
@@ -182,12 +247,12 @@ var schemaGraph = func() *sqlgraph.Schema {
 			role.FieldSession:     {Type: field.TypeBool, Column: role.FieldSession},
 		},
 	}
-	graph.Nodes[8] = &sqlgraph.Node{
+	graph.Nodes[10] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   setting.Table,
 			Columns: setting.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: setting.FieldID,
 			},
 		},
@@ -202,12 +267,12 @@ var schemaGraph = func() *sqlgraph.Schema {
 			setting.FieldPrivate:    {Type: field.TypeBool, Column: setting.FieldPrivate},
 		},
 	}
-	graph.Nodes[9] = &sqlgraph.Node{
+	graph.Nodes[11] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   subject.Table,
 			Columns: subject.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: subject.FieldID,
 			},
 		},
@@ -226,12 +291,12 @@ var schemaGraph = func() *sqlgraph.Schema {
 			subject.FieldBuiltin:     {Type: field.TypeBool, Column: subject.FieldBuiltin},
 		},
 	}
-	graph.Nodes[10] = &sqlgraph.Node{
+	graph.Nodes[12] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   token.Table,
 			Columns: token.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: token.FieldID,
 			},
 		},
@@ -245,6 +310,246 @@ var schemaGraph = func() *sqlgraph.Schema {
 			token.FieldExpiration:        {Type: field.TypeInt, Column: token.FieldExpiration},
 		},
 	}
+	graph.MustAddE(
+		"project",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   application.ProjectTable,
+			Columns: []string{application.ProjectColumn},
+			Bidi:    false,
+		},
+		"Application",
+		"Project",
+	)
+	graph.MustAddE(
+		"environment",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   application.EnvironmentTable,
+			Columns: []string{application.EnvironmentColumn},
+			Bidi:    false,
+		},
+		"Application",
+		"Environment",
+	)
+	graph.MustAddE(
+		"resources",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   application.ResourcesTable,
+			Columns: []string{application.ResourcesColumn},
+			Bidi:    false,
+		},
+		"Application",
+		"ApplicationResource",
+	)
+	graph.MustAddE(
+		"revisions",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   application.RevisionsTable,
+			Columns: []string{application.RevisionsColumn},
+			Bidi:    false,
+		},
+		"Application",
+		"ApplicationRevision",
+	)
+	graph.MustAddE(
+		"modules",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   application.ModulesTable,
+			Columns: application.ModulesPrimaryKey,
+			Bidi:    false,
+		},
+		"Application",
+		"Module",
+	)
+	graph.MustAddE(
+		"applicationModuleRelationships",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   application.ApplicationModuleRelationshipsTable,
+			Columns: []string{application.ApplicationModuleRelationshipsColumn},
+			Bidi:    false,
+		},
+		"Application",
+		"ApplicationModuleRelationship",
+	)
+	graph.MustAddE(
+		"application",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   applicationmodulerelationship.ApplicationTable,
+			Columns: []string{applicationmodulerelationship.ApplicationColumn},
+			Bidi:    false,
+		},
+		"ApplicationModuleRelationship",
+		"Application",
+	)
+	graph.MustAddE(
+		"module",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   applicationmodulerelationship.ModuleTable,
+			Columns: []string{applicationmodulerelationship.ModuleColumn},
+			Bidi:    false,
+		},
+		"ApplicationModuleRelationship",
+		"Module",
+	)
+	graph.MustAddE(
+		"application",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationresource.ApplicationTable,
+			Columns: []string{applicationresource.ApplicationColumn},
+			Bidi:    false,
+		},
+		"ApplicationResource",
+		"Application",
+	)
+	graph.MustAddE(
+		"application",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationrevision.ApplicationTable,
+			Columns: []string{applicationrevision.ApplicationColumn},
+			Bidi:    false,
+		},
+		"ApplicationRevision",
+		"Application",
+	)
+	graph.MustAddE(
+		"environment",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   connector.EnvironmentTable,
+			Columns: connector.EnvironmentPrimaryKey,
+			Bidi:    false,
+		},
+		"Connector",
+		"Environment",
+	)
+	graph.MustAddE(
+		"environmentConnectorRelationships",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   connector.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{connector.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+		},
+		"Connector",
+		"EnvironmentConnectorRelationship",
+	)
+	graph.MustAddE(
+		"connectors",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   environment.ConnectorsTable,
+			Columns: environment.ConnectorsPrimaryKey,
+			Bidi:    false,
+		},
+		"Environment",
+		"Connector",
+	)
+	graph.MustAddE(
+		"applications",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.ApplicationsTable,
+			Columns: []string{environment.ApplicationsColumn},
+			Bidi:    false,
+		},
+		"Environment",
+		"Application",
+	)
+	graph.MustAddE(
+		"environmentConnectorRelationships",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+		},
+		"Environment",
+		"EnvironmentConnectorRelationship",
+	)
+	graph.MustAddE(
+		"environment",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   environmentconnectorrelationship.EnvironmentTable,
+			Columns: []string{environmentconnectorrelationship.EnvironmentColumn},
+			Bidi:    false,
+		},
+		"EnvironmentConnectorRelationship",
+		"Environment",
+	)
+	graph.MustAddE(
+		"connector",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   environmentconnectorrelationship.ConnectorTable,
+			Columns: []string{environmentconnectorrelationship.ConnectorColumn},
+			Bidi:    false,
+		},
+		"EnvironmentConnectorRelationship",
+		"Connector",
+	)
+	graph.MustAddE(
+		"application",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+		},
+		"Module",
+		"Application",
+	)
+	graph.MustAddE(
+		"applicationModuleRelationships",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   module.ApplicationModuleRelationshipsTable,
+			Columns: []string{module.ApplicationModuleRelationshipsColumn},
+			Bidi:    false,
+		},
+		"Module",
+		"ApplicationModuleRelationship",
+	)
+	graph.MustAddE(
+		"applications",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ApplicationsTable,
+			Columns: []string{project.ApplicationsColumn},
+			Bidi:    false,
+		},
+		"Project",
+		"Application",
+	)
 	return graph
 }()
 
@@ -289,9 +594,24 @@ func (f *ApplicationFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ApplicationFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ApplicationFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(application.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *ApplicationFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(application.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *ApplicationFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(application.FieldDescription))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *ApplicationFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(application.FieldLabels))
 }
 
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.
@@ -304,19 +624,191 @@ func (f *ApplicationFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(application.FieldUpdateTime))
 }
 
-// WhereProjectID applies the entql other predicate on the projectID field.
-func (f *ApplicationFilter) WhereProjectID(p entql.OtherP) {
+// WhereProjectID applies the entql string predicate on the projectID field.
+func (f *ApplicationFilter) WhereProjectID(p entql.StringP) {
 	f.Where(p.Field(application.FieldProjectID))
 }
 
-// WhereEnvironmentID applies the entql other predicate on the environmentID field.
-func (f *ApplicationFilter) WhereEnvironmentID(p entql.OtherP) {
+// WhereEnvironmentID applies the entql string predicate on the environmentID field.
+func (f *ApplicationFilter) WhereEnvironmentID(p entql.StringP) {
 	f.Where(p.Field(application.FieldEnvironmentID))
 }
 
-// WhereModules applies the entql json.RawMessage predicate on the modules field.
-func (f *ApplicationFilter) WhereModules(p entql.BytesP) {
-	f.Where(p.Field(application.FieldModules))
+// WhereHasProject applies a predicate to check if query has an edge project.
+func (f *ApplicationFilter) WhereHasProject() {
+	f.Where(entql.HasEdge("project"))
+}
+
+// WhereHasProjectWith applies a predicate to check if query has an edge project with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasProjectWith(preds ...predicate.Project) {
+	f.Where(entql.HasEdgeWith("project", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasEnvironment applies a predicate to check if query has an edge environment.
+func (f *ApplicationFilter) WhereHasEnvironment() {
+	f.Where(entql.HasEdge("environment"))
+}
+
+// WhereHasEnvironmentWith applies a predicate to check if query has an edge environment with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasEnvironmentWith(preds ...predicate.Environment) {
+	f.Where(entql.HasEdgeWith("environment", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasResources applies a predicate to check if query has an edge resources.
+func (f *ApplicationFilter) WhereHasResources() {
+	f.Where(entql.HasEdge("resources"))
+}
+
+// WhereHasResourcesWith applies a predicate to check if query has an edge resources with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasResourcesWith(preds ...predicate.ApplicationResource) {
+	f.Where(entql.HasEdgeWith("resources", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasRevisions applies a predicate to check if query has an edge revisions.
+func (f *ApplicationFilter) WhereHasRevisions() {
+	f.Where(entql.HasEdge("revisions"))
+}
+
+// WhereHasRevisionsWith applies a predicate to check if query has an edge revisions with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasRevisionsWith(preds ...predicate.ApplicationRevision) {
+	f.Where(entql.HasEdgeWith("revisions", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasModules applies a predicate to check if query has an edge modules.
+func (f *ApplicationFilter) WhereHasModules() {
+	f.Where(entql.HasEdge("modules"))
+}
+
+// WhereHasModulesWith applies a predicate to check if query has an edge modules with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasModulesWith(preds ...predicate.Module) {
+	f.Where(entql.HasEdgeWith("modules", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasApplicationModuleRelationships applies a predicate to check if query has an edge applicationModuleRelationships.
+func (f *ApplicationFilter) WhereHasApplicationModuleRelationships() {
+	f.Where(entql.HasEdge("applicationModuleRelationships"))
+}
+
+// WhereHasApplicationModuleRelationshipsWith applies a predicate to check if query has an edge applicationModuleRelationships with a given conditions (other predicates).
+func (f *ApplicationFilter) WhereHasApplicationModuleRelationshipsWith(preds ...predicate.ApplicationModuleRelationship) {
+	f.Where(entql.HasEdgeWith("applicationModuleRelationships", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
+func (amrq *ApplicationModuleRelationshipQuery) addPredicate(pred func(s *sql.Selector)) {
+	amrq.predicates = append(amrq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the ApplicationModuleRelationshipQuery builder.
+func (amrq *ApplicationModuleRelationshipQuery) Filter() *ApplicationModuleRelationshipFilter {
+	return &ApplicationModuleRelationshipFilter{config: amrq.config, predicateAdder: amrq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *ApplicationModuleRelationshipMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the ApplicationModuleRelationshipMutation builder.
+func (m *ApplicationModuleRelationshipMutation) Filter() *ApplicationModuleRelationshipFilter {
+	return &ApplicationModuleRelationshipFilter{config: m.config, predicateAdder: m}
+}
+
+// ApplicationModuleRelationshipFilter provides a generic filtering capability at runtime for ApplicationModuleRelationshipQuery.
+type ApplicationModuleRelationshipFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *ApplicationModuleRelationshipFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereCreateTime applies the entql time.Time predicate on the createTime field.
+func (f *ApplicationModuleRelationshipFilter) WhereCreateTime(p entql.TimeP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldCreateTime))
+}
+
+// WhereUpdateTime applies the entql time.Time predicate on the updateTime field.
+func (f *ApplicationModuleRelationshipFilter) WhereUpdateTime(p entql.TimeP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldUpdateTime))
+}
+
+// WhereApplicationID applies the entql string predicate on the application_id field.
+func (f *ApplicationModuleRelationshipFilter) WhereApplicationID(p entql.StringP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldApplicationID))
+}
+
+// WhereModuleID applies the entql string predicate on the module_id field.
+func (f *ApplicationModuleRelationshipFilter) WhereModuleID(p entql.StringP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldModuleID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *ApplicationModuleRelationshipFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldName))
+}
+
+// WhereVariables applies the entql json.RawMessage predicate on the variables field.
+func (f *ApplicationModuleRelationshipFilter) WhereVariables(p entql.BytesP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldVariables))
+}
+
+// WhereHasApplication applies a predicate to check if query has an edge application.
+func (f *ApplicationModuleRelationshipFilter) WhereHasApplication() {
+	f.Where(entql.HasEdge("application"))
+}
+
+// WhereHasApplicationWith applies a predicate to check if query has an edge application with a given conditions (other predicates).
+func (f *ApplicationModuleRelationshipFilter) WhereHasApplicationWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("application", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasModule applies a predicate to check if query has an edge module.
+func (f *ApplicationModuleRelationshipFilter) WhereHasModule() {
+	f.Where(entql.HasEdge("module"))
+}
+
+// WhereHasModuleWith applies a predicate to check if query has an edge module with a given conditions (other predicates).
+func (f *ApplicationModuleRelationshipFilter) WhereHasModuleWith(preds ...predicate.Module) {
+	f.Where(entql.HasEdgeWith("module", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -348,14 +840,14 @@ type ApplicationResourceFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationResourceFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ApplicationResourceFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ApplicationResourceFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(applicationresource.FieldID))
 }
 
@@ -379,9 +871,14 @@ func (f *ApplicationResourceFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(applicationresource.FieldUpdateTime))
 }
 
-// WhereApplicationID applies the entql other predicate on the applicationID field.
-func (f *ApplicationResourceFilter) WhereApplicationID(p entql.OtherP) {
+// WhereApplicationID applies the entql string predicate on the applicationID field.
+func (f *ApplicationResourceFilter) WhereApplicationID(p entql.StringP) {
 	f.Where(p.Field(applicationresource.FieldApplicationID))
+}
+
+// WhereConnectorID applies the entql string predicate on the connectorID field.
+func (f *ApplicationResourceFilter) WhereConnectorID(p entql.StringP) {
+	f.Where(p.Field(applicationresource.FieldConnectorID))
 }
 
 // WhereModule applies the entql string predicate on the module field.
@@ -389,9 +886,33 @@ func (f *ApplicationResourceFilter) WhereModule(p entql.StringP) {
 	f.Where(p.Field(applicationresource.FieldModule))
 }
 
+// WhereMode applies the entql string predicate on the mode field.
+func (f *ApplicationResourceFilter) WhereMode(p entql.StringP) {
+	f.Where(p.Field(applicationresource.FieldMode))
+}
+
 // WhereType applies the entql string predicate on the type field.
 func (f *ApplicationResourceFilter) WhereType(p entql.StringP) {
 	f.Where(p.Field(applicationresource.FieldType))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *ApplicationResourceFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(applicationresource.FieldName))
+}
+
+// WhereHasApplication applies a predicate to check if query has an edge application.
+func (f *ApplicationResourceFilter) WhereHasApplication() {
+	f.Where(entql.HasEdge("application"))
+}
+
+// WhereHasApplicationWith applies a predicate to check if query has an edge application with a given conditions (other predicates).
+func (f *ApplicationResourceFilter) WhereHasApplicationWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("application", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -423,14 +944,14 @@ type ApplicationRevisionFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationRevisionFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ApplicationRevisionFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ApplicationRevisionFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(applicationrevision.FieldID))
 }
 
@@ -454,13 +975,13 @@ func (f *ApplicationRevisionFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(applicationrevision.FieldUpdateTime))
 }
 
-// WhereApplicationID applies the entql other predicate on the applicationID field.
-func (f *ApplicationRevisionFilter) WhereApplicationID(p entql.OtherP) {
+// WhereApplicationID applies the entql string predicate on the applicationID field.
+func (f *ApplicationRevisionFilter) WhereApplicationID(p entql.StringP) {
 	f.Where(p.Field(applicationrevision.FieldApplicationID))
 }
 
-// WhereEnvironmentID applies the entql other predicate on the environmentID field.
-func (f *ApplicationRevisionFilter) WhereEnvironmentID(p entql.OtherP) {
+// WhereEnvironmentID applies the entql string predicate on the environmentID field.
+func (f *ApplicationRevisionFilter) WhereEnvironmentID(p entql.StringP) {
 	f.Where(p.Field(applicationrevision.FieldEnvironmentID))
 }
 
@@ -482,6 +1003,20 @@ func (f *ApplicationRevisionFilter) WhereInputPlan(p entql.StringP) {
 // WhereOutput applies the entql string predicate on the output field.
 func (f *ApplicationRevisionFilter) WhereOutput(p entql.StringP) {
 	f.Where(p.Field(applicationrevision.FieldOutput))
+}
+
+// WhereHasApplication applies a predicate to check if query has an edge application.
+func (f *ApplicationRevisionFilter) WhereHasApplication() {
+	f.Where(entql.HasEdge("application"))
+}
+
+// WhereHasApplicationWith applies a predicate to check if query has an edge application with a given conditions (other predicates).
+func (f *ApplicationRevisionFilter) WhereHasApplicationWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("application", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -513,15 +1048,30 @@ type ConnectorFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ConnectorFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ConnectorFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ConnectorFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(connector.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *ConnectorFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(connector.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *ConnectorFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(connector.FieldDescription))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *ConnectorFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(connector.FieldLabels))
 }
 
 // WhereStatus applies the entql string predicate on the status field.
@@ -559,6 +1109,34 @@ func (f *ConnectorFilter) WhereConfigData(p entql.BytesP) {
 	f.Where(p.Field(connector.FieldConfigData))
 }
 
+// WhereHasEnvironment applies a predicate to check if query has an edge environment.
+func (f *ConnectorFilter) WhereHasEnvironment() {
+	f.Where(entql.HasEdge("environment"))
+}
+
+// WhereHasEnvironmentWith applies a predicate to check if query has an edge environment with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasEnvironmentWith(preds ...predicate.Environment) {
+	f.Where(entql.HasEdgeWith("environment", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasEnvironmentConnectorRelationships applies a predicate to check if query has an edge environmentConnectorRelationships.
+func (f *ConnectorFilter) WhereHasEnvironmentConnectorRelationships() {
+	f.Where(entql.HasEdge("environmentConnectorRelationships"))
+}
+
+// WhereHasEnvironmentConnectorRelationshipsWith applies a predicate to check if query has an edge environmentConnectorRelationships with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasEnvironmentConnectorRelationshipsWith(preds ...predicate.EnvironmentConnectorRelationship) {
+	f.Where(entql.HasEdgeWith("environmentConnectorRelationships", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (eq *EnvironmentQuery) addPredicate(pred func(s *sql.Selector)) {
 	eq.predicates = append(eq.predicates, pred)
@@ -588,15 +1166,30 @@ type EnvironmentFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *EnvironmentFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *EnvironmentFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *EnvironmentFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(environment.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *EnvironmentFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(environment.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *EnvironmentFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(environment.FieldDescription))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *EnvironmentFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(environment.FieldLabels))
 }
 
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.
@@ -609,14 +1202,129 @@ func (f *EnvironmentFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(environment.FieldUpdateTime))
 }
 
-// WhereConnectorIDs applies the entql json.RawMessage predicate on the connectorIDs field.
-func (f *EnvironmentFilter) WhereConnectorIDs(p entql.BytesP) {
-	f.Where(p.Field(environment.FieldConnectorIDs))
-}
-
 // WhereVariables applies the entql json.RawMessage predicate on the variables field.
 func (f *EnvironmentFilter) WhereVariables(p entql.BytesP) {
 	f.Where(p.Field(environment.FieldVariables))
+}
+
+// WhereHasConnectors applies a predicate to check if query has an edge connectors.
+func (f *EnvironmentFilter) WhereHasConnectors() {
+	f.Where(entql.HasEdge("connectors"))
+}
+
+// WhereHasConnectorsWith applies a predicate to check if query has an edge connectors with a given conditions (other predicates).
+func (f *EnvironmentFilter) WhereHasConnectorsWith(preds ...predicate.Connector) {
+	f.Where(entql.HasEdgeWith("connectors", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasApplications applies a predicate to check if query has an edge applications.
+func (f *EnvironmentFilter) WhereHasApplications() {
+	f.Where(entql.HasEdge("applications"))
+}
+
+// WhereHasApplicationsWith applies a predicate to check if query has an edge applications with a given conditions (other predicates).
+func (f *EnvironmentFilter) WhereHasApplicationsWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("applications", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasEnvironmentConnectorRelationships applies a predicate to check if query has an edge environmentConnectorRelationships.
+func (f *EnvironmentFilter) WhereHasEnvironmentConnectorRelationships() {
+	f.Where(entql.HasEdge("environmentConnectorRelationships"))
+}
+
+// WhereHasEnvironmentConnectorRelationshipsWith applies a predicate to check if query has an edge environmentConnectorRelationships with a given conditions (other predicates).
+func (f *EnvironmentFilter) WhereHasEnvironmentConnectorRelationshipsWith(preds ...predicate.EnvironmentConnectorRelationship) {
+	f.Where(entql.HasEdgeWith("environmentConnectorRelationships", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
+func (ecrq *EnvironmentConnectorRelationshipQuery) addPredicate(pred func(s *sql.Selector)) {
+	ecrq.predicates = append(ecrq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the EnvironmentConnectorRelationshipQuery builder.
+func (ecrq *EnvironmentConnectorRelationshipQuery) Filter() *EnvironmentConnectorRelationshipFilter {
+	return &EnvironmentConnectorRelationshipFilter{config: ecrq.config, predicateAdder: ecrq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *EnvironmentConnectorRelationshipMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the EnvironmentConnectorRelationshipMutation builder.
+func (m *EnvironmentConnectorRelationshipMutation) Filter() *EnvironmentConnectorRelationshipFilter {
+	return &EnvironmentConnectorRelationshipFilter{config: m.config, predicateAdder: m}
+}
+
+// EnvironmentConnectorRelationshipFilter provides a generic filtering capability at runtime for EnvironmentConnectorRelationshipQuery.
+type EnvironmentConnectorRelationshipFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *EnvironmentConnectorRelationshipFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereCreateTime applies the entql time.Time predicate on the createTime field.
+func (f *EnvironmentConnectorRelationshipFilter) WhereCreateTime(p entql.TimeP) {
+	f.Where(p.Field(environmentconnectorrelationship.FieldCreateTime))
+}
+
+// WhereEnvironmentID applies the entql string predicate on the environment_id field.
+func (f *EnvironmentConnectorRelationshipFilter) WhereEnvironmentID(p entql.StringP) {
+	f.Where(p.Field(environmentconnectorrelationship.FieldEnvironmentID))
+}
+
+// WhereConnectorID applies the entql string predicate on the connector_id field.
+func (f *EnvironmentConnectorRelationshipFilter) WhereConnectorID(p entql.StringP) {
+	f.Where(p.Field(environmentconnectorrelationship.FieldConnectorID))
+}
+
+// WhereHasEnvironment applies a predicate to check if query has an edge environment.
+func (f *EnvironmentConnectorRelationshipFilter) WhereHasEnvironment() {
+	f.Where(entql.HasEdge("environment"))
+}
+
+// WhereHasEnvironmentWith applies a predicate to check if query has an edge environment with a given conditions (other predicates).
+func (f *EnvironmentConnectorRelationshipFilter) WhereHasEnvironmentWith(preds ...predicate.Environment) {
+	f.Where(entql.HasEdgeWith("environment", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasConnector applies a predicate to check if query has an edge connector.
+func (f *EnvironmentConnectorRelationshipFilter) WhereHasConnector() {
+	f.Where(entql.HasEdge("connector"))
+}
+
+// WhereHasConnectorWith applies a predicate to check if query has an edge connector with a given conditions (other predicates).
+func (f *EnvironmentConnectorRelationshipFilter) WhereHasConnectorWith(preds ...predicate.Connector) {
+	f.Where(entql.HasEdgeWith("connector", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -648,14 +1356,14 @@ type ModuleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ModuleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ModuleFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ModuleFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(module.FieldID))
 }
 
@@ -679,6 +1387,16 @@ func (f *ModuleFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(module.FieldUpdateTime))
 }
 
+// WhereDescription applies the entql string predicate on the description field.
+func (f *ModuleFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(module.FieldDescription))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *ModuleFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(module.FieldLabels))
+}
+
 // WhereSource applies the entql string predicate on the source field.
 func (f *ModuleFilter) WhereSource(p entql.StringP) {
 	f.Where(p.Field(module.FieldSource))
@@ -697,6 +1415,34 @@ func (f *ModuleFilter) WhereInputSchema(p entql.BytesP) {
 // WhereOutputSchema applies the entql json.RawMessage predicate on the outputSchema field.
 func (f *ModuleFilter) WhereOutputSchema(p entql.BytesP) {
 	f.Where(p.Field(module.FieldOutputSchema))
+}
+
+// WhereHasApplication applies a predicate to check if query has an edge application.
+func (f *ModuleFilter) WhereHasApplication() {
+	f.Where(entql.HasEdge("application"))
+}
+
+// WhereHasApplicationWith applies a predicate to check if query has an edge application with a given conditions (other predicates).
+func (f *ModuleFilter) WhereHasApplicationWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("application", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasApplicationModuleRelationships applies a predicate to check if query has an edge applicationModuleRelationships.
+func (f *ModuleFilter) WhereHasApplicationModuleRelationships() {
+	f.Where(entql.HasEdge("applicationModuleRelationships"))
+}
+
+// WhereHasApplicationModuleRelationshipsWith applies a predicate to check if query has an edge applicationModuleRelationships with a given conditions (other predicates).
+func (f *ModuleFilter) WhereHasApplicationModuleRelationshipsWith(preds ...predicate.ApplicationModuleRelationship) {
+	f.Where(entql.HasEdgeWith("applicationModuleRelationships", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -728,15 +1474,30 @@ type ProjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ProjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *ProjectFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *ProjectFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(project.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *ProjectFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(project.FieldName))
+}
+
+// WhereDescription applies the entql string predicate on the description field.
+func (f *ProjectFilter) WhereDescription(p entql.StringP) {
+	f.Where(p.Field(project.FieldDescription))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *ProjectFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(project.FieldLabels))
 }
 
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.
@@ -747,6 +1508,20 @@ func (f *ProjectFilter) WhereCreateTime(p entql.TimeP) {
 // WhereUpdateTime applies the entql time.Time predicate on the updateTime field.
 func (f *ProjectFilter) WhereUpdateTime(p entql.TimeP) {
 	f.Where(p.Field(project.FieldUpdateTime))
+}
+
+// WhereHasApplications applies a predicate to check if query has an edge applications.
+func (f *ProjectFilter) WhereHasApplications() {
+	f.Where(entql.HasEdge("applications"))
+}
+
+// WhereHasApplicationsWith applies a predicate to check if query has an edge applications with a given conditions (other predicates).
+func (f *ProjectFilter) WhereHasApplicationsWith(preds ...predicate.Application) {
+	f.Where(entql.HasEdgeWith("applications", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.
@@ -778,14 +1553,14 @@ type RoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *RoleFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *RoleFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(role.FieldID))
 }
 
@@ -858,14 +1633,14 @@ type SettingFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SettingFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *SettingFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *SettingFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(setting.FieldID))
 }
 
@@ -933,14 +1708,14 @@ type SubjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SubjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *SubjectFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *SubjectFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(subject.FieldID))
 }
 
@@ -1028,14 +1803,14 @@ type TokenFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TokenFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
 }
 
-// WhereID applies the entql other predicate on the id field.
-func (f *TokenFilter) WhereID(p entql.OtherP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *TokenFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(token.FieldID))
 }
 

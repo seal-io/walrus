@@ -17,7 +17,8 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ConnectorCreate is the builder for creating a Connector entity.
@@ -26,6 +27,32 @@ type ConnectorCreate struct {
 	mutation *ConnectorMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetName sets the "name" field.
+func (cc *ConnectorCreate) SetName(s string) *ConnectorCreate {
+	cc.mutation.SetName(s)
+	return cc
+}
+
+// SetDescription sets the "description" field.
+func (cc *ConnectorCreate) SetDescription(s string) *ConnectorCreate {
+	cc.mutation.SetDescription(s)
+	return cc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableDescription(s *string) *ConnectorCreate {
+	if s != nil {
+		cc.SetDescription(*s)
+	}
+	return cc
+}
+
+// SetLabels sets the "labels" field.
+func (cc *ConnectorCreate) SetLabels(m map[string]string) *ConnectorCreate {
+	cc.mutation.SetLabels(m)
+	return cc
 }
 
 // SetStatus sets the "status" field.
@@ -103,9 +130,24 @@ func (cc *ConnectorCreate) SetConfigData(m map[string]interface{}) *ConnectorCre
 }
 
 // SetID sets the "id" field.
-func (cc *ConnectorCreate) SetID(o oid.ID) *ConnectorCreate {
-	cc.mutation.SetID(o)
+func (cc *ConnectorCreate) SetID(t types.ID) *ConnectorCreate {
+	cc.mutation.SetID(t)
 	return cc
+}
+
+// AddEnvironmentIDs adds the "environment" edge to the Environment entity by IDs.
+func (cc *ConnectorCreate) AddEnvironmentIDs(ids ...types.ID) *ConnectorCreate {
+	cc.mutation.AddEnvironmentIDs(ids...)
+	return cc
+}
+
+// AddEnvironment adds the "environment" edges to the Environment entity.
+func (cc *ConnectorCreate) AddEnvironment(e ...*Environment) *ConnectorCreate {
+	ids := make([]types.ID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cc.AddEnvironmentIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -164,6 +206,9 @@ func (cc *ConnectorCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (cc *ConnectorCreate) check() error {
+	if _, ok := cc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Connector.name"`)}
+	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Connector.createTime"`)}
 	}
@@ -191,7 +236,7 @@ func (cc *ConnectorCreate) sqlSave(ctx context.Context) (*Connector, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -208,7 +253,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: connector.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: connector.FieldID,
 			},
 		}
@@ -218,6 +263,18 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := cc.mutation.Name(); ok {
+		_spec.SetField(connector.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := cc.mutation.Description(); ok {
+		_spec.SetField(connector.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := cc.mutation.Labels(); ok {
+		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
 	}
 	if value, ok := cc.mutation.Status(); ok {
 		_spec.SetField(connector.FieldStatus, field.TypeString, value)
@@ -247,6 +304,30 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
 		_node.ConfigData = value
 	}
+	if nodes := cc.mutation.EnvironmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   connector.EnvironmentTable,
+			Columns: connector.EnvironmentPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: environment.FieldID,
+				},
+			},
+		}
+		edge.Schema = cc.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EnvironmentConnectorRelationshipCreate{config: cc.config, mutation: newEnvironmentConnectorRelationshipMutation(cc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -254,7 +335,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Connector.Create().
-//		SetStatus(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -263,7 +344,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ConnectorUpsert) {
-//			SetStatus(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (cc *ConnectorCreate) OnConflict(opts ...sql.ConflictOption) *ConnectorUpsertOne {
@@ -298,6 +379,54 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetName sets the "name" field.
+func (u *ConnectorUpsert) SetName(v string) *ConnectorUpsert {
+	u.Set(connector.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateName() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *ConnectorUpsert) SetDescription(v string) *ConnectorUpsert {
+	u.Set(connector.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateDescription() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ConnectorUpsert) ClearDescription() *ConnectorUpsert {
+	u.SetNull(connector.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *ConnectorUpsert) SetLabels(v map[string]string) *ConnectorUpsert {
+	u.Set(connector.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateLabels() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsert) ClearLabels() *ConnectorUpsert {
+	u.SetNull(connector.FieldLabels)
+	return u
+}
 
 // SetStatus sets the "status" field.
 func (u *ConnectorUpsert) SetStatus(v string) *ConnectorUpsert {
@@ -440,6 +569,62 @@ func (u *ConnectorUpsertOne) Update(set func(*ConnectorUpsert)) *ConnectorUpsert
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *ConnectorUpsertOne) SetName(v string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateName() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ConnectorUpsertOne) SetDescription(v string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateDescription() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ConnectorUpsertOne) ClearDescription() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ConnectorUpsertOne) SetLabels(v map[string]string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateLabels() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsertOne) ClearLabels() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetStatus sets the "status" field.
 func (u *ConnectorUpsertOne) SetStatus(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -561,7 +746,7 @@ func (u *ConnectorUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ConnectorUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ConnectorUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -575,7 +760,7 @@ func (u *ConnectorUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ConnectorUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ConnectorUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -677,7 +862,7 @@ func (ccb *ConnectorCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ConnectorUpsert) {
-//			SetStatus(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ccb *ConnectorCreateBulk) OnConflict(opts ...sql.ConflictOption) *ConnectorUpsertBulk {
@@ -757,6 +942,62 @@ func (u *ConnectorUpsertBulk) Update(set func(*ConnectorUpsert)) *ConnectorUpser
 		set(&ConnectorUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *ConnectorUpsertBulk) SetName(v string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateName() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ConnectorUpsertBulk) SetDescription(v string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateDescription() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ConnectorUpsertBulk) ClearDescription() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ConnectorUpsertBulk) SetLabels(v map[string]string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateLabels() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsertBulk) ClearLabels() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearLabels()
+	})
 }
 
 // SetStatus sets the "status" field.

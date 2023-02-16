@@ -15,9 +15,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ModuleUpdate is the builder for updating Module entities.
@@ -80,6 +82,38 @@ func (mu *ModuleUpdate) SetUpdateTime(t time.Time) *ModuleUpdate {
 	return mu
 }
 
+// SetDescription sets the "description" field.
+func (mu *ModuleUpdate) SetDescription(s string) *ModuleUpdate {
+	mu.mutation.SetDescription(s)
+	return mu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (mu *ModuleUpdate) SetNillableDescription(s *string) *ModuleUpdate {
+	if s != nil {
+		mu.SetDescription(*s)
+	}
+	return mu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (mu *ModuleUpdate) ClearDescription() *ModuleUpdate {
+	mu.mutation.ClearDescription()
+	return mu
+}
+
+// SetLabels sets the "labels" field.
+func (mu *ModuleUpdate) SetLabels(m map[string]string) *ModuleUpdate {
+	mu.mutation.SetLabels(m)
+	return mu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (mu *ModuleUpdate) ClearLabels() *ModuleUpdate {
+	mu.mutation.ClearLabels()
+	return mu
+}
+
 // SetSource sets the "source" field.
 func (mu *ModuleUpdate) SetSource(s string) *ModuleUpdate {
 	mu.mutation.SetSource(s)
@@ -116,16 +150,50 @@ func (mu *ModuleUpdate) ClearOutputSchema() *ModuleUpdate {
 	return mu
 }
 
+// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
+func (mu *ModuleUpdate) AddApplicationIDs(ids ...types.ID) *ModuleUpdate {
+	mu.mutation.AddApplicationIDs(ids...)
+	return mu
+}
+
+// AddApplication adds the "application" edges to the Application entity.
+func (mu *ModuleUpdate) AddApplication(a ...*Application) *ModuleUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return mu.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the ModuleMutation object of the builder.
 func (mu *ModuleUpdate) Mutation() *ModuleMutation {
 	return mu.mutation
 }
 
+// ClearApplication clears all "application" edges to the Application entity.
+func (mu *ModuleUpdate) ClearApplication() *ModuleUpdate {
+	mu.mutation.ClearApplication()
+	return mu
+}
+
+// RemoveApplicationIDs removes the "application" edge to Application entities by IDs.
+func (mu *ModuleUpdate) RemoveApplicationIDs(ids ...types.ID) *ModuleUpdate {
+	mu.mutation.RemoveApplicationIDs(ids...)
+	return mu
+}
+
+// RemoveApplication removes "application" edges to Application entities.
+func (mu *ModuleUpdate) RemoveApplication(a ...*Application) *ModuleUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return mu.RemoveApplicationIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mu *ModuleUpdate) Save(ctx context.Context) (int, error) {
-	if err := mu.defaults(); err != nil {
-		return 0, err
-	}
+	mu.defaults()
 	return withHooks[int, ModuleMutation](ctx, mu.sqlSave, mu.mutation, mu.hooks)
 }
 
@@ -152,15 +220,11 @@ func (mu *ModuleUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (mu *ModuleUpdate) defaults() error {
+func (mu *ModuleUpdate) defaults() {
 	if _, ok := mu.mutation.UpdateTime(); !ok {
-		if module.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized module.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := module.UpdateDefaultUpdateTime()
 		mu.mutation.SetUpdateTime(v)
 	}
-	return nil
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
@@ -175,7 +239,7 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   module.Table,
 			Columns: module.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: module.FieldID,
 			},
 		},
@@ -202,6 +266,18 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.UpdateTime(); ok {
 		_spec.SetField(module.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := mu.mutation.Description(); ok {
+		_spec.SetField(module.FieldDescription, field.TypeString, value)
+	}
+	if mu.mutation.DescriptionCleared() {
+		_spec.ClearField(module.FieldDescription, field.TypeString)
+	}
+	if value, ok := mu.mutation.Labels(); ok {
+		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
+	}
+	if mu.mutation.LabelsCleared() {
+		_spec.ClearField(module.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := mu.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
@@ -219,6 +295,75 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if mu.mutation.OutputSchemaCleared() {
 		_spec.ClearField(module.FieldOutputSchema, field.TypeJSON)
+	}
+	if mu.mutation.ApplicationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
+		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedApplicationIDs(); len(nodes) > 0 && !mu.mutation.ApplicationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.ApplicationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = mu.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, mu.schemaConfig)
@@ -290,6 +435,38 @@ func (muo *ModuleUpdateOne) SetUpdateTime(t time.Time) *ModuleUpdateOne {
 	return muo
 }
 
+// SetDescription sets the "description" field.
+func (muo *ModuleUpdateOne) SetDescription(s string) *ModuleUpdateOne {
+	muo.mutation.SetDescription(s)
+	return muo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (muo *ModuleUpdateOne) SetNillableDescription(s *string) *ModuleUpdateOne {
+	if s != nil {
+		muo.SetDescription(*s)
+	}
+	return muo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (muo *ModuleUpdateOne) ClearDescription() *ModuleUpdateOne {
+	muo.mutation.ClearDescription()
+	return muo
+}
+
+// SetLabels sets the "labels" field.
+func (muo *ModuleUpdateOne) SetLabels(m map[string]string) *ModuleUpdateOne {
+	muo.mutation.SetLabels(m)
+	return muo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (muo *ModuleUpdateOne) ClearLabels() *ModuleUpdateOne {
+	muo.mutation.ClearLabels()
+	return muo
+}
+
 // SetSource sets the "source" field.
 func (muo *ModuleUpdateOne) SetSource(s string) *ModuleUpdateOne {
 	muo.mutation.SetSource(s)
@@ -326,9 +503,45 @@ func (muo *ModuleUpdateOne) ClearOutputSchema() *ModuleUpdateOne {
 	return muo
 }
 
+// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
+func (muo *ModuleUpdateOne) AddApplicationIDs(ids ...types.ID) *ModuleUpdateOne {
+	muo.mutation.AddApplicationIDs(ids...)
+	return muo
+}
+
+// AddApplication adds the "application" edges to the Application entity.
+func (muo *ModuleUpdateOne) AddApplication(a ...*Application) *ModuleUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return muo.AddApplicationIDs(ids...)
+}
+
 // Mutation returns the ModuleMutation object of the builder.
 func (muo *ModuleUpdateOne) Mutation() *ModuleMutation {
 	return muo.mutation
+}
+
+// ClearApplication clears all "application" edges to the Application entity.
+func (muo *ModuleUpdateOne) ClearApplication() *ModuleUpdateOne {
+	muo.mutation.ClearApplication()
+	return muo
+}
+
+// RemoveApplicationIDs removes the "application" edge to Application entities by IDs.
+func (muo *ModuleUpdateOne) RemoveApplicationIDs(ids ...types.ID) *ModuleUpdateOne {
+	muo.mutation.RemoveApplicationIDs(ids...)
+	return muo
+}
+
+// RemoveApplication removes "application" edges to Application entities.
+func (muo *ModuleUpdateOne) RemoveApplication(a ...*Application) *ModuleUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return muo.RemoveApplicationIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -340,9 +553,7 @@ func (muo *ModuleUpdateOne) Select(field string, fields ...string) *ModuleUpdate
 
 // Save executes the query and returns the updated Module entity.
 func (muo *ModuleUpdateOne) Save(ctx context.Context) (*Module, error) {
-	if err := muo.defaults(); err != nil {
-		return nil, err
-	}
+	muo.defaults()
 	return withHooks[*Module, ModuleMutation](ctx, muo.sqlSave, muo.mutation, muo.hooks)
 }
 
@@ -369,15 +580,11 @@ func (muo *ModuleUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (muo *ModuleUpdateOne) defaults() error {
+func (muo *ModuleUpdateOne) defaults() {
 	if _, ok := muo.mutation.UpdateTime(); !ok {
-		if module.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized module.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := module.UpdateDefaultUpdateTime()
 		muo.mutation.SetUpdateTime(v)
 	}
-	return nil
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
@@ -392,7 +599,7 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 			Table:   module.Table,
 			Columns: module.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: module.FieldID,
 			},
 		},
@@ -436,6 +643,18 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	if value, ok := muo.mutation.UpdateTime(); ok {
 		_spec.SetField(module.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := muo.mutation.Description(); ok {
+		_spec.SetField(module.FieldDescription, field.TypeString, value)
+	}
+	if muo.mutation.DescriptionCleared() {
+		_spec.ClearField(module.FieldDescription, field.TypeString)
+	}
+	if value, ok := muo.mutation.Labels(); ok {
+		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
+	}
+	if muo.mutation.LabelsCleared() {
+		_spec.ClearField(module.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := muo.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
@@ -453,6 +672,75 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	}
 	if muo.mutation.OutputSchemaCleared() {
 		_spec.ClearField(module.FieldOutputSchema, field.TypeJSON)
+	}
+	if muo.mutation.ApplicationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
+		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedApplicationIDs(); len(nodes) > 0 && !muo.mutation.ApplicationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.ApplicationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   module.ApplicationTable,
+			Columns: module.ApplicationPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = muo.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, muo.schemaConfig)

@@ -7,8 +7,6 @@ package module
 
 import (
 	"time"
-
-	"entgo.io/ent"
 )
 
 const (
@@ -24,6 +22,10 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldSource holds the string denoting the source field in the database.
 	FieldSource = "source"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -32,8 +34,24 @@ const (
 	FieldInputSchema = "input_schema"
 	// FieldOutputSchema holds the string denoting the outputschema field in the database.
 	FieldOutputSchema = "output_schema"
+	// EdgeApplication holds the string denoting the application edge name in mutations.
+	EdgeApplication = "application"
+	// EdgeApplicationModuleRelationships holds the string denoting the applicationmodulerelationships edge name in mutations.
+	EdgeApplicationModuleRelationships = "applicationModuleRelationships"
 	// Table holds the table name of the module in the database.
 	Table = "modules"
+	// ApplicationTable is the table that holds the application relation/edge. The primary key declared below.
+	ApplicationTable = "application_module_relationships"
+	// ApplicationInverseTable is the table name for the Application entity.
+	// It exists in this package in order to avoid circular dependency with the "application" package.
+	ApplicationInverseTable = "applications"
+	// ApplicationModuleRelationshipsTable is the table that holds the applicationModuleRelationships relation/edge.
+	ApplicationModuleRelationshipsTable = "application_module_relationships"
+	// ApplicationModuleRelationshipsInverseTable is the table name for the ApplicationModuleRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationmodulerelationship" package.
+	ApplicationModuleRelationshipsInverseTable = "application_module_relationships"
+	// ApplicationModuleRelationshipsColumn is the table column denoting the applicationModuleRelationships relation/edge.
+	ApplicationModuleRelationshipsColumn = "module_id"
 )
 
 // Columns holds all SQL columns for module fields.
@@ -43,11 +61,19 @@ var Columns = []string{
 	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldDescription,
+	FieldLabels,
 	FieldSource,
 	FieldVersion,
 	FieldInputSchema,
 	FieldOutputSchema,
 }
+
+var (
+	// ApplicationPrimaryKey and ApplicationColumn2 are the table columns denoting the
+	// primary key for the application relation (M2M).
+	ApplicationPrimaryKey = []string{"application_id", "module_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -59,13 +85,7 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Note that the variables below are initialized by the runtime
-// package on the initialization of the application. Therefore,
-// it should be imported in the main as follows:
-//
-//	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.

@@ -12,13 +12,15 @@ import (
 	"log"
 
 	"github.com/seal-io/seal/pkg/dao/model/migrate"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -28,6 +30,7 @@ import (
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -37,6 +40,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
+	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
+	ApplicationModuleRelationship *ApplicationModuleRelationshipClient
 	// ApplicationResource is the client for interacting with the ApplicationResource builders.
 	ApplicationResource *ApplicationResourceClient
 	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
@@ -45,6 +50,8 @@ type Client struct {
 	Connector *ConnectorClient
 	// Environment is the client for interacting with the Environment builders.
 	Environment *EnvironmentClient
+	// EnvironmentConnectorRelationship is the client for interacting with the EnvironmentConnectorRelationship builders.
+	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
 	// Project is the client for interacting with the Project builders.
@@ -71,10 +78,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Application = NewApplicationClient(c.config)
+	c.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(c.config)
 	c.ApplicationResource = NewApplicationResourceClient(c.config)
 	c.ApplicationRevision = NewApplicationRevisionClient(c.config)
 	c.Connector = NewConnectorClient(c.config)
 	c.Environment = NewEnvironmentClient(c.config)
+	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
 	c.Module = NewModuleClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -112,19 +121,21 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Application:         NewApplicationClient(cfg),
-		ApplicationResource: NewApplicationResourceClient(cfg),
-		ApplicationRevision: NewApplicationRevisionClient(cfg),
-		Connector:           NewConnectorClient(cfg),
-		Environment:         NewEnvironmentClient(cfg),
-		Module:              NewModuleClient(cfg),
-		Project:             NewProjectClient(cfg),
-		Role:                NewRoleClient(cfg),
-		Setting:             NewSettingClient(cfg),
-		Subject:             NewSubjectClient(cfg),
-		Token:               NewTokenClient(cfg),
+		ctx:                              ctx,
+		config:                           cfg,
+		Application:                      NewApplicationClient(cfg),
+		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
+		ApplicationResource:              NewApplicationResourceClient(cfg),
+		ApplicationRevision:              NewApplicationRevisionClient(cfg),
+		Connector:                        NewConnectorClient(cfg),
+		Environment:                      NewEnvironmentClient(cfg),
+		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
+		Module:                           NewModuleClient(cfg),
+		Project:                          NewProjectClient(cfg),
+		Role:                             NewRoleClient(cfg),
+		Setting:                          NewSettingClient(cfg),
+		Subject:                          NewSubjectClient(cfg),
+		Token:                            NewTokenClient(cfg),
 	}, nil
 }
 
@@ -142,19 +153,21 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Application:         NewApplicationClient(cfg),
-		ApplicationResource: NewApplicationResourceClient(cfg),
-		ApplicationRevision: NewApplicationRevisionClient(cfg),
-		Connector:           NewConnectorClient(cfg),
-		Environment:         NewEnvironmentClient(cfg),
-		Module:              NewModuleClient(cfg),
-		Project:             NewProjectClient(cfg),
-		Role:                NewRoleClient(cfg),
-		Setting:             NewSettingClient(cfg),
-		Subject:             NewSubjectClient(cfg),
-		Token:               NewTokenClient(cfg),
+		ctx:                              ctx,
+		config:                           cfg,
+		Application:                      NewApplicationClient(cfg),
+		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
+		ApplicationResource:              NewApplicationResourceClient(cfg),
+		ApplicationRevision:              NewApplicationRevisionClient(cfg),
+		Connector:                        NewConnectorClient(cfg),
+		Environment:                      NewEnvironmentClient(cfg),
+		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
+		Module:                           NewModuleClient(cfg),
+		Project:                          NewProjectClient(cfg),
+		Role:                             NewRoleClient(cfg),
+		Setting:                          NewSettingClient(cfg),
+		Subject:                          NewSubjectClient(cfg),
+		Token:                            NewTokenClient(cfg),
 	}, nil
 }
 
@@ -184,10 +197,12 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Application.Use(hooks...)
+	c.ApplicationModuleRelationship.Use(hooks...)
 	c.ApplicationResource.Use(hooks...)
 	c.ApplicationRevision.Use(hooks...)
 	c.Connector.Use(hooks...)
 	c.Environment.Use(hooks...)
+	c.EnvironmentConnectorRelationship.Use(hooks...)
 	c.Module.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.Role.Use(hooks...)
@@ -200,10 +215,12 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Application.Intercept(interceptors...)
+	c.ApplicationModuleRelationship.Intercept(interceptors...)
 	c.ApplicationResource.Intercept(interceptors...)
 	c.ApplicationRevision.Intercept(interceptors...)
 	c.Connector.Intercept(interceptors...)
 	c.Environment.Intercept(interceptors...)
+	c.EnvironmentConnectorRelationship.Intercept(interceptors...)
 	c.Module.Intercept(interceptors...)
 	c.Project.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
@@ -215,6 +232,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Applications implements the ClientSet.
 func (c *Client) Applications() *ApplicationClient {
 	return c.Application
+}
+
+// ApplicationModuleRelationships implements the ClientSet.
+func (c *Client) ApplicationModuleRelationships() *ApplicationModuleRelationshipClient {
+	return c.ApplicationModuleRelationship
 }
 
 // ApplicationResources implements the ClientSet.
@@ -235,6 +257,11 @@ func (c *Client) Connectors() *ConnectorClient {
 // Environments implements the ClientSet.
 func (c *Client) Environments() *EnvironmentClient {
 	return c.Environment
+}
+
+// EnvironmentConnectorRelationships implements the ClientSet.
+func (c *Client) EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient {
+	return c.EnvironmentConnectorRelationship
 }
 
 // Modules implements the ClientSet.
@@ -310,6 +337,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ApplicationMutation:
 		return c.Application.mutate(ctx, m)
+	case *ApplicationModuleRelationshipMutation:
+		return c.ApplicationModuleRelationship.mutate(ctx, m)
 	case *ApplicationResourceMutation:
 		return c.ApplicationResource.mutate(ctx, m)
 	case *ApplicationRevisionMutation:
@@ -318,6 +347,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Connector.mutate(ctx, m)
 	case *EnvironmentMutation:
 		return c.Environment.mutate(ctx, m)
+	case *EnvironmentConnectorRelationshipMutation:
+		return c.EnvironmentConnectorRelationship.mutate(ctx, m)
 	case *ModuleMutation:
 		return c.Module.mutate(ctx, m)
 	case *ProjectMutation:
@@ -381,7 +412,7 @@ func (c *ApplicationClient) UpdateOne(a *Application) *ApplicationUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ApplicationClient) UpdateOneID(id oid.ID) *ApplicationUpdateOne {
+func (c *ApplicationClient) UpdateOneID(id types.ID) *ApplicationUpdateOne {
 	mutation := newApplicationMutation(c.config, OpUpdateOne, withApplicationID(id))
 	return &ApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -398,7 +429,7 @@ func (c *ApplicationClient) DeleteOne(a *Application) *ApplicationDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ApplicationClient) DeleteOneID(id oid.ID) *ApplicationDeleteOne {
+func (c *ApplicationClient) DeleteOneID(id types.ID) *ApplicationDeleteOne {
 	builder := c.Delete().Where(application.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -415,17 +446,131 @@ func (c *ApplicationClient) Query() *ApplicationQuery {
 }
 
 // Get returns a Application entity by its id.
-func (c *ApplicationClient) Get(ctx context.Context, id oid.ID) (*Application, error) {
+func (c *ApplicationClient) Get(ctx context.Context, id types.ID) (*Application, error) {
 	return c.Query().Where(application.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ApplicationClient) GetX(ctx context.Context, id oid.ID) *Application {
+func (c *ApplicationClient) GetX(ctx context.Context, id types.ID) *Application {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryProject queries the project edge of a Application.
+func (c *ApplicationClient) QueryProject(a *Application) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, application.ProjectTable, application.ProjectColumn),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Application
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a Application.
+func (c *ApplicationClient) QueryEnvironment(a *Application) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, application.EnvironmentTable, application.EnvironmentColumn),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Application
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResources queries the resources edge of a Application.
+func (c *ApplicationClient) QueryResources(a *Application) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, application.ResourcesTable, application.ResourcesColumn),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRevisions queries the revisions edge of a Application.
+func (c *ApplicationClient) QueryRevisions(a *Application) *ApplicationRevisionQuery {
+	query := (&ApplicationRevisionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, application.RevisionsTable, application.RevisionsColumn),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationRevision
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModules queries the modules edge of a Application.
+func (c *ApplicationClient) QueryModules(a *Application) *ModuleQuery {
+	query := (&ModuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, application.ModulesTable, application.ModulesPrimaryKey...),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.Module
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApplicationModuleRelationships queries the applicationModuleRelationships edge of a Application.
+func (c *ApplicationClient) QueryApplicationModuleRelationships(a *Application) *ApplicationModuleRelationshipQuery {
+	query := (&ApplicationModuleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(application.Table, application.FieldID, id),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ApplicationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, application.ApplicationModuleRelationshipsTable, application.ApplicationModuleRelationshipsColumn),
+		)
+		schemaConfig := a.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationModuleRelationship
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -451,6 +596,107 @@ func (c *ApplicationClient) mutate(ctx context.Context, m *ApplicationMutation) 
 		return (&ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Application mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationModuleRelationshipClient is a client for the ApplicationModuleRelationship schema.
+type ApplicationModuleRelationshipClient struct {
+	config
+}
+
+// NewApplicationModuleRelationshipClient returns a client for the ApplicationModuleRelationship from the given config.
+func NewApplicationModuleRelationshipClient(c config) *ApplicationModuleRelationshipClient {
+	return &ApplicationModuleRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationmodulerelationship.Hooks(f(g(h())))`.
+func (c *ApplicationModuleRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationModuleRelationship = append(c.hooks.ApplicationModuleRelationship, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationmodulerelationship.Intercept(f(g(h())))`.
+func (c *ApplicationModuleRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationModuleRelationship = append(c.inters.ApplicationModuleRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationModuleRelationship entity.
+func (c *ApplicationModuleRelationshipClient) Create() *ApplicationModuleRelationshipCreate {
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpCreate)
+	return &ApplicationModuleRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationModuleRelationship entities.
+func (c *ApplicationModuleRelationshipClient) CreateBulk(builders ...*ApplicationModuleRelationshipCreate) *ApplicationModuleRelationshipCreateBulk {
+	return &ApplicationModuleRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationModuleRelationship.
+func (c *ApplicationModuleRelationshipClient) Update() *ApplicationModuleRelationshipUpdate {
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdate)
+	return &ApplicationModuleRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationModuleRelationshipClient) UpdateOne(amr *ApplicationModuleRelationship) *ApplicationModuleRelationshipUpdateOne {
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne)
+	mutation.application = &amr.ApplicationID
+	mutation.module = &amr.ModuleID
+	return &ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationModuleRelationship.
+func (c *ApplicationModuleRelationshipClient) Delete() *ApplicationModuleRelationshipDelete {
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpDelete)
+	return &ApplicationModuleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Query returns a query builder for ApplicationModuleRelationship.
+func (c *ApplicationModuleRelationshipClient) Query() *ApplicationModuleRelationshipQuery {
+	return &ApplicationModuleRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationModuleRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// QueryApplication queries the application edge of a ApplicationModuleRelationship.
+func (c *ApplicationModuleRelationshipClient) QueryApplication(amr *ApplicationModuleRelationship) *ApplicationQuery {
+	return c.Query().
+		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID)).
+		QueryApplication()
+}
+
+// QueryModule queries the module edge of a ApplicationModuleRelationship.
+func (c *ApplicationModuleRelationshipClient) QueryModule(amr *ApplicationModuleRelationship) *ModuleQuery {
+	return c.Query().
+		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID)).
+		QueryModule()
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationModuleRelationshipClient) Hooks() []Hook {
+	return c.hooks.ApplicationModuleRelationship
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationModuleRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationModuleRelationship
+}
+
+func (c *ApplicationModuleRelationshipClient) mutate(ctx context.Context, m *ApplicationModuleRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationModuleRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationModuleRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationModuleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ApplicationModuleRelationship mutation op: %q", m.Op())
 	}
 }
 
@@ -500,7 +746,7 @@ func (c *ApplicationResourceClient) UpdateOne(ar *ApplicationResource) *Applicat
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ApplicationResourceClient) UpdateOneID(id oid.ID) *ApplicationResourceUpdateOne {
+func (c *ApplicationResourceClient) UpdateOneID(id types.ID) *ApplicationResourceUpdateOne {
 	mutation := newApplicationResourceMutation(c.config, OpUpdateOne, withApplicationResourceID(id))
 	return &ApplicationResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -517,7 +763,7 @@ func (c *ApplicationResourceClient) DeleteOne(ar *ApplicationResource) *Applicat
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ApplicationResourceClient) DeleteOneID(id oid.ID) *ApplicationResourceDeleteOne {
+func (c *ApplicationResourceClient) DeleteOneID(id types.ID) *ApplicationResourceDeleteOne {
 	builder := c.Delete().Where(applicationresource.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -534,17 +780,36 @@ func (c *ApplicationResourceClient) Query() *ApplicationResourceQuery {
 }
 
 // Get returns a ApplicationResource entity by its id.
-func (c *ApplicationResourceClient) Get(ctx context.Context, id oid.ID) (*ApplicationResource, error) {
+func (c *ApplicationResourceClient) Get(ctx context.Context, id types.ID) (*ApplicationResource, error) {
 	return c.Query().Where(applicationresource.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ApplicationResourceClient) GetX(ctx context.Context, id oid.ID) *ApplicationResource {
+func (c *ApplicationResourceClient) GetX(ctx context.Context, id types.ID) *ApplicationResource {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryApplication queries the application edge of a ApplicationResource.
+func (c *ApplicationResourceClient) QueryApplication(ar *ApplicationResource) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.ApplicationTable, applicationresource.ApplicationColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -619,7 +884,7 @@ func (c *ApplicationRevisionClient) UpdateOne(ar *ApplicationRevision) *Applicat
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ApplicationRevisionClient) UpdateOneID(id oid.ID) *ApplicationRevisionUpdateOne {
+func (c *ApplicationRevisionClient) UpdateOneID(id types.ID) *ApplicationRevisionUpdateOne {
 	mutation := newApplicationRevisionMutation(c.config, OpUpdateOne, withApplicationRevisionID(id))
 	return &ApplicationRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -636,7 +901,7 @@ func (c *ApplicationRevisionClient) DeleteOne(ar *ApplicationRevision) *Applicat
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ApplicationRevisionClient) DeleteOneID(id oid.ID) *ApplicationRevisionDeleteOne {
+func (c *ApplicationRevisionClient) DeleteOneID(id types.ID) *ApplicationRevisionDeleteOne {
 	builder := c.Delete().Where(applicationrevision.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -653,17 +918,36 @@ func (c *ApplicationRevisionClient) Query() *ApplicationRevisionQuery {
 }
 
 // Get returns a ApplicationRevision entity by its id.
-func (c *ApplicationRevisionClient) Get(ctx context.Context, id oid.ID) (*ApplicationRevision, error) {
+func (c *ApplicationRevisionClient) Get(ctx context.Context, id types.ID) (*ApplicationRevision, error) {
 	return c.Query().Where(applicationrevision.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ApplicationRevisionClient) GetX(ctx context.Context, id oid.ID) *ApplicationRevision {
+func (c *ApplicationRevisionClient) GetX(ctx context.Context, id types.ID) *ApplicationRevision {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryApplication queries the application edge of a ApplicationRevision.
+func (c *ApplicationRevisionClient) QueryApplication(ar *ApplicationRevision) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.ApplicationTable, applicationrevision.ApplicationColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -738,7 +1022,7 @@ func (c *ConnectorClient) UpdateOne(co *Connector) *ConnectorUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ConnectorClient) UpdateOneID(id oid.ID) *ConnectorUpdateOne {
+func (c *ConnectorClient) UpdateOneID(id types.ID) *ConnectorUpdateOne {
 	mutation := newConnectorMutation(c.config, OpUpdateOne, withConnectorID(id))
 	return &ConnectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -755,7 +1039,7 @@ func (c *ConnectorClient) DeleteOne(co *Connector) *ConnectorDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ConnectorClient) DeleteOneID(id oid.ID) *ConnectorDeleteOne {
+func (c *ConnectorClient) DeleteOneID(id types.ID) *ConnectorDeleteOne {
 	builder := c.Delete().Where(connector.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -772,17 +1056,55 @@ func (c *ConnectorClient) Query() *ConnectorQuery {
 }
 
 // Get returns a Connector entity by its id.
-func (c *ConnectorClient) Get(ctx context.Context, id oid.ID) (*Connector, error) {
+func (c *ConnectorClient) Get(ctx context.Context, id types.ID) (*Connector, error) {
 	return c.Query().Where(connector.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ConnectorClient) GetX(ctx context.Context, id oid.ID) *Connector {
+func (c *ConnectorClient) GetX(ctx context.Context, id types.ID) *Connector {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryEnvironment queries the environment edge of a Connector.
+func (c *ConnectorClient) QueryEnvironment(co *Connector) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, connector.EnvironmentTable, connector.EnvironmentPrimaryKey...),
+		)
+		schemaConfig := co.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironmentConnectorRelationships queries the environmentConnectorRelationships edge of a Connector.
+func (c *ConnectorClient) QueryEnvironmentConnectorRelationships(co *Connector) *EnvironmentConnectorRelationshipQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, id),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.ConnectorColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentConnectorRelationshipsTable, connector.EnvironmentConnectorRelationshipsColumn),
+		)
+		schemaConfig := co.schemaConfig
+		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -857,7 +1179,7 @@ func (c *EnvironmentClient) UpdateOne(e *Environment) *EnvironmentUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *EnvironmentClient) UpdateOneID(id oid.ID) *EnvironmentUpdateOne {
+func (c *EnvironmentClient) UpdateOneID(id types.ID) *EnvironmentUpdateOne {
 	mutation := newEnvironmentMutation(c.config, OpUpdateOne, withEnvironmentID(id))
 	return &EnvironmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -874,7 +1196,7 @@ func (c *EnvironmentClient) DeleteOne(e *Environment) *EnvironmentDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *EnvironmentClient) DeleteOneID(id oid.ID) *EnvironmentDeleteOne {
+func (c *EnvironmentClient) DeleteOneID(id types.ID) *EnvironmentDeleteOne {
 	builder := c.Delete().Where(environment.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -891,17 +1213,74 @@ func (c *EnvironmentClient) Query() *EnvironmentQuery {
 }
 
 // Get returns a Environment entity by its id.
-func (c *EnvironmentClient) Get(ctx context.Context, id oid.ID) (*Environment, error) {
+func (c *EnvironmentClient) Get(ctx context.Context, id types.ID) (*Environment, error) {
 	return c.Query().Where(environment.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *EnvironmentClient) GetX(ctx context.Context, id oid.ID) *Environment {
+func (c *EnvironmentClient) GetX(ctx context.Context, id types.ID) *Environment {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryConnectors queries the connectors edge of a Environment.
+func (c *EnvironmentClient) QueryConnectors(e *Environment) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, environment.ConnectorsTable, environment.ConnectorsPrimaryKey...),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApplications queries the applications edge of a Environment.
+func (c *EnvironmentClient) QueryApplications(e *Environment) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ApplicationsTable, environment.ApplicationsColumn),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.Application
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironmentConnectorRelationships queries the environmentConnectorRelationships edge of a Environment.
+func (c *EnvironmentClient) QueryEnvironmentConnectorRelationships(e *Environment) *EnvironmentConnectorRelationshipQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.EnvironmentColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, environment.EnvironmentConnectorRelationshipsTable, environment.EnvironmentConnectorRelationshipsColumn),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -927,6 +1306,107 @@ func (c *EnvironmentClient) mutate(ctx context.Context, m *EnvironmentMutation) 
 		return (&EnvironmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Environment mutation op: %q", m.Op())
+	}
+}
+
+// EnvironmentConnectorRelationshipClient is a client for the EnvironmentConnectorRelationship schema.
+type EnvironmentConnectorRelationshipClient struct {
+	config
+}
+
+// NewEnvironmentConnectorRelationshipClient returns a client for the EnvironmentConnectorRelationship from the given config.
+func NewEnvironmentConnectorRelationshipClient(c config) *EnvironmentConnectorRelationshipClient {
+	return &EnvironmentConnectorRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `environmentconnectorrelationship.Hooks(f(g(h())))`.
+func (c *EnvironmentConnectorRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.EnvironmentConnectorRelationship = append(c.hooks.EnvironmentConnectorRelationship, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `environmentconnectorrelationship.Intercept(f(g(h())))`.
+func (c *EnvironmentConnectorRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnvironmentConnectorRelationship = append(c.inters.EnvironmentConnectorRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a EnvironmentConnectorRelationship entity.
+func (c *EnvironmentConnectorRelationshipClient) Create() *EnvironmentConnectorRelationshipCreate {
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpCreate)
+	return &EnvironmentConnectorRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnvironmentConnectorRelationship entities.
+func (c *EnvironmentConnectorRelationshipClient) CreateBulk(builders ...*EnvironmentConnectorRelationshipCreate) *EnvironmentConnectorRelationshipCreateBulk {
+	return &EnvironmentConnectorRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnvironmentConnectorRelationship.
+func (c *EnvironmentConnectorRelationshipClient) Update() *EnvironmentConnectorRelationshipUpdate {
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdate)
+	return &EnvironmentConnectorRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnvironmentConnectorRelationshipClient) UpdateOne(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipUpdateOne {
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne)
+	mutation.environment = &ecr.EnvironmentID
+	mutation.connector = &ecr.ConnectorID
+	return &EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnvironmentConnectorRelationship.
+func (c *EnvironmentConnectorRelationshipClient) Delete() *EnvironmentConnectorRelationshipDelete {
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpDelete)
+	return &EnvironmentConnectorRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Query returns a query builder for EnvironmentConnectorRelationship.
+func (c *EnvironmentConnectorRelationshipClient) Query() *EnvironmentConnectorRelationshipQuery {
+	return &EnvironmentConnectorRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnvironmentConnectorRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// QueryEnvironment queries the environment edge of a EnvironmentConnectorRelationship.
+func (c *EnvironmentConnectorRelationshipClient) QueryEnvironment(ecr *EnvironmentConnectorRelationship) *EnvironmentQuery {
+	return c.Query().
+		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
+		QueryEnvironment()
+}
+
+// QueryConnector queries the connector edge of a EnvironmentConnectorRelationship.
+func (c *EnvironmentConnectorRelationshipClient) QueryConnector(ecr *EnvironmentConnectorRelationship) *ConnectorQuery {
+	return c.Query().
+		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
+		QueryConnector()
+}
+
+// Hooks returns the client hooks.
+func (c *EnvironmentConnectorRelationshipClient) Hooks() []Hook {
+	return c.hooks.EnvironmentConnectorRelationship
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnvironmentConnectorRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.EnvironmentConnectorRelationship
+}
+
+func (c *EnvironmentConnectorRelationshipClient) mutate(ctx context.Context, m *EnvironmentConnectorRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnvironmentConnectorRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnvironmentConnectorRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnvironmentConnectorRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown EnvironmentConnectorRelationship mutation op: %q", m.Op())
 	}
 }
 
@@ -976,7 +1456,7 @@ func (c *ModuleClient) UpdateOne(m *Module) *ModuleUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ModuleClient) UpdateOneID(id oid.ID) *ModuleUpdateOne {
+func (c *ModuleClient) UpdateOneID(id string) *ModuleUpdateOne {
 	mutation := newModuleMutation(c.config, OpUpdateOne, withModuleID(id))
 	return &ModuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -993,7 +1473,7 @@ func (c *ModuleClient) DeleteOne(m *Module) *ModuleDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ModuleClient) DeleteOneID(id oid.ID) *ModuleDeleteOne {
+func (c *ModuleClient) DeleteOneID(id string) *ModuleDeleteOne {
 	builder := c.Delete().Where(module.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1010,12 +1490,12 @@ func (c *ModuleClient) Query() *ModuleQuery {
 }
 
 // Get returns a Module entity by its id.
-func (c *ModuleClient) Get(ctx context.Context, id oid.ID) (*Module, error) {
+func (c *ModuleClient) Get(ctx context.Context, id string) (*Module, error) {
 	return c.Query().Where(module.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ModuleClient) GetX(ctx context.Context, id oid.ID) *Module {
+func (c *ModuleClient) GetX(ctx context.Context, id string) *Module {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1023,10 +1503,47 @@ func (c *ModuleClient) GetX(ctx context.Context, id oid.ID) *Module {
 	return obj
 }
 
+// QueryApplication queries the application edge of a Module.
+func (c *ModuleClient) QueryApplication(m *Module) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, module.ApplicationTable, module.ApplicationPrimaryKey...),
+		)
+		schemaConfig := m.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApplicationModuleRelationships queries the applicationModuleRelationships edge of a Module.
+func (c *ModuleClient) QueryApplicationModuleRelationships(m *Module) *ApplicationModuleRelationshipQuery {
+	query := (&ApplicationModuleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ModuleColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, module.ApplicationModuleRelationshipsTable, module.ApplicationModuleRelationshipsColumn),
+		)
+		schemaConfig := m.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationModuleRelationship
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ModuleClient) Hooks() []Hook {
-	hooks := c.hooks.Module
-	return append(hooks[:len(hooks):len(hooks)], module.Hooks[:]...)
+	return c.hooks.Module
 }
 
 // Interceptors returns the client interceptors.
@@ -1095,7 +1612,7 @@ func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ProjectClient) UpdateOneID(id oid.ID) *ProjectUpdateOne {
+func (c *ProjectClient) UpdateOneID(id types.ID) *ProjectUpdateOne {
 	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
 	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1112,7 +1629,7 @@ func (c *ProjectClient) DeleteOne(pr *Project) *ProjectDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ProjectClient) DeleteOneID(id oid.ID) *ProjectDeleteOne {
+func (c *ProjectClient) DeleteOneID(id types.ID) *ProjectDeleteOne {
 	builder := c.Delete().Where(project.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1129,17 +1646,36 @@ func (c *ProjectClient) Query() *ProjectQuery {
 }
 
 // Get returns a Project entity by its id.
-func (c *ProjectClient) Get(ctx context.Context, id oid.ID) (*Project, error) {
+func (c *ProjectClient) Get(ctx context.Context, id types.ID) (*Project, error) {
 	return c.Query().Where(project.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ProjectClient) GetX(ctx context.Context, id oid.ID) *Project {
+func (c *ProjectClient) GetX(ctx context.Context, id types.ID) *Project {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryApplications queries the applications edge of a Project.
+func (c *ProjectClient) QueryApplications(pr *Project) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ApplicationsTable, project.ApplicationsColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.Application
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1214,7 +1750,7 @@ func (c *RoleClient) UpdateOne(r *Role) *RoleUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RoleClient) UpdateOneID(id oid.ID) *RoleUpdateOne {
+func (c *RoleClient) UpdateOneID(id types.ID) *RoleUpdateOne {
 	mutation := newRoleMutation(c.config, OpUpdateOne, withRoleID(id))
 	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1231,7 +1767,7 @@ func (c *RoleClient) DeleteOne(r *Role) *RoleDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RoleClient) DeleteOneID(id oid.ID) *RoleDeleteOne {
+func (c *RoleClient) DeleteOneID(id types.ID) *RoleDeleteOne {
 	builder := c.Delete().Where(role.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1248,12 +1784,12 @@ func (c *RoleClient) Query() *RoleQuery {
 }
 
 // Get returns a Role entity by its id.
-func (c *RoleClient) Get(ctx context.Context, id oid.ID) (*Role, error) {
+func (c *RoleClient) Get(ctx context.Context, id types.ID) (*Role, error) {
 	return c.Query().Where(role.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RoleClient) GetX(ctx context.Context, id oid.ID) *Role {
+func (c *RoleClient) GetX(ctx context.Context, id types.ID) *Role {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1333,7 +1869,7 @@ func (c *SettingClient) UpdateOne(s *Setting) *SettingUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SettingClient) UpdateOneID(id oid.ID) *SettingUpdateOne {
+func (c *SettingClient) UpdateOneID(id types.ID) *SettingUpdateOne {
 	mutation := newSettingMutation(c.config, OpUpdateOne, withSettingID(id))
 	return &SettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1350,7 +1886,7 @@ func (c *SettingClient) DeleteOne(s *Setting) *SettingDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SettingClient) DeleteOneID(id oid.ID) *SettingDeleteOne {
+func (c *SettingClient) DeleteOneID(id types.ID) *SettingDeleteOne {
 	builder := c.Delete().Where(setting.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1367,12 +1903,12 @@ func (c *SettingClient) Query() *SettingQuery {
 }
 
 // Get returns a Setting entity by its id.
-func (c *SettingClient) Get(ctx context.Context, id oid.ID) (*Setting, error) {
+func (c *SettingClient) Get(ctx context.Context, id types.ID) (*Setting, error) {
 	return c.Query().Where(setting.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SettingClient) GetX(ctx context.Context, id oid.ID) *Setting {
+func (c *SettingClient) GetX(ctx context.Context, id types.ID) *Setting {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1452,7 +1988,7 @@ func (c *SubjectClient) UpdateOne(s *Subject) *SubjectUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SubjectClient) UpdateOneID(id oid.ID) *SubjectUpdateOne {
+func (c *SubjectClient) UpdateOneID(id types.ID) *SubjectUpdateOne {
 	mutation := newSubjectMutation(c.config, OpUpdateOne, withSubjectID(id))
 	return &SubjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1469,7 +2005,7 @@ func (c *SubjectClient) DeleteOne(s *Subject) *SubjectDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SubjectClient) DeleteOneID(id oid.ID) *SubjectDeleteOne {
+func (c *SubjectClient) DeleteOneID(id types.ID) *SubjectDeleteOne {
 	builder := c.Delete().Where(subject.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1486,12 +2022,12 @@ func (c *SubjectClient) Query() *SubjectQuery {
 }
 
 // Get returns a Subject entity by its id.
-func (c *SubjectClient) Get(ctx context.Context, id oid.ID) (*Subject, error) {
+func (c *SubjectClient) Get(ctx context.Context, id types.ID) (*Subject, error) {
 	return c.Query().Where(subject.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SubjectClient) GetX(ctx context.Context, id oid.ID) *Subject {
+func (c *SubjectClient) GetX(ctx context.Context, id types.ID) *Subject {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1571,7 +2107,7 @@ func (c *TokenClient) UpdateOne(t *Token) *TokenUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TokenClient) UpdateOneID(id oid.ID) *TokenUpdateOne {
+func (c *TokenClient) UpdateOneID(id types.ID) *TokenUpdateOne {
 	mutation := newTokenMutation(c.config, OpUpdateOne, withTokenID(id))
 	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1588,7 +2124,7 @@ func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TokenClient) DeleteOneID(id oid.ID) *TokenDeleteOne {
+func (c *TokenClient) DeleteOneID(id types.ID) *TokenDeleteOne {
 	builder := c.Delete().Where(token.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1605,12 +2141,12 @@ func (c *TokenClient) Query() *TokenQuery {
 }
 
 // Get returns a Token entity by its id.
-func (c *TokenClient) Get(ctx context.Context, id oid.ID) (*Token, error) {
+func (c *TokenClient) Get(ctx context.Context, id types.ID) (*Token, error) {
 	return c.Query().Where(token.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TokenClient) GetX(ctx context.Context, id oid.ID) *Token {
+func (c *TokenClient) GetX(ctx context.Context, id types.ID) *Token {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

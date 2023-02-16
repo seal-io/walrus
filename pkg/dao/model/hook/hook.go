@@ -24,6 +24,18 @@ func (f ApplicationFunc) Mutate(ctx context.Context, m model.Mutation) (model.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationMutation", m)
 }
 
+// The ApplicationModuleRelationshipFunc type is an adapter to allow the use of ordinary
+// function as ApplicationModuleRelationship mutator.
+type ApplicationModuleRelationshipFunc func(context.Context, *model.ApplicationModuleRelationshipMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationModuleRelationshipFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ApplicationModuleRelationshipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationModuleRelationshipMutation", m)
+}
+
 // The ApplicationResourceFunc type is an adapter to allow the use of ordinary
 // function as ApplicationResource mutator.
 type ApplicationResourceFunc func(context.Context, *model.ApplicationResourceMutation) (model.Value, error)
@@ -70,6 +82,18 @@ func (f EnvironmentFunc) Mutate(ctx context.Context, m model.Mutation) (model.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.EnvironmentMutation", m)
+}
+
+// The EnvironmentConnectorRelationshipFunc type is an adapter to allow the use of ordinary
+// function as EnvironmentConnectorRelationship mutator.
+type EnvironmentConnectorRelationshipFunc func(context.Context, *model.EnvironmentConnectorRelationshipMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnvironmentConnectorRelationshipFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.EnvironmentConnectorRelationshipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.EnvironmentConnectorRelationshipMutation", m)
 }
 
 // The ModuleFunc type is an adapter to allow the use of ordinary

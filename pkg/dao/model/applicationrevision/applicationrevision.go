@@ -36,8 +36,17 @@ const (
 	FieldInputPlan = "input_plan"
 	// FieldOutput holds the string denoting the output field in the database.
 	FieldOutput = "output"
+	// EdgeApplication holds the string denoting the application edge name in mutations.
+	EdgeApplication = "application"
 	// Table holds the table name of the applicationrevision in the database.
 	Table = "application_revisions"
+	// ApplicationTable is the table that holds the application relation/edge.
+	ApplicationTable = "application_revisions"
+	// ApplicationInverseTable is the table name for the Application entity.
+	// It exists in this package in order to avoid circular dependency with the "application" package.
+	ApplicationInverseTable = "applications"
+	// ApplicationColumn is the table column denoting the application relation/edge.
+	ApplicationColumn = "application_id"
 )
 
 // Columns holds all SQL columns for applicationrevision fields.
@@ -78,6 +87,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	EnvironmentIDValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

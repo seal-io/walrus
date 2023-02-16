@@ -16,17 +16,35 @@ const (
 	Label = "project"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// EdgeApplications holds the string denoting the applications edge name in mutations.
+	EdgeApplications = "applications"
 	// Table holds the table name of the project in the database.
 	Table = "projects"
+	// ApplicationsTable is the table that holds the applications relation/edge.
+	ApplicationsTable = "applications"
+	// ApplicationsInverseTable is the table name for the Application entity.
+	// It exists in this package in order to avoid circular dependency with the "application" package.
+	ApplicationsInverseTable = "applications"
+	// ApplicationsColumn is the table column denoting the applications relation/edge.
+	ApplicationsColumn = "project_id"
 )
 
 // Columns holds all SQL columns for project fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
+	FieldDescription,
+	FieldLabels,
 	FieldCreateTime,
 	FieldUpdateTime,
 }

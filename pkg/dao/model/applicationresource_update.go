@@ -80,18 +80,6 @@ func (aru *ApplicationResourceUpdate) SetUpdateTime(t time.Time) *ApplicationRes
 	return aru
 }
 
-// SetModule sets the "module" field.
-func (aru *ApplicationResourceUpdate) SetModule(s string) *ApplicationResourceUpdate {
-	aru.mutation.SetModule(s)
-	return aru
-}
-
-// SetType sets the "type" field.
-func (aru *ApplicationResourceUpdate) SetType(s string) *ApplicationResourceUpdate {
-	aru.mutation.SetType(s)
-	return aru
-}
-
 // Mutation returns the ApplicationResourceMutation object of the builder.
 func (aru *ApplicationResourceUpdate) Mutation() *ApplicationResourceMutation {
 	return aru.mutation
@@ -139,6 +127,14 @@ func (aru *ApplicationResourceUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (aru *ApplicationResourceUpdate) check() error {
+	if _, ok := aru.mutation.ApplicationID(); aru.mutation.ApplicationCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationResource.application"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aru *ApplicationResourceUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApplicationResourceUpdate {
 	aru.modifiers = append(aru.modifiers, modifiers...)
@@ -146,12 +142,15 @@ func (aru *ApplicationResourceUpdate) Modify(modifiers ...func(u *sql.UpdateBuil
 }
 
 func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := aru.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationresource.Table,
 			Columns: applicationresource.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationresource.FieldID,
 			},
 		},
@@ -177,12 +176,6 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 	}
 	if value, ok := aru.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := aru.mutation.Module(); ok {
-		_spec.SetField(applicationresource.FieldModule, field.TypeString, value)
-	}
-	if value, ok := aru.mutation.GetType(); ok {
-		_spec.SetField(applicationresource.FieldType, field.TypeString, value)
 	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aru.schemaConfig)
@@ -254,18 +247,6 @@ func (aruo *ApplicationResourceUpdateOne) SetUpdateTime(t time.Time) *Applicatio
 	return aruo
 }
 
-// SetModule sets the "module" field.
-func (aruo *ApplicationResourceUpdateOne) SetModule(s string) *ApplicationResourceUpdateOne {
-	aruo.mutation.SetModule(s)
-	return aruo
-}
-
-// SetType sets the "type" field.
-func (aruo *ApplicationResourceUpdateOne) SetType(s string) *ApplicationResourceUpdateOne {
-	aruo.mutation.SetType(s)
-	return aruo
-}
-
 // Mutation returns the ApplicationResourceMutation object of the builder.
 func (aruo *ApplicationResourceUpdateOne) Mutation() *ApplicationResourceMutation {
 	return aruo.mutation
@@ -320,6 +301,14 @@ func (aruo *ApplicationResourceUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (aruo *ApplicationResourceUpdateOne) check() error {
+	if _, ok := aruo.mutation.ApplicationID(); aruo.mutation.ApplicationCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationResource.application"`)
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (aruo *ApplicationResourceUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ApplicationResourceUpdateOne {
 	aruo.modifiers = append(aruo.modifiers, modifiers...)
@@ -327,12 +316,15 @@ func (aruo *ApplicationResourceUpdateOne) Modify(modifiers ...func(u *sql.Update
 }
 
 func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *ApplicationResource, err error) {
+	if err := aruo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationresource.Table,
 			Columns: applicationresource.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationresource.FieldID,
 			},
 		},
@@ -375,12 +367,6 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if value, ok := aruo.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := aruo.mutation.Module(); ok {
-		_spec.SetField(applicationresource.FieldModule, field.TypeString, value)
-	}
-	if value, ok := aruo.mutation.GetType(); ok {
-		_spec.SetField(applicationresource.FieldType, field.TypeString, value)
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aruo.schemaConfig)

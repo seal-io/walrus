@@ -14,29 +14,68 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Connector is the model entity for the Connector schema.
 type Connector struct {
 	config `json:"-"`
 	// ID of the ent.
-	// ID of the resource.
-	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource
+	ID types.ID `json:"id,omitempty"`
+	// Name of the resource.
+	Name string `json:"name"`
+	// Description of the resource.
+	Description string `json:"description,omitempty"`
+	// Labels of the resource.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Status of the resource.
 	Status string `json:"status,omitempty"`
-	// extra message for status, like error details
+	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Driver type of the connector
+	// Driver type of the connector.
 	Driver string `json:"driver"`
-	// Connector config version
+	// Connector config version.
 	ConfigVersion string `json:"configVersion"`
-	// Connector config data
+	// Connector config data.
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ConnectorQuery when eager-loading is set.
+	Edges ConnectorEdges `json:"edges,omitempty"`
+}
+
+// ConnectorEdges holds the relations/edges for other nodes in the graph.
+type ConnectorEdges struct {
+	// Environments to which the connector configures.
+	Environment []*Environment `json:"environment,omitempty"`
+	// EnvironmentConnectorRelationships holds the value of the environmentConnectorRelationships edge.
+	EnvironmentConnectorRelationships []*EnvironmentConnectorRelationship `json:"environmentConnectorRelationships,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes                            [2]bool
+	namedEnvironment                       map[string][]*Environment
+	namedEnvironmentConnectorRelationships map[string][]*EnvironmentConnectorRelationship
+}
+
+// EnvironmentOrErr returns the Environment value or an error if the edge
+// was not loaded in eager-loading.
+func (e ConnectorEdges) EnvironmentOrErr() ([]*Environment, error) {
+	if e.loadedTypes[0] {
+		return e.Environment, nil
+	}
+	return nil, &NotLoadedError{edge: "environment"}
+}
+
+// EnvironmentConnectorRelationshipsOrErr returns the EnvironmentConnectorRelationships value or an error if the edge
+// was not loaded in eager-loading.
+func (e ConnectorEdges) EnvironmentConnectorRelationshipsOrErr() ([]*EnvironmentConnectorRelationship, error) {
+	if e.loadedTypes[1] {
+		return e.EnvironmentConnectorRelationships, nil
+	}
+	return nil, &NotLoadedError{edge: "environmentConnectorRelationships"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -44,14 +83,14 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case connector.FieldConfigData:
+		case connector.FieldLabels, connector.FieldConfigData:
 			values[i] = new([]byte)
-		case connector.FieldID:
-			values[i] = new(oid.ID)
-		case connector.FieldStatus, connector.FieldStatusMessage, connector.FieldDriver, connector.FieldConfigVersion:
+		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldDriver, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
+		case connector.FieldID:
+			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Connector", columns[i])
 		}
@@ -68,10 +107,30 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case connector.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*types.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				c.ID = *value
+			}
+		case connector.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				c.Name = value.String
+			}
+		case connector.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				c.Description = value.String
+			}
+		case connector.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
 			}
 		case connector.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -124,6 +183,16 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryEnvironment queries the "environment" edge of the Connector entity.
+func (c *Connector) QueryEnvironment() *EnvironmentQuery {
+	return NewConnectorClient(c.config).QueryEnvironment(c)
+}
+
+// QueryEnvironmentConnectorRelationships queries the "environmentConnectorRelationships" edge of the Connector entity.
+func (c *Connector) QueryEnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipQuery {
+	return NewConnectorClient(c.config).QueryEnvironmentConnectorRelationships(c)
+}
+
 // Update returns a builder for updating this Connector.
 // Note that you need to call Connector.Unwrap() before calling this method if this Connector
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -147,6 +216,15 @@ func (c *Connector) String() string {
 	var builder strings.Builder
 	builder.WriteString("Connector(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
+	builder.WriteString("name=")
+	builder.WriteString(c.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(c.Description)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(fmt.Sprintf("%v", c.Labels))
+	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(c.Status)
 	builder.WriteString(", ")
@@ -173,6 +251,54 @@ func (c *Connector) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.ConfigData))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedEnvironment returns the Environment named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Connector) NamedEnvironment(name string) ([]*Environment, error) {
+	if c.Edges.namedEnvironment == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedEnvironment[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Connector) appendNamedEnvironment(name string, edges ...*Environment) {
+	if c.Edges.namedEnvironment == nil {
+		c.Edges.namedEnvironment = make(map[string][]*Environment)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedEnvironment[name] = []*Environment{}
+	} else {
+		c.Edges.namedEnvironment[name] = append(c.Edges.namedEnvironment[name], edges...)
+	}
+}
+
+// NamedEnvironmentConnectorRelationships returns the EnvironmentConnectorRelationships named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Connector) NamedEnvironmentConnectorRelationships(name string) ([]*EnvironmentConnectorRelationship, error) {
+	if c.Edges.namedEnvironmentConnectorRelationships == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedEnvironmentConnectorRelationships[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Connector) appendNamedEnvironmentConnectorRelationships(name string, edges ...*EnvironmentConnectorRelationship) {
+	if c.Edges.namedEnvironmentConnectorRelationships == nil {
+		c.Edges.namedEnvironmentConnectorRelationships = make(map[string][]*EnvironmentConnectorRelationship)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedEnvironmentConnectorRelationships[name] = []*EnvironmentConnectorRelationship{}
+	} else {
+		c.Edges.namedEnvironmentConnectorRelationships[name] = append(c.Edges.namedEnvironmentConnectorRelationships[name], edges...)
+	}
 }
 
 // Connectors is a parsable slice of Connector.

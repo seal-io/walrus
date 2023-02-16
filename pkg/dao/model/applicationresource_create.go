@@ -16,8 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/oid"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationResourceCreate is the builder for creating a ApplicationResource entity.
@@ -85,8 +86,14 @@ func (arc *ApplicationResourceCreate) SetNillableUpdateTime(t *time.Time) *Appli
 }
 
 // SetApplicationID sets the "applicationID" field.
-func (arc *ApplicationResourceCreate) SetApplicationID(o oid.ID) *ApplicationResourceCreate {
-	arc.mutation.SetApplicationID(o)
+func (arc *ApplicationResourceCreate) SetApplicationID(t types.ID) *ApplicationResourceCreate {
+	arc.mutation.SetApplicationID(t)
+	return arc
+}
+
+// SetConnectorID sets the "connectorID" field.
+func (arc *ApplicationResourceCreate) SetConnectorID(t types.ID) *ApplicationResourceCreate {
+	arc.mutation.SetConnectorID(t)
 	return arc
 }
 
@@ -96,16 +103,33 @@ func (arc *ApplicationResourceCreate) SetModule(s string) *ApplicationResourceCr
 	return arc
 }
 
+// SetMode sets the "mode" field.
+func (arc *ApplicationResourceCreate) SetMode(s string) *ApplicationResourceCreate {
+	arc.mutation.SetMode(s)
+	return arc
+}
+
 // SetType sets the "type" field.
 func (arc *ApplicationResourceCreate) SetType(s string) *ApplicationResourceCreate {
 	arc.mutation.SetType(s)
 	return arc
 }
 
-// SetID sets the "id" field.
-func (arc *ApplicationResourceCreate) SetID(o oid.ID) *ApplicationResourceCreate {
-	arc.mutation.SetID(o)
+// SetName sets the "name" field.
+func (arc *ApplicationResourceCreate) SetName(s string) *ApplicationResourceCreate {
+	arc.mutation.SetName(s)
 	return arc
+}
+
+// SetID sets the "id" field.
+func (arc *ApplicationResourceCreate) SetID(t types.ID) *ApplicationResourceCreate {
+	arc.mutation.SetID(t)
+	return arc
+}
+
+// SetApplication sets the "application" edge to the Application entity.
+func (arc *ApplicationResourceCreate) SetApplication(a *Application) *ApplicationResourceCreate {
+	return arc.SetApplicationID(a.ID)
 }
 
 // Mutation returns the ApplicationResourceMutation object of the builder.
@@ -173,11 +197,48 @@ func (arc *ApplicationResourceCreate) check() error {
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "applicationID", err: errors.New(`model: missing required field "ApplicationResource.applicationID"`)}
 	}
+	if _, ok := arc.mutation.ConnectorID(); !ok {
+		return &ValidationError{Name: "connectorID", err: errors.New(`model: missing required field "ApplicationResource.connectorID"`)}
+	}
+	if v, ok := arc.mutation.ConnectorID(); ok {
+		if err := applicationresource.ConnectorIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "connectorID", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.connectorID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.Module(); !ok {
 		return &ValidationError{Name: "module", err: errors.New(`model: missing required field "ApplicationResource.module"`)}
 	}
+	if v, ok := arc.mutation.Module(); ok {
+		if err := applicationresource.ModuleValidator(v); err != nil {
+			return &ValidationError{Name: "module", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.module": %w`, err)}
+		}
+	}
+	if _, ok := arc.mutation.Mode(); !ok {
+		return &ValidationError{Name: "mode", err: errors.New(`model: missing required field "ApplicationResource.mode"`)}
+	}
+	if v, ok := arc.mutation.Mode(); ok {
+		if err := applicationresource.ModeValidator(v); err != nil {
+			return &ValidationError{Name: "mode", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.mode": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "ApplicationResource.type"`)}
+	}
+	if v, ok := arc.mutation.GetType(); ok {
+		if err := applicationresource.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.type": %w`, err)}
+		}
+	}
+	if _, ok := arc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "ApplicationResource.name"`)}
+	}
+	if v, ok := arc.mutation.Name(); ok {
+		if err := applicationresource.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.name": %w`, err)}
+		}
+	}
+	if _, ok := arc.mutation.ApplicationID(); !ok {
+		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationResource.application"`)}
 	}
 	return nil
 }
@@ -194,7 +255,7 @@ func (arc *ApplicationResourceCreate) sqlSave(ctx context.Context) (*Application
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*types.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -211,7 +272,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 		_spec = &sqlgraph.CreateSpec{
 			Table: applicationresource.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeOther,
+				Type:   field.TypeString,
 				Column: applicationresource.FieldID,
 			},
 		}
@@ -238,17 +299,46 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := arc.mutation.ApplicationID(); ok {
-		_spec.SetField(applicationresource.FieldApplicationID, field.TypeOther, value)
-		_node.ApplicationID = value
+	if value, ok := arc.mutation.ConnectorID(); ok {
+		_spec.SetField(applicationresource.FieldConnectorID, field.TypeString, value)
+		_node.ConnectorID = value
 	}
 	if value, ok := arc.mutation.Module(); ok {
 		_spec.SetField(applicationresource.FieldModule, field.TypeString, value)
 		_node.Module = value
 	}
+	if value, ok := arc.mutation.Mode(); ok {
+		_spec.SetField(applicationresource.FieldMode, field.TypeString, value)
+		_node.Mode = value
+	}
 	if value, ok := arc.mutation.GetType(); ok {
 		_spec.SetField(applicationresource.FieldType, field.TypeString, value)
 		_node.Type = value
+	}
+	if value, ok := arc.mutation.Name(); ok {
+		_spec.SetField(applicationresource.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if nodes := arc.mutation.ApplicationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationresource.ApplicationTable,
+			Columns: []string{applicationresource.ApplicationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: application.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ApplicationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -350,30 +440,6 @@ func (u *ApplicationResourceUpsert) UpdateUpdateTime() *ApplicationResourceUpser
 	return u
 }
 
-// SetModule sets the "module" field.
-func (u *ApplicationResourceUpsert) SetModule(v string) *ApplicationResourceUpsert {
-	u.Set(applicationresource.FieldModule, v)
-	return u
-}
-
-// UpdateModule sets the "module" field to the value that was provided on create.
-func (u *ApplicationResourceUpsert) UpdateModule() *ApplicationResourceUpsert {
-	u.SetExcluded(applicationresource.FieldModule)
-	return u
-}
-
-// SetType sets the "type" field.
-func (u *ApplicationResourceUpsert) SetType(v string) *ApplicationResourceUpsert {
-	u.Set(applicationresource.FieldType, v)
-	return u
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ApplicationResourceUpsert) UpdateType() *ApplicationResourceUpsert {
-	u.SetExcluded(applicationresource.FieldType)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -396,6 +462,21 @@ func (u *ApplicationResourceUpsertOne) UpdateNewValues() *ApplicationResourceUps
 		}
 		if _, exists := u.create.mutation.ApplicationID(); exists {
 			s.SetIgnore(applicationresource.FieldApplicationID)
+		}
+		if _, exists := u.create.mutation.ConnectorID(); exists {
+			s.SetIgnore(applicationresource.FieldConnectorID)
+		}
+		if _, exists := u.create.mutation.Module(); exists {
+			s.SetIgnore(applicationresource.FieldModule)
+		}
+		if _, exists := u.create.mutation.Mode(); exists {
+			s.SetIgnore(applicationresource.FieldMode)
+		}
+		if _, exists := u.create.mutation.GetType(); exists {
+			s.SetIgnore(applicationresource.FieldType)
+		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(applicationresource.FieldName)
 		}
 	}))
 	return u
@@ -484,34 +565,6 @@ func (u *ApplicationResourceUpsertOne) UpdateUpdateTime() *ApplicationResourceUp
 	})
 }
 
-// SetModule sets the "module" field.
-func (u *ApplicationResourceUpsertOne) SetModule(v string) *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetModule(v)
-	})
-}
-
-// UpdateModule sets the "module" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertOne) UpdateModule() *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateModule()
-	})
-}
-
-// SetType sets the "type" field.
-func (u *ApplicationResourceUpsertOne) SetType(v string) *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertOne) UpdateType() *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateType()
-	})
-}
-
 // Exec executes the query.
 func (u *ApplicationResourceUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -528,7 +581,7 @@ func (u *ApplicationResourceUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -542,7 +595,7 @@ func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id oid.ID, err e
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationResourceUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ApplicationResourceUpsertOne) IDX(ctx context.Context) types.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -697,6 +750,21 @@ func (u *ApplicationResourceUpsertBulk) UpdateNewValues() *ApplicationResourceUp
 			if _, exists := b.mutation.ApplicationID(); exists {
 				s.SetIgnore(applicationresource.FieldApplicationID)
 			}
+			if _, exists := b.mutation.ConnectorID(); exists {
+				s.SetIgnore(applicationresource.FieldConnectorID)
+			}
+			if _, exists := b.mutation.Module(); exists {
+				s.SetIgnore(applicationresource.FieldModule)
+			}
+			if _, exists := b.mutation.Mode(); exists {
+				s.SetIgnore(applicationresource.FieldMode)
+			}
+			if _, exists := b.mutation.GetType(); exists {
+				s.SetIgnore(applicationresource.FieldType)
+			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(applicationresource.FieldName)
+			}
 		}
 	}))
 	return u
@@ -782,34 +850,6 @@ func (u *ApplicationResourceUpsertBulk) SetUpdateTime(v time.Time) *ApplicationR
 func (u *ApplicationResourceUpsertBulk) UpdateUpdateTime() *ApplicationResourceUpsertBulk {
 	return u.Update(func(s *ApplicationResourceUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetModule sets the "module" field.
-func (u *ApplicationResourceUpsertBulk) SetModule(v string) *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetModule(v)
-	})
-}
-
-// UpdateModule sets the "module" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertBulk) UpdateModule() *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateModule()
-	})
-}
-
-// SetType sets the "type" field.
-func (u *ApplicationResourceUpsertBulk) SetType(v string) *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertBulk) UpdateType() *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateType()
 	})
 }
 
