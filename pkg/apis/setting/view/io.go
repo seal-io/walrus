@@ -3,7 +3,6 @@ package view
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -47,10 +46,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(setting.FieldName, setting.FieldValue).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid setting: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting setting: %w", err)
+		return err
 	}
 	if *r.Value == settingEntity.Value {
 		return errors.New("invalid input: nothing update")

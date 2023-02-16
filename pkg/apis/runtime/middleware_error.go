@@ -49,6 +49,9 @@ func getHttpError(c *gin.Context) (he httpError) {
 				cause = ge.Err
 			}
 			var code = http.StatusServiceUnavailable
+			if ge.Type == gin.ErrorTypeBind {
+				code = http.StatusBadRequest
+			}
 			switch {
 			case model.IsNotFound(cause) || model.IsNotSingular(cause):
 				code = http.StatusNotFound
