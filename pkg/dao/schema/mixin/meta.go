@@ -9,7 +9,7 @@ type Meta struct {
 	schema
 }
 
-func (Meta) Meta() []ent.Field {
+func (Meta) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			Comment("Name of the resource."),
