@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -50,17 +51,38 @@ func loadConfig(loader clientcmd.ClientConfigLoader) (*rest.Config, error) {
 }
 
 func Wait(ctx context.Context, cfg *rest.Config) error {
-	var cli, err = kubernetes.NewForConfig(cfg)
+	var cli, err = discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create client via cfg: %w", err)
 	}
 	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
-			var _, err = cli.Discovery().ServerVersion()
+			var err = IsConnected(ctx, cli.RESTClient())
 			if err != nil {
 				log.Warnf("waiting for apiserver to be ready: %v", err)
 			}
 			return err == nil, ctx.Err()
 		},
 	)
+}
+
+func IsConnected(ctx context.Context, r rest.Interface) error {
+	var body, err = r.Get().
+		AbsPath("/version").
+		Do(ctx).
+		Raw()
+	if err != nil {
+		return err
+	}
+	var info struct {
+		Major    string `json:"major"`
+		Minor    string `json:"minor"`
+		Compiler string `json:"compiler"`
+		Platform string `json:"platform"`
+	}
+	err = json.Unmarshal(body, &info)
+	if err != nil {
+		return fmt.Errorf("unable to parse the server version: %w", err)
+	}
+	return nil
 }
