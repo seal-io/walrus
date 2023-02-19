@@ -42,7 +42,7 @@ type modifyValidator func(ctx context.Context, name, oldVal, newVal string) (boo
 // many implements the modifyValidator stereotype,
 // which means the value can be modified if not the same.
 func many(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	return oldVal == newVal, nil
+	return oldVal != newVal, nil
 }
 
 // once implements the modifyValidator stereotype,
