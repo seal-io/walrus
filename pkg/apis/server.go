@@ -118,9 +118,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		var h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var u = *r.URL
 			u.Scheme = "https"
-			if u.Host == "" {
-				u.Host = "localhost"
-			}
+			u.Host = r.Host
 			if u.Path == "" {
 				u.Path = "/"
 			}
