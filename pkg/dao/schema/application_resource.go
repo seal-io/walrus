@@ -34,9 +34,7 @@ func (ApplicationResource) Fields() []ent.Field {
 			Comment("ID of the application to which the resource belongs.").
 			Immutable(),
 		id.Field("connectorID").
-			Comment("ID of the connector to which the resource deploys, " +
-				"uses for redundancy but not correlation constraint.").
-			NotEmpty().
+			Comment("ID of the connector to which the resource deploys.").
 			Immutable(),
 		field.String("module").
 			Comment("Name of the module that generates the resource.").
@@ -70,6 +68,14 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Ref("resources").
 			Field("applicationID").
 			Comment("Application to which the resource belongs.").
+			Unique().
+			Required().
+			Immutable(),
+		// connector 1-* application resources.
+		edge.From("connector", Connector.Type).
+			Ref("resources").
+			Field("connectorID").
+			Comment("Connector to which the resource deploys.").
 			Unique().
 			Required().
 			Immutable(),

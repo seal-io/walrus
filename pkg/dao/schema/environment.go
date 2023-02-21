@@ -48,5 +48,11 @@ func (Environment) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
+		// environment 1-* application revisions.
+		edge.To("revisions", ApplicationRevision.Type).
+			Comment("Revisions that belong to the environment.").
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Restrict,
+			}),
 	}
 }

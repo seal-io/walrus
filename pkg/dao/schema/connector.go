@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -43,9 +44,15 @@ func (Connector) Fields() []ent.Field {
 func (Connector) Edges() []ent.Edge {
 	return []ent.Edge{
 		// environments *-* connectors.
-		edge.From("environment", Environment.Type).
+		edge.From("environments", Environment.Type).
 			Ref("connectors").
 			Comment("Environments to which the connector configures.").
 			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type),
+		// connector 1-* application resources.
+		edge.To("resources", ApplicationResource.Type).
+			Comment("Resources that belong to the application.").
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Restrict,
+			}),
 	}
 }
