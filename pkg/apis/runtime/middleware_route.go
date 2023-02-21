@@ -83,6 +83,9 @@ func Logging(ignorePaths ...string) Handle {
 		}
 		var reqClientIP = c.ClientIP()
 		var reqMethod = c.Request.Method
+		if isUpgradeStreamRequest(c) {
+			reqMethod = "WS"
+		}
 		var reqPath = c.Request.URL.Path
 		if raw := c.Request.URL.RawQuery; raw != "" {
 			reqPath = reqPath + "?" + raw

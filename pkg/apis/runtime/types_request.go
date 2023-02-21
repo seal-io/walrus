@@ -1,14 +1,13 @@
 package runtime
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"go.uber.org/multierr"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -293,98 +292,88 @@ func (r RequestOperating) Validate() error {
 }
 
 type RequestStream struct {
-	ctx context.Context
-	sc  chan<- io.Reader
-	rc  <-chan any
-}
-
-// Context return the context.Context.
-func (r RequestStream) Context() context.Context {
-	return r.ctx
-}
-
-// Send sends the given reader to client.
-func (r RequestStream) Send(rd io.Reader) (err error) {
-	defer func() {
-		if i := recover(); i != nil {
-			switch t := i.(type) {
-			case error:
-				err = t
-			default:
-				err = fmt.Errorf("sending panic observing: %v", i)
-			}
-		}
-	}()
-	var t = time.NewTimer(1 * time.Second)
-	defer t.Stop()
-	select {
-	case <-r.ctx.Done():
-		return r.ctx.Err()
-	case r.sc <- rd:
-		return
-	case <-t.C:
-		return errors.New("timeout sending: blocked buffer")
-	}
+	ctx       context.Context
+	ctxCancel func()
+	ws        *websocket.Conn
 }
 
 // SendMsg sends the given data to client.
 func (r RequestStream) SendMsg(data []byte) error {
-	return r.Send(bytes.NewBuffer(data))
+	var _, err = r.Write(data)
+	return err
 }
 
 // SendJSON marshals the given object as JSON and sends to client.
 func (r RequestStream) SendJSON(i any) error {
-	var data, err = json.Marshal(i)
-	if err != nil {
-		return err
-	}
-	return r.SendMsg(data)
-}
-
-// Recv receives reader from client.
-func (r RequestStream) Recv() (rd io.Reader, err error) {
-	defer func() {
-		if i := recover(); i != nil {
-			switch t := i.(type) {
-			case error:
-				err = t
-			default:
-				err = fmt.Errorf("receiving panic observing: %v", i)
-			}
-		}
-	}()
-	select {
-	case <-r.ctx.Done():
-		return nil, r.ctx.Err()
-	case v, ok := <-r.rc:
-		if !ok {
-			return nil, context.Canceled
-		}
-		switch t := v.(type) {
-		default:
-			return nil, errors.New("cannot converting received data")
-		case io.Reader:
-			return t, nil
-		case error:
-			return nil, t
-		}
-	}
+	return json.NewEncoder(r).Encode(i)
 }
 
 // RecvMsg receives message from client.
 func (r RequestStream) RecvMsg() ([]byte, error) {
-	var rd, err = r.Recv()
-	if err != nil {
-		return nil, err
-	}
-	return io.ReadAll(rd)
+	return io.ReadAll(r)
 }
 
 // RecvJSON receives JSON message from client and unmarshals into the given object.
 func (r RequestStream) RecvJSON(i any) error {
-	var data, err = r.RecvMsg()
+	return json.NewDecoder(r).Decode(i)
+}
+
+// Write implements io.Writer.
+func (r RequestStream) Write(p []byte) (n int, err error) {
+	msgWriter, err := r.ws.NextWriter(websocket.TextMessage)
 	if err != nil {
-		return err
+		return
 	}
-	return json.Unmarshal(data, i)
+	defer func() { _ = msgWriter.Close() }()
+	return msgWriter.Write(p)
+}
+
+// Read implements io.Reader.
+func (r RequestStream) Read(p []byte) (n int, err error) {
+	msgType, msgReader, err := r.ws.NextReader()
+	if err != nil {
+		return
+	}
+	switch msgType {
+	default:
+		err = &websocket.CloseError{
+			Code: websocket.CloseProtocolError,
+			Text: "cannot process binary message",
+		}
+		return
+	case websocket.TextMessage:
+	}
+	return msgReader.Read(p)
+}
+
+// Cancel cancels the underlay context.Context.
+func (r RequestStream) Cancel() {
+	r.ctxCancel()
+}
+
+// Deadline implements context.Context.
+func (r RequestStream) Deadline() (deadline time.Time, ok bool) {
+	return r.ctx.Deadline()
+}
+
+// Done implements context.Context.
+func (r RequestStream) Done() <-chan struct{} {
+	return r.ctx.Done()
+}
+
+// Err implements context.Context.
+func (r RequestStream) Err() error {
+	return r.ctx.Err()
+}
+
+// Value implements context.Context.
+func (r RequestStream) Value(key any) any {
+	return r.ctx.Value(key)
+}
+
+func IsRequestStreamCloseError(err error) bool {
+	return websocket.IsCloseError(err,
+		websocket.CloseAbnormalClosure,
+		websocket.CloseProtocolError,
+		websocket.CloseGoingAway)
 }
