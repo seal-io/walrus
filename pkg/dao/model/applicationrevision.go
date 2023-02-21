@@ -15,6 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -33,7 +34,7 @@ type ApplicationRevision struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the revision belongs.
 	ApplicationID types.ID `json:"applicationID"`
-	// ID of the environment to which the application deploys, uses for redundancy but not correlation constraint.
+	// ID of the environment to which the application deploys.
 	EnvironmentID types.ID `json:"environmentID"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules"`
@@ -52,9 +53,11 @@ type ApplicationRevision struct {
 type ApplicationRevisionEdges struct {
 	// Application to which the revision belongs.
 	Application *Application `json:"application,omitempty"`
+	// Environment to which the revision deploys.
+	Environment *Environment `json:"environment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ApplicationOrErr returns the Application value or an error if the edge
@@ -68,6 +71,19 @@ func (e ApplicationRevisionEdges) ApplicationOrErr() (*Application, error) {
 		return e.Application, nil
 	}
 	return nil, &NotLoadedError{edge: "application"}
+}
+
+// EnvironmentOrErr returns the Environment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApplicationRevisionEdges) EnvironmentOrErr() (*Environment, error) {
+	if e.loadedTypes[1] {
+		if e.Environment == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: environment.Label}
+		}
+		return e.Environment, nil
+	}
+	return nil, &NotLoadedError{edge: "environment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -178,6 +194,11 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 // QueryApplication queries the "application" edge of the ApplicationRevision entity.
 func (ar *ApplicationRevision) QueryApplication() *ApplicationQuery {
 	return NewApplicationRevisionClient(ar.config).QueryApplication(ar)
+}
+
+// QueryEnvironment queries the "environment" edge of the ApplicationRevision entity.
+func (ar *ApplicationRevision) QueryEnvironment() *EnvironmentQuery {
+	return NewApplicationRevisionClient(ar.config).QueryEnvironment(ar)
 }
 
 // Update returns a builder for updating this ApplicationRevision.

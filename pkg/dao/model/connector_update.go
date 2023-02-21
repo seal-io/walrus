@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -144,14 +145,14 @@ func (cu *ConnectorUpdate) ClearConfigData() *ConnectorUpdate {
 	return cu
 }
 
-// AddEnvironmentIDs adds the "environment" edge to the Environment entity by IDs.
+// AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
 func (cu *ConnectorUpdate) AddEnvironmentIDs(ids ...types.ID) *ConnectorUpdate {
 	cu.mutation.AddEnvironmentIDs(ids...)
 	return cu
 }
 
-// AddEnvironment adds the "environment" edges to the Environment entity.
-func (cu *ConnectorUpdate) AddEnvironment(e ...*Environment) *ConnectorUpdate {
+// AddEnvironments adds the "environments" edges to the Environment entity.
+func (cu *ConnectorUpdate) AddEnvironments(e ...*Environment) *ConnectorUpdate {
 	ids := make([]types.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
@@ -159,30 +160,66 @@ func (cu *ConnectorUpdate) AddEnvironment(e ...*Environment) *ConnectorUpdate {
 	return cu.AddEnvironmentIDs(ids...)
 }
 
+// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+func (cu *ConnectorUpdate) AddResourceIDs(ids ...types.ID) *ConnectorUpdate {
+	cu.mutation.AddResourceIDs(ids...)
+	return cu
+}
+
+// AddResources adds the "resources" edges to the ApplicationResource entity.
+func (cu *ConnectorUpdate) AddResources(a ...*ApplicationResource) *ConnectorUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.AddResourceIDs(ids...)
+}
+
 // Mutation returns the ConnectorMutation object of the builder.
 func (cu *ConnectorUpdate) Mutation() *ConnectorMutation {
 	return cu.mutation
 }
 
-// ClearEnvironment clears all "environment" edges to the Environment entity.
-func (cu *ConnectorUpdate) ClearEnvironment() *ConnectorUpdate {
-	cu.mutation.ClearEnvironment()
+// ClearEnvironments clears all "environments" edges to the Environment entity.
+func (cu *ConnectorUpdate) ClearEnvironments() *ConnectorUpdate {
+	cu.mutation.ClearEnvironments()
 	return cu
 }
 
-// RemoveEnvironmentIDs removes the "environment" edge to Environment entities by IDs.
+// RemoveEnvironmentIDs removes the "environments" edge to Environment entities by IDs.
 func (cu *ConnectorUpdate) RemoveEnvironmentIDs(ids ...types.ID) *ConnectorUpdate {
 	cu.mutation.RemoveEnvironmentIDs(ids...)
 	return cu
 }
 
-// RemoveEnvironment removes "environment" edges to Environment entities.
-func (cu *ConnectorUpdate) RemoveEnvironment(e ...*Environment) *ConnectorUpdate {
+// RemoveEnvironments removes "environments" edges to Environment entities.
+func (cu *ConnectorUpdate) RemoveEnvironments(e ...*Environment) *ConnectorUpdate {
 	ids := make([]types.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
 	return cu.RemoveEnvironmentIDs(ids...)
+}
+
+// ClearResources clears all "resources" edges to the ApplicationResource entity.
+func (cu *ConnectorUpdate) ClearResources() *ConnectorUpdate {
+	cu.mutation.ClearResources()
+	return cu
+}
+
+// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
+func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...types.ID) *ConnectorUpdate {
+	cu.mutation.RemoveResourceIDs(ids...)
+	return cu
+}
+
+// RemoveResources removes "resources" edges to ApplicationResource entities.
+func (cu *ConnectorUpdate) RemoveResources(a ...*ApplicationResource) *ConnectorUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.RemoveResourceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -293,12 +330,12 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.ConfigDataCleared() {
 		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
 	}
-	if cu.mutation.EnvironmentCleared() {
+	if cu.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -314,12 +351,12 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RemovedEnvironmentIDs(); len(nodes) > 0 && !cu.mutation.EnvironmentCleared() {
+	if nodes := cu.mutation.RemovedEnvironmentsIDs(); len(nodes) > 0 && !cu.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -338,12 +375,12 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.EnvironmentIDs(); len(nodes) > 0 {
+	if nodes := cu.mutation.EnvironmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -360,6 +397,63 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cu.schemaConfig.ApplicationResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !cu.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cu.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cu.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = cu.schemaConfig.Connector
@@ -494,14 +588,14 @@ func (cuo *ConnectorUpdateOne) ClearConfigData() *ConnectorUpdateOne {
 	return cuo
 }
 
-// AddEnvironmentIDs adds the "environment" edge to the Environment entity by IDs.
+// AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
 func (cuo *ConnectorUpdateOne) AddEnvironmentIDs(ids ...types.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddEnvironmentIDs(ids...)
 	return cuo
 }
 
-// AddEnvironment adds the "environment" edges to the Environment entity.
-func (cuo *ConnectorUpdateOne) AddEnvironment(e ...*Environment) *ConnectorUpdateOne {
+// AddEnvironments adds the "environments" edges to the Environment entity.
+func (cuo *ConnectorUpdateOne) AddEnvironments(e ...*Environment) *ConnectorUpdateOne {
 	ids := make([]types.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
@@ -509,30 +603,66 @@ func (cuo *ConnectorUpdateOne) AddEnvironment(e ...*Environment) *ConnectorUpdat
 	return cuo.AddEnvironmentIDs(ids...)
 }
 
+// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...types.ID) *ConnectorUpdateOne {
+	cuo.mutation.AddResourceIDs(ids...)
+	return cuo
+}
+
+// AddResources adds the "resources" edges to the ApplicationResource entity.
+func (cuo *ConnectorUpdateOne) AddResources(a ...*ApplicationResource) *ConnectorUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.AddResourceIDs(ids...)
+}
+
 // Mutation returns the ConnectorMutation object of the builder.
 func (cuo *ConnectorUpdateOne) Mutation() *ConnectorMutation {
 	return cuo.mutation
 }
 
-// ClearEnvironment clears all "environment" edges to the Environment entity.
-func (cuo *ConnectorUpdateOne) ClearEnvironment() *ConnectorUpdateOne {
-	cuo.mutation.ClearEnvironment()
+// ClearEnvironments clears all "environments" edges to the Environment entity.
+func (cuo *ConnectorUpdateOne) ClearEnvironments() *ConnectorUpdateOne {
+	cuo.mutation.ClearEnvironments()
 	return cuo
 }
 
-// RemoveEnvironmentIDs removes the "environment" edge to Environment entities by IDs.
+// RemoveEnvironmentIDs removes the "environments" edge to Environment entities by IDs.
 func (cuo *ConnectorUpdateOne) RemoveEnvironmentIDs(ids ...types.ID) *ConnectorUpdateOne {
 	cuo.mutation.RemoveEnvironmentIDs(ids...)
 	return cuo
 }
 
-// RemoveEnvironment removes "environment" edges to Environment entities.
-func (cuo *ConnectorUpdateOne) RemoveEnvironment(e ...*Environment) *ConnectorUpdateOne {
+// RemoveEnvironments removes "environments" edges to Environment entities.
+func (cuo *ConnectorUpdateOne) RemoveEnvironments(e ...*Environment) *ConnectorUpdateOne {
 	ids := make([]types.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
 	return cuo.RemoveEnvironmentIDs(ids...)
+}
+
+// ClearResources clears all "resources" edges to the ApplicationResource entity.
+func (cuo *ConnectorUpdateOne) ClearResources() *ConnectorUpdateOne {
+	cuo.mutation.ClearResources()
+	return cuo
+}
+
+// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
+func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...types.ID) *ConnectorUpdateOne {
+	cuo.mutation.RemoveResourceIDs(ids...)
+	return cuo
+}
+
+// RemoveResources removes "resources" edges to ApplicationResource entities.
+func (cuo *ConnectorUpdateOne) RemoveResources(a ...*ApplicationResource) *ConnectorUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.RemoveResourceIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -667,12 +797,12 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if cuo.mutation.ConfigDataCleared() {
 		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
 	}
-	if cuo.mutation.EnvironmentCleared() {
+	if cuo.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -688,12 +818,12 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RemovedEnvironmentIDs(); len(nodes) > 0 && !cuo.mutation.EnvironmentCleared() {
+	if nodes := cuo.mutation.RemovedEnvironmentsIDs(); len(nodes) > 0 && !cuo.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -712,12 +842,12 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.EnvironmentIDs(); len(nodes) > 0 {
+	if nodes := cuo.mutation.EnvironmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -734,6 +864,63 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cuo.schemaConfig.ApplicationResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !cuo.mutation.ResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cuo.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = cuo.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = cuo.schemaConfig.Connector

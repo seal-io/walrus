@@ -774,6 +774,39 @@ func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationRes
 	})
 }
 
+// HasConnector applies the HasEdge predicate on the "connector" edge.
+func HasConnector() predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConnectorWith applies the HasEdge predicate on the "connector" edge with a given conditions (other predicates).
+func HasConnectorWith(preds ...predicate.Connector) predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ConnectorInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ApplicationResource) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {

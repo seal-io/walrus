@@ -418,6 +418,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Application",
 	)
 	graph.MustAddE(
+		"connector",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationresource.ConnectorTable,
+			Columns: []string{applicationresource.ConnectorColumn},
+			Bidi:    false,
+		},
+		"ApplicationResource",
+		"Connector",
+	)
+	graph.MustAddE(
 		"application",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -432,14 +444,38 @@ var schemaGraph = func() *sqlgraph.Schema {
 	graph.MustAddE(
 		"environment",
 		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationrevision.EnvironmentTable,
+			Columns: []string{applicationrevision.EnvironmentColumn},
+			Bidi:    false,
+		},
+		"ApplicationRevision",
+		"Environment",
+	)
+	graph.MustAddE(
+		"environments",
+		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   connector.EnvironmentTable,
-			Columns: connector.EnvironmentPrimaryKey,
+			Table:   connector.EnvironmentsTable,
+			Columns: connector.EnvironmentsPrimaryKey,
 			Bidi:    false,
 		},
 		"Connector",
 		"Environment",
+	)
+	graph.MustAddE(
+		"resources",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ResourcesTable,
+			Columns: []string{connector.ResourcesColumn},
+			Bidi:    false,
+		},
+		"Connector",
+		"ApplicationResource",
 	)
 	graph.MustAddE(
 		"environmentConnectorRelationships",
@@ -476,6 +512,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"Environment",
 		"Application",
+	)
+	graph.MustAddE(
+		"revisions",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+		},
+		"Environment",
+		"ApplicationRevision",
 	)
 	graph.MustAddE(
 		"environmentConnectorRelationships",
@@ -914,6 +962,20 @@ func (f *ApplicationResourceFilter) WhereHasApplicationWith(preds ...predicate.A
 	})))
 }
 
+// WhereHasConnector applies a predicate to check if query has an edge connector.
+func (f *ApplicationResourceFilter) WhereHasConnector() {
+	f.Where(entql.HasEdge("connector"))
+}
+
+// WhereHasConnectorWith applies a predicate to check if query has an edge connector with a given conditions (other predicates).
+func (f *ApplicationResourceFilter) WhereHasConnectorWith(preds ...predicate.Connector) {
+	f.Where(entql.HasEdgeWith("connector", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (arq *ApplicationRevisionQuery) addPredicate(pred func(s *sql.Selector)) {
 	arq.predicates = append(arq.predicates, pred)
@@ -1018,6 +1080,20 @@ func (f *ApplicationRevisionFilter) WhereHasApplicationWith(preds ...predicate.A
 	})))
 }
 
+// WhereHasEnvironment applies a predicate to check if query has an edge environment.
+func (f *ApplicationRevisionFilter) WhereHasEnvironment() {
+	f.Where(entql.HasEdge("environment"))
+}
+
+// WhereHasEnvironmentWith applies a predicate to check if query has an edge environment with a given conditions (other predicates).
+func (f *ApplicationRevisionFilter) WhereHasEnvironmentWith(preds ...predicate.Environment) {
+	f.Where(entql.HasEdgeWith("environment", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (cq *ConnectorQuery) addPredicate(pred func(s *sql.Selector)) {
 	cq.predicates = append(cq.predicates, pred)
@@ -1108,14 +1184,28 @@ func (f *ConnectorFilter) WhereConfigData(p entql.BytesP) {
 	f.Where(p.Field(connector.FieldConfigData))
 }
 
-// WhereHasEnvironment applies a predicate to check if query has an edge environment.
-func (f *ConnectorFilter) WhereHasEnvironment() {
-	f.Where(entql.HasEdge("environment"))
+// WhereHasEnvironments applies a predicate to check if query has an edge environments.
+func (f *ConnectorFilter) WhereHasEnvironments() {
+	f.Where(entql.HasEdge("environments"))
 }
 
-// WhereHasEnvironmentWith applies a predicate to check if query has an edge environment with a given conditions (other predicates).
-func (f *ConnectorFilter) WhereHasEnvironmentWith(preds ...predicate.Environment) {
-	f.Where(entql.HasEdgeWith("environment", sqlgraph.WrapFunc(func(s *sql.Selector) {
+// WhereHasEnvironmentsWith applies a predicate to check if query has an edge environments with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasEnvironmentsWith(preds ...predicate.Environment) {
+	f.Where(entql.HasEdgeWith("environments", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasResources applies a predicate to check if query has an edge resources.
+func (f *ConnectorFilter) WhereHasResources() {
+	f.Where(entql.HasEdge("resources"))
+}
+
+// WhereHasResourcesWith applies a predicate to check if query has an edge resources with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasResourcesWith(preds ...predicate.ApplicationResource) {
+	f.Where(entql.HasEdgeWith("resources", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -1228,6 +1318,20 @@ func (f *EnvironmentFilter) WhereHasApplications() {
 // WhereHasApplicationsWith applies a predicate to check if query has an edge applications with a given conditions (other predicates).
 func (f *EnvironmentFilter) WhereHasApplicationsWith(preds ...predicate.Application) {
 	f.Where(entql.HasEdgeWith("applications", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasRevisions applies a predicate to check if query has an edge revisions.
+func (f *EnvironmentFilter) WhereHasRevisions() {
+	f.Where(entql.HasEdge("revisions"))
+}
+
+// WhereHasRevisionsWith applies a predicate to check if query has an edge revisions with a given conditions (other predicates).
+func (f *EnvironmentFilter) WhereHasRevisionsWith(preds ...predicate.ApplicationRevision) {
+	f.Where(entql.HasEdgeWith("revisions", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}

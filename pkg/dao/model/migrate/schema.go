@@ -97,12 +97,12 @@ var (
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "module", Type: field.TypeString},
 		{Name: "mode", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationResourcesTable holds the schema information for the "application_resources" table.
 	ApplicationResourcesTable = &schema.Table{
@@ -112,9 +112,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_resources_applications_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				Columns:    []*schema.Column{ApplicationResourcesColumns[9]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "application_resources_connectors_resources",
+				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				RefColumns: []*schema.Column{ConnectorsColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -126,7 +132,7 @@ var (
 			{
 				Name:    "applicationresource_application_id_connector_id_module_mode_type_name",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationResourcesColumns[10], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8], ApplicationResourcesColumns[9]},
+				Columns: []*schema.Column{ApplicationResourcesColumns[9], ApplicationResourcesColumns[10], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8]},
 			},
 		},
 	}
@@ -137,12 +143,12 @@ var (
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "modules", Type: field.TypeJSON},
 		{Name: "input_variables", Type: field.TypeJSON},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationRevisionsTable holds the schema information for the "application_revisions" table.
 	ApplicationRevisionsTable = &schema.Table{
@@ -152,9 +158,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_revisions_applications_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[10]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[9]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "application_revisions_environments_revisions",
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[10]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -448,7 +460,9 @@ func init() {
 	ApplicationModuleRelationshipsTable.ForeignKeys[0].RefTable = ApplicationsTable
 	ApplicationModuleRelationshipsTable.ForeignKeys[1].RefTable = ModulesTable
 	ApplicationResourcesTable.ForeignKeys[0].RefTable = ApplicationsTable
+	ApplicationResourcesTable.ForeignKeys[1].RefTable = ConnectorsTable
 	ApplicationRevisionsTable.ForeignKeys[0].RefTable = ApplicationsTable
+	ApplicationRevisionsTable.ForeignKeys[1].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 }

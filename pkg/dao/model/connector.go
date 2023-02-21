@@ -50,29 +50,41 @@ type Connector struct {
 // ConnectorEdges holds the relations/edges for other nodes in the graph.
 type ConnectorEdges struct {
 	// Environments to which the connector configures.
-	Environment []*Environment `json:"environment,omitempty"`
+	Environments []*Environment `json:"environments,omitempty"`
+	// Resources that belong to the application.
+	Resources []*ApplicationResource `json:"resources,omitempty"`
 	// EnvironmentConnectorRelationships holds the value of the environmentConnectorRelationships edge.
 	EnvironmentConnectorRelationships []*EnvironmentConnectorRelationship `json:"environmentConnectorRelationships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes                            [2]bool
-	namedEnvironment                       map[string][]*Environment
+	loadedTypes                            [3]bool
+	namedEnvironments                      map[string][]*Environment
+	namedResources                         map[string][]*ApplicationResource
 	namedEnvironmentConnectorRelationships map[string][]*EnvironmentConnectorRelationship
 }
 
-// EnvironmentOrErr returns the Environment value or an error if the edge
+// EnvironmentsOrErr returns the Environments value or an error if the edge
 // was not loaded in eager-loading.
-func (e ConnectorEdges) EnvironmentOrErr() ([]*Environment, error) {
+func (e ConnectorEdges) EnvironmentsOrErr() ([]*Environment, error) {
 	if e.loadedTypes[0] {
-		return e.Environment, nil
+		return e.Environments, nil
 	}
-	return nil, &NotLoadedError{edge: "environment"}
+	return nil, &NotLoadedError{edge: "environments"}
+}
+
+// ResourcesOrErr returns the Resources value or an error if the edge
+// was not loaded in eager-loading.
+func (e ConnectorEdges) ResourcesOrErr() ([]*ApplicationResource, error) {
+	if e.loadedTypes[1] {
+		return e.Resources, nil
+	}
+	return nil, &NotLoadedError{edge: "resources"}
 }
 
 // EnvironmentConnectorRelationshipsOrErr returns the EnvironmentConnectorRelationships value or an error if the edge
 // was not loaded in eager-loading.
 func (e ConnectorEdges) EnvironmentConnectorRelationshipsOrErr() ([]*EnvironmentConnectorRelationship, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.EnvironmentConnectorRelationships, nil
 	}
 	return nil, &NotLoadedError{edge: "environmentConnectorRelationships"}
@@ -183,9 +195,14 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryEnvironment queries the "environment" edge of the Connector entity.
-func (c *Connector) QueryEnvironment() *EnvironmentQuery {
-	return NewConnectorClient(c.config).QueryEnvironment(c)
+// QueryEnvironments queries the "environments" edge of the Connector entity.
+func (c *Connector) QueryEnvironments() *EnvironmentQuery {
+	return NewConnectorClient(c.config).QueryEnvironments(c)
+}
+
+// QueryResources queries the "resources" edge of the Connector entity.
+func (c *Connector) QueryResources() *ApplicationResourceQuery {
+	return NewConnectorClient(c.config).QueryResources(c)
 }
 
 // QueryEnvironmentConnectorRelationships queries the "environmentConnectorRelationships" edge of the Connector entity.
@@ -253,27 +270,51 @@ func (c *Connector) String() string {
 	return builder.String()
 }
 
-// NamedEnvironment returns the Environment named value or an error if the edge was not
+// NamedEnvironments returns the Environments named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (c *Connector) NamedEnvironment(name string) ([]*Environment, error) {
-	if c.Edges.namedEnvironment == nil {
+func (c *Connector) NamedEnvironments(name string) ([]*Environment, error) {
+	if c.Edges.namedEnvironments == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := c.Edges.namedEnvironment[name]
+	nodes, ok := c.Edges.namedEnvironments[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (c *Connector) appendNamedEnvironment(name string, edges ...*Environment) {
-	if c.Edges.namedEnvironment == nil {
-		c.Edges.namedEnvironment = make(map[string][]*Environment)
+func (c *Connector) appendNamedEnvironments(name string, edges ...*Environment) {
+	if c.Edges.namedEnvironments == nil {
+		c.Edges.namedEnvironments = make(map[string][]*Environment)
 	}
 	if len(edges) == 0 {
-		c.Edges.namedEnvironment[name] = []*Environment{}
+		c.Edges.namedEnvironments[name] = []*Environment{}
 	} else {
-		c.Edges.namedEnvironment[name] = append(c.Edges.namedEnvironment[name], edges...)
+		c.Edges.namedEnvironments[name] = append(c.Edges.namedEnvironments[name], edges...)
+	}
+}
+
+// NamedResources returns the Resources named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Connector) NamedResources(name string) ([]*ApplicationResource, error) {
+	if c.Edges.namedResources == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedResources[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Connector) appendNamedResources(name string, edges ...*ApplicationResource) {
+	if c.Edges.namedResources == nil {
+		c.Edges.namedResources = make(map[string][]*ApplicationResource)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedResources[name] = []*ApplicationResource{}
+	} else {
+		c.Edges.namedResources[name] = append(c.Edges.namedResources[name], edges...)
 	}
 }
 

@@ -89,10 +89,6 @@ func init() {
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationresource.UpdateDefaultUpdateTime = applicationresourceDescUpdateTime.UpdateDefault.(func() time.Time)
-	// applicationresourceDescConnectorID is the schema descriptor for connectorID field.
-	applicationresourceDescConnectorID := applicationresourceFields[1].Descriptor()
-	// applicationresource.ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
-	applicationresource.ConnectorIDValidator = applicationresourceDescConnectorID.Validators[0].(func(string) error)
 	// applicationresourceDescModule is the schema descriptor for module field.
 	applicationresourceDescModule := applicationresourceFields[2].Descriptor()
 	// applicationresource.ModuleValidator is a validator for the "module" field. It is called by the builders before save.
@@ -126,10 +122,6 @@ func init() {
 	applicationrevision.DefaultUpdateTime = applicationrevisionDescUpdateTime.Default.(func() time.Time)
 	// applicationrevision.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationrevision.UpdateDefaultUpdateTime = applicationrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
-	// applicationrevisionDescEnvironmentID is the schema descriptor for environmentID field.
-	applicationrevisionDescEnvironmentID := applicationrevisionFields[1].Descriptor()
-	// applicationrevision.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
-	applicationrevision.EnvironmentIDValidator = applicationrevisionDescEnvironmentID.Validators[0].(func(string) error)
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connector.Hooks[0] = connectorMixinHooks0[0]

@@ -17,6 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -30,6 +31,7 @@ type ApplicationResourceQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.ApplicationResource
 	withApplication *ApplicationQuery
+	withConnector   *ConnectorQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -85,6 +87,31 @@ func (arq *ApplicationResourceQuery) QueryApplication() *ApplicationQuery {
 		)
 		schemaConfig := arq.schemaConfig
 		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConnector chains the current query on the "connector" edge.
+func (arq *ApplicationResourceQuery) QueryConnector() *ConnectorQuery {
+	query := (&ConnectorClient{config: arq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, selector),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.ConnectorTable, applicationresource.ConnectorColumn),
+		)
+		schemaConfig := arq.schemaConfig
+		step.To.Schema = schemaConfig.Connector
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -283,6 +310,7 @@ func (arq *ApplicationResourceQuery) Clone() *ApplicationResourceQuery {
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.ApplicationResource{}, arq.predicates...),
 		withApplication: arq.withApplication.Clone(),
+		withConnector:   arq.withConnector.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
@@ -297,6 +325,17 @@ func (arq *ApplicationResourceQuery) WithApplication(opts ...func(*ApplicationQu
 		opt(query)
 	}
 	arq.withApplication = query
+	return arq
+}
+
+// WithConnector tells the query-builder to eager-load the nodes that are connected to
+// the "connector" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationResourceQuery) WithConnector(opts ...func(*ConnectorQuery)) *ApplicationResourceQuery {
+	query := (&ConnectorClient{config: arq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arq.withConnector = query
 	return arq
 }
 
@@ -378,8 +417,9 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*ApplicationResource{}
 		_spec       = arq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			arq.withApplication != nil,
+			arq.withConnector != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -411,6 +451,12 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 			return nil, err
 		}
 	}
+	if query := arq.withConnector; query != nil {
+		if err := arq.loadConnector(ctx, query, nodes, nil,
+			func(n *ApplicationResource, e *Connector) { n.Edges.Connector = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -436,6 +482,35 @@ func (arq *ApplicationResourceQuery) loadApplication(ctx context.Context, query 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (arq *ApplicationResourceQuery) loadConnector(ctx context.Context, query *ConnectorQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *Connector)) error {
+	ids := make([]types.ID, 0, len(nodes))
+	nodeids := make(map[types.ID][]*ApplicationResource)
+	for i := range nodes {
+		fk := nodes[i].ConnectorID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(connector.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

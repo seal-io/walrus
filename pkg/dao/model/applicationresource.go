@@ -14,6 +14,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -32,7 +33,7 @@ type ApplicationResource struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the resource belongs.
 	ApplicationID types.ID `json:"applicationID"`
-	// ID of the connector to which the resource deploys, uses for redundancy but not correlation constraint.
+	// ID of the connector to which the resource deploys.
 	ConnectorID types.ID `json:"connectorID"`
 	// Name of the module that generates the resource.
 	Module string `json:"module"`
@@ -51,9 +52,11 @@ type ApplicationResource struct {
 type ApplicationResourceEdges struct {
 	// Application to which the resource belongs.
 	Application *Application `json:"application,omitempty"`
+	// Connector to which the resource deploys.
+	Connector *Connector `json:"connector,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ApplicationOrErr returns the Application value or an error if the edge
@@ -67,6 +70,19 @@ func (e ApplicationResourceEdges) ApplicationOrErr() (*Application, error) {
 		return e.Application, nil
 	}
 	return nil, &NotLoadedError{edge: "application"}
+}
+
+// ConnectorOrErr returns the Connector value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApplicationResourceEdges) ConnectorOrErr() (*Connector, error) {
+	if e.loadedTypes[1] {
+		if e.Connector == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: connector.Label}
+		}
+		return e.Connector, nil
+	}
+	return nil, &NotLoadedError{edge: "connector"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -171,6 +187,11 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 // QueryApplication queries the "application" edge of the ApplicationResource entity.
 func (ar *ApplicationResource) QueryApplication() *ApplicationQuery {
 	return NewApplicationResourceClient(ar.config).QueryApplication(ar)
+}
+
+// QueryConnector queries the "connector" edge of the ApplicationResource entity.
+func (ar *ApplicationResource) QueryConnector() *ConnectorQuery {
+	return NewApplicationResourceClient(ar.config).QueryConnector(ar)
 }
 
 // Update returns a builder for updating this ApplicationResource.

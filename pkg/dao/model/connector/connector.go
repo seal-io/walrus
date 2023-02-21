@@ -36,17 +36,26 @@ const (
 	FieldConfigVersion = "config_version"
 	// FieldConfigData holds the string denoting the configdata field in the database.
 	FieldConfigData = "config_data"
-	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
-	EdgeEnvironment = "environment"
+	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
+	EdgeEnvironments = "environments"
+	// EdgeResources holds the string denoting the resources edge name in mutations.
+	EdgeResources = "resources"
 	// EdgeEnvironmentConnectorRelationships holds the string denoting the environmentconnectorrelationships edge name in mutations.
 	EdgeEnvironmentConnectorRelationships = "environmentConnectorRelationships"
 	// Table holds the table name of the connector in the database.
 	Table = "connectors"
-	// EnvironmentTable is the table that holds the environment relation/edge. The primary key declared below.
-	EnvironmentTable = "environment_connector_relationships"
-	// EnvironmentInverseTable is the table name for the Environment entity.
+	// EnvironmentsTable is the table that holds the environments relation/edge. The primary key declared below.
+	EnvironmentsTable = "environment_connector_relationships"
+	// EnvironmentsInverseTable is the table name for the Environment entity.
 	// It exists in this package in order to avoid circular dependency with the "environment" package.
-	EnvironmentInverseTable = "environments"
+	EnvironmentsInverseTable = "environments"
+	// ResourcesTable is the table that holds the resources relation/edge.
+	ResourcesTable = "application_resources"
+	// ResourcesInverseTable is the table name for the ApplicationResource entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationresource" package.
+	ResourcesInverseTable = "application_resources"
+	// ResourcesColumn is the table column denoting the resources relation/edge.
+	ResourcesColumn = "connector_id"
 	// EnvironmentConnectorRelationshipsTable is the table that holds the environmentConnectorRelationships relation/edge.
 	EnvironmentConnectorRelationshipsTable = "environment_connector_relationships"
 	// EnvironmentConnectorRelationshipsInverseTable is the table name for the EnvironmentConnectorRelationship entity.
@@ -72,9 +81,9 @@ var Columns = []string{
 }
 
 var (
-	// EnvironmentPrimaryKey and EnvironmentColumn2 are the table columns denoting the
-	// primary key for the environment relation (M2M).
-	EnvironmentPrimaryKey = []string{"environment_id", "connector_id"}
+	// EnvironmentsPrimaryKey and EnvironmentsColumn2 are the table columns denoting the
+	// primary key for the environments relation (M2M).
+	EnvironmentsPrimaryKey = []string{"environment_id", "connector_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

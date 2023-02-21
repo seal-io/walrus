@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -123,6 +124,21 @@ func (eu *EnvironmentUpdate) AddApplications(a ...*Application) *EnvironmentUpda
 	return eu.AddApplicationIDs(ids...)
 }
 
+// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
+func (eu *EnvironmentUpdate) AddRevisionIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.AddRevisionIDs(ids...)
+	return eu
+}
+
+// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
+func (eu *EnvironmentUpdate) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return eu.AddRevisionIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
@@ -168,6 +184,27 @@ func (eu *EnvironmentUpdate) RemoveApplications(a ...*Application) *EnvironmentU
 		ids[i] = a[i].ID
 	}
 	return eu.RemoveApplicationIDs(ids...)
+}
+
+// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
+func (eu *EnvironmentUpdate) ClearRevisions() *EnvironmentUpdate {
+	eu.mutation.ClearRevisions()
+	return eu
+}
+
+// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
+func (eu *EnvironmentUpdate) RemoveRevisionIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveRevisionIDs(ids...)
+	return eu
+}
+
+// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
+func (eu *EnvironmentUpdate) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return eu.RemoveRevisionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -386,6 +423,63 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if eu.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.ApplicationRevision
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !eu.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = eu.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, eu.schemaConfig)
 	_spec.AddModifiers(eu.modifiers...)
@@ -496,6 +590,21 @@ func (euo *EnvironmentUpdateOne) AddApplications(a ...*Application) *Environment
 	return euo.AddApplicationIDs(ids...)
 }
 
+// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
+func (euo *EnvironmentUpdateOne) AddRevisionIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddRevisionIDs(ids...)
+	return euo
+}
+
+// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
+func (euo *EnvironmentUpdateOne) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return euo.AddRevisionIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
@@ -541,6 +650,27 @@ func (euo *EnvironmentUpdateOne) RemoveApplications(a ...*Application) *Environm
 		ids[i] = a[i].ID
 	}
 	return euo.RemoveApplicationIDs(ids...)
+}
+
+// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
+func (euo *EnvironmentUpdateOne) ClearRevisions() *EnvironmentUpdateOne {
+	euo.mutation.ClearRevisions()
+	return euo
+}
+
+// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveRevisionIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveRevisionIDs(ids...)
+	return euo
+}
+
+// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
+func (euo *EnvironmentUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return euo.RemoveRevisionIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -778,6 +908,63 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			},
 		}
 		edge.Schema = euo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.ApplicationRevision
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !euo.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.ApplicationRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

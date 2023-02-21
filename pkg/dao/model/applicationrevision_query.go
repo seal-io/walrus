@@ -17,6 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -30,6 +31,7 @@ type ApplicationRevisionQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.ApplicationRevision
 	withApplication *ApplicationQuery
+	withEnvironment *EnvironmentQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -85,6 +87,31 @@ func (arq *ApplicationRevisionQuery) QueryApplication() *ApplicationQuery {
 		)
 		schemaConfig := arq.schemaConfig
 		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEnvironment chains the current query on the "environment" edge.
+func (arq *ApplicationRevisionQuery) QueryEnvironment() *EnvironmentQuery {
+	query := (&EnvironmentClient{config: arq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, selector),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.EnvironmentTable, applicationrevision.EnvironmentColumn),
+		)
+		schemaConfig := arq.schemaConfig
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.ApplicationRevision
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -283,6 +310,7 @@ func (arq *ApplicationRevisionQuery) Clone() *ApplicationRevisionQuery {
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.ApplicationRevision{}, arq.predicates...),
 		withApplication: arq.withApplication.Clone(),
+		withEnvironment: arq.withEnvironment.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
@@ -297,6 +325,17 @@ func (arq *ApplicationRevisionQuery) WithApplication(opts ...func(*ApplicationQu
 		opt(query)
 	}
 	arq.withApplication = query
+	return arq
+}
+
+// WithEnvironment tells the query-builder to eager-load the nodes that are connected to
+// the "environment" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ApplicationRevisionQuery {
+	query := (&EnvironmentClient{config: arq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arq.withEnvironment = query
 	return arq
 }
 
@@ -378,8 +417,9 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*ApplicationRevision{}
 		_spec       = arq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			arq.withApplication != nil,
+			arq.withEnvironment != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -411,6 +451,12 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 			return nil, err
 		}
 	}
+	if query := arq.withEnvironment; query != nil {
+		if err := arq.loadEnvironment(ctx, query, nodes, nil,
+			func(n *ApplicationRevision, e *Environment) { n.Edges.Environment = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -436,6 +482,35 @@ func (arq *ApplicationRevisionQuery) loadApplication(ctx context.Context, query 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (arq *ApplicationRevisionQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *Environment)) error {
+	ids := make([]types.ID, 0, len(nodes))
+	nodeids := make(map[types.ID][]*ApplicationRevision)
+	for i := range nodes {
+		fk := nodes[i].EnvironmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(environment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
