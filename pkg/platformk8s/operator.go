@@ -90,6 +90,7 @@ func (op Operator) Log(ctx context.Context, res model.ApplicationResource, opts 
 		Follow:       isContainerRunning(p, ct, cn),
 		Previous:     opts.Previous,
 		SinceSeconds: opts.SinceSeconds,
+		Timestamps:   opts.Timestamps,
 	}
 	if opts.Tail {
 		stmOpts.TailLines = pointer.Int64(10)

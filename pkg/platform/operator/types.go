@@ -34,11 +34,13 @@ type LogOptions struct {
 	// Out receives the output.
 	Out io.Writer
 	// Previous indicates to get the previous log of the accessing target.
-	Previous bool `query:"previous,omitempty"`
+	Previous bool
 	// Tail indicates to get the tail log of the accessing target.
-	Tail bool `query:"tail,omitempty"`
+	Tail bool
 	// SinceSeconds returns logs newer than a relative duration.
-	SinceSeconds *int64 `query:"sinceSeconds,omitempty"`
+	SinceSeconds *int64
+	// Timestamps returns logs with RFC3339 or RFC3339Nano timestamp.
+	Timestamps bool
 }
 
 // ExecOptions holds the options of Operator's Exec action.
