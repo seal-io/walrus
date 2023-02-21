@@ -28,9 +28,7 @@ func (ApplicationRevision) Fields() []ent.Field {
 			Comment("ID of the application to which the revision belongs.").
 			Immutable(),
 		id.Field("environmentID").
-			Comment("ID of the environment to which the application deploys, " +
-				"uses for redundancy but not correlation constraint.").
-			NotEmpty().
+			Comment("ID of the environment to which the application deploys.").
 			Immutable(),
 		field.JSON("modules", []types.ApplicationModule{}).
 			Comment("Application modules."),
@@ -50,6 +48,14 @@ func (ApplicationRevision) Edges() []ent.Edge {
 			Ref("revisions").
 			Field("applicationID").
 			Comment("Application to which the revision belongs.").
+			Unique().
+			Required().
+			Immutable(),
+		// environment 1-* application revisions.
+		edge.From("environment", Environment.Type).
+			Ref("revisions").
+			Field("environmentID").
+			Comment("Environment to which the revision deploys.").
 			Unique().
 			Required().
 			Immutable(),
