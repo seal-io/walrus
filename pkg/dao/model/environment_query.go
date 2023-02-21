@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -34,10 +35,12 @@ type EnvironmentQuery struct {
 	predicates                                 []predicate.Environment
 	withConnectors                             *ConnectorQuery
 	withApplications                           *ApplicationQuery
+	withRevisions                              *ApplicationRevisionQuery
 	withEnvironmentConnectorRelationships      *EnvironmentConnectorRelationshipQuery
 	modifiers                                  []func(*sql.Selector)
 	withNamedConnectors                        map[string]*ConnectorQuery
 	withNamedApplications                      map[string]*ApplicationQuery
+	withNamedRevisions                         map[string]*ApplicationRevisionQuery
 	withNamedEnvironmentConnectorRelationships map[string]*EnvironmentConnectorRelationshipQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -119,6 +122,31 @@ func (eq *EnvironmentQuery) QueryApplications() *ApplicationQuery {
 		schemaConfig := eq.schemaConfig
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.Application
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRevisions chains the current query on the "revisions" edge.
+func (eq *EnvironmentQuery) QueryRevisions() *ApplicationRevisionQuery {
+	query := (&ApplicationRevisionClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, selector),
+			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.RevisionsTable, environment.RevisionsColumn),
+		)
+		schemaConfig := eq.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationRevision
+		step.Edge.Schema = schemaConfig.ApplicationRevision
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -342,6 +370,7 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		predicates:                            append([]predicate.Environment{}, eq.predicates...),
 		withConnectors:                        eq.withConnectors.Clone(),
 		withApplications:                      eq.withApplications.Clone(),
+		withRevisions:                         eq.withRevisions.Clone(),
 		withEnvironmentConnectorRelationships: eq.withEnvironmentConnectorRelationships.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
@@ -368,6 +397,17 @@ func (eq *EnvironmentQuery) WithApplications(opts ...func(*ApplicationQuery)) *E
 		opt(query)
 	}
 	eq.withApplications = query
+	return eq
+}
+
+// WithRevisions tells the query-builder to eager-load the nodes that are connected to
+// the "revisions" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithRevisions(opts ...func(*ApplicationRevisionQuery)) *EnvironmentQuery {
+	query := (&ApplicationRevisionClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withRevisions = query
 	return eq
 }
 
@@ -460,9 +500,10 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Environment{}
 		_spec       = eq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			eq.withConnectors != nil,
 			eq.withApplications != nil,
+			eq.withRevisions != nil,
 			eq.withEnvironmentConnectorRelationships != nil,
 		}
 	)
@@ -503,6 +544,13 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := eq.withRevisions; query != nil {
+		if err := eq.loadRevisions(ctx, query, nodes,
+			func(n *Environment) { n.Edges.Revisions = []*ApplicationRevision{} },
+			func(n *Environment, e *ApplicationRevision) { n.Edges.Revisions = append(n.Edges.Revisions, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := eq.withEnvironmentConnectorRelationships; query != nil {
 		if err := eq.loadEnvironmentConnectorRelationships(ctx, query, nodes,
 			func(n *Environment) {
@@ -525,6 +573,13 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := eq.loadApplications(ctx, query, nodes,
 			func(n *Environment) { n.appendNamedApplications(name) },
 			func(n *Environment, e *Application) { n.appendNamedApplications(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range eq.withNamedRevisions {
+		if err := eq.loadRevisions(ctx, query, nodes,
+			func(n *Environment) { n.appendNamedRevisions(name) },
+			func(n *Environment, e *ApplicationRevision) { n.appendNamedRevisions(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -614,6 +669,33 @@ func (eq *EnvironmentQuery) loadApplications(ctx context.Context, query *Applica
 	}
 	query.Where(predicate.Application(func(s *sql.Selector) {
 		s.Where(sql.InValues(environment.ApplicationsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EnvironmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *ApplicationRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationRevision)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[types.ID]*Environment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.ApplicationRevision(func(s *sql.Selector) {
+		s.Where(sql.InValues(environment.RevisionsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -814,6 +896,20 @@ func (eq *EnvironmentQuery) WithNamedApplications(name string, opts ...func(*App
 		eq.withNamedApplications = make(map[string]*ApplicationQuery)
 	}
 	eq.withNamedApplications[name] = query
+	return eq
+}
+
+// WithNamedRevisions tells the query-builder to eager-load the nodes that are connected to the "revisions"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithNamedRevisions(name string, opts ...func(*ApplicationRevisionQuery)) *EnvironmentQuery {
+	query := (&ApplicationRevisionClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if eq.withNamedRevisions == nil {
+		eq.withNamedRevisions = make(map[string]*ApplicationRevisionQuery)
+	}
+	eq.withNamedRevisions[name] = query
 	return eq
 }
 

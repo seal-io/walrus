@@ -38,6 +38,8 @@ const (
 	FieldOutput = "output"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
+	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
+	EdgeEnvironment = "environment"
 	// Table holds the table name of the applicationrevision in the database.
 	Table = "application_revisions"
 	// ApplicationTable is the table that holds the application relation/edge.
@@ -47,6 +49,13 @@ const (
 	ApplicationInverseTable = "applications"
 	// ApplicationColumn is the table column denoting the application relation/edge.
 	ApplicationColumn = "application_id"
+	// EnvironmentTable is the table that holds the environment relation/edge.
+	EnvironmentTable = "application_revisions"
+	// EnvironmentInverseTable is the table name for the Environment entity.
+	// It exists in this package in order to avoid circular dependency with the "environment" package.
+	EnvironmentInverseTable = "environments"
+	// EnvironmentColumn is the table column denoting the environment relation/edge.
+	EnvironmentColumn = "environment_id"
 )
 
 // Columns holds all SQL columns for applicationrevision fields.
@@ -87,8 +96,6 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
-	EnvironmentIDValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

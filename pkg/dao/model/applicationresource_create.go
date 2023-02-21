@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -132,6 +133,11 @@ func (arc *ApplicationResourceCreate) SetApplication(a *Application) *Applicatio
 	return arc.SetApplicationID(a.ID)
 }
 
+// SetConnector sets the "connector" edge to the Connector entity.
+func (arc *ApplicationResourceCreate) SetConnector(c *Connector) *ApplicationResourceCreate {
+	return arc.SetConnectorID(c.ID)
+}
+
 // Mutation returns the ApplicationResourceMutation object of the builder.
 func (arc *ApplicationResourceCreate) Mutation() *ApplicationResourceMutation {
 	return arc.mutation
@@ -200,11 +206,6 @@ func (arc *ApplicationResourceCreate) check() error {
 	if _, ok := arc.mutation.ConnectorID(); !ok {
 		return &ValidationError{Name: "connectorID", err: errors.New(`model: missing required field "ApplicationResource.connectorID"`)}
 	}
-	if v, ok := arc.mutation.ConnectorID(); ok {
-		if err := applicationresource.ConnectorIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "connectorID", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.connectorID": %w`, err)}
-		}
-	}
 	if _, ok := arc.mutation.Module(); !ok {
 		return &ValidationError{Name: "module", err: errors.New(`model: missing required field "ApplicationResource.module"`)}
 	}
@@ -239,6 +240,9 @@ func (arc *ApplicationResourceCreate) check() error {
 	}
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationResource.application"`)}
+	}
+	if _, ok := arc.mutation.ConnectorID(); !ok {
+		return &ValidationError{Name: "connector", err: errors.New(`model: missing required edge "ApplicationResource.connector"`)}
 	}
 	return nil
 }
@@ -299,10 +303,6 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := arc.mutation.ConnectorID(); ok {
-		_spec.SetField(applicationresource.FieldConnectorID, field.TypeString, value)
-		_node.ConnectorID = value
-	}
 	if value, ok := arc.mutation.Module(); ok {
 		_spec.SetField(applicationresource.FieldModule, field.TypeString, value)
 		_node.Module = value
@@ -338,6 +338,27 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ApplicationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := arc.mutation.ConnectorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationresource.ConnectorTable,
+			Columns: []string{applicationresource.ConnectorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: connector.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ConnectorID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

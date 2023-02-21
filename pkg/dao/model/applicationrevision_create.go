@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -132,6 +133,11 @@ func (arc *ApplicationRevisionCreate) SetApplication(a *Application) *Applicatio
 	return arc.SetApplicationID(a.ID)
 }
 
+// SetEnvironment sets the "environment" edge to the Environment entity.
+func (arc *ApplicationRevisionCreate) SetEnvironment(e *Environment) *ApplicationRevisionCreate {
+	return arc.SetEnvironmentID(e.ID)
+}
+
 // Mutation returns the ApplicationRevisionMutation object of the builder.
 func (arc *ApplicationRevisionCreate) Mutation() *ApplicationRevisionMutation {
 	return arc.mutation
@@ -200,11 +206,6 @@ func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "ApplicationRevision.environmentID"`)}
 	}
-	if v, ok := arc.mutation.EnvironmentID(); ok {
-		if err := applicationrevision.EnvironmentIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "environmentID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.environmentID": %w`, err)}
-		}
-	}
 	if _, ok := arc.mutation.Modules(); !ok {
 		return &ValidationError{Name: "modules", err: errors.New(`model: missing required field "ApplicationRevision.modules"`)}
 	}
@@ -219,6 +220,9 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationRevision.application"`)}
+	}
+	if _, ok := arc.mutation.EnvironmentID(); !ok {
+		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "ApplicationRevision.environment"`)}
 	}
 	return nil
 }
@@ -279,10 +283,6 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		_spec.SetField(applicationrevision.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := arc.mutation.EnvironmentID(); ok {
-		_spec.SetField(applicationrevision.FieldEnvironmentID, field.TypeString, value)
-		_node.EnvironmentID = value
-	}
 	if value, ok := arc.mutation.Modules(); ok {
 		_spec.SetField(applicationrevision.FieldModules, field.TypeJSON, value)
 		_node.Modules = value
@@ -318,6 +318,27 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ApplicationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := arc.mutation.EnvironmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationrevision.EnvironmentTable,
+			Columns: []string{applicationrevision.EnvironmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: environment.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EnvironmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

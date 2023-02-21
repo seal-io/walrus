@@ -38,6 +38,8 @@ const (
 	FieldName = "name"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
+	// EdgeConnector holds the string denoting the connector edge name in mutations.
+	EdgeConnector = "connector"
 	// Table holds the table name of the applicationresource in the database.
 	Table = "application_resources"
 	// ApplicationTable is the table that holds the application relation/edge.
@@ -47,6 +49,13 @@ const (
 	ApplicationInverseTable = "applications"
 	// ApplicationColumn is the table column denoting the application relation/edge.
 	ApplicationColumn = "application_id"
+	// ConnectorTable is the table that holds the connector relation/edge.
+	ConnectorTable = "application_resources"
+	// ConnectorInverseTable is the table name for the Connector entity.
+	// It exists in this package in order to avoid circular dependency with the "connector" package.
+	ConnectorInverseTable = "connectors"
+	// ConnectorColumn is the table column denoting the connector relation/edge.
+	ConnectorColumn = "connector_id"
 )
 
 // Columns holds all SQL columns for applicationresource fields.
@@ -87,8 +96,6 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
-	ConnectorIDValidator func(string) error
 	// ModuleValidator is a validator for the "module" field. It is called by the builders before save.
 	ModuleValidator func(string) error
 	// ModeValidator is a validator for the "mode" field. It is called by the builders before save.

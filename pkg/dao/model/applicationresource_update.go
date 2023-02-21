@@ -132,6 +132,9 @@ func (aru *ApplicationResourceUpdate) check() error {
 	if _, ok := aru.mutation.ApplicationID(); aru.mutation.ApplicationCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationResource.application"`)
 	}
+	if _, ok := aru.mutation.ConnectorID(); aru.mutation.ConnectorCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationResource.connector"`)
+	}
 	return nil
 }
 
@@ -305,6 +308,9 @@ func (aruo *ApplicationResourceUpdateOne) defaults() error {
 func (aruo *ApplicationResourceUpdateOne) check() error {
 	if _, ok := aruo.mutation.ApplicationID(); aruo.mutation.ApplicationCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationResource.application"`)
+	}
+	if _, ok := aruo.mutation.ConnectorID(); aruo.mutation.ConnectorCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationResource.connector"`)
 	}
 	return nil
 }

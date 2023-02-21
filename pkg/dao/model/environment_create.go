@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -124,6 +125,21 @@ func (ec *EnvironmentCreate) AddApplications(a ...*Application) *EnvironmentCrea
 		ids[i] = a[i].ID
 	}
 	return ec.AddApplicationIDs(ids...)
+}
+
+// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
+func (ec *EnvironmentCreate) AddRevisionIDs(ids ...types.ID) *EnvironmentCreate {
+	ec.mutation.AddRevisionIDs(ids...)
+	return ec
+}
+
+// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
+func (ec *EnvironmentCreate) AddRevisions(a ...*ApplicationRevision) *EnvironmentCreate {
+	ids := make([]types.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ec.AddRevisionIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -297,6 +313,26 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = ec.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.RevisionsTable,
+			Columns: []string{environment.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationrevision.FieldID,
+				},
+			},
+		}
+		edge.Schema = ec.schemaConfig.ApplicationRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

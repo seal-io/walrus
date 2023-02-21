@@ -48,13 +48,16 @@ type EnvironmentEdges struct {
 	Connectors []*Connector `json:"connectors,omitempty"`
 	// Applications that belong to the environment.
 	Applications []*Application `json:"applications,omitempty"`
+	// Revisions that belong to the environment.
+	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
 	// EnvironmentConnectorRelationships holds the value of the environmentConnectorRelationships edge.
 	EnvironmentConnectorRelationships []*EnvironmentConnectorRelationship `json:"environmentConnectorRelationships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes                            [3]bool
+	loadedTypes                            [4]bool
 	namedConnectors                        map[string][]*Connector
 	namedApplications                      map[string][]*Application
+	namedRevisions                         map[string][]*ApplicationRevision
 	namedEnvironmentConnectorRelationships map[string][]*EnvironmentConnectorRelationship
 }
 
@@ -76,10 +79,19 @@ func (e EnvironmentEdges) ApplicationsOrErr() ([]*Application, error) {
 	return nil, &NotLoadedError{edge: "applications"}
 }
 
+// RevisionsOrErr returns the Revisions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnvironmentEdges) RevisionsOrErr() ([]*ApplicationRevision, error) {
+	if e.loadedTypes[2] {
+		return e.Revisions, nil
+	}
+	return nil, &NotLoadedError{edge: "revisions"}
+}
+
 // EnvironmentConnectorRelationshipsOrErr returns the EnvironmentConnectorRelationships value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnvironmentEdges) EnvironmentConnectorRelationshipsOrErr() ([]*EnvironmentConnectorRelationship, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.EnvironmentConnectorRelationships, nil
 	}
 	return nil, &NotLoadedError{edge: "environmentConnectorRelationships"}
@@ -174,6 +186,11 @@ func (e *Environment) QueryConnectors() *ConnectorQuery {
 // QueryApplications queries the "applications" edge of the Environment entity.
 func (e *Environment) QueryApplications() *ApplicationQuery {
 	return NewEnvironmentClient(e.config).QueryApplications(e)
+}
+
+// QueryRevisions queries the "revisions" edge of the Environment entity.
+func (e *Environment) QueryRevisions() *ApplicationRevisionQuery {
+	return NewEnvironmentClient(e.config).QueryRevisions(e)
 }
 
 // QueryEnvironmentConnectorRelationships queries the "environmentConnectorRelationships" edge of the Environment entity.
@@ -297,6 +314,30 @@ func (e *Environment) appendNamedApplications(name string, edges ...*Application
 		e.Edges.namedApplications[name] = []*Application{}
 	} else {
 		e.Edges.namedApplications[name] = append(e.Edges.namedApplications[name], edges...)
+	}
+}
+
+// NamedRevisions returns the Revisions named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (e *Environment) NamedRevisions(name string) ([]*ApplicationRevision, error) {
+	if e.Edges.namedRevisions == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := e.Edges.namedRevisions[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (e *Environment) appendNamedRevisions(name string, edges ...*ApplicationRevision) {
+	if e.Edges.namedRevisions == nil {
+		e.Edges.namedRevisions = make(map[string][]*ApplicationRevision)
+	}
+	if len(edges) == 0 {
+		e.Edges.namedRevisions[name] = []*ApplicationRevision{}
+	} else {
+		e.Edges.namedRevisions[name] = append(e.Edges.namedRevisions[name], edges...)
 	}
 }
 

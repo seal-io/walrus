@@ -32,6 +32,8 @@ const (
 	EdgeConnectors = "connectors"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
 	EdgeApplications = "applications"
+	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
+	EdgeRevisions = "revisions"
 	// EdgeEnvironmentConnectorRelationships holds the string denoting the environmentconnectorrelationships edge name in mutations.
 	EdgeEnvironmentConnectorRelationships = "environmentConnectorRelationships"
 	// Table holds the table name of the environment in the database.
@@ -48,6 +50,13 @@ const (
 	ApplicationsInverseTable = "applications"
 	// ApplicationsColumn is the table column denoting the applications relation/edge.
 	ApplicationsColumn = "environment_id"
+	// RevisionsTable is the table that holds the revisions relation/edge.
+	RevisionsTable = "application_revisions"
+	// RevisionsInverseTable is the table name for the ApplicationRevision entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationrevision" package.
+	RevisionsInverseTable = "application_revisions"
+	// RevisionsColumn is the table column denoting the revisions relation/edge.
+	RevisionsColumn = "environment_id"
 	// EnvironmentConnectorRelationshipsTable is the table that holds the environmentConnectorRelationships relation/edge.
 	EnvironmentConnectorRelationshipsTable = "environment_connector_relationships"
 	// EnvironmentConnectorRelationshipsInverseTable is the table name for the EnvironmentConnectorRelationship entity.

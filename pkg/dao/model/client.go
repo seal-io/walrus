@@ -812,6 +812,25 @@ func (c *ApplicationResourceClient) QueryApplication(ar *ApplicationResource) *A
 	return query
 }
 
+// QueryConnector queries the connector edge of a ApplicationResource.
+func (c *ApplicationResourceClient) QueryConnector(ar *ApplicationResource) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.ConnectorTable, applicationresource.ConnectorColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ApplicationResourceClient) Hooks() []Hook {
 	hooks := c.hooks.ApplicationResource
@@ -950,6 +969,25 @@ func (c *ApplicationRevisionClient) QueryApplication(ar *ApplicationRevision) *A
 	return query
 }
 
+// QueryEnvironment queries the environment edge of a ApplicationRevision.
+func (c *ApplicationRevisionClient) QueryEnvironment(ar *ApplicationRevision) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.EnvironmentTable, applicationrevision.EnvironmentColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ApplicationRevisionClient) Hooks() []Hook {
 	hooks := c.hooks.ApplicationRevision
@@ -1069,19 +1107,38 @@ func (c *ConnectorClient) GetX(ctx context.Context, id types.ID) *Connector {
 	return obj
 }
 
-// QueryEnvironment queries the environment edge of a Connector.
-func (c *ConnectorClient) QueryEnvironment(co *Connector) *EnvironmentQuery {
+// QueryEnvironments queries the environments edge of a Connector.
+func (c *ConnectorClient) QueryEnvironments(co *Connector) *EnvironmentQuery {
 	query := (&EnvironmentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, id),
 			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, connector.EnvironmentTable, connector.EnvironmentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, connector.EnvironmentsTable, connector.EnvironmentsPrimaryKey...),
 		)
 		schemaConfig := co.schemaConfig
 		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResources queries the resources edge of a Connector.
+func (c *ConnectorClient) QueryResources(co *Connector) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, id),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.ResourcesTable, connector.ResourcesColumn),
+		)
+		schemaConfig := co.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1258,6 +1315,25 @@ func (c *EnvironmentClient) QueryApplications(e *Environment) *ApplicationQuery 
 		schemaConfig := e.schemaConfig
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.Application
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRevisions queries the revisions edge of a Environment.
+func (c *EnvironmentClient) QueryRevisions(e *Environment) *ApplicationRevisionQuery {
+	query := (&ApplicationRevisionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.RevisionsTable, environment.RevisionsColumn),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationRevision
+		step.Edge.Schema = schemaConfig.ApplicationRevision
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
