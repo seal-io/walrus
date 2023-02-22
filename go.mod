@@ -17,6 +17,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/ogen-go/ogen v0.58.0
 	github.com/seal-io/seal/utils v0.0.0-00010101000000-000000000000
+	github.com/sirupsen/logrus v1.8.1
 	github.com/sony/sonyflake v1.1.0
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.24.2
@@ -27,6 +28,8 @@ require (
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
+	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.80.1
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	sigs.k8s.io/controller-runtime v0.14.2
 )
@@ -109,7 +112,6 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
@@ -139,7 +141,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.26.1 // indirect
 	k8s.io/component-base v0.26.1 // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect

@@ -5,16 +5,20 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	stdlog "log"
 	"path/filepath"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"           // db = postgres
 	_ "github.com/mattn/go-sqlite3" // db = sqlite3
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog"
+	klogv2 "k8s.io/klog/v2"
 
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -222,6 +226,12 @@ func (r *Server) Flags(cmd *cli.Command) {
 
 func (r *Server) Before(cmd *cli.Command) {
 	r.Logger.Before(cmd)
+	// compatible with other loggers.
+	var logger = log.GetLogger()
+	stdlog.SetOutput(logger)
+	logrus.SetOutput(logger)
+	klog.SetOutput(logger)
+	klogv2.SetLogger(log.AsLogr(logger))
 }
 
 func (r *Server) Action(cmd *cli.Command) {
