@@ -15,7 +15,7 @@ func NewManager(cfg *rest.Config) (*Manager, error) {
 	var logger = log.WithName("k8sctrls")
 	var mgr, err = ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
-		Logger: newLogrLogger(logger),
+		Logger: log.AsLogr(logger),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes controller manager: %w", err)
