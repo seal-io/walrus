@@ -8,10 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/k8s"
@@ -89,11 +91,34 @@ func TestOperator(t *testing.T) {
 		Name: p.Namespace + "/" + p.Name,
 	}
 
+	t.Run("GetKeys", func(t *testing.T) {
+		var keys, err = op.GetKeys(ctx, res)
+		if err != nil {
+			t.Errorf("error getting keys: %v", err)
+		}
+		assert.Equalf(t, keys, &operator.Keys{
+			Labels: []string{"Pod", "Container"},
+			Keys: []operator.Key{
+				{
+					Name: p.Name,
+					Keys: []operator.Key{
+						{
+							Name:       "nginx",
+							Value:      p.Name + "/run/nginx",
+							Loggable:   pointer.Bool(true),
+							Executable: pointer.Bool(true),
+						},
+					},
+				},
+			},
+		}, "invaild keys")
+	})
+
 	t.Run("Log", func(t *testing.T) {
 		var ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
 		var err = op.Log(ctx, res, operator.LogOptions{
-			Key:  p.Name + "/container/nginx",
+			Key:  p.Name + "/run/nginx",
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
 		})
@@ -126,7 +151,7 @@ func TestOperator(t *testing.T) {
 		}()
 
 		err = op.Exec(ctx, res, operator.ExecOptions{
-			Key:   p.Name + "/container/nginx",
+			Key:   p.Name + "/run/nginx",
 			Out:   testLogWriter(t.Logf),
 			In:    r,
 			Shell: "bash",
