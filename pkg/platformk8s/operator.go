@@ -7,14 +7,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	dynamicclient "k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
+	batchclient "k8s.io/client-go/kubernetes/typed/batch/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
@@ -23,7 +30,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/platformk8s/alias"
 	"github.com/seal-io/seal/pkg/platformk8s/pods"
+	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 )
 
 const OperatorType = types.ConnectorTypeK8s
@@ -55,6 +64,200 @@ func (op Operator) IsConnected(ctx context.Context) (bool, error) {
 	defer cancel()
 	var err = k8s.Wait(ctx, op.RestConfig)
 	return err == nil, err
+}
+
+// GetKeys implements operator.Operator.
+func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (*operator.Keys, error) {
+	var psp, err = op.getPods(ctx, res)
+	if err != nil {
+		return nil, err
+	}
+
+	// {
+	//      "labels": ["Pod", "Container"],
+	//      "keys":   [
+	//          {
+	//              "name": "<pod name>",
+	//              "keys": [
+	//                  {
+	//                      "name":  "<container name>",
+	//                      "value": "<key>"
+	//                  }
+	//              ]
+	//          }
+	//      ]
+	// }
+	var k = operator.Keys{
+		Labels: []string{"Pod", "Container"},
+	}
+	if psp == nil {
+		return &k, nil
+	}
+	var ps = *psp
+	for i := 0; i < len(ps); i++ {
+		var ready = pods.IsPodReady(&ps[i])
+		var states = pods.GetContainerStates(&ps[i])
+
+		var key = operator.Key{
+			Name: ps[i].Name, // pod name
+			Keys: make([]operator.Key, 0, len(states)),
+		}
+		for j := 0; j < len(states); j++ {
+			key.Keys = append(key.Keys, operator.Key{
+				Name:       states[j].Name,     // container name
+				Value:      states[j].String(), // key
+				Loggable:   pointer.Bool(ready && states[j].State >= pods.ContainerStateRunning),
+				Executable: pointer.Bool(ready && states[j].State == pods.ContainerStateRunning),
+			})
+		}
+		k.Keys = append(k.Keys, key)
+	}
+	return &k, nil
+}
+
+func (op Operator) getPods(ctx context.Context, res model.ApplicationResource) (*[]core.Pod, error) {
+	// get group version resources.
+	var gvr, ok = alias.Terraform().GetGVR(res.Type)
+	if !ok {
+		// no error.
+		return nil, nil
+	}
+
+	// parse resource name.
+	ns, n, ok := parseNamespacedName(res.Name)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse given resource name: %q", res.Name)
+	}
+
+	switch gvr.Resource {
+	case "pods":
+		var p, err = op.getPod(ctx, ns, n)
+		if err != nil {
+			return nil, err
+		}
+		return &[]core.Pod{*p}, nil
+	case "cronjobs":
+		return op.getPodsOfCronJob(ctx, ns, n)
+	default:
+	}
+	return op.getPodsOfAny(ctx, gvr, ns, n)
+}
+
+func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) {
+	// fetch pod with name.
+	coreCli, err := coreclient.NewForConfig(op.RestConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
+	}
+	p, err := coreCli.Pods(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+	if err != nil {
+		return nil, fmt.Errorf("error getting kubernetes %s/%s pod: %w",
+			ns, n, err)
+	}
+	return p, nil
+}
+
+func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.Pod, error) {
+	// fetch controlled cronjob with name.
+	batchCli, err := batchclient.NewForConfig(op.RestConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kuberentes batch client: %w", err)
+	}
+	cj, err := batchCli.CronJobs(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+	if err != nil {
+		return nil, fmt.Errorf("error getting kubernetes %s/%s cronjob: %w",
+			ns, n, err)
+	}
+
+	// fetch jobs in pagination and filter out.
+	var js []*batch.Job
+	var jlo = meta.ListOptions{Limit: 100}
+	for {
+		var jl *batch.JobList
+		jl, err = batchCli.Jobs(ns).List(ctx, jlo)
+		if err != nil {
+			return nil, fmt.Errorf("error listing kubernetes %s jobs: %w",
+				ns, err)
+		}
+		for i := 0; i < len(jl.Items); i++ {
+			if !meta.IsControlledBy(&jl.Items[i], cj) {
+				continue
+			}
+			js = append(js, &jl.Items[i])
+		}
+		jlo.Continue = jl.Continue
+		if jlo.Continue == "" {
+			break
+		}
+	}
+	if len(js) == 0 {
+		return nil, nil
+	}
+
+	// fetch pods with job label.
+	var ps []core.Pod
+	coreCli, err := coreclient.NewForConfig(op.RestConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
+	}
+	for i := 0; i < len(js); i++ {
+		var ss = labels.SelectorFromSet(labels.Set{
+			"controller-uid": string(js[i].UID),
+			"job-name":       js[i].Name,
+		}).String()
+		var pl *core.PodList
+		pl, err = coreCli.Pods(ns).
+			List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // non quorum read
+		if err != nil {
+			return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
+				ns, ss, err)
+		}
+		for j := 0; j < len(pl.Items); j++ {
+			ps = append(ps, pl.Items[j])
+		}
+	}
+	if len(ps) == 0 {
+		return nil, nil
+	}
+	return &ps, nil
+}
+
+func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionResource, ns, n string) (*[]core.Pod, error) {
+	// fetch label selector with dynamic client.
+	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kubernetes dynamic client: %w", err)
+	}
+	o, err := dynamicCli.Resource(gvr).Namespace(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+	if err != nil {
+		return nil, fmt.Errorf("error getting kubernetes %s %s/%s: %w",
+			gvr.Resource, ns, n, err)
+	}
+	_, s, err := polymorphic.SelectorsForObject(o)
+	if err != nil {
+		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w",
+			gvr.Resource, ns, n, err)
+	}
+
+	// fetch pods with label selector.
+	var ss = s.String()
+	coreCli, err := coreclient.NewForConfig(op.RestConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
+	}
+	pl, err := coreCli.Pods(ns).
+		List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // non quorum read
+	if err != nil {
+		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
+			ns, ss, err)
+	}
+	sort.SliceStable(pl.Items, func(i, j int) bool {
+		return pl.Items[i].Name > pl.Items[j].Name
+	})
+	return &pl.Items, nil
 }
 
 // Log implements operator.Operator.
