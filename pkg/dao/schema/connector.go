@@ -38,6 +38,14 @@ func (Connector) Fields() []ent.Field {
 		field.JSON("configData", map[string]interface{}{}).
 			Comment("Connector config data.").
 			Optional(),
+		field.Bool("enableFinOps").
+			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
+		field.String("finOpsStatus").
+			Optional().
+			Comment("Status of the finOps tools."),
+		field.String("finOpsStatusMessage").
+			Optional().
+			Comment("Extra message for finOps tools status, like error details."),
 	}
 }
 
