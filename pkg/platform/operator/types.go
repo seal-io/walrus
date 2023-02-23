@@ -62,5 +62,5 @@ type ExecOptions struct {
 type TerminalResizer interface {
 	// Next returns the new terminal size after the terminal has been resized.
 	// It returns false when monitoring has been stopped.
-	Next() (weight, height uint16, ok bool)
+	Next() (width, height uint16, ok bool)
 }
