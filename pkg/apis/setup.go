@@ -3,11 +3,13 @@ package apis
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/account"
+	"github.com/seal-io/seal/pkg/apis/applicationresource"
 	"github.com/seal-io/seal/pkg/apis/auth"
 	"github.com/seal-io/seal/pkg/apis/connector"
 	"github.com/seal-io/seal/pkg/apis/debug"
@@ -69,6 +71,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
+		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)), applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, group.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, setting.Handle(opts.ModelClient))

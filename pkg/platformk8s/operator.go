@@ -94,8 +94,11 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 		return &k, nil
 	}
 	var ps = *psp
+	sort.SliceStable(ps, func(i, j int) bool {
+		return ps[i].CreationTimestamp.Time.After(ps[j].CreationTimestamp.Time)
+	})
 	for i := 0; i < len(ps); i++ {
-		var ready = pods.IsPodReady(&ps[i])
+		var running = pods.IsPodRunning(&ps[i])
 		var states = pods.GetContainerStates(&ps[i])
 
 		var key = operator.Key{
@@ -106,8 +109,8 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 			key.Keys = append(key.Keys, operator.Key{
 				Name:       states[j].Name,     // container name
 				Value:      states[j].String(), // key
-				Loggable:   pointer.Bool(ready && states[j].State >= pods.ContainerStateRunning),
-				Executable: pointer.Bool(ready && states[j].State == pods.ContainerStateRunning),
+				Loggable:   pointer.Bool(states[j].State > pods.ContainerStateUnknown),
+				Executable: pointer.Bool(running && states[j].State == pods.ContainerStateRunning),
 			})
 		}
 		k.Keys = append(k.Keys, key)
@@ -254,9 +257,6 @@ func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionReso
 		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
 			ns, ss, err)
 	}
-	sort.SliceStable(pl.Items, func(i, j int) bool {
-		return pl.Items[i].Name > pl.Items[j].Name
-	})
 	return &pl.Items, nil
 }
 
