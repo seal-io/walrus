@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/platformk8s/pods"
 )
 
 const OperatorType = types.ConnectorTypeK8s
@@ -80,14 +81,14 @@ func (op Operator) Log(ctx context.Context, res model.ApplicationResource, opts 
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
-	if !isContainerExisted(p, ct, cn) {
-		return fmt.Errorf("given %s %s is not ownered by %s/%s pod", ct, cn, ns, pn)
+	if !pods.IsContainerExisted(p, pods.Container{Type: ct, Name: cn}) {
+		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
 
 	// stream.
 	var stmOpts = &core.PodLogOptions{
 		Container:    cn,
-		Follow:       isContainerRunning(p, ct, cn),
+		Follow:       pods.IsContainerRunning(p, pods.Container{Type: ct, Name: cn}),
 		Previous:     opts.Previous,
 		SinceSeconds: opts.SinceSeconds,
 		Timestamps:   opts.Timestamps,
@@ -151,11 +152,11 @@ func (op Operator) Exec(ctx context.Context, res model.ApplicationResource, opts
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
-	if !isContainerExisted(p, ct, cn) {
-		return fmt.Errorf("given %s %s is not ownered by %s/%s pod", ct, cn, ns, pn)
+	if !pods.IsContainerExisted(p, pods.Container{Type: ct, Name: cn}) {
+		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
-	if p.Status.Phase != core.PodRunning {
-		return fmt.Errorf("given %s/%s pod is not running", ns, pn)
+	if !pods.IsContainerRunning(p, pods.Container{Type: ct, Name: cn}) {
+		return fmt.Errorf("given %s container %s is not running in %s/%s pod", ct, cn, ns, pn)
 	}
 
 	// stream.
@@ -211,13 +212,6 @@ func parseNamespacedName(s string) (namespace, name string, ok bool) {
 	return
 }
 
-// collection of container types.
-const (
-	initContainer      = "initContainer"
-	ephemeralContainer = "ephemeralContainer"
-	container          = "container"
-)
-
 // parseKey parses the given string into {pod name, container type, container name},
 // returns false if not a valid token, e.g. coredns-64897985d-6x2jm/container/coredns.
 // valid container types have `initContainer`, `ephemeralContainer`, `container`.
@@ -231,56 +225,6 @@ func parseKey(s string) (podName, containerType, containerName string, ok bool) 
 	containerType = ss[1]
 	containerName = ss[2]
 	return
-}
-
-// isContainerExisted returns true if the given type container belongs to the pod.
-func isContainerExisted(pod *core.Pod, containerType, containerName string) bool {
-	switch containerType {
-	case initContainer:
-		for i := range pod.Spec.InitContainers {
-			if pod.Spec.InitContainers[i].Name == containerName {
-				return true
-			}
-		}
-	case ephemeralContainer:
-		for i := range pod.Spec.EphemeralContainers {
-			if pod.Spec.EphemeralContainers[i].Name == containerName {
-				return true
-			}
-		}
-	case container:
-		for i := range pod.Spec.Containers {
-			if pod.Spec.Containers[i].Name == containerName {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// isContainerRunning returns true if the given type container is running.
-func isContainerRunning(pod *core.Pod, containerType, containerName string) bool {
-	switch containerType {
-	case initContainer:
-		for i := range pod.Status.InitContainerStatuses {
-			if pod.Status.InitContainerStatuses[i].Name == containerName {
-				return pod.Status.InitContainerStatuses[i].State.Running != nil
-			}
-		}
-	case ephemeralContainer:
-		for i := range pod.Status.EphemeralContainerStatuses {
-			if pod.Status.EphemeralContainerStatuses[i].Name == containerName {
-				return pod.Status.EphemeralContainerStatuses[i].State.Running != nil
-			}
-		}
-	case container:
-		for i := range pod.Status.ContainerStatuses {
-			if pod.Status.ContainerStatuses[i].Name == containerName {
-				return pod.Status.ContainerStatuses[i].State.Running != nil
-			}
-		}
-	}
-	return false
 }
 
 // isTrivialError returns true if the given error can be ignored.
