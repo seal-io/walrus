@@ -130,6 +130,40 @@ func (cc *ConnectorCreate) SetConfigData(m map[string]interface{}) *ConnectorCre
 	return cc
 }
 
+// SetEnableFinOps sets the "enableFinOps" field.
+func (cc *ConnectorCreate) SetEnableFinOps(b bool) *ConnectorCreate {
+	cc.mutation.SetEnableFinOps(b)
+	return cc
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (cc *ConnectorCreate) SetFinOpsStatus(s string) *ConnectorCreate {
+	cc.mutation.SetFinOpsStatus(s)
+	return cc
+}
+
+// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableFinOpsStatus(s *string) *ConnectorCreate {
+	if s != nil {
+		cc.SetFinOpsStatus(*s)
+	}
+	return cc
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (cc *ConnectorCreate) SetFinOpsStatusMessage(s string) *ConnectorCreate {
+	cc.mutation.SetFinOpsStatusMessage(s)
+	return cc
+}
+
+// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableFinOpsStatusMessage(s *string) *ConnectorCreate {
+	if s != nil {
+		cc.SetFinOpsStatusMessage(*s)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *ConnectorCreate) SetID(t types.ID) *ConnectorCreate {
 	cc.mutation.SetID(t)
@@ -237,6 +271,9 @@ func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.ConfigVersion(); !ok {
 		return &ValidationError{Name: "configVersion", err: errors.New(`model: missing required field "Connector.configVersion"`)}
 	}
+	if _, ok := cc.mutation.EnableFinOps(); !ok {
+		return &ValidationError{Name: "enableFinOps", err: errors.New(`model: missing required field "Connector.enableFinOps"`)}
+	}
 	return nil
 }
 
@@ -319,6 +356,18 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.ConfigData(); ok {
 		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
 		_node.ConfigData = value
+	}
+	if value, ok := cc.mutation.EnableFinOps(); ok {
+		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
+		_node.EnableFinOps = value
+	}
+	if value, ok := cc.mutation.FinOpsStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
+		_node.FinOpsStatus = value
+	}
+	if value, ok := cc.mutation.FinOpsStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
+		_node.FinOpsStatusMessage = value
 	}
 	if nodes := cc.mutation.EnvironmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -554,6 +603,54 @@ func (u *ConnectorUpsert) ClearConfigData() *ConnectorUpsert {
 	return u
 }
 
+// SetEnableFinOps sets the "enableFinOps" field.
+func (u *ConnectorUpsert) SetEnableFinOps(v bool) *ConnectorUpsert {
+	u.Set(connector.FieldEnableFinOps, v)
+	return u
+}
+
+// UpdateEnableFinOps sets the "enableFinOps" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateEnableFinOps() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldEnableFinOps)
+	return u
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (u *ConnectorUpsert) SetFinOpsStatus(v string) *ConnectorUpsert {
+	u.Set(connector.FieldFinOpsStatus, v)
+	return u
+}
+
+// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateFinOpsStatus() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldFinOpsStatus)
+	return u
+}
+
+// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
+func (u *ConnectorUpsert) ClearFinOpsStatus() *ConnectorUpsert {
+	u.SetNull(connector.FieldFinOpsStatus)
+	return u
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (u *ConnectorUpsert) SetFinOpsStatusMessage(v string) *ConnectorUpsert {
+	u.Set(connector.FieldFinOpsStatusMessage, v)
+	return u
+}
+
+// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateFinOpsStatusMessage() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldFinOpsStatusMessage)
+	return u
+}
+
+// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
+func (u *ConnectorUpsert) ClearFinOpsStatusMessage() *ConnectorUpsert {
+	u.SetNull(connector.FieldFinOpsStatusMessage)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -763,6 +860,62 @@ func (u *ConnectorUpsertOne) UpdateConfigData() *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) ClearConfigData() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearConfigData()
+	})
+}
+
+// SetEnableFinOps sets the "enableFinOps" field.
+func (u *ConnectorUpsertOne) SetEnableFinOps(v bool) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetEnableFinOps(v)
+	})
+}
+
+// UpdateEnableFinOps sets the "enableFinOps" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateEnableFinOps() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateEnableFinOps()
+	})
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (u *ConnectorUpsertOne) SetFinOpsStatus(v string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsStatus(v)
+	})
+}
+
+// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateFinOpsStatus() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsStatus()
+	})
+}
+
+// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
+func (u *ConnectorUpsertOne) ClearFinOpsStatus() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsStatus()
+	})
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (u *ConnectorUpsertOne) SetFinOpsStatusMessage(v string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsStatusMessage(v)
+	})
+}
+
+// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateFinOpsStatusMessage() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsStatusMessage()
+	})
+}
+
+// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
+func (u *ConnectorUpsertOne) ClearFinOpsStatusMessage() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsStatusMessage()
 	})
 }
 
@@ -1138,6 +1291,62 @@ func (u *ConnectorUpsertBulk) UpdateConfigData() *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) ClearConfigData() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearConfigData()
+	})
+}
+
+// SetEnableFinOps sets the "enableFinOps" field.
+func (u *ConnectorUpsertBulk) SetEnableFinOps(v bool) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetEnableFinOps(v)
+	})
+}
+
+// UpdateEnableFinOps sets the "enableFinOps" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateEnableFinOps() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateEnableFinOps()
+	})
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (u *ConnectorUpsertBulk) SetFinOpsStatus(v string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsStatus(v)
+	})
+}
+
+// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateFinOpsStatus() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsStatus()
+	})
+}
+
+// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
+func (u *ConnectorUpsertBulk) ClearFinOpsStatus() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsStatus()
+	})
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (u *ConnectorUpsertBulk) SetFinOpsStatusMessage(v string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsStatusMessage(v)
+	})
+}
+
+// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateFinOpsStatusMessage() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsStatusMessage()
+	})
+}
+
+// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
+func (u *ConnectorUpsertBulk) ClearFinOpsStatusMessage() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsStatusMessage()
 	})
 }
 

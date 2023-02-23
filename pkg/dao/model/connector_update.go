@@ -145,6 +145,52 @@ func (cu *ConnectorUpdate) ClearConfigData() *ConnectorUpdate {
 	return cu
 }
 
+// SetEnableFinOps sets the "enableFinOps" field.
+func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
+	cu.mutation.SetEnableFinOps(b)
+	return cu
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (cu *ConnectorUpdate) SetFinOpsStatus(s string) *ConnectorUpdate {
+	cu.mutation.SetFinOpsStatus(s)
+	return cu
+}
+
+// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableFinOpsStatus(s *string) *ConnectorUpdate {
+	if s != nil {
+		cu.SetFinOpsStatus(*s)
+	}
+	return cu
+}
+
+// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
+func (cu *ConnectorUpdate) ClearFinOpsStatus() *ConnectorUpdate {
+	cu.mutation.ClearFinOpsStatus()
+	return cu
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (cu *ConnectorUpdate) SetFinOpsStatusMessage(s string) *ConnectorUpdate {
+	cu.mutation.SetFinOpsStatusMessage(s)
+	return cu
+}
+
+// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdate {
+	if s != nil {
+		cu.SetFinOpsStatusMessage(*s)
+	}
+	return cu
+}
+
+// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
+func (cu *ConnectorUpdate) ClearFinOpsStatusMessage() *ConnectorUpdate {
+	cu.mutation.ClearFinOpsStatusMessage()
+	return cu
+}
+
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
 func (cu *ConnectorUpdate) AddEnvironmentIDs(ids ...types.ID) *ConnectorUpdate {
 	cu.mutation.AddEnvironmentIDs(ids...)
@@ -329,6 +375,21 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.ConfigDataCleared() {
 		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
+	}
+	if value, ok := cu.mutation.EnableFinOps(); ok {
+		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
+	}
+	if value, ok := cu.mutation.FinOpsStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
+	}
+	if cu.mutation.FinOpsStatusCleared() {
+		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
+	}
+	if value, ok := cu.mutation.FinOpsStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
+	}
+	if cu.mutation.FinOpsStatusMessageCleared() {
+		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
 	}
 	if cu.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -588,6 +649,52 @@ func (cuo *ConnectorUpdateOne) ClearConfigData() *ConnectorUpdateOne {
 	return cuo
 }
 
+// SetEnableFinOps sets the "enableFinOps" field.
+func (cuo *ConnectorUpdateOne) SetEnableFinOps(b bool) *ConnectorUpdateOne {
+	cuo.mutation.SetEnableFinOps(b)
+	return cuo
+}
+
+// SetFinOpsStatus sets the "finOpsStatus" field.
+func (cuo *ConnectorUpdateOne) SetFinOpsStatus(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetFinOpsStatus(s)
+	return cuo
+}
+
+// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatus(s *string) *ConnectorUpdateOne {
+	if s != nil {
+		cuo.SetFinOpsStatus(*s)
+	}
+	return cuo
+}
+
+// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
+func (cuo *ConnectorUpdateOne) ClearFinOpsStatus() *ConnectorUpdateOne {
+	cuo.mutation.ClearFinOpsStatus()
+	return cuo
+}
+
+// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
+func (cuo *ConnectorUpdateOne) SetFinOpsStatusMessage(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetFinOpsStatusMessage(s)
+	return cuo
+}
+
+// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdateOne {
+	if s != nil {
+		cuo.SetFinOpsStatusMessage(*s)
+	}
+	return cuo
+}
+
+// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
+func (cuo *ConnectorUpdateOne) ClearFinOpsStatusMessage() *ConnectorUpdateOne {
+	cuo.mutation.ClearFinOpsStatusMessage()
+	return cuo
+}
+
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
 func (cuo *ConnectorUpdateOne) AddEnvironmentIDs(ids ...types.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddEnvironmentIDs(ids...)
@@ -796,6 +903,21 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if cuo.mutation.ConfigDataCleared() {
 		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
+	}
+	if value, ok := cuo.mutation.EnableFinOps(); ok {
+		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
+	}
+	if value, ok := cuo.mutation.FinOpsStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
+	}
+	if cuo.mutation.FinOpsStatusCleared() {
+		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
+	}
+	if value, ok := cuo.mutation.FinOpsStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
+	}
+	if cuo.mutation.FinOpsStatusMessageCleared() {
+		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
 	}
 	if cuo.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

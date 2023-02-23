@@ -190,6 +190,9 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
 		{Name: "config_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "enable_fin_ops", Type: field.TypeBool},
+		{Name: "fin_ops_status", Type: field.TypeString, Nullable: true},
+		{Name: "fin_ops_status_message", Type: field.TypeString, Nullable: true},
 	}
 	// ConnectorsTable holds the schema information for the "connectors" table.
 	ConnectorsTable = &schema.Table{

@@ -132,16 +132,19 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		Type: "Connector",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			connector.FieldName:          {Type: field.TypeString, Column: connector.FieldName},
-			connector.FieldDescription:   {Type: field.TypeString, Column: connector.FieldDescription},
-			connector.FieldLabels:        {Type: field.TypeJSON, Column: connector.FieldLabels},
-			connector.FieldStatus:        {Type: field.TypeString, Column: connector.FieldStatus},
-			connector.FieldStatusMessage: {Type: field.TypeString, Column: connector.FieldStatusMessage},
-			connector.FieldCreateTime:    {Type: field.TypeTime, Column: connector.FieldCreateTime},
-			connector.FieldUpdateTime:    {Type: field.TypeTime, Column: connector.FieldUpdateTime},
-			connector.FieldType:          {Type: field.TypeString, Column: connector.FieldType},
-			connector.FieldConfigVersion: {Type: field.TypeString, Column: connector.FieldConfigVersion},
-			connector.FieldConfigData:    {Type: field.TypeJSON, Column: connector.FieldConfigData},
+			connector.FieldName:                {Type: field.TypeString, Column: connector.FieldName},
+			connector.FieldDescription:         {Type: field.TypeString, Column: connector.FieldDescription},
+			connector.FieldLabels:              {Type: field.TypeJSON, Column: connector.FieldLabels},
+			connector.FieldStatus:              {Type: field.TypeString, Column: connector.FieldStatus},
+			connector.FieldStatusMessage:       {Type: field.TypeString, Column: connector.FieldStatusMessage},
+			connector.FieldCreateTime:          {Type: field.TypeTime, Column: connector.FieldCreateTime},
+			connector.FieldUpdateTime:          {Type: field.TypeTime, Column: connector.FieldUpdateTime},
+			connector.FieldType:                {Type: field.TypeString, Column: connector.FieldType},
+			connector.FieldConfigVersion:       {Type: field.TypeString, Column: connector.FieldConfigVersion},
+			connector.FieldConfigData:          {Type: field.TypeJSON, Column: connector.FieldConfigData},
+			connector.FieldEnableFinOps:        {Type: field.TypeBool, Column: connector.FieldEnableFinOps},
+			connector.FieldFinOpsStatus:        {Type: field.TypeString, Column: connector.FieldFinOpsStatus},
+			connector.FieldFinOpsStatusMessage: {Type: field.TypeString, Column: connector.FieldFinOpsStatusMessage},
 		},
 	}
 	graph.Nodes[5] = &sqlgraph.Node{
@@ -1182,6 +1185,21 @@ func (f *ConnectorFilter) WhereConfigVersion(p entql.StringP) {
 // WhereConfigData applies the entql json.RawMessage predicate on the configData field.
 func (f *ConnectorFilter) WhereConfigData(p entql.BytesP) {
 	f.Where(p.Field(connector.FieldConfigData))
+}
+
+// WhereEnableFinOps applies the entql bool predicate on the enableFinOps field.
+func (f *ConnectorFilter) WhereEnableFinOps(p entql.BoolP) {
+	f.Where(p.Field(connector.FieldEnableFinOps))
+}
+
+// WhereFinOpsStatus applies the entql string predicate on the finOpsStatus field.
+func (f *ConnectorFilter) WhereFinOpsStatus(p entql.StringP) {
+	f.Where(p.Field(connector.FieldFinOpsStatus))
+}
+
+// WhereFinOpsStatusMessage applies the entql string predicate on the finOpsStatusMessage field.
+func (f *ConnectorFilter) WhereFinOpsStatusMessage(p entql.StringP) {
+	f.Where(p.Field(connector.FieldFinOpsStatusMessage))
 }
 
 // WhereHasEnvironments applies a predicate to check if query has an edge environments.
