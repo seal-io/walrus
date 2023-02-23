@@ -20,11 +20,12 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
 )
 
-const OperatorType operator.Type = "Kubernetes"
+const OperatorType = types.ConnectorTypeK8s
 
 // NewOperator returns operator.Operator with the given options.
 func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Operator, error) {
