@@ -42,6 +42,12 @@ type Connector struct {
 	ConfigVersion string `json:"configVersion"`
 	// Connector config data.
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `json:"enableFinOps"`
+	// Status of the finOps tools.
+	FinOpsStatus string `json:"finOpsStatus,omitempty"`
+	// Extra message for finOps tools status, like error details.
+	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
 	Edges ConnectorEdges `json:"edges,omitempty"`
@@ -97,7 +103,9 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case connector.FieldLabels, connector.FieldConfigData:
 			values[i] = new([]byte)
-		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion:
+		case connector.FieldEnableFinOps:
+			values[i] = new(sql.NullBool)
+		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion, connector.FieldFinOpsStatus, connector.FieldFinOpsStatusMessage:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -190,6 +198,24 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field configData: %w", err)
 				}
 			}
+		case connector.FieldEnableFinOps:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enableFinOps", values[i])
+			} else if value.Valid {
+				c.EnableFinOps = value.Bool
+			}
+		case connector.FieldFinOpsStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field finOpsStatus", values[i])
+			} else if value.Valid {
+				c.FinOpsStatus = value.String
+			}
+		case connector.FieldFinOpsStatusMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field finOpsStatusMessage", values[i])
+			} else if value.Valid {
+				c.FinOpsStatusMessage = value.String
+			}
 		}
 	}
 	return nil
@@ -266,6 +292,15 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("configData=")
 	builder.WriteString(fmt.Sprintf("%v", c.ConfigData))
+	builder.WriteString(", ")
+	builder.WriteString("enableFinOps=")
+	builder.WriteString(fmt.Sprintf("%v", c.EnableFinOps))
+	builder.WriteString(", ")
+	builder.WriteString("finOpsStatus=")
+	builder.WriteString(c.FinOpsStatus)
+	builder.WriteString(", ")
+	builder.WriteString("finOpsStatusMessage=")
+	builder.WriteString(c.FinOpsStatusMessage)
 	builder.WriteByte(')')
 	return builder.String()
 }

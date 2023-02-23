@@ -101,6 +101,21 @@ func ConfigVersion(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldConfigVersion, v))
 }
 
+// EnableFinOps applies equality check predicate on the "enableFinOps" field. It's identical to EnableFinOpsEQ.
+func EnableFinOps(v bool) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldEnableFinOps, v))
+}
+
+// FinOpsStatus applies equality check predicate on the "finOpsStatus" field. It's identical to FinOpsStatusEQ.
+func FinOpsStatus(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusMessage applies equality check predicate on the "finOpsStatusMessage" field. It's identical to FinOpsStatusMessageEQ.
+func FinOpsStatusMessage(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldFinOpsStatusMessage, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldName, v))
@@ -619,6 +634,166 @@ func ConfigDataIsNil() predicate.Connector {
 // ConfigDataNotNil applies the NotNil predicate on the "configData" field.
 func ConfigDataNotNil() predicate.Connector {
 	return predicate.Connector(sql.FieldNotNull(FieldConfigData))
+}
+
+// EnableFinOpsEQ applies the EQ predicate on the "enableFinOps" field.
+func EnableFinOpsEQ(v bool) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldEnableFinOps, v))
+}
+
+// EnableFinOpsNEQ applies the NEQ predicate on the "enableFinOps" field.
+func EnableFinOpsNEQ(v bool) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldEnableFinOps, v))
+}
+
+// FinOpsStatusEQ applies the EQ predicate on the "finOpsStatus" field.
+func FinOpsStatusEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusNEQ applies the NEQ predicate on the "finOpsStatus" field.
+func FinOpsStatusNEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusIn applies the In predicate on the "finOpsStatus" field.
+func FinOpsStatusIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldIn(FieldFinOpsStatus, vs...))
+}
+
+// FinOpsStatusNotIn applies the NotIn predicate on the "finOpsStatus" field.
+func FinOpsStatusNotIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldNotIn(FieldFinOpsStatus, vs...))
+}
+
+// FinOpsStatusGT applies the GT predicate on the "finOpsStatus" field.
+func FinOpsStatusGT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGT(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusGTE applies the GTE predicate on the "finOpsStatus" field.
+func FinOpsStatusGTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGTE(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusLT applies the LT predicate on the "finOpsStatus" field.
+func FinOpsStatusLT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLT(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusLTE applies the LTE predicate on the "finOpsStatus" field.
+func FinOpsStatusLTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLTE(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusContains applies the Contains predicate on the "finOpsStatus" field.
+func FinOpsStatusContains(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContains(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusHasPrefix applies the HasPrefix predicate on the "finOpsStatus" field.
+func FinOpsStatusHasPrefix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasPrefix(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusHasSuffix applies the HasSuffix predicate on the "finOpsStatus" field.
+func FinOpsStatusHasSuffix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasSuffix(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusIsNil applies the IsNil predicate on the "finOpsStatus" field.
+func FinOpsStatusIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldFinOpsStatus))
+}
+
+// FinOpsStatusNotNil applies the NotNil predicate on the "finOpsStatus" field.
+func FinOpsStatusNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldFinOpsStatus))
+}
+
+// FinOpsStatusEqualFold applies the EqualFold predicate on the "finOpsStatus" field.
+func FinOpsStatusEqualFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEqualFold(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusContainsFold applies the ContainsFold predicate on the "finOpsStatus" field.
+func FinOpsStatusContainsFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContainsFold(FieldFinOpsStatus, v))
+}
+
+// FinOpsStatusMessageEQ applies the EQ predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageNEQ applies the NEQ predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageNEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageIn applies the In predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldIn(FieldFinOpsStatusMessage, vs...))
+}
+
+// FinOpsStatusMessageNotIn applies the NotIn predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageNotIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldNotIn(FieldFinOpsStatusMessage, vs...))
+}
+
+// FinOpsStatusMessageGT applies the GT predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageGT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGT(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageGTE applies the GTE predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageGTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGTE(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageLT applies the LT predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageLT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLT(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageLTE applies the LTE predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageLTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLTE(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageContains applies the Contains predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageContains(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContains(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageHasPrefix applies the HasPrefix predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageHasPrefix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasPrefix(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageHasSuffix applies the HasSuffix predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageHasSuffix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasSuffix(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageIsNil applies the IsNil predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldFinOpsStatusMessage))
+}
+
+// FinOpsStatusMessageNotNil applies the NotNil predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldFinOpsStatusMessage))
+}
+
+// FinOpsStatusMessageEqualFold applies the EqualFold predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageEqualFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEqualFold(FieldFinOpsStatusMessage, v))
+}
+
+// FinOpsStatusMessageContainsFold applies the ContainsFold predicate on the "finOpsStatusMessage" field.
+func FinOpsStatusMessageContainsFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContainsFold(FieldFinOpsStatusMessage, v))
 }
 
 // HasEnvironments applies the HasEdge predicate on the "environments" edge.
