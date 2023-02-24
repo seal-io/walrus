@@ -101,6 +101,16 @@ func Output(v string) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldOutput, v))
 }
 
+// DeployerType applies equality check predicate on the "deployerType" field. It's identical to DeployerTypeEQ.
+func DeployerType(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldDeployerType, v))
+}
+
+// Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
+func Duration(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldDuration, v))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldStatus, v))
@@ -599,6 +609,111 @@ func OutputEqualFold(v string) predicate.ApplicationRevision {
 // OutputContainsFold applies the ContainsFold predicate on the "output" field.
 func OutputContainsFold(v string) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldOutput, v))
+}
+
+// DeployerTypeEQ applies the EQ predicate on the "deployerType" field.
+func DeployerTypeEQ(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldDeployerType, v))
+}
+
+// DeployerTypeNEQ applies the NEQ predicate on the "deployerType" field.
+func DeployerTypeNEQ(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldDeployerType, v))
+}
+
+// DeployerTypeIn applies the In predicate on the "deployerType" field.
+func DeployerTypeIn(vs ...string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldDeployerType, vs...))
+}
+
+// DeployerTypeNotIn applies the NotIn predicate on the "deployerType" field.
+func DeployerTypeNotIn(vs ...string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldDeployerType, vs...))
+}
+
+// DeployerTypeGT applies the GT predicate on the "deployerType" field.
+func DeployerTypeGT(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldDeployerType, v))
+}
+
+// DeployerTypeGTE applies the GTE predicate on the "deployerType" field.
+func DeployerTypeGTE(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldDeployerType, v))
+}
+
+// DeployerTypeLT applies the LT predicate on the "deployerType" field.
+func DeployerTypeLT(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldDeployerType, v))
+}
+
+// DeployerTypeLTE applies the LTE predicate on the "deployerType" field.
+func DeployerTypeLTE(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldDeployerType, v))
+}
+
+// DeployerTypeContains applies the Contains predicate on the "deployerType" field.
+func DeployerTypeContains(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldContains(FieldDeployerType, v))
+}
+
+// DeployerTypeHasPrefix applies the HasPrefix predicate on the "deployerType" field.
+func DeployerTypeHasPrefix(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldDeployerType, v))
+}
+
+// DeployerTypeHasSuffix applies the HasSuffix predicate on the "deployerType" field.
+func DeployerTypeHasSuffix(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldDeployerType, v))
+}
+
+// DeployerTypeEqualFold applies the EqualFold predicate on the "deployerType" field.
+func DeployerTypeEqualFold(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldDeployerType, v))
+}
+
+// DeployerTypeContainsFold applies the ContainsFold predicate on the "deployerType" field.
+func DeployerTypeContainsFold(v string) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldDeployerType, v))
+}
+
+// DurationEQ applies the EQ predicate on the "duration" field.
+func DurationEQ(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldDuration, v))
+}
+
+// DurationNEQ applies the NEQ predicate on the "duration" field.
+func DurationNEQ(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldDuration, v))
+}
+
+// DurationIn applies the In predicate on the "duration" field.
+func DurationIn(vs ...int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldDuration, vs...))
+}
+
+// DurationNotIn applies the NotIn predicate on the "duration" field.
+func DurationNotIn(vs ...int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldDuration, vs...))
+}
+
+// DurationGT applies the GT predicate on the "duration" field.
+func DurationGT(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldDuration, v))
+}
+
+// DurationGTE applies the GTE predicate on the "duration" field.
+func DurationGTE(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldDuration, v))
+}
+
+// DurationLT applies the LT predicate on the "duration" field.
+func DurationLT(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldDuration, v))
+}
+
+// DurationLTE applies the LTE predicate on the "duration" field.
+func DurationLTE(v int) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldDuration, v))
 }
 
 // HasApplication applies the HasEdge predicate on the "application" edge.

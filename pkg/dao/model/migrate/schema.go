@@ -147,6 +147,8 @@ var (
 		{Name: "input_variables", Type: field.TypeJSON},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
+		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -158,13 +160,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_revisions_applications_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[9]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[11]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_revisions_environments_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[10]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[12]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},

@@ -2595,6 +2595,9 @@ type ApplicationRevisionMutation struct {
 	inputVariables     *map[string]interface{}
 	inputPlan          *string
 	output             *string
+	deployerType       *string
+	duration           *int
+	addduration        *int
 	clearedFields      map[string]struct{}
 	application        *types.ID
 	clearedapplication bool
@@ -3110,6 +3113,98 @@ func (m *ApplicationRevisionMutation) ResetOutput() {
 	m.output = nil
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (m *ApplicationRevisionMutation) SetDeployerType(s string) {
+	m.deployerType = &s
+}
+
+// DeployerType returns the value of the "deployerType" field in the mutation.
+func (m *ApplicationRevisionMutation) DeployerType() (r string, exists bool) {
+	v := m.deployerType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeployerType returns the old "deployerType" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldDeployerType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeployerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeployerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeployerType: %w", err)
+	}
+	return oldValue.DeployerType, nil
+}
+
+// ResetDeployerType resets all changes to the "deployerType" field.
+func (m *ApplicationRevisionMutation) ResetDeployerType() {
+	m.deployerType = nil
+}
+
+// SetDuration sets the "duration" field.
+func (m *ApplicationRevisionMutation) SetDuration(i int) {
+	m.duration = &i
+	m.addduration = nil
+}
+
+// Duration returns the value of the "duration" field in the mutation.
+func (m *ApplicationRevisionMutation) Duration() (r int, exists bool) {
+	v := m.duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDuration returns the old "duration" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDuration: %w", err)
+	}
+	return oldValue.Duration, nil
+}
+
+// AddDuration adds i to the "duration" field.
+func (m *ApplicationRevisionMutation) AddDuration(i int) {
+	if m.addduration != nil {
+		*m.addduration += i
+	} else {
+		m.addduration = &i
+	}
+}
+
+// AddedDuration returns the value that was added to the "duration" field in this mutation.
+func (m *ApplicationRevisionMutation) AddedDuration() (r int, exists bool) {
+	v := m.addduration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDuration resets all changes to the "duration" field.
+func (m *ApplicationRevisionMutation) ResetDuration() {
+	m.duration = nil
+	m.addduration = nil
+}
+
 // ClearApplication clears the "application" edge to the Application entity.
 func (m *ApplicationRevisionMutation) ClearApplication() {
 	m.clearedapplication = true
@@ -3196,7 +3291,7 @@ func (m *ApplicationRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.status != nil {
 		fields = append(fields, applicationrevision.FieldStatus)
 	}
@@ -3227,6 +3322,12 @@ func (m *ApplicationRevisionMutation) Fields() []string {
 	if m.output != nil {
 		fields = append(fields, applicationrevision.FieldOutput)
 	}
+	if m.deployerType != nil {
+		fields = append(fields, applicationrevision.FieldDeployerType)
+	}
+	if m.duration != nil {
+		fields = append(fields, applicationrevision.FieldDuration)
+	}
 	return fields
 }
 
@@ -3255,6 +3356,10 @@ func (m *ApplicationRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.InputPlan()
 	case applicationrevision.FieldOutput:
 		return m.Output()
+	case applicationrevision.FieldDeployerType:
+		return m.DeployerType()
+	case applicationrevision.FieldDuration:
+		return m.Duration()
 	}
 	return nil, false
 }
@@ -3284,6 +3389,10 @@ func (m *ApplicationRevisionMutation) OldField(ctx context.Context, name string)
 		return m.OldInputPlan(ctx)
 	case applicationrevision.FieldOutput:
 		return m.OldOutput(ctx)
+	case applicationrevision.FieldDeployerType:
+		return m.OldDeployerType(ctx)
+	case applicationrevision.FieldDuration:
+		return m.OldDuration(ctx)
 	}
 	return nil, fmt.Errorf("unknown ApplicationRevision field %s", name)
 }
@@ -3363,6 +3472,20 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetOutput(v)
 		return nil
+	case applicationrevision.FieldDeployerType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeployerType(v)
+		return nil
+	case applicationrevision.FieldDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)
 }
@@ -3370,13 +3493,21 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ApplicationRevisionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addduration != nil {
+		fields = append(fields, applicationrevision.FieldDuration)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ApplicationRevisionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case applicationrevision.FieldDuration:
+		return m.AddedDuration()
+	}
 	return nil, false
 }
 
@@ -3385,6 +3516,13 @@ func (m *ApplicationRevisionMutation) AddedField(name string) (ent.Value, bool) 
 // type.
 func (m *ApplicationRevisionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case applicationrevision.FieldDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision numeric field %s", name)
 }
@@ -3456,6 +3594,12 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 		return nil
 	case applicationrevision.FieldOutput:
 		m.ResetOutput()
+		return nil
+	case applicationrevision.FieldDeployerType:
+		m.ResetDeployerType()
+		return nil
+	case applicationrevision.FieldDuration:
+		m.ResetDuration()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)

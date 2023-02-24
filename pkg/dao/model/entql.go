@@ -119,6 +119,8 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationrevision.FieldInputVariables: {Type: field.TypeJSON, Column: applicationrevision.FieldInputVariables},
 			applicationrevision.FieldInputPlan:      {Type: field.TypeString, Column: applicationrevision.FieldInputPlan},
 			applicationrevision.FieldOutput:         {Type: field.TypeString, Column: applicationrevision.FieldOutput},
+			applicationrevision.FieldDeployerType:   {Type: field.TypeString, Column: applicationrevision.FieldDeployerType},
+			applicationrevision.FieldDuration:       {Type: field.TypeInt, Column: applicationrevision.FieldDuration},
 		},
 	}
 	graph.Nodes[4] = &sqlgraph.Node{
@@ -1067,6 +1069,16 @@ func (f *ApplicationRevisionFilter) WhereInputPlan(p entql.StringP) {
 // WhereOutput applies the entql string predicate on the output field.
 func (f *ApplicationRevisionFilter) WhereOutput(p entql.StringP) {
 	f.Where(p.Field(applicationrevision.FieldOutput))
+}
+
+// WhereDeployerType applies the entql string predicate on the deployerType field.
+func (f *ApplicationRevisionFilter) WhereDeployerType(p entql.StringP) {
+	f.Where(p.Field(applicationrevision.FieldDeployerType))
+}
+
+// WhereDuration applies the entql int predicate on the duration field.
+func (f *ApplicationRevisionFilter) WhereDuration(p entql.IntP) {
+	f.Where(p.Field(applicationrevision.FieldDuration))
 }
 
 // WhereHasApplication applies a predicate to check if query has an edge application.

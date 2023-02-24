@@ -122,6 +122,34 @@ func (arc *ApplicationRevisionCreate) SetOutput(s string) *ApplicationRevisionCr
 	return arc
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (arc *ApplicationRevisionCreate) SetDeployerType(s string) *ApplicationRevisionCreate {
+	arc.mutation.SetDeployerType(s)
+	return arc
+}
+
+// SetNillableDeployerType sets the "deployerType" field if the given value is not nil.
+func (arc *ApplicationRevisionCreate) SetNillableDeployerType(s *string) *ApplicationRevisionCreate {
+	if s != nil {
+		arc.SetDeployerType(*s)
+	}
+	return arc
+}
+
+// SetDuration sets the "duration" field.
+func (arc *ApplicationRevisionCreate) SetDuration(i int) *ApplicationRevisionCreate {
+	arc.mutation.SetDuration(i)
+	return arc
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (arc *ApplicationRevisionCreate) SetNillableDuration(i *int) *ApplicationRevisionCreate {
+	if i != nil {
+		arc.SetDuration(*i)
+	}
+	return arc
+}
+
 // SetID sets the "id" field.
 func (arc *ApplicationRevisionCreate) SetID(t types.ID) *ApplicationRevisionCreate {
 	arc.mutation.SetID(t)
@@ -197,6 +225,14 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultInputVariables
 		arc.mutation.SetInputVariables(v)
 	}
+	if _, ok := arc.mutation.DeployerType(); !ok {
+		v := applicationrevision.DefaultDeployerType
+		arc.mutation.SetDeployerType(v)
+	}
+	if _, ok := arc.mutation.Duration(); !ok {
+		v := applicationrevision.DefaultDuration
+		arc.mutation.SetDuration(v)
+	}
 	return nil
 }
 
@@ -235,6 +271,12 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.Output(); !ok {
 		return &ValidationError{Name: "output", err: errors.New(`model: missing required field "ApplicationRevision.output"`)}
+	}
+	if _, ok := arc.mutation.DeployerType(); !ok {
+		return &ValidationError{Name: "deployerType", err: errors.New(`model: missing required field "ApplicationRevision.deployerType"`)}
+	}
+	if _, ok := arc.mutation.Duration(); !ok {
+		return &ValidationError{Name: "duration", err: errors.New(`model: missing required field "ApplicationRevision.duration"`)}
 	}
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationRevision.application"`)}
@@ -316,6 +358,14 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.Output(); ok {
 		_spec.SetField(applicationrevision.FieldOutput, field.TypeString, value)
 		_node.Output = value
+	}
+	if value, ok := arc.mutation.DeployerType(); ok {
+		_spec.SetField(applicationrevision.FieldDeployerType, field.TypeString, value)
+		_node.DeployerType = value
+	}
+	if value, ok := arc.mutation.Duration(); ok {
+		_spec.SetField(applicationrevision.FieldDuration, field.TypeInt, value)
+		_node.Duration = value
 	}
 	if nodes := arc.mutation.ApplicationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -507,6 +557,36 @@ func (u *ApplicationRevisionUpsert) UpdateOutput() *ApplicationRevisionUpsert {
 	return u
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (u *ApplicationRevisionUpsert) SetDeployerType(v string) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldDeployerType, v)
+	return u
+}
+
+// UpdateDeployerType sets the "deployerType" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdateDeployerType() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldDeployerType)
+	return u
+}
+
+// SetDuration sets the "duration" field.
+func (u *ApplicationRevisionUpsert) SetDuration(v int) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldDuration, v)
+	return u
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdateDuration() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldDuration)
+	return u
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ApplicationRevisionUpsert) AddDuration(v int) *ApplicationRevisionUpsert {
+	u.Add(applicationrevision.FieldDuration, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -673,6 +753,41 @@ func (u *ApplicationRevisionUpsertOne) SetOutput(v string) *ApplicationRevisionU
 func (u *ApplicationRevisionUpsertOne) UpdateOutput() *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateOutput()
+	})
+}
+
+// SetDeployerType sets the "deployerType" field.
+func (u *ApplicationRevisionUpsertOne) SetDeployerType(v string) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetDeployerType(v)
+	})
+}
+
+// UpdateDeployerType sets the "deployerType" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdateDeployerType() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateDeployerType()
+	})
+}
+
+// SetDuration sets the "duration" field.
+func (u *ApplicationRevisionUpsertOne) SetDuration(v int) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetDuration(v)
+	})
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ApplicationRevisionUpsertOne) AddDuration(v int) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.AddDuration(v)
+	})
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdateDuration() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateDuration()
 	})
 }
 
@@ -1005,6 +1120,41 @@ func (u *ApplicationRevisionUpsertBulk) SetOutput(v string) *ApplicationRevision
 func (u *ApplicationRevisionUpsertBulk) UpdateOutput() *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateOutput()
+	})
+}
+
+// SetDeployerType sets the "deployerType" field.
+func (u *ApplicationRevisionUpsertBulk) SetDeployerType(v string) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetDeployerType(v)
+	})
+}
+
+// UpdateDeployerType sets the "deployerType" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdateDeployerType() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateDeployerType()
+	})
+}
+
+// SetDuration sets the "duration" field.
+func (u *ApplicationRevisionUpsertBulk) SetDuration(v int) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetDuration(v)
+	})
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ApplicationRevisionUpsertBulk) AddDuration(v int) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.AddDuration(v)
+	})
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdateDuration() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateDuration()
 	})
 }
 

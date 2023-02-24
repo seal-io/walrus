@@ -38,6 +38,10 @@ const (
 	FieldInputPlan = "input_plan"
 	// FieldOutput holds the string denoting the output field in the database.
 	FieldOutput = "output"
+	// FieldDeployerType holds the string denoting the deployertype field in the database.
+	FieldDeployerType = "deployer_type"
+	// FieldDuration holds the string denoting the duration field in the database.
+	FieldDuration = "duration"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -73,6 +77,8 @@ var Columns = []string{
 	FieldInputVariables,
 	FieldInputPlan,
 	FieldOutput,
+	FieldDeployerType,
+	FieldDuration,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -106,6 +112,10 @@ var (
 	DefaultModules []types.ApplicationModule
 	// DefaultInputVariables holds the default value on creation for the "inputVariables" field.
 	DefaultInputVariables map[string]interface{}
+	// DefaultDeployerType holds the default value on creation for the "deployerType" field.
+	DefaultDeployerType string
+	// DefaultDuration holds the default value on creation for the "duration" field.
+	DefaultDuration int
 )
 
 // WithoutFields returns the fields ignored the given list.

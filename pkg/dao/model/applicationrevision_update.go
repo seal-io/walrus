@@ -112,6 +112,41 @@ func (aru *ApplicationRevisionUpdate) SetOutput(s string) *ApplicationRevisionUp
 	return aru
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (aru *ApplicationRevisionUpdate) SetDeployerType(s string) *ApplicationRevisionUpdate {
+	aru.mutation.SetDeployerType(s)
+	return aru
+}
+
+// SetNillableDeployerType sets the "deployerType" field if the given value is not nil.
+func (aru *ApplicationRevisionUpdate) SetNillableDeployerType(s *string) *ApplicationRevisionUpdate {
+	if s != nil {
+		aru.SetDeployerType(*s)
+	}
+	return aru
+}
+
+// SetDuration sets the "duration" field.
+func (aru *ApplicationRevisionUpdate) SetDuration(i int) *ApplicationRevisionUpdate {
+	aru.mutation.ResetDuration()
+	aru.mutation.SetDuration(i)
+	return aru
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (aru *ApplicationRevisionUpdate) SetNillableDuration(i *int) *ApplicationRevisionUpdate {
+	if i != nil {
+		aru.SetDuration(*i)
+	}
+	return aru
+}
+
+// AddDuration adds i to the "duration" field.
+func (aru *ApplicationRevisionUpdate) AddDuration(i int) *ApplicationRevisionUpdate {
+	aru.mutation.AddDuration(i)
+	return aru
+}
+
 // Mutation returns the ApplicationRevisionMutation object of the builder.
 func (aru *ApplicationRevisionUpdate) Mutation() *ApplicationRevisionMutation {
 	return aru.mutation
@@ -229,6 +264,15 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := aru.mutation.Output(); ok {
 		_spec.SetField(applicationrevision.FieldOutput, field.TypeString, value)
 	}
+	if value, ok := aru.mutation.DeployerType(); ok {
+		_spec.SetField(applicationrevision.FieldDeployerType, field.TypeString, value)
+	}
+	if value, ok := aru.mutation.Duration(); ok {
+		_spec.SetField(applicationrevision.FieldDuration, field.TypeInt, value)
+	}
+	if value, ok := aru.mutation.AddedDuration(); ok {
+		_spec.AddField(applicationrevision.FieldDuration, field.TypeInt, value)
+	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationRevision
 	ctx = internal.NewSchemaConfigContext(ctx, aru.schemaConfig)
 	_spec.AddModifiers(aru.modifiers...)
@@ -326,6 +370,41 @@ func (aruo *ApplicationRevisionUpdateOne) SetInputPlan(s string) *ApplicationRev
 // SetOutput sets the "output" field.
 func (aruo *ApplicationRevisionUpdateOne) SetOutput(s string) *ApplicationRevisionUpdateOne {
 	aruo.mutation.SetOutput(s)
+	return aruo
+}
+
+// SetDeployerType sets the "deployerType" field.
+func (aruo *ApplicationRevisionUpdateOne) SetDeployerType(s string) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetDeployerType(s)
+	return aruo
+}
+
+// SetNillableDeployerType sets the "deployerType" field if the given value is not nil.
+func (aruo *ApplicationRevisionUpdateOne) SetNillableDeployerType(s *string) *ApplicationRevisionUpdateOne {
+	if s != nil {
+		aruo.SetDeployerType(*s)
+	}
+	return aruo
+}
+
+// SetDuration sets the "duration" field.
+func (aruo *ApplicationRevisionUpdateOne) SetDuration(i int) *ApplicationRevisionUpdateOne {
+	aruo.mutation.ResetDuration()
+	aruo.mutation.SetDuration(i)
+	return aruo
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (aruo *ApplicationRevisionUpdateOne) SetNillableDuration(i *int) *ApplicationRevisionUpdateOne {
+	if i != nil {
+		aruo.SetDuration(*i)
+	}
+	return aruo
+}
+
+// AddDuration adds i to the "duration" field.
+func (aruo *ApplicationRevisionUpdateOne) AddDuration(i int) *ApplicationRevisionUpdateOne {
+	aruo.mutation.AddDuration(i)
 	return aruo
 }
 
@@ -469,6 +548,15 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if value, ok := aruo.mutation.Output(); ok {
 		_spec.SetField(applicationrevision.FieldOutput, field.TypeString, value)
+	}
+	if value, ok := aruo.mutation.DeployerType(); ok {
+		_spec.SetField(applicationrevision.FieldDeployerType, field.TypeString, value)
+	}
+	if value, ok := aruo.mutation.Duration(); ok {
+		_spec.SetField(applicationrevision.FieldDuration, field.TypeInt, value)
+	}
+	if value, ok := aruo.mutation.AddedDuration(); ok {
+		_spec.AddField(applicationrevision.FieldDuration, field.TypeInt, value)
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationRevision
 	ctx = internal.NewSchemaConfigContext(ctx, aruo.schemaConfig)
