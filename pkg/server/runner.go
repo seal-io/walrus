@@ -77,6 +77,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The IP address on which to listen.",
 			Destination: &r.BindAddress,
 			Value:       r.BindAddress,
+			EnvVars:     []string{"BIND_ADDRESS"},
 		},
 		&cli.StringFlag{
 			Name: "tls-cert-file",
@@ -84,6 +85,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 				"If any CA certs, concatenated after server cert file. ",
 			Destination: &r.TlsCertFile,
 			Value:       r.TlsCertFile,
+			EnvVars:     []string{"TLS_CERT_FILE"},
 			Action: func(c *cli.Context, s string) error {
 				if s != "" &&
 					!files.Exists(s) {
@@ -97,6 +99,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The file containing the default x509 private key matching --tls-cert-file.",
 			Destination: &r.TlsPrivateKeyFile,
 			Value:       r.TlsPrivateKeyFile,
+			EnvVars:     []string{"TLS_PRIVATE_KEY_FILE"},
 			Action: func(c *cli.Context, s string) error {
 				if s != "" &&
 					!files.Exists(s) {
@@ -112,6 +115,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 				"If --tls-cert-file and --tls-private-key-file are not provided, the self-signed certificate and key are generated and saved to the directory specified by this flag.",
 			Destination: &r.TlsCertDir,
 			Value:       r.TlsCertDir,
+			EnvVars:     []string{"TLS_CERT_DIR"},
 			Action: func(c *cli.Context, s string) error {
 				if s == "" &&
 					(c.String("tls-cert-file") == "" || c.String("tls-private-key-file") == "") {
@@ -139,7 +143,8 @@ func (r *Server) Flags(cmd *cli.Command) {
 				r.TlsAutoCertDomains = v
 				return nil
 			},
-			Value: cli.NewStringSlice(r.TlsAutoCertDomains...),
+			Value:   cli.NewStringSlice(r.TlsAutoCertDomains...),
+			EnvVars: []string{"TLS_AUTO_CERT_DOMAINS"},
 		},
 		&cli.StringFlag{
 			Name:  "bootstrap-password",
@@ -152,30 +157,35 @@ func (r *Server) Flags(cmd *cli.Command) {
 			},
 			Destination: &r.BootstrapPassword,
 			Value:       r.BootstrapPassword,
+			EnvVars:     []string{"BOOTSTRAP_PASSWORD"},
 		},
 		&cli.StringFlag{
 			Name:        "kubeconfig",
 			Usage:       "The configuration path of the worker kubernetes cluster.",
 			Destination: &r.KubeConfig,
 			Value:       r.KubeConfig,
+			EnvVars:     []string{"KUBECONFIG"},
 		},
 		&cli.DurationFlag{
 			Name:        "kube-conn-timeout",
 			Usage:       "The timeout for dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnTimeout,
 			Value:       r.KubeConnTimeout,
+			EnvVars:     []string{"KUBE_CONN_TIMEOUT"},
 		},
 		&cli.Float64Flag{
 			Name:        "kube-conn-qps",
 			Usage:       "The qps when dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnQPS,
 			Value:       r.KubeConnQPS,
+			EnvVars:     []string{"KUBE_CONN_QPS"},
 		},
 		&cli.IntFlag{
 			Name:        "kube-conn-burst",
 			Usage:       "The burst when dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnBurst,
 			Value:       r.KubeConnBurst,
+			EnvVars:     []string{"KUBE_CONN_BURST"},
 		},
 		&cli.StringFlag{
 			Name: "data-source-address",
@@ -185,36 +195,42 @@ func (r *Server) Flags(cmd *cli.Command) {
 				"SQLite3(file:dbpath[?param1=value1&...&paramN=valueN]).",
 			Destination: &r.DataSourceAddress,
 			Value:       r.DataSourceAddress,
+			EnvVars:     []string{"DATA_SOURCE_ADDRESS"},
 		},
 		&cli.IntFlag{
 			Name:        "data-source-conn-max-open",
 			Usage:       "The maximum opening connections for connecting data source.",
 			Destination: &r.DataSourceConnMaxOpen,
 			Value:       r.DataSourceConnMaxOpen,
+			EnvVars:     []string{"DATA_SOURCE_CONN_MAX_OPEN"},
 		},
 		&cli.IntFlag{
 			Name:        "data-source-conn-max-idle",
 			Usage:       "The maximum idling connections for connecting data source.",
 			Destination: &r.DataSourceConnMaxIdle,
 			Value:       r.DataSourceConnMaxIdle,
+			EnvVars:     []string{"DATA_SOURCE_CONN_MAX_IDLE"},
 		},
 		&cli.DurationFlag{
 			Name:        "data-source-conn-max-life",
 			Usage:       "The maximum lifetime for connecting data source.",
 			Destination: &r.DataSourceConnMaxLife,
 			Value:       r.DataSourceConnMaxLife,
+			EnvVars:     []string{"DATA_SOURCE_CONN_MAX_LIFE"},
 		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
 			Usage:       "Enable authentication",
 			Destination: &r.EnableAuthn,
 			Value:       r.EnableAuthn,
+			EnvVars:     []string{"ENABLE_AUTHN"},
 		},
 		&cli.StringFlag{
 			Name:        "casdoor-server",
 			Usage:       "The URL for connecting external casdoor server.",
 			Destination: &r.CasdoorServer,
 			Value:       r.CasdoorServer,
+			EnvVars:     []string{"CASDOOR_SERVER"},
 		},
 	}
 	for i := range flags {
