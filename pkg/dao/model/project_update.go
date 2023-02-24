@@ -68,12 +68,6 @@ func (pu *ProjectUpdate) SetLabels(m map[string]string) *ProjectUpdate {
 	return pu
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (pu *ProjectUpdate) ClearLabels() *ProjectUpdate {
-	pu.mutation.ClearLabels()
-	return pu
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (pu *ProjectUpdate) SetUpdateTime(t time.Time) *ProjectUpdate {
 	pu.mutation.SetUpdateTime(t)
@@ -163,6 +157,16 @@ func (pu *ProjectUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (pu *ProjectUpdate) check() error {
+	if v, ok := pu.mutation.Name(); ok {
+		if err := project.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdate {
 	pu.modifiers = append(pu.modifiers, modifiers...)
@@ -170,6 +174,9 @@ func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Projec
 }
 
 func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := pu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   project.Table,
@@ -198,9 +205,6 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
-	}
-	if pu.mutation.LabelsCleared() {
-		_spec.ClearField(project.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := pu.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
@@ -318,12 +322,6 @@ func (puo *ProjectUpdateOne) SetLabels(m map[string]string) *ProjectUpdateOne {
 	return puo
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (puo *ProjectUpdateOne) ClearLabels() *ProjectUpdateOne {
-	puo.mutation.ClearLabels()
-	return puo
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (puo *ProjectUpdateOne) SetUpdateTime(t time.Time) *ProjectUpdateOne {
 	puo.mutation.SetUpdateTime(t)
@@ -420,6 +418,16 @@ func (puo *ProjectUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (puo *ProjectUpdateOne) check() error {
+	if v, ok := puo.mutation.Name(); ok {
+		if err := project.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdateOne {
 	puo.modifiers = append(puo.modifiers, modifiers...)
@@ -427,6 +435,9 @@ func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Pr
 }
 
 func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err error) {
+	if err := puo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   project.Table,
@@ -472,9 +483,6 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 	}
 	if value, ok := puo.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
-	}
-	if puo.mutation.LabelsCleared() {
-		_spec.ClearField(project.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := puo.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)

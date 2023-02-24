@@ -56,6 +56,12 @@ func (ru *RoleUpdate) SetNillableDescription(s *string) *RoleUpdate {
 	return ru
 }
 
+// ClearDescription clears the value of the "description" field.
+func (ru *RoleUpdate) ClearDescription() *RoleUpdate {
+	ru.mutation.ClearDescription()
+	return ru
+}
+
 // SetPolicies sets the "policies" field.
 func (ru *RoleUpdate) SetPolicies(sp schema.RolePolicies) *RoleUpdate {
 	ru.mutation.SetPolicies(sp)
@@ -145,6 +151,9 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ru.mutation.Description(); ok {
 		_spec.SetField(role.FieldDescription, field.TypeString, value)
 	}
+	if ru.mutation.DescriptionCleared() {
+		_spec.ClearField(role.FieldDescription, field.TypeString)
+	}
 	if value, ok := ru.mutation.Policies(); ok {
 		_spec.SetField(role.FieldPolicies, field.TypeJSON, value)
 	}
@@ -194,6 +203,12 @@ func (ruo *RoleUpdateOne) SetNillableDescription(s *string) *RoleUpdateOne {
 	if s != nil {
 		ruo.SetDescription(*s)
 	}
+	return ruo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (ruo *RoleUpdateOne) ClearDescription() *RoleUpdateOne {
+	ruo.mutation.ClearDescription()
 	return ruo
 }
 
@@ -309,6 +324,9 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 	}
 	if value, ok := ruo.mutation.Description(); ok {
 		_spec.SetField(role.FieldDescription, field.TypeString, value)
+	}
+	if ruo.mutation.DescriptionCleared() {
+		_spec.ClearField(role.FieldDescription, field.TypeString)
 	}
 	if value, ok := ruo.mutation.Policies(); ok {
 		_spec.SetField(role.FieldPolicies, field.TypeJSON, value)

@@ -159,11 +159,26 @@ func (tc *TokenCreate) check() error {
 	if _, ok := tc.mutation.CasdoorTokenName(); !ok {
 		return &ValidationError{Name: "casdoorTokenName", err: errors.New(`model: missing required field "Token.casdoorTokenName"`)}
 	}
+	if v, ok := tc.mutation.CasdoorTokenName(); ok {
+		if err := token.CasdoorTokenNameValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
+		}
+	}
 	if _, ok := tc.mutation.CasdoorTokenOwner(); !ok {
 		return &ValidationError{Name: "casdoorTokenOwner", err: errors.New(`model: missing required field "Token.casdoorTokenOwner"`)}
 	}
+	if v, ok := tc.mutation.CasdoorTokenOwner(); ok {
+		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
+		}
+	}
 	if _, ok := tc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Token.name"`)}
+	}
+	if v, ok := tc.mutation.Name(); ok {
+		if err := token.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
+		}
 	}
 	return nil
 }

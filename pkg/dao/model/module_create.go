@@ -195,6 +195,14 @@ func (mc *ModuleCreate) defaults() {
 		v := module.DefaultUpdateTime()
 		mc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := mc.mutation.Labels(); !ok {
+		v := module.DefaultLabels
+		mc.mutation.SetLabels(v)
+	}
+	if _, ok := mc.mutation.Schema(); !ok {
+		v := module.DefaultSchema
+		mc.mutation.SetSchema(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -205,8 +213,24 @@ func (mc *ModuleCreate) check() error {
 	if _, ok := mc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Module.updateTime"`)}
 	}
+	if _, ok := mc.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Module.labels"`)}
+	}
 	if _, ok := mc.mutation.Source(); !ok {
 		return &ValidationError{Name: "source", err: errors.New(`model: missing required field "Module.source"`)}
+	}
+	if v, ok := mc.mutation.Source(); ok {
+		if err := module.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Module.source": %w`, err)}
+		}
+	}
+	if _, ok := mc.mutation.Schema(); !ok {
+		return &ValidationError{Name: "schema", err: errors.New(`model: missing required field "Module.schema"`)}
+	}
+	if v, ok := mc.mutation.ID(); ok {
+		if err := module.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`model: validator failed for field "Module.id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -441,12 +465,6 @@ func (u *ModuleUpsert) UpdateLabels() *ModuleUpsert {
 	return u
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ModuleUpsert) ClearLabels() *ModuleUpsert {
-	u.SetNull(module.FieldLabels)
-	return u
-}
-
 // SetSource sets the "source" field.
 func (u *ModuleUpsert) SetSource(v string) *ModuleUpsert {
 	u.Set(module.FieldSource, v)
@@ -486,12 +504,6 @@ func (u *ModuleUpsert) SetSchema(v *types.ModuleSchema) *ModuleUpsert {
 // UpdateSchema sets the "schema" field to the value that was provided on create.
 func (u *ModuleUpsert) UpdateSchema() *ModuleUpsert {
 	u.SetExcluded(module.FieldSchema)
-	return u
-}
-
-// ClearSchema clears the value of the "schema" field.
-func (u *ModuleUpsert) ClearSchema() *ModuleUpsert {
-	u.SetNull(module.FieldSchema)
 	return u
 }
 
@@ -637,13 +649,6 @@ func (u *ModuleUpsertOne) UpdateLabels() *ModuleUpsertOne {
 	})
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ModuleUpsertOne) ClearLabels() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearLabels()
-	})
-}
-
 // SetSource sets the "source" field.
 func (u *ModuleUpsertOne) SetSource(v string) *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
@@ -690,13 +695,6 @@ func (u *ModuleUpsertOne) SetSchema(v *types.ModuleSchema) *ModuleUpsertOne {
 func (u *ModuleUpsertOne) UpdateSchema() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
 		s.UpdateSchema()
-	})
-}
-
-// ClearSchema clears the value of the "schema" field.
-func (u *ModuleUpsertOne) ClearSchema() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearSchema()
 	})
 }
 
@@ -1005,13 +1003,6 @@ func (u *ModuleUpsertBulk) UpdateLabels() *ModuleUpsertBulk {
 	})
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ModuleUpsertBulk) ClearLabels() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearLabels()
-	})
-}
-
 // SetSource sets the "source" field.
 func (u *ModuleUpsertBulk) SetSource(v string) *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
@@ -1058,13 +1049,6 @@ func (u *ModuleUpsertBulk) SetSchema(v *types.ModuleSchema) *ModuleUpsertBulk {
 func (u *ModuleUpsertBulk) UpdateSchema() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
 		s.UpdateSchema()
-	})
-}
-
-// ClearSchema clears the value of the "schema" field.
-func (u *ModuleUpsertBulk) ClearSchema() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearSchema()
 	})
 }
 

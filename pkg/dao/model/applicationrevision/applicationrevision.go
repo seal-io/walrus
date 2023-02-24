@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -96,6 +98,14 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
+	ApplicationIDValidator func(string) error
+	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	EnvironmentIDValidator func(string) error
+	// DefaultModules holds the default value on creation for the "modules" field.
+	DefaultModules []types.ApplicationModule
+	// DefaultInputVariables holds the default value on creation for the "inputVariables" field.
+	DefaultInputVariables map[string]interface{}
 )
 
 // WithoutFields returns the fields ignored the given list.

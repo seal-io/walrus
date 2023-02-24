@@ -221,16 +221,6 @@ func DescriptionContainsFold(v string) predicate.Project {
 	return predicate.Project(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// LabelsIsNil applies the IsNil predicate on the "labels" field.
-func LabelsIsNil() predicate.Project {
-	return predicate.Project(sql.FieldIsNull(FieldLabels))
-}
-
-// LabelsNotNil applies the NotNil predicate on the "labels" field.
-func LabelsNotNil() predicate.Project {
-	return predicate.Project(sql.FieldNotNull(FieldLabels))
-}
-
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
 func CreateTimeEQ(v time.Time) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldCreateTime, v))

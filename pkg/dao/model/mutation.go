@@ -307,22 +307,9 @@ func (m *ApplicationMutation) OldLabels(ctx context.Context) (v map[string]strin
 	return oldValue.Labels, nil
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (m *ApplicationMutation) ClearLabels() {
-	m.labels = nil
-	m.clearedFields[application.FieldLabels] = struct{}{}
-}
-
-// LabelsCleared returns if the "labels" field was cleared in this mutation.
-func (m *ApplicationMutation) LabelsCleared() bool {
-	_, ok := m.clearedFields[application.FieldLabels]
-	return ok
-}
-
 // ResetLabels resets all changes to the "labels" field.
 func (m *ApplicationMutation) ResetLabels() {
 	m.labels = nil
-	delete(m.clearedFields, application.FieldLabels)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -875,9 +862,6 @@ func (m *ApplicationMutation) ClearedFields() []string {
 	if m.FieldCleared(application.FieldDescription) {
 		fields = append(fields, application.FieldDescription)
 	}
-	if m.FieldCleared(application.FieldLabels) {
-		fields = append(fields, application.FieldLabels)
-	}
 	return fields
 }
 
@@ -894,9 +878,6 @@ func (m *ApplicationMutation) ClearField(name string) error {
 	switch name {
 	case application.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case application.FieldLabels:
-		m.ClearLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Application nullable field %s", name)
@@ -3823,22 +3804,9 @@ func (m *ConnectorMutation) OldLabels(ctx context.Context) (v map[string]string,
 	return oldValue.Labels, nil
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (m *ConnectorMutation) ClearLabels() {
-	m.labels = nil
-	m.clearedFields[connector.FieldLabels] = struct{}{}
-}
-
-// LabelsCleared returns if the "labels" field was cleared in this mutation.
-func (m *ConnectorMutation) LabelsCleared() bool {
-	_, ok := m.clearedFields[connector.FieldLabels]
-	return ok
-}
-
 // ResetLabels resets all changes to the "labels" field.
 func (m *ConnectorMutation) ResetLabels() {
 	m.labels = nil
-	delete(m.clearedFields, connector.FieldLabels)
 }
 
 // SetStatus sets the "status" field.
@@ -4114,22 +4082,9 @@ func (m *ConnectorMutation) OldConfigData(ctx context.Context) (v map[string]int
 	return oldValue.ConfigData, nil
 }
 
-// ClearConfigData clears the value of the "configData" field.
-func (m *ConnectorMutation) ClearConfigData() {
-	m.configData = nil
-	m.clearedFields[connector.FieldConfigData] = struct{}{}
-}
-
-// ConfigDataCleared returns if the "configData" field was cleared in this mutation.
-func (m *ConnectorMutation) ConfigDataCleared() bool {
-	_, ok := m.clearedFields[connector.FieldConfigData]
-	return ok
-}
-
 // ResetConfigData resets all changes to the "configData" field.
 func (m *ConnectorMutation) ResetConfigData() {
 	m.configData = nil
-	delete(m.clearedFields, connector.FieldConfigData)
 }
 
 // SetEnableFinOps sets the "enableFinOps" field.
@@ -4650,17 +4605,11 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldDescription) {
 		fields = append(fields, connector.FieldDescription)
 	}
-	if m.FieldCleared(connector.FieldLabels) {
-		fields = append(fields, connector.FieldLabels)
-	}
 	if m.FieldCleared(connector.FieldStatus) {
 		fields = append(fields, connector.FieldStatus)
 	}
 	if m.FieldCleared(connector.FieldStatusMessage) {
 		fields = append(fields, connector.FieldStatusMessage)
-	}
-	if m.FieldCleared(connector.FieldConfigData) {
-		fields = append(fields, connector.FieldConfigData)
 	}
 	if m.FieldCleared(connector.FieldFinOpsStatus) {
 		fields = append(fields, connector.FieldFinOpsStatus)
@@ -4685,17 +4634,11 @@ func (m *ConnectorMutation) ClearField(name string) error {
 	case connector.FieldDescription:
 		m.ClearDescription()
 		return nil
-	case connector.FieldLabels:
-		m.ClearLabels()
-		return nil
 	case connector.FieldStatus:
 		m.ClearStatus()
 		return nil
 	case connector.FieldStatusMessage:
 		m.ClearStatusMessage()
-		return nil
-	case connector.FieldConfigData:
-		m.ClearConfigData()
 		return nil
 	case connector.FieldFinOpsStatus:
 		m.ClearFinOpsStatus()
@@ -5111,22 +5054,9 @@ func (m *EnvironmentMutation) OldLabels(ctx context.Context) (v map[string]strin
 	return oldValue.Labels, nil
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (m *EnvironmentMutation) ClearLabels() {
-	m.labels = nil
-	m.clearedFields[environment.FieldLabels] = struct{}{}
-}
-
-// LabelsCleared returns if the "labels" field was cleared in this mutation.
-func (m *EnvironmentMutation) LabelsCleared() bool {
-	_, ok := m.clearedFields[environment.FieldLabels]
-	return ok
-}
-
 // ResetLabels resets all changes to the "labels" field.
 func (m *EnvironmentMutation) ResetLabels() {
 	m.labels = nil
-	delete(m.clearedFields, environment.FieldLabels)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -5590,9 +5520,6 @@ func (m *EnvironmentMutation) ClearedFields() []string {
 	if m.FieldCleared(environment.FieldDescription) {
 		fields = append(fields, environment.FieldDescription)
 	}
-	if m.FieldCleared(environment.FieldLabels) {
-		fields = append(fields, environment.FieldLabels)
-	}
 	if m.FieldCleared(environment.FieldVariables) {
 		fields = append(fields, environment.FieldVariables)
 	}
@@ -5612,9 +5539,6 @@ func (m *EnvironmentMutation) ClearField(name string) error {
 	switch name {
 	case environment.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case environment.FieldLabels:
-		m.ClearLabels()
 		return nil
 	case environment.FieldVariables:
 		m.ClearVariables()
@@ -6575,22 +6499,9 @@ func (m *ModuleMutation) OldLabels(ctx context.Context) (v map[string]string, er
 	return oldValue.Labels, nil
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (m *ModuleMutation) ClearLabels() {
-	m.labels = nil
-	m.clearedFields[module.FieldLabels] = struct{}{}
-}
-
-// LabelsCleared returns if the "labels" field was cleared in this mutation.
-func (m *ModuleMutation) LabelsCleared() bool {
-	_, ok := m.clearedFields[module.FieldLabels]
-	return ok
-}
-
 // ResetLabels resets all changes to the "labels" field.
 func (m *ModuleMutation) ResetLabels() {
 	m.labels = nil
-	delete(m.clearedFields, module.FieldLabels)
 }
 
 // SetSource sets the "source" field.
@@ -6709,22 +6620,9 @@ func (m *ModuleMutation) OldSchema(ctx context.Context) (v *types.ModuleSchema, 
 	return oldValue.Schema, nil
 }
 
-// ClearSchema clears the value of the "schema" field.
-func (m *ModuleMutation) ClearSchema() {
-	m.schema = nil
-	m.clearedFields[module.FieldSchema] = struct{}{}
-}
-
-// SchemaCleared returns if the "schema" field was cleared in this mutation.
-func (m *ModuleMutation) SchemaCleared() bool {
-	_, ok := m.clearedFields[module.FieldSchema]
-	return ok
-}
-
 // ResetSchema resets all changes to the "schema" field.
 func (m *ModuleMutation) ResetSchema() {
 	m.schema = nil
-	delete(m.clearedFields, module.FieldSchema)
 }
 
 // AddApplicationIDs adds the "application" edge to the Application entity by ids.
@@ -7007,14 +6905,8 @@ func (m *ModuleMutation) ClearedFields() []string {
 	if m.FieldCleared(module.FieldDescription) {
 		fields = append(fields, module.FieldDescription)
 	}
-	if m.FieldCleared(module.FieldLabels) {
-		fields = append(fields, module.FieldLabels)
-	}
 	if m.FieldCleared(module.FieldVersion) {
 		fields = append(fields, module.FieldVersion)
-	}
-	if m.FieldCleared(module.FieldSchema) {
-		fields = append(fields, module.FieldSchema)
 	}
 	return fields
 }
@@ -7039,14 +6931,8 @@ func (m *ModuleMutation) ClearField(name string) error {
 	case module.FieldDescription:
 		m.ClearDescription()
 		return nil
-	case module.FieldLabels:
-		m.ClearLabels()
-		return nil
 	case module.FieldVersion:
 		m.ClearVersion()
-		return nil
-	case module.FieldSchema:
-		m.ClearSchema()
 		return nil
 	}
 	return fmt.Errorf("unknown Module nullable field %s", name)
@@ -7411,22 +7297,9 @@ func (m *ProjectMutation) OldLabels(ctx context.Context) (v map[string]string, e
 	return oldValue.Labels, nil
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (m *ProjectMutation) ClearLabels() {
-	m.labels = nil
-	m.clearedFields[project.FieldLabels] = struct{}{}
-}
-
-// LabelsCleared returns if the "labels" field was cleared in this mutation.
-func (m *ProjectMutation) LabelsCleared() bool {
-	_, ok := m.clearedFields[project.FieldLabels]
-	return ok
-}
-
 // ResetLabels resets all changes to the "labels" field.
 func (m *ProjectMutation) ResetLabels() {
 	m.labels = nil
-	delete(m.clearedFields, project.FieldLabels)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -7719,9 +7592,6 @@ func (m *ProjectMutation) ClearedFields() []string {
 	if m.FieldCleared(project.FieldDescription) {
 		fields = append(fields, project.FieldDescription)
 	}
-	if m.FieldCleared(project.FieldLabels) {
-		fields = append(fields, project.FieldLabels)
-	}
 	return fields
 }
 
@@ -7738,9 +7608,6 @@ func (m *ProjectMutation) ClearField(name string) error {
 	switch name {
 	case project.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case project.FieldLabels:
-		m.ClearLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Project nullable field %s", name)
@@ -8153,9 +8020,22 @@ func (m *RoleMutation) OldDescription(ctx context.Context) (v string, err error)
 	return oldValue.Description, nil
 }
 
+// ClearDescription clears the value of the "description" field.
+func (m *RoleMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[role.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *RoleMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[role.FieldDescription]
+	return ok
+}
+
 // ResetDescription resets all changes to the "description" field.
 func (m *RoleMutation) ResetDescription() {
 	m.description = nil
+	delete(m.clearedFields, role.FieldDescription)
 }
 
 // SetPolicies sets the "policies" field.
@@ -8483,7 +8363,11 @@ func (m *RoleMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *RoleMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(role.FieldDescription) {
+		fields = append(fields, role.FieldDescription)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -8496,6 +8380,11 @@ func (m *RoleMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *RoleMutation) ClearField(name string) error {
+	switch name {
+	case role.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
 	return fmt.Errorf("unknown Role nullable field %s", name)
 }
 
@@ -9575,9 +9464,22 @@ func (m *SubjectMutation) OldDescription(ctx context.Context) (v string, err err
 	return oldValue.Description, nil
 }
 
+// ClearDescription clears the value of the "description" field.
+func (m *SubjectMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[subject.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *SubjectMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[subject.FieldDescription]
+	return ok
+}
+
 // ResetDescription resets all changes to the "description" field.
 func (m *SubjectMutation) ResetDescription() {
 	m.description = nil
+	delete(m.clearedFields, subject.FieldDescription)
 }
 
 // SetMountTo sets the "mountTo" field.
@@ -10034,7 +9936,11 @@ func (m *SubjectMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *SubjectMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(subject.FieldDescription) {
+		fields = append(fields, subject.FieldDescription)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -10047,6 +9953,11 @@ func (m *SubjectMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *SubjectMutation) ClearField(name string) error {
+	switch name {
+	case subject.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
 	return fmt.Errorf("unknown Subject nullable field %s", name)
 }
 

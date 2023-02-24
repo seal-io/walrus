@@ -70,6 +70,12 @@ func (su *SubjectUpdate) SetNillableDescription(s *string) *SubjectUpdate {
 	return su
 }
 
+// ClearDescription clears the value of the "description" field.
+func (su *SubjectUpdate) ClearDescription() *SubjectUpdate {
+	su.mutation.ClearDescription()
+	return su
+}
+
 // SetMountTo sets the "mountTo" field.
 func (su *SubjectUpdate) SetMountTo(b bool) *SubjectUpdate {
 	su.mutation.SetMountTo(b)
@@ -216,6 +222,9 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Description(); ok {
 		_spec.SetField(subject.FieldDescription, field.TypeString, value)
 	}
+	if su.mutation.DescriptionCleared() {
+		_spec.ClearField(subject.FieldDescription, field.TypeString)
+	}
 	if value, ok := su.mutation.MountTo(); ok {
 		_spec.SetField(subject.FieldMountTo, field.TypeBool, value)
 	}
@@ -296,6 +305,12 @@ func (suo *SubjectUpdateOne) SetNillableDescription(s *string) *SubjectUpdateOne
 	if s != nil {
 		suo.SetDescription(*s)
 	}
+	return suo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (suo *SubjectUpdateOne) ClearDescription() *SubjectUpdateOne {
+	suo.mutation.ClearDescription()
 	return suo
 }
 
@@ -468,6 +483,9 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 	}
 	if value, ok := suo.mutation.Description(); ok {
 		_spec.SetField(subject.FieldDescription, field.TypeString, value)
+	}
+	if suo.mutation.DescriptionCleared() {
+		_spec.ClearField(subject.FieldDescription, field.TypeString)
 	}
 	if value, ok := suo.mutation.MountTo(); ok {
 		_spec.SetField(subject.FieldMountTo, field.TypeBool, value)

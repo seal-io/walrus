@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -31,10 +32,20 @@ func init() {
 	applicationMixin := schema.Application{}.Mixin()
 	applicationMixinHooks0 := applicationMixin[0].Hooks()
 	application.Hooks[0] = applicationMixinHooks0[0]
+	applicationMixinFields1 := applicationMixin[1].Fields()
+	_ = applicationMixinFields1
 	applicationMixinFields2 := applicationMixin[2].Fields()
 	_ = applicationMixinFields2
 	applicationFields := schema.Application{}.Fields()
 	_ = applicationFields
+	// applicationDescName is the schema descriptor for name field.
+	applicationDescName := applicationMixinFields1[0].Descriptor()
+	// application.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	application.NameValidator = applicationDescName.Validators[0].(func(string) error)
+	// applicationDescLabels is the schema descriptor for labels field.
+	applicationDescLabels := applicationMixinFields1[2].Descriptor()
+	// application.DefaultLabels holds the default value on creation for the labels field.
+	application.DefaultLabels = applicationDescLabels.Default.(map[string]string)
 	// applicationDescCreateTime is the schema descriptor for createTime field.
 	applicationDescCreateTime := applicationMixinFields2[0].Descriptor()
 	// application.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -45,6 +56,14 @@ func init() {
 	application.DefaultUpdateTime = applicationDescUpdateTime.Default.(func() time.Time)
 	// application.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	application.UpdateDefaultUpdateTime = applicationDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationDescProjectID is the schema descriptor for projectID field.
+	applicationDescProjectID := applicationFields[0].Descriptor()
+	// application.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	application.ProjectIDValidator = applicationDescProjectID.Validators[0].(func(string) error)
+	// applicationDescEnvironmentID is the schema descriptor for environmentID field.
+	applicationDescEnvironmentID := applicationFields[1].Descriptor()
+	// application.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	application.EnvironmentIDValidator = applicationDescEnvironmentID.Validators[0].(func(string) error)
 	applicationmodulerelationshipMixin := schema.ApplicationModuleRelationship{}.Mixin()
 	applicationmodulerelationshipMixinFields0 := applicationmodulerelationshipMixin[0].Fields()
 	_ = applicationmodulerelationshipMixinFields0
@@ -89,6 +108,14 @@ func init() {
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationresource.UpdateDefaultUpdateTime = applicationresourceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationresourceDescApplicationID is the schema descriptor for applicationID field.
+	applicationresourceDescApplicationID := applicationresourceFields[0].Descriptor()
+	// applicationresource.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
+	applicationresource.ApplicationIDValidator = applicationresourceDescApplicationID.Validators[0].(func(string) error)
+	// applicationresourceDescConnectorID is the schema descriptor for connectorID field.
+	applicationresourceDescConnectorID := applicationresourceFields[1].Descriptor()
+	// applicationresource.ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
+	applicationresource.ConnectorIDValidator = applicationresourceDescConnectorID.Validators[0].(func(string) error)
 	// applicationresourceDescModule is the schema descriptor for module field.
 	applicationresourceDescModule := applicationresourceFields[2].Descriptor()
 	// applicationresource.ModuleValidator is a validator for the "module" field. It is called by the builders before save.
@@ -122,13 +149,39 @@ func init() {
 	applicationrevision.DefaultUpdateTime = applicationrevisionDescUpdateTime.Default.(func() time.Time)
 	// applicationrevision.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationrevision.UpdateDefaultUpdateTime = applicationrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationrevisionDescApplicationID is the schema descriptor for applicationID field.
+	applicationrevisionDescApplicationID := applicationrevisionFields[0].Descriptor()
+	// applicationrevision.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
+	applicationrevision.ApplicationIDValidator = applicationrevisionDescApplicationID.Validators[0].(func(string) error)
+	// applicationrevisionDescEnvironmentID is the schema descriptor for environmentID field.
+	applicationrevisionDescEnvironmentID := applicationrevisionFields[1].Descriptor()
+	// applicationrevision.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	applicationrevision.EnvironmentIDValidator = applicationrevisionDescEnvironmentID.Validators[0].(func(string) error)
+	// applicationrevisionDescModules is the schema descriptor for modules field.
+	applicationrevisionDescModules := applicationrevisionFields[2].Descriptor()
+	// applicationrevision.DefaultModules holds the default value on creation for the modules field.
+	applicationrevision.DefaultModules = applicationrevisionDescModules.Default.([]types.ApplicationModule)
+	// applicationrevisionDescInputVariables is the schema descriptor for inputVariables field.
+	applicationrevisionDescInputVariables := applicationrevisionFields[3].Descriptor()
+	// applicationrevision.DefaultInputVariables holds the default value on creation for the inputVariables field.
+	applicationrevision.DefaultInputVariables = applicationrevisionDescInputVariables.Default.(map[string]interface{})
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connector.Hooks[0] = connectorMixinHooks0[0]
+	connectorMixinFields1 := connectorMixin[1].Fields()
+	_ = connectorMixinFields1
 	connectorMixinFields3 := connectorMixin[3].Fields()
 	_ = connectorMixinFields3
 	connectorFields := schema.Connector{}.Fields()
 	_ = connectorFields
+	// connectorDescName is the schema descriptor for name field.
+	connectorDescName := connectorMixinFields1[0].Descriptor()
+	// connector.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	connector.NameValidator = connectorDescName.Validators[0].(func(string) error)
+	// connectorDescLabels is the schema descriptor for labels field.
+	connectorDescLabels := connectorMixinFields1[2].Descriptor()
+	// connector.DefaultLabels holds the default value on creation for the labels field.
+	connector.DefaultLabels = connectorDescLabels.Default.(map[string]string)
 	// connectorDescCreateTime is the schema descriptor for createTime field.
 	connectorDescCreateTime := connectorMixinFields3[0].Descriptor()
 	// connector.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -139,13 +192,35 @@ func init() {
 	connector.DefaultUpdateTime = connectorDescUpdateTime.Default.(func() time.Time)
 	// connector.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	connector.UpdateDefaultUpdateTime = connectorDescUpdateTime.UpdateDefault.(func() time.Time)
+	// connectorDescType is the schema descriptor for type field.
+	connectorDescType := connectorFields[0].Descriptor()
+	// connector.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	connector.TypeValidator = connectorDescType.Validators[0].(func(string) error)
+	// connectorDescConfigVersion is the schema descriptor for configVersion field.
+	connectorDescConfigVersion := connectorFields[1].Descriptor()
+	// connector.ConfigVersionValidator is a validator for the "configVersion" field. It is called by the builders before save.
+	connector.ConfigVersionValidator = connectorDescConfigVersion.Validators[0].(func(string) error)
+	// connectorDescConfigData is the schema descriptor for configData field.
+	connectorDescConfigData := connectorFields[2].Descriptor()
+	// connector.DefaultConfigData holds the default value on creation for the configData field.
+	connector.DefaultConfigData = connectorDescConfigData.Default.(map[string]interface{})
 	environmentMixin := schema.Environment{}.Mixin()
 	environmentMixinHooks0 := environmentMixin[0].Hooks()
 	environment.Hooks[0] = environmentMixinHooks0[0]
+	environmentMixinFields1 := environmentMixin[1].Fields()
+	_ = environmentMixinFields1
 	environmentMixinFields2 := environmentMixin[2].Fields()
 	_ = environmentMixinFields2
 	environmentFields := schema.Environment{}.Fields()
 	_ = environmentFields
+	// environmentDescName is the schema descriptor for name field.
+	environmentDescName := environmentMixinFields1[0].Descriptor()
+	// environment.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	environment.NameValidator = environmentDescName.Validators[0].(func(string) error)
+	// environmentDescLabels is the schema descriptor for labels field.
+	environmentDescLabels := environmentMixinFields1[2].Descriptor()
+	// environment.DefaultLabels holds the default value on creation for the labels field.
+	environment.DefaultLabels = environmentDescLabels.Default.(map[string]string)
 	// environmentDescCreateTime is the schema descriptor for createTime field.
 	environmentDescCreateTime := environmentMixinFields2[0].Descriptor()
 	// environment.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -188,13 +263,39 @@ func init() {
 	module.DefaultUpdateTime = moduleDescUpdateTime.Default.(func() time.Time)
 	// module.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	module.UpdateDefaultUpdateTime = moduleDescUpdateTime.UpdateDefault.(func() time.Time)
+	// moduleDescLabels is the schema descriptor for labels field.
+	moduleDescLabels := moduleFields[2].Descriptor()
+	// module.DefaultLabels holds the default value on creation for the labels field.
+	module.DefaultLabels = moduleDescLabels.Default.(map[string]string)
+	// moduleDescSource is the schema descriptor for source field.
+	moduleDescSource := moduleFields[3].Descriptor()
+	// module.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	module.SourceValidator = moduleDescSource.Validators[0].(func(string) error)
+	// moduleDescSchema is the schema descriptor for schema field.
+	moduleDescSchema := moduleFields[5].Descriptor()
+	// module.DefaultSchema holds the default value on creation for the schema field.
+	module.DefaultSchema = moduleDescSchema.Default.(*types.ModuleSchema)
+	// moduleDescID is the schema descriptor for id field.
+	moduleDescID := moduleFields[0].Descriptor()
+	// module.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	module.IDValidator = moduleDescID.Validators[0].(func(string) error)
 	projectMixin := schema.Project{}.Mixin()
 	projectMixinHooks0 := projectMixin[0].Hooks()
 	project.Hooks[0] = projectMixinHooks0[0]
+	projectMixinFields1 := projectMixin[1].Fields()
+	_ = projectMixinFields1
 	projectMixinFields2 := projectMixin[2].Fields()
 	_ = projectMixinFields2
 	projectFields := schema.Project{}.Fields()
 	_ = projectFields
+	// projectDescName is the schema descriptor for name field.
+	projectDescName := projectMixinFields1[0].Descriptor()
+	// project.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	project.NameValidator = projectDescName.Validators[0].(func(string) error)
+	// projectDescLabels is the schema descriptor for labels field.
+	projectDescLabels := projectMixinFields1[2].Descriptor()
+	// project.DefaultLabels holds the default value on creation for the labels field.
+	project.DefaultLabels = projectDescLabels.Default.(map[string]string)
 	// projectDescCreateTime is the schema descriptor for createTime field.
 	projectDescCreateTime := projectMixinFields2[0].Descriptor()
 	// project.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -230,10 +331,6 @@ func init() {
 	roleDescName := roleFields[1].Descriptor()
 	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	role.NameValidator = roleDescName.Validators[0].(func(string) error)
-	// roleDescDescription is the schema descriptor for description field.
-	roleDescDescription := roleFields[2].Descriptor()
-	// role.DefaultDescription holds the default value on creation for the description field.
-	role.DefaultDescription = roleDescDescription.Default.(string)
 	// roleDescPolicies is the schema descriptor for policies field.
 	roleDescPolicies := roleFields[3].Descriptor()
 	// role.DefaultPolicies holds the default value on creation for the policies field.
@@ -263,10 +360,10 @@ func init() {
 	setting.DefaultUpdateTime = settingDescUpdateTime.Default.(func() time.Time)
 	// setting.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	setting.UpdateDefaultUpdateTime = settingDescUpdateTime.UpdateDefault.(func() time.Time)
-	// settingDescValue is the schema descriptor for value field.
-	settingDescValue := settingFields[1].Descriptor()
-	// setting.DefaultValue holds the default value on creation for the value field.
-	setting.DefaultValue = settingDescValue.Default.(string)
+	// settingDescName is the schema descriptor for name field.
+	settingDescName := settingFields[0].Descriptor()
+	// setting.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	setting.NameValidator = settingDescName.Validators[0].(func(string) error)
 	// settingDescHidden is the schema descriptor for hidden field.
 	settingDescHidden := settingFields[2].Descriptor()
 	// setting.DefaultHidden holds the default value on creation for the hidden field.
@@ -308,10 +405,6 @@ func init() {
 	subjectDescName := subjectFields[2].Descriptor()
 	// subject.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	subject.NameValidator = subjectDescName.Validators[0].(func(string) error)
-	// subjectDescDescription is the schema descriptor for description field.
-	subjectDescDescription := subjectFields[3].Descriptor()
-	// subject.DefaultDescription holds the default value on creation for the description field.
-	subject.DefaultDescription = subjectDescDescription.Default.(string)
 	// subjectDescMountTo is the schema descriptor for mountTo field.
 	subjectDescMountTo := subjectFields[4].Descriptor()
 	// subject.DefaultMountTo holds the default value on creation for the mountTo field.
@@ -349,6 +442,18 @@ func init() {
 	token.DefaultUpdateTime = tokenDescUpdateTime.Default.(func() time.Time)
 	// token.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	token.UpdateDefaultUpdateTime = tokenDescUpdateTime.UpdateDefault.(func() time.Time)
+	// tokenDescCasdoorTokenName is the schema descriptor for casdoorTokenName field.
+	tokenDescCasdoorTokenName := tokenFields[0].Descriptor()
+	// token.CasdoorTokenNameValidator is a validator for the "casdoorTokenName" field. It is called by the builders before save.
+	token.CasdoorTokenNameValidator = tokenDescCasdoorTokenName.Validators[0].(func(string) error)
+	// tokenDescCasdoorTokenOwner is the schema descriptor for casdoorTokenOwner field.
+	tokenDescCasdoorTokenOwner := tokenFields[1].Descriptor()
+	// token.CasdoorTokenOwnerValidator is a validator for the "casdoorTokenOwner" field. It is called by the builders before save.
+	token.CasdoorTokenOwnerValidator = tokenDescCasdoorTokenOwner.Validators[0].(func(string) error)
+	// tokenDescName is the schema descriptor for name field.
+	tokenDescName := tokenFields[2].Descriptor()
+	// token.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	token.NameValidator = tokenDescName.Validators[0].(func(string) error)
 }
 
 const (

@@ -197,6 +197,10 @@ func (ac *ApplicationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ac *ApplicationCreate) defaults() error {
+	if _, ok := ac.mutation.Labels(); !ok {
+		v := application.DefaultLabels
+		ac.mutation.SetLabels(v)
+	}
 	if _, ok := ac.mutation.CreateTime(); !ok {
 		if application.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized application.DefaultCreateTime (forgotten import model/runtime?)")
@@ -219,6 +223,14 @@ func (ac *ApplicationCreate) check() error {
 	if _, ok := ac.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Application.name"`)}
 	}
+	if v, ok := ac.mutation.Name(); ok {
+		if err := application.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Application.name": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Application.labels"`)}
+	}
 	if _, ok := ac.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Application.createTime"`)}
 	}
@@ -228,8 +240,18 @@ func (ac *ApplicationCreate) check() error {
 	if _, ok := ac.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Application.projectID"`)}
 	}
+	if v, ok := ac.mutation.ProjectID(); ok {
+		if err := application.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Application.projectID": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "Application.environmentID"`)}
+	}
+	if v, ok := ac.mutation.EnvironmentID(); ok {
+		if err := application.EnvironmentIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "environmentID", err: fmt.Errorf(`model: validator failed for field "Application.environmentID": %w`, err)}
+		}
 	}
 	if _, ok := ac.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Application.project"`)}
@@ -500,12 +522,6 @@ func (u *ApplicationUpsert) UpdateLabels() *ApplicationUpsert {
 	return u
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ApplicationUpsert) ClearLabels() *ApplicationUpsert {
-	u.SetNull(application.FieldLabels)
-	return u
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationUpsert) SetUpdateTime(v time.Time) *ApplicationUpsert {
 	u.Set(application.FieldUpdateTime, v)
@@ -621,13 +637,6 @@ func (u *ApplicationUpsertOne) SetLabels(v map[string]string) *ApplicationUpsert
 func (u *ApplicationUpsertOne) UpdateLabels() *ApplicationUpsertOne {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *ApplicationUpsertOne) ClearLabels() *ApplicationUpsertOne {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.ClearLabels()
 	})
 }
 
@@ -911,13 +920,6 @@ func (u *ApplicationUpsertBulk) SetLabels(v map[string]string) *ApplicationUpser
 func (u *ApplicationUpsertBulk) UpdateLabels() *ApplicationUpsertBulk {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *ApplicationUpsertBulk) ClearLabels() *ApplicationUpsertBulk {
-	return u.Update(func(s *ApplicationUpsert) {
-		s.ClearLabels()
 	})
 }
 

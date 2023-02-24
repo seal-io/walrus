@@ -132,6 +132,26 @@ func (tu *TokenUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (tu *TokenUpdate) check() error {
+	if v, ok := tu.mutation.CasdoorTokenName(); ok {
+		if err := token.CasdoorTokenNameValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
+		}
+	}
+	if v, ok := tu.mutation.CasdoorTokenOwner(); ok {
+		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
+		}
+	}
+	if v, ok := tu.mutation.Name(); ok {
+		if err := token.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (tu *TokenUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *TokenUpdate {
 	tu.modifiers = append(tu.modifiers, modifiers...)
@@ -139,6 +159,9 @@ func (tu *TokenUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *TokenUpd
 }
 
 func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := tu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   token.Table,
@@ -306,6 +329,26 @@ func (tuo *TokenUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (tuo *TokenUpdateOne) check() error {
+	if v, ok := tuo.mutation.CasdoorTokenName(); ok {
+		if err := token.CasdoorTokenNameValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
+		}
+	}
+	if v, ok := tuo.mutation.CasdoorTokenOwner(); ok {
+		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
+			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
+		}
+	}
+	if v, ok := tuo.mutation.Name(); ok {
+		if err := token.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (tuo *TokenUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *TokenUpdateOne {
 	tuo.modifiers = append(tuo.modifiers, modifiers...)
@@ -313,6 +356,9 @@ func (tuo *TokenUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Toke
 }
 
 func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error) {
+	if err := tuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   token.Table,

@@ -28,7 +28,7 @@ type Setting struct {
 	// The name of system setting
 	Name string `json:"name"`
 	// The value of system setting, store in string
-	Value string `json:"value,omitempty"`
+	Value string `json:"value"`
 	// Indicate the system setting should be hidden or not, default is visible
 	Hidden *bool `json:"hidden,omitempty"`
 	// Indicate the system setting should be edited or not, default is readonly

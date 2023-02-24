@@ -69,8 +69,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// DefaultValue holds the default value on creation for the "value" field.
-	DefaultValue string
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 	// DefaultHidden holds the default value on creation for the "hidden" field.
 	DefaultHidden bool
 	// DefaultEditable holds the default value on creation for the "editable" field.

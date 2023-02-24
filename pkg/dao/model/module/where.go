@@ -400,16 +400,6 @@ func DescriptionContainsFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// LabelsIsNil applies the IsNil predicate on the "labels" field.
-func LabelsIsNil() predicate.Module {
-	return predicate.Module(sql.FieldIsNull(FieldLabels))
-}
-
-// LabelsNotNil applies the NotNil predicate on the "labels" field.
-func LabelsNotNil() predicate.Module {
-	return predicate.Module(sql.FieldNotNull(FieldLabels))
-}
-
 // SourceEQ applies the EQ predicate on the "source" field.
 func SourceEQ(v string) predicate.Module {
 	return predicate.Module(sql.FieldEQ(FieldSource, v))
@@ -548,16 +538,6 @@ func VersionEqualFold(v string) predicate.Module {
 // VersionContainsFold applies the ContainsFold predicate on the "version" field.
 func VersionContainsFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldContainsFold(FieldVersion, v))
-}
-
-// SchemaIsNil applies the IsNil predicate on the "schema" field.
-func SchemaIsNil() predicate.Module {
-	return predicate.Module(sql.FieldIsNull(FieldSchema))
-}
-
-// SchemaNotNil applies the NotNil predicate on the "schema" field.
-func SchemaNotNil() predicate.Module {
-	return predicate.Module(sql.FieldNotNull(FieldSchema))
 }
 
 // HasApplication applies the HasEdge predicate on the "application" edge.

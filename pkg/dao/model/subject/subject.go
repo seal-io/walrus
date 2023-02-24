@@ -89,8 +89,6 @@ var (
 	DefaultGroup string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultDescription holds the default value on creation for the "description" field.
-	DefaultDescription string
 	// DefaultMountTo holds the default value on creation for the "mountTo" field.
 	DefaultMountTo bool
 	// DefaultLoginTo holds the default value on creation for the "loginTo" field.
