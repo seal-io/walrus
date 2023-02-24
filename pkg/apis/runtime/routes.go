@@ -678,7 +678,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			default:
 				return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 3", mn, mrt.NumOut())
 			case 3:
-				if forStream || !forCollection || rh.method != http.MethodGet {
+				if forStream || rh.method != http.MethodGet {
 					return fmt.Errorf("invalid output number of '%s': got %d but exepcted not more than 2", mn, mrt.NumOut())
 				}
 				if !isTypeOfInt(mrt.Out(1)) {
