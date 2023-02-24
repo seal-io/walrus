@@ -20,10 +20,10 @@ func (Setting) Indexes() []ent.Index {
 func (Setting) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			Comment("The name of system setting"),
+			Comment("The name of system setting").
+			NotEmpty(),
 		field.String("value").
-			Comment("The value of system setting, store in string").
-			Default(""),
+			Comment("The value of system setting, store in string"),
 		field.Bool("hidden").
 			Comment("Indicate the system setting should be hidden or not, default is visible").
 			Nillable().

@@ -20,14 +20,17 @@ func (Token) Indexes() []ent.Index {
 func (Token) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("casdoorTokenName").
-			Comment("The token name of casdoor"),
+			Comment("The token name of casdoor").
+			NotEmpty(),
 		field.String("casdoorTokenOwner").
-			Comment("The token owner of casdoor"),
+			Comment("The token owner of casdoor").
+			NotEmpty(),
 		field.String("name").
-			Comment("The name of token."),
+			Comment("The name of token.").
+			NotEmpty(),
 		field.Int("expiration").
 			Comment("Expiration in seconds.").
-			Optional().
-			Nillable(),
+			Nillable().
+			Optional(),
 	}
 }

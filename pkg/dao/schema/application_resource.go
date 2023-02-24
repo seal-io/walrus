@@ -32,9 +32,11 @@ func (ApplicationResource) Fields() []ent.Field {
 	return []ent.Field{
 		id.Field("applicationID").
 			Comment("ID of the application to which the resource belongs.").
+			NotEmpty().
 			Immutable(),
 		id.Field("connectorID").
 			Comment("ID of the connector to which the resource deploys.").
+			NotEmpty().
 			Immutable(),
 		field.String("module").
 			Comment("Name of the module that generates the resource.").

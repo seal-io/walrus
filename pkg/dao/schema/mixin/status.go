@@ -12,10 +12,10 @@ type Status struct {
 func (Status) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("status").
-			Optional().
-			Comment("Status of the resource."),
+			Comment("Status of the resource.").
+			Optional(),
 		field.String("statusMessage").
-			Optional().
-			Comment("Extra message for status, like error details."),
+			Comment("Extra message for status, like error details.").
+			Optional(),
 	}
 }

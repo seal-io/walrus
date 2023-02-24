@@ -26,14 +26,18 @@ func (ApplicationRevision) Fields() []ent.Field {
 	return []ent.Field{
 		id.Field("applicationID").
 			Comment("ID of the application to which the revision belongs.").
+			NotEmpty().
 			Immutable(),
 		id.Field("environmentID").
 			Comment("ID of the environment to which the application deploys.").
+			NotEmpty().
 			Immutable(),
 		field.JSON("modules", []types.ApplicationModule{}).
-			Comment("Application modules."),
+			Comment("Application modules.").
+			Default([]types.ApplicationModule{}),
 		field.JSON("inputVariables", map[string]interface{}{}).
-			Comment("Input variables of the revision."),
+			Comment("Input variables of the revision.").
+			Default(map[string]interface{}{}),
 		field.String("inputPlan").
 			Comment("Input plan of the revision."),
 		field.String("output").

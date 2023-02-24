@@ -12,12 +12,13 @@ type Meta struct {
 func (Meta) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			Comment("Name of the resource."),
+			Comment("Name of the resource.").
+			NotEmpty(),
 		field.String("description").
 			Comment("Description of the resource.").
 			Optional(),
 		field.JSON("labels", map[string]string{}).
 			Comment("Labels of the resource.").
-			Optional(),
+			Default(map[string]string{}),
 	}
 }
