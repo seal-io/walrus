@@ -34,7 +34,7 @@ var (
 	// ServeUrl keeps the URL for accessing server.
 	ServeUrl = newValue("ServeUrl", editable, nil, modifyWith(httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
-	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, nil, modifyWith(anyUrl))
+	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFrom("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
 )
 
 // setting property list.
