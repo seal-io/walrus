@@ -18,15 +18,6 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 		}
 
 		// required.
-		if r.CasdoorTokenName == "" {
-			return nil, errors.New("invalid input: blank casddor token name")
-		}
-		if r.CasdoorTokenOwner == "" {
-			return nil, errors.New("invalid input: blank casddor token owner")
-		}
-		if r.Name == "" {
-			return nil, errors.New("invalid input: blank name")
-		}
 		var c = mc.Tokens().Create().
 			SetCasdoorTokenName(r.CasdoorTokenName).
 			SetCasdoorTokenOwner(r.CasdoorTokenOwner).

@@ -21,9 +21,6 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 		}
 
 		// required.
-		if r.Name == "" {
-			return nil, errors.New("invalid input: blank name")
-		}
 		var c = mc.Roles().Create().
 			SetName(r.Name)
 

@@ -21,9 +21,6 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		}
 
 		// required.
-		if r.Name == "" {
-			return nil, errors.New("invalid input: blank name")
-		}
 		if len(r.Paths) == 0 {
 			return nil, errors.New("invalid input: empty paths")
 		}
