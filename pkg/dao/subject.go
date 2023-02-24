@@ -6,7 +6,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
 )
 
 func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.SubjectCreate, error) {
@@ -29,25 +28,17 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 			SetPaths(r.Paths)
 
 		// optional.
+		c.SetDescription(r.Description)
+		c.SetNillableMountTo(r.MountTo)
+		c.SetNillableLoginTo(r.LoginTo)
 		if r.Kind != "" {
 			c.SetKind(r.Kind)
 		}
 		if r.Group != "" {
 			c.SetGroup(r.Group)
 		}
-		if r.Description != "" {
-			c.SetDescription(r.Description)
-		}
-		if r.MountTo != nil {
-			c.SetMountTo(*r.MountTo)
-		}
-		if r.LoginTo != nil {
-			c.SetLoginTo(*r.LoginTo)
-		}
 		if len(r.Roles) != 0 {
 			c.SetRoles(r.Roles.Deduplicate().Sort())
-		} else {
-			c.SetRoles(schema.DefaultSubjectRoles())
 		}
 		rrs[i] = c
 	}
@@ -80,14 +71,13 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
-		var c = mc.Subjects().Update().
-			Where(ps...)
 
+		// conditional.
+		var c = mc.Subjects().Update().
+			Where(ps...).
+			SetDescription(r.Description)
 		if r.Group != "" {
 			c.SetGroup(r.Group)
-		}
-		if r.Description != "" {
-			c.SetDescription(r.Description)
 		}
 		if r.LoginTo != nil {
 			c.SetLoginTo(*r.LoginTo)

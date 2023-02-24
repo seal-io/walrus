@@ -26,36 +26,42 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 			SetStatus(status.Initializing)
 
 		// optional.
-		if r.Description != "" {
-			c.SetDescription(r.Description)
-		}
+		c.SetDescription(r.Description)
+		c.SetVersion(r.Version)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
-		}
-		if r.Version != "" {
-			c.SetVersion(r.Version)
 		}
 		rrs[i] = c
 	}
 	return rrs, nil
 }
 
-func ModuleUpdate(mc model.ClientSet, m *model.Module) (*model.ModuleUpdateOne, error) {
-	if m == nil {
+func ModuleUpdate(mc model.ClientSet, input *model.Module) (*model.ModuleUpdateOne, error) {
+	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
 
-	if m.Source == "" {
-		return nil, errors.New("invalid input: blank source")
+	// predicated.
+	if input.ID == "" {
+		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	var c = mc.Modules().UpdateOne(m).
-		SetSource(m.Source).
-		SetDescription(m.Description).
-		SetVersion(m.Version).
-		SetSchema(m.Schema).
-		SetStatus(m.Status).
-		SetStatusMessage(m.StatusMessage)
-
+	// conditional.
+	var c = mc.Modules().UpdateOne(input).
+		SetDescription(input.Description).
+		SetStatus(input.Status).
+		SetStatusMessage(input.StatusMessage)
+	if input.Labels != nil {
+		c.SetLabels(input.Labels)
+	}
+	if input.Source != "" {
+		c.SetSource(input.Source)
+	}
+	if input.Version != "" {
+		c.SetVersion(input.Version)
+	}
+	if input.Schema != nil {
+		c.SetSchema(input.Schema)
+	}
 	return c, nil
 }

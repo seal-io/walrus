@@ -25,19 +25,15 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 			SetName(r.Name)
 
 		// optional.
+		c.SetDescription(r.Description)
+		c.SetBuiltin(r.Builtin)
+		c.SetSession(r.Session)
 		if r.Domain != "" {
 			c.SetDomain(r.Domain)
 		}
-		if r.Description != "" {
-			c.SetDescription(r.Description)
-		}
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
-		} else {
-			c.SetPolicies(schema.DefaultRolePolicies())
 		}
-		c.SetBuiltin(r.Builtin)
-		c.SetSession(r.Session)
 		rrs[i] = c
 	}
 	return rrs, nil
@@ -68,12 +64,11 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
-		var c = mc.Roles().Update().
-			Where(ps...)
 
-		if r.Description != "" {
-			c.SetDescription(r.Description)
-		}
+		// conditional.
+		var c = mc.Roles().Update().
+			Where(ps...).
+			SetDescription(r.Description)
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
 		} else {

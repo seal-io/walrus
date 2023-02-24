@@ -27,9 +27,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 			SetEnableFinOps(r.EnableFinOps)
 
 		// optional.
-		if r.Description != "" {
-			c.SetDescription(r.Description)
-		}
+		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -38,23 +36,33 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 	return rrs, nil
 }
 
-func ConnectorUpdate(mc model.ClientSet, r *model.Connector) (*model.ConnectorUpdateOne, error) {
-	if r == nil {
+func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.ConnectorUpdateOne, error) {
+	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
 
-	if r.ConfigVersion == "" {
-		return nil, errors.New("invalid input: blank configVersion")
+	// predicated.
+	if input.ID == "" {
+		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	if r.ConfigData == nil {
-		return nil, errors.New("invalid input: blank configData")
+	// conditional.
+	var c = mc.Connectors().UpdateOne(input).
+		SetDescription(input.Description).
+		SetEnableFinOps(input.EnableFinOps).
+		SetStatus(input.Status).
+		SetStatusMessage(input.StatusMessage)
+	if input.Name != "" {
+		c.SetName(input.Name)
 	}
-
-	var c = mc.Connectors().UpdateOne(r).
-		SetConfigVersion(r.ConfigVersion).
-		SetConfigData(r.ConfigData).
-		SetEnableFinOps(r.EnableFinOps)
-
+	if input.Labels != nil {
+		c.SetLabels(input.Labels)
+	}
+	if input.ConfigVersion != "" {
+		c.SetConfigVersion(input.ConfigVersion)
+	}
+	if input.ConfigData != nil {
+		c.SetConfigData(input.ConfigData)
+	}
 	return c, nil
 }
