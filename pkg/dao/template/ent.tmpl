@@ -12,7 +12,7 @@
     {{- if eq $.Name "Environment" -}}
         // [EXTENSION] Connectors is the collection of the related connectors.
         // It does not store in the database and only uses for creating or updating.
-        Connectors []types.EnvironmentConnector `json:"connectors,omitempty"`
+        Connectors []*Connector `json:"connectors,omitempty"`
     {{- end }}
 
     {{- /* Add fields to the "Application" entity. */}}
@@ -37,11 +37,16 @@
 						continue
 					}
                     {{ $.Receiver }}.Connectors = append({{ $.Receiver }}.Connectors,
-                        types.EnvironmentConnector{
-                            ConnectorID: r.ConnectorID,
+                        &Connector{
+                            ID: r.ConnectorID,
                         })
                 }
                 {{ $.Receiver }}.Edges.EnvironmentConnectorRelationships = nil // release
+            }
+            // mutate `.Edges.Connectors` to `.Connectors`.
+            if len({{ $.Receiver }}.Edges.Connectors) != 0 {
+                {{ $.Receiver }}.Connectors = {{ $.Receiver }}.Edges.Connectors
+                {{ $.Receiver }}.Edges.Connectors = nil // release
             }
             return json.Marshal(&struct {
                 *Alias `json:",inline"`
