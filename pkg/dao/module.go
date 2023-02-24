@@ -20,22 +20,17 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		}
 
 		// required.
-		if r.ID == "" {
-			return nil, errors.New("invalid input: blank id")
-		}
-		if r.Source == "" {
-			return nil, errors.New("invalid input: blank source")
-		}
-
-		r.Status = status.Initializing
-
 		var c = mc.Modules().Create().
 			SetID(r.ID).
-			SetSource(r.Source)
+			SetSource(r.Source).
+			SetStatus(status.Initializing)
 
 		// optional.
 		if r.Description != "" {
 			c.SetDescription(r.Description)
+		}
+		if r.Labels != nil {
+			c.SetLabels(r.Labels)
 		}
 		if r.Version != "" {
 			c.SetVersion(r.Version)

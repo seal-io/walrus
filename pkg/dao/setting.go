@@ -20,9 +20,6 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 		}
 
 		// required.
-		if r.Name == "" {
-			return nil, errors.New("invalid input: blank name")
-		}
 		var c = mc.Settings().Create().
 			SetName(r.Name)
 

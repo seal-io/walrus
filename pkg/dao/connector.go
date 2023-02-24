@@ -19,18 +19,6 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		}
 
 		// required.
-		if r.Name == "" {
-			return nil, errors.New("invalid input: blank name")
-		}
-
-		if r.ConfigVersion == "" {
-			return nil, errors.New("invalid input: blank configVersion")
-		}
-
-		if r.ConfigData == nil {
-			return nil, errors.New("invalid input: blank configData")
-		}
-
 		var c = mc.Connectors().Create().
 			SetName(r.Name).
 			SetType(r.Type).
@@ -42,7 +30,9 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if r.Description != "" {
 			c.SetDescription(r.Description)
 		}
-
+		if r.Labels != nil {
+			c.SetLabels(r.Labels)
+		}
 		rrs[i] = c
 	}
 	return rrs, nil
