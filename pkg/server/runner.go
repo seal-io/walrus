@@ -346,6 +346,7 @@ func (r *Server) Run(c context.Context) error {
 	// setup apis.
 	var setupApisOpts = setupApisOptions{
 		ModelClient: modelClient,
+		K8sConfig:   k8sCfg,
 	}
 	g.Go(func() error {
 		log.Info("setting up apis")

@@ -12,6 +12,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-getter v1.7.0
+	github.com/hashicorp/hcl/v2 v2.13.0
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20230201191712-8cad743c8c26
 	github.com/lib/pq v1.10.7
 	github.com/mattn/go-sqlite3 v1.14.16
@@ -21,6 +22,7 @@ require (
 	github.com/sony/sonyflake v1.1.0
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.24.2
+	github.com/zclconf/go-cty v1.8.0
 	go.uber.org/multierr v1.9.0
 	golang.org/x/crypto v0.1.0
 	golang.org/x/time v0.3.0
@@ -82,7 +84,6 @@ require (
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v0.0.0-20170504190234-a4b07c25de5f // indirect
-	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -118,7 +119,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect

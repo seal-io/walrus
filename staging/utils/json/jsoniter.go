@@ -19,6 +19,8 @@ var (
 	NewEncoder    = json.NewEncoder
 )
 
+type RawMessage = stdjson.RawMessage
+
 func init() {
 	// borrowed from https://github.com/json-iterator/go/issues/145#issuecomment-323483602
 	decodeNumberAsInt64IfPossible := func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
