@@ -44,6 +44,10 @@ type ApplicationRevision struct {
 	InputPlan string `json:"inputPlan"`
 	// Output of the revision.
 	Output string `json:"output"`
+	// type of deployer
+	DeployerType string `json:"deployerType,omitempty"`
+	// deployment duration(seconds) of the of application revision
+	Duration int `json:"duration,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
 	Edges ApplicationRevisionEdges `json:"edges,omitempty"`
@@ -93,7 +97,9 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationrevision.FieldModules, applicationrevision.FieldInputVariables:
 			values[i] = new([]byte)
-		case applicationrevision.FieldStatus, applicationrevision.FieldStatusMessage, applicationrevision.FieldInputPlan, applicationrevision.FieldOutput:
+		case applicationrevision.FieldDuration:
+			values[i] = new(sql.NullInt64)
+		case applicationrevision.FieldStatus, applicationrevision.FieldStatusMessage, applicationrevision.FieldInputPlan, applicationrevision.FieldOutput, applicationrevision.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case applicationrevision.FieldCreateTime, applicationrevision.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -186,6 +192,18 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.Output = value.String
 			}
+		case applicationrevision.FieldDeployerType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field deployerType", values[i])
+			} else if value.Valid {
+				ar.DeployerType = value.String
+			}
+		case applicationrevision.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration", values[i])
+			} else if value.Valid {
+				ar.Duration = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -257,6 +275,12 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("output=")
 	builder.WriteString(ar.Output)
+	builder.WriteString(", ")
+	builder.WriteString("deployerType=")
+	builder.WriteString(ar.DeployerType)
+	builder.WriteString(", ")
+	builder.WriteString("duration=")
+	builder.WriteString(fmt.Sprintf("%v", ar.Duration))
 	builder.WriteByte(')')
 	return builder.String()
 }

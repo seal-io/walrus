@@ -165,6 +165,14 @@ func init() {
 	applicationrevisionDescInputVariables := applicationrevisionFields[3].Descriptor()
 	// applicationrevision.DefaultInputVariables holds the default value on creation for the inputVariables field.
 	applicationrevision.DefaultInputVariables = applicationrevisionDescInputVariables.Default.(map[string]interface{})
+	// applicationrevisionDescDeployerType is the schema descriptor for deployerType field.
+	applicationrevisionDescDeployerType := applicationrevisionFields[6].Descriptor()
+	// applicationrevision.DefaultDeployerType holds the default value on creation for the deployerType field.
+	applicationrevision.DefaultDeployerType = applicationrevisionDescDeployerType.Default.(string)
+	// applicationrevisionDescDuration is the schema descriptor for duration field.
+	applicationrevisionDescDuration := applicationrevisionFields[7].Descriptor()
+	// applicationrevision.DefaultDuration holds the default value on creation for the duration field.
+	applicationrevision.DefaultDuration = applicationrevisionDescDuration.Default.(int)
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connector.Hooks[0] = connectorMixinHooks0[0]
