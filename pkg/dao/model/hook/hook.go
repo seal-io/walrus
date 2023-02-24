@@ -12,6 +12,18 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
+// The AllocationCostFunc type is an adapter to allow the use of ordinary
+// function as AllocationCost mutator.
+type AllocationCostFunc func(context.Context, *model.AllocationCostMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AllocationCostFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.AllocationCostMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.AllocationCostMutation", m)
+}
+
 // The ApplicationFunc type is an adapter to allow the use of ordinary
 // function as Application mutator.
 type ApplicationFunc func(context.Context, *model.ApplicationMutation) (model.Value, error)
@@ -60,6 +72,18 @@ func (f ApplicationRevisionFunc) Mutate(ctx context.Context, m model.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationRevisionMutation", m)
 }
 
+// The ClusterCostFunc type is an adapter to allow the use of ordinary
+// function as ClusterCost mutator.
+type ClusterCostFunc func(context.Context, *model.ClusterCostMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClusterCostFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ClusterCostMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ClusterCostMutation", m)
+}
+
 // The ConnectorFunc type is an adapter to allow the use of ordinary
 // function as Connector mutator.
 type ConnectorFunc func(context.Context, *model.ConnectorMutation) (model.Value, error)
@@ -106,6 +130,18 @@ func (f ModuleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleMutation", m)
+}
+
+// The PerspectiveFunc type is an adapter to allow the use of ordinary
+// function as Perspective mutator.
+type PerspectiveFunc func(context.Context, *model.PerspectiveMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PerspectiveFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.PerspectiveMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.PerspectiveMutation", m)
 }
 
 // The ProjectFunc type is an adapter to allow the use of ordinary

@@ -9,6 +9,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AllocationCost is the predicate function for allocationcost builders.
+type AllocationCost func(*sql.Selector)
+
 // Application is the predicate function for application builders.
 type Application func(*sql.Selector)
 
@@ -21,6 +24,9 @@ type ApplicationResource func(*sql.Selector)
 // ApplicationRevision is the predicate function for applicationrevision builders.
 type ApplicationRevision func(*sql.Selector)
 
+// ClusterCost is the predicate function for clustercost builders.
+type ClusterCost func(*sql.Selector)
+
 // Connector is the predicate function for connector builders.
 type Connector func(*sql.Selector)
 
@@ -32,6 +38,9 @@ type EnvironmentConnectorRelationship func(*sql.Selector)
 
 // Module is the predicate function for module builders.
 type Module func(*sql.Selector)
+
+// Perspective is the predicate function for perspective builders.
+type Perspective func(*sql.Selector)
 
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)

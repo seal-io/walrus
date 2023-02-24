@@ -38,14 +38,17 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
+		AllocationCost                   []ent.Hook
 		Application                      []ent.Hook
 		ApplicationModuleRelationship    []ent.Hook
 		ApplicationResource              []ent.Hook
 		ApplicationRevision              []ent.Hook
+		ClusterCost                      []ent.Hook
 		Connector                        []ent.Hook
 		Environment                      []ent.Hook
 		EnvironmentConnectorRelationship []ent.Hook
 		Module                           []ent.Hook
+		Perspective                      []ent.Hook
 		Project                          []ent.Hook
 		Role                             []ent.Hook
 		Setting                          []ent.Hook
@@ -53,14 +56,17 @@ type (
 		Token                            []ent.Hook
 	}
 	inters struct {
+		AllocationCost                   []ent.Interceptor
 		Application                      []ent.Interceptor
 		ApplicationModuleRelationship    []ent.Interceptor
 		ApplicationResource              []ent.Interceptor
 		ApplicationRevision              []ent.Interceptor
+		ClusterCost                      []ent.Interceptor
 		Connector                        []ent.Interceptor
 		Environment                      []ent.Interceptor
 		EnvironmentConnectorRelationship []ent.Interceptor
 		Module                           []ent.Interceptor
+		Perspective                      []ent.Interceptor
 		Project                          []ent.Interceptor
 		Role                             []ent.Interceptor
 		Setting                          []ent.Interceptor

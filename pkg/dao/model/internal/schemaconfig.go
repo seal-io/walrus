@@ -10,14 +10,17 @@ import "context"
 // SchemaConfig represents alternative schema names for all tables
 // that can be passed at runtime.
 type SchemaConfig struct {
+	AllocationCost                   string // AllocationCost table.
 	Application                      string // Application table.
 	ApplicationModuleRelationship    string // ApplicationModuleRelationship table.
 	ApplicationResource              string // ApplicationResource table.
 	ApplicationRevision              string // ApplicationRevision table.
+	ClusterCost                      string // ClusterCost table.
 	Connector                        string // Connector table.
 	Environment                      string // Environment table.
 	EnvironmentConnectorRelationship string // EnvironmentConnectorRelationship table.
 	Module                           string // Module table.
+	Perspective                      string // Perspective table.
 	Project                          string // Project table.
 	Role                             string // Role table.
 	Setting                          string // Setting table.

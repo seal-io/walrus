@@ -17,6 +17,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AllocationCost is the client for interacting with the AllocationCost builders.
+	AllocationCost *AllocationCostClient
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
 	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
@@ -25,6 +27,8 @@ type Tx struct {
 	ApplicationResource *ApplicationResourceClient
 	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
 	ApplicationRevision *ApplicationRevisionClient
+	// ClusterCost is the client for interacting with the ClusterCost builders.
+	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
 	// Environment is the client for interacting with the Environment builders.
@@ -33,6 +37,8 @@ type Tx struct {
 	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
+	// Perspective is the client for interacting with the Perspective builders.
+	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
@@ -174,14 +180,17 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AllocationCost = NewAllocationCostClient(tx.config)
 	tx.Application = NewApplicationClient(tx.config)
 	tx.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(tx.config)
 	tx.ApplicationResource = NewApplicationResourceClient(tx.config)
 	tx.ApplicationRevision = NewApplicationRevisionClient(tx.config)
+	tx.ClusterCost = NewClusterCostClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
 	tx.Environment = NewEnvironmentClient(tx.config)
 	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
 	tx.Module = NewModuleClient(tx.config)
+	tx.Perspective = NewPerspectiveClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
@@ -196,7 +205,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Application.QueryXXX(), the query will be executed
+// applies a query, for example: AllocationCost.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
@@ -250,6 +259,11 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 
 var _ dialect.Driver = (*txDriver)(nil)
 
+// AllocationCosts implements the ClientSet.
+func (tx *Tx) AllocationCosts() *AllocationCostClient {
+	return tx.AllocationCost
+}
+
 // Applications implements the ClientSet.
 func (tx *Tx) Applications() *ApplicationClient {
 	return tx.Application
@@ -270,6 +284,11 @@ func (tx *Tx) ApplicationRevisions() *ApplicationRevisionClient {
 	return tx.ApplicationRevision
 }
 
+// ClusterCosts implements the ClientSet.
+func (tx *Tx) ClusterCosts() *ClusterCostClient {
+	return tx.ClusterCost
+}
+
 // Connectors implements the ClientSet.
 func (tx *Tx) Connectors() *ConnectorClient {
 	return tx.Connector
@@ -288,6 +307,11 @@ func (tx *Tx) EnvironmentConnectorRelationships() *EnvironmentConnectorRelations
 // Modules implements the ClientSet.
 func (tx *Tx) Modules() *ModuleClient {
 	return tx.Module
+}
+
+// Perspectives implements the ClientSet.
+func (tx *Tx) Perspectives() *PerspectiveClient {
+	return tx.Perspective
 }
 
 // Projects implements the ClientSet.
