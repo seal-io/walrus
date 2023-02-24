@@ -23,18 +23,18 @@ func (Subject) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("kind").
 			Comment("The kind of the subject.").
-			Immutable().
-			Default("user"),
+			Default("user").
+			Immutable(),
 		field.String("group").
 			Comment("The group of the subject.").
 			Default("default"),
 		field.String("name").
 			Comment("The name of the subject.").
-			Immutable().
-			NotEmpty(),
+			NotEmpty().
+			Immutable(),
 		field.String("description").
 			Comment("The detail of the subject.").
-			Default(""),
+			Optional(),
 		field.Bool("mountTo").
 			Comment("Indicate whether the user mount to the group.").
 			Nillable().

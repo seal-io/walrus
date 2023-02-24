@@ -24,8 +24,8 @@ func (Time) Fields() []ent.Field {
 		field.Time("createTime").
 			Comment("Describe creation time.").
 			Nillable().
-			Immutable().
-			Default(time.Now),
+			Default(time.Now).
+			Immutable(),
 		field.Time("updateTime").
 			Comment("Describe modification time.").
 			Nillable().
@@ -44,8 +44,8 @@ func (CreateTime) Fields() []ent.Field {
 		field.Time("createTime").
 			Comment("Describe creation time.").
 			Nillable().
-			Immutable().
-			Default(time.Now),
+			Default(time.Now).
+			Immutable(),
 	}
 }
 

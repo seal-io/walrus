@@ -25,21 +25,23 @@ func (Module) Fields() []ent.Field {
 		field.String("id").
 			Comment("It is also the name of the module.").
 			Unique().
+			NotEmpty().
 			Immutable(),
 		field.String("description").
 			Comment("Description of the module.").
 			Optional(),
 		field.JSON("labels", map[string]string{}).
 			Comment("Labels of the module.").
-			Optional(),
+			Default(map[string]string{}),
 		field.String("source").
-			Comment("Source of the module."),
+			Comment("Source of the module.").
+			NotEmpty(),
 		field.String("version").
 			Comment("Version of the module.").
 			Optional(),
 		field.JSON("schema", &types.ModuleSchema{}).
 			Comment("Schema of the module").
-			Optional(),
+			Default(&types.ModuleSchema{}),
 	}
 }
 

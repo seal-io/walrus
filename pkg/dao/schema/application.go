@@ -32,9 +32,11 @@ func (Application) Fields() []ent.Field {
 	return []ent.Field{
 		id.Field("projectID").
 			Comment("ID of the project to which the application belongs.").
+			NotEmpty().
 			Immutable(),
 		id.Field("environmentID").
 			Comment("ID of the environment to which the application deploys.").
+			NotEmpty().
 			Immutable(),
 	}
 }

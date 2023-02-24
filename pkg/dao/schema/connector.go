@@ -32,20 +32,23 @@ func (Connector) Indexes() []ent.Index {
 func (Connector) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("type").
-			Comment("Type of the connector."),
+			Comment("Type of the connector.").
+			NotEmpty().
+			Immutable(),
 		field.String("configVersion").
-			Comment("Connector config version."),
+			Comment("Connector config version.").
+			NotEmpty(),
 		field.JSON("configData", map[string]interface{}{}).
 			Comment("Connector config data.").
-			Optional(),
+			Default(map[string]interface{}{}),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
 		field.String("finOpsStatus").
-			Optional().
-			Comment("Status of the finOps tools."),
+			Comment("Status of the finOps tools.").
+			Optional(),
 		field.String("finOpsStatusMessage").
-			Optional().
-			Comment("Extra message for finOps tools status, like error details."),
+			Comment("Extra message for finOps tools status, like error details.").
+			Optional(),
 	}
 }
 

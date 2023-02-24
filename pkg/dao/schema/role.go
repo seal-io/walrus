@@ -26,26 +26,26 @@ func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("domain").
 			Comment("The domain of the role.").
-			Immutable().
-			Default("system"),
+			Default("system").
+			Immutable(),
 		field.String("name").
 			Comment("The name of the role.").
-			Immutable().
-			NotEmpty(),
+			NotEmpty().
+			Immutable(),
 		field.String("description").
 			Comment("The detail of the role.").
-			Default(""),
+			Optional(),
 		field.JSON("policies", RolePolicies{}).
 			Comment("The policy list of the role.").
 			Default(DefaultRolePolicies()),
 		field.Bool("builtin").
 			Comment("Indicate whether the subject is builtin, decide when creating.").
-			Immutable().
-			Default(false),
+			Default(false).
+			Immutable(),
 		field.Bool("session").
 			Comment("Indicate whether the subject is session level, decide when creating.").
-			Immutable().
-			Default(false),
+			Default(false).
+			Immutable(),
 	}
 }
 
