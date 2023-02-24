@@ -6,6 +6,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/utils/cron"
 )
 
 // modifier defines the stereotype for writing value.
@@ -80,6 +81,18 @@ func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	var _, err = parseUrl(newVal, anySchemeUrl)
 	if err != nil {
 		return false, err
+	}
+	return true, nil
+}
+
+// cronExpression implements the modifyValidator stereotype,
+// which means the value can be modified if it's cron expression.
+func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool, error) {
+	if newValue != "" {
+		var err = cron.ValidateCronExpr(newValue)
+		if err != nil {
+			return false, err
+		}
 	}
 	return true, nil
 }
