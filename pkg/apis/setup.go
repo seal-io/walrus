@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/health"
 	"github.com/seal-io/seal/pkg/apis/module"
 	"github.com/seal-io/seal/pkg/apis/openapi"
+	"github.com/seal-io/seal/pkg/apis/project"
 	"github.com/seal-io/seal/pkg/apis/role"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/setting"
@@ -72,15 +73,17 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
-		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)), applicationresource.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
+			applicationresource.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))
 		runtime.MustRouteResource(r, group.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, project.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, setting.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, user.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))
 	}
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
 	runtime.MustRouteStatic(apis, "/swagger/*any", swagger.Index("/openapi"))
