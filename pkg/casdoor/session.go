@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/seal-io/seal/utils/req"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func GetInternalSession(sealSession []*http.Cookie) *req.HttpCookie {
@@ -44,5 +45,22 @@ func GetExternalSession(casdoorSession []*req.HttpCookie) *http.Cookie {
 }
 
 func GetInternalToken(sealHeader http.Header) string {
-	return strings.TrimSpace(strings.TrimPrefix(sealHeader.Get("Authorization"), "Bearer "))
+	// get basic auth
+	authorization := sealHeader.Get("Authorization")
+	if strings.Contains(authorization, "Basic") {
+		basicAuth := strings.TrimSpace(strings.TrimPrefix(authorization, "Basic "))
+		// decode basic auth
+		data, err := strs.DecodeBase64(basicAuth)
+		if err != nil {
+			return ""
+		}
+		// get token
+		splits := strings.SplitN(string(data), ":", 2)
+		if len(splits) != 2 {
+			return ""
+		}
+		return splits[1]
+	}
+
+	return strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer "))
 }
