@@ -5,3 +5,9 @@ const (
 	Ready        = "ready"
 	Initializing = "initializing"
 )
+
+const (
+	ApplicationRevisionStatusRunning   = "running"
+	ApplicationRevisionStatusSucceeded = "succeeded"
+	ApplicationRevisionStatusFailed    = "failed"
+)
