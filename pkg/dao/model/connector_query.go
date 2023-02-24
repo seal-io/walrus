@@ -16,7 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -34,10 +36,14 @@ type ConnectorQuery struct {
 	predicates                                 []predicate.Connector
 	withEnvironments                           *EnvironmentQuery
 	withResources                              *ApplicationResourceQuery
+	withClusterCosts                           *ClusterCostQuery
+	withAllocationCosts                        *AllocationCostQuery
 	withEnvironmentConnectorRelationships      *EnvironmentConnectorRelationshipQuery
 	modifiers                                  []func(*sql.Selector)
 	withNamedEnvironments                      map[string]*EnvironmentQuery
 	withNamedResources                         map[string]*ApplicationResourceQuery
+	withNamedClusterCosts                      map[string]*ClusterCostQuery
+	withNamedAllocationCosts                   map[string]*AllocationCostQuery
 	withNamedEnvironmentConnectorRelationships map[string]*EnvironmentConnectorRelationshipQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -119,6 +125,56 @@ func (cq *ConnectorQuery) QueryResources() *ApplicationResourceQuery {
 		schemaConfig := cq.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryClusterCosts chains the current query on the "clusterCosts" edge.
+func (cq *ConnectorQuery) QueryClusterCosts() *ClusterCostQuery {
+	query := (&ClusterCostClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, selector),
+			sqlgraph.To(clustercost.Table, clustercost.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.ClusterCostsTable, connector.ClusterCostsColumn),
+		)
+		schemaConfig := cq.schemaConfig
+		step.To.Schema = schemaConfig.ClusterCost
+		step.Edge.Schema = schemaConfig.ClusterCost
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAllocationCosts chains the current query on the "allocationCosts" edge.
+func (cq *ConnectorQuery) QueryAllocationCosts() *AllocationCostQuery {
+	query := (&AllocationCostClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, selector),
+			sqlgraph.To(allocationcost.Table, allocationcost.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.AllocationCostsTable, connector.AllocationCostsColumn),
+		)
+		schemaConfig := cq.schemaConfig
+		step.To.Schema = schemaConfig.AllocationCost
+		step.Edge.Schema = schemaConfig.AllocationCost
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -342,6 +398,8 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 		predicates:                            append([]predicate.Connector{}, cq.predicates...),
 		withEnvironments:                      cq.withEnvironments.Clone(),
 		withResources:                         cq.withResources.Clone(),
+		withClusterCosts:                      cq.withClusterCosts.Clone(),
+		withAllocationCosts:                   cq.withAllocationCosts.Clone(),
 		withEnvironmentConnectorRelationships: cq.withEnvironmentConnectorRelationships.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
@@ -368,6 +426,28 @@ func (cq *ConnectorQuery) WithResources(opts ...func(*ApplicationResourceQuery))
 		opt(query)
 	}
 	cq.withResources = query
+	return cq
+}
+
+// WithClusterCosts tells the query-builder to eager-load the nodes that are connected to
+// the "clusterCosts" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithClusterCosts(opts ...func(*ClusterCostQuery)) *ConnectorQuery {
+	query := (&ClusterCostClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withClusterCosts = query
+	return cq
+}
+
+// WithAllocationCosts tells the query-builder to eager-load the nodes that are connected to
+// the "allocationCosts" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithAllocationCosts(opts ...func(*AllocationCostQuery)) *ConnectorQuery {
+	query := (&AllocationCostClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withAllocationCosts = query
 	return cq
 }
 
@@ -460,9 +540,11 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 	var (
 		nodes       = []*Connector{}
 		_spec       = cq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			cq.withEnvironments != nil,
 			cq.withResources != nil,
+			cq.withClusterCosts != nil,
+			cq.withAllocationCosts != nil,
 			cq.withEnvironmentConnectorRelationships != nil,
 		}
 	)
@@ -503,6 +585,20 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 			return nil, err
 		}
 	}
+	if query := cq.withClusterCosts; query != nil {
+		if err := cq.loadClusterCosts(ctx, query, nodes,
+			func(n *Connector) { n.Edges.ClusterCosts = []*ClusterCost{} },
+			func(n *Connector, e *ClusterCost) { n.Edges.ClusterCosts = append(n.Edges.ClusterCosts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withAllocationCosts; query != nil {
+		if err := cq.loadAllocationCosts(ctx, query, nodes,
+			func(n *Connector) { n.Edges.AllocationCosts = []*AllocationCost{} },
+			func(n *Connector, e *AllocationCost) { n.Edges.AllocationCosts = append(n.Edges.AllocationCosts, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := cq.withEnvironmentConnectorRelationships; query != nil {
 		if err := cq.loadEnvironmentConnectorRelationships(ctx, query, nodes,
 			func(n *Connector) { n.Edges.EnvironmentConnectorRelationships = []*EnvironmentConnectorRelationship{} },
@@ -523,6 +619,20 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 		if err := cq.loadResources(ctx, query, nodes,
 			func(n *Connector) { n.appendNamedResources(name) },
 			func(n *Connector, e *ApplicationResource) { n.appendNamedResources(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedClusterCosts {
+		if err := cq.loadClusterCosts(ctx, query, nodes,
+			func(n *Connector) { n.appendNamedClusterCosts(name) },
+			func(n *Connector, e *ClusterCost) { n.appendNamedClusterCosts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedAllocationCosts {
+		if err := cq.loadAllocationCosts(ctx, query, nodes,
+			func(n *Connector) { n.appendNamedAllocationCosts(name) },
+			func(n *Connector, e *AllocationCost) { n.appendNamedAllocationCosts(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -612,6 +722,60 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ApplicationR
 	}
 	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
 		s.Where(sql.InValues(connector.ResourcesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConnectorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ClusterCost)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[types.ID]*Connector)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.ClusterCost(func(s *sql.Selector) {
+		s.Where(sql.InValues(connector.ClusterCostsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ConnectorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *AllocationCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *AllocationCost)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[types.ID]*Connector)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.AllocationCost(func(s *sql.Selector) {
+		s.Where(sql.InValues(connector.AllocationCostsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -812,6 +976,34 @@ func (cq *ConnectorQuery) WithNamedResources(name string, opts ...func(*Applicat
 		cq.withNamedResources = make(map[string]*ApplicationResourceQuery)
 	}
 	cq.withNamedResources[name] = query
+	return cq
+}
+
+// WithNamedClusterCosts tells the query-builder to eager-load the nodes that are connected to the "clusterCosts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithNamedClusterCosts(name string, opts ...func(*ClusterCostQuery)) *ConnectorQuery {
+	query := (&ClusterCostClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedClusterCosts == nil {
+		cq.withNamedClusterCosts = make(map[string]*ClusterCostQuery)
+	}
+	cq.withNamedClusterCosts[name] = query
+	return cq
+}
+
+// WithNamedAllocationCosts tells the query-builder to eager-load the nodes that are connected to the "allocationCosts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *ConnectorQuery) WithNamedAllocationCosts(name string, opts ...func(*AllocationCostQuery)) *ConnectorQuery {
+	query := (&AllocationCostClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedAllocationCosts == nil {
+		cq.withNamedAllocationCosts = make(map[string]*AllocationCostQuery)
+	}
+	cq.withNamedAllocationCosts[name] = query
 	return cq
 }
 

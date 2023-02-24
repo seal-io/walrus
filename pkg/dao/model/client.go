@@ -14,14 +14,17 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/migrate"
 	"github.com/seal-io/seal/pkg/dao/types"
 
+	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -38,6 +41,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AllocationCost is the client for interacting with the AllocationCost builders.
+	AllocationCost *AllocationCostClient
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
 	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
@@ -46,6 +51,8 @@ type Client struct {
 	ApplicationResource *ApplicationResourceClient
 	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
 	ApplicationRevision *ApplicationRevisionClient
+	// ClusterCost is the client for interacting with the ClusterCost builders.
+	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
 	// Environment is the client for interacting with the Environment builders.
@@ -54,6 +61,8 @@ type Client struct {
 	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
+	// Perspective is the client for interacting with the Perspective builders.
+	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
@@ -77,14 +86,17 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AllocationCost = NewAllocationCostClient(c.config)
 	c.Application = NewApplicationClient(c.config)
 	c.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(c.config)
 	c.ApplicationResource = NewApplicationResourceClient(c.config)
 	c.ApplicationRevision = NewApplicationRevisionClient(c.config)
+	c.ClusterCost = NewClusterCostClient(c.config)
 	c.Connector = NewConnectorClient(c.config)
 	c.Environment = NewEnvironmentClient(c.config)
 	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
 	c.Module = NewModuleClient(c.config)
+	c.Perspective = NewPerspectiveClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Setting = NewSettingClient(c.config)
@@ -123,14 +135,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
+		AllocationCost:                   NewAllocationCostClient(cfg),
 		Application:                      NewApplicationClient(cfg),
 		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
 		ApplicationResource:              NewApplicationResourceClient(cfg),
 		ApplicationRevision:              NewApplicationRevisionClient(cfg),
+		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Module:                           NewModuleClient(cfg),
+		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
@@ -155,14 +170,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                              ctx,
 		config:                           cfg,
+		AllocationCost:                   NewAllocationCostClient(cfg),
 		Application:                      NewApplicationClient(cfg),
 		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
 		ApplicationResource:              NewApplicationResourceClient(cfg),
 		ApplicationRevision:              NewApplicationRevisionClient(cfg),
+		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Module:                           NewModuleClient(cfg),
+		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
 		Setting:                          NewSettingClient(cfg),
@@ -174,7 +192,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Application.
+//		AllocationCost.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -196,14 +214,17 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.AllocationCost.Use(hooks...)
 	c.Application.Use(hooks...)
 	c.ApplicationModuleRelationship.Use(hooks...)
 	c.ApplicationResource.Use(hooks...)
 	c.ApplicationRevision.Use(hooks...)
+	c.ClusterCost.Use(hooks...)
 	c.Connector.Use(hooks...)
 	c.Environment.Use(hooks...)
 	c.EnvironmentConnectorRelationship.Use(hooks...)
 	c.Module.Use(hooks...)
+	c.Perspective.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Setting.Use(hooks...)
@@ -214,19 +235,27 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.AllocationCost.Intercept(interceptors...)
 	c.Application.Intercept(interceptors...)
 	c.ApplicationModuleRelationship.Intercept(interceptors...)
 	c.ApplicationResource.Intercept(interceptors...)
 	c.ApplicationRevision.Intercept(interceptors...)
+	c.ClusterCost.Intercept(interceptors...)
 	c.Connector.Intercept(interceptors...)
 	c.Environment.Intercept(interceptors...)
 	c.EnvironmentConnectorRelationship.Intercept(interceptors...)
 	c.Module.Intercept(interceptors...)
+	c.Perspective.Intercept(interceptors...)
 	c.Project.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
 	c.Setting.Intercept(interceptors...)
 	c.Subject.Intercept(interceptors...)
 	c.Token.Intercept(interceptors...)
+}
+
+// AllocationCosts implements the ClientSet.
+func (c *Client) AllocationCosts() *AllocationCostClient {
+	return c.AllocationCost
 }
 
 // Applications implements the ClientSet.
@@ -249,6 +278,11 @@ func (c *Client) ApplicationRevisions() *ApplicationRevisionClient {
 	return c.ApplicationRevision
 }
 
+// ClusterCosts implements the ClientSet.
+func (c *Client) ClusterCosts() *ClusterCostClient {
+	return c.ClusterCost
+}
+
 // Connectors implements the ClientSet.
 func (c *Client) Connectors() *ConnectorClient {
 	return c.Connector
@@ -267,6 +301,11 @@ func (c *Client) EnvironmentConnectorRelationships() *EnvironmentConnectorRelati
 // Modules implements the ClientSet.
 func (c *Client) Modules() *ModuleClient {
 	return c.Module
+}
+
+// Perspectives implements the ClientSet.
+func (c *Client) Perspectives() *PerspectiveClient {
+	return c.Perspective
 }
 
 // Projects implements the ClientSet.
@@ -335,6 +374,8 @@ func (c *Client) WithTx(ctx context.Context, fn func(tx *Tx) error) (err error) 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AllocationCostMutation:
+		return c.AllocationCost.mutate(ctx, m)
 	case *ApplicationMutation:
 		return c.Application.mutate(ctx, m)
 	case *ApplicationModuleRelationshipMutation:
@@ -343,6 +384,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ApplicationResource.mutate(ctx, m)
 	case *ApplicationRevisionMutation:
 		return c.ApplicationRevision.mutate(ctx, m)
+	case *ClusterCostMutation:
+		return c.ClusterCost.mutate(ctx, m)
 	case *ConnectorMutation:
 		return c.Connector.mutate(ctx, m)
 	case *EnvironmentMutation:
@@ -351,6 +394,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EnvironmentConnectorRelationship.mutate(ctx, m)
 	case *ModuleMutation:
 		return c.Module.mutate(ctx, m)
+	case *PerspectiveMutation:
+		return c.Perspective.mutate(ctx, m)
 	case *ProjectMutation:
 		return c.Project.mutate(ctx, m)
 	case *RoleMutation:
@@ -363,6 +408,143 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Token.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("model: unknown mutation type %T", m)
+	}
+}
+
+// AllocationCostClient is a client for the AllocationCost schema.
+type AllocationCostClient struct {
+	config
+}
+
+// NewAllocationCostClient returns a client for the AllocationCost from the given config.
+func NewAllocationCostClient(c config) *AllocationCostClient {
+	return &AllocationCostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `allocationcost.Hooks(f(g(h())))`.
+func (c *AllocationCostClient) Use(hooks ...Hook) {
+	c.hooks.AllocationCost = append(c.hooks.AllocationCost, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `allocationcost.Intercept(f(g(h())))`.
+func (c *AllocationCostClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AllocationCost = append(c.inters.AllocationCost, interceptors...)
+}
+
+// Create returns a builder for creating a AllocationCost entity.
+func (c *AllocationCostClient) Create() *AllocationCostCreate {
+	mutation := newAllocationCostMutation(c.config, OpCreate)
+	return &AllocationCostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AllocationCost entities.
+func (c *AllocationCostClient) CreateBulk(builders ...*AllocationCostCreate) *AllocationCostCreateBulk {
+	return &AllocationCostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AllocationCost.
+func (c *AllocationCostClient) Update() *AllocationCostUpdate {
+	mutation := newAllocationCostMutation(c.config, OpUpdate)
+	return &AllocationCostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AllocationCostClient) UpdateOne(ac *AllocationCost) *AllocationCostUpdateOne {
+	mutation := newAllocationCostMutation(c.config, OpUpdateOne, withAllocationCost(ac))
+	return &AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AllocationCostClient) UpdateOneID(id int) *AllocationCostUpdateOne {
+	mutation := newAllocationCostMutation(c.config, OpUpdateOne, withAllocationCostID(id))
+	return &AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AllocationCost.
+func (c *AllocationCostClient) Delete() *AllocationCostDelete {
+	mutation := newAllocationCostMutation(c.config, OpDelete)
+	return &AllocationCostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AllocationCostClient) DeleteOne(ac *AllocationCost) *AllocationCostDeleteOne {
+	return c.DeleteOneID(ac.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AllocationCostClient) DeleteOneID(id int) *AllocationCostDeleteOne {
+	builder := c.Delete().Where(allocationcost.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AllocationCostDeleteOne{builder}
+}
+
+// Query returns a query builder for AllocationCost.
+func (c *AllocationCostClient) Query() *AllocationCostQuery {
+	return &AllocationCostQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAllocationCost},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AllocationCost entity by its id.
+func (c *AllocationCostClient) Get(ctx context.Context, id int) (*AllocationCost, error) {
+	return c.Query().Where(allocationcost.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AllocationCostClient) GetX(ctx context.Context, id int) *AllocationCost {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryConnector queries the connector edge of a AllocationCost.
+func (c *AllocationCostClient) QueryConnector(ac *AllocationCost) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ac.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(allocationcost.Table, allocationcost.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, allocationcost.ConnectorTable, allocationcost.ConnectorColumn),
+		)
+		schemaConfig := ac.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.AllocationCost
+		fromV = sqlgraph.Neighbors(ac.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AllocationCostClient) Hooks() []Hook {
+	return c.hooks.AllocationCost
+}
+
+// Interceptors returns the client interceptors.
+func (c *AllocationCostClient) Interceptors() []Interceptor {
+	return c.inters.AllocationCost
+}
+
+func (c *AllocationCostClient) mutate(ctx context.Context, m *AllocationCostMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AllocationCostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AllocationCostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AllocationCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AllocationCostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown AllocationCost mutation op: %q", m.Op())
 	}
 }
 
@@ -1069,6 +1251,143 @@ func (c *ApplicationRevisionClient) mutate(ctx context.Context, m *ApplicationRe
 	}
 }
 
+// ClusterCostClient is a client for the ClusterCost schema.
+type ClusterCostClient struct {
+	config
+}
+
+// NewClusterCostClient returns a client for the ClusterCost from the given config.
+func NewClusterCostClient(c config) *ClusterCostClient {
+	return &ClusterCostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `clustercost.Hooks(f(g(h())))`.
+func (c *ClusterCostClient) Use(hooks ...Hook) {
+	c.hooks.ClusterCost = append(c.hooks.ClusterCost, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `clustercost.Intercept(f(g(h())))`.
+func (c *ClusterCostClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ClusterCost = append(c.inters.ClusterCost, interceptors...)
+}
+
+// Create returns a builder for creating a ClusterCost entity.
+func (c *ClusterCostClient) Create() *ClusterCostCreate {
+	mutation := newClusterCostMutation(c.config, OpCreate)
+	return &ClusterCostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ClusterCost entities.
+func (c *ClusterCostClient) CreateBulk(builders ...*ClusterCostCreate) *ClusterCostCreateBulk {
+	return &ClusterCostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ClusterCost.
+func (c *ClusterCostClient) Update() *ClusterCostUpdate {
+	mutation := newClusterCostMutation(c.config, OpUpdate)
+	return &ClusterCostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ClusterCostClient) UpdateOne(cc *ClusterCost) *ClusterCostUpdateOne {
+	mutation := newClusterCostMutation(c.config, OpUpdateOne, withClusterCost(cc))
+	return &ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ClusterCostClient) UpdateOneID(id int) *ClusterCostUpdateOne {
+	mutation := newClusterCostMutation(c.config, OpUpdateOne, withClusterCostID(id))
+	return &ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ClusterCost.
+func (c *ClusterCostClient) Delete() *ClusterCostDelete {
+	mutation := newClusterCostMutation(c.config, OpDelete)
+	return &ClusterCostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ClusterCostClient) DeleteOne(cc *ClusterCost) *ClusterCostDeleteOne {
+	return c.DeleteOneID(cc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ClusterCostClient) DeleteOneID(id int) *ClusterCostDeleteOne {
+	builder := c.Delete().Where(clustercost.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ClusterCostDeleteOne{builder}
+}
+
+// Query returns a query builder for ClusterCost.
+func (c *ClusterCostClient) Query() *ClusterCostQuery {
+	return &ClusterCostQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeClusterCost},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ClusterCost entity by its id.
+func (c *ClusterCostClient) Get(ctx context.Context, id int) (*ClusterCost, error) {
+	return c.Query().Where(clustercost.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ClusterCostClient) GetX(ctx context.Context, id int) *ClusterCost {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryConnector queries the connector edge of a ClusterCost.
+func (c *ClusterCostClient) QueryConnector(cc *ClusterCost) *ConnectorQuery {
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clustercost.Table, clustercost.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, clustercost.ConnectorTable, clustercost.ConnectorColumn),
+		)
+		schemaConfig := cc.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ClusterCost
+		fromV = sqlgraph.Neighbors(cc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ClusterCostClient) Hooks() []Hook {
+	return c.hooks.ClusterCost
+}
+
+// Interceptors returns the client interceptors.
+func (c *ClusterCostClient) Interceptors() []Interceptor {
+	return c.inters.ClusterCost
+}
+
+func (c *ClusterCostClient) mutate(ctx context.Context, m *ClusterCostMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ClusterCostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ClusterCostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ClusterCostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ClusterCostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ClusterCost mutation op: %q", m.Op())
+	}
+}
+
 // ConnectorClient is a client for the Connector schema.
 type ConnectorClient struct {
 	config
@@ -1194,6 +1513,44 @@ func (c *ConnectorClient) QueryResources(co *Connector) *ApplicationResourceQuer
 		schemaConfig := co.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClusterCosts queries the clusterCosts edge of a Connector.
+func (c *ConnectorClient) QueryClusterCosts(co *Connector) *ClusterCostQuery {
+	query := (&ClusterCostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, id),
+			sqlgraph.To(clustercost.Table, clustercost.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.ClusterCostsTable, connector.ClusterCostsColumn),
+		)
+		schemaConfig := co.schemaConfig
+		step.To.Schema = schemaConfig.ClusterCost
+		step.Edge.Schema = schemaConfig.ClusterCost
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAllocationCosts queries the allocationCosts edge of a Connector.
+func (c *ConnectorClient) QueryAllocationCosts(co *Connector) *AllocationCostQuery {
+	query := (&AllocationCostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(connector.Table, connector.FieldID, id),
+			sqlgraph.To(allocationcost.Table, allocationcost.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, connector.AllocationCostsTable, connector.AllocationCostsColumn),
+		)
+		schemaConfig := co.schemaConfig
+		step.To.Schema = schemaConfig.AllocationCost
+		step.Edge.Schema = schemaConfig.AllocationCost
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1749,6 +2106,125 @@ func (c *ModuleClient) mutate(ctx context.Context, m *ModuleMutation) (Value, er
 		return (&ModuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Module mutation op: %q", m.Op())
+	}
+}
+
+// PerspectiveClient is a client for the Perspective schema.
+type PerspectiveClient struct {
+	config
+}
+
+// NewPerspectiveClient returns a client for the Perspective from the given config.
+func NewPerspectiveClient(c config) *PerspectiveClient {
+	return &PerspectiveClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `perspective.Hooks(f(g(h())))`.
+func (c *PerspectiveClient) Use(hooks ...Hook) {
+	c.hooks.Perspective = append(c.hooks.Perspective, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `perspective.Intercept(f(g(h())))`.
+func (c *PerspectiveClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Perspective = append(c.inters.Perspective, interceptors...)
+}
+
+// Create returns a builder for creating a Perspective entity.
+func (c *PerspectiveClient) Create() *PerspectiveCreate {
+	mutation := newPerspectiveMutation(c.config, OpCreate)
+	return &PerspectiveCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Perspective entities.
+func (c *PerspectiveClient) CreateBulk(builders ...*PerspectiveCreate) *PerspectiveCreateBulk {
+	return &PerspectiveCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Perspective.
+func (c *PerspectiveClient) Update() *PerspectiveUpdate {
+	mutation := newPerspectiveMutation(c.config, OpUpdate)
+	return &PerspectiveUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PerspectiveClient) UpdateOne(pe *Perspective) *PerspectiveUpdateOne {
+	mutation := newPerspectiveMutation(c.config, OpUpdateOne, withPerspective(pe))
+	return &PerspectiveUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PerspectiveClient) UpdateOneID(id types.ID) *PerspectiveUpdateOne {
+	mutation := newPerspectiveMutation(c.config, OpUpdateOne, withPerspectiveID(id))
+	return &PerspectiveUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Perspective.
+func (c *PerspectiveClient) Delete() *PerspectiveDelete {
+	mutation := newPerspectiveMutation(c.config, OpDelete)
+	return &PerspectiveDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PerspectiveClient) DeleteOne(pe *Perspective) *PerspectiveDeleteOne {
+	return c.DeleteOneID(pe.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PerspectiveClient) DeleteOneID(id types.ID) *PerspectiveDeleteOne {
+	builder := c.Delete().Where(perspective.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PerspectiveDeleteOne{builder}
+}
+
+// Query returns a query builder for Perspective.
+func (c *PerspectiveClient) Query() *PerspectiveQuery {
+	return &PerspectiveQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePerspective},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Perspective entity by its id.
+func (c *PerspectiveClient) Get(ctx context.Context, id types.ID) (*Perspective, error) {
+	return c.Query().Where(perspective.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PerspectiveClient) GetX(ctx context.Context, id types.ID) *Perspective {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PerspectiveClient) Hooks() []Hook {
+	hooks := c.hooks.Perspective
+	return append(hooks[:len(hooks):len(hooks)], perspective.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *PerspectiveClient) Interceptors() []Interceptor {
+	return c.inters.Perspective
+}
+
+func (c *PerspectiveClient) mutate(ctx context.Context, m *PerspectiveMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PerspectiveCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PerspectiveUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PerspectiveUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PerspectiveDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown Perspective mutation op: %q", m.Op())
 	}
 }
 

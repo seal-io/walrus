@@ -15,14 +15,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -55,14 +58,17 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		allocationcost.Table:                   allocationcost.ValidColumn,
 		application.Table:                      application.ValidColumn,
 		applicationmodulerelationship.Table:    applicationmodulerelationship.ValidColumn,
 		applicationresource.Table:              applicationresource.ValidColumn,
 		applicationrevision.Table:              applicationrevision.ValidColumn,
+		clustercost.Table:                      clustercost.ValidColumn,
 		connector.Table:                        connector.ValidColumn,
 		environment.Table:                      environment.ValidColumn,
 		environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
 		module.Table:                           module.ValidColumn,
+		perspective.Table:                      perspective.ValidColumn,
 		project.Table:                          project.ValidColumn,
 		role.Table:                             role.ValidColumn,
 		setting.Table:                          setting.ValidColumn,

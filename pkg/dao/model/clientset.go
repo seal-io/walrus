@@ -9,6 +9,9 @@ import "context"
 
 // ClientSet is an interface that allows getting all clients.
 type ClientSet interface {
+	// AllocationCosts returns the client for interacting with the AllocationCost builders.
+	AllocationCosts() *AllocationCostClient
+
 	// Applications returns the client for interacting with the Application builders.
 	Applications() *ApplicationClient
 
@@ -21,6 +24,9 @@ type ClientSet interface {
 	// ApplicationRevisions returns the client for interacting with the ApplicationRevision builders.
 	ApplicationRevisions() *ApplicationRevisionClient
 
+	// ClusterCosts returns the client for interacting with the ClusterCost builders.
+	ClusterCosts() *ClusterCostClient
+
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
 
@@ -32,6 +38,9 @@ type ClientSet interface {
 
 	// Modules returns the client for interacting with the Module builders.
 	Modules() *ModuleClient
+
+	// Perspectives returns the client for interacting with the Perspective builders.
+	Perspectives() *PerspectiveClient
 
 	// Projects returns the client for interacting with the Project builders.
 	Projects() *ProjectClient
@@ -54,6 +63,12 @@ type ClientSet interface {
 
 	// Dialect returns the dialect name of the driver.
 	Dialect() string
+}
+
+// AllocationCostClientGetter is an interface that allows getting AllocationCostClient.
+type AllocationCostClientGetter interface {
+	// AllocationCosts returns the client for interacting with the AllocationCost builders.
+	AllocationCosts() *AllocationCostClient
 }
 
 // ApplicationClientGetter is an interface that allows getting ApplicationClient.
@@ -80,6 +95,12 @@ type ApplicationRevisionClientGetter interface {
 	ApplicationRevisions() *ApplicationRevisionClient
 }
 
+// ClusterCostClientGetter is an interface that allows getting ClusterCostClient.
+type ClusterCostClientGetter interface {
+	// ClusterCosts returns the client for interacting with the ClusterCost builders.
+	ClusterCosts() *ClusterCostClient
+}
+
 // ConnectorClientGetter is an interface that allows getting ConnectorClient.
 type ConnectorClientGetter interface {
 	// Connectors returns the client for interacting with the Connector builders.
@@ -102,6 +123,12 @@ type EnvironmentConnectorRelationshipClientGetter interface {
 type ModuleClientGetter interface {
 	// Modules returns the client for interacting with the Module builders.
 	Modules() *ModuleClient
+}
+
+// PerspectiveClientGetter is an interface that allows getting PerspectiveClient.
+type PerspectiveClientGetter interface {
+	// Perspectives returns the client for interacting with the Perspective builders.
+	Perspectives() *PerspectiveClient
 }
 
 // ProjectClientGetter is an interface that allows getting ProjectClient.

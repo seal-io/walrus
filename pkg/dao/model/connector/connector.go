@@ -46,6 +46,10 @@ const (
 	EdgeEnvironments = "environments"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
 	EdgeResources = "resources"
+	// EdgeClusterCosts holds the string denoting the clustercosts edge name in mutations.
+	EdgeClusterCosts = "clusterCosts"
+	// EdgeAllocationCosts holds the string denoting the allocationcosts edge name in mutations.
+	EdgeAllocationCosts = "allocationCosts"
 	// EdgeEnvironmentConnectorRelationships holds the string denoting the environmentconnectorrelationships edge name in mutations.
 	EdgeEnvironmentConnectorRelationships = "environmentConnectorRelationships"
 	// Table holds the table name of the connector in the database.
@@ -62,6 +66,20 @@ const (
 	ResourcesInverseTable = "application_resources"
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "connector_id"
+	// ClusterCostsTable is the table that holds the clusterCosts relation/edge.
+	ClusterCostsTable = "cluster_costs"
+	// ClusterCostsInverseTable is the table name for the ClusterCost entity.
+	// It exists in this package in order to avoid circular dependency with the "clustercost" package.
+	ClusterCostsInverseTable = "cluster_costs"
+	// ClusterCostsColumn is the table column denoting the clusterCosts relation/edge.
+	ClusterCostsColumn = "connector_id"
+	// AllocationCostsTable is the table that holds the allocationCosts relation/edge.
+	AllocationCostsTable = "allocation_costs"
+	// AllocationCostsInverseTable is the table name for the AllocationCost entity.
+	// It exists in this package in order to avoid circular dependency with the "allocationcost" package.
+	AllocationCostsInverseTable = "allocation_costs"
+	// AllocationCostsColumn is the table column denoting the allocationCosts relation/edge.
+	AllocationCostsColumn = "connector_id"
 	// EnvironmentConnectorRelationshipsTable is the table that holds the environmentConnectorRelationships relation/edge.
 	EnvironmentConnectorRelationshipsTable = "environment_connector_relationships"
 	// EnvironmentConnectorRelationshipsInverseTable is the table name for the EnvironmentConnectorRelationship entity.

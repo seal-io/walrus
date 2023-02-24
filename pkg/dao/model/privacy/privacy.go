@@ -153,6 +153,30 @@ func DenyMutationOperationRule(op model.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
+// The AllocationCostQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type AllocationCostQueryRuleFunc func(context.Context, *model.AllocationCostQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f AllocationCostQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.AllocationCostQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.AllocationCostQuery", q)
+}
+
+// The AllocationCostMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type AllocationCostMutationRuleFunc func(context.Context, *model.AllocationCostMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f AllocationCostMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.AllocationCostMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.AllocationCostMutation", m)
+}
+
 // The ApplicationQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ApplicationQueryRuleFunc func(context.Context, *model.ApplicationQuery) error
@@ -249,6 +273,30 @@ func (f ApplicationRevisionMutationRuleFunc) EvalMutation(ctx context.Context, m
 	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ApplicationRevisionMutation", m)
 }
 
+// The ClusterCostQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ClusterCostQueryRuleFunc func(context.Context, *model.ClusterCostQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ClusterCostQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ClusterCostQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.ClusterCostQuery", q)
+}
+
+// The ClusterCostMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ClusterCostMutationRuleFunc func(context.Context, *model.ClusterCostMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ClusterCostMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.ClusterCostMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ClusterCostMutation", m)
+}
+
 // The ConnectorQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ConnectorQueryRuleFunc func(context.Context, *model.ConnectorQuery) error
@@ -343,6 +391,30 @@ func (f ModuleMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutati
 		return f(ctx, m)
 	}
 	return Denyf("model/privacy: unexpected mutation type %T, expect *model.ModuleMutation", m)
+}
+
+// The PerspectiveQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type PerspectiveQueryRuleFunc func(context.Context, *model.PerspectiveQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f PerspectiveQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.PerspectiveQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("model/privacy: unexpected query type %T, expect *model.PerspectiveQuery", q)
+}
+
+// The PerspectiveMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type PerspectiveMutationRuleFunc func(context.Context, *model.PerspectiveMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f PerspectiveMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.PerspectiveMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("model/privacy: unexpected mutation type %T, expect *model.PerspectiveMutation", m)
 }
 
 // The ProjectQueryRuleFunc type is an adapter to allow the use of ordinary
@@ -500,6 +572,8 @@ var _ QueryMutationRule = FilterFunc(nil)
 
 func queryFilter(q model.Query) (Filter, error) {
 	switch q := q.(type) {
+	case *model.AllocationCostQuery:
+		return q.Filter(), nil
 	case *model.ApplicationQuery:
 		return q.Filter(), nil
 	case *model.ApplicationModuleRelationshipQuery:
@@ -508,6 +582,8 @@ func queryFilter(q model.Query) (Filter, error) {
 		return q.Filter(), nil
 	case *model.ApplicationRevisionQuery:
 		return q.Filter(), nil
+	case *model.ClusterCostQuery:
+		return q.Filter(), nil
 	case *model.ConnectorQuery:
 		return q.Filter(), nil
 	case *model.EnvironmentQuery:
@@ -515,6 +591,8 @@ func queryFilter(q model.Query) (Filter, error) {
 	case *model.EnvironmentConnectorRelationshipQuery:
 		return q.Filter(), nil
 	case *model.ModuleQuery:
+		return q.Filter(), nil
+	case *model.PerspectiveQuery:
 		return q.Filter(), nil
 	case *model.ProjectQuery:
 		return q.Filter(), nil
@@ -533,6 +611,8 @@ func queryFilter(q model.Query) (Filter, error) {
 
 func mutationFilter(m model.Mutation) (Filter, error) {
 	switch m := m.(type) {
+	case *model.AllocationCostMutation:
+		return m.Filter(), nil
 	case *model.ApplicationMutation:
 		return m.Filter(), nil
 	case *model.ApplicationModuleRelationshipMutation:
@@ -541,6 +621,8 @@ func mutationFilter(m model.Mutation) (Filter, error) {
 		return m.Filter(), nil
 	case *model.ApplicationRevisionMutation:
 		return m.Filter(), nil
+	case *model.ClusterCostMutation:
+		return m.Filter(), nil
 	case *model.ConnectorMutation:
 		return m.Filter(), nil
 	case *model.EnvironmentMutation:
@@ -548,6 +630,8 @@ func mutationFilter(m model.Mutation) (Filter, error) {
 	case *model.EnvironmentConnectorRelationshipMutation:
 		return m.Filter(), nil
 	case *model.ModuleMutation:
+		return m.Filter(), nil
+	case *model.PerspectiveMutation:
 		return m.Filter(), nil
 	case *model.ProjectMutation:
 		return m.Filter(), nil

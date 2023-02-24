@@ -71,6 +71,33 @@ func (f TraverseFunc) Traverse(ctx context.Context, q model.Query) error {
 	return f(ctx, query)
 }
 
+// The AllocationCostFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AllocationCostFunc func(context.Context, *model.AllocationCostQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f AllocationCostFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.AllocationCostQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.AllocationCostQuery", q)
+}
+
+// The TraverseAllocationCost type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAllocationCost func(context.Context, *model.AllocationCostQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAllocationCost) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAllocationCost) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.AllocationCostQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.AllocationCostQuery", q)
+}
+
 // The ApplicationFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ApplicationFunc func(context.Context, *model.ApplicationQuery) (model.Value, error)
 
@@ -179,6 +206,33 @@ func (f TraverseApplicationRevision) Traverse(ctx context.Context, q model.Query
 	return fmt.Errorf("unexpected query type %T. expect *model.ApplicationRevisionQuery", q)
 }
 
+// The ClusterCostFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ClusterCostFunc func(context.Context, *model.ClusterCostQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f ClusterCostFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.ClusterCostQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.ClusterCostQuery", q)
+}
+
+// The TraverseClusterCost type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseClusterCost func(context.Context, *model.ClusterCostQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseClusterCost) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseClusterCost) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.ClusterCostQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.ClusterCostQuery", q)
+}
+
 // The ConnectorFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ConnectorFunc func(context.Context, *model.ConnectorQuery) (model.Value, error)
 
@@ -285,6 +339,33 @@ func (f TraverseModule) Traverse(ctx context.Context, q model.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.ModuleQuery", q)
+}
+
+// The PerspectiveFunc type is an adapter to allow the use of ordinary function as a Querier.
+type PerspectiveFunc func(context.Context, *model.PerspectiveQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f PerspectiveFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.PerspectiveQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.PerspectiveQuery", q)
+}
+
+// The TraversePerspective type is an adapter to allow the use of ordinary function as Traverser.
+type TraversePerspective func(context.Context, *model.PerspectiveQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraversePerspective) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraversePerspective) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.PerspectiveQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.PerspectiveQuery", q)
 }
 
 // The ProjectFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -425,6 +506,8 @@ func (f TraverseToken) Traverse(ctx context.Context, q model.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
+	case *model.AllocationCostQuery:
+		return &query[*model.AllocationCostQuery, predicate.AllocationCost]{typ: model.TypeAllocationCost, tq: q}, nil
 	case *model.ApplicationQuery:
 		return &query[*model.ApplicationQuery, predicate.Application]{typ: model.TypeApplication, tq: q}, nil
 	case *model.ApplicationModuleRelationshipQuery:
@@ -433,6 +516,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ApplicationResourceQuery, predicate.ApplicationResource]{typ: model.TypeApplicationResource, tq: q}, nil
 	case *model.ApplicationRevisionQuery:
 		return &query[*model.ApplicationRevisionQuery, predicate.ApplicationRevision]{typ: model.TypeApplicationRevision, tq: q}, nil
+	case *model.ClusterCostQuery:
+		return &query[*model.ClusterCostQuery, predicate.ClusterCost]{typ: model.TypeClusterCost, tq: q}, nil
 	case *model.ConnectorQuery:
 		return &query[*model.ConnectorQuery, predicate.Connector]{typ: model.TypeConnector, tq: q}, nil
 	case *model.EnvironmentQuery:
@@ -441,6 +526,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.EnvironmentConnectorRelationshipQuery, predicate.EnvironmentConnectorRelationship]{typ: model.TypeEnvironmentConnectorRelationship, tq: q}, nil
 	case *model.ModuleQuery:
 		return &query[*model.ModuleQuery, predicate.Module]{typ: model.TypeModule, tq: q}, nil
+	case *model.PerspectiveQuery:
+		return &query[*model.PerspectiveQuery, predicate.Perspective]{typ: model.TypePerspective, tq: q}, nil
 	case *model.ProjectQuery:
 		return &query[*model.ProjectQuery, predicate.Project]{typ: model.TypeProject, tq: q}, nil
 	case *model.RoleQuery:

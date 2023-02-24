@@ -6,14 +6,17 @@
 package model
 
 import (
+	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -29,8 +32,50 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 13)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 16)}
 	graph.Nodes[0] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   allocationcost.Table,
+			Columns: allocationcost.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: allocationcost.FieldID,
+			},
+		},
+		Type: "AllocationCost",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			allocationcost.FieldStartTime:           {Type: field.TypeTime, Column: allocationcost.FieldStartTime},
+			allocationcost.FieldEndTime:             {Type: field.TypeTime, Column: allocationcost.FieldEndTime},
+			allocationcost.FieldMinutes:             {Type: field.TypeFloat64, Column: allocationcost.FieldMinutes},
+			allocationcost.FieldConnectorID:         {Type: field.TypeString, Column: allocationcost.FieldConnectorID},
+			allocationcost.FieldName:                {Type: field.TypeString, Column: allocationcost.FieldName},
+			allocationcost.FieldFingerprint:         {Type: field.TypeString, Column: allocationcost.FieldFingerprint},
+			allocationcost.FieldClusterName:         {Type: field.TypeString, Column: allocationcost.FieldClusterName},
+			allocationcost.FieldNamespace:           {Type: field.TypeString, Column: allocationcost.FieldNamespace},
+			allocationcost.FieldNode:                {Type: field.TypeString, Column: allocationcost.FieldNode},
+			allocationcost.FieldController:          {Type: field.TypeString, Column: allocationcost.FieldController},
+			allocationcost.FieldControllerKind:      {Type: field.TypeString, Column: allocationcost.FieldControllerKind},
+			allocationcost.FieldPod:                 {Type: field.TypeString, Column: allocationcost.FieldPod},
+			allocationcost.FieldContainer:           {Type: field.TypeString, Column: allocationcost.FieldContainer},
+			allocationcost.FieldPvs:                 {Type: field.TypeJSON, Column: allocationcost.FieldPvs},
+			allocationcost.FieldLabels:              {Type: field.TypeJSON, Column: allocationcost.FieldLabels},
+			allocationcost.FieldTotalCost:           {Type: field.TypeFloat64, Column: allocationcost.FieldTotalCost},
+			allocationcost.FieldCurrency:            {Type: field.TypeInt, Column: allocationcost.FieldCurrency},
+			allocationcost.FieldCpuCost:             {Type: field.TypeFloat64, Column: allocationcost.FieldCpuCost},
+			allocationcost.FieldCpuCoreRequest:      {Type: field.TypeFloat64, Column: allocationcost.FieldCpuCoreRequest},
+			allocationcost.FieldGpuCost:             {Type: field.TypeFloat64, Column: allocationcost.FieldGpuCost},
+			allocationcost.FieldGpuCount:            {Type: field.TypeFloat64, Column: allocationcost.FieldGpuCount},
+			allocationcost.FieldRamCost:             {Type: field.TypeFloat64, Column: allocationcost.FieldRamCost},
+			allocationcost.FieldRamByteRequest:      {Type: field.TypeFloat64, Column: allocationcost.FieldRamByteRequest},
+			allocationcost.FieldPvCost:              {Type: field.TypeFloat64, Column: allocationcost.FieldPvCost},
+			allocationcost.FieldPvBytes:             {Type: field.TypeFloat64, Column: allocationcost.FieldPvBytes},
+			allocationcost.FieldCpuCoreUsageAverage: {Type: field.TypeFloat64, Column: allocationcost.FieldCpuCoreUsageAverage},
+			allocationcost.FieldCpuCoreUsageMax:     {Type: field.TypeFloat64, Column: allocationcost.FieldCpuCoreUsageMax},
+			allocationcost.FieldRamByteUsageAverage: {Type: field.TypeFloat64, Column: allocationcost.FieldRamByteUsageAverage},
+			allocationcost.FieldRamByteUsageMax:     {Type: field.TypeFloat64, Column: allocationcost.FieldRamByteUsageMax},
+		},
+	}
+	graph.Nodes[1] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   application.Table,
 			Columns: application.Columns,
@@ -50,7 +95,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			application.FieldEnvironmentID: {Type: field.TypeString, Column: application.FieldEnvironmentID},
 		},
 	}
-	graph.Nodes[1] = &sqlgraph.Node{
+	graph.Nodes[2] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationmodulerelationship.Table,
 			Columns: applicationmodulerelationship.Columns,
@@ -69,7 +114,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationmodulerelationship.FieldVariables:     {Type: field.TypeJSON, Column: applicationmodulerelationship.FieldVariables},
 		},
 	}
-	graph.Nodes[2] = &sqlgraph.Node{
+	graph.Nodes[3] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationresource.Table,
 			Columns: applicationresource.Columns,
@@ -92,7 +137,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationresource.FieldName:          {Type: field.TypeString, Column: applicationresource.FieldName},
 		},
 	}
-	graph.Nodes[3] = &sqlgraph.Node{
+	graph.Nodes[4] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationrevision.Table,
 			Columns: applicationrevision.Columns,
@@ -116,7 +161,34 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationrevision.FieldDuration:       {Type: field.TypeInt, Column: applicationrevision.FieldDuration},
 		},
 	}
-	graph.Nodes[4] = &sqlgraph.Node{
+	graph.Nodes[5] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   clustercost.Table,
+			Columns: clustercost.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: clustercost.FieldID,
+			},
+		},
+		Type: "ClusterCost",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			clustercost.FieldStartTime:      {Type: field.TypeTime, Column: clustercost.FieldStartTime},
+			clustercost.FieldEndTime:        {Type: field.TypeTime, Column: clustercost.FieldEndTime},
+			clustercost.FieldMinutes:        {Type: field.TypeFloat64, Column: clustercost.FieldMinutes},
+			clustercost.FieldConnectorID:    {Type: field.TypeString, Column: clustercost.FieldConnectorID},
+			clustercost.FieldClusterName:    {Type: field.TypeString, Column: clustercost.FieldClusterName},
+			clustercost.FieldTotalCost:      {Type: field.TypeFloat64, Column: clustercost.FieldTotalCost},
+			clustercost.FieldCurrency:       {Type: field.TypeInt, Column: clustercost.FieldCurrency},
+			clustercost.FieldCpuCost:        {Type: field.TypeFloat64, Column: clustercost.FieldCpuCost},
+			clustercost.FieldGpuCost:        {Type: field.TypeFloat64, Column: clustercost.FieldGpuCost},
+			clustercost.FieldRamCost:        {Type: field.TypeFloat64, Column: clustercost.FieldRamCost},
+			clustercost.FieldStorageCost:    {Type: field.TypeFloat64, Column: clustercost.FieldStorageCost},
+			clustercost.FieldAllocationCost: {Type: field.TypeFloat64, Column: clustercost.FieldAllocationCost},
+			clustercost.FieldIdleCost:       {Type: field.TypeFloat64, Column: clustercost.FieldIdleCost},
+			clustercost.FieldManagementCost: {Type: field.TypeFloat64, Column: clustercost.FieldManagementCost},
+		},
+	}
+	graph.Nodes[6] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   connector.Table,
 			Columns: connector.Columns,
@@ -142,7 +214,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			connector.FieldFinOpsStatusMessage: {Type: field.TypeString, Column: connector.FieldFinOpsStatusMessage},
 		},
 	}
-	graph.Nodes[5] = &sqlgraph.Node{
+	graph.Nodes[7] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   environment.Table,
 			Columns: environment.Columns,
@@ -161,7 +233,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			environment.FieldVariables:   {Type: field.TypeJSON, Column: environment.FieldVariables},
 		},
 	}
-	graph.Nodes[6] = &sqlgraph.Node{
+	graph.Nodes[8] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   environmentconnectorrelationship.Table,
 			Columns: environmentconnectorrelationship.Columns,
@@ -177,7 +249,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			environmentconnectorrelationship.FieldConnectorID:   {Type: field.TypeString, Column: environmentconnectorrelationship.FieldConnectorID},
 		},
 	}
-	graph.Nodes[7] = &sqlgraph.Node{
+	graph.Nodes[9] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   module.Table,
 			Columns: module.Columns,
@@ -199,7 +271,27 @@ var schemaGraph = func() *sqlgraph.Schema {
 			module.FieldSchema:        {Type: field.TypeJSON, Column: module.FieldSchema},
 		},
 	}
-	graph.Nodes[8] = &sqlgraph.Node{
+	graph.Nodes[10] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   perspective.Table,
+			Columns: perspective.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: perspective.FieldID,
+			},
+		},
+		Type: "Perspective",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			perspective.FieldCreateTime:        {Type: field.TypeTime, Column: perspective.FieldCreateTime},
+			perspective.FieldUpdateTime:        {Type: field.TypeTime, Column: perspective.FieldUpdateTime},
+			perspective.FieldName:              {Type: field.TypeString, Column: perspective.FieldName},
+			perspective.FieldStartTime:         {Type: field.TypeString, Column: perspective.FieldStartTime},
+			perspective.FieldEndTime:           {Type: field.TypeString, Column: perspective.FieldEndTime},
+			perspective.FieldBuiltin:           {Type: field.TypeBool, Column: perspective.FieldBuiltin},
+			perspective.FieldAllocationQueries: {Type: field.TypeJSON, Column: perspective.FieldAllocationQueries},
+		},
+	}
+	graph.Nodes[11] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   project.Table,
 			Columns: project.Columns,
@@ -217,7 +309,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			project.FieldUpdateTime:  {Type: field.TypeTime, Column: project.FieldUpdateTime},
 		},
 	}
-	graph.Nodes[9] = &sqlgraph.Node{
+	graph.Nodes[12] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   role.Table,
 			Columns: role.Columns,
@@ -238,7 +330,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			role.FieldSession:     {Type: field.TypeBool, Column: role.FieldSession},
 		},
 	}
-	graph.Nodes[10] = &sqlgraph.Node{
+	graph.Nodes[13] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   setting.Table,
 			Columns: setting.Columns,
@@ -258,7 +350,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			setting.FieldPrivate:    {Type: field.TypeBool, Column: setting.FieldPrivate},
 		},
 	}
-	graph.Nodes[11] = &sqlgraph.Node{
+	graph.Nodes[14] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   subject.Table,
 			Columns: subject.Columns,
@@ -282,7 +374,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			subject.FieldBuiltin:     {Type: field.TypeBool, Column: subject.FieldBuiltin},
 		},
 	}
-	graph.Nodes[12] = &sqlgraph.Node{
+	graph.Nodes[15] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   token.Table,
 			Columns: token.Columns,
@@ -301,6 +393,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 			token.FieldExpiration:        {Type: field.TypeInt, Column: token.FieldExpiration},
 		},
 	}
+	graph.MustAddE(
+		"connector",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   allocationcost.ConnectorTable,
+			Columns: []string{allocationcost.ConnectorColumn},
+			Bidi:    false,
+		},
+		"AllocationCost",
+		"Connector",
+	)
 	graph.MustAddE(
 		"project",
 		&sqlgraph.EdgeSpec{
@@ -446,6 +550,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Environment",
 	)
 	graph.MustAddE(
+		"connector",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   clustercost.ConnectorTable,
+			Columns: []string{clustercost.ConnectorColumn},
+			Bidi:    false,
+		},
+		"ClusterCost",
+		"Connector",
+	)
+	graph.MustAddE(
 		"environments",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -468,6 +584,30 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"Connector",
 		"ApplicationResource",
+	)
+	graph.MustAddE(
+		"clusterCosts",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.ClusterCostsTable,
+			Columns: []string{connector.ClusterCostsColumn},
+			Bidi:    false,
+		},
+		"Connector",
+		"ClusterCost",
+	)
+	graph.MustAddE(
+		"allocationCosts",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   connector.AllocationCostsTable,
+			Columns: []string{connector.AllocationCostsColumn},
+			Bidi:    false,
+		},
+		"Connector",
+		"AllocationCost",
 	)
 	graph.MustAddE(
 		"environmentConnectorRelationships",
@@ -599,6 +739,205 @@ type predicateAdder interface {
 }
 
 // addPredicate implements the predicateAdder interface.
+func (acq *AllocationCostQuery) addPredicate(pred func(s *sql.Selector)) {
+	acq.predicates = append(acq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the AllocationCostQuery builder.
+func (acq *AllocationCostQuery) Filter() *AllocationCostFilter {
+	return &AllocationCostFilter{config: acq.config, predicateAdder: acq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *AllocationCostMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the AllocationCostMutation builder.
+func (m *AllocationCostMutation) Filter() *AllocationCostFilter {
+	return &AllocationCostFilter{config: m.config, predicateAdder: m}
+}
+
+// AllocationCostFilter provides a generic filtering capability at runtime for AllocationCostQuery.
+type AllocationCostFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *AllocationCostFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *AllocationCostFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(allocationcost.FieldID))
+}
+
+// WhereStartTime applies the entql time.Time predicate on the startTime field.
+func (f *AllocationCostFilter) WhereStartTime(p entql.TimeP) {
+	f.Where(p.Field(allocationcost.FieldStartTime))
+}
+
+// WhereEndTime applies the entql time.Time predicate on the endTime field.
+func (f *AllocationCostFilter) WhereEndTime(p entql.TimeP) {
+	f.Where(p.Field(allocationcost.FieldEndTime))
+}
+
+// WhereMinutes applies the entql float64 predicate on the minutes field.
+func (f *AllocationCostFilter) WhereMinutes(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldMinutes))
+}
+
+// WhereConnectorID applies the entql string predicate on the connectorID field.
+func (f *AllocationCostFilter) WhereConnectorID(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldConnectorID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *AllocationCostFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldName))
+}
+
+// WhereFingerprint applies the entql string predicate on the fingerprint field.
+func (f *AllocationCostFilter) WhereFingerprint(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldFingerprint))
+}
+
+// WhereClusterName applies the entql string predicate on the clusterName field.
+func (f *AllocationCostFilter) WhereClusterName(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldClusterName))
+}
+
+// WhereNamespace applies the entql string predicate on the namespace field.
+func (f *AllocationCostFilter) WhereNamespace(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldNamespace))
+}
+
+// WhereNode applies the entql string predicate on the node field.
+func (f *AllocationCostFilter) WhereNode(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldNode))
+}
+
+// WhereController applies the entql string predicate on the controller field.
+func (f *AllocationCostFilter) WhereController(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldController))
+}
+
+// WhereControllerKind applies the entql string predicate on the controllerKind field.
+func (f *AllocationCostFilter) WhereControllerKind(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldControllerKind))
+}
+
+// WherePod applies the entql string predicate on the pod field.
+func (f *AllocationCostFilter) WherePod(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldPod))
+}
+
+// WhereContainer applies the entql string predicate on the container field.
+func (f *AllocationCostFilter) WhereContainer(p entql.StringP) {
+	f.Where(p.Field(allocationcost.FieldContainer))
+}
+
+// WherePvs applies the entql json.RawMessage predicate on the pvs field.
+func (f *AllocationCostFilter) WherePvs(p entql.BytesP) {
+	f.Where(p.Field(allocationcost.FieldPvs))
+}
+
+// WhereLabels applies the entql json.RawMessage predicate on the labels field.
+func (f *AllocationCostFilter) WhereLabels(p entql.BytesP) {
+	f.Where(p.Field(allocationcost.FieldLabels))
+}
+
+// WhereTotalCost applies the entql float64 predicate on the totalCost field.
+func (f *AllocationCostFilter) WhereTotalCost(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldTotalCost))
+}
+
+// WhereCurrency applies the entql int predicate on the currency field.
+func (f *AllocationCostFilter) WhereCurrency(p entql.IntP) {
+	f.Where(p.Field(allocationcost.FieldCurrency))
+}
+
+// WhereCpuCost applies the entql float64 predicate on the cpuCost field.
+func (f *AllocationCostFilter) WhereCpuCost(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldCpuCost))
+}
+
+// WhereCpuCoreRequest applies the entql float64 predicate on the cpuCoreRequest field.
+func (f *AllocationCostFilter) WhereCpuCoreRequest(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldCpuCoreRequest))
+}
+
+// WhereGpuCost applies the entql float64 predicate on the gpuCost field.
+func (f *AllocationCostFilter) WhereGpuCost(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldGpuCost))
+}
+
+// WhereGpuCount applies the entql float64 predicate on the gpuCount field.
+func (f *AllocationCostFilter) WhereGpuCount(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldGpuCount))
+}
+
+// WhereRamCost applies the entql float64 predicate on the ramCost field.
+func (f *AllocationCostFilter) WhereRamCost(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldRamCost))
+}
+
+// WhereRamByteRequest applies the entql float64 predicate on the ramByteRequest field.
+func (f *AllocationCostFilter) WhereRamByteRequest(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldRamByteRequest))
+}
+
+// WherePvCost applies the entql float64 predicate on the pvCost field.
+func (f *AllocationCostFilter) WherePvCost(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldPvCost))
+}
+
+// WherePvBytes applies the entql float64 predicate on the pvBytes field.
+func (f *AllocationCostFilter) WherePvBytes(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldPvBytes))
+}
+
+// WhereCpuCoreUsageAverage applies the entql float64 predicate on the cpuCoreUsageAverage field.
+func (f *AllocationCostFilter) WhereCpuCoreUsageAverage(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldCpuCoreUsageAverage))
+}
+
+// WhereCpuCoreUsageMax applies the entql float64 predicate on the cpuCoreUsageMax field.
+func (f *AllocationCostFilter) WhereCpuCoreUsageMax(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldCpuCoreUsageMax))
+}
+
+// WhereRamByteUsageAverage applies the entql float64 predicate on the ramByteUsageAverage field.
+func (f *AllocationCostFilter) WhereRamByteUsageAverage(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldRamByteUsageAverage))
+}
+
+// WhereRamByteUsageMax applies the entql float64 predicate on the ramByteUsageMax field.
+func (f *AllocationCostFilter) WhereRamByteUsageMax(p entql.Float64P) {
+	f.Where(p.Field(allocationcost.FieldRamByteUsageMax))
+}
+
+// WhereHasConnector applies a predicate to check if query has an edge connector.
+func (f *AllocationCostFilter) WhereHasConnector() {
+	f.Where(entql.HasEdge("connector"))
+}
+
+// WhereHasConnectorWith applies a predicate to check if query has an edge connector with a given conditions (other predicates).
+func (f *AllocationCostFilter) WhereHasConnectorWith(preds ...predicate.Connector) {
+	f.Where(entql.HasEdgeWith("connector", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (aq *ApplicationQuery) addPredicate(pred func(s *sql.Selector)) {
 	aq.predicates = append(aq.predicates, pred)
 }
@@ -627,7 +966,7 @@ type ApplicationFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -786,7 +1125,7 @@ type ApplicationModuleRelationshipFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationModuleRelationshipFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -884,7 +1223,7 @@ type ApplicationResourceFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationResourceFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1002,7 +1341,7 @@ type ApplicationRevisionFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ApplicationRevisionFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1097,6 +1436,130 @@ func (f *ApplicationRevisionFilter) WhereHasEnvironmentWith(preds ...predicate.E
 }
 
 // addPredicate implements the predicateAdder interface.
+func (ccq *ClusterCostQuery) addPredicate(pred func(s *sql.Selector)) {
+	ccq.predicates = append(ccq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the ClusterCostQuery builder.
+func (ccq *ClusterCostQuery) Filter() *ClusterCostFilter {
+	return &ClusterCostFilter{config: ccq.config, predicateAdder: ccq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *ClusterCostMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the ClusterCostMutation builder.
+func (m *ClusterCostMutation) Filter() *ClusterCostFilter {
+	return &ClusterCostFilter{config: m.config, predicateAdder: m}
+}
+
+// ClusterCostFilter provides a generic filtering capability at runtime for ClusterCostQuery.
+type ClusterCostFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *ClusterCostFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *ClusterCostFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(clustercost.FieldID))
+}
+
+// WhereStartTime applies the entql time.Time predicate on the startTime field.
+func (f *ClusterCostFilter) WhereStartTime(p entql.TimeP) {
+	f.Where(p.Field(clustercost.FieldStartTime))
+}
+
+// WhereEndTime applies the entql time.Time predicate on the endTime field.
+func (f *ClusterCostFilter) WhereEndTime(p entql.TimeP) {
+	f.Where(p.Field(clustercost.FieldEndTime))
+}
+
+// WhereMinutes applies the entql float64 predicate on the minutes field.
+func (f *ClusterCostFilter) WhereMinutes(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldMinutes))
+}
+
+// WhereConnectorID applies the entql string predicate on the connectorID field.
+func (f *ClusterCostFilter) WhereConnectorID(p entql.StringP) {
+	f.Where(p.Field(clustercost.FieldConnectorID))
+}
+
+// WhereClusterName applies the entql string predicate on the clusterName field.
+func (f *ClusterCostFilter) WhereClusterName(p entql.StringP) {
+	f.Where(p.Field(clustercost.FieldClusterName))
+}
+
+// WhereTotalCost applies the entql float64 predicate on the totalCost field.
+func (f *ClusterCostFilter) WhereTotalCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldTotalCost))
+}
+
+// WhereCurrency applies the entql int predicate on the currency field.
+func (f *ClusterCostFilter) WhereCurrency(p entql.IntP) {
+	f.Where(p.Field(clustercost.FieldCurrency))
+}
+
+// WhereCpuCost applies the entql float64 predicate on the cpuCost field.
+func (f *ClusterCostFilter) WhereCpuCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldCpuCost))
+}
+
+// WhereGpuCost applies the entql float64 predicate on the gpuCost field.
+func (f *ClusterCostFilter) WhereGpuCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldGpuCost))
+}
+
+// WhereRamCost applies the entql float64 predicate on the ramCost field.
+func (f *ClusterCostFilter) WhereRamCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldRamCost))
+}
+
+// WhereStorageCost applies the entql float64 predicate on the storageCost field.
+func (f *ClusterCostFilter) WhereStorageCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldStorageCost))
+}
+
+// WhereAllocationCost applies the entql float64 predicate on the allocationCost field.
+func (f *ClusterCostFilter) WhereAllocationCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldAllocationCost))
+}
+
+// WhereIdleCost applies the entql float64 predicate on the idleCost field.
+func (f *ClusterCostFilter) WhereIdleCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldIdleCost))
+}
+
+// WhereManagementCost applies the entql float64 predicate on the managementCost field.
+func (f *ClusterCostFilter) WhereManagementCost(p entql.Float64P) {
+	f.Where(p.Field(clustercost.FieldManagementCost))
+}
+
+// WhereHasConnector applies a predicate to check if query has an edge connector.
+func (f *ClusterCostFilter) WhereHasConnector() {
+	f.Where(entql.HasEdge("connector"))
+}
+
+// WhereHasConnectorWith applies a predicate to check if query has an edge connector with a given conditions (other predicates).
+func (f *ClusterCostFilter) WhereHasConnectorWith(preds ...predicate.Connector) {
+	f.Where(entql.HasEdgeWith("connector", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (cq *ConnectorQuery) addPredicate(pred func(s *sql.Selector)) {
 	cq.predicates = append(cq.predicates, pred)
 }
@@ -1125,7 +1588,7 @@ type ConnectorFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ConnectorFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1229,6 +1692,34 @@ func (f *ConnectorFilter) WhereHasResourcesWith(preds ...predicate.ApplicationRe
 	})))
 }
 
+// WhereHasClusterCosts applies a predicate to check if query has an edge clusterCosts.
+func (f *ConnectorFilter) WhereHasClusterCosts() {
+	f.Where(entql.HasEdge("clusterCosts"))
+}
+
+// WhereHasClusterCostsWith applies a predicate to check if query has an edge clusterCosts with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasClusterCostsWith(preds ...predicate.ClusterCost) {
+	f.Where(entql.HasEdgeWith("clusterCosts", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasAllocationCosts applies a predicate to check if query has an edge allocationCosts.
+func (f *ConnectorFilter) WhereHasAllocationCosts() {
+	f.Where(entql.HasEdge("allocationCosts"))
+}
+
+// WhereHasAllocationCostsWith applies a predicate to check if query has an edge allocationCosts with a given conditions (other predicates).
+func (f *ConnectorFilter) WhereHasAllocationCostsWith(preds ...predicate.AllocationCost) {
+	f.Where(entql.HasEdgeWith("allocationCosts", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // WhereHasEnvironmentConnectorRelationships applies a predicate to check if query has an edge environmentConnectorRelationships.
 func (f *ConnectorFilter) WhereHasEnvironmentConnectorRelationships() {
 	f.Where(entql.HasEdge("environmentConnectorRelationships"))
@@ -1272,7 +1763,7 @@ type EnvironmentFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *EnvironmentFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1398,7 +1889,7 @@ type EnvironmentConnectorRelationshipFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *EnvironmentConnectorRelationshipFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1481,7 +1972,7 @@ type ModuleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ModuleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1566,6 +2057,81 @@ func (f *ModuleFilter) WhereHasApplicationModuleRelationshipsWith(preds ...predi
 }
 
 // addPredicate implements the predicateAdder interface.
+func (pq *PerspectiveQuery) addPredicate(pred func(s *sql.Selector)) {
+	pq.predicates = append(pq.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the PerspectiveQuery builder.
+func (pq *PerspectiveQuery) Filter() *PerspectiveFilter {
+	return &PerspectiveFilter{config: pq.config, predicateAdder: pq}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *PerspectiveMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.predicates = append(m.predicates, pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the PerspectiveMutation builder.
+func (m *PerspectiveMutation) Filter() *PerspectiveFilter {
+	return &PerspectiveFilter{config: m.config, predicateAdder: m}
+}
+
+// PerspectiveFilter provides a generic filtering capability at runtime for PerspectiveQuery.
+type PerspectiveFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *PerspectiveFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql string predicate on the id field.
+func (f *PerspectiveFilter) WhereID(p entql.StringP) {
+	f.Where(p.Field(perspective.FieldID))
+}
+
+// WhereCreateTime applies the entql time.Time predicate on the createTime field.
+func (f *PerspectiveFilter) WhereCreateTime(p entql.TimeP) {
+	f.Where(p.Field(perspective.FieldCreateTime))
+}
+
+// WhereUpdateTime applies the entql time.Time predicate on the updateTime field.
+func (f *PerspectiveFilter) WhereUpdateTime(p entql.TimeP) {
+	f.Where(p.Field(perspective.FieldUpdateTime))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *PerspectiveFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(perspective.FieldName))
+}
+
+// WhereStartTime applies the entql string predicate on the startTime field.
+func (f *PerspectiveFilter) WhereStartTime(p entql.StringP) {
+	f.Where(p.Field(perspective.FieldStartTime))
+}
+
+// WhereEndTime applies the entql string predicate on the endTime field.
+func (f *PerspectiveFilter) WhereEndTime(p entql.StringP) {
+	f.Where(p.Field(perspective.FieldEndTime))
+}
+
+// WhereBuiltin applies the entql bool predicate on the builtin field.
+func (f *PerspectiveFilter) WhereBuiltin(p entql.BoolP) {
+	f.Where(p.Field(perspective.FieldBuiltin))
+}
+
+// WhereAllocationQueries applies the entql json.RawMessage predicate on the allocationQueries field.
+func (f *PerspectiveFilter) WhereAllocationQueries(p entql.BytesP) {
+	f.Where(p.Field(perspective.FieldAllocationQueries))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (pq *ProjectQuery) addPredicate(pred func(s *sql.Selector)) {
 	pq.predicates = append(pq.predicates, pred)
 }
@@ -1594,7 +2160,7 @@ type ProjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ProjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1673,7 +2239,7 @@ type RoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1753,7 +2319,7 @@ type SettingFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SettingFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[13].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1828,7 +2394,7 @@ type SubjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SubjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[14].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1923,7 +2489,7 @@ type TokenFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TokenFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[15].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
