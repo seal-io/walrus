@@ -44,7 +44,7 @@ func (ApplicationRevision) Fields() []ent.Field {
 			Comment("Output of the revision."),
 		field.String("deployerType").
 			Comment("type of deployer").
-			Default(types.AppRevisionDeployerTypeTF),
+			Default(types.DeployerTypeTF),
 		field.Int("duration").
 			Comment("deployment duration(seconds) of the of application revision").
 			Default(0),
