@@ -224,10 +224,6 @@ func (sc *SubjectCreate) defaults() error {
 		v := subject.DefaultGroup
 		sc.mutation.SetGroup(v)
 	}
-	if _, ok := sc.mutation.Description(); !ok {
-		v := subject.DefaultDescription
-		sc.mutation.SetDescription(v)
-	}
 	if _, ok := sc.mutation.MountTo(); !ok {
 		v := subject.DefaultMountTo
 		sc.mutation.SetMountTo(v)
@@ -272,9 +268,6 @@ func (sc *SubjectCreate) check() error {
 		if err := subject.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Subject.name": %w`, err)}
 		}
-	}
-	if _, ok := sc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`model: missing required field "Subject.description"`)}
 	}
 	if _, ok := sc.mutation.MountTo(); !ok {
 		return &ValidationError{Name: "mountTo", err: errors.New(`model: missing required field "Subject.mountTo"`)}
@@ -466,6 +459,12 @@ func (u *SubjectUpsert) UpdateDescription() *SubjectUpsert {
 	return u
 }
 
+// ClearDescription clears the value of the "description" field.
+func (u *SubjectUpsert) ClearDescription() *SubjectUpsert {
+	u.SetNull(subject.FieldDescription)
+	return u
+}
+
 // SetMountTo sets the "mountTo" field.
 func (u *SubjectUpsert) SetMountTo(v bool) *SubjectUpsert {
 	u.Set(subject.FieldMountTo, v)
@@ -622,6 +621,13 @@ func (u *SubjectUpsertOne) SetDescription(v string) *SubjectUpsertOne {
 func (u *SubjectUpsertOne) UpdateDescription() *SubjectUpsertOne {
 	return u.Update(func(s *SubjectUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *SubjectUpsertOne) ClearDescription() *SubjectUpsertOne {
+	return u.Update(func(s *SubjectUpsert) {
+		s.ClearDescription()
 	})
 }
 
@@ -954,6 +960,13 @@ func (u *SubjectUpsertBulk) SetDescription(v string) *SubjectUpsertBulk {
 func (u *SubjectUpsertBulk) UpdateDescription() *SubjectUpsertBulk {
 	return u.Update(func(s *SubjectUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *SubjectUpsertBulk) ClearDescription() *SubjectUpsertBulk {
+	return u.Update(func(s *SubjectUpsert) {
+		s.ClearDescription()
 	})
 }
 

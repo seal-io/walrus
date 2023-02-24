@@ -37,9 +37,9 @@ type ApplicationRevision struct {
 	// ID of the environment to which the application deploys.
 	EnvironmentID types.ID `json:"environmentID"`
 	// Application modules.
-	Modules []types.ApplicationModule `json:"modules"`
+	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"inputVariables"`
+	InputVariables map[string]interface{} `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
 	InputPlan string `json:"inputPlan"`
 	// Output of the revision.

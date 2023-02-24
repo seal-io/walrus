@@ -141,6 +141,10 @@ func (pc *ProjectCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *ProjectCreate) defaults() error {
+	if _, ok := pc.mutation.Labels(); !ok {
+		v := project.DefaultLabels
+		pc.mutation.SetLabels(v)
+	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		if project.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized project.DefaultCreateTime (forgotten import model/runtime?)")
@@ -162,6 +166,14 @@ func (pc *ProjectCreate) defaults() error {
 func (pc *ProjectCreate) check() error {
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Project.name"`)}
+	}
+	if v, ok := pc.mutation.Name(); ok {
+		if err := project.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Project.labels"`)}
 	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Project.createTime"`)}
@@ -346,12 +358,6 @@ func (u *ProjectUpsert) UpdateLabels() *ProjectUpsert {
 	return u
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ProjectUpsert) ClearLabels() *ProjectUpsert {
-	u.SetNull(project.FieldLabels)
-	return u
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *ProjectUpsert) SetUpdateTime(v time.Time) *ProjectUpsert {
 	u.Set(project.FieldUpdateTime, v)
@@ -461,13 +467,6 @@ func (u *ProjectUpsertOne) SetLabels(v map[string]string) *ProjectUpsertOne {
 func (u *ProjectUpsertOne) UpdateLabels() *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *ProjectUpsertOne) ClearLabels() *ProjectUpsertOne {
-	return u.Update(func(s *ProjectUpsert) {
-		s.ClearLabels()
 	})
 }
 
@@ -745,13 +744,6 @@ func (u *ProjectUpsertBulk) SetLabels(v map[string]string) *ProjectUpsertBulk {
 func (u *ProjectUpsertBulk) UpdateLabels() *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *ProjectUpsertBulk) ClearLabels() *ProjectUpsertBulk {
-	return u.Update(func(s *ProjectUpsert) {
-		s.ClearLabels()
 	})
 }
 

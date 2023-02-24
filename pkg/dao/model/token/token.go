@@ -66,6 +66,12 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// CasdoorTokenNameValidator is a validator for the "casdoorTokenName" field. It is called by the builders before save.
+	CasdoorTokenNameValidator func(string) error
+	// CasdoorTokenOwnerValidator is a validator for the "casdoorTokenOwner" field. It is called by the builders before save.
+	CasdoorTokenOwnerValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

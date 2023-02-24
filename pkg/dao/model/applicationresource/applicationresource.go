@@ -96,6 +96,10 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
+	ApplicationIDValidator func(string) error
+	// ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
+	ConnectorIDValidator func(string) error
 	// ModuleValidator is a validator for the "module" field. It is called by the builders before save.
 	ModuleValidator func(string) error
 	// ModeValidator is a validator for the "mode" field. It is called by the builders before save.

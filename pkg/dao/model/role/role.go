@@ -78,8 +78,6 @@ var (
 	DefaultDomain string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultDescription holds the default value on creation for the "description" field.
-	DefaultDescription string
 	// DefaultPolicies holds the default value on creation for the "policies" field.
 	DefaultPolicies schema.RolePolicies
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.

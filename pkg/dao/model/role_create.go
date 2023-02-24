@@ -186,10 +186,6 @@ func (rc *RoleCreate) defaults() error {
 		v := role.DefaultDomain
 		rc.mutation.SetDomain(v)
 	}
-	if _, ok := rc.mutation.Description(); !ok {
-		v := role.DefaultDescription
-		rc.mutation.SetDescription(v)
-	}
 	if _, ok := rc.mutation.Policies(); !ok {
 		v := role.DefaultPolicies
 		rc.mutation.SetPolicies(v)
@@ -223,9 +219,6 @@ func (rc *RoleCreate) check() error {
 		if err := role.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Role.name": %w`, err)}
 		}
-	}
-	if _, ok := rc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`model: missing required field "Role.description"`)}
 	}
 	if _, ok := rc.mutation.Policies(); !ok {
 		return &ValidationError{Name: "policies", err: errors.New(`model: missing required field "Role.policies"`)}
@@ -387,6 +380,12 @@ func (u *RoleUpsert) UpdateDescription() *RoleUpsert {
 	return u
 }
 
+// ClearDescription clears the value of the "description" field.
+func (u *RoleUpsert) ClearDescription() *RoleUpsert {
+	u.SetNull(role.FieldDescription)
+	return u
+}
+
 // SetPolicies sets the "policies" field.
 func (u *RoleUpsert) SetPolicies(v schema.RolePolicies) *RoleUpsert {
 	u.Set(role.FieldPolicies, v)
@@ -487,6 +486,13 @@ func (u *RoleUpsertOne) SetDescription(v string) *RoleUpsertOne {
 func (u *RoleUpsertOne) UpdateDescription() *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *RoleUpsertOne) ClearDescription() *RoleUpsertOne {
+	return u.Update(func(s *RoleUpsert) {
+		s.ClearDescription()
 	})
 }
 
@@ -755,6 +761,13 @@ func (u *RoleUpsertBulk) SetDescription(v string) *RoleUpsertBulk {
 func (u *RoleUpsertBulk) UpdateDescription() *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *RoleUpsertBulk) ClearDescription() *RoleUpsertBulk {
+	return u.Update(func(s *RoleUpsert) {
+		s.ClearDescription()
 	})
 }
 

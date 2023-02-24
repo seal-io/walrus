@@ -70,12 +70,6 @@ func (eu *EnvironmentUpdate) SetLabels(m map[string]string) *EnvironmentUpdate {
 	return eu
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (eu *EnvironmentUpdate) ClearLabels() *EnvironmentUpdate {
-	eu.mutation.ClearLabels()
-	return eu
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 	eu.mutation.SetUpdateTime(t)
@@ -249,6 +243,16 @@ func (eu *EnvironmentUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (eu *EnvironmentUpdate) check() error {
+	if v, ok := eu.mutation.Name(); ok {
+		if err := environment.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (eu *EnvironmentUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *EnvironmentUpdate {
 	eu.modifiers = append(eu.modifiers, modifiers...)
@@ -256,6 +260,9 @@ func (eu *EnvironmentUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *En
 }
 
 func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := eu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   environment.Table,
@@ -284,9 +291,6 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := eu.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
-	}
-	if eu.mutation.LabelsCleared() {
-		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
@@ -536,12 +540,6 @@ func (euo *EnvironmentUpdateOne) SetLabels(m map[string]string) *EnvironmentUpda
 	return euo
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (euo *EnvironmentUpdateOne) ClearLabels() *EnvironmentUpdateOne {
-	euo.mutation.ClearLabels()
-	return euo
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOne {
 	euo.mutation.SetUpdateTime(t)
@@ -722,6 +720,16 @@ func (euo *EnvironmentUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (euo *EnvironmentUpdateOne) check() error {
+	if v, ok := euo.mutation.Name(); ok {
+		if err := environment.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (euo *EnvironmentUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *EnvironmentUpdateOne {
 	euo.modifiers = append(euo.modifiers, modifiers...)
@@ -729,6 +737,9 @@ func (euo *EnvironmentUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder))
 }
 
 func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environment, err error) {
+	if err := euo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   environment.Table,
@@ -774,9 +785,6 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 	}
 	if value, ok := euo.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
-	}
-	if euo.mutation.LabelsCleared() {
-		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)

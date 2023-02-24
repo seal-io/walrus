@@ -189,6 +189,14 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultUpdateTime()
 		arc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := arc.mutation.Modules(); !ok {
+		v := applicationrevision.DefaultModules
+		arc.mutation.SetModules(v)
+	}
+	if _, ok := arc.mutation.InputVariables(); !ok {
+		v := applicationrevision.DefaultInputVariables
+		arc.mutation.SetInputVariables(v)
+	}
 	return nil
 }
 
@@ -203,8 +211,18 @@ func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "applicationID", err: errors.New(`model: missing required field "ApplicationRevision.applicationID"`)}
 	}
+	if v, ok := arc.mutation.ApplicationID(); ok {
+		if err := applicationrevision.ApplicationIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "applicationID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.applicationID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "ApplicationRevision.environmentID"`)}
+	}
+	if v, ok := arc.mutation.EnvironmentID(); ok {
+		if err := applicationrevision.EnvironmentIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "environmentID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.environmentID": %w`, err)}
+		}
 	}
 	if _, ok := arc.mutation.Modules(); !ok {
 		return &ValidationError{Name: "modules", err: errors.New(`model: missing required field "ApplicationRevision.modules"`)}

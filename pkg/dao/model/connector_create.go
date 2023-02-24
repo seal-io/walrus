@@ -237,6 +237,10 @@ func (cc *ConnectorCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (cc *ConnectorCreate) defaults() error {
+	if _, ok := cc.mutation.Labels(); !ok {
+		v := connector.DefaultLabels
+		cc.mutation.SetLabels(v)
+	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		if connector.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized connector.DefaultCreateTime (forgotten import model/runtime?)")
@@ -251,6 +255,10 @@ func (cc *ConnectorCreate) defaults() error {
 		v := connector.DefaultUpdateTime()
 		cc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := cc.mutation.ConfigData(); !ok {
+		v := connector.DefaultConfigData
+		cc.mutation.SetConfigData(v)
+	}
 	return nil
 }
 
@@ -258,6 +266,14 @@ func (cc *ConnectorCreate) defaults() error {
 func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Connector.name"`)}
+	}
+	if v, ok := cc.mutation.Name(); ok {
+		if err := connector.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Connector.labels"`)}
 	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Connector.createTime"`)}
@@ -268,8 +284,21 @@ func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "Connector.type"`)}
 	}
+	if v, ok := cc.mutation.GetType(); ok {
+		if err := connector.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`model: validator failed for field "Connector.type": %w`, err)}
+		}
+	}
 	if _, ok := cc.mutation.ConfigVersion(); !ok {
 		return &ValidationError{Name: "configVersion", err: errors.New(`model: missing required field "Connector.configVersion"`)}
+	}
+	if v, ok := cc.mutation.ConfigVersion(); ok {
+		if err := connector.ConfigVersionValidator(v); err != nil {
+			return &ValidationError{Name: "configVersion", err: fmt.Errorf(`model: validator failed for field "Connector.configVersion": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.ConfigData(); !ok {
+		return &ValidationError{Name: "configData", err: errors.New(`model: missing required field "Connector.configData"`)}
 	}
 	if _, ok := cc.mutation.EnableFinOps(); !ok {
 		return &ValidationError{Name: "enableFinOps", err: errors.New(`model: missing required field "Connector.enableFinOps"`)}
@@ -507,12 +536,6 @@ func (u *ConnectorUpsert) UpdateLabels() *ConnectorUpsert {
 	return u
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ConnectorUpsert) ClearLabels() *ConnectorUpsert {
-	u.SetNull(connector.FieldLabels)
-	return u
-}
-
 // SetStatus sets the "status" field.
 func (u *ConnectorUpsert) SetStatus(v string) *ConnectorUpsert {
 	u.Set(connector.FieldStatus, v)
@@ -561,18 +584,6 @@ func (u *ConnectorUpsert) UpdateUpdateTime() *ConnectorUpsert {
 	return u
 }
 
-// SetType sets the "type" field.
-func (u *ConnectorUpsert) SetType(v string) *ConnectorUpsert {
-	u.Set(connector.FieldType, v)
-	return u
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateType() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldType)
-	return u
-}
-
 // SetConfigVersion sets the "configVersion" field.
 func (u *ConnectorUpsert) SetConfigVersion(v string) *ConnectorUpsert {
 	u.Set(connector.FieldConfigVersion, v)
@@ -594,12 +605,6 @@ func (u *ConnectorUpsert) SetConfigData(v map[string]interface{}) *ConnectorUpse
 // UpdateConfigData sets the "configData" field to the value that was provided on create.
 func (u *ConnectorUpsert) UpdateConfigData() *ConnectorUpsert {
 	u.SetExcluded(connector.FieldConfigData)
-	return u
-}
-
-// ClearConfigData clears the value of the "configData" field.
-func (u *ConnectorUpsert) ClearConfigData() *ConnectorUpsert {
-	u.SetNull(connector.FieldConfigData)
 	return u
 }
 
@@ -670,6 +675,9 @@ func (u *ConnectorUpsertOne) UpdateNewValues() *ConnectorUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(connector.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.GetType(); exists {
+			s.SetIgnore(connector.FieldType)
 		}
 	}))
 	return u
@@ -751,13 +759,6 @@ func (u *ConnectorUpsertOne) UpdateLabels() *ConnectorUpsertOne {
 	})
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ConnectorUpsertOne) ClearLabels() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearLabels()
-	})
-}
-
 // SetStatus sets the "status" field.
 func (u *ConnectorUpsertOne) SetStatus(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -814,20 +815,6 @@ func (u *ConnectorUpsertOne) UpdateUpdateTime() *ConnectorUpsertOne {
 	})
 }
 
-// SetType sets the "type" field.
-func (u *ConnectorUpsertOne) SetType(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateType() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateType()
-	})
-}
-
 // SetConfigVersion sets the "configVersion" field.
 func (u *ConnectorUpsertOne) SetConfigVersion(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -853,13 +840,6 @@ func (u *ConnectorUpsertOne) SetConfigData(v map[string]interface{}) *ConnectorU
 func (u *ConnectorUpsertOne) UpdateConfigData() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateConfigData()
-	})
-}
-
-// ClearConfigData clears the value of the "configData" field.
-func (u *ConnectorUpsertOne) ClearConfigData() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearConfigData()
 	})
 }
 
@@ -1101,6 +1081,9 @@ func (u *ConnectorUpsertBulk) UpdateNewValues() *ConnectorUpsertBulk {
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(connector.FieldCreateTime)
 			}
+			if _, exists := b.mutation.GetType(); exists {
+				s.SetIgnore(connector.FieldType)
+			}
 		}
 	}))
 	return u
@@ -1182,13 +1165,6 @@ func (u *ConnectorUpsertBulk) UpdateLabels() *ConnectorUpsertBulk {
 	})
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *ConnectorUpsertBulk) ClearLabels() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearLabels()
-	})
-}
-
 // SetStatus sets the "status" field.
 func (u *ConnectorUpsertBulk) SetStatus(v string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -1245,20 +1221,6 @@ func (u *ConnectorUpsertBulk) UpdateUpdateTime() *ConnectorUpsertBulk {
 	})
 }
 
-// SetType sets the "type" field.
-func (u *ConnectorUpsertBulk) SetType(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateType() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateType()
-	})
-}
-
 // SetConfigVersion sets the "configVersion" field.
 func (u *ConnectorUpsertBulk) SetConfigVersion(v string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -1284,13 +1246,6 @@ func (u *ConnectorUpsertBulk) SetConfigData(v map[string]interface{}) *Connector
 func (u *ConnectorUpsertBulk) UpdateConfigData() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateConfigData()
-	})
-}
-
-// ClearConfigData clears the value of the "configData" field.
-func (u *ConnectorUpsertBulk) ClearConfigData() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearConfigData()
 	})
 }
 

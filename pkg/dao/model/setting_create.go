@@ -68,14 +68,6 @@ func (sc *SettingCreate) SetValue(s string) *SettingCreate {
 	return sc
 }
 
-// SetNillableValue sets the "value" field if the given value is not nil.
-func (sc *SettingCreate) SetNillableValue(s *string) *SettingCreate {
-	if s != nil {
-		sc.SetValue(*s)
-	}
-	return sc
-}
-
 // SetHidden sets the "hidden" field.
 func (sc *SettingCreate) SetHidden(b bool) *SettingCreate {
 	sc.mutation.SetHidden(b)
@@ -175,10 +167,6 @@ func (sc *SettingCreate) defaults() error {
 		v := setting.DefaultUpdateTime()
 		sc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := sc.mutation.Value(); !ok {
-		v := setting.DefaultValue
-		sc.mutation.SetValue(v)
-	}
 	if _, ok := sc.mutation.Hidden(); !ok {
 		v := setting.DefaultHidden
 		sc.mutation.SetHidden(v)
@@ -204,6 +192,11 @@ func (sc *SettingCreate) check() error {
 	}
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Setting.name"`)}
+	}
+	if v, ok := sc.mutation.Name(); ok {
+		if err := setting.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Setting.name": %w`, err)}
+		}
 	}
 	if _, ok := sc.mutation.Value(); !ok {
 		return &ValidationError{Name: "value", err: errors.New(`model: missing required field "Setting.value"`)}

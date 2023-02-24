@@ -69,12 +69,6 @@ func (cu *ConnectorUpdate) SetLabels(m map[string]string) *ConnectorUpdate {
 	return cu
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (cu *ConnectorUpdate) ClearLabels() *ConnectorUpdate {
-	cu.mutation.ClearLabels()
-	return cu
-}
-
 // SetStatus sets the "status" field.
 func (cu *ConnectorUpdate) SetStatus(s string) *ConnectorUpdate {
 	cu.mutation.SetStatus(s)
@@ -121,12 +115,6 @@ func (cu *ConnectorUpdate) SetUpdateTime(t time.Time) *ConnectorUpdate {
 	return cu
 }
 
-// SetType sets the "type" field.
-func (cu *ConnectorUpdate) SetType(s string) *ConnectorUpdate {
-	cu.mutation.SetType(s)
-	return cu
-}
-
 // SetConfigVersion sets the "configVersion" field.
 func (cu *ConnectorUpdate) SetConfigVersion(s string) *ConnectorUpdate {
 	cu.mutation.SetConfigVersion(s)
@@ -136,12 +124,6 @@ func (cu *ConnectorUpdate) SetConfigVersion(s string) *ConnectorUpdate {
 // SetConfigData sets the "configData" field.
 func (cu *ConnectorUpdate) SetConfigData(m map[string]interface{}) *ConnectorUpdate {
 	cu.mutation.SetConfigData(m)
-	return cu
-}
-
-// ClearConfigData clears the value of the "configData" field.
-func (cu *ConnectorUpdate) ClearConfigData() *ConnectorUpdate {
-	cu.mutation.ClearConfigData()
 	return cu
 }
 
@@ -310,6 +292,21 @@ func (cu *ConnectorUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cu *ConnectorUpdate) check() error {
+	if v, ok := cu.mutation.Name(); ok {
+		if err := connector.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.ConfigVersion(); ok {
+		if err := connector.ConfigVersionValidator(v); err != nil {
+			return &ValidationError{Name: "configVersion", err: fmt.Errorf(`model: validator failed for field "Connector.configVersion": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (cu *ConnectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ConnectorUpdate {
 	cu.modifiers = append(cu.modifiers, modifiers...)
@@ -317,6 +314,9 @@ func (cu *ConnectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Conn
 }
 
 func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := cu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   connector.Table,
@@ -346,9 +346,6 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 	}
-	if cu.mutation.LabelsCleared() {
-		_spec.ClearField(connector.FieldLabels, field.TypeJSON)
-	}
 	if value, ok := cu.mutation.Status(); ok {
 		_spec.SetField(connector.FieldStatus, field.TypeString, value)
 	}
@@ -364,17 +361,11 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := cu.mutation.GetType(); ok {
-		_spec.SetField(connector.FieldType, field.TypeString, value)
-	}
 	if value, ok := cu.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.ConfigData(); ok {
 		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
-	}
-	if cu.mutation.ConfigDataCleared() {
-		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
 	}
 	if value, ok := cu.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
@@ -573,12 +564,6 @@ func (cuo *ConnectorUpdateOne) SetLabels(m map[string]string) *ConnectorUpdateOn
 	return cuo
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (cuo *ConnectorUpdateOne) ClearLabels() *ConnectorUpdateOne {
-	cuo.mutation.ClearLabels()
-	return cuo
-}
-
 // SetStatus sets the "status" field.
 func (cuo *ConnectorUpdateOne) SetStatus(s string) *ConnectorUpdateOne {
 	cuo.mutation.SetStatus(s)
@@ -625,12 +610,6 @@ func (cuo *ConnectorUpdateOne) SetUpdateTime(t time.Time) *ConnectorUpdateOne {
 	return cuo
 }
 
-// SetType sets the "type" field.
-func (cuo *ConnectorUpdateOne) SetType(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetType(s)
-	return cuo
-}
-
 // SetConfigVersion sets the "configVersion" field.
 func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 	cuo.mutation.SetConfigVersion(s)
@@ -640,12 +619,6 @@ func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 // SetConfigData sets the "configData" field.
 func (cuo *ConnectorUpdateOne) SetConfigData(m map[string]interface{}) *ConnectorUpdateOne {
 	cuo.mutation.SetConfigData(m)
-	return cuo
-}
-
-// ClearConfigData clears the value of the "configData" field.
-func (cuo *ConnectorUpdateOne) ClearConfigData() *ConnectorUpdateOne {
-	cuo.mutation.ClearConfigData()
 	return cuo
 }
 
@@ -821,6 +794,21 @@ func (cuo *ConnectorUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cuo *ConnectorUpdateOne) check() error {
+	if v, ok := cuo.mutation.Name(); ok {
+		if err := connector.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.ConfigVersion(); ok {
+		if err := connector.ConfigVersionValidator(v); err != nil {
+			return &ValidationError{Name: "configVersion", err: fmt.Errorf(`model: validator failed for field "Connector.configVersion": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (cuo *ConnectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ConnectorUpdateOne {
 	cuo.modifiers = append(cuo.modifiers, modifiers...)
@@ -828,6 +816,9 @@ func (cuo *ConnectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, err error) {
+	if err := cuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   connector.Table,
@@ -874,9 +865,6 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if value, ok := cuo.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 	}
-	if cuo.mutation.LabelsCleared() {
-		_spec.ClearField(connector.FieldLabels, field.TypeJSON)
-	}
 	if value, ok := cuo.mutation.Status(); ok {
 		_spec.SetField(connector.FieldStatus, field.TypeString, value)
 	}
@@ -892,17 +880,11 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if value, ok := cuo.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := cuo.mutation.GetType(); ok {
-		_spec.SetField(connector.FieldType, field.TypeString, value)
-	}
 	if value, ok := cuo.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.ConfigData(); ok {
 		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
-	}
-	if cuo.mutation.ConfigDataCleared() {
-		_spec.ClearField(connector.FieldConfigData, field.TypeJSON)
 	}
 	if value, ok := cuo.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)

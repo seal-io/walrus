@@ -203,8 +203,18 @@ func (arc *ApplicationResourceCreate) check() error {
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "applicationID", err: errors.New(`model: missing required field "ApplicationResource.applicationID"`)}
 	}
+	if v, ok := arc.mutation.ApplicationID(); ok {
+		if err := applicationresource.ApplicationIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "applicationID", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.applicationID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.ConnectorID(); !ok {
 		return &ValidationError{Name: "connectorID", err: errors.New(`model: missing required field "ApplicationResource.connectorID"`)}
+	}
+	if v, ok := arc.mutation.ConnectorID(); ok {
+		if err := applicationresource.ConnectorIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "connectorID", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.connectorID": %w`, err)}
+		}
 	}
 	if _, ok := arc.mutation.Module(); !ok {
 		return &ValidationError{Name: "module", err: errors.New(`model: missing required field "ApplicationResource.module"`)}

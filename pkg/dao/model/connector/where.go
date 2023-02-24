@@ -256,16 +256,6 @@ func DescriptionContainsFold(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// LabelsIsNil applies the IsNil predicate on the "labels" field.
-func LabelsIsNil() predicate.Connector {
-	return predicate.Connector(sql.FieldIsNull(FieldLabels))
-}
-
-// LabelsNotNil applies the NotNil predicate on the "labels" field.
-func LabelsNotNil() predicate.Connector {
-	return predicate.Connector(sql.FieldNotNull(FieldLabels))
-}
-
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldStatus, v))
@@ -624,16 +614,6 @@ func ConfigVersionEqualFold(v string) predicate.Connector {
 // ConfigVersionContainsFold applies the ContainsFold predicate on the "configVersion" field.
 func ConfigVersionContainsFold(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldContainsFold(FieldConfigVersion, v))
-}
-
-// ConfigDataIsNil applies the IsNil predicate on the "configData" field.
-func ConfigDataIsNil() predicate.Connector {
-	return predicate.Connector(sql.FieldIsNull(FieldConfigData))
-}
-
-// ConfigDataNotNil applies the NotNil predicate on the "configData" field.
-func ConfigDataNotNil() predicate.Connector {
-	return predicate.Connector(sql.FieldNotNull(FieldConfigData))
 }
 
 // EnableFinOpsEQ applies the EQ predicate on the "enableFinOps" field.

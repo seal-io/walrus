@@ -7,6 +7,8 @@ package module
 
 import (
 	"time"
+
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -89,6 +91,14 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels map[string]string
+	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	SourceValidator func(string) error
+	// DefaultSchema holds the default value on creation for the "schema" field.
+	DefaultSchema *types.ModuleSchema
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

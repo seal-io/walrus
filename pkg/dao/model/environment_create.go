@@ -179,6 +179,10 @@ func (ec *EnvironmentCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ec *EnvironmentCreate) defaults() error {
+	if _, ok := ec.mutation.Labels(); !ok {
+		v := environment.DefaultLabels
+		ec.mutation.SetLabels(v)
+	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		if environment.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized environment.DefaultCreateTime (forgotten import model/runtime?)")
@@ -200,6 +204,14 @@ func (ec *EnvironmentCreate) defaults() error {
 func (ec *EnvironmentCreate) check() error {
 	if _, ok := ec.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Environment.name"`)}
+	}
+	if v, ok := ec.mutation.Name(); ok {
+		if err := environment.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
+		}
+	}
+	if _, ok := ec.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Environment.labels"`)}
 	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Environment.createTime"`)}
@@ -432,12 +444,6 @@ func (u *EnvironmentUpsert) UpdateLabels() *EnvironmentUpsert {
 	return u
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (u *EnvironmentUpsert) ClearLabels() *EnvironmentUpsert {
-	u.SetNull(environment.FieldLabels)
-	return u
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *EnvironmentUpsert) SetUpdateTime(v time.Time) *EnvironmentUpsert {
 	u.Set(environment.FieldUpdateTime, v)
@@ -565,13 +571,6 @@ func (u *EnvironmentUpsertOne) SetLabels(v map[string]string) *EnvironmentUpsert
 func (u *EnvironmentUpsertOne) UpdateLabels() *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *EnvironmentUpsertOne) ClearLabels() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearLabels()
 	})
 }
 
@@ -870,13 +869,6 @@ func (u *EnvironmentUpsertBulk) SetLabels(v map[string]string) *EnvironmentUpser
 func (u *EnvironmentUpsertBulk) UpdateLabels() *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateLabels()
-	})
-}
-
-// ClearLabels clears the value of the "labels" field.
-func (u *EnvironmentUpsertBulk) ClearLabels() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearLabels()
 	})
 }
 

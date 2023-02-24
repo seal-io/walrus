@@ -108,12 +108,6 @@ func (mu *ModuleUpdate) SetLabels(m map[string]string) *ModuleUpdate {
 	return mu
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (mu *ModuleUpdate) ClearLabels() *ModuleUpdate {
-	mu.mutation.ClearLabels()
-	return mu
-}
-
 // SetSource sets the "source" field.
 func (mu *ModuleUpdate) SetSource(s string) *ModuleUpdate {
 	mu.mutation.SetSource(s)
@@ -143,12 +137,6 @@ func (mu *ModuleUpdate) ClearVersion() *ModuleUpdate {
 // SetSchema sets the "schema" field.
 func (mu *ModuleUpdate) SetSchema(ts *types.ModuleSchema) *ModuleUpdate {
 	mu.mutation.SetSchema(ts)
-	return mu
-}
-
-// ClearSchema clears the value of the "schema" field.
-func (mu *ModuleUpdate) ClearSchema() *ModuleUpdate {
-	mu.mutation.ClearSchema()
 	return mu
 }
 
@@ -229,6 +217,16 @@ func (mu *ModuleUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (mu *ModuleUpdate) check() error {
+	if v, ok := mu.mutation.Source(); ok {
+		if err := module.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Module.source": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (mu *ModuleUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ModuleUpdate {
 	mu.modifiers = append(mu.modifiers, modifiers...)
@@ -236,6 +234,9 @@ func (mu *ModuleUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ModuleU
 }
 
 func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := mu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   module.Table,
@@ -277,9 +278,6 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.Labels(); ok {
 		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
 	}
-	if mu.mutation.LabelsCleared() {
-		_spec.ClearField(module.FieldLabels, field.TypeJSON)
-	}
 	if value, ok := mu.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
@@ -291,9 +289,6 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.Schema(); ok {
 		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
-	}
-	if mu.mutation.SchemaCleared() {
-		_spec.ClearField(module.FieldSchema, field.TypeJSON)
 	}
 	if mu.mutation.ApplicationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -460,12 +455,6 @@ func (muo *ModuleUpdateOne) SetLabels(m map[string]string) *ModuleUpdateOne {
 	return muo
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (muo *ModuleUpdateOne) ClearLabels() *ModuleUpdateOne {
-	muo.mutation.ClearLabels()
-	return muo
-}
-
 // SetSource sets the "source" field.
 func (muo *ModuleUpdateOne) SetSource(s string) *ModuleUpdateOne {
 	muo.mutation.SetSource(s)
@@ -495,12 +484,6 @@ func (muo *ModuleUpdateOne) ClearVersion() *ModuleUpdateOne {
 // SetSchema sets the "schema" field.
 func (muo *ModuleUpdateOne) SetSchema(ts *types.ModuleSchema) *ModuleUpdateOne {
 	muo.mutation.SetSchema(ts)
-	return muo
-}
-
-// ClearSchema clears the value of the "schema" field.
-func (muo *ModuleUpdateOne) ClearSchema() *ModuleUpdateOne {
-	muo.mutation.ClearSchema()
 	return muo
 }
 
@@ -588,6 +571,16 @@ func (muo *ModuleUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (muo *ModuleUpdateOne) check() error {
+	if v, ok := muo.mutation.Source(); ok {
+		if err := module.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Module.source": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (muo *ModuleUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ModuleUpdateOne {
 	muo.modifiers = append(muo.modifiers, modifiers...)
@@ -595,6 +588,9 @@ func (muo *ModuleUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Mod
 }
 
 func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err error) {
+	if err := muo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   module.Table,
@@ -653,9 +649,6 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	if value, ok := muo.mutation.Labels(); ok {
 		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
 	}
-	if muo.mutation.LabelsCleared() {
-		_spec.ClearField(module.FieldLabels, field.TypeJSON)
-	}
 	if value, ok := muo.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
@@ -667,9 +660,6 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	}
 	if value, ok := muo.mutation.Schema(); ok {
 		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
-	}
-	if muo.mutation.SchemaCleared() {
-		_spec.ClearField(module.FieldSchema, field.TypeJSON)
 	}
 	if muo.mutation.ApplicationCleared() {
 		edge := &sqlgraph.EdgeSpec{

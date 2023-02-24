@@ -52,14 +52,6 @@ func (su *SettingUpdate) SetValue(s string) *SettingUpdate {
 	return su
 }
 
-// SetNillableValue sets the "value" field if the given value is not nil.
-func (su *SettingUpdate) SetNillableValue(s *string) *SettingUpdate {
-	if s != nil {
-		su.SetValue(*s)
-	}
-	return su
-}
-
 // SetHidden sets the "hidden" field.
 func (su *SettingUpdate) SetHidden(b bool) *SettingUpdate {
 	su.mutation.SetHidden(b)
@@ -149,6 +141,16 @@ func (su *SettingUpdate) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (su *SettingUpdate) check() error {
+	if v, ok := su.mutation.Name(); ok {
+		if err := setting.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Setting.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (su *SettingUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SettingUpdate {
 	su.modifiers = append(su.modifiers, modifiers...)
@@ -156,6 +158,9 @@ func (su *SettingUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Settin
 }
 
 func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := su.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   setting.Table,
@@ -230,14 +235,6 @@ func (suo *SettingUpdateOne) SetName(s string) *SettingUpdateOne {
 // SetValue sets the "value" field.
 func (suo *SettingUpdateOne) SetValue(s string) *SettingUpdateOne {
 	suo.mutation.SetValue(s)
-	return suo
-}
-
-// SetNillableValue sets the "value" field if the given value is not nil.
-func (suo *SettingUpdateOne) SetNillableValue(s *string) *SettingUpdateOne {
-	if s != nil {
-		suo.SetValue(*s)
-	}
 	return suo
 }
 
@@ -337,6 +334,16 @@ func (suo *SettingUpdateOne) defaults() error {
 	return nil
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (suo *SettingUpdateOne) check() error {
+	if v, ok := suo.mutation.Name(); ok {
+		if err := setting.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Setting.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (suo *SettingUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *SettingUpdateOne {
 	suo.modifiers = append(suo.modifiers, modifiers...)
@@ -344,6 +351,9 @@ func (suo *SettingUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Se
 }
 
 func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err error) {
+	if err := suo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   setting.Table,

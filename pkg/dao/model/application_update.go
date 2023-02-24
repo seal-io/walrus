@@ -70,12 +70,6 @@ func (au *ApplicationUpdate) SetLabels(m map[string]string) *ApplicationUpdate {
 	return au
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (au *ApplicationUpdate) ClearLabels() *ApplicationUpdate {
-	au.mutation.ClearLabels()
-	return au
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (au *ApplicationUpdate) SetUpdateTime(t time.Time) *ApplicationUpdate {
 	au.mutation.SetUpdateTime(t)
@@ -239,6 +233,11 @@ func (au *ApplicationUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (au *ApplicationUpdate) check() error {
+	if v, ok := au.mutation.Name(); ok {
+		if err := application.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Application.name": %w`, err)}
+		}
+	}
 	if _, ok := au.mutation.ProjectID(); au.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Application.project"`)
 	}
@@ -286,9 +285,6 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := au.mutation.Labels(); ok {
 		_spec.SetField(application.FieldLabels, field.TypeJSON, value)
-	}
-	if au.mutation.LabelsCleared() {
-		_spec.ClearField(application.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := au.mutation.UpdateTime(); ok {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
@@ -532,12 +528,6 @@ func (auo *ApplicationUpdateOne) SetLabels(m map[string]string) *ApplicationUpda
 	return auo
 }
 
-// ClearLabels clears the value of the "labels" field.
-func (auo *ApplicationUpdateOne) ClearLabels() *ApplicationUpdateOne {
-	auo.mutation.ClearLabels()
-	return auo
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (auo *ApplicationUpdateOne) SetUpdateTime(t time.Time) *ApplicationUpdateOne {
 	auo.mutation.SetUpdateTime(t)
@@ -708,6 +698,11 @@ func (auo *ApplicationUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (auo *ApplicationUpdateOne) check() error {
+	if v, ok := auo.mutation.Name(); ok {
+		if err := application.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Application.name": %w`, err)}
+		}
+	}
 	if _, ok := auo.mutation.ProjectID(); auo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Application.project"`)
 	}
@@ -772,9 +767,6 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 	}
 	if value, ok := auo.mutation.Labels(); ok {
 		_spec.SetField(application.FieldLabels, field.TypeJSON, value)
-	}
-	if auo.mutation.LabelsCleared() {
-		_spec.ClearField(application.FieldLabels, field.TypeJSON)
 	}
 	if value, ok := auo.mutation.UpdateTime(); ok {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)

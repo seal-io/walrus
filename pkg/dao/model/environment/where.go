@@ -221,16 +221,6 @@ func DescriptionContainsFold(v string) predicate.Environment {
 	return predicate.Environment(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// LabelsIsNil applies the IsNil predicate on the "labels" field.
-func LabelsIsNil() predicate.Environment {
-	return predicate.Environment(sql.FieldIsNull(FieldLabels))
-}
-
-// LabelsNotNil applies the NotNil predicate on the "labels" field.
-func LabelsNotNil() predicate.Environment {
-	return predicate.Environment(sql.FieldNotNull(FieldLabels))
-}
-
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
 func CreateTimeEQ(v time.Time) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldCreateTime, v))

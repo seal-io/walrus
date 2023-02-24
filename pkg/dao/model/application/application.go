@@ -121,12 +121,20 @@ func ValidColumn(column string) bool {
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
 	Hooks [1]ent.Hook
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels map[string]string
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
+	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	EnvironmentIDValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.
