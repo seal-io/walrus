@@ -39,7 +39,7 @@ type Environment struct {
 	Edges EnvironmentEdges `json:"edges,omitempty"`
 	// [EXTENSION] Connectors is the collection of the related connectors.
 	// It does not store in the database and only uses for creating or updating.
-	Connectors []types.EnvironmentConnector `json:"connectors,omitempty"`
+	Connectors []*Connector `json:"connectors,omitempty"`
 }
 
 // EnvironmentEdges holds the relations/edges for other nodes in the graph.
@@ -256,11 +256,16 @@ func (e *Environment) MarshalJSON() ([]byte, error) {
 				continue
 			}
 			e.Connectors = append(e.Connectors,
-				types.EnvironmentConnector{
-					ConnectorID: r.ConnectorID,
+				&Connector{
+					ID: r.ConnectorID,
 				})
 		}
 		e.Edges.EnvironmentConnectorRelationships = nil // release
+	}
+	// mutate `.Edges.Connectors` to `.Connectors`.
+	if len(e.Edges.Connectors) != 0 {
+		e.Connectors = e.Edges.Connectors
+		e.Edges.Connectors = nil // release
 	}
 	return json.Marshal(&struct {
 		*Alias `json:",inline"`
