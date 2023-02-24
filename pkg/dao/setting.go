@@ -24,9 +24,7 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 			SetName(r.Name)
 
 		// optional.
-		if r.Value != "" {
-			c.SetValue(r.Value)
-		}
+		c.SetValue(r.Value)
 		c.SetNillableHidden(r.Hidden)
 		c.SetNillableEditable(r.Editable)
 		c.SetNillablePrivate(r.Private)
@@ -57,16 +55,13 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
-		var c = mc.Settings().Update().
-			Where(ps...)
 
-		// optional.
-		if r.Value != "" {
-			c.SetValue(r.Value)
-		}
-		c.SetNillableHidden(r.Hidden)
-		c.SetNillableEditable(r.Editable)
-		c.SetNillablePrivate(r.Private)
+		var c = mc.Settings().Update().
+			Where(ps...).
+			SetValue(r.Value).
+			SetNillableHidden(r.Hidden).
+			SetNillableEditable(r.Editable).
+			SetNillablePrivate(r.Private)
 		rrs[i] = c
 	}
 	return rrs, nil
