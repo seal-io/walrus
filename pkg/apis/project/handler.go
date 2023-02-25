@@ -32,11 +32,7 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
-	var input = &model.Project{
-		Name:        req.Name,
-		Description: req.Description,
-		Labels:      req.Labels,
-	}
+	var input = req.Model()
 
 	var creates, err = dao.ProjectCreates(h.modelClient, input)
 	if err != nil {
@@ -51,12 +47,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = &model.Project{
-		ID:          req.ID,
-		Name:        req.Name,
-		Description: req.Description,
-		Labels:      req.Labels,
-	}
+	var input = req.Model()
 
 	var updates, err = dao.ProjectUpdates(h.modelClient, input)
 	if err != nil {
@@ -66,7 +57,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	return updates[0].Exec(ctx)
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*model.Project, error) {
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, error) {
 	return h.modelClient.Projects().Get(ctx, req.ID)
 }
 
@@ -103,7 +94,8 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 // Extensional APIs
 
 func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsRequest) (view.GetApplicationsResponse, int, error) {
-	var query = h.modelClient.Applications().Query()
+	var query = h.modelClient.Applications().Query().
+		Where(application.ProjectID(req.ID))
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
@@ -120,7 +112,6 @@ func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsReque
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Where(application.ProjectID(req.ID)).
 		Select(application.FieldID, application.FieldName, application.FieldDescription, application.FieldEnvironmentID).
 		Unique(false). // allow returning without sorting keys.
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
@@ -133,12 +124,9 @@ func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsReque
 
 	var resp = make(view.GetApplicationsResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
-		// move `.Edges.Environment.Name` to `.EnvironmentName`.
 		resp[i] = view.GetApplicationResponse{
-			Application:     entities[i],
-			EnvironmentName: entities[i].Edges.Environment.Name,
+			Application: entities[i],
 		}
-		entities[i].Edges.Environment = nil // release
 	}
 	return resp, cnt, nil
 }
