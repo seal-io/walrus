@@ -110,7 +110,7 @@ func (mq *ModuleQuery) QueryApplicationModuleRelationships() *ApplicationModuleR
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(module.Table, module.FieldID, selector),
-			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ModuleColumn),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, module.ApplicationModuleRelationshipsTable, module.ApplicationModuleRelationshipsColumn),
 		)
 		schemaConfig := mq.schemaConfig
@@ -566,7 +566,7 @@ func (mq *ModuleQuery) loadApplicationModuleRelationships(ctx context.Context, q
 		fk := n.ModuleID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "module_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected foreign-key "module_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

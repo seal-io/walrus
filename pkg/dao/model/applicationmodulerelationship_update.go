@@ -118,15 +118,9 @@ func (amru *ApplicationModuleRelationshipUpdate) sqlSave(ctx context.Context) (n
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationmodulerelationship.Table,
 			Columns: applicationmodulerelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldApplicationID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldModuleID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
 			},
 		},
 	}
@@ -261,35 +255,27 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) sqlSave(ctx context.Context
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationmodulerelationship.Table,
 			Columns: applicationmodulerelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldApplicationID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldModuleID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
 			},
 		},
 	}
-	if id, ok := amruo.mutation.ApplicationID(); !ok {
-		return nil, &ValidationError{Name: "application_id", err: errors.New(`model: missing "ApplicationModuleRelationship.application_id" for update`)}
-	} else {
-		_spec.Node.CompositeID[0].Value = id
+	id, ok := amruo.mutation.ID()
+	if !ok {
+		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ApplicationModuleRelationship.id" for update`)}
 	}
-	if id, ok := amruo.mutation.ModuleID(); !ok {
-		return nil, &ValidationError{Name: "module_id", err: errors.New(`model: missing "ApplicationModuleRelationship.module_id" for update`)}
-	} else {
-		_spec.Node.CompositeID[1].Value = id
-	}
+	_spec.Node.ID.Value = id
 	if fields := amruo.fields; len(fields) > 0 {
-		_spec.Node.Columns = make([]string, len(fields))
-		for i, f := range fields {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, applicationmodulerelationship.FieldID)
+		for _, f := range fields {
 			if !applicationmodulerelationship.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("model: invalid field %q for query", f)}
 			}
-			_spec.Node.Columns[i] = f
+			if f != applicationmodulerelationship.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
 		}
 	}
 	if ps := amruo.mutation.predicates; len(ps) > 0 {

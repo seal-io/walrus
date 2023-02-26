@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -73,12 +72,6 @@ func (aru *ApplicationRevisionUpdate) SetNillableStatusMessage(s *string) *Appli
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (aru *ApplicationRevisionUpdate) ClearStatusMessage() *ApplicationRevisionUpdate {
 	aru.mutation.ClearStatusMessage()
-	return aru
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (aru *ApplicationRevisionUpdate) SetUpdateTime(t time.Time) *ApplicationRevisionUpdate {
-	aru.mutation.SetUpdateTime(t)
 	return aru
 }
 
@@ -154,9 +147,6 @@ func (aru *ApplicationRevisionUpdate) Mutation() *ApplicationRevisionMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (aru *ApplicationRevisionUpdate) Save(ctx context.Context) (int, error) {
-	if err := aru.defaults(); err != nil {
-		return 0, err
-	}
 	return withHooks[int, ApplicationRevisionMutation](ctx, aru.sqlSave, aru.mutation, aru.hooks)
 }
 
@@ -180,18 +170,6 @@ func (aru *ApplicationRevisionUpdate) ExecX(ctx context.Context) {
 	if err := aru.Exec(ctx); err != nil {
 		panic(err)
 	}
-}
-
-// defaults sets the default values of the builder before save.
-func (aru *ApplicationRevisionUpdate) defaults() error {
-	if _, ok := aru.mutation.UpdateTime(); !ok {
-		if applicationrevision.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized applicationrevision.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := applicationrevision.UpdateDefaultUpdateTime()
-		aru.mutation.SetUpdateTime(v)
-	}
-	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -243,9 +221,6 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 	}
 	if aru.mutation.StatusMessageCleared() {
 		_spec.ClearField(applicationrevision.FieldStatusMessage, field.TypeString)
-	}
-	if value, ok := aru.mutation.UpdateTime(); ok {
-		_spec.SetField(applicationrevision.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := aru.mutation.Modules(); ok {
 		_spec.SetField(applicationrevision.FieldModules, field.TypeJSON, value)
@@ -337,12 +312,6 @@ func (aruo *ApplicationRevisionUpdateOne) ClearStatusMessage() *ApplicationRevis
 	return aruo
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (aruo *ApplicationRevisionUpdateOne) SetUpdateTime(t time.Time) *ApplicationRevisionUpdateOne {
-	aruo.mutation.SetUpdateTime(t)
-	return aruo
-}
-
 // SetModules sets the "modules" field.
 func (aruo *ApplicationRevisionUpdateOne) SetModules(tm []types.ApplicationModule) *ApplicationRevisionUpdateOne {
 	aruo.mutation.SetModules(tm)
@@ -422,9 +391,6 @@ func (aruo *ApplicationRevisionUpdateOne) Select(field string, fields ...string)
 
 // Save executes the query and returns the updated ApplicationRevision entity.
 func (aruo *ApplicationRevisionUpdateOne) Save(ctx context.Context) (*ApplicationRevision, error) {
-	if err := aruo.defaults(); err != nil {
-		return nil, err
-	}
 	return withHooks[*ApplicationRevision, ApplicationRevisionMutation](ctx, aruo.sqlSave, aruo.mutation, aruo.hooks)
 }
 
@@ -448,18 +414,6 @@ func (aruo *ApplicationRevisionUpdateOne) ExecX(ctx context.Context) {
 	if err := aruo.Exec(ctx); err != nil {
 		panic(err)
 	}
-}
-
-// defaults sets the default values of the builder before save.
-func (aruo *ApplicationRevisionUpdateOne) defaults() error {
-	if _, ok := aruo.mutation.UpdateTime(); !ok {
-		if applicationrevision.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized applicationrevision.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := applicationrevision.UpdateDefaultUpdateTime()
-		aruo.mutation.SetUpdateTime(v)
-	}
-	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -528,9 +482,6 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if aruo.mutation.StatusMessageCleared() {
 		_spec.ClearField(applicationrevision.FieldStatusMessage, field.TypeString)
-	}
-	if value, ok := aruo.mutation.UpdateTime(); ok {
-		_spec.SetField(applicationrevision.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := aruo.mutation.Modules(); ok {
 		_spec.SetField(applicationrevision.FieldModules, field.TypeJSON, value)

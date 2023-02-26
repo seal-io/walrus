@@ -22,6 +22,8 @@ import (
 // ApplicationModuleRelationship is the model entity for the ApplicationModuleRelationship schema.
 type ApplicationModuleRelationship struct {
 	config `json:"-"`
+	// ID of the ent.
+	ID int `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -83,6 +85,8 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 		switch columns[i] {
 		case applicationmodulerelationship.FieldVariables:
 			values[i] = new([]byte)
+		case applicationmodulerelationship.FieldID:
+			values[i] = new(sql.NullInt64)
 		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationmodulerelationship.FieldCreateTime, applicationmodulerelationship.FieldUpdateTime:
@@ -104,6 +108,12 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 	}
 	for i := range columns {
 		switch columns[i] {
+		case applicationmodulerelationship.FieldID:
+			value, ok := values[i].(*sql.NullInt64)
+			if !ok {
+				return fmt.Errorf("unexpected type %T for field id", value)
+			}
+			amr.ID = int(value.Int64)
 		case applicationmodulerelationship.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -181,6 +191,7 @@ func (amr *ApplicationModuleRelationship) Unwrap() *ApplicationModuleRelationshi
 func (amr *ApplicationModuleRelationship) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationModuleRelationship(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", amr.ID))
 	if v := amr.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))

@@ -76,11 +76,6 @@ func CreateTime(v time.Time) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldCreateTime, v))
 }
 
-// UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
-func UpdateTime(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldEQ(FieldUpdateTime, v))
-}
-
 // ApplicationID applies equality check predicate on the "applicationID" field. It's identical to ApplicationIDEQ.
 func ApplicationID(v types.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldApplicationID, v))
@@ -299,46 +294,6 @@ func CreateTimeLT(v time.Time) predicate.ApplicationRevision {
 // CreateTimeLTE applies the LTE predicate on the "createTime" field.
 func CreateTimeLTE(v time.Time) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldCreateTime, v))
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
-func UpdateTimeEQ(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
-func UpdateTimeNEQ(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldNEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeIn applies the In predicate on the "updateTime" field.
-func UpdateTimeIn(vs ...time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldNotIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeGT applies the GT predicate on the "updateTime" field.
-func UpdateTimeGT(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldGT(FieldUpdateTime, v))
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
-func UpdateTimeGTE(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldGTE(FieldUpdateTime, v))
-}
-
-// UpdateTimeLT applies the LT predicate on the "updateTime" field.
-func UpdateTimeLT(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldLT(FieldUpdateTime, v))
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
-func UpdateTimeLTE(v time.Time) predicate.ApplicationRevision {
-	return predicate.ApplicationRevision(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // ApplicationIDEQ applies the EQ predicate on the "applicationID" field.

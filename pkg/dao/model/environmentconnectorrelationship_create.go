@@ -147,6 +147,10 @@ func (ecrc *EnvironmentConnectorRelationshipCreate) sqlSave(ctx context.Context)
 		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
+	ecrc.mutation.id = &_node.ID
+	ecrc.mutation.done = true
 	return _node, nil
 }
 
@@ -155,6 +159,10 @@ func (ecrc *EnvironmentConnectorRelationshipCreate) createSpec() (*EnvironmentCo
 		_node = &EnvironmentConnectorRelationship{config: ecrc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: environmentconnectorrelationship.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: environmentconnectorrelationship.FieldID,
+			},
 		}
 	)
 	_spec.Schema = ecrc.schemaConfig.EnvironmentConnectorRelationship
@@ -323,6 +331,24 @@ func (u *EnvironmentConnectorRelationshipUpsertOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EnvironmentConnectorRelationshipUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EnvironmentConnectorRelationshipUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EnvironmentConnectorRelationshipCreateBulk is the builder for creating many EnvironmentConnectorRelationship entities in bulk.
 type EnvironmentConnectorRelationshipCreateBulk struct {
 	config
@@ -364,6 +390,11 @@ func (ecrcb *EnvironmentConnectorRelationshipCreateBulk) Save(ctx context.Contex
 				}
 				if err != nil {
 					return nil, err
+				}
+				mutation.id = &nodes[i].ID
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

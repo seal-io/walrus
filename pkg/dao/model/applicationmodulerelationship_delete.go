@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -47,6 +48,10 @@ func (amrd *ApplicationModuleRelationshipDelete) sqlExec(ctx context.Context) (i
 	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: applicationmodulerelationship.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
+			},
 		},
 	}
 	_spec.Node.Schema = amrd.schemaConfig.ApplicationModuleRelationship

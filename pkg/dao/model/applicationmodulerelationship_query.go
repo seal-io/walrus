@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
@@ -80,7 +81,7 @@ func (amrq *ApplicationModuleRelationshipQuery) QueryApplication() *ApplicationQ
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.ApplicationColumn, selector),
+			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, selector),
 			sqlgraph.To(application.Table, application.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ApplicationTable, applicationmodulerelationship.ApplicationColumn),
 		)
@@ -105,7 +106,7 @@ func (amrq *ApplicationModuleRelationshipQuery) QueryModule() *ModuleQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.ModuleColumn, selector),
+			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, selector),
 			sqlgraph.To(module.Table, module.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ModuleTable, applicationmodulerelationship.ModuleColumn),
 		)
@@ -140,6 +141,29 @@ func (amrq *ApplicationModuleRelationshipQuery) FirstX(ctx context.Context) *App
 	return node
 }
 
+// FirstID returns the first ApplicationModuleRelationship ID from the query.
+// Returns a *NotFoundError when no ApplicationModuleRelationship ID was found.
+func (amrq *ApplicationModuleRelationshipQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
+	if ids, err = amrq.Limit(1).IDs(setContextOp(ctx, amrq.ctx, "FirstID")); err != nil {
+		return
+	}
+	if len(ids) == 0 {
+		err = &NotFoundError{applicationmodulerelationship.Label}
+		return
+	}
+	return ids[0], nil
+}
+
+// FirstIDX is like FirstID, but panics if an error occurs.
+func (amrq *ApplicationModuleRelationshipQuery) FirstIDX(ctx context.Context) int {
+	id, err := amrq.FirstID(ctx)
+	if err != nil && !IsNotFound(err) {
+		panic(err)
+	}
+	return id
+}
+
 // Only returns a single ApplicationModuleRelationship entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ApplicationModuleRelationship entity is found.
 // Returns a *NotFoundError when no ApplicationModuleRelationship entities are found.
@@ -167,6 +191,34 @@ func (amrq *ApplicationModuleRelationshipQuery) OnlyX(ctx context.Context) *Appl
 	return node
 }
 
+// OnlyID is like Only, but returns the only ApplicationModuleRelationship ID in the query.
+// Returns a *NotSingularError when more than one ApplicationModuleRelationship ID is found.
+// Returns a *NotFoundError when no entities are found.
+func (amrq *ApplicationModuleRelationshipQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
+	if ids, err = amrq.Limit(2).IDs(setContextOp(ctx, amrq.ctx, "OnlyID")); err != nil {
+		return
+	}
+	switch len(ids) {
+	case 1:
+		id = ids[0]
+	case 0:
+		err = &NotFoundError{applicationmodulerelationship.Label}
+	default:
+		err = &NotSingularError{applicationmodulerelationship.Label}
+	}
+	return
+}
+
+// OnlyIDX is like OnlyID, but panics if an error occurs.
+func (amrq *ApplicationModuleRelationshipQuery) OnlyIDX(ctx context.Context) int {
+	id, err := amrq.OnlyID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // All executes the query and returns a list of ApplicationModuleRelationships.
 func (amrq *ApplicationModuleRelationshipQuery) All(ctx context.Context) ([]*ApplicationModuleRelationship, error) {
 	ctx = setContextOp(ctx, amrq.ctx, "All")
@@ -184,6 +236,25 @@ func (amrq *ApplicationModuleRelationshipQuery) AllX(ctx context.Context) []*App
 		panic(err)
 	}
 	return nodes
+}
+
+// IDs executes the query and returns a list of ApplicationModuleRelationship IDs.
+func (amrq *ApplicationModuleRelationshipQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
+	ctx = setContextOp(ctx, amrq.ctx, "IDs")
+	if err := amrq.Select(applicationmodulerelationship.FieldID).Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// IDsX is like IDs, but panics if an error occurs.
+func (amrq *ApplicationModuleRelationshipQuery) IDsX(ctx context.Context) []int {
+	ids, err := amrq.IDs(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return ids
 }
 
 // Count returns the count of the given query.
@@ -207,7 +278,7 @@ func (amrq *ApplicationModuleRelationshipQuery) CountX(ctx context.Context) int 
 // Exist returns true if the query has elements in the graph.
 func (amrq *ApplicationModuleRelationshipQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, amrq.ctx, "Exist")
-	switch _, err := amrq.First(ctx); {
+	switch _, err := amrq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -455,8 +526,10 @@ func (amrq *ApplicationModuleRelationshipQuery) sqlCount(ctx context.Context) (i
 	if len(amrq.modifiers) > 0 {
 		_spec.Modifiers = amrq.modifiers
 	}
-	_spec.Unique = false
-	_spec.Node.Columns = nil
+	_spec.Node.Columns = amrq.ctx.Fields
+	if len(amrq.ctx.Fields) > 0 {
+		_spec.Unique = amrq.ctx.Unique != nil && *amrq.ctx.Unique
+	}
 	return sqlgraph.CountNodes(ctx, amrq.driver, _spec)
 }
 
@@ -465,6 +538,10 @@ func (amrq *ApplicationModuleRelationshipQuery) querySpec() *sqlgraph.QuerySpec 
 		Node: &sqlgraph.NodeSpec{
 			Table:   applicationmodulerelationship.Table,
 			Columns: applicationmodulerelationship.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
+			},
 		},
 		From:   amrq.sql,
 		Unique: true,
@@ -474,8 +551,11 @@ func (amrq *ApplicationModuleRelationshipQuery) querySpec() *sqlgraph.QuerySpec 
 	}
 	if fields := amrq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, applicationmodulerelationship.FieldID)
 		for i := range fields {
-			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+			if fields[i] != applicationmodulerelationship.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+			}
 		}
 	}
 	if ps := amrq.predicates; len(ps) > 0 {

@@ -635,7 +635,7 @@ func HasApplicationModuleRelationshipsWith(preds ...predicate.ApplicationModuleR
 	return predicate.Application(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationModuleRelationshipsInverseTable, ApplicationModuleRelationshipsColumn),
+			sqlgraph.To(ApplicationModuleRelationshipsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationModuleRelationshipsTable, ApplicationModuleRelationshipsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())

@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -150,6 +151,21 @@ func (mc *ModuleCreate) AddApplication(a ...*Application) *ModuleCreate {
 		ids[i] = a[i].ID
 	}
 	return mc.AddApplicationIDs(ids...)
+}
+
+// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
+func (mc *ModuleCreate) AddApplicationModuleRelationshipIDs(ids ...int) *ModuleCreate {
+	mc.mutation.AddApplicationModuleRelationshipIDs(ids...)
+	return mc
+}
+
+// AddApplicationModuleRelationships adds the "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
+func (mc *ModuleCreate) AddApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return mc.AddApplicationModuleRelationshipIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
@@ -333,6 +349,26 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.ApplicationModuleRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   module.ApplicationModuleRelationshipsTable,
+			Columns: []string{module.ApplicationModuleRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: applicationmodulerelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = mc.schemaConfig.ApplicationModuleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

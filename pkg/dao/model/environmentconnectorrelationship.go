@@ -21,6 +21,8 @@ import (
 // EnvironmentConnectorRelationship is the model entity for the EnvironmentConnectorRelationship schema.
 type EnvironmentConnectorRelationship struct {
 	config `json:"-"`
+	// ID of the ent.
+	ID int `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// ID of the environment to which the relationship connects.
@@ -74,6 +76,8 @@ func (*EnvironmentConnectorRelationship) scanValues(columns []string) ([]any, er
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case environmentconnectorrelationship.FieldID:
+			values[i] = new(sql.NullInt64)
 		case environmentconnectorrelationship.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		case environmentconnectorrelationship.FieldEnvironmentID, environmentconnectorrelationship.FieldConnectorID:
@@ -93,6 +97,12 @@ func (ecr *EnvironmentConnectorRelationship) assignValues(columns []string, valu
 	}
 	for i := range columns {
 		switch columns[i] {
+		case environmentconnectorrelationship.FieldID:
+			value, ok := values[i].(*sql.NullInt64)
+			if !ok {
+				return fmt.Errorf("unexpected type %T for field id", value)
+			}
+			ecr.ID = int(value.Int64)
 		case environmentconnectorrelationship.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -149,6 +159,7 @@ func (ecr *EnvironmentConnectorRelationship) Unwrap() *EnvironmentConnectorRelat
 func (ecr *EnvironmentConnectorRelationship) String() string {
 	var builder strings.Builder
 	builder.WriteString("EnvironmentConnectorRelationship(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", ecr.ID))
 	if v := ecr.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))

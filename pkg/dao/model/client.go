@@ -561,7 +561,7 @@ func (c *ApplicationClient) QueryApplicationModuleRelationships(a *Application) 
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ApplicationColumn),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, application.ApplicationModuleRelationshipsTable, application.ApplicationModuleRelationshipsColumn),
 		)
 		schemaConfig := a.schemaConfig
@@ -640,9 +640,13 @@ func (c *ApplicationModuleRelationshipClient) Update() *ApplicationModuleRelatio
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ApplicationModuleRelationshipClient) UpdateOne(amr *ApplicationModuleRelationship) *ApplicationModuleRelationshipUpdateOne {
-	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne)
-	mutation.application = &amr.ApplicationID
-	mutation.module = &amr.ModuleID
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne, withApplicationModuleRelationship(amr))
+	return &ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationModuleRelationshipClient) UpdateOneID(id int) *ApplicationModuleRelationshipUpdateOne {
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne, withApplicationModuleRelationshipID(id))
 	return &ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -650,6 +654,19 @@ func (c *ApplicationModuleRelationshipClient) UpdateOne(amr *ApplicationModuleRe
 func (c *ApplicationModuleRelationshipClient) Delete() *ApplicationModuleRelationshipDelete {
 	mutation := newApplicationModuleRelationshipMutation(c.config, OpDelete)
 	return &ApplicationModuleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationModuleRelationshipClient) DeleteOne(amr *ApplicationModuleRelationship) *ApplicationModuleRelationshipDeleteOne {
+	return c.DeleteOneID(amr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationModuleRelationshipClient) DeleteOneID(id int) *ApplicationModuleRelationshipDeleteOne {
+	builder := c.Delete().Where(applicationmodulerelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationModuleRelationshipDeleteOne{builder}
 }
 
 // Query returns a query builder for ApplicationModuleRelationship.
@@ -661,18 +678,56 @@ func (c *ApplicationModuleRelationshipClient) Query() *ApplicationModuleRelation
 	}
 }
 
+// Get returns a ApplicationModuleRelationship entity by its id.
+func (c *ApplicationModuleRelationshipClient) Get(ctx context.Context, id int) (*ApplicationModuleRelationship, error) {
+	return c.Query().Where(applicationmodulerelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationModuleRelationshipClient) GetX(ctx context.Context, id int) *ApplicationModuleRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
 // QueryApplication queries the application edge of a ApplicationModuleRelationship.
 func (c *ApplicationModuleRelationshipClient) QueryApplication(amr *ApplicationModuleRelationship) *ApplicationQuery {
-	return c.Query().
-		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID)).
-		QueryApplication()
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := amr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ApplicationTable, applicationmodulerelationship.ApplicationColumn),
+		)
+		schemaConfig := amr.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(amr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryModule queries the module edge of a ApplicationModuleRelationship.
 func (c *ApplicationModuleRelationshipClient) QueryModule(amr *ApplicationModuleRelationship) *ModuleQuery {
-	return c.Query().
-		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID)).
-		QueryModule()
+	query := (&ModuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := amr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ModuleTable, applicationmodulerelationship.ModuleColumn),
+		)
+		schemaConfig := amr.schemaConfig
+		step.To.Schema = schemaConfig.Module
+		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromV = sqlgraph.Neighbors(amr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1152,7 +1207,7 @@ func (c *ConnectorClient) QueryEnvironmentConnectorRelationships(co *Connector) 
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.ConnectorColumn),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentConnectorRelationshipsTable, connector.EnvironmentConnectorRelationshipsColumn),
 		)
 		schemaConfig := co.schemaConfig
@@ -1347,7 +1402,7 @@ func (c *EnvironmentClient) QueryEnvironmentConnectorRelationships(e *Environmen
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.EnvironmentColumn),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, environment.EnvironmentConnectorRelationshipsTable, environment.EnvironmentConnectorRelationshipsColumn),
 		)
 		schemaConfig := e.schemaConfig
@@ -1426,9 +1481,13 @@ func (c *EnvironmentConnectorRelationshipClient) Update() *EnvironmentConnectorR
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EnvironmentConnectorRelationshipClient) UpdateOne(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipUpdateOne {
-	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne)
-	mutation.environment = &ecr.EnvironmentID
-	mutation.connector = &ecr.ConnectorID
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne, withEnvironmentConnectorRelationship(ecr))
+	return &EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnvironmentConnectorRelationshipClient) UpdateOneID(id int) *EnvironmentConnectorRelationshipUpdateOne {
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne, withEnvironmentConnectorRelationshipID(id))
 	return &EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1436,6 +1495,19 @@ func (c *EnvironmentConnectorRelationshipClient) UpdateOne(ecr *EnvironmentConne
 func (c *EnvironmentConnectorRelationshipClient) Delete() *EnvironmentConnectorRelationshipDelete {
 	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpDelete)
 	return &EnvironmentConnectorRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnvironmentConnectorRelationshipClient) DeleteOne(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipDeleteOne {
+	return c.DeleteOneID(ecr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnvironmentConnectorRelationshipClient) DeleteOneID(id int) *EnvironmentConnectorRelationshipDeleteOne {
+	builder := c.Delete().Where(environmentconnectorrelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnvironmentConnectorRelationshipDeleteOne{builder}
 }
 
 // Query returns a query builder for EnvironmentConnectorRelationship.
@@ -1447,18 +1519,56 @@ func (c *EnvironmentConnectorRelationshipClient) Query() *EnvironmentConnectorRe
 	}
 }
 
+// Get returns a EnvironmentConnectorRelationship entity by its id.
+func (c *EnvironmentConnectorRelationshipClient) Get(ctx context.Context, id int) (*EnvironmentConnectorRelationship, error) {
+	return c.Query().Where(environmentconnectorrelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnvironmentConnectorRelationshipClient) GetX(ctx context.Context, id int) *EnvironmentConnectorRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
 // QueryEnvironment queries the environment edge of a EnvironmentConnectorRelationship.
 func (c *EnvironmentConnectorRelationshipClient) QueryEnvironment(ecr *EnvironmentConnectorRelationship) *EnvironmentQuery {
-	return c.Query().
-		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
-		QueryEnvironment()
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ecr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.EnvironmentTable, environmentconnectorrelationship.EnvironmentColumn),
+		)
+		schemaConfig := ecr.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(ecr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryConnector queries the connector edge of a EnvironmentConnectorRelationship.
 func (c *EnvironmentConnectorRelationshipClient) QueryConnector(ecr *EnvironmentConnectorRelationship) *ConnectorQuery {
-	return c.Query().
-		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
-		QueryConnector()
+	query := (&ConnectorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ecr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, id),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.ConnectorTable, environmentconnectorrelationship.ConnectorColumn),
+		)
+		schemaConfig := ecr.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
+		fromV = sqlgraph.Neighbors(ecr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1605,7 +1715,7 @@ func (c *ModuleClient) QueryApplicationModuleRelationships(m *Module) *Applicati
 		id := m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(module.Table, module.FieldID, id),
-			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ModuleColumn),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, module.ApplicationModuleRelationshipsTable, module.ApplicationModuleRelationshipsColumn),
 		)
 		schemaConfig := m.schemaConfig

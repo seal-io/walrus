@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -140,6 +141,21 @@ func (ec *EnvironmentCreate) AddRevisions(a ...*ApplicationRevision) *Environmen
 		ids[i] = a[i].ID
 	}
 	return ec.AddRevisionIDs(ids...)
+}
+
+// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
+func (ec *EnvironmentCreate) AddEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentCreate {
+	ec.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
+	return ec
+}
+
+// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (ec *EnvironmentCreate) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ec.AddEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -345,6 +361,26 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = ec.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = ec.schemaConfig.EnvironmentConnectorRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
