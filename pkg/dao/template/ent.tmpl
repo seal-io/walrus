@@ -7,46 +7,4 @@
 		// It does not store in the database and only shows up after created.
         AccessToken string `json:"accessToken,omitempty"`
     {{- end }}
-
-	{{- /* Add fields to the "Environment" entity. */}}
-    {{- if eq $.Name "Environment" -}}
-        // [EXTENSION] Connectors is the collection of the related connectors.
-        // It does not store in the database and only uses for creating or updating.
-        Connectors []*Connector `json:"connectors,omitempty"`
-    {{- end }}
-{{- end }}
-
-{{- define "model/additional/jsonencode" -}}
-{{- if $.Edges }}
-    {{- /* Add jsonencode to the "Environment" entity. */}}
-    {{- if eq $.Name "Environment" }}
-        // MarshalJSON implements the json.Marshaler interface.
-        func ({{ $.Receiver }} *{{ $.Name }}) MarshalJSON() ([]byte, error) {
-            type Alias {{ $.Name }}
-            // mutate `.Edges.EnvironmentConnectorRelationships` to `.Connectors`.
-            if len({{ $.Receiver }}.Edges.EnvironmentConnectorRelationships) != 0 {
-                for _, r := range {{ $.Receiver }}.Edges.EnvironmentConnectorRelationships {
-					if r == nil {
-						continue
-					}
-                    {{ $.Receiver }}.Connectors = append({{ $.Receiver }}.Connectors,
-                        &Connector{
-                            ID: r.ConnectorID,
-                        })
-                }
-                {{ $.Receiver }}.Edges.EnvironmentConnectorRelationships = nil // release
-            }
-            // mutate `.Edges.Connectors` to `.Connectors`.
-            if len({{ $.Receiver }}.Edges.Connectors) != 0 {
-                {{ $.Receiver }}.Connectors = {{ $.Receiver }}.Edges.Connectors
-                {{ $.Receiver }}.Edges.Connectors = nil // release
-            }
-            return json.Marshal(&struct {
-                *Alias `json:",inline"`
-			}{
-                Alias: (*Alias)({{ $.Receiver }}),
-            })
-        }
-	{{- end }}
-{{- end }}
 {{- end }}
