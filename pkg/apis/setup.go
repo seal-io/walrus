@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/account"
+	"github.com/seal-io/seal/pkg/apis/application"
 	"github.com/seal-io/seal/pkg/apis/applicationresource"
 	"github.com/seal-io/seal/pkg/apis/applicationrevision"
 	"github.com/seal-io/seal/pkg/apis/auth"
@@ -73,6 +74,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
+		runtime.MustRouteResource(r, application.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
 			applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))

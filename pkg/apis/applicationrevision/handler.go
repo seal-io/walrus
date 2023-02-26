@@ -51,7 +51,7 @@ func (h Handler) Get(ctx *gin.Context, req view.IDRequest) (view.GetResponse, er
 
 var (
 	getFields  = applicationrevision.Columns
-	sortFields = []string{applicationrevision.FieldCreateTime, applicationrevision.FieldUpdateTime}
+	sortFields = []string{applicationrevision.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
