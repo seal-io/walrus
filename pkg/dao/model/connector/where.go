@@ -861,7 +861,7 @@ func HasEnvironmentConnectorRelationshipsWith(preds ...predicate.EnvironmentConn
 	return predicate.Connector(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(EnvironmentConnectorRelationshipsInverseTable, EnvironmentConnectorRelationshipsColumn),
+			sqlgraph.To(EnvironmentConnectorRelationshipsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, EnvironmentConnectorRelationshipsTable, EnvironmentConnectorRelationshipsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())

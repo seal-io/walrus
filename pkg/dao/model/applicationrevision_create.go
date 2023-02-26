@@ -72,20 +72,6 @@ func (arc *ApplicationRevisionCreate) SetNillableCreateTime(t *time.Time) *Appli
 	return arc
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (arc *ApplicationRevisionCreate) SetUpdateTime(t time.Time) *ApplicationRevisionCreate {
-	arc.mutation.SetUpdateTime(t)
-	return arc
-}
-
-// SetNillableUpdateTime sets the "updateTime" field if the given value is not nil.
-func (arc *ApplicationRevisionCreate) SetNillableUpdateTime(t *time.Time) *ApplicationRevisionCreate {
-	if t != nil {
-		arc.SetUpdateTime(*t)
-	}
-	return arc
-}
-
 // SetApplicationID sets the "applicationID" field.
 func (arc *ApplicationRevisionCreate) SetApplicationID(t types.ID) *ApplicationRevisionCreate {
 	arc.mutation.SetApplicationID(t)
@@ -210,13 +196,6 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultCreateTime()
 		arc.mutation.SetCreateTime(v)
 	}
-	if _, ok := arc.mutation.UpdateTime(); !ok {
-		if applicationrevision.DefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized applicationrevision.DefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := applicationrevision.DefaultUpdateTime()
-		arc.mutation.SetUpdateTime(v)
-	}
 	if _, ok := arc.mutation.Modules(); !ok {
 		v := applicationrevision.DefaultModules
 		arc.mutation.SetModules(v)
@@ -240,9 +219,6 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ApplicationRevision.createTime"`)}
-	}
-	if _, ok := arc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "ApplicationRevision.updateTime"`)}
 	}
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "applicationID", err: errors.New(`model: missing required field "ApplicationRevision.applicationID"`)}
@@ -338,10 +314,6 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.CreateTime(); ok {
 		_spec.SetField(applicationrevision.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
-	}
-	if value, ok := arc.mutation.UpdateTime(); ok {
-		_spec.SetField(applicationrevision.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = &value
 	}
 	if value, ok := arc.mutation.Modules(); ok {
 		_spec.SetField(applicationrevision.FieldModules, field.TypeJSON, value)
@@ -494,18 +466,6 @@ func (u *ApplicationRevisionUpsert) UpdateStatusMessage() *ApplicationRevisionUp
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (u *ApplicationRevisionUpsert) ClearStatusMessage() *ApplicationRevisionUpsert {
 	u.SetNull(applicationrevision.FieldStatusMessage)
-	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationRevisionUpsert) SetUpdateTime(v time.Time) *ApplicationRevisionUpsert {
-	u.Set(applicationrevision.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationRevisionUpsert) UpdateUpdateTime() *ApplicationRevisionUpsert {
-	u.SetExcluded(applicationrevision.FieldUpdateTime)
 	return u
 }
 
@@ -683,20 +643,6 @@ func (u *ApplicationRevisionUpsertOne) UpdateStatusMessage() *ApplicationRevisio
 func (u *ApplicationRevisionUpsertOne) ClearStatusMessage() *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationRevisionUpsertOne) SetUpdateTime(v time.Time) *ApplicationRevisionUpsertOne {
-	return u.Update(func(s *ApplicationRevisionUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationRevisionUpsertOne) UpdateUpdateTime() *ApplicationRevisionUpsertOne {
-	return u.Update(func(s *ApplicationRevisionUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -1050,20 +996,6 @@ func (u *ApplicationRevisionUpsertBulk) UpdateStatusMessage() *ApplicationRevisi
 func (u *ApplicationRevisionUpsertBulk) ClearStatusMessage() *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationRevisionUpsertBulk) SetUpdateTime(v time.Time) *ApplicationRevisionUpsertBulk {
-	return u.Update(func(s *ApplicationRevisionUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationRevisionUpsertBulk) UpdateUpdateTime() *ApplicationRevisionUpsertBulk {
-	return u.Update(func(s *ApplicationRevisionUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

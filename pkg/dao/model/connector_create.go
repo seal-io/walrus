@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -198,6 +199,21 @@ func (cc *ConnectorCreate) AddResources(a ...*ApplicationResource) *ConnectorCre
 		ids[i] = a[i].ID
 	}
 	return cc.AddResourceIDs(ids...)
+}
+
+// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
+func (cc *ConnectorCreate) AddEnvironmentConnectorRelationshipIDs(ids ...int) *ConnectorCreate {
+	cc.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
+	return cc
+}
+
+// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (cc *ConnectorCreate) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *ConnectorCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cc.AddEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -437,6 +453,26 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = cc.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   connector.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{connector.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = cc.schemaConfig.EnvironmentConnectorRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

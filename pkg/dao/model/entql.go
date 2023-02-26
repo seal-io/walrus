@@ -54,15 +54,9 @@ var schemaGraph = func() *sqlgraph.Schema {
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   applicationmodulerelationship.Table,
 			Columns: applicationmodulerelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldApplicationID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: applicationmodulerelationship.FieldModuleID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
 			},
 		},
 		Type: "ApplicationModuleRelationship",
@@ -112,7 +106,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 			applicationrevision.FieldStatus:         {Type: field.TypeString, Column: applicationrevision.FieldStatus},
 			applicationrevision.FieldStatusMessage:  {Type: field.TypeString, Column: applicationrevision.FieldStatusMessage},
 			applicationrevision.FieldCreateTime:     {Type: field.TypeTime, Column: applicationrevision.FieldCreateTime},
-			applicationrevision.FieldUpdateTime:     {Type: field.TypeTime, Column: applicationrevision.FieldUpdateTime},
 			applicationrevision.FieldApplicationID:  {Type: field.TypeString, Column: applicationrevision.FieldApplicationID},
 			applicationrevision.FieldEnvironmentID:  {Type: field.TypeString, Column: applicationrevision.FieldEnvironmentID},
 			applicationrevision.FieldModules:        {Type: field.TypeJSON, Column: applicationrevision.FieldModules},
@@ -172,15 +165,9 @@ var schemaGraph = func() *sqlgraph.Schema {
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   environmentconnectorrelationship.Table,
 			Columns: environmentconnectorrelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldEnvironmentID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldConnectorID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: environmentconnectorrelationship.FieldID,
 			},
 		},
 		Type: "EnvironmentConnectorRelationship",
@@ -805,6 +792,11 @@ func (f *ApplicationModuleRelationshipFilter) Where(p entql.P) {
 	})
 }
 
+// WhereID applies the entql int predicate on the id field.
+func (f *ApplicationModuleRelationshipFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(applicationmodulerelationship.FieldID))
+}
+
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.
 func (f *ApplicationModuleRelationshipFilter) WhereCreateTime(p entql.TimeP) {
 	f.Where(p.Field(applicationmodulerelationship.FieldCreateTime))
@@ -1034,11 +1026,6 @@ func (f *ApplicationRevisionFilter) WhereStatusMessage(p entql.StringP) {
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.
 func (f *ApplicationRevisionFilter) WhereCreateTime(p entql.TimeP) {
 	f.Where(p.Field(applicationrevision.FieldCreateTime))
-}
-
-// WhereUpdateTime applies the entql time.Time predicate on the updateTime field.
-func (f *ApplicationRevisionFilter) WhereUpdateTime(p entql.TimeP) {
-	f.Where(p.Field(applicationrevision.FieldUpdateTime))
 }
 
 // WhereApplicationID applies the entql string predicate on the applicationID field.
@@ -1415,6 +1402,11 @@ func (f *EnvironmentConnectorRelationshipFilter) Where(p entql.P) {
 			s.AddError(err)
 		}
 	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *EnvironmentConnectorRelationshipFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(environmentconnectorrelationship.FieldID))
 }
 
 // WhereCreateTime applies the entql time.Time predicate on the createTime field.

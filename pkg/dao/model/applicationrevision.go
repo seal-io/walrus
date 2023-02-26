@@ -30,8 +30,6 @@ type ApplicationRevision struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the revision belongs.
 	ApplicationID types.ID `json:"applicationID"`
 	// ID of the environment to which the application deploys.
@@ -101,7 +99,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case applicationrevision.FieldStatus, applicationrevision.FieldStatusMessage, applicationrevision.FieldInputPlan, applicationrevision.FieldOutput, applicationrevision.FieldDeployerType:
 			values[i] = new(sql.NullString)
-		case applicationrevision.FieldCreateTime, applicationrevision.FieldUpdateTime:
+		case applicationrevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		case applicationrevision.FieldID, applicationrevision.FieldApplicationID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(types.ID)
@@ -144,13 +142,6 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.CreateTime = new(time.Time)
 				*ar.CreateTime = value.Time
-			}
-		case applicationrevision.FieldUpdateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updateTime", values[i])
-			} else if value.Valid {
-				ar.UpdateTime = new(time.Time)
-				*ar.UpdateTime = value.Time
 			}
 		case applicationrevision.FieldApplicationID:
 			if value, ok := values[i].(*types.ID); !ok {
@@ -250,11 +241,6 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString(", ")
 	if v := ar.CreateTime; v != nil {
 		builder.WriteString("createTime=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	if v := ar.UpdateTime; v != nil {
-		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

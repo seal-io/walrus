@@ -143,12 +143,6 @@ func init() {
 	applicationrevisionDescCreateTime := applicationrevisionMixinFields2[0].Descriptor()
 	// applicationrevision.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationrevision.DefaultCreateTime = applicationrevisionDescCreateTime.Default.(func() time.Time)
-	// applicationrevisionDescUpdateTime is the schema descriptor for updateTime field.
-	applicationrevisionDescUpdateTime := applicationrevisionMixinFields2[1].Descriptor()
-	// applicationrevision.DefaultUpdateTime holds the default value on creation for the updateTime field.
-	applicationrevision.DefaultUpdateTime = applicationrevisionDescUpdateTime.Default.(func() time.Time)
-	// applicationrevision.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
-	applicationrevision.UpdateDefaultUpdateTime = applicationrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
 	// applicationrevisionDescApplicationID is the schema descriptor for applicationID field.
 	applicationrevisionDescApplicationID := applicationrevisionFields[0].Descriptor()
 	// applicationrevision.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.

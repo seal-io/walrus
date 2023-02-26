@@ -24,8 +24,6 @@ const (
 	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the updatetime field in the database.
-	FieldUpdateTime = "update_time"
 	// FieldApplicationID holds the string denoting the applicationid field in the database.
 	FieldApplicationID = "application_id"
 	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
@@ -70,7 +68,6 @@ var Columns = []string{
 	FieldStatus,
 	FieldStatusMessage,
 	FieldCreateTime,
-	FieldUpdateTime,
 	FieldApplicationID,
 	FieldEnvironmentID,
 	FieldModules,
@@ -100,10 +97,6 @@ var (
 	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
-	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
-	DefaultUpdateTime func() time.Time
-	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
-	UpdateDefaultUpdateTime func() time.Time
 	// ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
 	ApplicationIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.

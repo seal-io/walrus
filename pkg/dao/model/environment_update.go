@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -133,6 +134,21 @@ func (eu *EnvironmentUpdate) AddRevisions(a ...*ApplicationRevision) *Environmen
 	return eu.AddRevisionIDs(ids...)
 }
 
+// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
+func (eu *EnvironmentUpdate) AddEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentUpdate {
+	eu.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
+	return eu
+}
+
+// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (eu *EnvironmentUpdate) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eu.AddEnvironmentConnectorRelationshipIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
@@ -199,6 +215,27 @@ func (eu *EnvironmentUpdate) RemoveRevisions(a ...*ApplicationRevision) *Environ
 		ids[i] = a[i].ID
 	}
 	return eu.RemoveRevisionIDs(ids...)
+}
+
+// ClearEnvironmentConnectorRelationships clears all "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (eu *EnvironmentUpdate) ClearEnvironmentConnectorRelationships() *EnvironmentUpdate {
+	eu.mutation.ClearEnvironmentConnectorRelationships()
+	return eu
+}
+
+// RemoveEnvironmentConnectorRelationshipIDs removes the "environmentConnectorRelationships" edge to EnvironmentConnectorRelationship entities by IDs.
+func (eu *EnvironmentUpdate) RemoveEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentUpdate {
+	eu.mutation.RemoveEnvironmentConnectorRelationshipIDs(ids...)
+	return eu
+}
+
+// RemoveEnvironmentConnectorRelationships removes "environmentConnectorRelationships" edges to EnvironmentConnectorRelationship entities.
+func (eu *EnvironmentUpdate) RemoveEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eu.RemoveEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -484,6 +521,63 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if eu.mutation.EnvironmentConnectorRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedEnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 && !eu.mutation.EnvironmentConnectorRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = eu.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = eu.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, eu.schemaConfig)
 	_spec.AddModifiers(eu.modifiers...)
@@ -603,6 +697,21 @@ func (euo *EnvironmentUpdateOne) AddRevisions(a ...*ApplicationRevision) *Enviro
 	return euo.AddRevisionIDs(ids...)
 }
 
+// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
+func (euo *EnvironmentUpdateOne) AddEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentUpdateOne {
+	euo.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
+	return euo
+}
+
+// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (euo *EnvironmentUpdateOne) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return euo.AddEnvironmentConnectorRelationshipIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
@@ -669,6 +778,27 @@ func (euo *EnvironmentUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *Env
 		ids[i] = a[i].ID
 	}
 	return euo.RemoveRevisionIDs(ids...)
+}
+
+// ClearEnvironmentConnectorRelationships clears all "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
+func (euo *EnvironmentUpdateOne) ClearEnvironmentConnectorRelationships() *EnvironmentUpdateOne {
+	euo.mutation.ClearEnvironmentConnectorRelationships()
+	return euo
+}
+
+// RemoveEnvironmentConnectorRelationshipIDs removes the "environmentConnectorRelationships" edge to EnvironmentConnectorRelationship entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentUpdateOne {
+	euo.mutation.RemoveEnvironmentConnectorRelationshipIDs(ids...)
+	return euo
+}
+
+// RemoveEnvironmentConnectorRelationships removes "environmentConnectorRelationships" edges to EnvironmentConnectorRelationship entities.
+func (euo *EnvironmentUpdateOne) RemoveEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return euo.RemoveEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -973,6 +1103,63 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.EnvironmentConnectorRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedEnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 && !euo.mutation.EnvironmentConnectorRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   environment.EnvironmentConnectorRelationshipsTable,
+			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: environmentconnectorrelationship.FieldID,
+				},
+			},
+		}
+		edge.Schema = euo.schemaConfig.EnvironmentConnectorRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

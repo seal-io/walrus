@@ -166,7 +166,7 @@ func (eq *EnvironmentQuery) QueryEnvironmentConnectorRelationships() *Environmen
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.EnvironmentColumn),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, environment.EnvironmentConnectorRelationshipsTable, environment.EnvironmentConnectorRelationshipsColumn),
 		)
 		schemaConfig := eq.schemaConfig
@@ -732,7 +732,7 @@ func (eq *EnvironmentQuery) loadEnvironmentConnectorRelationships(ctx context.Co
 		fk := n.EnvironmentID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environment_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected foreign-key "environment_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

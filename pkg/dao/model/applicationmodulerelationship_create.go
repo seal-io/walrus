@@ -188,6 +188,10 @@ func (amrc *ApplicationModuleRelationshipCreate) sqlSave(ctx context.Context) (*
 		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
+	amrc.mutation.id = &_node.ID
+	amrc.mutation.done = true
 	return _node, nil
 }
 
@@ -196,6 +200,10 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 		_node = &ApplicationModuleRelationship{config: amrc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: applicationmodulerelationship.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: applicationmodulerelationship.FieldID,
+			},
 		}
 	)
 	_spec.Schema = amrc.schemaConfig.ApplicationModuleRelationship
@@ -444,6 +452,24 @@ func (u *ApplicationModuleRelationshipUpsertOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ApplicationModuleRelationshipUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ApplicationModuleRelationshipUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ApplicationModuleRelationshipCreateBulk is the builder for creating many ApplicationModuleRelationship entities in bulk.
 type ApplicationModuleRelationshipCreateBulk struct {
 	config
@@ -485,6 +511,11 @@ func (amrcb *ApplicationModuleRelationshipCreateBulk) Save(ctx context.Context) 
 				}
 				if err != nil {
 					return nil, err
+				}
+				mutation.id = &nodes[i].ID
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

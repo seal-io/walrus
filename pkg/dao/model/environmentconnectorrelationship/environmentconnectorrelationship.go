@@ -12,6 +12,8 @@ import (
 const (
 	// Label holds the string label denoting the environmentconnectorrelationship type in the database.
 	Label = "environment_connector_relationship"
+	// FieldID holds the string denoting the id field in the database.
+	FieldID = "id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
@@ -22,10 +24,6 @@ const (
 	EdgeEnvironment = "environment"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
 	EdgeConnector = "connector"
-	// EnvironmentFieldID holds the string denoting the ID field of the Environment.
-	EnvironmentFieldID = "id"
-	// ConnectorFieldID holds the string denoting the ID field of the Connector.
-	ConnectorFieldID = "id"
 	// Table holds the table name of the environmentconnectorrelationship in the database.
 	Table = "environment_connector_relationships"
 	// EnvironmentTable is the table that holds the environment relation/edge.
@@ -46,6 +44,7 @@ const (
 
 // Columns holds all SQL columns for environmentconnectorrelationship fields.
 var Columns = []string{
+	FieldID,
 	FieldCreateTime,
 	FieldEnvironmentID,
 	FieldConnectorID,

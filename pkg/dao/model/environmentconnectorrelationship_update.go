@@ -90,15 +90,9 @@ func (ecru *EnvironmentConnectorRelationshipUpdate) sqlSave(ctx context.Context)
 		Node: &sqlgraph.NodeSpec{
 			Table:   environmentconnectorrelationship.Table,
 			Columns: environmentconnectorrelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldEnvironmentID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldConnectorID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: environmentconnectorrelationship.FieldID,
 			},
 		},
 	}
@@ -197,35 +191,27 @@ func (ecruo *EnvironmentConnectorRelationshipUpdateOne) sqlSave(ctx context.Cont
 		Node: &sqlgraph.NodeSpec{
 			Table:   environmentconnectorrelationship.Table,
 			Columns: environmentconnectorrelationship.Columns,
-			CompositeID: []*sqlgraph.FieldSpec{
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldEnvironmentID,
-				},
-				{
-					Type:   field.TypeString,
-					Column: environmentconnectorrelationship.FieldConnectorID,
-				},
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: environmentconnectorrelationship.FieldID,
 			},
 		},
 	}
-	if id, ok := ecruo.mutation.EnvironmentID(); !ok {
-		return nil, &ValidationError{Name: "environment_id", err: errors.New(`model: missing "EnvironmentConnectorRelationship.environment_id" for update`)}
-	} else {
-		_spec.Node.CompositeID[0].Value = id
+	id, ok := ecruo.mutation.ID()
+	if !ok {
+		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "EnvironmentConnectorRelationship.id" for update`)}
 	}
-	if id, ok := ecruo.mutation.ConnectorID(); !ok {
-		return nil, &ValidationError{Name: "connector_id", err: errors.New(`model: missing "EnvironmentConnectorRelationship.connector_id" for update`)}
-	} else {
-		_spec.Node.CompositeID[1].Value = id
-	}
+	_spec.Node.ID.Value = id
 	if fields := ecruo.fields; len(fields) > 0 {
-		_spec.Node.Columns = make([]string, len(fields))
-		for i, f := range fields {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, environmentconnectorrelationship.FieldID)
+		for _, f := range fields {
 			if !environmentconnectorrelationship.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("model: invalid field %q for query", f)}
 			}
-			_spec.Node.Columns[i] = f
+			if f != environmentconnectorrelationship.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
 		}
 	}
 	if ps := ecruo.mutation.predicates; len(ps) > 0 {

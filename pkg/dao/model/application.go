@@ -41,9 +41,6 @@ type Application struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges ApplicationEdges `json:"edges,omitempty"`
-	// [EXTENSION] Modules is the collection of the related modules.
-	// It does not store in the database and only uses for creating or updating.
-	Modules []types.ApplicationModule `json:"modules,omitempty"`
 }
 
 // ApplicationEdges holds the relations/edges for other nodes in the graph.
@@ -295,31 +292,6 @@ func (a *Application) String() string {
 	builder.WriteString(fmt.Sprintf("%v", a.EnvironmentID))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (a *Application) MarshalJSON() ([]byte, error) {
-	type Alias Application
-	// mutate `.Edges.ApplicationModuleRelationships` to `.Modules`.
-	if len(a.Edges.ApplicationModuleRelationships) != 0 {
-		for _, r := range a.Edges.ApplicationModuleRelationships {
-			if r == nil {
-				continue
-			}
-			a.Modules = append(a.Modules,
-				types.ApplicationModule{
-					ModuleID:  r.ModuleID,
-					Name:      r.Name,
-					Variables: r.Variables,
-				})
-		}
-		a.Edges.ApplicationModuleRelationships = nil // release
-	}
-	return json.Marshal(&struct {
-		*Alias `json:",inline"`
-	}{
-		Alias: (*Alias)(a),
-	})
 }
 
 // NamedResources returns the Resources named value or an error if the edge was not
