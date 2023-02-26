@@ -14,13 +14,6 @@
         // It does not store in the database and only uses for creating or updating.
         Connectors []*Connector `json:"connectors,omitempty"`
     {{- end }}
-
-    {{- /* Add fields to the "Application" entity. */}}
-    {{- if eq $.Name "Application" -}}
-        // [EXTENSION] Modules is the collection of the related modules.
-        // It does not store in the database and only uses for creating or updating.
-        Modules []types.ApplicationModule `json:"modules,omitempty"`
-    {{- end }}
 {{- end }}
 
 {{- define "model/additional/jsonencode" -}}
@@ -55,33 +48,5 @@
             })
         }
 	{{- end }}
-
-    {{- /* Add jsonencode to the "Application" entity. */}}
-    {{- if eq $.Name "Application" }}
-        // MarshalJSON implements the json.Marshaler interface.
-        func ({{ $.Receiver }} *{{ $.Name }}) MarshalJSON() ([]byte, error) {
-            type Alias {{ $.Name }}
-            // mutate `.Edges.ApplicationModuleRelationships` to `.Modules`.
-            if len({{ $.Receiver }}.Edges.ApplicationModuleRelationships) != 0 {
-                for _, r := range {{ $.Receiver }}.Edges.ApplicationModuleRelationships {
-                    if r == nil {
-                        continue
-					}
-                    {{ $.Receiver }}.Modules = append({{ $.Receiver }}.Modules,
-						types.ApplicationModule{
-						    ModuleID:  r.ModuleID,
-							Name:      r.Name,
-							Variables: r.Variables,
-						})
-                }
-                {{ $.Receiver }}.Edges.ApplicationModuleRelationships = nil // release
-            }
-            return json.Marshal(&struct {
-                *Alias `json:",inline"`
-            }{
-                Alias: (*Alias)({{ $.Receiver }}),
-            })
-        }
-    {{- end }}
 {{- end }}
 {{- end }}

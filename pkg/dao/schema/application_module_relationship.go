@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/id"
@@ -20,9 +21,14 @@ func (ApplicationModuleRelationship) Mixin() []ent.Mixin {
 	}
 }
 
-func (ApplicationModuleRelationship) Annotations() []Annotation {
-	return []Annotation{
-		field.ID("application_id", "module_id"),
+func (ApplicationModuleRelationship) Indexes() []ent.Index {
+	// NB(thxCode): entc cannot allow more than two fields composite as primary key through `field.ID`,
+	// so we keep the default increment primary key generated from entc,
+	// and use another unique key composited fields as the real primary key.
+	return []ent.Index{
+		// one application can include same module with different names per time.
+		index.Fields("application_id", "module_id", "name").
+			Unique(),
 	}
 }
 
