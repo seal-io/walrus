@@ -37,9 +37,6 @@ type Environment struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges EnvironmentEdges `json:"edges,omitempty"`
-	// [EXTENSION] Connectors is the collection of the related connectors.
-	// It does not store in the database and only uses for creating or updating.
-	Connectors []*Connector `json:"connectors,omitempty"`
 }
 
 // EnvironmentEdges holds the relations/edges for other nodes in the graph.
@@ -244,34 +241,6 @@ func (e *Environment) String() string {
 	builder.WriteString(fmt.Sprintf("%v", e.Variables))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (e *Environment) MarshalJSON() ([]byte, error) {
-	type Alias Environment
-	// mutate `.Edges.EnvironmentConnectorRelationships` to `.Connectors`.
-	if len(e.Edges.EnvironmentConnectorRelationships) != 0 {
-		for _, r := range e.Edges.EnvironmentConnectorRelationships {
-			if r == nil {
-				continue
-			}
-			e.Connectors = append(e.Connectors,
-				&Connector{
-					ID: r.ConnectorID,
-				})
-		}
-		e.Edges.EnvironmentConnectorRelationships = nil // release
-	}
-	// mutate `.Edges.Connectors` to `.Connectors`.
-	if len(e.Edges.Connectors) != 0 {
-		e.Connectors = e.Edges.Connectors
-		e.Edges.Connectors = nil // release
-	}
-	return json.Marshal(&struct {
-		*Alias `json:",inline"`
-	}{
-		Alias: (*Alias)(e),
-	})
 }
 
 // NamedConnectors returns the Connectors named value or an error if the edge was not
