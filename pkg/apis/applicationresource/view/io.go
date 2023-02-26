@@ -90,11 +90,9 @@ func (r *EntityLoader) ValidateWith(ctx context.Context, input any) error {
 
 	var entity, err = modelClient.ApplicationResources().Query().
 		Where(applicationresource.ID(r.ID)).
-		Select(
-			applicationresource.FieldID,
-			applicationresource.FieldConnectorID,
-			applicationresource.FieldType,
-			applicationresource.FieldName).
+		Select(applicationresource.WithoutFields(
+			applicationresource.FieldApplicationID,
+			applicationresource.FieldUpdateTime)...).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
 				connector.FieldName,
