@@ -4,7 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
-	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/types/id"
 )
@@ -13,9 +13,14 @@ type EnvironmentConnectorRelationship struct {
 	relationSchema
 }
 
-func (EnvironmentConnectorRelationship) Annotations() []Annotation {
-	return []Annotation{
-		field.ID("environment_id", "connector_id"),
+func (EnvironmentConnectorRelationship) Indexes() []ent.Index {
+	// NB(thxCode): entc cannot allow more than two fields composite as primary key through `field.ID`,
+	// so we keep the default increment primary key generated from entc,
+	// and use another unique key composited fields as the real primary key.
+	return []ent.Index{
+		// one environment can include one connector per time.
+		index.Fields("environment_id", "connector_id").
+			Unique(),
 	}
 }
 

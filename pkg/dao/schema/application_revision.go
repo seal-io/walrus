@@ -18,7 +18,7 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.Status{},
-		mixin.Time{},
+		mixin.CreateTime{},
 	}
 }
 
