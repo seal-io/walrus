@@ -48,7 +48,7 @@ func (Module) Fields() []ent.Field {
 func (Module) Edges() []ent.Edge {
 	return []ent.Edge{
 		// applications *-* modules.
-		edge.From("application", Application.Type).
+		edge.From("applications", Application.Type).
 			Ref("modules").
 			Comment("Applications to which the module configures.").
 			Through("applicationModuleRelationships", ApplicationModuleRelationship.Type),
