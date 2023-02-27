@@ -12,7 +12,6 @@ import (
 
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
 )
 
 func init() {
@@ -50,10 +49,18 @@ func generate() (err error) {
 	}
 
 	// generate
+	var feats = []gen.Feature{
+		gen.FeatureSnapshot,
+		gen.FeatureSchemaConfig,
+		gen.FeatureLock,
+		gen.FeatureModifier,
+		gen.FeatureExecQuery,
+		gen.FeatureUpsert,
+		gen.FeatureVersionedMigration,
+	}
 	var cfg = gen.Config{
-		Features: gen.AllFeatures,
+		Features: feats,
 		Header:   string(header),
-		Hooks:    []gen.Hook{tagFields("json")},
 		Target:   newGeneratedDir,
 		Schema:   "github.com/seal-io/seal/pkg/dao/schema",
 		Package:  "github.com/seal-io/seal/pkg/dao/model",
@@ -81,32 +88,4 @@ func generate() (err error) {
 	}
 
 	return
-}
-
-// tagFields tags all fields defined in the schema with the given struct-tag if the field has not been tagged.
-func tagFields(def string) gen.Hook {
-	return func(next gen.Generator) gen.Generator {
-		return gen.GenerateFunc(func(g *gen.Graph) error {
-			for _, n := range g.Nodes {
-				for _, f := range n.Fields {
-					var name = f.Name
-					var defaultTag = fmt.Sprintf(`%s:"%s,omitempty"`, def, name)
-					// respect the customized struct tag.
-					if f.StructTag != defaultTag {
-						continue
-					}
-					// otherwise configure omitempty tag if match the following conditions.
-					name = strs.CamelizeDownFirst(name)
-					var tag = fmt.Sprintf(`%s:"%s"`, def, name)
-					if f.Optional || f.Default || // creation
-						f.UpdateDefault || // modification
-						f.Nillable { // storing
-						tag = fmt.Sprintf(`%s:"%s,omitempty"`, def, name)
-					}
-					f.StructTag = tag
-				}
-			}
-			return next.Generate(g)
-		})
-	}
 }

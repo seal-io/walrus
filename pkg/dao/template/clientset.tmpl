@@ -7,8 +7,8 @@
 // ClientSet is an interface that allows getting all clients.
 type ClientSet interface {
     {{- range $n := $.Nodes }}
-    // {{ plural $n.Name }} returns the client for interacting with the {{ $n.Name }} builders.
-    {{ plural $n.Name }}() *{{ $n.Name }}Client
+        // {{ plural $n.Name }} returns the client for interacting with the {{ $n.Name }} builders.
+        {{ plural $n.Name }}() *{{ $n.Name }}Client
     {{ end }}
 
     // WithTx gives a new transactional client in the callback function,

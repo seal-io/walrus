@@ -1,11 +1,14 @@
 module github.com/seal-io/seal
 
-replace github.com/seal-io/seal/utils => ./staging/utils
+replace (
+	entgo.io/ent => github.com/seal-io/ent v0.11.9-0.20230228043124-62a102f628c9
+	github.com/seal-io/seal/utils => ./staging/utils
+)
 
 go 1.19
 
 require (
-	entgo.io/ent v0.11.7
+	entgo.io/ent v0.11.8
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-logr/logr v1.2.3
