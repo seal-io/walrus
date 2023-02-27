@@ -53,7 +53,7 @@ jobs:
     needs:
       - skip
     if: ${{ needs.skip.outputs.should != 'true' }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-22.04
     steps:
       - name: Setup Go
