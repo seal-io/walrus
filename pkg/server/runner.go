@@ -357,6 +357,10 @@ func (r *Server) Run(c context.Context) error {
 		return err
 	})
 
+	// setup cronjob
+	g.Go(func() error {
+		return r.runCronJobs(ctx, initOpts)
+	})
 	return g.Wait()
 }
 
