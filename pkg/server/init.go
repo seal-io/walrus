@@ -28,6 +28,8 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "roles", init: r.initRoles},
 		{name: "settings", init: r.initSettings},
 		{name: "subjects", init: r.initSubjects},
+		{name: "perspective", init: r.initPerspectives},
+		{name: "subscribers", init: r.initSubscribes},
 	}
 	if r.EnableAuthn {
 		inits = append(inits, initor{name: "casdoor", init: r.initCasdoor})

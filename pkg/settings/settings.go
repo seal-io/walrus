@@ -37,6 +37,17 @@ var (
 	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFrom("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
 )
 
+// cronjob settings
+var (
+	// CostCollectCronExpr indicates the cron expression of collect cost data,
+	// default cron expression means executing collection per hour,
+	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
+	CostCollectCronExpr = newValue("CostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(cronExpression))
+	// CostToolsCheckCronExpr indicates the cron expression of check cost tools ready,
+	// default cron expression means executing check every 10 minutes
+	CostToolsCheckCronExpr = newValue("CostToolsCheckCronExpr", editable, initializeFrom("0 */10 * ? * *"), modifyWith(cronExpression))
+)
+
 // setting property list.
 const (
 	_default uint8 = 0
