@@ -56,7 +56,7 @@ func (r CreateRequest) Model() *model.Application {
 		EnvironmentID: r.EnvironmentID,
 	}
 	for _, m := range r.Modules {
-		input.Edges.ApplicationModuleRelationships = append(input.Edges.ApplicationModuleRelationships,
+		input.Edges.Modules = append(input.Edges.Modules,
 			&model.ApplicationModuleRelationship{
 				ModuleID:  m.ModuleID,
 				Name:      m.Name,
@@ -102,7 +102,7 @@ func (r UpdateRequest) Model() *model.Application {
 		Labels:      r.Labels,
 	}
 	for _, m := range r.Modules {
-		input.Edges.ApplicationModuleRelationships = append(input.Edges.ApplicationModuleRelationships,
+		input.Edges.Modules = append(input.Edges.Modules,
 			&model.ApplicationModuleRelationship{
 				ModuleID:  m.ModuleID,
 				Name:      m.Name,
@@ -134,8 +134,8 @@ func (r GetResponse) MarshalJSON() ([]byte, error) {
 	type Alias GetResponse
 
 	// mutate `.Edges.ApplicationModuleRelationships` to `.Modules`.
-	if len(r.Edges.ApplicationModuleRelationships) != 0 {
-		for _, s := range r.Edges.ApplicationModuleRelationships {
+	if len(r.Edges.Modules) != 0 {
+		for _, s := range r.Edges.Modules {
 			if s == nil {
 				continue
 			}
@@ -146,7 +146,7 @@ func (r GetResponse) MarshalJSON() ([]byte, error) {
 					Variables: s.Variables,
 				})
 		}
-		r.Edges.ApplicationModuleRelationships = nil // release
+		r.Edges.Modules = nil // release
 	}
 
 	return json.Marshal(&struct {

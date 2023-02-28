@@ -26,7 +26,7 @@ func (v EnvironmentVO) MarshalJSON() ([]byte, error) {
 			if c == nil {
 				continue
 			}
-			v.ConnectorIDs = append(v.ConnectorIDs, c.ID)
+			v.ConnectorIDs = append(v.ConnectorIDs, c.ConnectorID)
 		}
 		v.Edges.Connectors = nil // release
 	}
@@ -41,13 +41,13 @@ func (v EnvironmentVO) MarshalJSON() ([]byte, error) {
 func (v EnvironmentVO) Model() *model.Environment {
 	// mutate `.ConnectorIDs` to `.Edges.Connectors`.
 	for _, id := range v.ConnectorIDs {
-		v.Environment.Edges.Connectors = append(v.Environment.Edges.Connectors, &model.Connector{
-			ID: id,
+		v.Environment.Edges.Connectors = append(v.Environment.Edges.Connectors, &model.EnvironmentConnectorRelationship{
+			ConnectorID: id,
 		})
 	}
 
 	if v.ConnectorIDs != nil && len(v.ConnectorIDs) == 0 {
-		v.Environment.Edges.Connectors = make([]*model.Connector, 0)
+		v.Environment.Edges.Connectors = make([]*model.EnvironmentConnectorRelationship, 0)
 	}
 
 	return v.Environment

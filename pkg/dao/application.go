@@ -16,6 +16,7 @@ import (
 
 // WrappedApplicationCreate is a wrapper for model.ApplicationCreate
 // to process the relationship with model.Module.
+// TODO(thxCode): generate this with entc.
 type WrappedApplicationCreate struct {
 	entity   *model.Application
 	delegate *model.ApplicationCreate
@@ -31,7 +32,7 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 	}
 
 	// construct relationships.
-	var newRss = created.Edges.ApplicationModuleRelationships
+	var newRss = ac.entity.Edges.Modules
 	var createRss = make([]*model.ApplicationModuleRelationshipCreate, len(newRss))
 	for i, rs := range newRss {
 		if rs == nil {
@@ -57,7 +58,7 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 	if err != nil {
 		return
 	}
-	created.Edges.ApplicationModuleRelationships = newRss
+	created.Edges.Modules = newRss
 	return
 }
 
@@ -98,6 +99,7 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 
 // WrappedApplicationUpdate is a wrapper for model.ApplicationUpdate
 // to process the relationship with model.Module.
+// TODO(thxCode): generate this with entc.
 type WrappedApplicationUpdate struct {
 	entity           *model.Application
 	entityPredicates []predicate.Application
@@ -114,7 +116,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 			return
 		}
 	}
-	if au.entity.Edges.ApplicationModuleRelationships == nil {
+	if au.entity.Edges.Modules == nil {
 		return
 	}
 
@@ -122,7 +124,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	oldEntity, err := mc.Applications().Query().
 		Where(au.entityPredicates...).
 		Select(application.FieldID).
-		WithApplicationModuleRelationships(func(rq *model.ApplicationModuleRelationshipQuery) {
+		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Select(
 				applicationmodulerelationship.FieldApplicationID,
 				applicationmodulerelationship.FieldModuleID,
@@ -137,7 +139,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	// create new relationship or update relationship.
 	var applicationID = oldEntity.ID
 	var newRsKeys = sets.New[string]()
-	var newRss = au.entity.Edges.ApplicationModuleRelationships
+	var newRss = au.entity.Edges.Modules
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(applicationID), rs.ModuleID, rs.Name))
 
@@ -169,7 +171,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	}
 
 	// delete stale relationship.
-	var oldRss = oldEntity.Edges.ApplicationModuleRelationships
+	var oldRss = oldEntity.Edges.Modules
 	for _, rs := range oldRss {
 		if newRsKeys.Has(strs.Join("/", string(rs.ApplicationID), rs.ModuleID, rs.Name)) {
 			continue
