@@ -56,7 +56,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		return fmt.Errorf("error setting up apis server: %w", err)
 	}
 
-	var g, ctx = gopool.WithContext(c)
+	var g, ctx = gopool.GroupWithContext(c)
 
 	g.Go(func() error {
 		var h = handler

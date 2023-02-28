@@ -34,12 +34,13 @@ users:
     client-key-data: ""
 `
 		var _, err = GetConfig(model.Connector{
+			Name:          "test",
 			ConfigVersion: "v1",
 			ConfigData: map[string]interface{}{
 				"kubeconfig_": dummyKubeconfigText,
 			},
 		})
-		assert.EqualError(t, err, "error load version v1 config: not found \"kubeconfig\"")
+		assert.EqualError(t, err, "error load config from connector test: not found \"kubeconfig\"")
 
 		config, err := GetConfig(model.Connector{
 			ConfigVersion: "v1",
@@ -53,7 +54,7 @@ users:
 			}, config)
 		}
 
-		apiConfig, err := LoadApiConfig(model.Connector{
+		apiConfig, _, err := LoadApiConfig(model.Connector{
 			ConfigVersion: "v1",
 			ConfigData: map[string]interface{}{
 				"kubeconfig": dummyKubeconfigText,

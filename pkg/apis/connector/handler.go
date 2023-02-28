@@ -4,9 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
+	pkgconn "github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/costs/scheduler"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -40,6 +43,10 @@ func (h Handler) Create(ctx *gin.Context, req view.ConnectorCreateRequest) (*mod
 		return nil, err
 	}
 
+	err = pkgconn.Notify(ctx, h.modelClient, o, false)
+	if err != nil {
+		return nil, err
+	}
 	return o, nil
 }
 
@@ -100,3 +107,36 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 // Extensional APIs
+
+func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRequest) error {
+	o, err := h.modelClient.Connectors().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	o.FinOpsStatus = status.Initializing
+	o.StatusMessage = ""
+	update, err := dao.ConnectorUpdate(h.modelClient, o)
+	if err != nil {
+		return err
+	}
+	if err = update.Exec(ctx); err != nil {
+		return err
+	}
+
+	return pkgconn.Notify(ctx, h.modelClient, o, true)
+}
+
+func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataRequest) error {
+	o, err := h.modelClient.Connectors().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	task, err := scheduler.NewCostSyncTask(h.modelClient)
+	if err != nil {
+		return err
+	}
+
+	return task.SyncK8sCost(ctx, o, nil)
+}

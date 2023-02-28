@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"time"
 )
 
 const qnameCharFmt string = "[A-Za-z0-9]"
@@ -24,5 +25,18 @@ func IsQualifiedName(name string) error {
 		return fmt.Errorf("%s, regex used for validation is '%s'", qualifiedNameErrMsg, qualifiedNameFmt)
 	}
 
+	return nil
+}
+
+func TimeRange(startTime, endTime time.Time) error {
+	if startTime.IsZero() {
+		return errors.New("invalid start time: blank")
+	}
+	if endTime.IsZero() {
+		return errors.New("invalid end time: blank")
+	}
+	if endTime.Before(startTime) {
+		return errors.New("invalid time range: end time is early than start time")
+	}
 	return nil
 }

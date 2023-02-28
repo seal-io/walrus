@@ -1,7 +1,9 @@
 package view
 
 import (
+	"context"
 	"errors"
+	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -51,3 +53,47 @@ type CollectionGetRequest struct {
 type CollectionGetResponse = []*model.Connector
 
 // Extensional APIs
+
+type ApplyCostToolsRequest struct {
+	_ struct{} `route:"POST=/apply-cost-tools"`
+
+	ID types.ID `uri:"id"`
+}
+
+func (r *ApplyCostToolsRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return validateConnectorType(ctx, modelClient, r.ID)
+}
+
+type SyncCostDataRequest struct {
+	_ struct{} `route:"POST=/sync-cost-data"`
+
+	ID types.ID `uri:"id"`
+}
+
+func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return validateConnectorType(ctx, modelClient, r.ID)
+}
+
+func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
+	conn, err := modelClient.Connectors().Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if conn.Type != types.ConnectorTypeK8s {
+		return runtime.Errorf(http.StatusBadRequest, "invalid type: not support")
+	}
+	return nil
+}

@@ -14,12 +14,14 @@ import (
 	"github.com/seal-io/seal/pkg/apis/applicationrevision"
 	"github.com/seal-io/seal/pkg/apis/auth"
 	"github.com/seal-io/seal/pkg/apis/connector"
+	"github.com/seal-io/seal/pkg/apis/cost"
 	"github.com/seal-io/seal/pkg/apis/debug"
 	"github.com/seal-io/seal/pkg/apis/environment"
 	"github.com/seal-io/seal/pkg/apis/group"
 	"github.com/seal-io/seal/pkg/apis/health"
 	"github.com/seal-io/seal/pkg/apis/module"
 	"github.com/seal-io/seal/pkg/apis/openapi"
+	"github.com/seal-io/seal/pkg/apis/perspective"
 	"github.com/seal-io/seal/pkg/apis/project"
 	"github.com/seal-io/seal/pkg/apis/role"
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -79,6 +81,8 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
 			applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))
+		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, group.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, project.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))
@@ -86,7 +90,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, user.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, environment.Handle(opts.ModelClient))
 	}
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
