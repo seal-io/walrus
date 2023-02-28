@@ -148,16 +148,7 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 	if err := aru.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationresource.Table,
-			Columns: applicationresource.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationresource.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(applicationresource.Table, applicationresource.Columns, sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString))
 	if ps := aru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -255,6 +246,12 @@ func (aruo *ApplicationResourceUpdateOne) Mutation() *ApplicationResourceMutatio
 	return aruo.mutation
 }
 
+// Where appends a list predicates to the ApplicationResourceUpdate builder.
+func (aruo *ApplicationResourceUpdateOne) Where(ps ...predicate.ApplicationResource) *ApplicationResourceUpdateOne {
+	aruo.mutation.Where(ps...)
+	return aruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (aruo *ApplicationResourceUpdateOne) Select(field string, fields ...string) *ApplicationResourceUpdateOne {
@@ -325,16 +322,7 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 	if err := aruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationresource.Table,
-			Columns: applicationresource.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationresource.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(applicationresource.Table, applicationresource.Columns, sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString))
 	id, ok := aruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ApplicationResource.id" for update`)}

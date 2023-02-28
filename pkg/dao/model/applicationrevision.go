@@ -31,17 +31,17 @@ type ApplicationRevision struct {
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// ID of the application to which the revision belongs.
-	ApplicationID types.ID `json:"applicationID"`
+	ApplicationID types.ID `json:"applicationID,omitempty"`
 	// ID of the environment to which the application deploys.
-	EnvironmentID types.ID `json:"environmentID"`
+	EnvironmentID types.ID `json:"environmentID,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
 	InputVariables map[string]interface{} `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
-	InputPlan string `json:"inputPlan"`
+	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
-	Output string `json:"output"`
+	Output string `json:"output,omitempty"`
 	// type of deployer
 	DeployerType string `json:"deployerType,omitempty"`
 	// deployment duration(seconds) of the of application revision
@@ -273,9 +273,3 @@ func (ar *ApplicationRevision) String() string {
 
 // ApplicationRevisions is a parsable slice of ApplicationRevision.
 type ApplicationRevisions []*ApplicationRevision
-
-func (ar ApplicationRevisions) config(cfg config) {
-	for _i := range ar {
-		ar[_i].config = cfg
-	}
-}

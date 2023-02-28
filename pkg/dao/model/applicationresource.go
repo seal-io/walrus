@@ -32,17 +32,17 @@ type ApplicationResource struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the resource belongs.
-	ApplicationID types.ID `json:"applicationID"`
+	ApplicationID types.ID `json:"applicationID,omitempty"`
 	// ID of the connector to which the resource deploys.
-	ConnectorID types.ID `json:"connectorID"`
+	ConnectorID types.ID `json:"connectorID,omitempty"`
 	// Name of the module that generates the resource.
-	Module string `json:"module"`
+	Module string `json:"module,omitempty"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
-	Mode string `json:"mode"`
+	Mode string `json:"mode,omitempty"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
 	Edges ApplicationResourceEdges `json:"edges,omitempty"`
@@ -256,9 +256,3 @@ func (ar *ApplicationResource) String() string {
 
 // ApplicationResources is a parsable slice of ApplicationResource.
 type ApplicationResources []*ApplicationResource
-
-func (ar ApplicationResources) config(cfg config) {
-	for _i := range ar {
-		ar[_i].config = cfg
-	}
-}

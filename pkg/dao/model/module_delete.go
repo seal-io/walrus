@@ -45,15 +45,7 @@ func (md *ModuleDelete) ExecX(ctx context.Context) int {
 }
 
 func (md *ModuleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: module.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: module.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(module.Table, sqlgraph.NewFieldSpec(module.FieldID, field.TypeString))
 	_spec.Node.Schema = md.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, md.schemaConfig)
 	if ps := md.mutation.predicates; len(ps) > 0 {

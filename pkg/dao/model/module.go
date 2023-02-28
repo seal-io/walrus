@@ -36,7 +36,7 @@ type Module struct {
 	// Labels of the module.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
-	Source string `json:"source"`
+	Source string `json:"source,omitempty"`
 	// Version of the module.
 	Version string `json:"version,omitempty"`
 	// Schema of the module
@@ -48,33 +48,20 @@ type Module struct {
 
 // ModuleEdges holds the relations/edges for other nodes in the graph.
 type ModuleEdges struct {
-	// Applications to which the module configures.
-	Application []*Application `json:"application,omitempty"`
-	// ApplicationModuleRelationships holds the value of the applicationModuleRelationships edge.
-	ApplicationModuleRelationships []*ApplicationModuleRelationship `json:"applicationModuleRelationships,omitempty"`
+	// Applications holds the value of the applications edge.
+	Applications []*ApplicationModuleRelationship `json:"applications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes                         [2]bool
-	namedApplication                    map[string][]*Application
-	namedApplicationModuleRelationships map[string][]*ApplicationModuleRelationship
+	loadedTypes [1]bool
 }
 
-// ApplicationOrErr returns the Application value or an error if the edge
+// ApplicationsOrErr returns the Applications value or an error if the edge
 // was not loaded in eager-loading.
-func (e ModuleEdges) ApplicationOrErr() ([]*Application, error) {
+func (e ModuleEdges) ApplicationsOrErr() ([]*ApplicationModuleRelationship, error) {
 	if e.loadedTypes[0] {
-		return e.Application, nil
+		return e.Applications, nil
 	}
-	return nil, &NotLoadedError{edge: "application"}
-}
-
-// ApplicationModuleRelationshipsOrErr returns the ApplicationModuleRelationships value or an error if the edge
-// was not loaded in eager-loading.
-func (e ModuleEdges) ApplicationModuleRelationshipsOrErr() ([]*ApplicationModuleRelationship, error) {
-	if e.loadedTypes[1] {
-		return e.ApplicationModuleRelationships, nil
-	}
-	return nil, &NotLoadedError{edge: "applicationModuleRelationships"}
+	return nil, &NotLoadedError{edge: "applications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -174,14 +161,9 @@ func (m *Module) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryApplication queries the "application" edge of the Module entity.
-func (m *Module) QueryApplication() *ApplicationQuery {
-	return NewModuleClient(m.config).QueryApplication(m)
-}
-
-// QueryApplicationModuleRelationships queries the "applicationModuleRelationships" edge of the Module entity.
-func (m *Module) QueryApplicationModuleRelationships() *ApplicationModuleRelationshipQuery {
-	return NewModuleClient(m.config).QueryApplicationModuleRelationships(m)
+// QueryApplications queries the "applications" edge of the Module entity.
+func (m *Module) QueryApplications() *ApplicationModuleRelationshipQuery {
+	return NewModuleClient(m.config).QueryApplications(m)
 }
 
 // Update returns a builder for updating this Module.
@@ -241,59 +223,5 @@ func (m *Module) String() string {
 	return builder.String()
 }
 
-// NamedApplication returns the Application named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (m *Module) NamedApplication(name string) ([]*Application, error) {
-	if m.Edges.namedApplication == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := m.Edges.namedApplication[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (m *Module) appendNamedApplication(name string, edges ...*Application) {
-	if m.Edges.namedApplication == nil {
-		m.Edges.namedApplication = make(map[string][]*Application)
-	}
-	if len(edges) == 0 {
-		m.Edges.namedApplication[name] = []*Application{}
-	} else {
-		m.Edges.namedApplication[name] = append(m.Edges.namedApplication[name], edges...)
-	}
-}
-
-// NamedApplicationModuleRelationships returns the ApplicationModuleRelationships named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (m *Module) NamedApplicationModuleRelationships(name string) ([]*ApplicationModuleRelationship, error) {
-	if m.Edges.namedApplicationModuleRelationships == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := m.Edges.namedApplicationModuleRelationships[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (m *Module) appendNamedApplicationModuleRelationships(name string, edges ...*ApplicationModuleRelationship) {
-	if m.Edges.namedApplicationModuleRelationships == nil {
-		m.Edges.namedApplicationModuleRelationships = make(map[string][]*ApplicationModuleRelationship)
-	}
-	if len(edges) == 0 {
-		m.Edges.namedApplicationModuleRelationships[name] = []*ApplicationModuleRelationship{}
-	} else {
-		m.Edges.namedApplicationModuleRelationships[name] = append(m.Edges.namedApplicationModuleRelationships[name], edges...)
-	}
-}
-
 // Modules is a parsable slice of Module.
 type Modules []*Module
-
-func (m Modules) config(cfg config) {
-	for _i := range m {
-		m[_i].config = cfg
-	}
-}

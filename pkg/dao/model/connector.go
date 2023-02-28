@@ -23,7 +23,7 @@ type Connector struct {
 	// ID of the ent.
 	ID types.ID `json:"id,omitempty"`
 	// Name of the resource.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Description of the resource.
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
@@ -37,13 +37,13 @@ type Connector struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Type of the connector.
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 	// Connector config version.
-	ConfigVersion string `json:"configVersion"`
+	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
-	EnableFinOps bool `json:"enableFinOps"`
+	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Status of the finOps tools.
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
@@ -55,29 +55,22 @@ type Connector struct {
 
 // ConnectorEdges holds the relations/edges for other nodes in the graph.
 type ConnectorEdges struct {
-	// Environments to which the connector configures.
-	Environments []*Environment `json:"environments,omitempty"`
+	// Environments holds the value of the environments edge.
+	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty"`
 	// Resources that belong to the application.
 	Resources []*ApplicationResource `json:"resources,omitempty"`
 	// Cluster costs that linked to the connection
 	ClusterCosts []*ClusterCost `json:"clusterCosts,omitempty"`
 	// Cluster allocation resource costs that linked to the connection
 	AllocationCosts []*AllocationCost `json:"allocationCosts,omitempty"`
-	// EnvironmentConnectorRelationships holds the value of the environmentConnectorRelationships edge.
-	EnvironmentConnectorRelationships []*EnvironmentConnectorRelationship `json:"environmentConnectorRelationships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes                            [5]bool
-	namedEnvironments                      map[string][]*Environment
-	namedResources                         map[string][]*ApplicationResource
-	namedClusterCosts                      map[string][]*ClusterCost
-	namedAllocationCosts                   map[string][]*AllocationCost
-	namedEnvironmentConnectorRelationships map[string][]*EnvironmentConnectorRelationship
+	loadedTypes [4]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
 // was not loaded in eager-loading.
-func (e ConnectorEdges) EnvironmentsOrErr() ([]*Environment, error) {
+func (e ConnectorEdges) EnvironmentsOrErr() ([]*EnvironmentConnectorRelationship, error) {
 	if e.loadedTypes[0] {
 		return e.Environments, nil
 	}
@@ -109,15 +102,6 @@ func (e ConnectorEdges) AllocationCostsOrErr() ([]*AllocationCost, error) {
 		return e.AllocationCosts, nil
 	}
 	return nil, &NotLoadedError{edge: "allocationCosts"}
-}
-
-// EnvironmentConnectorRelationshipsOrErr returns the EnvironmentConnectorRelationships value or an error if the edge
-// was not loaded in eager-loading.
-func (e ConnectorEdges) EnvironmentConnectorRelationshipsOrErr() ([]*EnvironmentConnectorRelationship, error) {
-	if e.loadedTypes[4] {
-		return e.EnvironmentConnectorRelationships, nil
-	}
-	return nil, &NotLoadedError{edge: "environmentConnectorRelationships"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -246,7 +230,7 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 }
 
 // QueryEnvironments queries the "environments" edge of the Connector entity.
-func (c *Connector) QueryEnvironments() *EnvironmentQuery {
+func (c *Connector) QueryEnvironments() *EnvironmentConnectorRelationshipQuery {
 	return NewConnectorClient(c.config).QueryEnvironments(c)
 }
 
@@ -263,11 +247,6 @@ func (c *Connector) QueryClusterCosts() *ClusterCostQuery {
 // QueryAllocationCosts queries the "allocationCosts" edge of the Connector entity.
 func (c *Connector) QueryAllocationCosts() *AllocationCostQuery {
 	return NewConnectorClient(c.config).QueryAllocationCosts(c)
-}
-
-// QueryEnvironmentConnectorRelationships queries the "environmentConnectorRelationships" edge of the Connector entity.
-func (c *Connector) QueryEnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipQuery {
-	return NewConnectorClient(c.config).QueryEnvironmentConnectorRelationships(c)
 }
 
 // Update returns a builder for updating this Connector.
@@ -339,131 +318,5 @@ func (c *Connector) String() string {
 	return builder.String()
 }
 
-// NamedEnvironments returns the Environments named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (c *Connector) NamedEnvironments(name string) ([]*Environment, error) {
-	if c.Edges.namedEnvironments == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := c.Edges.namedEnvironments[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (c *Connector) appendNamedEnvironments(name string, edges ...*Environment) {
-	if c.Edges.namedEnvironments == nil {
-		c.Edges.namedEnvironments = make(map[string][]*Environment)
-	}
-	if len(edges) == 0 {
-		c.Edges.namedEnvironments[name] = []*Environment{}
-	} else {
-		c.Edges.namedEnvironments[name] = append(c.Edges.namedEnvironments[name], edges...)
-	}
-}
-
-// NamedResources returns the Resources named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (c *Connector) NamedResources(name string) ([]*ApplicationResource, error) {
-	if c.Edges.namedResources == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := c.Edges.namedResources[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (c *Connector) appendNamedResources(name string, edges ...*ApplicationResource) {
-	if c.Edges.namedResources == nil {
-		c.Edges.namedResources = make(map[string][]*ApplicationResource)
-	}
-	if len(edges) == 0 {
-		c.Edges.namedResources[name] = []*ApplicationResource{}
-	} else {
-		c.Edges.namedResources[name] = append(c.Edges.namedResources[name], edges...)
-	}
-}
-
-// NamedClusterCosts returns the ClusterCosts named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (c *Connector) NamedClusterCosts(name string) ([]*ClusterCost, error) {
-	if c.Edges.namedClusterCosts == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := c.Edges.namedClusterCosts[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (c *Connector) appendNamedClusterCosts(name string, edges ...*ClusterCost) {
-	if c.Edges.namedClusterCosts == nil {
-		c.Edges.namedClusterCosts = make(map[string][]*ClusterCost)
-	}
-	if len(edges) == 0 {
-		c.Edges.namedClusterCosts[name] = []*ClusterCost{}
-	} else {
-		c.Edges.namedClusterCosts[name] = append(c.Edges.namedClusterCosts[name], edges...)
-	}
-}
-
-// NamedAllocationCosts returns the AllocationCosts named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (c *Connector) NamedAllocationCosts(name string) ([]*AllocationCost, error) {
-	if c.Edges.namedAllocationCosts == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := c.Edges.namedAllocationCosts[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (c *Connector) appendNamedAllocationCosts(name string, edges ...*AllocationCost) {
-	if c.Edges.namedAllocationCosts == nil {
-		c.Edges.namedAllocationCosts = make(map[string][]*AllocationCost)
-	}
-	if len(edges) == 0 {
-		c.Edges.namedAllocationCosts[name] = []*AllocationCost{}
-	} else {
-		c.Edges.namedAllocationCosts[name] = append(c.Edges.namedAllocationCosts[name], edges...)
-	}
-}
-
-// NamedEnvironmentConnectorRelationships returns the EnvironmentConnectorRelationships named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (c *Connector) NamedEnvironmentConnectorRelationships(name string) ([]*EnvironmentConnectorRelationship, error) {
-	if c.Edges.namedEnvironmentConnectorRelationships == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := c.Edges.namedEnvironmentConnectorRelationships[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (c *Connector) appendNamedEnvironmentConnectorRelationships(name string, edges ...*EnvironmentConnectorRelationship) {
-	if c.Edges.namedEnvironmentConnectorRelationships == nil {
-		c.Edges.namedEnvironmentConnectorRelationships = make(map[string][]*EnvironmentConnectorRelationship)
-	}
-	if len(edges) == 0 {
-		c.Edges.namedEnvironmentConnectorRelationships[name] = []*EnvironmentConnectorRelationship{}
-	} else {
-		c.Edges.namedEnvironmentConnectorRelationships[name] = append(c.Edges.namedEnvironmentConnectorRelationships[name], edges...)
-	}
-}
-
 // Connectors is a parsable slice of Connector.
 type Connectors []*Connector
-
-func (c Connectors) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

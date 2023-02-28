@@ -15,8 +15,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -141,81 +139,9 @@ func (mu *ModuleUpdate) SetSchema(ts *types.ModuleSchema) *ModuleUpdate {
 	return mu
 }
 
-// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
-func (mu *ModuleUpdate) AddApplicationIDs(ids ...types.ID) *ModuleUpdate {
-	mu.mutation.AddApplicationIDs(ids...)
-	return mu
-}
-
-// AddApplication adds the "application" edges to the Application entity.
-func (mu *ModuleUpdate) AddApplication(a ...*Application) *ModuleUpdate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mu.AddApplicationIDs(ids...)
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (mu *ModuleUpdate) AddApplicationModuleRelationshipIDs(ids ...int) *ModuleUpdate {
-	mu.mutation.AddApplicationModuleRelationshipIDs(ids...)
-	return mu
-}
-
-// AddApplicationModuleRelationships adds the "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (mu *ModuleUpdate) AddApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mu.AddApplicationModuleRelationshipIDs(ids...)
-}
-
 // Mutation returns the ModuleMutation object of the builder.
 func (mu *ModuleUpdate) Mutation() *ModuleMutation {
 	return mu.mutation
-}
-
-// ClearApplication clears all "application" edges to the Application entity.
-func (mu *ModuleUpdate) ClearApplication() *ModuleUpdate {
-	mu.mutation.ClearApplication()
-	return mu
-}
-
-// RemoveApplicationIDs removes the "application" edge to Application entities by IDs.
-func (mu *ModuleUpdate) RemoveApplicationIDs(ids ...types.ID) *ModuleUpdate {
-	mu.mutation.RemoveApplicationIDs(ids...)
-	return mu
-}
-
-// RemoveApplication removes "application" edges to Application entities.
-func (mu *ModuleUpdate) RemoveApplication(a ...*Application) *ModuleUpdate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mu.RemoveApplicationIDs(ids...)
-}
-
-// ClearApplicationModuleRelationships clears all "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (mu *ModuleUpdate) ClearApplicationModuleRelationships() *ModuleUpdate {
-	mu.mutation.ClearApplicationModuleRelationships()
-	return mu
-}
-
-// RemoveApplicationModuleRelationshipIDs removes the "applicationModuleRelationships" edge to ApplicationModuleRelationship entities by IDs.
-func (mu *ModuleUpdate) RemoveApplicationModuleRelationshipIDs(ids ...int) *ModuleUpdate {
-	mu.mutation.RemoveApplicationModuleRelationshipIDs(ids...)
-	return mu
-}
-
-// RemoveApplicationModuleRelationships removes "applicationModuleRelationships" edges to ApplicationModuleRelationship entities.
-func (mu *ModuleUpdate) RemoveApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mu.RemoveApplicationModuleRelationshipIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -274,16 +200,7 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := mu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   module.Table,
-			Columns: module.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: module.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(module.Table, module.Columns, sqlgraph.NewFieldSpec(module.FieldID, field.TypeString))
 	if ps := mu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -326,132 +243,6 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.Schema(); ok {
 		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
-	}
-	if mu.mutation.ApplicationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.RemovedApplicationIDs(); len(nodes) > 0 && !mu.mutation.ApplicationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.ApplicationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: mu.config, mutation: newApplicationModuleRelationshipMutation(mu.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if mu.mutation.ApplicationModuleRelationshipsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.RemovedApplicationModuleRelationshipsIDs(); len(nodes) > 0 && !mu.mutation.ApplicationModuleRelationshipsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.ApplicationModuleRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = mu.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = mu.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, mu.schemaConfig)
@@ -581,81 +372,15 @@ func (muo *ModuleUpdateOne) SetSchema(ts *types.ModuleSchema) *ModuleUpdateOne {
 	return muo
 }
 
-// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
-func (muo *ModuleUpdateOne) AddApplicationIDs(ids ...types.ID) *ModuleUpdateOne {
-	muo.mutation.AddApplicationIDs(ids...)
-	return muo
-}
-
-// AddApplication adds the "application" edges to the Application entity.
-func (muo *ModuleUpdateOne) AddApplication(a ...*Application) *ModuleUpdateOne {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return muo.AddApplicationIDs(ids...)
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (muo *ModuleUpdateOne) AddApplicationModuleRelationshipIDs(ids ...int) *ModuleUpdateOne {
-	muo.mutation.AddApplicationModuleRelationshipIDs(ids...)
-	return muo
-}
-
-// AddApplicationModuleRelationships adds the "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (muo *ModuleUpdateOne) AddApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return muo.AddApplicationModuleRelationshipIDs(ids...)
-}
-
 // Mutation returns the ModuleMutation object of the builder.
 func (muo *ModuleUpdateOne) Mutation() *ModuleMutation {
 	return muo.mutation
 }
 
-// ClearApplication clears all "application" edges to the Application entity.
-func (muo *ModuleUpdateOne) ClearApplication() *ModuleUpdateOne {
-	muo.mutation.ClearApplication()
+// Where appends a list predicates to the ModuleUpdate builder.
+func (muo *ModuleUpdateOne) Where(ps ...predicate.Module) *ModuleUpdateOne {
+	muo.mutation.Where(ps...)
 	return muo
-}
-
-// RemoveApplicationIDs removes the "application" edge to Application entities by IDs.
-func (muo *ModuleUpdateOne) RemoveApplicationIDs(ids ...types.ID) *ModuleUpdateOne {
-	muo.mutation.RemoveApplicationIDs(ids...)
-	return muo
-}
-
-// RemoveApplication removes "application" edges to Application entities.
-func (muo *ModuleUpdateOne) RemoveApplication(a ...*Application) *ModuleUpdateOne {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return muo.RemoveApplicationIDs(ids...)
-}
-
-// ClearApplicationModuleRelationships clears all "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (muo *ModuleUpdateOne) ClearApplicationModuleRelationships() *ModuleUpdateOne {
-	muo.mutation.ClearApplicationModuleRelationships()
-	return muo
-}
-
-// RemoveApplicationModuleRelationshipIDs removes the "applicationModuleRelationships" edge to ApplicationModuleRelationship entities by IDs.
-func (muo *ModuleUpdateOne) RemoveApplicationModuleRelationshipIDs(ids ...int) *ModuleUpdateOne {
-	muo.mutation.RemoveApplicationModuleRelationshipIDs(ids...)
-	return muo
-}
-
-// RemoveApplicationModuleRelationships removes "applicationModuleRelationships" edges to ApplicationModuleRelationship entities.
-func (muo *ModuleUpdateOne) RemoveApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return muo.RemoveApplicationModuleRelationshipIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -721,16 +446,7 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	if err := muo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   module.Table,
-			Columns: module.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: module.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(module.Table, module.Columns, sqlgraph.NewFieldSpec(module.FieldID, field.TypeString))
 	id, ok := muo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "Module.id" for update`)}
@@ -790,132 +506,6 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	}
 	if value, ok := muo.mutation.Schema(); ok {
 		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
-	}
-	if muo.mutation.ApplicationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.RemovedApplicationIDs(); len(nodes) > 0 && !muo.mutation.ApplicationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.ApplicationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: muo.config, mutation: newApplicationModuleRelationshipMutation(muo.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if muo.mutation.ApplicationModuleRelationshipsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.RemovedApplicationModuleRelationshipsIDs(); len(nodes) > 0 && !muo.mutation.ApplicationModuleRelationshipsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.ApplicationModuleRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = muo.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = muo.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, muo.schemaConfig)

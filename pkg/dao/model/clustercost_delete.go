@@ -45,15 +45,7 @@ func (ccd *ClusterCostDelete) ExecX(ctx context.Context) int {
 }
 
 func (ccd *ClusterCostDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: clustercost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: clustercost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(clustercost.Table, sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt))
 	_spec.Node.Schema = ccd.schemaConfig.ClusterCost
 	ctx = internal.NewSchemaConfigContext(ctx, ccd.schemaConfig)
 	if ps := ccd.mutation.predicates; len(ps) > 0 {

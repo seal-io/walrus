@@ -26,11 +26,11 @@ type Token struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The token name of casdoor
-	CasdoorTokenName string `json:"casdoorTokenName"`
+	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
 	// The token owner of casdoor
-	CasdoorTokenOwner string `json:"casdoorTokenOwner"`
+	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
 	// The name of token.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Expiration in seconds.
 	Expiration *int `json:"expiration,omitempty"`
 	// [EXTENSION] AccessToken is the token used for authentication.
@@ -168,9 +168,3 @@ func (t *Token) String() string {
 
 // Tokens is a parsable slice of Token.
 type Tokens []*Token
-
-func (t Tokens) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

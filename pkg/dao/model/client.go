@@ -427,7 +427,7 @@ func (c *AllocationCostClient) Use(hooks ...Hook) {
 	c.hooks.AllocationCost = append(c.hooks.AllocationCost, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `allocationcost.Intercept(f(g(h())))`.
 func (c *AllocationCostClient) Intercept(interceptors ...Interceptor) {
 	c.inters.AllocationCost = append(c.inters.AllocationCost, interceptors...)
@@ -564,7 +564,7 @@ func (c *ApplicationClient) Use(hooks ...Hook) {
 	c.hooks.Application = append(c.hooks.Application, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `application.Intercept(f(g(h())))`.
 func (c *ApplicationClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Application = append(c.inters.Application, interceptors...)
@@ -718,33 +718,14 @@ func (c *ApplicationClient) QueryRevisions(a *Application) *ApplicationRevisionQ
 }
 
 // QueryModules queries the modules edge of a Application.
-func (c *ApplicationClient) QueryModules(a *Application) *ModuleQuery {
-	query := (&ModuleClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := a.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(module.Table, module.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, application.ModulesTable, application.ModulesPrimaryKey...),
-		)
-		schemaConfig := a.schemaConfig
-		step.To.Schema = schemaConfig.Module
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryApplicationModuleRelationships queries the applicationModuleRelationships edge of a Application.
-func (c *ApplicationClient) QueryApplicationModuleRelationships(a *Application) *ApplicationModuleRelationshipQuery {
+func (c *ApplicationClient) QueryModules(a *Application) *ApplicationModuleRelationshipQuery {
 	query := (&ApplicationModuleRelationshipClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, application.ApplicationModuleRelationshipsTable, application.ApplicationModuleRelationshipsColumn),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ApplicationColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, application.ModulesTable, application.ModulesColumn),
 		)
 		schemaConfig := a.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
@@ -797,7 +778,7 @@ func (c *ApplicationModuleRelationshipClient) Use(hooks ...Hook) {
 	c.hooks.ApplicationModuleRelationship = append(c.hooks.ApplicationModuleRelationship, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `applicationmodulerelationship.Intercept(f(g(h())))`.
 func (c *ApplicationModuleRelationshipClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ApplicationModuleRelationship = append(c.inters.ApplicationModuleRelationship, interceptors...)
@@ -822,13 +803,10 @@ func (c *ApplicationModuleRelationshipClient) Update() *ApplicationModuleRelatio
 
 // UpdateOne returns an update builder for the given entity.
 func (c *ApplicationModuleRelationshipClient) UpdateOne(amr *ApplicationModuleRelationship) *ApplicationModuleRelationshipUpdateOne {
-	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne, withApplicationModuleRelationship(amr))
-	return &ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ApplicationModuleRelationshipClient) UpdateOneID(id int) *ApplicationModuleRelationshipUpdateOne {
-	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne, withApplicationModuleRelationshipID(id))
+	mutation := newApplicationModuleRelationshipMutation(c.config, OpUpdateOne)
+	mutation.application = &amr.ApplicationID
+	mutation.module = &amr.ModuleID
+	mutation.name = &amr.Name
 	return &ApplicationModuleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -836,19 +814,6 @@ func (c *ApplicationModuleRelationshipClient) UpdateOneID(id int) *ApplicationMo
 func (c *ApplicationModuleRelationshipClient) Delete() *ApplicationModuleRelationshipDelete {
 	mutation := newApplicationModuleRelationshipMutation(c.config, OpDelete)
 	return &ApplicationModuleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ApplicationModuleRelationshipClient) DeleteOne(amr *ApplicationModuleRelationship) *ApplicationModuleRelationshipDeleteOne {
-	return c.DeleteOneID(amr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ApplicationModuleRelationshipClient) DeleteOneID(id int) *ApplicationModuleRelationshipDeleteOne {
-	builder := c.Delete().Where(applicationmodulerelationship.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ApplicationModuleRelationshipDeleteOne{builder}
 }
 
 // Query returns a query builder for ApplicationModuleRelationship.
@@ -860,56 +825,18 @@ func (c *ApplicationModuleRelationshipClient) Query() *ApplicationModuleRelation
 	}
 }
 
-// Get returns a ApplicationModuleRelationship entity by its id.
-func (c *ApplicationModuleRelationshipClient) Get(ctx context.Context, id int) (*ApplicationModuleRelationship, error) {
-	return c.Query().Where(applicationmodulerelationship.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ApplicationModuleRelationshipClient) GetX(ctx context.Context, id int) *ApplicationModuleRelationship {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
 // QueryApplication queries the application edge of a ApplicationModuleRelationship.
 func (c *ApplicationModuleRelationshipClient) QueryApplication(amr *ApplicationModuleRelationship) *ApplicationQuery {
-	query := (&ApplicationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := amr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, id),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ApplicationTable, applicationmodulerelationship.ApplicationColumn),
-		)
-		schemaConfig := amr.schemaConfig
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		fromV = sqlgraph.Neighbors(amr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
+	return c.Query().
+		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID), applicationmodulerelationship.Name(amr.Name)).
+		QueryApplication()
 }
 
 // QueryModule queries the module edge of a ApplicationModuleRelationship.
 func (c *ApplicationModuleRelationshipClient) QueryModule(amr *ApplicationModuleRelationship) *ModuleQuery {
-	query := (&ModuleClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := amr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID, id),
-			sqlgraph.To(module.Table, module.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, applicationmodulerelationship.ModuleTable, applicationmodulerelationship.ModuleColumn),
-		)
-		schemaConfig := amr.schemaConfig
-		step.To.Schema = schemaConfig.Module
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		fromV = sqlgraph.Neighbors(amr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
+	return c.Query().
+		Where(applicationmodulerelationship.ApplicationID(amr.ApplicationID), applicationmodulerelationship.ModuleID(amr.ModuleID), applicationmodulerelationship.Name(amr.Name)).
+		QueryModule()
 }
 
 // Hooks returns the client hooks.
@@ -953,7 +880,7 @@ func (c *ApplicationResourceClient) Use(hooks ...Hook) {
 	c.hooks.ApplicationResource = append(c.hooks.ApplicationResource, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `applicationresource.Intercept(f(g(h())))`.
 func (c *ApplicationResourceClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ApplicationResource = append(c.inters.ApplicationResource, interceptors...)
@@ -1110,7 +1037,7 @@ func (c *ApplicationRevisionClient) Use(hooks ...Hook) {
 	c.hooks.ApplicationRevision = append(c.hooks.ApplicationRevision, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `applicationrevision.Intercept(f(g(h())))`.
 func (c *ApplicationRevisionClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ApplicationRevision = append(c.inters.ApplicationRevision, interceptors...)
@@ -1267,7 +1194,7 @@ func (c *ClusterCostClient) Use(hooks ...Hook) {
 	c.hooks.ClusterCost = append(c.hooks.ClusterCost, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `clustercost.Intercept(f(g(h())))`.
 func (c *ClusterCostClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ClusterCost = append(c.inters.ClusterCost, interceptors...)
@@ -1404,7 +1331,7 @@ func (c *ConnectorClient) Use(hooks ...Hook) {
 	c.hooks.Connector = append(c.hooks.Connector, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `connector.Intercept(f(g(h())))`.
 func (c *ConnectorClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Connector = append(c.inters.Connector, interceptors...)
@@ -1482,17 +1409,17 @@ func (c *ConnectorClient) GetX(ctx context.Context, id types.ID) *Connector {
 }
 
 // QueryEnvironments queries the environments edge of a Connector.
-func (c *ConnectorClient) QueryEnvironments(co *Connector) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
+func (c *ConnectorClient) QueryEnvironments(co *Connector) *EnvironmentConnectorRelationshipQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, connector.EnvironmentsTable, connector.EnvironmentsPrimaryKey...),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.ConnectorColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentsTable, connector.EnvironmentsColumn),
 		)
 		schemaConfig := co.schemaConfig
-		step.To.Schema = schemaConfig.Environment
+		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
@@ -1557,25 +1484,6 @@ func (c *ConnectorClient) QueryAllocationCosts(co *Connector) *AllocationCostQue
 	return query
 }
 
-// QueryEnvironmentConnectorRelationships queries the environmentConnectorRelationships edge of a Connector.
-func (c *ConnectorClient) QueryEnvironmentConnectorRelationships(co *Connector) *EnvironmentConnectorRelationshipQuery {
-	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := co.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(connector.Table, connector.FieldID, id),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentConnectorRelationshipsTable, connector.EnvironmentConnectorRelationshipsColumn),
-		)
-		schemaConfig := co.schemaConfig
-		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
-		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
-		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *ConnectorClient) Hooks() []Hook {
 	hooks := c.hooks.Connector
@@ -1618,7 +1526,7 @@ func (c *EnvironmentClient) Use(hooks ...Hook) {
 	c.hooks.Environment = append(c.hooks.Environment, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `environment.Intercept(f(g(h())))`.
 func (c *EnvironmentClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Environment = append(c.inters.Environment, interceptors...)
@@ -1696,17 +1604,17 @@ func (c *EnvironmentClient) GetX(ctx context.Context, id types.ID) *Environment 
 }
 
 // QueryConnectors queries the connectors edge of a Environment.
-func (c *EnvironmentClient) QueryConnectors(e *Environment) *ConnectorQuery {
-	query := (&ConnectorClient{config: c.config}).Query()
+func (c *EnvironmentClient) QueryConnectors(e *Environment) *EnvironmentConnectorRelationshipQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(connector.Table, connector.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, environment.ConnectorsTable, environment.ConnectorsPrimaryKey...),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.EnvironmentColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, environment.ConnectorsTable, environment.ConnectorsColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.Connector
+		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
@@ -1746,25 +1654,6 @@ func (c *EnvironmentClient) QueryRevisions(e *Environment) *ApplicationRevisionQ
 		schemaConfig := e.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationRevision
 		step.Edge.Schema = schemaConfig.ApplicationRevision
-		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryEnvironmentConnectorRelationships queries the environmentConnectorRelationships edge of a Environment.
-func (c *EnvironmentClient) QueryEnvironmentConnectorRelationships(e *Environment) *EnvironmentConnectorRelationshipQuery {
-	query := (&EnvironmentConnectorRelationshipClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := e.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, environment.EnvironmentConnectorRelationshipsTable, environment.EnvironmentConnectorRelationshipsColumn),
-		)
-		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
-		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1813,7 +1702,7 @@ func (c *EnvironmentConnectorRelationshipClient) Use(hooks ...Hook) {
 	c.hooks.EnvironmentConnectorRelationship = append(c.hooks.EnvironmentConnectorRelationship, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `environmentconnectorrelationship.Intercept(f(g(h())))`.
 func (c *EnvironmentConnectorRelationshipClient) Intercept(interceptors ...Interceptor) {
 	c.inters.EnvironmentConnectorRelationship = append(c.inters.EnvironmentConnectorRelationship, interceptors...)
@@ -1838,13 +1727,9 @@ func (c *EnvironmentConnectorRelationshipClient) Update() *EnvironmentConnectorR
 
 // UpdateOne returns an update builder for the given entity.
 func (c *EnvironmentConnectorRelationshipClient) UpdateOne(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipUpdateOne {
-	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne, withEnvironmentConnectorRelationship(ecr))
-	return &EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *EnvironmentConnectorRelationshipClient) UpdateOneID(id int) *EnvironmentConnectorRelationshipUpdateOne {
-	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne, withEnvironmentConnectorRelationshipID(id))
+	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpUpdateOne)
+	mutation.environment = &ecr.EnvironmentID
+	mutation.connector = &ecr.ConnectorID
 	return &EnvironmentConnectorRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1852,19 +1737,6 @@ func (c *EnvironmentConnectorRelationshipClient) UpdateOneID(id int) *Environmen
 func (c *EnvironmentConnectorRelationshipClient) Delete() *EnvironmentConnectorRelationshipDelete {
 	mutation := newEnvironmentConnectorRelationshipMutation(c.config, OpDelete)
 	return &EnvironmentConnectorRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *EnvironmentConnectorRelationshipClient) DeleteOne(ecr *EnvironmentConnectorRelationship) *EnvironmentConnectorRelationshipDeleteOne {
-	return c.DeleteOneID(ecr.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *EnvironmentConnectorRelationshipClient) DeleteOneID(id int) *EnvironmentConnectorRelationshipDeleteOne {
-	builder := c.Delete().Where(environmentconnectorrelationship.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EnvironmentConnectorRelationshipDeleteOne{builder}
 }
 
 // Query returns a query builder for EnvironmentConnectorRelationship.
@@ -1876,56 +1748,18 @@ func (c *EnvironmentConnectorRelationshipClient) Query() *EnvironmentConnectorRe
 	}
 }
 
-// Get returns a EnvironmentConnectorRelationship entity by its id.
-func (c *EnvironmentConnectorRelationshipClient) Get(ctx context.Context, id int) (*EnvironmentConnectorRelationship, error) {
-	return c.Query().Where(environmentconnectorrelationship.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *EnvironmentConnectorRelationshipClient) GetX(ctx context.Context, id int) *EnvironmentConnectorRelationship {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
 // QueryEnvironment queries the environment edge of a EnvironmentConnectorRelationship.
 func (c *EnvironmentConnectorRelationshipClient) QueryEnvironment(ecr *EnvironmentConnectorRelationship) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ecr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.EnvironmentTable, environmentconnectorrelationship.EnvironmentColumn),
-		)
-		schemaConfig := ecr.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
-		fromV = sqlgraph.Neighbors(ecr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
+	return c.Query().
+		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
+		QueryEnvironment()
 }
 
 // QueryConnector queries the connector edge of a EnvironmentConnectorRelationship.
 func (c *EnvironmentConnectorRelationshipClient) QueryConnector(ecr *EnvironmentConnectorRelationship) *ConnectorQuery {
-	query := (&ConnectorClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ecr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, id),
-			sqlgraph.To(connector.Table, connector.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.ConnectorTable, environmentconnectorrelationship.ConnectorColumn),
-		)
-		schemaConfig := ecr.schemaConfig
-		step.To.Schema = schemaConfig.Connector
-		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
-		fromV = sqlgraph.Neighbors(ecr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
+	return c.Query().
+		Where(environmentconnectorrelationship.EnvironmentID(ecr.EnvironmentID), environmentconnectorrelationship.ConnectorID(ecr.ConnectorID)).
+		QueryConnector()
 }
 
 // Hooks returns the client hooks.
@@ -1969,7 +1803,7 @@ func (c *ModuleClient) Use(hooks ...Hook) {
 	c.hooks.Module = append(c.hooks.Module, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `module.Intercept(f(g(h())))`.
 func (c *ModuleClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Module = append(c.inters.Module, interceptors...)
@@ -2046,34 +1880,15 @@ func (c *ModuleClient) GetX(ctx context.Context, id string) *Module {
 	return obj
 }
 
-// QueryApplication queries the application edge of a Module.
-func (c *ModuleClient) QueryApplication(m *Module) *ApplicationQuery {
-	query := (&ApplicationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(module.Table, module.FieldID, id),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, module.ApplicationTable, module.ApplicationPrimaryKey...),
-		)
-		schemaConfig := m.schemaConfig
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryApplicationModuleRelationships queries the applicationModuleRelationships edge of a Module.
-func (c *ModuleClient) QueryApplicationModuleRelationships(m *Module) *ApplicationModuleRelationshipQuery {
+// QueryApplications queries the applications edge of a Module.
+func (c *ModuleClient) QueryApplications(m *Module) *ApplicationModuleRelationshipQuery {
 	query := (&ApplicationModuleRelationshipClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(module.Table, module.FieldID, id),
-			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, module.ApplicationModuleRelationshipsTable, module.ApplicationModuleRelationshipsColumn),
+			sqlgraph.To(applicationmodulerelationship.Table, applicationmodulerelationship.ModuleColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, module.ApplicationsTable, module.ApplicationsColumn),
 		)
 		schemaConfig := m.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
@@ -2125,7 +1940,7 @@ func (c *PerspectiveClient) Use(hooks ...Hook) {
 	c.hooks.Perspective = append(c.hooks.Perspective, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `perspective.Intercept(f(g(h())))`.
 func (c *PerspectiveClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Perspective = append(c.inters.Perspective, interceptors...)
@@ -2244,7 +2059,7 @@ func (c *ProjectClient) Use(hooks ...Hook) {
 	c.hooks.Project = append(c.hooks.Project, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `project.Intercept(f(g(h())))`.
 func (c *ProjectClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Project = append(c.inters.Project, interceptors...)
@@ -2382,7 +2197,7 @@ func (c *RoleClient) Use(hooks ...Hook) {
 	c.hooks.Role = append(c.hooks.Role, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `role.Intercept(f(g(h())))`.
 func (c *RoleClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Role = append(c.inters.Role, interceptors...)
@@ -2501,7 +2316,7 @@ func (c *SettingClient) Use(hooks ...Hook) {
 	c.hooks.Setting = append(c.hooks.Setting, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `setting.Intercept(f(g(h())))`.
 func (c *SettingClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Setting = append(c.inters.Setting, interceptors...)
@@ -2620,7 +2435,7 @@ func (c *SubjectClient) Use(hooks ...Hook) {
 	c.hooks.Subject = append(c.hooks.Subject, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `subject.Intercept(f(g(h())))`.
 func (c *SubjectClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Subject = append(c.inters.Subject, interceptors...)
@@ -2739,7 +2554,7 @@ func (c *TokenClient) Use(hooks ...Hook) {
 	c.hooks.Token = append(c.hooks.Token, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `token.Intercept(f(g(h())))`.
 func (c *TokenClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Token = append(c.inters.Token, interceptors...)

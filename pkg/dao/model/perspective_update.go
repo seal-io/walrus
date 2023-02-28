@@ -152,16 +152,7 @@ func (pu *PerspectiveUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := pu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   perspective.Table,
-			Columns: perspective.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: perspective.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(perspective.Table, perspective.Columns, sqlgraph.NewFieldSpec(perspective.FieldID, field.TypeString))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -262,6 +253,12 @@ func (puo *PerspectiveUpdateOne) Mutation() *PerspectiveMutation {
 	return puo.mutation
 }
 
+// Where appends a list predicates to the PerspectiveUpdate builder.
+func (puo *PerspectiveUpdateOne) Where(ps ...predicate.Perspective) *PerspectiveUpdateOne {
+	puo.mutation.Where(ps...)
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *PerspectiveUpdateOne) Select(field string, fields ...string) *PerspectiveUpdateOne {
@@ -336,16 +333,7 @@ func (puo *PerspectiveUpdateOne) sqlSave(ctx context.Context) (_node *Perspectiv
 	if err := puo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   perspective.Table,
-			Columns: perspective.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: perspective.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(perspective.Table, perspective.Columns, sqlgraph.NewFieldSpec(perspective.FieldID, field.TypeString))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "Perspective.id" for update`)}

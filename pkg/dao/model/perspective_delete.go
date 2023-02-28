@@ -45,15 +45,7 @@ func (pd *PerspectiveDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *PerspectiveDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: perspective.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: perspective.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(perspective.Table, sqlgraph.NewFieldSpec(perspective.FieldID, field.TypeString))
 	_spec.Node.Schema = pd.schemaConfig.Perspective
 	ctx = internal.NewSchemaConfigContext(ctx, pd.schemaConfig)
 	if ps := pd.mutation.predicates; len(ps) > 0 {

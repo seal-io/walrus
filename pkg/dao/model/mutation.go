@@ -2611,34 +2611,28 @@ func (m *AllocationCostMutation) ResetEdge(name string) error {
 // ApplicationMutation represents an operation that mutates the Application nodes in the graph.
 type ApplicationMutation struct {
 	config
-	op                                    Op
-	typ                                   string
-	id                                    *types.ID
-	name                                  *string
-	description                           *string
-	labels                                *map[string]string
-	createTime                            *time.Time
-	updateTime                            *time.Time
-	clearedFields                         map[string]struct{}
-	project                               *types.ID
-	clearedproject                        bool
-	environment                           *types.ID
-	clearedenvironment                    bool
-	resources                             map[types.ID]struct{}
-	removedresources                      map[types.ID]struct{}
-	clearedresources                      bool
-	revisions                             map[types.ID]struct{}
-	removedrevisions                      map[types.ID]struct{}
-	clearedrevisions                      bool
-	modules                               map[string]struct{}
-	removedmodules                        map[string]struct{}
-	clearedmodules                        bool
-	applicationModuleRelationships        map[int]struct{}
-	removedapplicationModuleRelationships map[int]struct{}
-	clearedapplicationModuleRelationships bool
-	done                                  bool
-	oldValue                              func(context.Context) (*Application, error)
-	predicates                            []predicate.Application
+	op                 Op
+	typ                string
+	id                 *types.ID
+	name               *string
+	description        *string
+	labels             *map[string]string
+	createTime         *time.Time
+	updateTime         *time.Time
+	clearedFields      map[string]struct{}
+	project            *types.ID
+	clearedproject     bool
+	environment        *types.ID
+	clearedenvironment bool
+	resources          map[types.ID]struct{}
+	removedresources   map[types.ID]struct{}
+	clearedresources   bool
+	revisions          map[types.ID]struct{}
+	removedrevisions   map[types.ID]struct{}
+	clearedrevisions   bool
+	done               bool
+	oldValue           func(context.Context) (*Application, error)
+	predicates         []predicate.Application
 }
 
 var _ ent.Mutation = (*ApplicationMutation)(nil)
@@ -3170,114 +3164,6 @@ func (m *ApplicationMutation) ResetRevisions() {
 	m.removedrevisions = nil
 }
 
-// AddModuleIDs adds the "modules" edge to the Module entity by ids.
-func (m *ApplicationMutation) AddModuleIDs(ids ...string) {
-	if m.modules == nil {
-		m.modules = make(map[string]struct{})
-	}
-	for i := range ids {
-		m.modules[ids[i]] = struct{}{}
-	}
-}
-
-// ClearModules clears the "modules" edge to the Module entity.
-func (m *ApplicationMutation) ClearModules() {
-	m.clearedmodules = true
-}
-
-// ModulesCleared reports if the "modules" edge to the Module entity was cleared.
-func (m *ApplicationMutation) ModulesCleared() bool {
-	return m.clearedmodules
-}
-
-// RemoveModuleIDs removes the "modules" edge to the Module entity by IDs.
-func (m *ApplicationMutation) RemoveModuleIDs(ids ...string) {
-	if m.removedmodules == nil {
-		m.removedmodules = make(map[string]struct{})
-	}
-	for i := range ids {
-		delete(m.modules, ids[i])
-		m.removedmodules[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedModules returns the removed IDs of the "modules" edge to the Module entity.
-func (m *ApplicationMutation) RemovedModulesIDs() (ids []string) {
-	for id := range m.removedmodules {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ModulesIDs returns the "modules" edge IDs in the mutation.
-func (m *ApplicationMutation) ModulesIDs() (ids []string) {
-	for id := range m.modules {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetModules resets all changes to the "modules" edge.
-func (m *ApplicationMutation) ResetModules() {
-	m.modules = nil
-	m.clearedmodules = false
-	m.removedmodules = nil
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by ids.
-func (m *ApplicationMutation) AddApplicationModuleRelationshipIDs(ids ...int) {
-	if m.applicationModuleRelationships == nil {
-		m.applicationModuleRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.applicationModuleRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// ClearApplicationModuleRelationships clears the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity.
-func (m *ApplicationMutation) ClearApplicationModuleRelationships() {
-	m.clearedapplicationModuleRelationships = true
-}
-
-// ApplicationModuleRelationshipsCleared reports if the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity was cleared.
-func (m *ApplicationMutation) ApplicationModuleRelationshipsCleared() bool {
-	return m.clearedapplicationModuleRelationships
-}
-
-// RemoveApplicationModuleRelationshipIDs removes the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (m *ApplicationMutation) RemoveApplicationModuleRelationshipIDs(ids ...int) {
-	if m.removedapplicationModuleRelationships == nil {
-		m.removedapplicationModuleRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.applicationModuleRelationships, ids[i])
-		m.removedapplicationModuleRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedApplicationModuleRelationships returns the removed IDs of the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity.
-func (m *ApplicationMutation) RemovedApplicationModuleRelationshipsIDs() (ids []int) {
-	for id := range m.removedapplicationModuleRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ApplicationModuleRelationshipsIDs returns the "applicationModuleRelationships" edge IDs in the mutation.
-func (m *ApplicationMutation) ApplicationModuleRelationshipsIDs() (ids []int) {
-	for id := range m.applicationModuleRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetApplicationModuleRelationships resets all changes to the "applicationModuleRelationships" edge.
-func (m *ApplicationMutation) ResetApplicationModuleRelationships() {
-	m.applicationModuleRelationships = nil
-	m.clearedapplicationModuleRelationships = false
-	m.removedapplicationModuleRelationships = nil
-}
-
 // Where appends a list predicates to the ApplicationMutation builder.
 func (m *ApplicationMutation) Where(ps ...predicate.Application) {
 	m.predicates = append(m.predicates, ps...)
@@ -3522,7 +3408,7 @@ func (m *ApplicationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApplicationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 4)
 	if m.project != nil {
 		edges = append(edges, application.EdgeProject)
 	}
@@ -3534,12 +3420,6 @@ func (m *ApplicationMutation) AddedEdges() []string {
 	}
 	if m.revisions != nil {
 		edges = append(edges, application.EdgeRevisions)
-	}
-	if m.modules != nil {
-		edges = append(edges, application.EdgeModules)
-	}
-	if m.applicationModuleRelationships != nil {
-		edges = append(edges, application.EdgeApplicationModuleRelationships)
 	}
 	return edges
 }
@@ -3568,36 +3448,18 @@ func (m *ApplicationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case application.EdgeModules:
-		ids := make([]ent.Value, 0, len(m.modules))
-		for id := range m.modules {
-			ids = append(ids, id)
-		}
-		return ids
-	case application.EdgeApplicationModuleRelationships:
-		ids := make([]ent.Value, 0, len(m.applicationModuleRelationships))
-		for id := range m.applicationModuleRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ApplicationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 4)
 	if m.removedresources != nil {
 		edges = append(edges, application.EdgeResources)
 	}
 	if m.removedrevisions != nil {
 		edges = append(edges, application.EdgeRevisions)
-	}
-	if m.removedmodules != nil {
-		edges = append(edges, application.EdgeModules)
-	}
-	if m.removedapplicationModuleRelationships != nil {
-		edges = append(edges, application.EdgeApplicationModuleRelationships)
 	}
 	return edges
 }
@@ -3618,25 +3480,13 @@ func (m *ApplicationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case application.EdgeModules:
-		ids := make([]ent.Value, 0, len(m.removedmodules))
-		for id := range m.removedmodules {
-			ids = append(ids, id)
-		}
-		return ids
-	case application.EdgeApplicationModuleRelationships:
-		ids := make([]ent.Value, 0, len(m.removedapplicationModuleRelationships))
-		for id := range m.removedapplicationModuleRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApplicationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 4)
 	if m.clearedproject {
 		edges = append(edges, application.EdgeProject)
 	}
@@ -3648,12 +3498,6 @@ func (m *ApplicationMutation) ClearedEdges() []string {
 	}
 	if m.clearedrevisions {
 		edges = append(edges, application.EdgeRevisions)
-	}
-	if m.clearedmodules {
-		edges = append(edges, application.EdgeModules)
-	}
-	if m.clearedapplicationModuleRelationships {
-		edges = append(edges, application.EdgeApplicationModuleRelationships)
 	}
 	return edges
 }
@@ -3670,10 +3514,6 @@ func (m *ApplicationMutation) EdgeCleared(name string) bool {
 		return m.clearedresources
 	case application.EdgeRevisions:
 		return m.clearedrevisions
-	case application.EdgeModules:
-		return m.clearedmodules
-	case application.EdgeApplicationModuleRelationships:
-		return m.clearedapplicationModuleRelationships
 	}
 	return false
 }
@@ -3708,12 +3548,6 @@ func (m *ApplicationMutation) ResetEdge(name string) error {
 	case application.EdgeRevisions:
 		m.ResetRevisions()
 		return nil
-	case application.EdgeModules:
-		m.ResetModules()
-		return nil
-	case application.EdgeApplicationModuleRelationships:
-		m.ResetApplicationModuleRelationships()
-		return nil
 	}
 	return fmt.Errorf("unknown Application edge %s", name)
 }
@@ -3723,7 +3557,6 @@ type ApplicationModuleRelationshipMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
 	createTime         *time.Time
 	updateTime         *time.Time
 	name               *string
@@ -3757,38 +3590,6 @@ func newApplicationModuleRelationshipMutation(c config, op Op, opts ...applicati
 	return m
 }
 
-// withApplicationModuleRelationshipID sets the ID field of the mutation.
-func withApplicationModuleRelationshipID(id int) applicationmodulerelationshipOption {
-	return func(m *ApplicationModuleRelationshipMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *ApplicationModuleRelationship
-		)
-		m.oldValue = func(ctx context.Context) (*ApplicationModuleRelationship, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().ApplicationModuleRelationship.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withApplicationModuleRelationship sets the old ApplicationModuleRelationship of the mutation.
-func withApplicationModuleRelationship(node *ApplicationModuleRelationship) applicationmodulerelationshipOption {
-	return func(m *ApplicationModuleRelationshipMutation) {
-		m.oldValue = func(context.Context) (*ApplicationModuleRelationship, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
 func (m ApplicationModuleRelationshipMutation) Client() *Client {
@@ -3808,34 +3609,6 @@ func (m ApplicationModuleRelationshipMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *ApplicationModuleRelationshipMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *ApplicationModuleRelationshipMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().ApplicationModuleRelationship.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *ApplicationModuleRelationshipMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -3848,23 +3621,6 @@ func (m *ApplicationModuleRelationshipMutation) CreateTime() (r time.Time, exist
 		return
 	}
 	return *v, true
-}
-
-// OldCreateTime returns the old "createTime" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
 }
 
 // ResetCreateTime resets all changes to the "createTime" field.
@@ -3886,23 +3642,6 @@ func (m *ApplicationModuleRelationshipMutation) UpdateTime() (r time.Time, exist
 	return *v, true
 }
 
-// OldUpdateTime returns the old "updateTime" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *ApplicationModuleRelationshipMutation) ResetUpdateTime() {
 	m.updateTime = nil
@@ -3920,23 +3659,6 @@ func (m *ApplicationModuleRelationshipMutation) ApplicationID() (r types.ID, exi
 		return
 	}
 	return *v, true
-}
-
-// OldApplicationID returns the old "application_id" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldApplicationID(ctx context.Context) (v types.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldApplicationID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldApplicationID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldApplicationID: %w", err)
-	}
-	return oldValue.ApplicationID, nil
 }
 
 // ResetApplicationID resets all changes to the "application_id" field.
@@ -3958,23 +3680,6 @@ func (m *ApplicationModuleRelationshipMutation) ModuleID() (r string, exists boo
 	return *v, true
 }
 
-// OldModuleID returns the old "module_id" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldModuleID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModuleID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModuleID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModuleID: %w", err)
-	}
-	return oldValue.ModuleID, nil
-}
-
 // ResetModuleID resets all changes to the "module_id" field.
 func (m *ApplicationModuleRelationshipMutation) ResetModuleID() {
 	m.module = nil
@@ -3994,23 +3699,6 @@ func (m *ApplicationModuleRelationshipMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
 // ResetName resets all changes to the "name" field.
 func (m *ApplicationModuleRelationshipMutation) ResetName() {
 	m.name = nil
@@ -4028,23 +3716,6 @@ func (m *ApplicationModuleRelationshipMutation) Variables() (r map[string]interf
 		return
 	}
 	return *v, true
-}
-
-// OldVariables returns the old "variables" field's value of the ApplicationModuleRelationship entity.
-// If the ApplicationModuleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationModuleRelationshipMutation) OldVariables(ctx context.Context) (v map[string]interface{}, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVariables requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
-	}
-	return oldValue.Variables, nil
 }
 
 // ClearVariables clears the value of the "variables" field.
@@ -4198,21 +3869,7 @@ func (m *ApplicationModuleRelationshipMutation) Field(name string) (ent.Value, b
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *ApplicationModuleRelationshipMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case applicationmodulerelationship.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case applicationmodulerelationship.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
-	case applicationmodulerelationship.FieldApplicationID:
-		return m.OldApplicationID(ctx)
-	case applicationmodulerelationship.FieldModuleID:
-		return m.OldModuleID(ctx)
-	case applicationmodulerelationship.FieldName:
-		return m.OldName(ctx)
-	case applicationmodulerelationship.FieldVariables:
-		return m.OldVariables(ctx)
-	}
-	return nil, fmt.Errorf("unknown ApplicationModuleRelationship field %s", name)
+	return nil, errors.New("edge schema ApplicationModuleRelationship does not support getting old values")
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
@@ -7894,41 +7551,35 @@ func (m *ClusterCostMutation) ResetEdge(name string) error {
 // ConnectorMutation represents an operation that mutates the Connector nodes in the graph.
 type ConnectorMutation struct {
 	config
-	op                                       Op
-	typ                                      string
-	id                                       *types.ID
-	name                                     *string
-	description                              *string
-	labels                                   *map[string]string
-	status                                   *string
-	statusMessage                            *string
-	createTime                               *time.Time
-	updateTime                               *time.Time
-	_type                                    *string
-	configVersion                            *string
-	configData                               *map[string]interface{}
-	enableFinOps                             *bool
-	finOpsStatus                             *string
-	finOpsStatusMessage                      *string
-	clearedFields                            map[string]struct{}
-	environments                             map[types.ID]struct{}
-	removedenvironments                      map[types.ID]struct{}
-	clearedenvironments                      bool
-	resources                                map[types.ID]struct{}
-	removedresources                         map[types.ID]struct{}
-	clearedresources                         bool
-	clusterCosts                             map[int]struct{}
-	removedclusterCosts                      map[int]struct{}
-	clearedclusterCosts                      bool
-	allocationCosts                          map[int]struct{}
-	removedallocationCosts                   map[int]struct{}
-	clearedallocationCosts                   bool
-	environmentConnectorRelationships        map[int]struct{}
-	removedenvironmentConnectorRelationships map[int]struct{}
-	clearedenvironmentConnectorRelationships bool
-	done                                     bool
-	oldValue                                 func(context.Context) (*Connector, error)
-	predicates                               []predicate.Connector
+	op                     Op
+	typ                    string
+	id                     *types.ID
+	name                   *string
+	description            *string
+	labels                 *map[string]string
+	status                 *string
+	statusMessage          *string
+	createTime             *time.Time
+	updateTime             *time.Time
+	_type                  *string
+	configVersion          *string
+	configData             *map[string]interface{}
+	enableFinOps           *bool
+	finOpsStatus           *string
+	finOpsStatusMessage    *string
+	clearedFields          map[string]struct{}
+	resources              map[types.ID]struct{}
+	removedresources       map[types.ID]struct{}
+	clearedresources       bool
+	clusterCosts           map[int]struct{}
+	removedclusterCosts    map[int]struct{}
+	clearedclusterCosts    bool
+	allocationCosts        map[int]struct{}
+	removedallocationCosts map[int]struct{}
+	clearedallocationCosts bool
+	done                   bool
+	oldValue               func(context.Context) (*Connector, error)
+	predicates             []predicate.Connector
 }
 
 var _ ent.Mutation = (*ConnectorMutation)(nil)
@@ -8568,60 +8219,6 @@ func (m *ConnectorMutation) ResetFinOpsStatusMessage() {
 	delete(m.clearedFields, connector.FieldFinOpsStatusMessage)
 }
 
-// AddEnvironmentIDs adds the "environments" edge to the Environment entity by ids.
-func (m *ConnectorMutation) AddEnvironmentIDs(ids ...types.ID) {
-	if m.environments == nil {
-		m.environments = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		m.environments[ids[i]] = struct{}{}
-	}
-}
-
-// ClearEnvironments clears the "environments" edge to the Environment entity.
-func (m *ConnectorMutation) ClearEnvironments() {
-	m.clearedenvironments = true
-}
-
-// EnvironmentsCleared reports if the "environments" edge to the Environment entity was cleared.
-func (m *ConnectorMutation) EnvironmentsCleared() bool {
-	return m.clearedenvironments
-}
-
-// RemoveEnvironmentIDs removes the "environments" edge to the Environment entity by IDs.
-func (m *ConnectorMutation) RemoveEnvironmentIDs(ids ...types.ID) {
-	if m.removedenvironments == nil {
-		m.removedenvironments = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		delete(m.environments, ids[i])
-		m.removedenvironments[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedEnvironments returns the removed IDs of the "environments" edge to the Environment entity.
-func (m *ConnectorMutation) RemovedEnvironmentsIDs() (ids []types.ID) {
-	for id := range m.removedenvironments {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// EnvironmentsIDs returns the "environments" edge IDs in the mutation.
-func (m *ConnectorMutation) EnvironmentsIDs() (ids []types.ID) {
-	for id := range m.environments {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetEnvironments resets all changes to the "environments" edge.
-func (m *ConnectorMutation) ResetEnvironments() {
-	m.environments = nil
-	m.clearedenvironments = false
-	m.removedenvironments = nil
-}
-
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by ids.
 func (m *ConnectorMutation) AddResourceIDs(ids ...types.ID) {
 	if m.resources == nil {
@@ -8782,60 +8379,6 @@ func (m *ConnectorMutation) ResetAllocationCosts() {
 	m.allocationCosts = nil
 	m.clearedallocationCosts = false
 	m.removedallocationCosts = nil
-}
-
-// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by ids.
-func (m *ConnectorMutation) AddEnvironmentConnectorRelationshipIDs(ids ...int) {
-	if m.environmentConnectorRelationships == nil {
-		m.environmentConnectorRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.environmentConnectorRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// ClearEnvironmentConnectorRelationships clears the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity.
-func (m *ConnectorMutation) ClearEnvironmentConnectorRelationships() {
-	m.clearedenvironmentConnectorRelationships = true
-}
-
-// EnvironmentConnectorRelationshipsCleared reports if the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity was cleared.
-func (m *ConnectorMutation) EnvironmentConnectorRelationshipsCleared() bool {
-	return m.clearedenvironmentConnectorRelationships
-}
-
-// RemoveEnvironmentConnectorRelationshipIDs removes the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
-func (m *ConnectorMutation) RemoveEnvironmentConnectorRelationshipIDs(ids ...int) {
-	if m.removedenvironmentConnectorRelationships == nil {
-		m.removedenvironmentConnectorRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.environmentConnectorRelationships, ids[i])
-		m.removedenvironmentConnectorRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedEnvironmentConnectorRelationships returns the removed IDs of the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity.
-func (m *ConnectorMutation) RemovedEnvironmentConnectorRelationshipsIDs() (ids []int) {
-	for id := range m.removedenvironmentConnectorRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// EnvironmentConnectorRelationshipsIDs returns the "environmentConnectorRelationships" edge IDs in the mutation.
-func (m *ConnectorMutation) EnvironmentConnectorRelationshipsIDs() (ids []int) {
-	for id := range m.environmentConnectorRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetEnvironmentConnectorRelationships resets all changes to the "environmentConnectorRelationships" edge.
-func (m *ConnectorMutation) ResetEnvironmentConnectorRelationships() {
-	m.environmentConnectorRelationships = nil
-	m.clearedenvironmentConnectorRelationships = false
-	m.removedenvironmentConnectorRelationships = nil
 }
 
 // Where appends a list predicates to the ConnectorMutation builder.
@@ -9208,10 +8751,7 @@ func (m *ConnectorMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ConnectorMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.environments != nil {
-		edges = append(edges, connector.EdgeEnvironments)
-	}
+	edges := make([]string, 0, 3)
 	if m.resources != nil {
 		edges = append(edges, connector.EdgeResources)
 	}
@@ -9221,9 +8761,6 @@ func (m *ConnectorMutation) AddedEdges() []string {
 	if m.allocationCosts != nil {
 		edges = append(edges, connector.EdgeAllocationCosts)
 	}
-	if m.environmentConnectorRelationships != nil {
-		edges = append(edges, connector.EdgeEnvironmentConnectorRelationships)
-	}
 	return edges
 }
 
@@ -9231,12 +8768,6 @@ func (m *ConnectorMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ConnectorMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case connector.EdgeEnvironments:
-		ids := make([]ent.Value, 0, len(m.environments))
-		for id := range m.environments {
-			ids = append(ids, id)
-		}
-		return ids
 	case connector.EdgeResources:
 		ids := make([]ent.Value, 0, len(m.resources))
 		for id := range m.resources {
@@ -9255,22 +8786,13 @@ func (m *ConnectorMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case connector.EdgeEnvironmentConnectorRelationships:
-		ids := make([]ent.Value, 0, len(m.environmentConnectorRelationships))
-		for id := range m.environmentConnectorRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ConnectorMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.removedenvironments != nil {
-		edges = append(edges, connector.EdgeEnvironments)
-	}
+	edges := make([]string, 0, 3)
 	if m.removedresources != nil {
 		edges = append(edges, connector.EdgeResources)
 	}
@@ -9280,9 +8802,6 @@ func (m *ConnectorMutation) RemovedEdges() []string {
 	if m.removedallocationCosts != nil {
 		edges = append(edges, connector.EdgeAllocationCosts)
 	}
-	if m.removedenvironmentConnectorRelationships != nil {
-		edges = append(edges, connector.EdgeEnvironmentConnectorRelationships)
-	}
 	return edges
 }
 
@@ -9290,12 +8809,6 @@ func (m *ConnectorMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ConnectorMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case connector.EdgeEnvironments:
-		ids := make([]ent.Value, 0, len(m.removedenvironments))
-		for id := range m.removedenvironments {
-			ids = append(ids, id)
-		}
-		return ids
 	case connector.EdgeResources:
 		ids := make([]ent.Value, 0, len(m.removedresources))
 		for id := range m.removedresources {
@@ -9314,22 +8827,13 @@ func (m *ConnectorMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case connector.EdgeEnvironmentConnectorRelationships:
-		ids := make([]ent.Value, 0, len(m.removedenvironmentConnectorRelationships))
-		for id := range m.removedenvironmentConnectorRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ConnectorMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.clearedenvironments {
-		edges = append(edges, connector.EdgeEnvironments)
-	}
+	edges := make([]string, 0, 3)
 	if m.clearedresources {
 		edges = append(edges, connector.EdgeResources)
 	}
@@ -9339,9 +8843,6 @@ func (m *ConnectorMutation) ClearedEdges() []string {
 	if m.clearedallocationCosts {
 		edges = append(edges, connector.EdgeAllocationCosts)
 	}
-	if m.clearedenvironmentConnectorRelationships {
-		edges = append(edges, connector.EdgeEnvironmentConnectorRelationships)
-	}
 	return edges
 }
 
@@ -9349,16 +8850,12 @@ func (m *ConnectorMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ConnectorMutation) EdgeCleared(name string) bool {
 	switch name {
-	case connector.EdgeEnvironments:
-		return m.clearedenvironments
 	case connector.EdgeResources:
 		return m.clearedresources
 	case connector.EdgeClusterCosts:
 		return m.clearedclusterCosts
 	case connector.EdgeAllocationCosts:
 		return m.clearedallocationCosts
-	case connector.EdgeEnvironmentConnectorRelationships:
-		return m.clearedenvironmentConnectorRelationships
 	}
 	return false
 }
@@ -9375,9 +8872,6 @@ func (m *ConnectorMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ConnectorMutation) ResetEdge(name string) error {
 	switch name {
-	case connector.EdgeEnvironments:
-		m.ResetEnvironments()
-		return nil
 	case connector.EdgeResources:
 		m.ResetResources()
 		return nil
@@ -9387,9 +8881,6 @@ func (m *ConnectorMutation) ResetEdge(name string) error {
 	case connector.EdgeAllocationCosts:
 		m.ResetAllocationCosts()
 		return nil
-	case connector.EdgeEnvironmentConnectorRelationships:
-		m.ResetEnvironmentConnectorRelationships()
-		return nil
 	}
 	return fmt.Errorf("unknown Connector edge %s", name)
 }
@@ -9397,31 +8888,25 @@ func (m *ConnectorMutation) ResetEdge(name string) error {
 // EnvironmentMutation represents an operation that mutates the Environment nodes in the graph.
 type EnvironmentMutation struct {
 	config
-	op                                       Op
-	typ                                      string
-	id                                       *types.ID
-	name                                     *string
-	description                              *string
-	labels                                   *map[string]string
-	createTime                               *time.Time
-	updateTime                               *time.Time
-	variables                                *map[string]interface{}
-	clearedFields                            map[string]struct{}
-	connectors                               map[types.ID]struct{}
-	removedconnectors                        map[types.ID]struct{}
-	clearedconnectors                        bool
-	applications                             map[types.ID]struct{}
-	removedapplications                      map[types.ID]struct{}
-	clearedapplications                      bool
-	revisions                                map[types.ID]struct{}
-	removedrevisions                         map[types.ID]struct{}
-	clearedrevisions                         bool
-	environmentConnectorRelationships        map[int]struct{}
-	removedenvironmentConnectorRelationships map[int]struct{}
-	clearedenvironmentConnectorRelationships bool
-	done                                     bool
-	oldValue                                 func(context.Context) (*Environment, error)
-	predicates                               []predicate.Environment
+	op                  Op
+	typ                 string
+	id                  *types.ID
+	name                *string
+	description         *string
+	labels              *map[string]string
+	createTime          *time.Time
+	updateTime          *time.Time
+	variables           *map[string]interface{}
+	clearedFields       map[string]struct{}
+	applications        map[types.ID]struct{}
+	removedapplications map[types.ID]struct{}
+	clearedapplications bool
+	revisions           map[types.ID]struct{}
+	removedrevisions    map[types.ID]struct{}
+	clearedrevisions    bool
+	done                bool
+	oldValue            func(context.Context) (*Environment, error)
+	predicates          []predicate.Environment
 }
 
 var _ ent.Mutation = (*EnvironmentMutation)(nil)
@@ -9770,60 +9255,6 @@ func (m *EnvironmentMutation) ResetVariables() {
 	delete(m.clearedFields, environment.FieldVariables)
 }
 
-// AddConnectorIDs adds the "connectors" edge to the Connector entity by ids.
-func (m *EnvironmentMutation) AddConnectorIDs(ids ...types.ID) {
-	if m.connectors == nil {
-		m.connectors = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		m.connectors[ids[i]] = struct{}{}
-	}
-}
-
-// ClearConnectors clears the "connectors" edge to the Connector entity.
-func (m *EnvironmentMutation) ClearConnectors() {
-	m.clearedconnectors = true
-}
-
-// ConnectorsCleared reports if the "connectors" edge to the Connector entity was cleared.
-func (m *EnvironmentMutation) ConnectorsCleared() bool {
-	return m.clearedconnectors
-}
-
-// RemoveConnectorIDs removes the "connectors" edge to the Connector entity by IDs.
-func (m *EnvironmentMutation) RemoveConnectorIDs(ids ...types.ID) {
-	if m.removedconnectors == nil {
-		m.removedconnectors = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		delete(m.connectors, ids[i])
-		m.removedconnectors[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedConnectors returns the removed IDs of the "connectors" edge to the Connector entity.
-func (m *EnvironmentMutation) RemovedConnectorsIDs() (ids []types.ID) {
-	for id := range m.removedconnectors {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ConnectorsIDs returns the "connectors" edge IDs in the mutation.
-func (m *EnvironmentMutation) ConnectorsIDs() (ids []types.ID) {
-	for id := range m.connectors {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetConnectors resets all changes to the "connectors" edge.
-func (m *EnvironmentMutation) ResetConnectors() {
-	m.connectors = nil
-	m.clearedconnectors = false
-	m.removedconnectors = nil
-}
-
 // AddApplicationIDs adds the "applications" edge to the Application entity by ids.
 func (m *EnvironmentMutation) AddApplicationIDs(ids ...types.ID) {
 	if m.applications == nil {
@@ -9930,60 +9361,6 @@ func (m *EnvironmentMutation) ResetRevisions() {
 	m.revisions = nil
 	m.clearedrevisions = false
 	m.removedrevisions = nil
-}
-
-// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by ids.
-func (m *EnvironmentMutation) AddEnvironmentConnectorRelationshipIDs(ids ...int) {
-	if m.environmentConnectorRelationships == nil {
-		m.environmentConnectorRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.environmentConnectorRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// ClearEnvironmentConnectorRelationships clears the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity.
-func (m *EnvironmentMutation) ClearEnvironmentConnectorRelationships() {
-	m.clearedenvironmentConnectorRelationships = true
-}
-
-// EnvironmentConnectorRelationshipsCleared reports if the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity was cleared.
-func (m *EnvironmentMutation) EnvironmentConnectorRelationshipsCleared() bool {
-	return m.clearedenvironmentConnectorRelationships
-}
-
-// RemoveEnvironmentConnectorRelationshipIDs removes the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
-func (m *EnvironmentMutation) RemoveEnvironmentConnectorRelationshipIDs(ids ...int) {
-	if m.removedenvironmentConnectorRelationships == nil {
-		m.removedenvironmentConnectorRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.environmentConnectorRelationships, ids[i])
-		m.removedenvironmentConnectorRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedEnvironmentConnectorRelationships returns the removed IDs of the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity.
-func (m *EnvironmentMutation) RemovedEnvironmentConnectorRelationshipsIDs() (ids []int) {
-	for id := range m.removedenvironmentConnectorRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// EnvironmentConnectorRelationshipsIDs returns the "environmentConnectorRelationships" edge IDs in the mutation.
-func (m *EnvironmentMutation) EnvironmentConnectorRelationshipsIDs() (ids []int) {
-	for id := range m.environmentConnectorRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetEnvironmentConnectorRelationships resets all changes to the "environmentConnectorRelationships" edge.
-func (m *EnvironmentMutation) ResetEnvironmentConnectorRelationships() {
-	m.environmentConnectorRelationships = nil
-	m.clearedenvironmentConnectorRelationships = false
-	m.removedenvironmentConnectorRelationships = nil
 }
 
 // Where appends a list predicates to the EnvironmentMutation builder.
@@ -10219,18 +9596,12 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EnvironmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.connectors != nil {
-		edges = append(edges, environment.EdgeConnectors)
-	}
+	edges := make([]string, 0, 2)
 	if m.applications != nil {
 		edges = append(edges, environment.EdgeApplications)
 	}
 	if m.revisions != nil {
 		edges = append(edges, environment.EdgeRevisions)
-	}
-	if m.environmentConnectorRelationships != nil {
-		edges = append(edges, environment.EdgeEnvironmentConnectorRelationships)
 	}
 	return edges
 }
@@ -10239,12 +9610,6 @@ func (m *EnvironmentMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case environment.EdgeConnectors:
-		ids := make([]ent.Value, 0, len(m.connectors))
-		for id := range m.connectors {
-			ids = append(ids, id)
-		}
-		return ids
 	case environment.EdgeApplications:
 		ids := make([]ent.Value, 0, len(m.applications))
 		for id := range m.applications {
@@ -10257,30 +9622,18 @@ func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case environment.EdgeEnvironmentConnectorRelationships:
-		ids := make([]ent.Value, 0, len(m.environmentConnectorRelationships))
-		for id := range m.environmentConnectorRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EnvironmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.removedconnectors != nil {
-		edges = append(edges, environment.EdgeConnectors)
-	}
+	edges := make([]string, 0, 2)
 	if m.removedapplications != nil {
 		edges = append(edges, environment.EdgeApplications)
 	}
 	if m.removedrevisions != nil {
 		edges = append(edges, environment.EdgeRevisions)
-	}
-	if m.removedenvironmentConnectorRelationships != nil {
-		edges = append(edges, environment.EdgeEnvironmentConnectorRelationships)
 	}
 	return edges
 }
@@ -10289,12 +9642,6 @@ func (m *EnvironmentMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case environment.EdgeConnectors:
-		ids := make([]ent.Value, 0, len(m.removedconnectors))
-		for id := range m.removedconnectors {
-			ids = append(ids, id)
-		}
-		return ids
 	case environment.EdgeApplications:
 		ids := make([]ent.Value, 0, len(m.removedapplications))
 		for id := range m.removedapplications {
@@ -10307,30 +9654,18 @@ func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case environment.EdgeEnvironmentConnectorRelationships:
-		ids := make([]ent.Value, 0, len(m.removedenvironmentConnectorRelationships))
-		for id := range m.removedenvironmentConnectorRelationships {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EnvironmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.clearedconnectors {
-		edges = append(edges, environment.EdgeConnectors)
-	}
+	edges := make([]string, 0, 2)
 	if m.clearedapplications {
 		edges = append(edges, environment.EdgeApplications)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, environment.EdgeRevisions)
-	}
-	if m.clearedenvironmentConnectorRelationships {
-		edges = append(edges, environment.EdgeEnvironmentConnectorRelationships)
 	}
 	return edges
 }
@@ -10339,14 +9674,10 @@ func (m *EnvironmentMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *EnvironmentMutation) EdgeCleared(name string) bool {
 	switch name {
-	case environment.EdgeConnectors:
-		return m.clearedconnectors
 	case environment.EdgeApplications:
 		return m.clearedapplications
 	case environment.EdgeRevisions:
 		return m.clearedrevisions
-	case environment.EdgeEnvironmentConnectorRelationships:
-		return m.clearedenvironmentConnectorRelationships
 	}
 	return false
 }
@@ -10363,17 +9694,11 @@ func (m *EnvironmentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *EnvironmentMutation) ResetEdge(name string) error {
 	switch name {
-	case environment.EdgeConnectors:
-		m.ResetConnectors()
-		return nil
 	case environment.EdgeApplications:
 		m.ResetApplications()
 		return nil
 	case environment.EdgeRevisions:
 		m.ResetRevisions()
-		return nil
-	case environment.EdgeEnvironmentConnectorRelationships:
-		m.ResetEnvironmentConnectorRelationships()
 		return nil
 	}
 	return fmt.Errorf("unknown Environment edge %s", name)
@@ -10384,7 +9709,6 @@ type EnvironmentConnectorRelationshipMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
 	createTime         *time.Time
 	clearedFields      map[string]struct{}
 	environment        *types.ID
@@ -10415,38 +9739,6 @@ func newEnvironmentConnectorRelationshipMutation(c config, op Op, opts ...enviro
 	return m
 }
 
-// withEnvironmentConnectorRelationshipID sets the ID field of the mutation.
-func withEnvironmentConnectorRelationshipID(id int) environmentconnectorrelationshipOption {
-	return func(m *EnvironmentConnectorRelationshipMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *EnvironmentConnectorRelationship
-		)
-		m.oldValue = func(ctx context.Context) (*EnvironmentConnectorRelationship, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().EnvironmentConnectorRelationship.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withEnvironmentConnectorRelationship sets the old EnvironmentConnectorRelationship of the mutation.
-func withEnvironmentConnectorRelationship(node *EnvironmentConnectorRelationship) environmentconnectorrelationshipOption {
-	return func(m *EnvironmentConnectorRelationshipMutation) {
-		m.oldValue = func(context.Context) (*EnvironmentConnectorRelationship, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
 func (m EnvironmentConnectorRelationshipMutation) Client() *Client {
@@ -10466,34 +9758,6 @@ func (m EnvironmentConnectorRelationshipMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *EnvironmentConnectorRelationshipMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *EnvironmentConnectorRelationshipMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().EnvironmentConnectorRelationship.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *EnvironmentConnectorRelationshipMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -10506,23 +9770,6 @@ func (m *EnvironmentConnectorRelationshipMutation) CreateTime() (r time.Time, ex
 		return
 	}
 	return *v, true
-}
-
-// OldCreateTime returns the old "createTime" field's value of the EnvironmentConnectorRelationship entity.
-// If the EnvironmentConnectorRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentConnectorRelationshipMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
 }
 
 // ResetCreateTime resets all changes to the "createTime" field.
@@ -10544,23 +9791,6 @@ func (m *EnvironmentConnectorRelationshipMutation) EnvironmentID() (r types.ID, 
 	return *v, true
 }
 
-// OldEnvironmentID returns the old "environment_id" field's value of the EnvironmentConnectorRelationship entity.
-// If the EnvironmentConnectorRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentConnectorRelationshipMutation) OldEnvironmentID(ctx context.Context) (v types.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
-	}
-	return oldValue.EnvironmentID, nil
-}
-
 // ResetEnvironmentID resets all changes to the "environment_id" field.
 func (m *EnvironmentConnectorRelationshipMutation) ResetEnvironmentID() {
 	m.environment = nil
@@ -10578,23 +9808,6 @@ func (m *EnvironmentConnectorRelationshipMutation) ConnectorID() (r types.ID, ex
 		return
 	}
 	return *v, true
-}
-
-// OldConnectorID returns the old "connector_id" field's value of the EnvironmentConnectorRelationship entity.
-// If the EnvironmentConnectorRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentConnectorRelationshipMutation) OldConnectorID(ctx context.Context) (v types.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldConnectorID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldConnectorID: %w", err)
-	}
-	return oldValue.ConnectorID, nil
 }
 
 // ResetConnectorID resets all changes to the "connector_id" field.
@@ -10720,15 +9933,7 @@ func (m *EnvironmentConnectorRelationshipMutation) Field(name string) (ent.Value
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *EnvironmentConnectorRelationshipMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case environmentconnectorrelationship.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case environmentconnectorrelationship.FieldEnvironmentID:
-		return m.OldEnvironmentID(ctx)
-	case environmentconnectorrelationship.FieldConnectorID:
-		return m.OldConnectorID(ctx)
-	}
-	return nil, fmt.Errorf("unknown EnvironmentConnectorRelationship field %s", name)
+	return nil, errors.New("edge schema EnvironmentConnectorRelationship does not support getting old values")
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
@@ -10914,28 +10119,22 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetEdge(name string) error 
 // ModuleMutation represents an operation that mutates the Module nodes in the graph.
 type ModuleMutation struct {
 	config
-	op                                    Op
-	typ                                   string
-	id                                    *string
-	status                                *string
-	statusMessage                         *string
-	createTime                            *time.Time
-	updateTime                            *time.Time
-	description                           *string
-	labels                                *map[string]string
-	source                                *string
-	version                               *string
-	schema                                **types.ModuleSchema
-	clearedFields                         map[string]struct{}
-	application                           map[types.ID]struct{}
-	removedapplication                    map[types.ID]struct{}
-	clearedapplication                    bool
-	applicationModuleRelationships        map[int]struct{}
-	removedapplicationModuleRelationships map[int]struct{}
-	clearedapplicationModuleRelationships bool
-	done                                  bool
-	oldValue                              func(context.Context) (*Module, error)
-	predicates                            []predicate.Module
+	op            Op
+	typ           string
+	id            *string
+	status        *string
+	statusMessage *string
+	createTime    *time.Time
+	updateTime    *time.Time
+	description   *string
+	labels        *map[string]string
+	source        *string
+	version       *string
+	schema        **types.ModuleSchema
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Module, error)
+	predicates    []predicate.Module
 }
 
 var _ ent.Mutation = (*ModuleMutation)(nil)
@@ -11418,114 +10617,6 @@ func (m *ModuleMutation) ResetSchema() {
 	m.schema = nil
 }
 
-// AddApplicationIDs adds the "application" edge to the Application entity by ids.
-func (m *ModuleMutation) AddApplicationIDs(ids ...types.ID) {
-	if m.application == nil {
-		m.application = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		m.application[ids[i]] = struct{}{}
-	}
-}
-
-// ClearApplication clears the "application" edge to the Application entity.
-func (m *ModuleMutation) ClearApplication() {
-	m.clearedapplication = true
-}
-
-// ApplicationCleared reports if the "application" edge to the Application entity was cleared.
-func (m *ModuleMutation) ApplicationCleared() bool {
-	return m.clearedapplication
-}
-
-// RemoveApplicationIDs removes the "application" edge to the Application entity by IDs.
-func (m *ModuleMutation) RemoveApplicationIDs(ids ...types.ID) {
-	if m.removedapplication == nil {
-		m.removedapplication = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		delete(m.application, ids[i])
-		m.removedapplication[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedApplication returns the removed IDs of the "application" edge to the Application entity.
-func (m *ModuleMutation) RemovedApplicationIDs() (ids []types.ID) {
-	for id := range m.removedapplication {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ApplicationIDs returns the "application" edge IDs in the mutation.
-func (m *ModuleMutation) ApplicationIDs() (ids []types.ID) {
-	for id := range m.application {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetApplication resets all changes to the "application" edge.
-func (m *ModuleMutation) ResetApplication() {
-	m.application = nil
-	m.clearedapplication = false
-	m.removedapplication = nil
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by ids.
-func (m *ModuleMutation) AddApplicationModuleRelationshipIDs(ids ...int) {
-	if m.applicationModuleRelationships == nil {
-		m.applicationModuleRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.applicationModuleRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// ClearApplicationModuleRelationships clears the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity.
-func (m *ModuleMutation) ClearApplicationModuleRelationships() {
-	m.clearedapplicationModuleRelationships = true
-}
-
-// ApplicationModuleRelationshipsCleared reports if the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity was cleared.
-func (m *ModuleMutation) ApplicationModuleRelationshipsCleared() bool {
-	return m.clearedapplicationModuleRelationships
-}
-
-// RemoveApplicationModuleRelationshipIDs removes the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (m *ModuleMutation) RemoveApplicationModuleRelationshipIDs(ids ...int) {
-	if m.removedapplicationModuleRelationships == nil {
-		m.removedapplicationModuleRelationships = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.applicationModuleRelationships, ids[i])
-		m.removedapplicationModuleRelationships[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedApplicationModuleRelationships returns the removed IDs of the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity.
-func (m *ModuleMutation) RemovedApplicationModuleRelationshipsIDs() (ids []int) {
-	for id := range m.removedapplicationModuleRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ApplicationModuleRelationshipsIDs returns the "applicationModuleRelationships" edge IDs in the mutation.
-func (m *ModuleMutation) ApplicationModuleRelationshipsIDs() (ids []int) {
-	for id := range m.applicationModuleRelationships {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetApplicationModuleRelationships resets all changes to the "applicationModuleRelationships" edge.
-func (m *ModuleMutation) ResetApplicationModuleRelationships() {
-	m.applicationModuleRelationships = nil
-	m.clearedapplicationModuleRelationships = false
-	m.removedapplicationModuleRelationships = nil
-}
-
 // Where appends a list predicates to the ModuleMutation builder.
 func (m *ModuleMutation) Where(ps ...predicate.Module) {
 	m.predicates = append(m.predicates, ps...)
@@ -11822,111 +10913,49 @@ func (m *ModuleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ModuleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.application != nil {
-		edges = append(edges, module.EdgeApplication)
-	}
-	if m.applicationModuleRelationships != nil {
-		edges = append(edges, module.EdgeApplicationModuleRelationships)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ModuleMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case module.EdgeApplication:
-		ids := make([]ent.Value, 0, len(m.application))
-		for id := range m.application {
-			ids = append(ids, id)
-		}
-		return ids
-	case module.EdgeApplicationModuleRelationships:
-		ids := make([]ent.Value, 0, len(m.applicationModuleRelationships))
-		for id := range m.applicationModuleRelationships {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ModuleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedapplication != nil {
-		edges = append(edges, module.EdgeApplication)
-	}
-	if m.removedapplicationModuleRelationships != nil {
-		edges = append(edges, module.EdgeApplicationModuleRelationships)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ModuleMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case module.EdgeApplication:
-		ids := make([]ent.Value, 0, len(m.removedapplication))
-		for id := range m.removedapplication {
-			ids = append(ids, id)
-		}
-		return ids
-	case module.EdgeApplicationModuleRelationships:
-		ids := make([]ent.Value, 0, len(m.removedapplicationModuleRelationships))
-		for id := range m.removedapplicationModuleRelationships {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ModuleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedapplication {
-		edges = append(edges, module.EdgeApplication)
-	}
-	if m.clearedapplicationModuleRelationships {
-		edges = append(edges, module.EdgeApplicationModuleRelationships)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ModuleMutation) EdgeCleared(name string) bool {
-	switch name {
-	case module.EdgeApplication:
-		return m.clearedapplication
-	case module.EdgeApplicationModuleRelationships:
-		return m.clearedapplicationModuleRelationships
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ModuleMutation) ClearEdge(name string) error {
-	switch name {
-	}
 	return fmt.Errorf("unknown Module unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ModuleMutation) ResetEdge(name string) error {
-	switch name {
-	case module.EdgeApplication:
-		m.ResetApplication()
-		return nil
-	case module.EdgeApplicationModuleRelationships:
-		m.ResetApplicationModuleRelationships()
-		return nil
-	}
 	return fmt.Errorf("unknown Module edge %s", name)
 }
 

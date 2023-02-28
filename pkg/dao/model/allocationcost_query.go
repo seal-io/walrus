@@ -212,10 +212,12 @@ func (acq *AllocationCostQuery) AllX(ctx context.Context) []*AllocationCost {
 }
 
 // IDs executes the query and returns a list of AllocationCost IDs.
-func (acq *AllocationCostQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (acq *AllocationCostQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if acq.ctx.Unique == nil && acq.path != nil {
+		acq.Unique(true)
+	}
 	ctx = setContextOp(ctx, acq.ctx, "IDs")
-	if err := acq.Select(allocationcost.FieldID).Scan(ctx, &ids); err != nil {
+	if err = acq.Select(allocationcost.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -306,7 +308,7 @@ func (acq *AllocationCostQuery) WithConnector(opts ...func(*ConnectorQuery)) *Al
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime"`
+//		StartTime time.Time `json:"startTime,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -329,7 +331,7 @@ func (acq *AllocationCostQuery) GroupBy(field string, fields ...string) *Allocat
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime"`
+//		StartTime time.Time `json:"startTime,omitempty"`
 //	}
 //
 //	client.AllocationCost.Query().
@@ -459,20 +461,12 @@ func (acq *AllocationCostQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (acq *AllocationCostQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allocationcost.Table,
-			Columns: allocationcost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allocationcost.FieldID,
-			},
-		},
-		From:   acq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(allocationcost.Table, allocationcost.Columns, sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt))
+	_spec.From = acq.sql
 	if unique := acq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if acq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := acq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

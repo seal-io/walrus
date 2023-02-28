@@ -17,11 +17,9 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -144,36 +142,6 @@ func (ac *ApplicationCreate) AddRevisions(a ...*ApplicationRevision) *Applicatio
 		ids[i] = a[i].ID
 	}
 	return ac.AddRevisionIDs(ids...)
-}
-
-// AddModuleIDs adds the "modules" edge to the Module entity by IDs.
-func (ac *ApplicationCreate) AddModuleIDs(ids ...string) *ApplicationCreate {
-	ac.mutation.AddModuleIDs(ids...)
-	return ac
-}
-
-// AddModules adds the "modules" edges to the Module entity.
-func (ac *ApplicationCreate) AddModules(m ...*Module) *ApplicationCreate {
-	ids := make([]string, len(m))
-	for i := range m {
-		ids[i] = m[i].ID
-	}
-	return ac.AddModuleIDs(ids...)
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (ac *ApplicationCreate) AddApplicationModuleRelationshipIDs(ids ...int) *ApplicationCreate {
-	ac.mutation.AddApplicationModuleRelationshipIDs(ids...)
-	return ac
-}
-
-// AddApplicationModuleRelationships adds the "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (ac *ApplicationCreate) AddApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ApplicationCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return ac.AddApplicationModuleRelationshipIDs(ids...)
 }
 
 // Mutation returns the ApplicationMutation object of the builder.
@@ -304,13 +272,7 @@ func (ac *ApplicationCreate) sqlSave(ctx context.Context) (*Application, error) 
 func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Application{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: application.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: application.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(application.Table, sqlgraph.NewFieldSpec(application.FieldID, field.TypeString))
 	)
 	_spec.Schema = ac.schemaConfig.Application
 	_spec.OnConflict = ac.conflict
@@ -415,50 +377,6 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = ac.schemaConfig.ApplicationRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.ModulesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   application.ModulesTable,
-			Columns: application.ModulesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: module.FieldID,
-				},
-			},
-		}
-		edge.Schema = ac.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: ac.config, mutation: newApplicationModuleRelationshipMutation(ac.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.ApplicationModuleRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   application.ApplicationModuleRelationshipsTable,
-			Columns: []string{application.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = ac.schemaConfig.ApplicationModuleRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

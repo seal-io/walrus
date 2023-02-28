@@ -34,24 +34,17 @@ const (
 	FieldVersion = "version"
 	// FieldSchema holds the string denoting the schema field in the database.
 	FieldSchema = "schema"
-	// EdgeApplication holds the string denoting the application edge name in mutations.
-	EdgeApplication = "application"
-	// EdgeApplicationModuleRelationships holds the string denoting the applicationmodulerelationships edge name in mutations.
-	EdgeApplicationModuleRelationships = "applicationModuleRelationships"
+	// EdgeApplications holds the string denoting the applications edge name in mutations.
+	EdgeApplications = "applications"
 	// Table holds the table name of the module in the database.
 	Table = "modules"
-	// ApplicationTable is the table that holds the application relation/edge. The primary key declared below.
-	ApplicationTable = "application_module_relationships"
-	// ApplicationInverseTable is the table name for the Application entity.
-	// It exists in this package in order to avoid circular dependency with the "application" package.
-	ApplicationInverseTable = "applications"
-	// ApplicationModuleRelationshipsTable is the table that holds the applicationModuleRelationships relation/edge.
-	ApplicationModuleRelationshipsTable = "application_module_relationships"
-	// ApplicationModuleRelationshipsInverseTable is the table name for the ApplicationModuleRelationship entity.
+	// ApplicationsTable is the table that holds the applications relation/edge.
+	ApplicationsTable = "application_module_relationships"
+	// ApplicationsInverseTable is the table name for the ApplicationModuleRelationship entity.
 	// It exists in this package in order to avoid circular dependency with the "applicationmodulerelationship" package.
-	ApplicationModuleRelationshipsInverseTable = "application_module_relationships"
-	// ApplicationModuleRelationshipsColumn is the table column denoting the applicationModuleRelationships relation/edge.
-	ApplicationModuleRelationshipsColumn = "module_id"
+	ApplicationsInverseTable = "application_module_relationships"
+	// ApplicationsColumn is the table column denoting the applications relation/edge.
+	ApplicationsColumn = "module_id"
 )
 
 // Columns holds all SQL columns for module fields.
@@ -67,12 +60,6 @@ var Columns = []string{
 	FieldVersion,
 	FieldSchema,
 }
-
-var (
-	// ApplicationPrimaryKey and ApplicationColumn2 are the table columns denoting the
-	// primary key for the application relation (M2M).
-	ApplicationPrimaryKey = []string{"application_id", "module_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

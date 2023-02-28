@@ -16,8 +16,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -138,36 +136,6 @@ func (mc *ModuleCreate) SetID(s string) *ModuleCreate {
 	return mc
 }
 
-// AddApplicationIDs adds the "application" edge to the Application entity by IDs.
-func (mc *ModuleCreate) AddApplicationIDs(ids ...types.ID) *ModuleCreate {
-	mc.mutation.AddApplicationIDs(ids...)
-	return mc
-}
-
-// AddApplication adds the "application" edges to the Application entity.
-func (mc *ModuleCreate) AddApplication(a ...*Application) *ModuleCreate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mc.AddApplicationIDs(ids...)
-}
-
-// AddApplicationModuleRelationshipIDs adds the "applicationModuleRelationships" edge to the ApplicationModuleRelationship entity by IDs.
-func (mc *ModuleCreate) AddApplicationModuleRelationshipIDs(ids ...int) *ModuleCreate {
-	mc.mutation.AddApplicationModuleRelationshipIDs(ids...)
-	return mc
-}
-
-// AddApplicationModuleRelationships adds the "applicationModuleRelationships" edges to the ApplicationModuleRelationship entity.
-func (mc *ModuleCreate) AddApplicationModuleRelationships(a ...*ApplicationModuleRelationship) *ModuleCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return mc.AddApplicationModuleRelationshipIDs(ids...)
-}
-
 // Mutation returns the ModuleMutation object of the builder.
 func (mc *ModuleCreate) Mutation() *ModuleMutation {
 	return mc.mutation
@@ -277,13 +245,7 @@ func (mc *ModuleCreate) sqlSave(ctx context.Context) (*Module, error) {
 func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Module{config: mc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: module.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: module.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(module.Table, sqlgraph.NewFieldSpec(module.FieldID, field.TypeString))
 	)
 	_spec.Schema = mc.schemaConfig.Module
 	_spec.OnConflict = mc.conflict
@@ -326,50 +288,6 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Schema(); ok {
 		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
 		_node.Schema = value
-	}
-	if nodes := mc.mutation.ApplicationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   module.ApplicationTable,
-			Columns: module.ApplicationPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
-			},
-		}
-		edge.Schema = mc.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &ApplicationModuleRelationshipCreate{config: mc.config, mutation: newApplicationModuleRelationshipMutation(mc.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := mc.mutation.ApplicationModuleRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   module.ApplicationModuleRelationshipsTable,
-			Columns: []string{module.ApplicationModuleRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: applicationmodulerelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = mc.schemaConfig.ApplicationModuleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

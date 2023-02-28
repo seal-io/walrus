@@ -45,15 +45,7 @@ func (sd *SubjectDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *SubjectDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: subject.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: subject.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(subject.Table, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeString))
 	_spec.Node.Schema = sd.schemaConfig.Subject
 	ctx = internal.NewSchemaConfigContext(ctx, sd.schemaConfig)
 	if ps := sd.mutation.predicates; len(ps) > 0 {

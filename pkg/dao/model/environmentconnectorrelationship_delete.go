@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -45,15 +44,7 @@ func (ecrd *EnvironmentConnectorRelationshipDelete) ExecX(ctx context.Context) i
 }
 
 func (ecrd *EnvironmentConnectorRelationshipDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: environmentconnectorrelationship.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: environmentconnectorrelationship.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(environmentconnectorrelationship.Table, nil)
 	_spec.Node.Schema = ecrd.schemaConfig.EnvironmentConnectorRelationship
 	ctx = internal.NewSchemaConfigContext(ctx, ecrd.schemaConfig)
 	if ps := ecrd.mutation.predicates; len(ps) > 0 {

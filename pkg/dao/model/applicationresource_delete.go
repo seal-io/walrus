@@ -45,15 +45,7 @@ func (ard *ApplicationResourceDelete) ExecX(ctx context.Context) int {
 }
 
 func (ard *ApplicationResourceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: applicationresource.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationresource.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(applicationresource.Table, sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString))
 	_spec.Node.Schema = ard.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, ard.schemaConfig)
 	if ps := ard.mutation.predicates; len(ps) > 0 {

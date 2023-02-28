@@ -540,45 +540,12 @@ func VersionContainsFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldContainsFold(FieldVersion, v))
 }
 
-// HasApplication applies the HasEdge predicate on the "application" edge.
-func HasApplication() predicate.Module {
+// HasApplications applies the HasEdge predicate on the "applications" edge.
+func HasApplications() predicate.Module {
 	return predicate.Module(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ApplicationTable, ApplicationPrimaryKey...),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
-func HasApplicationWith(preds ...predicate.Application) predicate.Module {
-	return predicate.Module(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ApplicationTable, ApplicationPrimaryKey...),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasApplicationModuleRelationships applies the HasEdge predicate on the "applicationModuleRelationships" edge.
-func HasApplicationModuleRelationships() predicate.Module {
-	return predicate.Module(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationModuleRelationshipsTable, ApplicationModuleRelationshipsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationsTable, ApplicationsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
@@ -587,13 +554,13 @@ func HasApplicationModuleRelationships() predicate.Module {
 	})
 }
 
-// HasApplicationModuleRelationshipsWith applies the HasEdge predicate on the "applicationModuleRelationships" edge with a given conditions (other predicates).
-func HasApplicationModuleRelationshipsWith(preds ...predicate.ApplicationModuleRelationship) predicate.Module {
+// HasApplicationsWith applies the HasEdge predicate on the "applications" edge with a given conditions (other predicates).
+func HasApplicationsWith(preds ...predicate.ApplicationModuleRelationship) predicate.Module {
 	return predicate.Module(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationModuleRelationshipsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationModuleRelationshipsTable, ApplicationModuleRelationshipsColumn),
+			sqlgraph.To(ApplicationsInverseTable, ApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationsTable, ApplicationsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship

@@ -376,13 +376,7 @@ func (ccc *ClusterCostCreate) sqlSave(ctx context.Context) (*ClusterCost, error)
 func (ccc *ClusterCostCreate) createSpec() (*ClusterCost, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ClusterCost{config: ccc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: clustercost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: clustercost.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(clustercost.Table, sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt))
 	)
 	_spec.Schema = ccc.schemaConfig.ClusterCost
 	_spec.OnConflict = ccc.conflict

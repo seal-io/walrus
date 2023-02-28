@@ -289,13 +289,7 @@ func (arc *ApplicationRevisionCreate) sqlSave(ctx context.Context) (*Application
 func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ApplicationRevision{config: arc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: applicationrevision.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationrevision.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(applicationrevision.Table, sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString))
 	)
 	_spec.Schema = arc.schemaConfig.ApplicationRevision
 	_spec.OnConflict = arc.conflict

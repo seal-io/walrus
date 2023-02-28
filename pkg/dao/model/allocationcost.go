@@ -24,17 +24,17 @@ type AllocationCost struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Usage start time for current cost
-	StartTime time.Time `json:"startTime"`
+	StartTime time.Time `json:"startTime,omitempty"`
 	// Usage end time for current cost
-	EndTime time.Time `json:"endTime"`
+	EndTime time.Time `json:"endTime,omitempty"`
 	// Usage minutes from start time to end time
-	Minutes float64 `json:"minutes"`
+	Minutes float64 `json:"minutes,omitempty"`
 	// ID of the connector
-	ConnectorID types.ID `json:"connectorID"`
+	ConnectorID types.ID `json:"connectorID,omitempty"`
 	// Resource name for current cost, could be __unmounted__
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// String generated from resource properties, used to identify this cost
-	Fingerprint string `json:"fingerprint"`
+	Fingerprint string `json:"fingerprint,omitempty"`
 	// Cluster name for current cost
 	ClusterName string `json:"clusterName,omitempty"`
 	// Namespace for current cost
@@ -449,9 +449,3 @@ func (ac *AllocationCost) String() string {
 
 // AllocationCosts is a parsable slice of AllocationCost.
 type AllocationCosts []*AllocationCost
-
-func (ac AllocationCosts) config(cfg config) {
-	for _i := range ac {
-		ac[_i].config = cfg
-	}
-}

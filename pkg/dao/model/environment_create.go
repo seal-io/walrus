@@ -18,9 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -98,21 +96,6 @@ func (ec *EnvironmentCreate) SetID(t types.ID) *EnvironmentCreate {
 	return ec
 }
 
-// AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
-func (ec *EnvironmentCreate) AddConnectorIDs(ids ...types.ID) *EnvironmentCreate {
-	ec.mutation.AddConnectorIDs(ids...)
-	return ec
-}
-
-// AddConnectors adds the "connectors" edges to the Connector entity.
-func (ec *EnvironmentCreate) AddConnectors(c ...*Connector) *EnvironmentCreate {
-	ids := make([]types.ID, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return ec.AddConnectorIDs(ids...)
-}
-
 // AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
 func (ec *EnvironmentCreate) AddApplicationIDs(ids ...types.ID) *EnvironmentCreate {
 	ec.mutation.AddApplicationIDs(ids...)
@@ -141,21 +124,6 @@ func (ec *EnvironmentCreate) AddRevisions(a ...*ApplicationRevision) *Environmen
 		ids[i] = a[i].ID
 	}
 	return ec.AddRevisionIDs(ids...)
-}
-
-// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
-func (ec *EnvironmentCreate) AddEnvironmentConnectorRelationshipIDs(ids ...int) *EnvironmentCreate {
-	ec.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
-	return ec
-}
-
-// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
-func (ec *EnvironmentCreate) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *EnvironmentCreate {
-	ids := make([]int, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return ec.AddEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -264,13 +232,7 @@ func (ec *EnvironmentCreate) sqlSave(ctx context.Context) (*Environment, error) 
 func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Environment{config: ec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: environment.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: environment.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(environment.Table, sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString))
 	)
 	_spec.Schema = ec.schemaConfig.Environment
 	_spec.OnConflict = ec.conflict
@@ -301,30 +263,6 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 	if value, ok := ec.mutation.Variables(); ok {
 		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
 		_node.Variables = value
-	}
-	if nodes := ec.mutation.ConnectorsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   environment.ConnectorsTable,
-			Columns: environment.ConnectorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: connector.FieldID,
-				},
-			},
-		}
-		edge.Schema = ec.schemaConfig.EnvironmentConnectorRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &EnvironmentConnectorRelationshipCreate{config: ec.config, mutation: newEnvironmentConnectorRelationshipMutation(ec.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.mutation.ApplicationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -361,26 +299,6 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = ec.schemaConfig.ApplicationRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ec.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   environment.EnvironmentConnectorRelationshipsTable,
-			Columns: []string{environment.EnvironmentConnectorRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: environmentconnectorrelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = ec.schemaConfig.EnvironmentConnectorRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

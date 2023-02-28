@@ -210,13 +210,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Project{config: pc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: project.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: project.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(project.Table, sqlgraph.NewFieldSpec(project.FieldID, field.TypeString))
 	)
 	_spec.Schema = pc.schemaConfig.Project
 	_spec.OnConflict = pc.conflict

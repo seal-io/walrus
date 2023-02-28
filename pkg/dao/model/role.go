@@ -30,7 +30,7 @@ type Role struct {
 	// The domain of the role.
 	Domain string `json:"domain,omitempty"`
 	// The name of the role.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
@@ -190,9 +190,3 @@ func (r *Role) String() string {
 
 // Roles is a parsable slice of Role.
 type Roles []*Role
-
-func (r Roles) config(cfg config) {
-	for _i := range r {
-		r[_i].config = cfg
-	}
-}

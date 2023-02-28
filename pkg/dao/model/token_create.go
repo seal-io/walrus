@@ -209,13 +209,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Token{config: tc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: token.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: token.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(token.Table, sqlgraph.NewFieldSpec(token.FieldID, field.TypeString))
 	)
 	_spec.Schema = tc.schemaConfig.Token
 	_spec.OnConflict = tc.conflict

@@ -23,7 +23,7 @@ type Project struct {
 	// ID of the ent.
 	ID types.ID `json:"id,omitempty"`
 	// Name of the resource.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Description of the resource.
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
@@ -43,8 +43,7 @@ type ProjectEdges struct {
 	Applications []*Application `json:"applications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes       [1]bool
-	namedApplications map[string][]*Application
+	loadedTypes [1]bool
 }
 
 // ApplicationsOrErr returns the Applications value or an error if the edge
@@ -179,35 +178,5 @@ func (pr *Project) String() string {
 	return builder.String()
 }
 
-// NamedApplications returns the Applications named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (pr *Project) NamedApplications(name string) ([]*Application, error) {
-	if pr.Edges.namedApplications == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := pr.Edges.namedApplications[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (pr *Project) appendNamedApplications(name string, edges ...*Application) {
-	if pr.Edges.namedApplications == nil {
-		pr.Edges.namedApplications = make(map[string][]*Application)
-	}
-	if len(edges) == 0 {
-		pr.Edges.namedApplications[name] = []*Application{}
-	} else {
-		pr.Edges.namedApplications[name] = append(pr.Edges.namedApplications[name], edges...)
-	}
-}
-
 // Projects is a parsable slice of Project.
 type Projects []*Project
-
-func (pr Projects) config(cfg config) {
-	for _i := range pr {
-		pr[_i].config = cfg
-	}
-}

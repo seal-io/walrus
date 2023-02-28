@@ -16,51 +16,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// ID filters vertices based on their ID field.
-func ID(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldID, id))
-}
-
-// IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldID, id))
-}
-
-// IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldNEQ(FieldID, id))
-}
-
-// IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldIn(FieldID, ids...))
-}
-
-// IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldNotIn(FieldID, ids...))
-}
-
-// IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldGT(FieldID, id))
-}
-
-// IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldGTE(FieldID, id))
-}
-
-// IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldLT(FieldID, id))
-}
-
-// IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.EnvironmentConnectorRelationship {
-	return predicate.EnvironmentConnectorRelationship(sql.FieldLTE(FieldID, id))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldCreateTime, v))
@@ -260,7 +215,7 @@ func ConnectorIDContainsFold(v types.ID) predicate.EnvironmentConnectorRelations
 func HasEnvironment() predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
+			sqlgraph.From(Table, EnvironmentColumn),
 			sqlgraph.Edge(sqlgraph.M2O, false, EnvironmentTable, EnvironmentColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -274,8 +229,8 @@ func HasEnvironment() predicate.EnvironmentConnectorRelationship {
 func HasEnvironmentWith(preds ...predicate.Environment) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(EnvironmentInverseTable, FieldID),
+			sqlgraph.From(Table, EnvironmentColumn),
+			sqlgraph.To(EnvironmentInverseTable, EnvironmentFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, EnvironmentTable, EnvironmentColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -293,7 +248,7 @@ func HasEnvironmentWith(preds ...predicate.Environment) predicate.EnvironmentCon
 func HasConnector() predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
+			sqlgraph.From(Table, ConnectorColumn),
 			sqlgraph.Edge(sqlgraph.M2O, false, ConnectorTable, ConnectorColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -307,8 +262,8 @@ func HasConnector() predicate.EnvironmentConnectorRelationship {
 func HasConnectorWith(preds ...predicate.Connector) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ConnectorInverseTable, FieldID),
+			sqlgraph.From(Table, ConnectorColumn),
+			sqlgraph.To(ConnectorInverseTable, ConnectorFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, ConnectorTable, ConnectorColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())

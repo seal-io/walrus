@@ -45,15 +45,7 @@ func (rd *RoleDelete) ExecX(ctx context.Context) int {
 }
 
 func (rd *RoleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: role.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: role.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(role.Table, sqlgraph.NewFieldSpec(role.FieldID, field.TypeString))
 	_spec.Node.Schema = rd.schemaConfig.Role
 	ctx = internal.NewSchemaConfigContext(ctx, rd.schemaConfig)
 	if ps := rd.mutation.predicates; len(ps) > 0 {

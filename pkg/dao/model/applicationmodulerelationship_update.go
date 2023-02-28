@@ -114,16 +114,7 @@ func (amru *ApplicationModuleRelationshipUpdate) sqlSave(ctx context.Context) (n
 	if err := amru.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationmodulerelationship.Table,
-			Columns: applicationmodulerelationship.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: applicationmodulerelationship.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(applicationmodulerelationship.Table, applicationmodulerelationship.Columns, sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldApplicationID, field.TypeString), sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldModuleID, field.TypeString), sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldName, field.TypeString))
 	if ps := amru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -185,6 +176,12 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) ClearVariables() *Applicati
 // Mutation returns the ApplicationModuleRelationshipMutation object of the builder.
 func (amruo *ApplicationModuleRelationshipUpdateOne) Mutation() *ApplicationModuleRelationshipMutation {
 	return amruo.mutation
+}
+
+// Where appends a list predicates to the ApplicationModuleRelationshipUpdate builder.
+func (amruo *ApplicationModuleRelationshipUpdateOne) Where(ps ...predicate.ApplicationModuleRelationship) *ApplicationModuleRelationshipUpdateOne {
+	amruo.mutation.Where(ps...)
+	return amruo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -251,31 +248,29 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) sqlSave(ctx context.Context
 	if err := amruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationmodulerelationship.Table,
-			Columns: applicationmodulerelationship.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: applicationmodulerelationship.FieldID,
-			},
-		},
+	_spec := sqlgraph.NewUpdateSpec(applicationmodulerelationship.Table, applicationmodulerelationship.Columns, sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldApplicationID, field.TypeString), sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldModuleID, field.TypeString), sqlgraph.NewFieldSpec(applicationmodulerelationship.FieldName, field.TypeString))
+	if id, ok := amruo.mutation.ApplicationID(); !ok {
+		return nil, &ValidationError{Name: "application_id", err: errors.New(`model: missing "ApplicationModuleRelationship.application_id" for update`)}
+	} else {
+		_spec.Node.CompositeID[0].Value = id
 	}
-	id, ok := amruo.mutation.ID()
-	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ApplicationModuleRelationship.id" for update`)}
+	if id, ok := amruo.mutation.ModuleID(); !ok {
+		return nil, &ValidationError{Name: "module_id", err: errors.New(`model: missing "ApplicationModuleRelationship.module_id" for update`)}
+	} else {
+		_spec.Node.CompositeID[1].Value = id
 	}
-	_spec.Node.ID.Value = id
+	if id, ok := amruo.mutation.Name(); !ok {
+		return nil, &ValidationError{Name: "name", err: errors.New(`model: missing "ApplicationModuleRelationship.name" for update`)}
+	} else {
+		_spec.Node.CompositeID[2].Value = id
+	}
 	if fields := amruo.fields; len(fields) > 0 {
-		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, applicationmodulerelationship.FieldID)
-		for _, f := range fields {
+		_spec.Node.Columns = make([]string, len(fields))
+		for i, f := range fields {
 			if !applicationmodulerelationship.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("model: invalid field %q for query", f)}
 			}
-			if f != applicationmodulerelationship.FieldID {
-				_spec.Node.Columns = append(_spec.Node.Columns, f)
-			}
+			_spec.Node.Columns[i] = f
 		}
 	}
 	if ps := amruo.mutation.predicates; len(ps) > 0 {

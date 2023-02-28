@@ -45,15 +45,7 @@ func (ed *EnvironmentDelete) ExecX(ctx context.Context) int {
 }
 
 func (ed *EnvironmentDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: environment.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: environment.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(environment.Table, sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString))
 	_spec.Node.Schema = ed.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, ed.schemaConfig)
 	if ps := ed.mutation.predicates; len(ps) > 0 {

@@ -239,10 +239,12 @@ func (arq *ApplicationResourceQuery) AllX(ctx context.Context) []*ApplicationRes
 }
 
 // IDs executes the query and returns a list of ApplicationResource IDs.
-func (arq *ApplicationResourceQuery) IDs(ctx context.Context) ([]types.ID, error) {
-	var ids []types.ID
+func (arq *ApplicationResourceQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+	if arq.ctx.Unique == nil && arq.path != nil {
+		arq.Unique(true)
+	}
 	ctx = setContextOp(ctx, arq.ctx, "IDs")
-	if err := arq.Select(applicationresource.FieldID).Scan(ctx, &ids); err != nil {
+	if err = arq.Select(applicationresource.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -534,20 +536,12 @@ func (arq *ApplicationResourceQuery) sqlCount(ctx context.Context) (int, error) 
 }
 
 func (arq *ApplicationResourceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationresource.Table,
-			Columns: applicationresource.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationresource.FieldID,
-			},
-		},
-		From:   arq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(applicationresource.Table, applicationresource.Columns, sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString))
+	_spec.From = arq.sql
 	if unique := arq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if arq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := arq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
