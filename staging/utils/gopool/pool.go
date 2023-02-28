@@ -3,6 +3,7 @@ package gopool
 import (
 	"context"
 	"runtime"
+	"sync"
 
 	"github.com/alitto/pond"
 
@@ -50,7 +51,36 @@ func (g Group) Wait() error {
 	return g.g.Wait()
 }
 
-func WithContext(ctx context.Context) (Group, context.Context) {
+func GroupWithContext(ctx context.Context) (Group, context.Context) {
 	var g, c = gp.GroupContext(ctx)
 	return Group{g: g}, c
+}
+
+type WrapWaitGroup struct {
+	wg sync.WaitGroup
+
+	errOnce sync.Once
+	err     error
+}
+
+func (g *WrapWaitGroup) Wait() error {
+	g.wg.Wait()
+	return g.err
+}
+
+func (g *WrapWaitGroup) Go(f func() error) {
+	g.wg.Add(1)
+	Go(func() {
+		defer g.wg.Done()
+
+		if err := f(); err != nil {
+			g.errOnce.Do(func() {
+				g.err = err
+			})
+		}
+	})
+}
+
+func WaitGroup() *WrapWaitGroup {
+	return &WrapWaitGroup{}
 }

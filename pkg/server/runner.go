@@ -241,7 +241,7 @@ func (r *Server) Action(cmd *cli.Command) {
 }
 
 func (r *Server) Run(c context.Context) error {
-	var g, ctx = gopool.WithContext(c)
+	var g, ctx = gopool.GroupWithContext(c)
 
 	// get kubernetes config.
 	var k8sCfg, err = k8s.GetConfig(r.KubeConfig)
