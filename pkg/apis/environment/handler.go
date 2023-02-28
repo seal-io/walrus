@@ -30,12 +30,15 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.EnvironmentCreateRequest) (*view.EnvironmentCreateResponse, error) {
-	var creates, err = dao.EnvironmentCreates(h.modelClient, req.Model())
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := creates[0].Save(ctx)
+	var result *model.Environment
+	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var creates, err = dao.EnvironmentCreates(tx, req.Model())
+		if err != nil {
+			return err
+		}
+		result, err = creates[0].Save(ctx)
+		return err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +51,14 @@ func (h Handler) Delete(ctx *gin.Context, req view.EnvironmentDeleteRequest) err
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.EnvironmentUpdateRequest) error {
-	var updates, err = dao.EnvironmentUpdates(h.modelClient, req.EnvironmentVO.Model())
-	if err != nil {
-		return err
-	}
-	return updates[0].Exec(ctx)
+	var input = req.Model()
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var updates, err = dao.EnvironmentUpdates(h.modelClient, input)
+		if err != nil {
+			return err
+		}
+		return updates[0].Exec(ctx)
+	})
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.EnvironmentGetRequest) (*view.EnvironmentGetResponse, error) {

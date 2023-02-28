@@ -73,7 +73,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (resp view.GetResponse, err error) {
 	resp.Application, err = h.modelClient.Applications().Query().
 		Where(application.ID(req.ID)).
-		WithApplicationModuleRelationships(func(rq *model.ApplicationModuleRelationshipQuery) {
+		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Select(
 				applicationmodulerelationship.FieldModuleID,
 				applicationmodulerelationship.FieldName,
