@@ -55,9 +55,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			return err
 		}
 
-		if err = modules.Notify(ctx, opts.ModelClient, builtin[i]); err != nil {
-			return err
-		}
+		modules.Notify(ctx, opts.ModelClient, builtin[i])
 	}
 	return nil
 }

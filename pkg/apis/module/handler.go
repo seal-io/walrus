@@ -31,36 +31,61 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.ModuleRequest) error {
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var creates, err = dao.ModuleCreates(h.modelClient, req.Module)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m, err := creates[0].Save(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return modules.Notify(ctx, h.modelClient, m)
+
+	modules.Notify(ctx, h.modelClient, req.Module)
+
+	return m, nil
 }
 
-func (h Handler) Delete(ctx *gin.Context, req view.IDRequest) error {
+func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	return h.modelClient.Modules().DeleteOneID(req.ID).Exec(ctx)
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.ModuleRequest) error {
-	var update, err = dao.ModuleUpdate(h.modelClient, req.Module)
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
+	prev, err := h.modelClient.Modules().Get(ctx, req.ID)
 	if err != nil {
 		return err
 	}
-	m, err := update.Save(ctx)
+
+	var (
+		module = req.Module
+		// Sync schema on source/version updates
+		shouldSyncSchema = prev.Source != req.Source || prev.Version != req.Version
+	)
+
+	if shouldSyncSchema {
+		module.Schema = nil
+		module.Status = status.Initializing
+		module.StatusMessage = ""
+	}
+
+	update, err := dao.ModuleUpdate(h.modelClient, req.Module)
 	if err != nil {
 		return err
 	}
-	return modules.Notify(ctx, h.modelClient, m)
+
+	if _, err = update.Save(ctx); err != nil {
+		return err
+	}
+
+	if shouldSyncSchema {
+		modules.Notify(ctx, h.modelClient, module)
+	}
+
+	return nil
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.IDRequest) (*model.Module, error) {
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	return h.modelClient.Modules().Get(ctx, req.ID)
 }
 
@@ -117,5 +142,8 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 	if err = update.Exec(ctx); err != nil {
 		return err
 	}
-	return modules.Notify(ctx, h.modelClient, m)
+
+	modules.Notify(ctx, h.modelClient, m)
+
+	return nil
 }

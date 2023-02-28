@@ -1,7 +1,9 @@
 package view
 
 import (
-	"context"
+	"fmt"
+
+	"github.com/hashicorp/go-getter"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -10,27 +12,49 @@ import (
 
 // Basic APIs
 
-type ModuleRequest struct {
+type CreateRequest struct {
+	*model.Module `json:",inline"`
+}
+
+func (r *CreateRequest) Validate() error {
+	return validate(r.Module)
+}
+
+type CreateResponse = *model.Module
+
+type UpdateRequest struct {
 	UriID string `uri:"id"`
 
 	*model.Module `json:",inline"`
 }
 
-func (r *ModuleRequest) ValidateWith(ctx context.Context, input any) error {
-	if err := validation.IsQualifiedName(r.UriID); err != nil {
+func (r *UpdateRequest) Validate() error {
+	r.ID = r.UriID
+
+	return validate(r.Module)
+}
+
+func validate(m *model.Module) error {
+	if err := validation.IsQualifiedName(m.ID); err != nil {
 		return err
 	}
-	r.ID = r.UriID
+	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
+		return fmt.Errorf("invalid source: %w", err)
+	}
 	return nil
 }
 
-type IDRequest struct {
+type GetRequest struct {
 	ID string `uri:"id"`
 }
 
-func (r *IDRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *GetRequest) Validate() error {
 	return validation.IsQualifiedName(r.ID)
 }
+
+type GetResponse = *model.Module
+
+type DeleteRequest = GetRequest
 
 // Batch APIs
 
@@ -42,7 +66,7 @@ type CollectionGetRequest struct {
 	Group string `query:"_group,omitempty"`
 }
 
-type CollectionGetResponse = []*model.Module
+type CollectionGetResponse = []GetResponse
 
 // Extensional APIs
 
@@ -52,6 +76,6 @@ type RefreshRequest struct {
 	ID string `uri:"id"`
 }
 
-func (r *RefreshRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *RefreshRequest) Validate() error {
 	return validation.IsQualifiedName(r.ID)
 }
