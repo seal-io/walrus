@@ -25,12 +25,13 @@ type BusMessage struct {
 	Refer       *model.Module
 }
 
-// Notify notifies the changed model.Setting.
-func Notify(ctx context.Context, mc model.ClientSet, refer *model.Module) error {
-	return bus.Publish(ctx, BusMessage{ModelClient: mc, Refer: refer})
+// Notify notifies the changed model.Module.
+// It calls SyncSchema asynchronously and expects no error to be returned
+func Notify(ctx context.Context, mc model.ClientSet, refer *model.Module) {
+	_ = bus.Publish(ctx, BusMessage{ModelClient: mc, Refer: refer})
 }
 
-// AddSubscriber add the subscriber to handle the changed notification from proxy model.Setting.
+// AddSubscriber add the subscriber to handle the changed notification from model.Module.
 func AddSubscriber(n string, h func(context.Context, BusMessage) error) error {
 	return bus.Subscribe(n, h)
 }
@@ -42,7 +43,12 @@ func SyncSchema(ctx context.Context, message BusMessage) error {
 			module := message.Refer
 			module.Status = status.Error
 			module.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
-			if updateErr := message.ModelClient.Modules().UpdateOne(module).Exec(ctx); updateErr != nil {
+			update, updateErr := dao.ModuleUpdate(message.ModelClient, module)
+			if updateErr != nil {
+				log.Errorf("failed to prepare module update: %v", updateErr)
+				return
+			}
+			if updateErr = update.Exec(ctx); updateErr != nil {
 				log.Errorf("failed to update module %s: %v", module.ID, updateErr)
 			}
 		}
@@ -51,10 +57,7 @@ func SyncSchema(ctx context.Context, message BusMessage) error {
 }
 
 func syncSchema(ctx context.Context, message BusMessage) error {
-	module, err := message.ModelClient.Modules().Get(ctx, message.Refer.ID)
-	if err != nil {
-		return err
-	}
+	module := message.Refer
 
 	if module.Schema != nil {
 		// Short circuit when the schema is presented. To refresh the schema, set it to nil first.
