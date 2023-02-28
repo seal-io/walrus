@@ -196,16 +196,7 @@ func (su *SubjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Subjec
 }
 
 func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   subject.Table,
-			Columns: subject.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: subject.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeString))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -385,6 +376,12 @@ func (suo *SubjectUpdateOne) Mutation() *SubjectMutation {
 	return suo.mutation
 }
 
+// Where appends a list predicates to the SubjectUpdate builder.
+func (suo *SubjectUpdateOne) Where(ps ...predicate.Subject) *SubjectUpdateOne {
+	suo.mutation.Where(ps...)
+	return suo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (suo *SubjectUpdateOne) Select(field string, fields ...string) *SubjectUpdateOne {
@@ -441,16 +438,7 @@ func (suo *SubjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Su
 }
 
 func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   subject.Table,
-			Columns: subject.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: subject.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeString))
 	id, ok := suo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "Subject.id" for update`)}

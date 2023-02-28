@@ -588,40 +588,7 @@ func HasModules() predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, ModulesTable, ModulesPrimaryKey...),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Module
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasModulesWith applies the HasEdge predicate on the "modules" edge with a given conditions (other predicates).
-func HasModulesWith(preds ...predicate.Module) predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ModulesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, ModulesTable, ModulesPrimaryKey...),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Module
-		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasApplicationModuleRelationships applies the HasEdge predicate on the "applicationModuleRelationships" edge.
-func HasApplicationModuleRelationships() predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationModuleRelationshipsTable, ApplicationModuleRelationshipsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, ModulesTable, ModulesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
@@ -630,13 +597,13 @@ func HasApplicationModuleRelationships() predicate.Application {
 	})
 }
 
-// HasApplicationModuleRelationshipsWith applies the HasEdge predicate on the "applicationModuleRelationships" edge with a given conditions (other predicates).
-func HasApplicationModuleRelationshipsWith(preds ...predicate.ApplicationModuleRelationship) predicate.Application {
+// HasModulesWith applies the HasEdge predicate on the "modules" edge with a given conditions (other predicates).
+func HasModulesWith(preds ...predicate.ApplicationModuleRelationship) predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationModuleRelationshipsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationModuleRelationshipsTable, ApplicationModuleRelationshipsColumn),
+			sqlgraph.To(ModulesInverseTable, ModulesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, ModulesTable, ModulesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship

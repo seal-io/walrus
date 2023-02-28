@@ -45,15 +45,7 @@ func (cd *ConnectorDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *ConnectorDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: connector.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: connector.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(connector.Table, sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString))
 	_spec.Node.Schema = cd.schemaConfig.Connector
 	ctx = internal.NewSchemaConfigContext(ctx, cd.schemaConfig)
 	if ps := cd.mutation.predicates; len(ps) > 0 {

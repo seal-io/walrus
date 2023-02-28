@@ -32,7 +32,7 @@ type Subject struct {
 	// The group of the subject.
 	Group string `json:"group,omitempty"`
 	// The name of the subject.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// The detail of the subject.
 	Description string `json:"description,omitempty"`
 	// Indicate whether the user mount to the group.
@@ -231,9 +231,3 @@ func (s *Subject) String() string {
 
 // Subjects is a parsable slice of Subject.
 type Subjects []*Subject
-
-func (s Subjects) config(cfg config) {
-	for _i := range s {
-		s[_i].config = cfg
-	}
-}

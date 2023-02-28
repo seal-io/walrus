@@ -115,7 +115,6 @@ var (
 	}
 	// ApplicationModuleRelationshipsColumns holds the columns for the "application_module_relationships" table.
 	ApplicationModuleRelationshipsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
@@ -127,17 +126,17 @@ var (
 	ApplicationModuleRelationshipsTable = &schema.Table{
 		Name:       "application_module_relationships",
 		Columns:    ApplicationModuleRelationshipsColumns,
-		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[0]},
+		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[4], ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[2]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_module_relationships_applications_application",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[4]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_module_relationships_modules_module",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[6]},
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
 				RefColumns: []*schema.Column{ModulesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -146,17 +145,7 @@ var (
 			{
 				Name:    "applicationmodulerelationship_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[2]},
-			},
-			{
-				Name:    "applicationmodulerelationship_application_id_module_id_name",
-				Unique:  true,
-				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[6], ApplicationModuleRelationshipsColumns[3]},
-			},
-			{
-				Name:    "applicationmodulerelationship_application_id_module_id",
-				Unique:  true,
-				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[6]},
+				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[1]},
 			},
 		},
 	}
@@ -345,7 +334,6 @@ var (
 	}
 	// EnvironmentConnectorRelationshipsColumns holds the columns for the "environment_connector_relationships" table.
 	EnvironmentConnectorRelationshipsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -354,26 +342,19 @@ var (
 	EnvironmentConnectorRelationshipsTable = &schema.Table{
 		Name:       "environment_connector_relationships",
 		Columns:    EnvironmentConnectorRelationshipsColumns,
-		PrimaryKey: []*schema.Column{EnvironmentConnectorRelationshipsColumns[0]},
+		PrimaryKey: []*schema.Column{EnvironmentConnectorRelationshipsColumns[1], EnvironmentConnectorRelationshipsColumns[2]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "environment_connector_relationships_environments_environment",
-				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[2]},
+				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[1]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "environment_connector_relationships_connectors_connector",
-				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[3]},
+				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[2]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "environmentconnectorrelationship_environment_id_connector_id",
-				Unique:  true,
-				Columns: []*schema.Column{EnvironmentConnectorRelationshipsColumns[2], EnvironmentConnectorRelationshipsColumns[3]},
 			},
 		},
 	}

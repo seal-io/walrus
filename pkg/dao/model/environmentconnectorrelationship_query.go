@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
@@ -81,7 +80,7 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) QueryEnvironment() *Environme
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, selector),
+			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.EnvironmentColumn, selector),
 			sqlgraph.To(environment.Table, environment.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.EnvironmentTable, environmentconnectorrelationship.EnvironmentColumn),
 		)
@@ -106,7 +105,7 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) QueryConnector() *ConnectorQu
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID, selector),
+			sqlgraph.From(environmentconnectorrelationship.Table, environmentconnectorrelationship.ConnectorColumn, selector),
 			sqlgraph.To(connector.Table, connector.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, environmentconnectorrelationship.ConnectorTable, environmentconnectorrelationship.ConnectorColumn),
 		)
@@ -141,29 +140,6 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) FirstX(ctx context.Context) *
 	return node
 }
 
-// FirstID returns the first EnvironmentConnectorRelationship ID from the query.
-// Returns a *NotFoundError when no EnvironmentConnectorRelationship ID was found.
-func (ecrq *EnvironmentConnectorRelationshipQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
-	if ids, err = ecrq.Limit(1).IDs(setContextOp(ctx, ecrq.ctx, "FirstID")); err != nil {
-		return
-	}
-	if len(ids) == 0 {
-		err = &NotFoundError{environmentconnectorrelationship.Label}
-		return
-	}
-	return ids[0], nil
-}
-
-// FirstIDX is like FirstID, but panics if an error occurs.
-func (ecrq *EnvironmentConnectorRelationshipQuery) FirstIDX(ctx context.Context) int {
-	id, err := ecrq.FirstID(ctx)
-	if err != nil && !IsNotFound(err) {
-		panic(err)
-	}
-	return id
-}
-
 // Only returns a single EnvironmentConnectorRelationship entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one EnvironmentConnectorRelationship entity is found.
 // Returns a *NotFoundError when no EnvironmentConnectorRelationship entities are found.
@@ -191,34 +167,6 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) OnlyX(ctx context.Context) *E
 	return node
 }
 
-// OnlyID is like Only, but returns the only EnvironmentConnectorRelationship ID in the query.
-// Returns a *NotSingularError when more than one EnvironmentConnectorRelationship ID is found.
-// Returns a *NotFoundError when no entities are found.
-func (ecrq *EnvironmentConnectorRelationshipQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
-	if ids, err = ecrq.Limit(2).IDs(setContextOp(ctx, ecrq.ctx, "OnlyID")); err != nil {
-		return
-	}
-	switch len(ids) {
-	case 1:
-		id = ids[0]
-	case 0:
-		err = &NotFoundError{environmentconnectorrelationship.Label}
-	default:
-		err = &NotSingularError{environmentconnectorrelationship.Label}
-	}
-	return
-}
-
-// OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ecrq *EnvironmentConnectorRelationshipQuery) OnlyIDX(ctx context.Context) int {
-	id, err := ecrq.OnlyID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // All executes the query and returns a list of EnvironmentConnectorRelationships.
 func (ecrq *EnvironmentConnectorRelationshipQuery) All(ctx context.Context) ([]*EnvironmentConnectorRelationship, error) {
 	ctx = setContextOp(ctx, ecrq.ctx, "All")
@@ -236,25 +184,6 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) AllX(ctx context.Context) []*
 		panic(err)
 	}
 	return nodes
-}
-
-// IDs executes the query and returns a list of EnvironmentConnectorRelationship IDs.
-func (ecrq *EnvironmentConnectorRelationshipQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = setContextOp(ctx, ecrq.ctx, "IDs")
-	if err := ecrq.Select(environmentconnectorrelationship.FieldID).Scan(ctx, &ids); err != nil {
-		return nil, err
-	}
-	return ids, nil
-}
-
-// IDsX is like IDs, but panics if an error occurs.
-func (ecrq *EnvironmentConnectorRelationshipQuery) IDsX(ctx context.Context) []int {
-	ids, err := ecrq.IDs(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return ids
 }
 
 // Count returns the count of the given query.
@@ -278,7 +207,7 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) CountX(ctx context.Context) i
 // Exist returns true if the query has elements in the graph.
 func (ecrq *EnvironmentConnectorRelationshipQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, ecrq.ctx, "Exist")
-	switch _, err := ecrq.FirstID(ctx); {
+	switch _, err := ecrq.First(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -526,36 +455,23 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) sqlCount(ctx context.Context)
 	if len(ecrq.modifiers) > 0 {
 		_spec.Modifiers = ecrq.modifiers
 	}
-	_spec.Node.Columns = ecrq.ctx.Fields
-	if len(ecrq.ctx.Fields) > 0 {
-		_spec.Unique = ecrq.ctx.Unique != nil && *ecrq.ctx.Unique
-	}
+	_spec.Unique = false
+	_spec.Node.Columns = nil
 	return sqlgraph.CountNodes(ctx, ecrq.driver, _spec)
 }
 
 func (ecrq *EnvironmentConnectorRelationshipQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   environmentconnectorrelationship.Table,
-			Columns: environmentconnectorrelationship.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: environmentconnectorrelationship.FieldID,
-			},
-		},
-		From:   ecrq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(environmentconnectorrelationship.Table, environmentconnectorrelationship.Columns, nil)
+	_spec.From = ecrq.sql
 	if unique := ecrq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ecrq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ecrq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, environmentconnectorrelationship.FieldID)
 		for i := range fields {
-			if fields[i] != environmentconnectorrelationship.FieldID {
-				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
-			}
+			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 		}
 	}
 	if ps := ecrq.predicates; len(ps) > 0 {

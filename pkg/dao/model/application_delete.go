@@ -45,15 +45,7 @@ func (ad *ApplicationDelete) ExecX(ctx context.Context) int {
 }
 
 func (ad *ApplicationDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: application.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: application.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(application.Table, sqlgraph.NewFieldSpec(application.FieldID, field.TypeString))
 	_spec.Node.Schema = ad.schemaConfig.Application
 	ctx = internal.NewSchemaConfigContext(ctx, ad.schemaConfig)
 	if ps := ad.mutation.predicates; len(ps) > 0 {

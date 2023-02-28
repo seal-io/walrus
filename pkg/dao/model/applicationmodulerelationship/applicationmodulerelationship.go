@@ -12,8 +12,6 @@ import (
 const (
 	// Label holds the string label denoting the applicationmodulerelationship type in the database.
 	Label = "application_module_relationship"
-	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -30,6 +28,10 @@ const (
 	EdgeApplication = "application"
 	// EdgeModule holds the string denoting the module edge name in mutations.
 	EdgeModule = "module"
+	// ApplicationFieldID holds the string denoting the ID field of the Application.
+	ApplicationFieldID = "id"
+	// ModuleFieldID holds the string denoting the ID field of the Module.
+	ModuleFieldID = "id"
 	// Table holds the table name of the applicationmodulerelationship in the database.
 	Table = "application_module_relationships"
 	// ApplicationTable is the table that holds the application relation/edge.
@@ -50,7 +52,6 @@ const (
 
 // Columns holds all SQL columns for applicationmodulerelationship fields.
 var Columns = []string{
-	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldApplicationID,

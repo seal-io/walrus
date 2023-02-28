@@ -318,16 +318,7 @@ func (ccu *ClusterCostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ccu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   clustercost.Table,
-			Columns: clustercost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: clustercost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(clustercost.Table, clustercost.Columns, sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt))
 	if ps := ccu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -616,6 +607,12 @@ func (ccuo *ClusterCostUpdateOne) Mutation() *ClusterCostMutation {
 	return ccuo.mutation
 }
 
+// Where appends a list predicates to the ClusterCostUpdate builder.
+func (ccuo *ClusterCostUpdateOne) Where(ps ...predicate.ClusterCost) *ClusterCostUpdateOne {
+	ccuo.mutation.Where(ps...)
+	return ccuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ccuo *ClusterCostUpdateOne) Select(field string, fields ...string) *ClusterCostUpdateOne {
@@ -708,16 +705,7 @@ func (ccuo *ClusterCostUpdateOne) sqlSave(ctx context.Context) (_node *ClusterCo
 	if err := ccuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   clustercost.Table,
-			Columns: clustercost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: clustercost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(clustercost.Table, clustercost.Columns, sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt))
 	id, ok := ccuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ClusterCost.id" for update`)}

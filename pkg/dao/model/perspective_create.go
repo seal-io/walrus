@@ -229,13 +229,7 @@ func (pc *PerspectiveCreate) sqlSave(ctx context.Context) (*Perspective, error) 
 func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Perspective{config: pc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: perspective.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: perspective.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(perspective.Table, sqlgraph.NewFieldSpec(perspective.FieldID, field.TypeString))
 	)
 	_spec.Schema = pc.schemaConfig.Perspective
 	_spec.OnConflict = pc.conflict

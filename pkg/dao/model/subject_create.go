@@ -313,13 +313,7 @@ func (sc *SubjectCreate) sqlSave(ctx context.Context) (*Subject, error) {
 func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Subject{config: sc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: subject.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: subject.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(subject.Table, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeString))
 	)
 	_spec.Schema = sc.schemaConfig.Subject
 	_spec.OnConflict = sc.conflict

@@ -26,13 +26,12 @@ import (
 // ProjectQuery is the builder for querying Project entities.
 type ProjectQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []OrderFunc
-	inters                []Interceptor
-	predicates            []predicate.Project
-	withApplications      *ApplicationQuery
-	modifiers             []func(*sql.Selector)
-	withNamedApplications map[string]*ApplicationQuery
+	ctx              *QueryContext
+	order            []OrderFunc
+	inters           []Interceptor
+	predicates       []predicate.Project
+	withApplications *ApplicationQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -214,10 +213,12 @@ func (pq *ProjectQuery) AllX(ctx context.Context) []*Project {
 }
 
 // IDs executes the query and returns a list of Project IDs.
-func (pq *ProjectQuery) IDs(ctx context.Context) ([]types.ID, error) {
-	var ids []types.ID
+func (pq *ProjectQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
 	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(project.FieldID).Scan(ctx, &ids); err != nil {
+	if err = pq.Select(project.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -308,7 +309,7 @@ func (pq *ProjectQuery) WithApplications(opts ...func(*ApplicationQuery)) *Proje
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name"`
+//		Name string `json:"name,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -331,7 +332,7 @@ func (pq *ProjectQuery) GroupBy(field string, fields ...string) *ProjectGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name"`
+//		Name string `json:"name,omitempty"`
 //	}
 //
 //	client.Project.Query().
@@ -414,13 +415,6 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			return nil, err
 		}
 	}
-	for name, query := range pq.withNamedApplications {
-		if err := pq.loadApplications(ctx, query, nodes,
-			func(n *Project) { n.appendNamedApplications(name) },
-			func(n *Project, e *Application) { n.appendNamedApplications(name, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
@@ -467,20 +461,12 @@ func (pq *ProjectQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *ProjectQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   project.Table,
-			Columns: project.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: project.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeString))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -582,20 +568,6 @@ func (pq *ProjectQuery) ForShare(opts ...sql.LockOption) *ProjectQuery {
 func (pq *ProjectQuery) Modify(modifiers ...func(s *sql.Selector)) *ProjectSelect {
 	pq.modifiers = append(pq.modifiers, modifiers...)
 	return pq.Select()
-}
-
-// WithNamedApplications tells the query-builder to eager-load the nodes that are connected to the "applications"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithNamedApplications(name string, opts ...func(*ApplicationQuery)) *ProjectQuery {
-	query := (&ApplicationClient{config: pq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if pq.withNamedApplications == nil {
-		pq.withNamedApplications = make(map[string]*ApplicationQuery)
-	}
-	pq.withNamedApplications[name] = query
-	return pq
 }
 
 // ProjectGroupBy is the group-by builder for Project entities.

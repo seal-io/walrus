@@ -45,15 +45,7 @@ func (acd *AllocationCostDelete) ExecX(ctx context.Context) int {
 }
 
 func (acd *AllocationCostDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: allocationcost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allocationcost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(allocationcost.Table, sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt))
 	_spec.Node.Schema = acd.schemaConfig.AllocationCost
 	ctx = internal.NewSchemaConfigContext(ctx, acd.schemaConfig)
 	if ps := acd.mutation.predicates; len(ps) > 0 {

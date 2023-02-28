@@ -185,10 +185,12 @@ func (pq *PerspectiveQuery) AllX(ctx context.Context) []*Perspective {
 }
 
 // IDs executes the query and returns a list of Perspective IDs.
-func (pq *PerspectiveQuery) IDs(ctx context.Context) ([]types.ID, error) {
-	var ids []types.ID
+func (pq *PerspectiveQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
 	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(perspective.FieldID).Scan(ctx, &ids); err != nil {
+	if err = pq.Select(perspective.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -380,20 +382,12 @@ func (pq *PerspectiveQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PerspectiveQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   perspective.Table,
-			Columns: perspective.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: perspective.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(perspective.Table, perspective.Columns, sqlgraph.NewFieldSpec(perspective.FieldID, field.TypeString))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

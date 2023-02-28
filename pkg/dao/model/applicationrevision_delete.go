@@ -45,15 +45,7 @@ func (ard *ApplicationRevisionDelete) ExecX(ctx context.Context) int {
 }
 
 func (ard *ApplicationRevisionDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: applicationrevision.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationrevision.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(applicationrevision.Table, sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString))
 	_spec.Node.Schema = ard.schemaConfig.ApplicationRevision
 	ctx = internal.NewSchemaConfigContext(ctx, ard.schemaConfig)
 	if ps := ard.mutation.predicates; len(ps) > 0 {

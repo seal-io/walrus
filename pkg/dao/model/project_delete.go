@@ -45,15 +45,7 @@ func (pd *ProjectDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *ProjectDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: project.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: project.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(project.Table, sqlgraph.NewFieldSpec(project.FieldID, field.TypeString))
 	_spec.Node.Schema = pd.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pd.schemaConfig)
 	if ps := pd.mutation.predicates; len(ps) > 0 {

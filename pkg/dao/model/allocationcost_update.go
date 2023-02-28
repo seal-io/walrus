@@ -370,16 +370,7 @@ func (acu *AllocationCostUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if err := acu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allocationcost.Table,
-			Columns: allocationcost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allocationcost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(allocationcost.Table, allocationcost.Columns, sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt))
 	if ps := acu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -743,6 +734,12 @@ func (acuo *AllocationCostUpdateOne) Mutation() *AllocationCostMutation {
 	return acuo.mutation
 }
 
+// Where appends a list predicates to the AllocationCostUpdate builder.
+func (acuo *AllocationCostUpdateOne) Where(ps ...predicate.AllocationCost) *AllocationCostUpdateOne {
+	acuo.mutation.Where(ps...)
+	return acuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (acuo *AllocationCostUpdateOne) Select(field string, fields ...string) *AllocationCostUpdateOne {
@@ -845,16 +842,7 @@ func (acuo *AllocationCostUpdateOne) sqlSave(ctx context.Context) (_node *Alloca
 	if err := acuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allocationcost.Table,
-			Columns: allocationcost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allocationcost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(allocationcost.Table, allocationcost.Columns, sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt))
 	id, ok := acuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "AllocationCost.id" for update`)}

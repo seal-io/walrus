@@ -20,7 +20,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -30,21 +29,15 @@ import (
 // ConnectorQuery is the builder for querying Connector entities.
 type ConnectorQuery struct {
 	config
-	ctx                                        *QueryContext
-	order                                      []OrderFunc
-	inters                                     []Interceptor
-	predicates                                 []predicate.Connector
-	withEnvironments                           *EnvironmentQuery
-	withResources                              *ApplicationResourceQuery
-	withClusterCosts                           *ClusterCostQuery
-	withAllocationCosts                        *AllocationCostQuery
-	withEnvironmentConnectorRelationships      *EnvironmentConnectorRelationshipQuery
-	modifiers                                  []func(*sql.Selector)
-	withNamedEnvironments                      map[string]*EnvironmentQuery
-	withNamedResources                         map[string]*ApplicationResourceQuery
-	withNamedClusterCosts                      map[string]*ClusterCostQuery
-	withNamedAllocationCosts                   map[string]*AllocationCostQuery
-	withNamedEnvironmentConnectorRelationships map[string]*EnvironmentConnectorRelationshipQuery
+	ctx                 *QueryContext
+	order               []OrderFunc
+	inters              []Interceptor
+	predicates          []predicate.Connector
+	withEnvironments    *EnvironmentConnectorRelationshipQuery
+	withResources       *ApplicationResourceQuery
+	withClusterCosts    *ClusterCostQuery
+	withAllocationCosts *AllocationCostQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,8 +75,8 @@ func (cq *ConnectorQuery) Order(o ...OrderFunc) *ConnectorQuery {
 }
 
 // QueryEnvironments chains the current query on the "environments" edge.
-func (cq *ConnectorQuery) QueryEnvironments() *EnvironmentQuery {
-	query := (&EnvironmentClient{config: cq.config}).Query()
+func (cq *ConnectorQuery) QueryEnvironments() *EnvironmentConnectorRelationshipQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -94,11 +87,11 @@ func (cq *ConnectorQuery) QueryEnvironments() *EnvironmentQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(connector.Table, connector.FieldID, selector),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, connector.EnvironmentsTable, connector.EnvironmentsPrimaryKey...),
+			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.ConnectorColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentsTable, connector.EnvironmentsColumn),
 		)
 		schemaConfig := cq.schemaConfig
-		step.To.Schema = schemaConfig.Environment
+		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -175,31 +168,6 @@ func (cq *ConnectorQuery) QueryAllocationCosts() *AllocationCostQuery {
 		schemaConfig := cq.schemaConfig
 		step.To.Schema = schemaConfig.AllocationCost
 		step.Edge.Schema = schemaConfig.AllocationCost
-		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryEnvironmentConnectorRelationships chains the current query on the "environmentConnectorRelationships" edge.
-func (cq *ConnectorQuery) QueryEnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipQuery {
-	query := (&EnvironmentConnectorRelationshipClient{config: cq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := cq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := cq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(connector.Table, connector.FieldID, selector),
-			sqlgraph.To(environmentconnectorrelationship.Table, environmentconnectorrelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, connector.EnvironmentConnectorRelationshipsTable, connector.EnvironmentConnectorRelationshipsColumn),
-		)
-		schemaConfig := cq.schemaConfig
-		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
-		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -326,10 +294,12 @@ func (cq *ConnectorQuery) AllX(ctx context.Context) []*Connector {
 }
 
 // IDs executes the query and returns a list of Connector IDs.
-func (cq *ConnectorQuery) IDs(ctx context.Context) ([]types.ID, error) {
-	var ids []types.ID
+func (cq *ConnectorQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+	if cq.ctx.Unique == nil && cq.path != nil {
+		cq.Unique(true)
+	}
 	ctx = setContextOp(ctx, cq.ctx, "IDs")
-	if err := cq.Select(connector.FieldID).Scan(ctx, &ids); err != nil {
+	if err = cq.Select(connector.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -391,16 +361,15 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 		return nil
 	}
 	return &ConnectorQuery{
-		config:                                cq.config,
-		ctx:                                   cq.ctx.Clone(),
-		order:                                 append([]OrderFunc{}, cq.order...),
-		inters:                                append([]Interceptor{}, cq.inters...),
-		predicates:                            append([]predicate.Connector{}, cq.predicates...),
-		withEnvironments:                      cq.withEnvironments.Clone(),
-		withResources:                         cq.withResources.Clone(),
-		withClusterCosts:                      cq.withClusterCosts.Clone(),
-		withAllocationCosts:                   cq.withAllocationCosts.Clone(),
-		withEnvironmentConnectorRelationships: cq.withEnvironmentConnectorRelationships.Clone(),
+		config:              cq.config,
+		ctx:                 cq.ctx.Clone(),
+		order:               append([]OrderFunc{}, cq.order...),
+		inters:              append([]Interceptor{}, cq.inters...),
+		predicates:          append([]predicate.Connector{}, cq.predicates...),
+		withEnvironments:    cq.withEnvironments.Clone(),
+		withResources:       cq.withResources.Clone(),
+		withClusterCosts:    cq.withClusterCosts.Clone(),
+		withAllocationCosts: cq.withAllocationCosts.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -409,8 +378,8 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 
 // WithEnvironments tells the query-builder to eager-load the nodes that are connected to
 // the "environments" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithEnvironments(opts ...func(*EnvironmentQuery)) *ConnectorQuery {
-	query := (&EnvironmentClient{config: cq.config}).Query()
+func (cq *ConnectorQuery) WithEnvironments(opts ...func(*EnvironmentConnectorRelationshipQuery)) *ConnectorQuery {
+	query := (&EnvironmentConnectorRelationshipClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -451,24 +420,13 @@ func (cq *ConnectorQuery) WithAllocationCosts(opts ...func(*AllocationCostQuery)
 	return cq
 }
 
-// WithEnvironmentConnectorRelationships tells the query-builder to eager-load the nodes that are connected to
-// the "environmentConnectorRelationships" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithEnvironmentConnectorRelationships(opts ...func(*EnvironmentConnectorRelationshipQuery)) *ConnectorQuery {
-	query := (&EnvironmentConnectorRelationshipClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	cq.withEnvironmentConnectorRelationships = query
-	return cq
-}
-
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name"`
+//		Name string `json:"name,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -491,7 +449,7 @@ func (cq *ConnectorQuery) GroupBy(field string, fields ...string) *ConnectorGrou
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name"`
+//		Name string `json:"name,omitempty"`
 //	}
 //
 //	client.Connector.Query().
@@ -540,12 +498,11 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 	var (
 		nodes       = []*Connector{}
 		_spec       = cq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [4]bool{
 			cq.withEnvironments != nil,
 			cq.withResources != nil,
 			cq.withClusterCosts != nil,
 			cq.withAllocationCosts != nil,
-			cq.withEnvironmentConnectorRelationships != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -573,8 +530,10 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 	}
 	if query := cq.withEnvironments; query != nil {
 		if err := cq.loadEnvironments(ctx, query, nodes,
-			func(n *Connector) { n.Edges.Environments = []*Environment{} },
-			func(n *Connector, e *Environment) { n.Edges.Environments = append(n.Edges.Environments, e) }); err != nil {
+			func(n *Connector) { n.Edges.Environments = []*EnvironmentConnectorRelationship{} },
+			func(n *Connector, e *EnvironmentConnectorRelationship) {
+				n.Edges.Environments = append(n.Edges.Environments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -599,114 +558,33 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 			return nil, err
 		}
 	}
-	if query := cq.withEnvironmentConnectorRelationships; query != nil {
-		if err := cq.loadEnvironmentConnectorRelationships(ctx, query, nodes,
-			func(n *Connector) { n.Edges.EnvironmentConnectorRelationships = []*EnvironmentConnectorRelationship{} },
-			func(n *Connector, e *EnvironmentConnectorRelationship) {
-				n.Edges.EnvironmentConnectorRelationships = append(n.Edges.EnvironmentConnectorRelationships, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range cq.withNamedEnvironments {
-		if err := cq.loadEnvironments(ctx, query, nodes,
-			func(n *Connector) { n.appendNamedEnvironments(name) },
-			func(n *Connector, e *Environment) { n.appendNamedEnvironments(name, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range cq.withNamedResources {
-		if err := cq.loadResources(ctx, query, nodes,
-			func(n *Connector) { n.appendNamedResources(name) },
-			func(n *Connector, e *ApplicationResource) { n.appendNamedResources(name, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range cq.withNamedClusterCosts {
-		if err := cq.loadClusterCosts(ctx, query, nodes,
-			func(n *Connector) { n.appendNamedClusterCosts(name) },
-			func(n *Connector, e *ClusterCost) { n.appendNamedClusterCosts(name, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range cq.withNamedAllocationCosts {
-		if err := cq.loadAllocationCosts(ctx, query, nodes,
-			func(n *Connector) { n.appendNamedAllocationCosts(name) },
-			func(n *Connector, e *AllocationCost) { n.appendNamedAllocationCosts(name, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range cq.withNamedEnvironmentConnectorRelationships {
-		if err := cq.loadEnvironmentConnectorRelationships(ctx, query, nodes,
-			func(n *Connector) { n.appendNamedEnvironmentConnectorRelationships(name) },
-			func(n *Connector, e *EnvironmentConnectorRelationship) {
-				n.appendNamedEnvironmentConnectorRelationships(name, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
-func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *EnvironmentQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *Environment)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[types.ID]*Connector)
-	nids := make(map[types.ID]map[*Connector]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
+func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *EnvironmentConnectorRelationshipQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *EnvironmentConnectorRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[types.ID]*Connector)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
 		if init != nil {
-			init(node)
+			init(nodes[i])
 		}
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(connector.EnvironmentsTable)
-		joinT.Schema(cq.schemaConfig.EnvironmentConnectorRelationship)
-		s.Join(joinT).On(s.C(environment.FieldID), joinT.C(connector.EnvironmentsPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(connector.EnvironmentsPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(connector.EnvironmentsPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(types.ID)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := *values[0].(*types.ID)
-				inValue := *values[1].(*types.ID)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Connector]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Environment](ctx, query, qr, query.inters)
+	query.Where(predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(connector.EnvironmentsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		fk := n.ConnectorID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected "environments" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "connector_id" returned %v for node %v`, fk, n)
 		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -791,33 +669,6 @@ func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *Alloca
 	}
 	return nil
 }
-func (cq *ConnectorQuery) loadEnvironmentConnectorRelationships(ctx context.Context, query *EnvironmentConnectorRelationshipQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *EnvironmentConnectorRelationship)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Connector)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.Where(predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
-		s.Where(sql.InValues(connector.EnvironmentConnectorRelationshipsColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.ConnectorID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "connector_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 
 func (cq *ConnectorQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := cq.querySpec()
@@ -834,20 +685,12 @@ func (cq *ConnectorQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (cq *ConnectorQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   connector.Table,
-			Columns: connector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: connector.FieldID,
-			},
-		},
-		From:   cq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(connector.Table, connector.Columns, sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString))
+	_spec.From = cq.sql
 	if unique := cq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if cq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := cq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -949,76 +792,6 @@ func (cq *ConnectorQuery) ForShare(opts ...sql.LockOption) *ConnectorQuery {
 func (cq *ConnectorQuery) Modify(modifiers ...func(s *sql.Selector)) *ConnectorSelect {
 	cq.modifiers = append(cq.modifiers, modifiers...)
 	return cq.Select()
-}
-
-// WithNamedEnvironments tells the query-builder to eager-load the nodes that are connected to the "environments"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithNamedEnvironments(name string, opts ...func(*EnvironmentQuery)) *ConnectorQuery {
-	query := (&EnvironmentClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if cq.withNamedEnvironments == nil {
-		cq.withNamedEnvironments = make(map[string]*EnvironmentQuery)
-	}
-	cq.withNamedEnvironments[name] = query
-	return cq
-}
-
-// WithNamedResources tells the query-builder to eager-load the nodes that are connected to the "resources"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithNamedResources(name string, opts ...func(*ApplicationResourceQuery)) *ConnectorQuery {
-	query := (&ApplicationResourceClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if cq.withNamedResources == nil {
-		cq.withNamedResources = make(map[string]*ApplicationResourceQuery)
-	}
-	cq.withNamedResources[name] = query
-	return cq
-}
-
-// WithNamedClusterCosts tells the query-builder to eager-load the nodes that are connected to the "clusterCosts"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithNamedClusterCosts(name string, opts ...func(*ClusterCostQuery)) *ConnectorQuery {
-	query := (&ClusterCostClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if cq.withNamedClusterCosts == nil {
-		cq.withNamedClusterCosts = make(map[string]*ClusterCostQuery)
-	}
-	cq.withNamedClusterCosts[name] = query
-	return cq
-}
-
-// WithNamedAllocationCosts tells the query-builder to eager-load the nodes that are connected to the "allocationCosts"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithNamedAllocationCosts(name string, opts ...func(*AllocationCostQuery)) *ConnectorQuery {
-	query := (&AllocationCostClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if cq.withNamedAllocationCosts == nil {
-		cq.withNamedAllocationCosts = make(map[string]*AllocationCostQuery)
-	}
-	cq.withNamedAllocationCosts[name] = query
-	return cq
-}
-
-// WithNamedEnvironmentConnectorRelationships tells the query-builder to eager-load the nodes that are connected to the "environmentConnectorRelationships"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (cq *ConnectorQuery) WithNamedEnvironmentConnectorRelationships(name string, opts ...func(*EnvironmentConnectorRelationshipQuery)) *ConnectorQuery {
-	query := (&EnvironmentConnectorRelationshipClient{config: cq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if cq.withNamedEnvironmentConnectorRelationships == nil {
-		cq.withNamedEnvironmentConnectorRelationships = make(map[string]*EnvironmentConnectorRelationshipQuery)
-	}
-	cq.withNamedEnvironmentConnectorRelationships[name] = query
-	return cq
 }
 
 // ConnectorGroupBy is the group-by builder for Connector entities.

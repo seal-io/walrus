@@ -23,15 +23,15 @@ type ClusterCost struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Usage start time for current cost
-	StartTime time.Time `json:"startTime"`
+	StartTime time.Time `json:"startTime,omitempty"`
 	// Usage end time for current cost
-	EndTime time.Time `json:"endTime"`
+	EndTime time.Time `json:"endTime,omitempty"`
 	// Usage minutes from start time to end time
-	Minutes float64 `json:"minutes"`
+	Minutes float64 `json:"minutes,omitempty"`
 	// ID of the connector
-	ConnectorID types.ID `json:"connectorID"`
+	ConnectorID types.ID `json:"connectorID,omitempty"`
 	// Cluster name for current cost
-	ClusterName string `json:"clusterName"`
+	ClusterName string `json:"clusterName,omitempty"`
 	// Cost number
 	TotalCost float64 `json:"totalCost,omitempty"`
 	// Cost currency
@@ -277,9 +277,3 @@ func (cc *ClusterCost) String() string {
 
 // ClusterCosts is a parsable slice of ClusterCost.
 type ClusterCosts []*ClusterCost
-
-func (cc ClusterCosts) config(cfg config) {
-	for _i := range cc {
-		cc[_i].config = cfg
-	}
-}

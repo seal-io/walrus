@@ -212,10 +212,12 @@ func (ccq *ClusterCostQuery) AllX(ctx context.Context) []*ClusterCost {
 }
 
 // IDs executes the query and returns a list of ClusterCost IDs.
-func (ccq *ClusterCostQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (ccq *ClusterCostQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ccq.ctx.Unique == nil && ccq.path != nil {
+		ccq.Unique(true)
+	}
 	ctx = setContextOp(ctx, ccq.ctx, "IDs")
-	if err := ccq.Select(clustercost.FieldID).Scan(ctx, &ids); err != nil {
+	if err = ccq.Select(clustercost.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -306,7 +308,7 @@ func (ccq *ClusterCostQuery) WithConnector(opts ...func(*ConnectorQuery)) *Clust
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime"`
+//		StartTime time.Time `json:"startTime,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -329,7 +331,7 @@ func (ccq *ClusterCostQuery) GroupBy(field string, fields ...string) *ClusterCos
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime"`
+//		StartTime time.Time `json:"startTime,omitempty"`
 //	}
 //
 //	client.ClusterCost.Query().
@@ -459,20 +461,12 @@ func (ccq *ClusterCostQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (ccq *ClusterCostQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   clustercost.Table,
-			Columns: clustercost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: clustercost.FieldID,
-			},
-		},
-		From:   ccq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(clustercost.Table, clustercost.Columns, sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt))
+	_spec.From = ccq.sql
 	if unique := ccq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ccq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ccq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

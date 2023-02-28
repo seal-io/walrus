@@ -40,8 +40,6 @@ const (
 	EdgeRevisions = "revisions"
 	// EdgeModules holds the string denoting the modules edge name in mutations.
 	EdgeModules = "modules"
-	// EdgeApplicationModuleRelationships holds the string denoting the applicationmodulerelationships edge name in mutations.
-	EdgeApplicationModuleRelationships = "applicationModuleRelationships"
 	// Table holds the table name of the application in the database.
 	Table = "applications"
 	// ProjectTable is the table that holds the project relation/edge.
@@ -72,18 +70,13 @@ const (
 	RevisionsInverseTable = "application_revisions"
 	// RevisionsColumn is the table column denoting the revisions relation/edge.
 	RevisionsColumn = "application_id"
-	// ModulesTable is the table that holds the modules relation/edge. The primary key declared below.
+	// ModulesTable is the table that holds the modules relation/edge.
 	ModulesTable = "application_module_relationships"
-	// ModulesInverseTable is the table name for the Module entity.
-	// It exists in this package in order to avoid circular dependency with the "module" package.
-	ModulesInverseTable = "modules"
-	// ApplicationModuleRelationshipsTable is the table that holds the applicationModuleRelationships relation/edge.
-	ApplicationModuleRelationshipsTable = "application_module_relationships"
-	// ApplicationModuleRelationshipsInverseTable is the table name for the ApplicationModuleRelationship entity.
+	// ModulesInverseTable is the table name for the ApplicationModuleRelationship entity.
 	// It exists in this package in order to avoid circular dependency with the "applicationmodulerelationship" package.
-	ApplicationModuleRelationshipsInverseTable = "application_module_relationships"
-	// ApplicationModuleRelationshipsColumn is the table column denoting the applicationModuleRelationships relation/edge.
-	ApplicationModuleRelationshipsColumn = "application_id"
+	ModulesInverseTable = "application_module_relationships"
+	// ModulesColumn is the table column denoting the modules relation/edge.
+	ModulesColumn = "application_id"
 )
 
 // Columns holds all SQL columns for application fields.
@@ -97,12 +90,6 @@ var Columns = []string{
 	FieldProjectID,
 	FieldEnvironmentID,
 }
-
-var (
-	// ModulesPrimaryKey and ModulesColumn2 are the table columns denoting the
-	// primary key for the modules relation (M2M).
-	ModulesPrimaryKey = []string{"application_id", "module_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

@@ -45,15 +45,7 @@ func (td *TokenDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TokenDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: token.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: token.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(token.Table, sqlgraph.NewFieldSpec(token.FieldID, field.TypeString))
 	_spec.Node.Schema = td.schemaConfig.Token
 	ctx = internal.NewSchemaConfigContext(ctx, td.schemaConfig)
 	if ps := td.mutation.predicates; len(ps) > 0 {

@@ -16,51 +16,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// ID filters vertices based on their ID field.
-func ID(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldID, id))
-}
-
-// IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldID, id))
-}
-
-// IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldNEQ(FieldID, id))
-}
-
-// IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldIn(FieldID, ids...))
-}
-
-// IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldNotIn(FieldID, ids...))
-}
-
-// IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldGT(FieldID, id))
-}
-
-// IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldGTE(FieldID, id))
-}
-
-// IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldLT(FieldID, id))
-}
-
-// IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldLTE(FieldID, id))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldCreateTime, v))
@@ -380,7 +335,7 @@ func VariablesNotNil() predicate.ApplicationModuleRelationship {
 func HasApplication() predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
+			sqlgraph.From(Table, ApplicationColumn),
 			sqlgraph.Edge(sqlgraph.M2O, false, ApplicationTable, ApplicationColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -394,8 +349,8 @@ func HasApplication() predicate.ApplicationModuleRelationship {
 func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationInverseTable, FieldID),
+			sqlgraph.From(Table, ApplicationColumn),
+			sqlgraph.To(ApplicationInverseTable, ApplicationFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, ApplicationTable, ApplicationColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -413,7 +368,7 @@ func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationMod
 func HasModule() predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
+			sqlgraph.From(Table, ModuleColumn),
 			sqlgraph.Edge(sqlgraph.M2O, false, ModuleTable, ModuleColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
@@ -427,8 +382,8 @@ func HasModule() predicate.ApplicationModuleRelationship {
 func HasModuleWith(preds ...predicate.Module) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ModuleInverseTable, FieldID),
+			sqlgraph.From(Table, ModuleColumn),
+			sqlgraph.To(ModuleInverseTable, ModuleFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, ModuleTable, ModuleColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())

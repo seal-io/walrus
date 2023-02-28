@@ -26,9 +26,9 @@ type Setting struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The name of system setting
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// The value of system setting, store in string
-	Value string `json:"value"`
+	Value string `json:"value,omitempty"`
 	// Indicate the system setting should be hidden or not, default is visible
 	Hidden *bool `json:"hidden,omitempty"`
 	// Indicate the system setting should be edited or not, default is readonly
@@ -182,9 +182,3 @@ func (s *Setting) String() string {
 
 // Settings is a parsable slice of Setting.
 type Settings []*Setting
-
-func (s Settings) config(cfg config) {
-	for _i := range s {
-		s[_i].config = cfg
-	}
-}

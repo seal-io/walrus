@@ -283,13 +283,7 @@ func (arc *ApplicationResourceCreate) sqlSave(ctx context.Context) (*Application
 func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ApplicationResource{config: arc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: applicationresource.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationresource.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(applicationresource.Table, sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString))
 	)
 	_spec.Schema = arc.schemaConfig.ApplicationResource
 	_spec.OnConflict = arc.conflict

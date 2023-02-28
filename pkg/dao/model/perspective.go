@@ -27,11 +27,11 @@ type Perspective struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Name for current perspective
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Start time for current perspective
-	StartTime string `json:"startTime"`
+	StartTime string `json:"startTime,omitempty"`
 	// End time for current perspective
-	EndTime string `json:"endTime"`
+	EndTime string `json:"endTime,omitempty"`
 	// Is builtin Perspective
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicated the perspective included allocation queries, record the used query condition
@@ -178,9 +178,3 @@ func (pe *Perspective) String() string {
 
 // Perspectives is a parsable slice of Perspective.
 type Perspectives []*Perspective
-
-func (pe Perspectives) config(cfg config) {
-	for _i := range pe {
-		pe[_i].config = cfg
-	}
-}

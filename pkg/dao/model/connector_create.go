@@ -20,8 +20,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -173,21 +171,6 @@ func (cc *ConnectorCreate) SetID(t types.ID) *ConnectorCreate {
 	return cc
 }
 
-// AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
-func (cc *ConnectorCreate) AddEnvironmentIDs(ids ...types.ID) *ConnectorCreate {
-	cc.mutation.AddEnvironmentIDs(ids...)
-	return cc
-}
-
-// AddEnvironments adds the "environments" edges to the Environment entity.
-func (cc *ConnectorCreate) AddEnvironments(e ...*Environment) *ConnectorCreate {
-	ids := make([]types.ID, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return cc.AddEnvironmentIDs(ids...)
-}
-
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
 func (cc *ConnectorCreate) AddResourceIDs(ids ...types.ID) *ConnectorCreate {
 	cc.mutation.AddResourceIDs(ids...)
@@ -231,21 +214,6 @@ func (cc *ConnectorCreate) AddAllocationCosts(a ...*AllocationCost) *ConnectorCr
 		ids[i] = a[i].ID
 	}
 	return cc.AddAllocationCostIDs(ids...)
-}
-
-// AddEnvironmentConnectorRelationshipIDs adds the "environmentConnectorRelationships" edge to the EnvironmentConnectorRelationship entity by IDs.
-func (cc *ConnectorCreate) AddEnvironmentConnectorRelationshipIDs(ids ...int) *ConnectorCreate {
-	cc.mutation.AddEnvironmentConnectorRelationshipIDs(ids...)
-	return cc
-}
-
-// AddEnvironmentConnectorRelationships adds the "environmentConnectorRelationships" edges to the EnvironmentConnectorRelationship entity.
-func (cc *ConnectorCreate) AddEnvironmentConnectorRelationships(e ...*EnvironmentConnectorRelationship) *ConnectorCreate {
-	ids := make([]int, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return cc.AddEnvironmentConnectorRelationshipIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -380,13 +348,7 @@ func (cc *ConnectorCreate) sqlSave(ctx context.Context) (*Connector, error) {
 func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Connector{config: cc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: connector.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: connector.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(connector.Table, sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString))
 	)
 	_spec.Schema = cc.schemaConfig.Connector
 	_spec.OnConflict = cc.conflict
@@ -446,30 +408,6 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
 		_node.FinOpsStatusMessage = value
 	}
-	if nodes := cc.mutation.EnvironmentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   connector.EnvironmentsTable,
-			Columns: connector.EnvironmentsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: environment.FieldID,
-				},
-			},
-		}
-		edge.Schema = cc.schemaConfig.EnvironmentConnectorRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		createE := &EnvironmentConnectorRelationshipCreate{config: cc.config, mutation: newEnvironmentConnectorRelationshipMutation(cc.config, OpCreate)}
-		createE.defaults()
-		_, specE := createE.createSpec()
-		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := cc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -525,26 +463,6 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = cc.schemaConfig.AllocationCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := cc.mutation.EnvironmentConnectorRelationshipsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   connector.EnvironmentConnectorRelationshipsTable,
-			Columns: []string{connector.EnvironmentConnectorRelationshipsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: environmentconnectorrelationship.FieldID,
-				},
-			},
-		}
-		edge.Schema = cc.schemaConfig.EnvironmentConnectorRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

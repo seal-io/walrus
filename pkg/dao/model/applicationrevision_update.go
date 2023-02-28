@@ -193,16 +193,7 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 	if err := aru.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationrevision.Table,
-			Columns: applicationrevision.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationrevision.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(applicationrevision.Table, applicationrevision.Columns, sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString))
 	if ps := aru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -382,6 +373,12 @@ func (aruo *ApplicationRevisionUpdateOne) Mutation() *ApplicationRevisionMutatio
 	return aruo.mutation
 }
 
+// Where appends a list predicates to the ApplicationRevisionUpdate builder.
+func (aruo *ApplicationRevisionUpdateOne) Where(ps ...predicate.ApplicationRevision) *ApplicationRevisionUpdateOne {
+	aruo.mutation.Where(ps...)
+	return aruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (aruo *ApplicationRevisionUpdateOne) Select(field string, fields ...string) *ApplicationRevisionUpdateOne {
@@ -437,16 +434,7 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 	if err := aruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationrevision.Table,
-			Columns: applicationrevision.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationrevision.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(applicationrevision.Table, applicationrevision.Columns, sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString))
 	id, ok := aruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`model: missing "ApplicationRevision.id" for update`)}

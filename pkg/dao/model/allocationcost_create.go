@@ -634,13 +634,7 @@ func (acc *AllocationCostCreate) sqlSave(ctx context.Context) (*AllocationCost, 
 func (acc *AllocationCostCreate) createSpec() (*AllocationCost, *sqlgraph.CreateSpec) {
 	var (
 		_node = &AllocationCost{config: acc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: allocationcost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allocationcost.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(allocationcost.Table, sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt))
 	)
 	_spec.Schema = acc.schemaConfig.AllocationCost
 	_spec.OnConflict = acc.conflict

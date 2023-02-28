@@ -239,10 +239,12 @@ func (arq *ApplicationRevisionQuery) AllX(ctx context.Context) []*ApplicationRev
 }
 
 // IDs executes the query and returns a list of ApplicationRevision IDs.
-func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) ([]types.ID, error) {
-	var ids []types.ID
+func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+	if arq.ctx.Unique == nil && arq.path != nil {
+		arq.Unique(true)
+	}
 	ctx = setContextOp(ctx, arq.ctx, "IDs")
-	if err := arq.Select(applicationrevision.FieldID).Scan(ctx, &ids); err != nil {
+	if err = arq.Select(applicationrevision.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -534,20 +536,12 @@ func (arq *ApplicationRevisionQuery) sqlCount(ctx context.Context) (int, error) 
 }
 
 func (arq *ApplicationRevisionQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   applicationrevision.Table,
-			Columns: applicationrevision.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: applicationrevision.FieldID,
-			},
-		},
-		From:   arq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(applicationrevision.Table, applicationrevision.Columns, sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString))
+	_spec.From = arq.sql
 	if unique := arq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if arq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := arq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

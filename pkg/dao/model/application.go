@@ -25,7 +25,7 @@ type Application struct {
 	// ID of the ent.
 	ID types.ID `json:"id,omitempty"`
 	// Name of the resource.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// Description of the resource.
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
@@ -35,9 +35,9 @@ type Application struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the project to which the application belongs.
-	ProjectID types.ID `json:"projectID"`
+	ProjectID types.ID `json:"projectID,omitempty"`
 	// ID of the environment to which the application deploys.
-	EnvironmentID types.ID `json:"environmentID"`
+	EnvironmentID types.ID `json:"environmentID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges ApplicationEdges `json:"edges,omitempty"`
@@ -53,17 +53,11 @@ type ApplicationEdges struct {
 	Resources []*ApplicationResource `json:"resources,omitempty"`
 	// Revisions that belong to this application.
 	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
-	// Modules that configure to the application.
-	Modules []*Module `json:"modules,omitempty"`
-	// ApplicationModuleRelationships holds the value of the applicationModuleRelationships edge.
-	ApplicationModuleRelationships []*ApplicationModuleRelationship `json:"applicationModuleRelationships,omitempty"`
+	// Modules holds the value of the modules edge.
+	Modules []*ApplicationModuleRelationship `json:"modules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes                         [6]bool
-	namedResources                      map[string][]*ApplicationResource
-	namedRevisions                      map[string][]*ApplicationRevision
-	namedModules                        map[string][]*Module
-	namedApplicationModuleRelationships map[string][]*ApplicationModuleRelationship
+	loadedTypes [5]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -112,20 +106,11 @@ func (e ApplicationEdges) RevisionsOrErr() ([]*ApplicationRevision, error) {
 
 // ModulesOrErr returns the Modules value or an error if the edge
 // was not loaded in eager-loading.
-func (e ApplicationEdges) ModulesOrErr() ([]*Module, error) {
+func (e ApplicationEdges) ModulesOrErr() ([]*ApplicationModuleRelationship, error) {
 	if e.loadedTypes[4] {
 		return e.Modules, nil
 	}
 	return nil, &NotLoadedError{edge: "modules"}
-}
-
-// ApplicationModuleRelationshipsOrErr returns the ApplicationModuleRelationships value or an error if the edge
-// was not loaded in eager-loading.
-func (e ApplicationEdges) ApplicationModuleRelationshipsOrErr() ([]*ApplicationModuleRelationship, error) {
-	if e.loadedTypes[5] {
-		return e.ApplicationModuleRelationships, nil
-	}
-	return nil, &NotLoadedError{edge: "applicationModuleRelationships"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -234,13 +219,8 @@ func (a *Application) QueryRevisions() *ApplicationRevisionQuery {
 }
 
 // QueryModules queries the "modules" edge of the Application entity.
-func (a *Application) QueryModules() *ModuleQuery {
+func (a *Application) QueryModules() *ApplicationModuleRelationshipQuery {
 	return NewApplicationClient(a.config).QueryModules(a)
-}
-
-// QueryApplicationModuleRelationships queries the "applicationModuleRelationships" edge of the Application entity.
-func (a *Application) QueryApplicationModuleRelationships() *ApplicationModuleRelationshipQuery {
-	return NewApplicationClient(a.config).QueryApplicationModuleRelationships(a)
 }
 
 // Update returns a builder for updating this Application.
@@ -294,107 +274,5 @@ func (a *Application) String() string {
 	return builder.String()
 }
 
-// NamedResources returns the Resources named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (a *Application) NamedResources(name string) ([]*ApplicationResource, error) {
-	if a.Edges.namedResources == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := a.Edges.namedResources[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (a *Application) appendNamedResources(name string, edges ...*ApplicationResource) {
-	if a.Edges.namedResources == nil {
-		a.Edges.namedResources = make(map[string][]*ApplicationResource)
-	}
-	if len(edges) == 0 {
-		a.Edges.namedResources[name] = []*ApplicationResource{}
-	} else {
-		a.Edges.namedResources[name] = append(a.Edges.namedResources[name], edges...)
-	}
-}
-
-// NamedRevisions returns the Revisions named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (a *Application) NamedRevisions(name string) ([]*ApplicationRevision, error) {
-	if a.Edges.namedRevisions == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := a.Edges.namedRevisions[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (a *Application) appendNamedRevisions(name string, edges ...*ApplicationRevision) {
-	if a.Edges.namedRevisions == nil {
-		a.Edges.namedRevisions = make(map[string][]*ApplicationRevision)
-	}
-	if len(edges) == 0 {
-		a.Edges.namedRevisions[name] = []*ApplicationRevision{}
-	} else {
-		a.Edges.namedRevisions[name] = append(a.Edges.namedRevisions[name], edges...)
-	}
-}
-
-// NamedModules returns the Modules named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (a *Application) NamedModules(name string) ([]*Module, error) {
-	if a.Edges.namedModules == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := a.Edges.namedModules[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (a *Application) appendNamedModules(name string, edges ...*Module) {
-	if a.Edges.namedModules == nil {
-		a.Edges.namedModules = make(map[string][]*Module)
-	}
-	if len(edges) == 0 {
-		a.Edges.namedModules[name] = []*Module{}
-	} else {
-		a.Edges.namedModules[name] = append(a.Edges.namedModules[name], edges...)
-	}
-}
-
-// NamedApplicationModuleRelationships returns the ApplicationModuleRelationships named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (a *Application) NamedApplicationModuleRelationships(name string) ([]*ApplicationModuleRelationship, error) {
-	if a.Edges.namedApplicationModuleRelationships == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := a.Edges.namedApplicationModuleRelationships[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (a *Application) appendNamedApplicationModuleRelationships(name string, edges ...*ApplicationModuleRelationship) {
-	if a.Edges.namedApplicationModuleRelationships == nil {
-		a.Edges.namedApplicationModuleRelationships = make(map[string][]*ApplicationModuleRelationship)
-	}
-	if len(edges) == 0 {
-		a.Edges.namedApplicationModuleRelationships[name] = []*ApplicationModuleRelationship{}
-	} else {
-		a.Edges.namedApplicationModuleRelationships[name] = append(a.Edges.namedApplicationModuleRelationships[name], edges...)
-	}
-}
-
 // Applications is a parsable slice of Application.
 type Applications []*Application
-
-func (a Applications) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}
