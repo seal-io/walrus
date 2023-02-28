@@ -12,11 +12,13 @@ import (
 
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func init() {
-	// goimports prefix
-	imports.LocalPrefix = "github.com/seal-io/seal"
+	configStyle()
+	configTemplateFuncs()
+	configTemplate()
 }
 
 func main() {
@@ -88,4 +90,38 @@ func generate() (err error) {
 	}
 
 	return
+}
+
+// configStyle configures the style of generation.
+func configStyle() {
+	// goimports prefix.
+	imports.LocalPrefix = "github.com/seal-io/seal"
+}
+
+// configTemplateFuncs configures the functions of template generation.
+func configTemplateFuncs() {
+	// override.
+	gen.Funcs["camel"] = strs.CamelizeDownFirst
+	gen.Funcs["snake"] = strs.Underscore
+	gen.Funcs["pascal"] = strs.Camelize
+	// extend.
+	gen.Funcs["getInputFields"] = getInputFields
+	gen.Funcs["getInputEdges"] = getInputEdges
+	gen.Funcs["getOutputFields"] = getOutputFields
+	gen.Funcs["getOutputEdges"] = getOutputEdges
+}
+
+// configTemplate configures the template of generation.
+func configTemplate() {
+	var pkgf = func(s string) func(t *gen.Type) string {
+		return func(t *gen.Type) string { return fmt.Sprintf(s, t.PackageDir()) }
+	}
+	// generate io file for per model.
+	gen.Templates = append(gen.Templates, gen.TypeTemplate{
+		Name:   "io",
+		Format: pkgf("%s_io.go"),
+		ExtendPatterns: []string{
+			"io", // donot treat as external templates.
+		},
+	})
 }

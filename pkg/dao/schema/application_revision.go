@@ -37,11 +37,14 @@ func (ApplicationRevision) Fields() []ent.Field {
 			Default([]types.ApplicationModule{}),
 		field.JSON("inputVariables", map[string]interface{}{}).
 			Comment("Input variables of the revision.").
-			Default(map[string]interface{}{}),
+			Default(map[string]interface{}{}).
+			Sensitive(),
 		field.String("inputPlan").
-			Comment("Input plan of the revision."),
+			Comment("Input plan of the revision.").
+			Sensitive(),
 		field.String("output").
-			Comment("Output of the revision."),
+			Comment("Output of the revision.").
+			Sensitive(),
 		field.String("deployerType").
 			Comment("type of deployer").
 			Default(types.DeployerTypeTF),

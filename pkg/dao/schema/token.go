@@ -21,10 +21,12 @@ func (Token) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("casdoorTokenName").
 			Comment("The token name of casdoor").
-			NotEmpty(),
+			NotEmpty().
+			Sensitive(),
 		field.String("casdoorTokenOwner").
 			Comment("The token owner of casdoor").
-			NotEmpty(),
+			NotEmpty().
+			Sensitive(),
 		field.String("name").
 			Comment("The name of token.").
 			NotEmpty(),
