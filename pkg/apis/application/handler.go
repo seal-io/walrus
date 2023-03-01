@@ -35,43 +35,40 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
-	var input = req.Model()
-
-	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.ApplicationCreates(tx, input)
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+	var entity = req.Model()
+	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var creates, err = dao.ApplicationCreates(tx, entity)
 		if err != nil {
 			return err
 		}
-
-		resp.Application, err = creates[0].Save(ctx)
-		if err != nil {
-			return err
-		}
-		return nil
+		entity, err = creates[0].Save(ctx)
+		return err
 	})
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplication(entity), nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	return h.modelClient.Applications().DeleteOneID(req.ID).Exec(ctx)
+	return h.modelClient.Applications().DeleteOne(req.Model()).Exec(ctx)
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = req.Model()
-
+	var entity = req.Model()
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.ApplicationUpdates(tx, input)
+		var updates, err = dao.ApplicationUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
-
 		return updates[0].Exec(ctx)
 	})
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (resp view.GetResponse, err error) {
-	resp.Application, err = h.modelClient.Applications().Query().
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.Applications().Query().
 		Where(application.ID(req.ID)).
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Select(
@@ -80,12 +77,28 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (resp view.GetRespon
 				applicationmodulerelationship.FieldVariables)
 		}).
 		Only(ctx)
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplication(entity), nil
 }
 
 // Batch APIs
 
 // Extensional APIs
+
+var (
+	resourceGetFields = applicationresource.WithoutFields(
+		applicationresource.FieldApplicationID,
+		applicationresource.FieldUpdateTime)
+	resourceSortFields = []string{
+		applicationresource.FieldCreateTime,
+		applicationresource.FieldModule,
+		applicationresource.FieldMode,
+		applicationresource.FieldType,
+		applicationresource.FieldName}
+)
 
 func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (view.GetResourcesResponse, int, error) {
 	var query = h.modelClient.ApplicationResources().Query().
@@ -98,23 +111,16 @@ func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (v
 	}
 
 	// get entities.
-	var sortFields = []string{
-		applicationresource.FieldCreateTime,
-		applicationresource.FieldModule,
-		applicationresource.FieldMode,
-		applicationresource.FieldType,
-		applicationresource.FieldName,
-	}
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
-	if orders, ok := req.Sorting(sortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
+	if fields, ok := req.Extracting(resourceGetFields, resourceGetFields...); ok {
+		query.Select(fields...)
+	}
+	if orders, ok := req.Sorting(resourceSortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Select(applicationresource.WithoutFields(
-				applicationresource.FieldApplicationID,
-				applicationresource.FieldUpdateTime)...).
 		Unique(false). // allow returning without sorting keys.
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
@@ -128,12 +134,11 @@ func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (v
 		return nil, 0, err
 	}
 
-	// construct response.
 	var resp = make(view.GetResourcesResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
-		resp[i].ApplicationResource = entities[i]
+		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
 
-		if req.WithoutKeys {
+		if !req.WithoutKeys {
 			// fetch operable keys.
 			var op operator.Operator
 			op, err = platform.GetOperator(ctx,
@@ -150,6 +155,13 @@ func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (v
 	return resp, cnt, nil
 }
 
+var (
+	revisionGetFields  = applicationrevision.Columns
+	revisionSortFields = []string{
+		applicationrevision.FieldCreateTime,
+	}
+)
+
 func (h Handler) GetRevisions(ctx *gin.Context, req view.GetRevisionsRequest) (view.GetRevisionsResponse, int, error) {
 	var query = h.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.ApplicationID(req.ID))
@@ -161,24 +173,21 @@ func (h Handler) GetRevisions(ctx *gin.Context, req view.GetRevisionsRequest) (v
 	}
 
 	// get entities.
-	var sortFields = []string{applicationrevision.FieldCreateTime}
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
-	if orders, ok := req.Sorting(sortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
+	if fields, ok := req.Extracting(revisionGetFields, revisionGetFields...); ok {
+		query.Select(fields...)
+	}
+	if orders, ok := req.Sorting(revisionSortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Select(
-				applicationrevision.FieldID,
-				applicationrevision.FieldCreateTime,
-				applicationrevision.FieldStatus,
-				applicationrevision.FieldStatusMessage).
 		Unique(false). // allow returning without sorting keys.
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeApplicationRevisions(entities), cnt, nil
 }

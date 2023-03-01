@@ -32,50 +32,64 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.ConnectorCreateRequest) (*model.Connector, error) {
-	var creates, err = dao.ConnectorCreates(h.modelClient, req.Connector)
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+	var entity = req.Model()
+
+	var creates, err = dao.ConnectorCreates(h.modelClient, entity)
+	if err != nil {
+		return nil, err
+	}
+	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	o, err := creates[0].Save(ctx)
+	err = pkgconn.Notify(ctx, h.modelClient, entity, false)
 	if err != nil {
 		return nil, err
 	}
-
-	err = pkgconn.Notify(ctx, h.modelClient, o, false)
-	if err != nil {
-		return nil, err
-	}
-	return o, nil
+	return model.ExposeConnector(entity), nil
 }
 
-func (h Handler) Delete(ctx *gin.Context, req view.IDRequest) error {
-	return h.modelClient.Connectors().DeleteOneID(req.ID).Exec(ctx)
+func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
+	return h.modelClient.Connectors().DeleteOne(req.Model()).Exec(ctx)
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.ConnectorUpdateRequest) (*model.Connector, error) {
-	var update, err = dao.ConnectorUpdate(h.modelClient, req.Connector)
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) (view.UpdateResponse, error) {
+	var entity = req.Model()
+
+	var update, err = dao.ConnectorUpdate(h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
-	o, err := update.Save(ctx)
+	entity, err = update.Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return o, nil
+	return model.ExposeConnector(entity), nil
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.IDRequest) (*model.Connector, error) {
-	return h.modelClient.Connectors().Get(ctx, req.ID)
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.UpdateResponse, error) {
+	var entity, err = h.modelClient.Connectors().Get(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeConnector(entity), nil
 }
 
 // Batch APIs
 
 var (
-	getFields  = connector.Columns
-	sortFields = []string{connector.FieldID, connector.FieldCreateTime, connector.FieldUpdateTime}
+	getFields = connector.WithoutFields(
+		connector.FieldConfigVersion,
+		connector.FieldConfigData,
+		connector.FieldUpdateTime)
+	sortFields = []string{
+		connector.FieldName,
+		connector.FieldType,
+		connector.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
@@ -94,7 +108,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(sortFields); ok {
+	if orders, ok := req.Sorting(sortFields, model.Desc(connector.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
@@ -103,7 +117,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeConnectors(entities), cnt, nil
 }
 
 // Extensional APIs

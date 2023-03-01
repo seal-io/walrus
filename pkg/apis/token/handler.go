@@ -34,10 +34,7 @@ func (h Handler) Kind() string {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
-	var input = &model.Token{
-		Name:       req.Name,
-		Expiration: req.Expiration,
-	}
+	var entity = req.Model()
 	var s = session.LoadSubject(ctx)
 	var cred casdoor.ApplicationCredential
 	var err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
@@ -49,7 +46,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 	if err != nil {
 		return nil, runtime.ErrorfP(http.StatusBadRequest, "failed to create token to casdoor: %w", err)
 	}
-	input.CasdoorTokenName, input.CasdoorTokenOwner = t.Name, t.Owner
+	entity.CasdoorTokenName, entity.CasdoorTokenOwner = t.Name, t.Owner
 
 	// create token.
 	var cerr error
@@ -60,18 +57,19 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 		}
 		_ = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret, t.Owner, t.Name)
 	}()
-	creates, cerr := dao.TokenCreates(h.modelClient, input)
+	creates, cerr := dao.TokenCreates(h.modelClient, entity)
 	if cerr != nil {
 		return nil, cerr
 	}
-	entity, cerr := creates[0].Save(ctx)
+	entity, cerr = creates[0].Save(ctx)
 	if cerr != nil {
 		return nil, cerr
 	}
 
-	var resp = entity
-	resp.AccessToken = t.AccessToken
-	return resp, nil
+	return &view.CreateResponse{
+		TokenOutput: model.ExposeToken(entity),
+		AccessToken: t.AccessToken,
+	}, nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
@@ -134,7 +132,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, _ view.CollectionGetRequest) (v
 		return nil, 0, err
 	}
 
-	return entities, len(entities), nil
+	return model.ExposeTokens(entities), len(entities), nil
 }
 
 // Extensional APIs

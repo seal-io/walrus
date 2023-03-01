@@ -5,49 +5,23 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/json"
 )
 
 // Basic APIs
 
-type SafeApplicationRevision model.ApplicationRevision
-
-func (r SafeApplicationRevision) MarshalJSON() ([]byte, error) {
-	// blind sensitive fields
-	r.Output = ""
-	r.InputPlan = ""
-	r.InputVariables = nil
-
-	return json.Marshal(model.ApplicationRevision(r))
+type GetRequest struct {
+	*model.ApplicationRevisionQueryInput `uri:",inline"`
 }
 
-type SafeApplicationRevisions []*model.ApplicationRevision
-
-func (r SafeApplicationRevisions) MarshalJSON() ([]byte, error) {
-	// blind sensitive fields
-	r2 := make([]*SafeApplicationRevision, len(r))
-
-	for i := 0; i < len(r); i++ {
-		r2[i] = (*SafeApplicationRevision)(r[i])
-	}
-
-	return json.Marshal([]*model.ApplicationRevision(r))
-}
-
-type IDRequest struct {
-	ID types.ID `uri:"id"`
-}
-
-func (r *IDRequest) Validate() error {
+func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
-
 	return nil
 }
 
-type GetResponse = *SafeApplicationRevision
+type GetResponse = *model.ApplicationRevisionOutput
 
 // Batch APIs
 
@@ -57,22 +31,15 @@ type CollectionGetRequest struct {
 	runtime.RequestSorting    `query:",inline"`
 }
 
-type CollectionGetResponse = model.ApplicationRevisions
+type CollectionGetResponse = []*model.ApplicationRevisionOutput
 
 // Extensional APIs
 
-type GetOutputsResponse = json.RawMessage
+type GetTerraformStatesRequest = GetRequest
 
-type UpdateOutputRequest struct {
-	json.RawMessage
+type GetTerraformStatesResponse = json.RawMessage
 
-	ID types.ID `uri:"id"`
-}
-
-func (r *UpdateOutputRequest) Validate() error {
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-
-	return nil
+type UpdateTerraformStatesRequest struct {
+	GetRequest      `uri:",inline"`
+	json.RawMessage `json:",inline"`
 }

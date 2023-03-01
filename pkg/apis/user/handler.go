@@ -196,7 +196,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeSubjects(entities), cnt, nil
 }
 
 // Extensional APIs

@@ -38,13 +38,14 @@ func (h Handler) Kind() string {
 
 // Basic APIs
 
-func (h Handler) Get(ctx *gin.Context, req view.IDRequest) (view.GetResponse, error) {
-	revision, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.ApplicationRevisions().
+		Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return (view.GetResponse)(revision), nil
+	return model.ExposeApplicationRevision(entity), nil
 }
 
 // Basic APIs
@@ -79,13 +80,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeApplicationRevisions(entities), cnt, nil
 }
 
 // Extensional APIs
 
 // GetTerraformStates get the terraform states of the application revision deployment.
-func (h Handler) GetTerraformStates(ctx *gin.Context, req view.IDRequest) (view.GetOutputsResponse, error) {
+func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformStatesRequest) (view.GetTerraformStatesResponse, error) {
 	get, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -95,11 +96,11 @@ func (h Handler) GetTerraformStates(ctx *gin.Context, req view.IDRequest) (view.
 		return nil, nil
 	}
 
-	return view.GetOutputsResponse(get.Output), nil
+	return view.GetTerraformStatesResponse(get.Output), nil
 }
 
 // UpdateTerraformStates update the terraform states of the application revision deployment.
-func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateOutputRequest) error {
+func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) error {
 	revision, err := h.modelClient.
 		ApplicationRevisions().
 		UpdateOneID(req.ID).

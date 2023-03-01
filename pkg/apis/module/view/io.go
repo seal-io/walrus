@@ -13,48 +13,52 @@ import (
 // Basic APIs
 
 type CreateRequest struct {
-	*model.Module `json:",inline"`
+	*model.ModuleCreateInput `json:",inline"`
+
+	ID string `json:"id"`
 }
 
 func (r *CreateRequest) Validate() error {
-	return validate(r.Module)
+	return validate(r.ID, r.Source)
 }
 
-type CreateResponse = *model.Module
+func (r *CreateRequest) Model() *model.Module {
+	var entity = r.ModuleCreateInput.Model()
+	entity.ID = r.ID
+	return entity
+}
+
+type CreateResponse = *model.ModuleOutput
+
+type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	UriID string `uri:"id"`
-
-	*model.Module `json:",inline"`
+	*model.ModuleUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) Validate() error {
-	r.ID = r.UriID
-
-	return validate(r.Module)
+	return validate(r.ID, r.Source)
 }
 
-func validate(m *model.Module) error {
-	if err := validation.IsQualifiedName(m.ID); err != nil {
+func validate(id string, source string) error {
+	if err := validation.IsQualifiedName(id); err != nil {
 		return err
 	}
-	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
+	if _, err := getter.Detect(source, "", getter.Detectors); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
 	return nil
 }
 
 type GetRequest struct {
-	ID string `uri:"id"`
+	*model.ModuleQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {
 	return validation.IsQualifiedName(r.ID)
 }
 
-type GetResponse = *model.Module
-
-type DeleteRequest = GetRequest
+type GetResponse = *model.ModuleOutput
 
 // Batch APIs
 
@@ -66,7 +70,7 @@ type CollectionGetRequest struct {
 	Group string `query:"_group,omitempty"`
 }
 
-type CollectionGetResponse = []GetResponse
+type CollectionGetResponse = []*model.ModuleOutput
 
 // Extensional APIs
 

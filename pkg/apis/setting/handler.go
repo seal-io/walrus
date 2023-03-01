@@ -45,7 +45,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	})
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, error) {
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	var input = []predicate.Setting{
 		setting.Private(false),
 	}
@@ -56,11 +56,15 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, 
 		input = append(input, setting.Name(keys[0]))
 	}
 
-	return h.modelClient.Settings().Query().
+	var entity, err = h.modelClient.Settings().Query().
 		Where(input...).
 		Select(setting.WithoutFields(
 			setting.FieldCreateTime, setting.FieldUpdateTime, setting.FieldPrivate)...).
 		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return model.ExposeSetting(entity), nil
 }
 
 // Batch APIs
@@ -123,7 +127,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeSettings(entities), cnt, nil
 }
 
 // Extensional APIs

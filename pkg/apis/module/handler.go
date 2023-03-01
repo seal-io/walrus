@@ -32,23 +32,24 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var creates, err = dao.ModuleCreates(h.modelClient, req.Module)
+	var entity = req.Model()
+
+	var creates, err = dao.ModuleCreates(h.modelClient, entity)
+	if err != nil {
+		return nil, err
+	}
+	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	m, err := creates[0].Save(ctx)
-	if err != nil {
-		return nil, err
-	}
+	modules.Notify(ctx, h.modelClient, entity)
 
-	modules.Notify(ctx, h.modelClient, req.Module)
-
-	return m, nil
+	return model.ExposeModule(entity), nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	return h.modelClient.Modules().DeleteOneID(req.ID).Exec(ctx)
+	return h.modelClient.Modules().DeleteOne(req.Model()).Exec(ctx)
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
@@ -58,35 +59,38 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	}
 
 	var (
-		module = req.Module
-		// Sync schema on source/version updates
-		shouldSyncSchema = prev.Source != req.Source || prev.Version != req.Version
+		entity = req.Model()
+		// sync schema on source/version updates
+		shouldSyncSchema = prev.Source != entity.Source || prev.Version != entity.Version
 	)
 
 	if shouldSyncSchema {
-		module.Schema = nil
-		module.Status = status.Initializing
-		module.StatusMessage = ""
+		entity.Schema = nil
+		entity.Status = status.Initializing
+		entity.StatusMessage = ""
 	}
 
-	update, err := dao.ModuleUpdate(h.modelClient, req.Module)
+	update, err := dao.ModuleUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
-
 	if _, err = update.Save(ctx); err != nil {
 		return err
 	}
 
 	if shouldSyncSchema {
-		modules.Notify(ctx, h.modelClient, module)
+		modules.Notify(ctx, h.modelClient, entity)
 	}
 
 	return nil
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	return h.modelClient.Modules().Get(ctx, req.ID)
+	var entity, err = h.modelClient.Modules().Get(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+	return model.ExposeModule(entity), nil
 }
 
 // Batch APIs
@@ -122,7 +126,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeModules(entities), cnt, nil
 }
 
 // Extensional APIs

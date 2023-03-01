@@ -189,7 +189,7 @@ type CollectionGetRequest struct {
 	Group string `query:"_group,omitempty"`
 }
 
-type CollectionGetResponse = []*model.Subject
+type CollectionGetResponse = []*model.SubjectOutput
 
 // Extensional APIs
 
