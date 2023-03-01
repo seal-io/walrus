@@ -26,16 +26,13 @@ type Token struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The token name of casdoor
-	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
+	CasdoorTokenName string `json:"-"`
 	// The token owner of casdoor
-	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
+	CasdoorTokenOwner string `json:"-"`
 	// The name of token.
 	Name string `json:"name,omitempty"`
 	// Expiration in seconds.
 	Expiration *int `json:"expiration,omitempty"`
-	// [EXTENSION] AccessToken is the token used for authentication.
-	// It does not store in the database and only shows up after created.
-	AccessToken string `json:"accessToken,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -149,11 +146,9 @@ func (t *Token) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("casdoorTokenName=")
-	builder.WriteString(t.CasdoorTokenName)
+	builder.WriteString("casdoorTokenName=<sensitive>")
 	builder.WriteString(", ")
-	builder.WriteString("casdoorTokenOwner=")
-	builder.WriteString(t.CasdoorTokenOwner)
+	builder.WriteString("casdoorTokenOwner=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(t.Name)

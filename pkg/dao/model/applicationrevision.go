@@ -37,11 +37,11 @@ type ApplicationRevision struct {
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"inputVariables,omitempty"`
+	InputVariables map[string]interface{} `json:"-"`
 	// Input plan of the revision.
-	InputPlan string `json:"inputPlan,omitempty"`
+	InputPlan string `json:"-"`
 	// Output of the revision.
-	Output string `json:"output,omitempty"`
+	Output string `json:"-"`
 	// type of deployer
 	DeployerType string `json:"deployerType,omitempty"`
 	// deployment duration(seconds) of the of application revision
@@ -253,14 +253,11 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString("modules=")
 	builder.WriteString(fmt.Sprintf("%v", ar.Modules))
 	builder.WriteString(", ")
-	builder.WriteString("inputVariables=")
-	builder.WriteString(fmt.Sprintf("%v", ar.InputVariables))
+	builder.WriteString("inputVariables=<sensitive>")
 	builder.WriteString(", ")
-	builder.WriteString("inputPlan=")
-	builder.WriteString(ar.InputPlan)
+	builder.WriteString("inputPlan=<sensitive>")
 	builder.WriteString(", ")
-	builder.WriteString("output=")
-	builder.WriteString(ar.Output)
+	builder.WriteString("output=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("deployerType=")
 	builder.WriteString(ar.DeployerType)

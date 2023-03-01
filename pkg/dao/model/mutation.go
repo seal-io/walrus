@@ -122,11 +122,11 @@ type AllocationCostMutation struct {
 
 var _ ent.Mutation = (*AllocationCostMutation)(nil)
 
-// allocationcostOption allows management of the mutation configuration using functional options.
-type allocationcostOption func(*AllocationCostMutation)
+// allocationCostOption allows management of the mutation configuration using functional options.
+type allocationCostOption func(*AllocationCostMutation)
 
 // newAllocationCostMutation creates new mutation for the AllocationCost entity.
-func newAllocationCostMutation(c config, op Op, opts ...allocationcostOption) *AllocationCostMutation {
+func newAllocationCostMutation(c config, op Op, opts ...allocationCostOption) *AllocationCostMutation {
 	m := &AllocationCostMutation{
 		config:        c,
 		op:            op,
@@ -140,7 +140,7 @@ func newAllocationCostMutation(c config, op Op, opts ...allocationcostOption) *A
 }
 
 // withAllocationCostID sets the ID field of the mutation.
-func withAllocationCostID(id int) allocationcostOption {
+func withAllocationCostID(id int) allocationCostOption {
 	return func(m *AllocationCostMutation) {
 		var (
 			err   error
@@ -162,7 +162,7 @@ func withAllocationCostID(id int) allocationcostOption {
 }
 
 // withAllocationCost sets the old AllocationCost of the mutation.
-func withAllocationCost(node *AllocationCost) allocationcostOption {
+func withAllocationCost(node *AllocationCost) allocationCostOption {
 	return func(m *AllocationCostMutation) {
 		m.oldValue = func(context.Context) (*AllocationCost, error) {
 			return node, nil
@@ -3573,11 +3573,11 @@ type ApplicationModuleRelationshipMutation struct {
 
 var _ ent.Mutation = (*ApplicationModuleRelationshipMutation)(nil)
 
-// applicationmodulerelationshipOption allows management of the mutation configuration using functional options.
-type applicationmodulerelationshipOption func(*ApplicationModuleRelationshipMutation)
+// applicationModuleRelationshipOption allows management of the mutation configuration using functional options.
+type applicationModuleRelationshipOption func(*ApplicationModuleRelationshipMutation)
 
 // newApplicationModuleRelationshipMutation creates new mutation for the ApplicationModuleRelationship entity.
-func newApplicationModuleRelationshipMutation(c config, op Op, opts ...applicationmodulerelationshipOption) *ApplicationModuleRelationshipMutation {
+func newApplicationModuleRelationshipMutation(c config, op Op, opts ...applicationModuleRelationshipOption) *ApplicationModuleRelationshipMutation {
 	m := &ApplicationModuleRelationshipMutation{
 		config:        c,
 		op:            op,
@@ -4117,11 +4117,11 @@ type ApplicationResourceMutation struct {
 
 var _ ent.Mutation = (*ApplicationResourceMutation)(nil)
 
-// applicationresourceOption allows management of the mutation configuration using functional options.
-type applicationresourceOption func(*ApplicationResourceMutation)
+// applicationResourceOption allows management of the mutation configuration using functional options.
+type applicationResourceOption func(*ApplicationResourceMutation)
 
 // newApplicationResourceMutation creates new mutation for the ApplicationResource entity.
-func newApplicationResourceMutation(c config, op Op, opts ...applicationresourceOption) *ApplicationResourceMutation {
+func newApplicationResourceMutation(c config, op Op, opts ...applicationResourceOption) *ApplicationResourceMutation {
 	m := &ApplicationResourceMutation{
 		config:        c,
 		op:            op,
@@ -4135,7 +4135,7 @@ func newApplicationResourceMutation(c config, op Op, opts ...applicationresource
 }
 
 // withApplicationResourceID sets the ID field of the mutation.
-func withApplicationResourceID(id types.ID) applicationresourceOption {
+func withApplicationResourceID(id types.ID) applicationResourceOption {
 	return func(m *ApplicationResourceMutation) {
 		var (
 			err   error
@@ -4157,7 +4157,7 @@ func withApplicationResourceID(id types.ID) applicationresourceOption {
 }
 
 // withApplicationResource sets the old ApplicationResource of the mutation.
-func withApplicationResource(node *ApplicationResource) applicationresourceOption {
+func withApplicationResource(node *ApplicationResource) applicationResourceOption {
 	return func(m *ApplicationResourceMutation) {
 		m.oldValue = func(context.Context) (*ApplicationResource, error) {
 			return node, nil
@@ -5077,11 +5077,11 @@ type ApplicationRevisionMutation struct {
 
 var _ ent.Mutation = (*ApplicationRevisionMutation)(nil)
 
-// applicationrevisionOption allows management of the mutation configuration using functional options.
-type applicationrevisionOption func(*ApplicationRevisionMutation)
+// applicationRevisionOption allows management of the mutation configuration using functional options.
+type applicationRevisionOption func(*ApplicationRevisionMutation)
 
 // newApplicationRevisionMutation creates new mutation for the ApplicationRevision entity.
-func newApplicationRevisionMutation(c config, op Op, opts ...applicationrevisionOption) *ApplicationRevisionMutation {
+func newApplicationRevisionMutation(c config, op Op, opts ...applicationRevisionOption) *ApplicationRevisionMutation {
 	m := &ApplicationRevisionMutation{
 		config:        c,
 		op:            op,
@@ -5095,7 +5095,7 @@ func newApplicationRevisionMutation(c config, op Op, opts ...applicationrevision
 }
 
 // withApplicationRevisionID sets the ID field of the mutation.
-func withApplicationRevisionID(id types.ID) applicationrevisionOption {
+func withApplicationRevisionID(id types.ID) applicationRevisionOption {
 	return func(m *ApplicationRevisionMutation) {
 		var (
 			err   error
@@ -5117,7 +5117,7 @@ func withApplicationRevisionID(id types.ID) applicationrevisionOption {
 }
 
 // withApplicationRevision sets the old ApplicationRevision of the mutation.
-func withApplicationRevision(node *ApplicationRevision) applicationrevisionOption {
+func withApplicationRevision(node *ApplicationRevision) applicationRevisionOption {
 	return func(m *ApplicationRevisionMutation) {
 		m.oldValue = func(context.Context) (*ApplicationRevision, error) {
 			return node, nil
@@ -6150,11 +6150,11 @@ type ClusterCostMutation struct {
 
 var _ ent.Mutation = (*ClusterCostMutation)(nil)
 
-// clustercostOption allows management of the mutation configuration using functional options.
-type clustercostOption func(*ClusterCostMutation)
+// clusterCostOption allows management of the mutation configuration using functional options.
+type clusterCostOption func(*ClusterCostMutation)
 
 // newClusterCostMutation creates new mutation for the ClusterCost entity.
-func newClusterCostMutation(c config, op Op, opts ...clustercostOption) *ClusterCostMutation {
+func newClusterCostMutation(c config, op Op, opts ...clusterCostOption) *ClusterCostMutation {
 	m := &ClusterCostMutation{
 		config:        c,
 		op:            op,
@@ -6168,7 +6168,7 @@ func newClusterCostMutation(c config, op Op, opts ...clustercostOption) *Cluster
 }
 
 // withClusterCostID sets the ID field of the mutation.
-func withClusterCostID(id int) clustercostOption {
+func withClusterCostID(id int) clusterCostOption {
 	return func(m *ClusterCostMutation) {
 		var (
 			err   error
@@ -6190,7 +6190,7 @@ func withClusterCostID(id int) clustercostOption {
 }
 
 // withClusterCost sets the old ClusterCost of the mutation.
-func withClusterCost(node *ClusterCost) clustercostOption {
+func withClusterCost(node *ClusterCost) clusterCostOption {
 	return func(m *ClusterCostMutation) {
 		m.oldValue = func(context.Context) (*ClusterCost, error) {
 			return node, nil
@@ -9722,11 +9722,11 @@ type EnvironmentConnectorRelationshipMutation struct {
 
 var _ ent.Mutation = (*EnvironmentConnectorRelationshipMutation)(nil)
 
-// environmentconnectorrelationshipOption allows management of the mutation configuration using functional options.
-type environmentconnectorrelationshipOption func(*EnvironmentConnectorRelationshipMutation)
+// environmentConnectorRelationshipOption allows management of the mutation configuration using functional options.
+type environmentConnectorRelationshipOption func(*EnvironmentConnectorRelationshipMutation)
 
 // newEnvironmentConnectorRelationshipMutation creates new mutation for the EnvironmentConnectorRelationship entity.
-func newEnvironmentConnectorRelationshipMutation(c config, op Op, opts ...environmentconnectorrelationshipOption) *EnvironmentConnectorRelationshipMutation {
+func newEnvironmentConnectorRelationshipMutation(c config, op Op, opts ...environmentConnectorRelationshipOption) *EnvironmentConnectorRelationshipMutation {
 	m := &EnvironmentConnectorRelationshipMutation{
 		config:        c,
 		op:            op,
