@@ -12,7 +12,7 @@ type UpdateInfoRequest struct {
 	OldPassword *string `json:"oldPassword,omitempty"`
 }
 
-func (r UpdateInfoRequest) Validate() error {
+func (r *UpdateInfoRequest) Validate() error {
 	var needUpdate bool
 	if r.LoginGroup != nil {
 		if *r.LoginGroup == "" {

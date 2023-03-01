@@ -17,7 +17,7 @@ import (
 // Basic APIs
 
 type CreateRequest struct {
-	*model.Perspective `json:",inline"`
+	*model.PerspectiveCreateInput `json:",inline"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -39,22 +39,10 @@ func (r *CreateRequest) Validate() error {
 	return nil
 }
 
-type IDRequest struct {
-	ID types.ID `uri:"id"`
-}
-
-func (r *IDRequest) Validate() error {
-	if !r.ID.IsNaive() {
-		return errors.New("invalid id: blank")
-	}
-
-	return nil
-}
+type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.Perspective `json:",inline"`
-
-	ID types.ID `uri:"id"`
+	*model.PerspectiveUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -83,6 +71,19 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
+type GetRequest struct {
+	*model.PerspectiveQueryInput `uri:",inline"`
+}
+
+func (r *GetRequest) Validate() error {
+	if !r.ID.IsNaive() {
+		return errors.New("invalid id: blank")
+	}
+	return nil
+}
+
+type GetResponse = *model.PerspectiveOutput
+
 // Batch APIs
 
 type CollectionGetRequest struct {
@@ -93,7 +94,7 @@ type CollectionGetRequest struct {
 	Name string `query:"name,omitempty"`
 }
 
-type CollectionGetResponse = []*model.Perspective
+type CollectionGetResponse = []*model.PerspectiveOutput
 
 // Extensional APIs
 
@@ -114,7 +115,7 @@ type CollectionRouteFieldValuesRequest struct {
 	FieldName types.FilterField `query:"fieldName"`
 }
 
-func (r CollectionRouteFieldValuesRequest) Validate() error {
+func (r *CollectionRouteFieldValuesRequest) Validate() error {
 	if r.StartTime != nil && r.EndTime != nil && r.EndTime.Before(*r.StartTime) {
 		return errors.New("invalid time range: end time is early than start time")
 	}

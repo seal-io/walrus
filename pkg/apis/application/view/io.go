@@ -8,27 +8,20 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform/operator"
-	"github.com/seal-io/seal/utils/json"
 )
 
 // Basic APIs
 
 type CreateRequest struct {
-	Name          string                    `json:"name"`
-	Description   string                    `json:"description,omitempty"`
-	Labels        map[string]string         `json:"labels,omitempty"`
-	ProjectID     types.ID                  `json:"projectID"`
-	EnvironmentID types.ID                  `json:"environmentID"`
-	Modules       []types.ApplicationModule `json:"modules,omitempty"`
+	*model.ApplicationCreateInput `json:",inline"`
 }
 
-func (r CreateRequest) Validate() error {
-	if r.ProjectID == "" {
+func (r *CreateRequest) Validate() error {
+	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
 	}
-	if r.EnvironmentID == "" {
+	if r.Environment.ID == "" {
 		return errors.New("invalid environment id: blank")
 	}
 	if r.Name == "" {
@@ -36,7 +29,7 @@ func (r CreateRequest) Validate() error {
 	}
 	if len(r.Modules) != 0 {
 		for i := 0; i < len(r.Modules); i++ {
-			if r.Modules[i].ModuleID == "" {
+			if r.Modules[i].Module.ID == "" {
 				return errors.New("invalid module id: blank")
 			}
 			if r.Modules[i].Name == "" {
@@ -47,44 +40,21 @@ func (r CreateRequest) Validate() error {
 	return nil
 }
 
-func (r CreateRequest) Model() *model.Application {
-	var input = &model.Application{
-		Name:          r.Name,
-		Description:   r.Description,
-		Labels:        r.Labels,
-		ProjectID:     r.ProjectID,
-		EnvironmentID: r.EnvironmentID,
-	}
-	for _, m := range r.Modules {
-		input.Edges.Modules = append(input.Edges.Modules,
-			&model.ApplicationModuleRelationship{
-				ModuleID:  m.ModuleID,
-				Name:      m.Name,
-				Variables: m.Variables,
-			})
-	}
-	return input
-}
-
-type CreateResponse = GetResponse
+type CreateResponse = *model.ApplicationOutput
 
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	ID          types.ID                  `uri:"id"`
-	Name        string                    `json:"name,omitempty"`
-	Description string                    `json:"description,omitempty"`
-	Labels      map[string]string         `json:"labels,omitempty"`
-	Modules     []types.ApplicationModule `json:"modules,omitempty"`
+	*model.ApplicationUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r UpdateRequest) Validate() error {
+func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 	if len(r.Modules) != 0 {
 		for i := 0; i < len(r.Modules); i++ {
-			if r.Modules[i].ModuleID == "" {
+			if r.Modules[i].Module.ID == "" {
 				return errors.New("invalid module id: blank")
 			}
 			if r.Modules[i].Name == "" {
@@ -95,28 +65,11 @@ func (r UpdateRequest) Validate() error {
 	return nil
 }
 
-func (r UpdateRequest) Model() *model.Application {
-	var input = &model.Application{
-		Name:        r.Name,
-		Description: r.Description,
-		Labels:      r.Labels,
-	}
-	for _, m := range r.Modules {
-		input.Edges.Modules = append(input.Edges.Modules,
-			&model.ApplicationModuleRelationship{
-				ModuleID:  m.ModuleID,
-				Name:      m.Name,
-				Variables: m.Variables,
-			})
-	}
-	return input
-}
-
 type GetRequest struct {
-	ID types.ID `uri:"id"`
+	*model.ApplicationQueryInput `uri:",inline"`
 }
 
-func (r GetRequest) Validate() error {
+func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -124,51 +77,22 @@ func (r GetRequest) Validate() error {
 	return nil
 }
 
-type GetResponse struct {
-	*model.Application `json:",inline"`
-
-	Modules []types.ApplicationModule `json:"modules,omitempty"`
-}
-
-func (r GetResponse) MarshalJSON() ([]byte, error) {
-	type Alias GetResponse
-
-	// mutate `.Edges.ApplicationModuleRelationships` to `.Modules`.
-	if len(r.Edges.Modules) != 0 {
-		for _, s := range r.Edges.Modules {
-			if s == nil {
-				continue
-			}
-			r.Modules = append(r.Modules,
-				types.ApplicationModule{
-					ModuleID:  s.ModuleID,
-					Name:      s.Name,
-					Variables: s.Variables,
-				})
-		}
-		r.Edges.Modules = nil // release
-	}
-
-	return json.Marshal(&struct {
-		*Alias `json:",inline"`
-	}{
-		Alias: (*Alias)(&r),
-	})
-}
+type GetResponse = *model.ApplicationOutput
 
 // Batch APIs
 
 // Extensional APIs
 
 type GetResourcesRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	*model.ApplicationQueryInput `uri:",inline"`
+	runtime.RequestPagination    `query:",inline"`
+	runtime.RequestExtracting    `query:",inline"`
+	runtime.RequestSorting       `query:",inline"`
 
-	ID          types.ID `uri:"id"`
-	WithoutKeys bool     `query:"withoutKeys,omitempty"`
+	WithoutKeys bool `query:"withoutKeys,omitempty"`
 }
 
-func (r GetResourcesRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *GetResourcesRequest) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
@@ -180,43 +104,26 @@ func (r GetResourcesRequest) ValidateWith(ctx context.Context, input any) error 
 	if err != nil {
 		return runtime.Error(http.StatusNotFound, "invalid id: not found")
 	}
-
 	return nil
 }
 
-type GetResourceResponse struct {
-	*model.ApplicationResource `json:",inline"`
+type ApplicationResource struct {
+	*model.ApplicationResourceOutput `json:",inline"`
 
 	OperatorKeys  *operator.Keys `json:"operatorKeys"`
 	ConnectorName string         `json:"connectorName"`
 }
 
-func (o *GetResourceResponse) MarshalJSON() ([]byte, error) {
-	type Alias GetResourceResponse
-
-	// move `.Edges.Connector.Name` to `.ConnectorName`.
-	if o.Edges.Connector != nil {
-		o.ConnectorName = o.Edges.Connector.Name
-		o.Edges.Connector = nil // release
-	}
-
-	return json.Marshal(&struct {
-		*Alias `json:",inline"`
-	}{
-		Alias: (*Alias)(o),
-	})
-}
-
-type GetResourcesResponse = []GetResourceResponse
+type GetResourcesResponse = []ApplicationResource
 
 type GetRevisionsRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
-
-	ID types.ID `uri:"id"`
+	*model.ApplicationQueryInput `uri:",inline"`
+	runtime.RequestPagination    `query:",inline"`
+	runtime.RequestExtracting    `query:",inline"`
+	runtime.RequestSorting       `query:",inline"`
 }
 
-func (r GetRevisionsRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *GetRevisionsRequest) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
@@ -228,8 +135,7 @@ func (r GetRevisionsRequest) ValidateWith(ctx context.Context, input any) error 
 	if err != nil {
 		return runtime.Error(http.StatusNotFound, "invalid id: not found")
 	}
-
 	return nil
 }
 
-type GetRevisionsResponse = []*model.ApplicationRevision
+type GetRevisionsResponse = []*model.ApplicationRevisionOutput

@@ -31,34 +31,42 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
-	var input = req.Model()
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+	var entity = req.Model()
 
-	var creates, err = dao.ProjectCreates(h.modelClient, input)
+	var creates, err = dao.ProjectCreates(h.modelClient, entity)
+	if err != nil {
+		return nil, err
+	}
+	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return creates[0].Save(ctx)
+	return model.ExposeProject(entity), nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	return h.modelClient.Projects().DeleteOneID(req.ID).Exec(ctx)
+	return h.modelClient.Projects().DeleteOne(req.Model()).Exec(ctx)
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = req.Model()
+	var entity = req.Model()
 
-	var updates, err = dao.ProjectUpdates(h.modelClient, input)
+	var updates, err = dao.ProjectUpdates(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
-
 	return updates[0].Exec(ctx)
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, error) {
-	return h.modelClient.Projects().Get(ctx, req.ID)
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.Projects().Get(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeProject(entity), nil
 }
 
 // Batch APIs
@@ -88,10 +96,19 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposeProjects(entities), cnt, nil
 }
 
 // Extensional APIs
+
+var (
+	applicationGetFields = application.WithoutFields(
+		application.FieldProjectID,
+		application.FieldUpdateTime)
+	applicationSortFields = []string{
+		application.FieldName,
+		application.FieldCreateTime}
+)
 
 func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsRequest) (view.GetApplicationsResponse, int, error) {
 	var query = h.modelClient.Applications().Query().
@@ -104,15 +121,16 @@ func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsReque
 	}
 
 	// get entities.
-	var sortFields = []string{application.FieldCreateTime, application.FieldUpdateTime}
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
-	if orders, ok := req.Sorting(sortFields, model.Desc(application.FieldCreateTime)); ok {
+	if fields, ok := req.Extracting(applicationGetFields, applicationGetFields...); ok {
+		query.Select(fields...)
+	}
+	if orders, ok := req.Sorting(applicationSortFields, model.Desc(application.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Select(application.FieldID, application.FieldName, application.FieldDescription, application.FieldEnvironmentID).
 		Unique(false). // allow returning without sorting keys.
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
 			eq.Select(environment.FieldName)
@@ -122,11 +140,5 @@ func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsReque
 		return nil, 0, err
 	}
 
-	var resp = make(view.GetApplicationsResponse, len(entities))
-	for i := 0; i < len(entities); i++ {
-		resp[i] = view.GetApplicationResponse{
-			Application: entities[i],
-		}
-	}
-	return resp, cnt, nil
+	return model.ExposeApplications(entities), cnt, nil
 }

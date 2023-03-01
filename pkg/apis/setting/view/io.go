@@ -57,17 +57,17 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type GetRequest struct {
-	ID types.ID `uri:"id"`
+	*model.SettingQueryInput `uri:",inline"`
 }
 
-func (r GetRequest) Validate() error {
+func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
 	}
 	return nil
 }
 
-type GetResponse = model.Setting
+type GetResponse = *model.SettingOutput
 
 // Batch APIs
 
@@ -92,7 +92,7 @@ type CollectionGetRequest struct {
 	IDs []types.ID `query:"id,omitempty"`
 }
 
-func (r CollectionGetRequest) Validate() error {
+func (r *CollectionGetRequest) Validate() error {
 	for i := range r.IDs {
 		if !r.IDs[i].Valid(1) {
 			return errors.New("invalid id: blank")
@@ -101,6 +101,6 @@ func (r CollectionGetRequest) Validate() error {
 	return nil
 }
 
-type CollectionGetResponse = model.Settings
+type CollectionGetResponse = []*model.SettingOutput
 
 // Extensional APIs

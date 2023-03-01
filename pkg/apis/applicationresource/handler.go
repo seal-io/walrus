@@ -36,7 +36,7 @@ func (h Handler) Validating() any {
 
 // Extensional APIs
 
-func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (*view.GetKeysResponse, error) {
+func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
 	var res = req.Entity
 
 	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})

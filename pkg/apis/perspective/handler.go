@@ -40,12 +40,12 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
-	var input = req.Perspective
-	var creates, err = dao.PerspectiveCreates(h.modelClient, input)
+	var entity = req.Model()
+
+	var creates, err = dao.PerspectiveCreates(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
-
 	_, err = creates[0].Save(ctx)
 	if err != nil {
 		return runtime.ErrorfP(http.StatusInternalServerError, "failed to create perspective: %w", err)
@@ -53,10 +53,8 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 	return nil
 }
 
-func (h Handler) Delete(ctx *gin.Context, req view.IDRequest) error {
-	_, err := h.modelClient.Perspectives().Delete().
-		Where(perspective.ID(req.ID)).
-		Exec(ctx)
+func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
+	var err = h.modelClient.Perspectives().DeleteOne(req.Model()).Exec(ctx)
 	if err != nil {
 		return runtime.ErrorfP(http.StatusInternalServerError, "failed to delete perspective: %w", err)
 	}
@@ -64,8 +62,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.IDRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = req.Perspective
-	var updates, err = dao.PerspectiveUpdates(h.modelClient, input)
+	var entity = req.Model()
+
+	var updates, err = dao.PerspectiveUpdates(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
@@ -77,14 +76,22 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	return nil
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.IDRequest) (*model.Perspective, error) {
-	return h.modelClient.Perspectives().Get(ctx, req.ID)
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.Perspectives().Get(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposePerspective(entity), nil
 }
 
 // Batch APIs
 
 var (
-	sortFields = []string{perspective.FieldCreateTime, perspective.FieldUpdateTime}
+	getFields  = perspective.Columns
+	sortFields = []string{
+		perspective.FieldCreateTime,
+		perspective.FieldUpdateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
@@ -101,7 +108,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
-	if orders, ok := req.Sorting(sortFields); ok {
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+	if orders, ok := req.Sorting(sortFields, model.Desc(perspective.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
@@ -110,7 +120,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
-	return entities, cnt, nil
+	return model.ExposePerspectives(entities), cnt, nil
 }
 
 // Extensional APIs

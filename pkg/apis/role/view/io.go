@@ -15,6 +15,6 @@ type CollectionGetRequest struct {
 	Domain string `query:"domain,omitempty"`
 }
 
-type CollectionGetResponse = []*model.Role
+type CollectionGetResponse = []*model.RoleOutput
 
 // Extensional APIs

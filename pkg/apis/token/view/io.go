@@ -5,17 +5,15 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
 
 type CreateRequest struct {
-	Name       string `json:"name"`
-	Expiration *int   `json:"expiration,omitempty"`
+	*model.TokenCreateInput `json:",inline"`
 }
 
-func (r CreateRequest) Validate() error {
+func (r *CreateRequest) Validate() error {
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
@@ -27,31 +25,28 @@ func (r CreateRequest) Validate() error {
 	return nil
 }
 
-type CreateResponse = model.Token
+type CreateResponse struct {
+	*model.TokenOutput `json:",inline"`
 
-type DeleteRequest struct {
-	ID types.ID `uri:"id"`
+	// AccessToken is the token used for authentication.
+	// It does not store in the database and only shows up after created.
+	AccessToken string `json:"accessToken,omitempty"`
 }
 
-func (r DeleteRequest) Validate() error {
-	if !r.ID.Valid(1) {
-		return errors.New("invalid id: blank")
-	}
-	return nil
-}
+type DeleteRequest = GetRequest
 
 type GetRequest struct {
-	ID types.ID `uri:"id"`
+	*model.TokenQueryInput `uri:",inline"`
 }
 
-func (r GetRequest) Validate() error {
+func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
 	}
 	return nil
 }
 
-type GetResponse = model.Token
+type GetResponse = *model.TokenOutput
 
 // Batch APIs
 
@@ -59,6 +54,6 @@ type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
 }
 
-type CollectionGetResponse = model.Tokens
+type CollectionGetResponse = []*model.TokenOutput
 
 // Extensional APIs

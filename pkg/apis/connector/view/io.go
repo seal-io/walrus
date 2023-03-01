@@ -12,35 +12,47 @@ import (
 
 // Basic APIs
 
-type ConnectorCreateRequest struct {
-	*model.Connector `json:",inline"`
+type CreateRequest struct {
+	*model.ConnectorCreateInput `json:",inline"`
 }
 
-type ConnectorUpdateRequest struct {
-	UriID types.ID `uri:"id"`
-
-	*model.Connector `json:",inline"`
-}
-
-func (r *ConnectorUpdateRequest) Validate() error {
-	if !r.UriID.Valid(0) {
-		return errors.New("invalid id: blank")
+func (r *CreateRequest) Validate() error {
+	if r.Name == "" {
+		return errors.New("invalid name: blank")
 	}
 
-	r.ID = r.UriID
 	return nil
 }
 
-type IDRequest struct {
-	ID types.ID `uri:"id"`
+type CreateResponse = *model.ConnectorOutput
+
+type DeleteRequest = GetRequest
+
+type UpdateRequest struct {
+	*model.ConnectorUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r *IDRequest) Validate() error {
+func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 	return nil
 }
+
+type UpdateResponse = *model.ConnectorOutput
+
+type GetRequest struct {
+	*model.ConnectorQueryInput `uri:",inline"`
+}
+
+func (r *GetRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+	return nil
+}
+
+type GetResponse = *model.ConnectorOutput
 
 // Batch APIs
 
@@ -50,7 +62,7 @@ type CollectionGetRequest struct {
 	runtime.RequestSorting    `query:",inline"`
 }
 
-type CollectionGetResponse = []*model.Connector
+type CollectionGetResponse = []*model.ConnectorOutput
 
 // Extensional APIs
 

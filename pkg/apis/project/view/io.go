@@ -8,73 +8,48 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/json"
 )
 
 // Basic APIs
 
 type CreateRequest struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
+	*model.ProjectCreateInput `json:",inline"`
 }
 
-func (r CreateRequest) Validate() error {
+func (r *CreateRequest) Validate() error {
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
 	return nil
 }
 
-func (r CreateRequest) Model() *model.Project {
-	return &model.Project{
-		Name:        r.Name,
-		Description: r.Description,
-		Labels:      r.Labels,
-	}
-}
-
-type CreateResponse = model.Project
+type CreateResponse = *model.ProjectOutput
 
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	ID          types.ID          `uri:"id"`
-	Name        string            `json:"name,omitempty"`
-	Description string            `json:"description,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
+	*model.ProjectUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r UpdateRequest) Validate() error {
+func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 	return nil
-}
-
-func (r UpdateRequest) Model() *model.Project {
-	return &model.Project{
-		ID:          r.ID,
-		Name:        r.Name,
-		Description: r.Description,
-		Labels:      r.Labels,
-	}
 }
 
 type GetRequest struct {
-	ID types.ID `uri:"id"`
+	*model.ProjectQueryInput `uri:",inline"`
 }
 
-func (r GetRequest) Validate() error {
+func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
-
 	return nil
 }
 
-type GetResponse = model.Project
+type GetResponse = *model.ProjectOutput
 
 // Batch APIs
 
@@ -83,18 +58,18 @@ type CollectionGetRequest struct {
 	runtime.RequestSorting    `query:",inline"`
 }
 
-type CollectionGetResponse = []*model.Project
+type CollectionGetResponse = []*model.ProjectOutput
 
 // Extensional APIs
 
 type GetApplicationsRequest struct {
+	*model.ProjectQueryInput  `uri:",inline"`
 	runtime.RequestPagination `query:",inline"`
+	runtime.RequestExtracting `query:",inline"`
 	runtime.RequestSorting    `query:",inline"`
-
-	ID types.ID `uri:"id"`
 }
 
-func (r GetApplicationsRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *GetApplicationsRequest) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
@@ -106,30 +81,7 @@ func (r GetApplicationsRequest) ValidateWith(ctx context.Context, input any) err
 	if err != nil {
 		return runtime.Error(http.StatusNotFound, "invalid id: not found")
 	}
-
 	return nil
 }
 
-type GetApplicationResponse struct {
-	*model.Application `json:",inline"`
-
-	EnvironmentName string `json:"environmentName"`
-}
-
-func (o *GetApplicationResponse) MarshalJSON() ([]byte, error) {
-	type Alias GetApplicationResponse
-
-	// move `.Edges.Environment.Name` to `.EnvironmentName`.
-	if o.Edges.Environment != nil {
-		o.EnvironmentName = o.Edges.Environment.Name
-		o.Edges.Environment = nil // release
-	}
-
-	return json.Marshal(&struct {
-		*Alias `json:",inline"`
-	}{
-		Alias: (*Alias)(o),
-	})
-}
-
-type GetApplicationsResponse = []GetApplicationResponse
+type GetApplicationsResponse = []*model.ApplicationOutput

@@ -6,7 +6,9 @@ import (
 	"github.com/seal-io/seal/pkg/apis/environment/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -29,31 +31,31 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.EnvironmentCreateRequest) (*view.EnvironmentCreateResponse, error) {
-	var result *model.Environment
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+	var entity = req.Model()
 	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		var creates, err = dao.EnvironmentCreates(tx, req.Model())
 		if err != nil {
 			return err
 		}
-		result, err = creates[0].Save(ctx)
+		entity, err = creates[0].Save(ctx)
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &view.EnvironmentCreateResponse{Environment: result}, nil
+	return model.ExposeEnvironment(entity), nil
 }
 
-func (h Handler) Delete(ctx *gin.Context, req view.EnvironmentDeleteRequest) error {
-	return h.modelClient.Environments().DeleteOneID(req.ID).Exec(ctx)
+func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
+	return h.modelClient.Environments().DeleteOne(req.Model()).Exec(ctx)
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.EnvironmentUpdateRequest) error {
-	var input = req.Model()
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
+	var entity = req.Model()
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.EnvironmentUpdates(h.modelClient, input)
+		var updates, err = dao.EnvironmentUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -61,23 +63,43 @@ func (h Handler) Update(ctx *gin.Context, req view.EnvironmentUpdateRequest) err
 	})
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.EnvironmentGetRequest) (*view.EnvironmentGetResponse, error) {
-	env, err := h.modelClient.Environments().Query().Where(environment.ID(req.ID)).WithConnectors().Only(ctx)
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.Environments().Query().
+		Where(environment.ID(req.ID)).
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
+				Select(
+						environmentconnectorrelationship.FieldEnvironmentID,
+						environmentconnectorrelationship.FieldConnectorID).
+				Unique(false). // allow returning without sorting keys.
+				WithConnector(
+					func(cq *model.ConnectorQuery) {
+						cq.Select(
+							connector.FieldID,
+							connector.FieldType,
+							connector.FieldName)
+					})
+		}).
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &view.EnvironmentGetResponse{Environment: env}, nil
+
+	return model.ExposeEnvironment(entity), nil
 }
 
 // Batch APIs
 
 var (
-	getFields  = environment.Columns
-	sortFields = []string{environment.FieldName, environment.FieldCreateTime, environment.FieldUpdateTime}
+	getFields = environment.WithoutFields(
+		environment.FieldUpdateTime)
+	sortFields = []string{
+		environment.FieldName,
+		environment.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Environments().Query().WithConnectors()
+	var query = h.modelClient.Environments().Query()
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
@@ -92,21 +114,31 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(sortFields); ok {
+	if orders, ok := req.Sorting(sortFields, model.Desc(environment.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
+		Unique(false). // allow returning without sorting keys.
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
+				Select(
+						environmentconnectorrelationship.FieldEnvironmentID,
+						environmentconnectorrelationship.FieldConnectorID).
+				Unique(false). // allow returning without sorting keys.
+				WithConnector(
+					func(cq *model.ConnectorQuery) {
+						cq.Select(
+							connector.FieldID,
+							connector.FieldType,
+							connector.FieldName)
+					})
+		}).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	var result = make([]*view.EnvironmentVO, len(entities))
-	for i, e := range entities {
-		result[i] = &view.EnvironmentVO{Environment: e}
-	}
-
-	return result, cnt, nil
+	return model.ExposeEnvironments(entities), cnt, nil
 }
 
 // Extensional APIs
