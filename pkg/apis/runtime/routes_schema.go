@@ -315,7 +315,7 @@ func toSchemaResponse(r route, op *OutputProfile) *ogen.Response {
 }
 
 func toSchemaProperty(category string, prop *ProfileProperty) *ogen.Property {
-	if prop == nil {
+	if prop == nil || prop.Name == "" {
 		return nil
 	}
 	return toSchemaSchema(category, prop).ToProperty(prop.Name)
@@ -342,6 +342,7 @@ var basicSchemas = map[string]*ogen.Schema{
 	"uuid.NullUUID":        ogen.UUID(),
 	"uuid.UUID":            ogen.UUID(),
 	"render.Render":        ogen.Binary(),
+	"json.RawMessage":      ogen.NewSchema().SetType(string(jsonschema.Object)),
 }
 
 func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
