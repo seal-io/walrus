@@ -11,3 +11,11 @@ type Convert interface {
 	// GetGVR returns the GroupVersionResource info with the given alias.
 	GetGVR(string) (schema.GroupVersionResource, bool)
 }
+
+type Enforce interface {
+	// AllowGVK returns true if the given GroupVersionKind is valid.
+	AllowGVK(schema.GroupVersionKind) bool
+
+	// AllowGVR returns true if the given GroupVersionResource is valid.
+	AllowGVR(schema.GroupVersionResource) bool
+}
