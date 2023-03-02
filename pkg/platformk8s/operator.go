@@ -402,19 +402,6 @@ func (op Operator) Exec(ctx context.Context, res model.ApplicationResource, opts
 	return nil
 }
 
-// parseNamespacedName parses the given string into {namespace, name},
-// returns false if not a valid namespaced name, e.g. kube-system/coredns.
-func parseNamespacedName(s string) (namespace, name string, ok bool) {
-	var ss = strings.SplitN(s, "/", 2)
-	ok = len(ss) == 2
-	if !ok {
-		return
-	}
-	namespace = ss[0]
-	name = ss[1]
-	return
-}
-
 // parseKey parses the given string into {pod name, container type, container name},
 // returns false if not a valid token, e.g. coredns-64897985d-6x2jm/container/coredns.
 // valid container types have `initContainer`, `ephemeralContainer`, `container`.
