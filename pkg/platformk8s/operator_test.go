@@ -117,8 +117,7 @@ func TestOperator(t *testing.T) {
 	t.Run("Log", func(t *testing.T) {
 		var ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
-		var err = op.Log(ctx, res, operator.LogOptions{
-			Key:  p.Name + "/run/nginx",
+		var err = op.Log(ctx, p.Name+"/run/nginx", operator.LogOptions{
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
 		})
@@ -150,8 +149,7 @@ func TestOperator(t *testing.T) {
 			}
 		}()
 
-		err = op.Exec(ctx, res, operator.ExecOptions{
-			Key:   p.Name + "/run/nginx",
+		err = op.Exec(ctx, p.Name+"/run/nginx", operator.ExecOptions{
 			Out:   testLogWriter(t.Logf),
 			In:    r,
 			Shell: "bash",
