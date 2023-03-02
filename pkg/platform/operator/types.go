@@ -22,11 +22,11 @@ type Operator interface {
 	// GetKeys returns keys from the given resource.
 	GetKeys(context.Context, model.ApplicationResource) (*Keys, error)
 
-	// Log gets logs from the given resource.
-	Log(context.Context, model.ApplicationResource, LogOptions) error
+	// Log gets logs from the given key.
+	Log(context.Context, string, LogOptions) error
 
-	// Exec executes commands to the given resource.
-	Exec(context.Context, model.ApplicationResource, ExecOptions) error
+	// Exec executes commands to the given key.
+	Exec(context.Context, string, ExecOptions) error
 }
 
 // Keys holds key for next query,
@@ -57,9 +57,6 @@ type Key struct {
 
 // LogOptions holds the options of Operator's Log action.
 type LogOptions struct {
-	// Key indicates the key for accessing target,
-	// parses by the Operator.
-	Key string
 	// Out receives the output.
 	Out io.Writer
 	// Previous indicates to get the previous log of the accessing target.
@@ -74,9 +71,6 @@ type LogOptions struct {
 
 // ExecOptions holds the options of Operator's Exec action.
 type ExecOptions struct {
-	// Key indicates the kye for accessing target,
-	// parses by the Operator.
-	Key string
 	// Out receives the output.
 	Out io.Writer
 	// In passes the input.

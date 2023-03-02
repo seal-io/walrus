@@ -1,6 +1,10 @@
 package pods
 
-import core "k8s.io/api/core/v1"
+import (
+	core "k8s.io/api/core/v1"
+
+	"github.com/seal-io/seal/pkg/platformk8s/key"
+)
 
 // IsPodReady returns true if Pod is ready.
 func IsPodReady(pod *core.Pod) bool {
@@ -162,15 +166,16 @@ func GetContainerStateType(s core.ContainerState) ContainerStateType {
 }
 
 type ContainerState struct {
-	Type  ContainerType
-	Pod   string
-	ID    string
-	Name  string
-	State ContainerStateType
+	Type      ContainerType
+	Namespace string
+	Pod       string
+	ID        string
+	Name      string
+	State     ContainerStateType
 }
 
 func (c ContainerState) String() string {
-	return c.Pod + "/" + c.Type + "/" + c.Name
+	return key.Encode(c.Namespace, c.Pod, c.Type, c.Name)
 }
 
 // GetContainerStates returns ContainerState list of the given Pod.
@@ -201,11 +206,12 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 		for j := 0; j < len(cs); j++ {
 			var s = &cs[j]
 			r = append(r, ContainerState{
-				Type:  css[i].Type,
-				Pod:   pod.Name,
-				Name:  s.Name,
-				ID:    s.ContainerID,
-				State: GetContainerStateType(s.State),
+				Type:      css[i].Type,
+				Namespace: pod.Namespace,
+				Pod:       pod.Name,
+				Name:      s.Name,
+				ID:        s.ContainerID,
+				State:     GetContainerStateType(s.State),
 			})
 		}
 	}

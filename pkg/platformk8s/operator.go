@@ -21,7 +21,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	batchclient "k8s.io/client-go/kubernetes/typed/batch/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
@@ -30,9 +29,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
-	"github.com/seal-io/seal/pkg/platformk8s/intercept"
+	"github.com/seal-io/seal/pkg/platformk8s/key"
 	"github.com/seal-io/seal/pkg/platformk8s/pods"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
+	"github.com/seal-io/seal/utils/log"
 )
 
 const OperatorType = types.ConnectorTypeK8s
@@ -44,12 +44,14 @@ func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Ope
 		return nil, err
 	}
 	var op = Operator{
+		Logger:     log.WithName("operator").WithName("k8s"),
 		RestConfig: restConfig,
 	}
 	return op, nil
 }
 
 type Operator struct {
+	Logger     log.Logger
 	RestConfig *rest.Config
 }
 
@@ -87,11 +89,11 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 	//          }
 	//      ]
 	// }
-	var k = operator.Keys{
+	var ks = operator.Keys{
 		Labels: []string{"Pod", "Container"},
 	}
 	if psp == nil {
-		return &k, nil
+		return &ks, nil
 	}
 	var ps = *psp
 	sort.SliceStable(ps, func(i, j int) bool {
@@ -101,49 +103,69 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 		var running = pods.IsPodRunning(&ps[i])
 		var states = pods.GetContainerStates(&ps[i])
 
-		var key = operator.Key{
+		var k = operator.Key{
 			Name: ps[i].Name, // pod name
 			Keys: make([]operator.Key, 0, len(states)),
 		}
 		for j := 0; j < len(states); j++ {
-			key.Keys = append(key.Keys, operator.Key{
+			k.Keys = append(k.Keys, operator.Key{
 				Name:       states[j].Name,     // container name
 				Value:      states[j].String(), // key
 				Loggable:   pointer.Bool(states[j].State > pods.ContainerStateUnknown),
 				Executable: pointer.Bool(running && states[j].State == pods.ContainerStateRunning),
 			})
 		}
-		k.Keys = append(k.Keys, key)
+		ks.Keys = append(ks.Keys, k)
 	}
-	return &k, nil
+	return &ks, nil
 }
 
 func (op Operator) getPods(ctx context.Context, res model.ApplicationResource) (*[]core.Pod, error) {
-	// get group version resources.
-	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
-	if !ok {
-		// no error.
+	// parse resources.
+	var rs, err = op.parseResources(ctx, &res)
+	if err != nil {
+		if !isResourceParsingError(err) {
+			return nil, err
+		}
+		// warn out if got above errors.
+		op.Logger.Warn(err)
 		return nil, nil
 	}
 
-	// parse resource name.
-	ns, n, ok := parseNamespacedName(res.Name)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse given resource name: %q", res.Name)
-	}
-
-	switch gvr.Resource {
-	case "pods":
-		var p, err = op.getPod(ctx, ns, n)
-		if err != nil {
-			return nil, err
+	// get pods of resources.
+	var ps []core.Pod
+	for _, r := range rs {
+		switch r.gvr.Resource {
+		case "pods":
+			var p, err = op.getPod(ctx, r.ns, r.n)
+			if err != nil {
+				return nil, err
+			}
+			ps = append(ps, *p)
+		case "cronjobs":
+			var psp, err = op.getPodsOfCronJob(ctx, r.ns, r.n)
+			if err != nil {
+				return nil, err
+			}
+			if psp == nil || len(*psp) == 0 {
+				continue
+			}
+			ps = append(ps, *psp...)
+		default:
+			var psp, err = op.getPodsOfAny(ctx, r.gvr, r.ns, r.n)
+			if err != nil {
+				return nil, err
+			}
+			if psp == nil || len(*psp) == 0 {
+				continue
+			}
+			ps = append(ps, *psp...)
 		}
-		return &[]core.Pod{*p}, nil
-	case "cronjobs":
-		return op.getPodsOfCronJob(ctx, ns, n)
-	default:
 	}
-	return op.getPodsOfAny(ctx, gvr, ns, n)
+	if len(ps) == 0 {
+		return nil, nil
+	}
+	return &ps, nil
 }
 
 func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) {
@@ -261,17 +283,11 @@ func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionReso
 }
 
 // Log implements operator.Operator.
-func (op Operator) Log(ctx context.Context, res model.ApplicationResource, opts operator.LogOptions) error {
-	// parse resource name.
-	var ns, _, ok = parseNamespacedName(res.Name)
-	if !ok {
-		return fmt.Errorf("failed to parse given resource name: %q", res.Name)
-	}
-
+func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) error {
 	// parse key.
-	pn, ct, cn, ok := parseKey(opts.Key)
+	ns, pn, ct, cn, ok := key.Decode(k)
 	if !ok {
-		return fmt.Errorf("failed to parse given key: %q", opts.Key)
+		return fmt.Errorf("failed to parse given key: %q", k)
 	}
 
 	// confirm.
@@ -332,17 +348,11 @@ func (op Operator) Log(ctx context.Context, res model.ApplicationResource, opts 
 }
 
 // Exec implements operator.Operator.
-func (op Operator) Exec(ctx context.Context, res model.ApplicationResource, opts operator.ExecOptions) error {
-	// parse resource name.
-	var ns, _, ok = parseNamespacedName(res.Name)
-	if !ok {
-		return fmt.Errorf("failed to parse given resource name: %q", res.Name)
-	}
-
+func (op Operator) Exec(ctx context.Context, k string, opts operator.ExecOptions) error {
 	// parse key.
-	pn, ct, cn, ok := parseKey(opts.Key)
+	ns, pn, ct, cn, ok := key.Decode(k)
 	if !ok {
-		return fmt.Errorf("failed to parse given key: %q", opts.Key)
+		return fmt.Errorf("failed to parse given key: %q", k)
 	}
 
 	// confirm.
@@ -400,21 +410,6 @@ func (op Operator) Exec(ctx context.Context, res model.ApplicationResource, opts
 		}
 	}
 	return nil
-}
-
-// parseKey parses the given string into {pod name, container type, container name},
-// returns false if not a valid token, e.g. coredns-64897985d-6x2jm/container/coredns.
-// valid container types have `initContainer`, `ephemeralContainer`, `container`.
-func parseKey(s string) (podName, containerType, containerName string, ok bool) {
-	var ss = strings.SplitN(s, "/", 3)
-	ok = len(ss) == 3
-	if !ok {
-		return
-	}
-	podName = ss[0]
-	containerType = ss[1]
-	containerName = ss[2]
-	return
 }
 
 // isTrivialError returns true if the given error can be ignored.

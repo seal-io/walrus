@@ -70,14 +70,13 @@ func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest)
 	}
 
 	var opts = operator.LogOptions{
-		Key:          req.Key,
 		Out:          ctx,
 		Previous:     req.Previous,
 		Tail:         req.Tail,
 		SinceSeconds: req.SinceSeconds,
 		Timestamps:   req.Timestamps,
 	}
-	return op.Log(ctx, *res, opts)
+	return op.Log(ctx, req.Key, opts)
 }
 
 func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecRequest) error {
@@ -98,11 +97,10 @@ func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecReques
 	var ts = asTermStream(ctx, req.Width, req.Height)
 	defer func() { _ = ts.Close() }()
 	var opts = operator.ExecOptions{
-		Key:     req.Key,
 		Out:     ts,
 		In:      ts,
 		Shell:   req.Shell,
 		Resizer: ts,
 	}
-	return op.Exec(ctx, *res, opts)
+	return op.Exec(ctx, req.Key, opts)
 }

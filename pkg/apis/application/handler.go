@@ -133,7 +133,7 @@ func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (v
 	for i := 0; i < len(entities); i++ {
 		resp[i].ApplicationResource = entities[i]
 
-		if req.WithoutKeys {
+		if !req.WithoutKeys {
 			// fetch operable keys.
 			var op operator.Operator
 			op, err = platform.GetOperator(ctx,
