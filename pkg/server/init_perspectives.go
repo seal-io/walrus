@@ -64,7 +64,6 @@ func perspectiveAll() *model.Perspective {
 					},
 				},
 				GroupBy: types.GroupByFieldDay,
-				Step:    types.StepDay,
 				Paging: types.QueryPagination{
 					Page:    1,
 					PerPage: 10,
@@ -204,7 +203,37 @@ func perspectiveCluster() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// TODO(michelia): support group by workload
+			// workload per day cost
+			{
+				Filters: types.AllocationCostFilters{
+					{
+						{
+							IncludeAll: true,
+						},
+					},
+				},
+				SharedCosts: types.ShareCosts{
+					{
+						IdleCostFilters: types.IdleCostFilters{
+							{
+								IncludeAll: true,
+							},
+						},
+						ManagementCostFilters: types.ManagementCostFilters{
+							{
+								IncludeAll: true,
+							},
+						},
+						SharingStrategy: types.SharingStrategyProportionally,
+					},
+				},
+				GroupBy: types.GroupByFieldWorkload,
+				Paging: types.QueryPagination{
+					Page:    1,
+					PerPage: 10,
+				},
+				Step: types.StepDay,
+			},
 		},
 	}
 }
