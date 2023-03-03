@@ -49,6 +49,20 @@ type (
 	}
 )
 
+// Operator for filter rule.
+type Operator string
+
+const (
+	OperatorIn    Operator = "in"
+	OperatorNotIn Operator = "notin"
+)
+
+// QueryPagination indicate the pagination query config.
+type QueryPagination struct {
+	Page    int `json:"page,omitempty"`
+	PerPage int `json:"perPage,omitempty"`
+}
+
 // FilterField indicate type for filter field.
 type FilterField string
 
@@ -79,6 +93,7 @@ type GroupByField string
 
 // built-in groupBy fieldName.
 const (
+	// properties
 	GroupByFieldConnectorID    GroupByField = "connector_id"
 	GroupByFieldNamespace      GroupByField = "namespace"
 	GroupByFieldClusterName    GroupByField = "cluster_name"
@@ -87,13 +102,18 @@ const (
 	GroupByFieldControllerKind GroupByField = "controller_kind"
 	GroupByFieldPod            GroupByField = "pod"
 	GroupByFieldContainer      GroupByField = "container"
-	GroupByFieldDay            GroupByField = "day"
-	GroupByFieldWeek           GroupByField = "week"
-	GroupByFieldMonth          GroupByField = "month"
-	GroupByFieldYear           GroupByField = "year"
-	GroupByFieldProject        GroupByField = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
-	GroupByFieldEnvironment    GroupByField = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
-	GroupByFieldApplication    GroupByField = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app"
+	GroupByFieldWorkload       GroupByField = "workload"
+
+	// time bucket
+	GroupByFieldDay   GroupByField = "day"
+	GroupByFieldWeek  GroupByField = "week"
+	GroupByFieldMonth GroupByField = "month"
+	GroupByFieldYear  GroupByField = "year"
+
+	// built-in labels
+	GroupByFieldProject     GroupByField = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
+	GroupByFieldEnvironment GroupByField = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
+	GroupByFieldApplication GroupByField = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app"
 )
 
 func (f *GroupByField) IsLabel() bool {
@@ -101,6 +121,69 @@ func (f *GroupByField) IsLabel() bool {
 		return false
 	}
 	return strings.HasPrefix(string(*f), LabelPrefix)
+}
+
+func (f *GroupByField) OrderBySQL() (string, error) {
+	if f == nil {
+		return "", fmt.Errorf("invalid order by: blank")
+	}
+	return f.OrderByWithOffsetSQL(0)
+}
+
+func (f *GroupByField) OrderByWithOffsetSQL(offset int) (string, error) {
+	if f == nil {
+		return "", fmt.Errorf("invalid order by: blank")
+	}
+
+	var timeZone = timeZoneInPosix(offset)
+	switch *f {
+	case GroupByFieldDay, GroupByFieldWeek, GroupByFieldMonth, GroupByFieldYear:
+		return fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, *f, timeZone), nil
+	default:
+		return `SUM(total_cost) DESC`, nil
+	}
+}
+
+func (f *GroupByField) GroupBySQL() (string, error) {
+	if f == nil {
+		return "", fmt.Errorf("invalid group by: blank")
+	}
+
+	return f.GroupByWithZoneOffsetSQL(0)
+}
+
+// GroupByWithZoneOffsetSQL generate the group by sql with timezone offset, offset is in seconds east of UTC
+func (f *GroupByField) GroupByWithZoneOffsetSQL(offset int) (string, error) {
+	if f == nil {
+		return "", fmt.Errorf("invalid group by: blank")
+	}
+
+	var (
+		groupBy  string
+		timeZone = timeZoneInPosix(offset)
+	)
+	switch {
+	case f.IsLabel():
+		label := strings.TrimPrefix(string(*f), LabelPrefix)
+		groupBy = fmt.Sprintf(`(labels ->> '%s')`, label)
+	case *f == GroupByFieldDay:
+		groupBy = fmt.Sprintf(`date_trunc('day', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case *f == GroupByFieldWeek:
+		groupBy = fmt.Sprintf(`date_trunc('week', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case *f == GroupByFieldMonth:
+		groupBy = fmt.Sprintf(`date_trunc('month', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case *f == GroupByFieldYear:
+		groupBy = fmt.Sprintf(`date_trunc('year', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case *f == GroupByFieldWorkload:
+		groupBy = fmt.Sprintf(`CASE WHEN namespace = '' THEN '%s' 
+ WHEN controller_kind = '' THEN '%s'
+ WHEN controller = '' THEN '%s'
+ ELSE  concat_ws('/', namespace, controller_kind, controller)
+END`, UnallocatedLabel, UnallocatedLabel, UnallocatedLabel)
+	default:
+		groupBy = strs.Underscore(string(*f))
+	}
+	return groupBy, nil
 }
 
 // SharingStrategy indicate the share cost strategy.
@@ -121,56 +204,7 @@ const (
 	StepYear  Step = "year"
 )
 
-// Operator for filter rule.
-type Operator string
-
-const (
-	OperatorIn    Operator = "in"
-	OperatorNotIn Operator = "notin"
-)
-
-// QueryPagination indicate the pagination query config.
-type QueryPagination struct {
-	Page    int `json:"page,omitempty"`
-	PerPage int `json:"perPage,omitempty"`
-}
-
-func (f *GroupByField) OrderBySQL() (string, error) {
-	if f == nil {
-		return "", fmt.Errorf("invalid order by: blank")
-	}
-	switch *f {
-	case GroupByFieldDay, GroupByFieldWeek, GroupByFieldMonth, GroupByFieldYear:
-		return fmt.Sprintf(`date_trunc('%s', start_time) DESC`, *f), nil
-	default:
-		return `SUM(total_cost) DESC`, nil
-	}
-}
-
-func (f *GroupByField) GroupBySQL() (string, error) {
-	if f == nil {
-		return "", fmt.Errorf("invalid group by: blank")
-	}
-
-	var groupBy string
-	switch {
-	case f.IsLabel():
-		label := strings.TrimPrefix(string(*f), LabelPrefix)
-		groupBy = fmt.Sprintf(`(labels ->> '%s')`, label)
-	case *f == GroupByFieldDay:
-		groupBy = `date_trunc('day', start_time)`
-	case *f == GroupByFieldWeek:
-		groupBy = `date_trunc('week', start_time)`
-	case *f == GroupByFieldMonth:
-		groupBy = `date_trunc('month', start_time)`
-	case *f == GroupByFieldYear:
-		groupBy = `date_trunc('year', start_time)`
-	default:
-		groupBy = strs.Underscore(string(*f))
-	}
-	return groupBy, nil
-}
-
+// DateTruncSQL generate the date trunc sql from step
 func (f *Step) DateTruncSQL() (string, error) {
 	if f == nil {
 		return "", fmt.Errorf("blank step")
@@ -187,4 +221,44 @@ func (f *Step) DateTruncSQL() (string, error) {
 		dateTrunc = `date_trunc('year', start_time)`
 	}
 	return dateTrunc, nil
+}
+
+// DateTruncWithZoneOffsetSQL generate the date trunc sql from step and timezone offset, offset is in seconds east of UTC
+func (f *Step) DateTruncWithZoneOffsetSQL(offset int) (string, error) {
+	if f == nil {
+		return "", fmt.Errorf("invalid step: blank")
+	}
+	var (
+		dateTrunc string
+		timeZone  = timeZoneInPosix(offset)
+	)
+	switch *f {
+	case StepDay:
+		dateTrunc = fmt.Sprintf(`date_trunc('day', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case StepWeek:
+		dateTrunc = fmt.Sprintf(`date_trunc('week', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case StepMonth:
+		dateTrunc = fmt.Sprintf(`date_trunc('month', (start_time AT TIME ZONE '%s'))`, timeZone)
+	case StepYear:
+		dateTrunc = fmt.Sprintf(`date_trunc('year', (start_time AT TIME ZONE '%s'))`, timeZone)
+	}
+	return dateTrunc, nil
+}
+
+// timeZoneInPosix is in posix timezone string format
+// time zone Asia/Shanghai in posix is UTC-8
+func timeZoneInPosix(offset int) string {
+	timeZone := "UTC"
+	if offset != 0 {
+		utcOffSig := "-"
+		utcOffHrs := offset / 60 / 60
+
+		if utcOffHrs < 0 {
+			utcOffSig = "+"
+			utcOffHrs = 0 - utcOffHrs
+		}
+
+		timeZone = fmt.Sprintf("UTC%s%d", utcOffSig, utcOffHrs)
+	}
+	return timeZone
 }
