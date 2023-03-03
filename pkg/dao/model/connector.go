@@ -48,6 +48,8 @@ type Connector struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Custom pricing user defined
+	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
 	Edges ConnectorEdges `json:"edges,omitempty"`
@@ -109,7 +111,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case connector.FieldLabels, connector.FieldConfigData:
+		case connector.FieldLabels, connector.FieldConfigData, connector.FieldFinOpsCustomPricing:
 			values[i] = new([]byte)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
@@ -224,6 +226,14 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.FinOpsStatusMessage = value.String
 			}
+		case connector.FieldFinOpsCustomPricing:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field finOpsCustomPricing", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.FinOpsCustomPricing); err != nil {
+					return fmt.Errorf("unmarshal field finOpsCustomPricing: %w", err)
+				}
+			}
 		}
 	}
 	return nil
@@ -314,6 +324,9 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("finOpsStatusMessage=")
 	builder.WriteString(c.FinOpsStatusMessage)
+	builder.WriteString(", ")
+	builder.WriteString("finOpsCustomPricing=")
+	builder.WriteString(fmt.Sprintf("%v", c.FinOpsCustomPricing))
 	builder.WriteByte(')')
 	return builder.String()
 }

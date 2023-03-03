@@ -776,6 +776,16 @@ func FinOpsStatusMessageContainsFold(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldContainsFold(FieldFinOpsStatusMessage, v))
 }
 
+// FinOpsCustomPricingIsNil applies the IsNil predicate on the "finOpsCustomPricing" field.
+func FinOpsCustomPricingIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldFinOpsCustomPricing))
+}
+
+// FinOpsCustomPricingNotNil applies the NotNil predicate on the "finOpsCustomPricing" field.
+func FinOpsCustomPricingNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldFinOpsCustomPricing))
+}
+
 // HasEnvironments applies the HasEdge predicate on the "environments" edge.
 func HasEnvironments() predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {

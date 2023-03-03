@@ -7567,6 +7567,7 @@ type ConnectorMutation struct {
 	enableFinOps           *bool
 	finOpsStatus           *string
 	finOpsStatusMessage    *string
+	finOpsCustomPricing    *types.FinOpsCustomPricing
 	clearedFields          map[string]struct{}
 	resources              map[types.ID]struct{}
 	removedresources       map[types.ID]struct{}
@@ -8219,6 +8220,55 @@ func (m *ConnectorMutation) ResetFinOpsStatusMessage() {
 	delete(m.clearedFields, connector.FieldFinOpsStatusMessage)
 }
 
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (m *ConnectorMutation) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) {
+	m.finOpsCustomPricing = &tocp
+}
+
+// FinOpsCustomPricing returns the value of the "finOpsCustomPricing" field in the mutation.
+func (m *ConnectorMutation) FinOpsCustomPricing() (r types.FinOpsCustomPricing, exists bool) {
+	v := m.finOpsCustomPricing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinOpsCustomPricing returns the old "finOpsCustomPricing" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldFinOpsCustomPricing(ctx context.Context) (v types.FinOpsCustomPricing, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinOpsCustomPricing is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinOpsCustomPricing requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinOpsCustomPricing: %w", err)
+	}
+	return oldValue.FinOpsCustomPricing, nil
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (m *ConnectorMutation) ClearFinOpsCustomPricing() {
+	m.finOpsCustomPricing = nil
+	m.clearedFields[connector.FieldFinOpsCustomPricing] = struct{}{}
+}
+
+// FinOpsCustomPricingCleared returns if the "finOpsCustomPricing" field was cleared in this mutation.
+func (m *ConnectorMutation) FinOpsCustomPricingCleared() bool {
+	_, ok := m.clearedFields[connector.FieldFinOpsCustomPricing]
+	return ok
+}
+
+// ResetFinOpsCustomPricing resets all changes to the "finOpsCustomPricing" field.
+func (m *ConnectorMutation) ResetFinOpsCustomPricing() {
+	m.finOpsCustomPricing = nil
+	delete(m.clearedFields, connector.FieldFinOpsCustomPricing)
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by ids.
 func (m *ConnectorMutation) AddResourceIDs(ids ...types.ID) {
 	if m.resources == nil {
@@ -8415,7 +8465,7 @@ func (m *ConnectorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConnectorMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, connector.FieldName)
 	}
@@ -8455,6 +8505,9 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.finOpsStatusMessage != nil {
 		fields = append(fields, connector.FieldFinOpsStatusMessage)
 	}
+	if m.finOpsCustomPricing != nil {
+		fields = append(fields, connector.FieldFinOpsCustomPricing)
+	}
 	return fields
 }
 
@@ -8489,6 +8542,8 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.FinOpsStatus()
 	case connector.FieldFinOpsStatusMessage:
 		return m.FinOpsStatusMessage()
+	case connector.FieldFinOpsCustomPricing:
+		return m.FinOpsCustomPricing()
 	}
 	return nil, false
 }
@@ -8524,6 +8579,8 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldFinOpsStatus(ctx)
 	case connector.FieldFinOpsStatusMessage:
 		return m.OldFinOpsStatusMessage(ctx)
+	case connector.FieldFinOpsCustomPricing:
+		return m.OldFinOpsCustomPricing(ctx)
 	}
 	return nil, fmt.Errorf("unknown Connector field %s", name)
 }
@@ -8624,6 +8681,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFinOpsStatusMessage(v)
 		return nil
+	case connector.FieldFinOpsCustomPricing:
+		v, ok := value.(types.FinOpsCustomPricing)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinOpsCustomPricing(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)
 }
@@ -8669,6 +8733,9 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldFinOpsStatusMessage) {
 		fields = append(fields, connector.FieldFinOpsStatusMessage)
 	}
+	if m.FieldCleared(connector.FieldFinOpsCustomPricing) {
+		fields = append(fields, connector.FieldFinOpsCustomPricing)
+	}
 	return fields
 }
 
@@ -8697,6 +8764,9 @@ func (m *ConnectorMutation) ClearField(name string) error {
 		return nil
 	case connector.FieldFinOpsStatusMessage:
 		m.ClearFinOpsStatusMessage()
+		return nil
+	case connector.FieldFinOpsCustomPricing:
+		m.ClearFinOpsCustomPricing()
 		return nil
 	}
 	return fmt.Errorf("unknown Connector nullable field %s", name)
@@ -8744,6 +8814,9 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldFinOpsStatusMessage:
 		m.ResetFinOpsStatusMessage()
+		return nil
+	case connector.FieldFinOpsCustomPricing:
+		m.ResetFinOpsCustomPricing()
 		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)

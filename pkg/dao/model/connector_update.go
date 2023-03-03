@@ -174,6 +174,26 @@ func (cu *ConnectorUpdate) ClearFinOpsStatusMessage() *ConnectorUpdate {
 	return cu
 }
 
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (cu *ConnectorUpdate) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorUpdate {
+	cu.mutation.SetFinOpsCustomPricing(tocp)
+	return cu
+}
+
+// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdate {
+	if tocp != nil {
+		cu.SetFinOpsCustomPricing(*tocp)
+	}
+	return cu
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (cu *ConnectorUpdate) ClearFinOpsCustomPricing() *ConnectorUpdate {
+	cu.mutation.ClearFinOpsCustomPricing()
+	return cu
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
 func (cu *ConnectorUpdate) AddResourceIDs(ids ...types.ID) *ConnectorUpdate {
 	cu.mutation.AddResourceIDs(ids...)
@@ -409,6 +429,12 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.FinOpsStatusMessageCleared() {
 		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
+	}
+	if value, ok := cu.mutation.FinOpsCustomPricing(); ok {
+		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
+	}
+	if cu.mutation.FinOpsCustomPricingCleared() {
+		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
 	}
 	if cu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -741,6 +767,26 @@ func (cuo *ConnectorUpdateOne) ClearFinOpsStatusMessage() *ConnectorUpdateOne {
 	return cuo
 }
 
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (cuo *ConnectorUpdateOne) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorUpdateOne {
+	cuo.mutation.SetFinOpsCustomPricing(tocp)
+	return cuo
+}
+
+// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdateOne {
+	if tocp != nil {
+		cuo.SetFinOpsCustomPricing(*tocp)
+	}
+	return cuo
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (cuo *ConnectorUpdateOne) ClearFinOpsCustomPricing() *ConnectorUpdateOne {
+	cuo.mutation.ClearFinOpsCustomPricing()
+	return cuo
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
 func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...types.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddResourceIDs(ids...)
@@ -1006,6 +1052,12 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if cuo.mutation.FinOpsStatusMessageCleared() {
 		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
+	}
+	if value, ok := cuo.mutation.FinOpsCustomPricing(); ok {
+		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
+	}
+	if cuo.mutation.FinOpsCustomPricingCleared() {
+		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
 	}
 	if cuo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{

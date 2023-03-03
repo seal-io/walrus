@@ -42,6 +42,8 @@ const (
 	FieldFinOpsStatus = "fin_ops_status"
 	// FieldFinOpsStatusMessage holds the string denoting the finopsstatusmessage field in the database.
 	FieldFinOpsStatusMessage = "fin_ops_status_message"
+	// FieldFinOpsCustomPricing holds the string denoting the finopscustompricing field in the database.
+	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
 	EdgeEnvironments = "environments"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -98,6 +100,7 @@ var Columns = []string{
 	FieldEnableFinOps,
 	FieldFinOpsStatus,
 	FieldFinOpsStatusMessage,
+	FieldFinOpsCustomPricing,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
