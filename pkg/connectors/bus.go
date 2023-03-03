@@ -71,6 +71,15 @@ func EnsureCostTools(_ context.Context, message BusMessage) error {
 	return nil
 }
 
+func SyncCostCustomPricing(ctx context.Context, message BusMessage) error {
+	conn := message.Refer
+	if !conn.EnableFinOps {
+		return nil
+	}
+
+	return deployer.UpdateCustomPricing(ctx, conn)
+}
+
 func ensureCostTools(ctx context.Context, message BusMessage) error {
 	log.WithName("cost").Debugf("ensuring cost tools for connector %s", message.Refer.Name)
 

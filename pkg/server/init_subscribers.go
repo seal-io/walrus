@@ -7,5 +7,14 @@ import (
 )
 
 func (r *Server) initSubscribes(ctx context.Context, opts initOptions) error {
-	return connectors.AddSubscriber("connector-cost-subscriber", connectors.EnsureCostTools)
+	err := connectors.AddSubscriber("connector-cost-tools-subscriber", connectors.EnsureCostTools)
+	if err != nil {
+		return err
+	}
+
+	err = connectors.AddSubscriber("connector-cost-custom-pricing-subscriber", connectors.SyncCostCustomPricing)
+	if err != nil {
+		return err
+	}
+	return nil
 }
