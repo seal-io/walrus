@@ -30,7 +30,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
-	"github.com/seal-io/seal/pkg/platformk8s/alias"
+	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/pods"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 )
@@ -120,7 +120,7 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 
 func (op Operator) getPods(ctx context.Context, res model.ApplicationResource) (*[]core.Pod, error) {
 	// get group version resources.
-	var gvr, ok = alias.Terraform().GetGVR(res.Type)
+	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
 	if !ok {
 		// no error.
 		return nil, nil

@@ -1,4 +1,4 @@
-package alias
+package intercept
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
