@@ -49,12 +49,13 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 }
 
 func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	orderBy, err := cond.GroupBy.OrderBySQL()
+	_, offset := startTime.Zone()
+	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	groupBy, err := cond.GroupBy.GroupBySQL()
+	groupBy, err := groupByWithZoneOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, err
 	}

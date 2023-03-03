@@ -9,7 +9,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/costs/collector"
 	"github.com/seal-io/seal/pkg/dao/model/enttest"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -37,8 +36,11 @@ func TestStepDistribute(t *testing.T) {
 	}()
 
 	var (
-		startTime = collector.StartTimeOfHour(time.Date(2023, 02, 27, 0, 0, 0, 0, time.UTC))
+		startTime = time.Date(2023, 02, 27, 0, 0, 0, 0, time.UTC)
 		endTime   = startTime.Add(5 * 24 * time.Hour)
+
+		utc8StartTime = time.Date(2023, 02, 27, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 28800))
+		utc8EndTime   = utc8StartTime.Add(1 * 24 * time.Hour)
 	)
 	_, err := testData(ctx, client, startTime, endTime)
 	assert.Nil(t, err, "error create cost test data: %w", err)
@@ -80,6 +82,34 @@ func TestStepDistribute(t *testing.T) {
 			outputQueriedItemNum:        5,
 			outputQueriedItemCost:       2400,
 			outputQueriedItemSharedCost: 1680,
+		},
+		{
+			name:           "daily cost with time zone",
+			inputStartTime: utc8StartTime,
+			inputEndTime:   utc8EndTime,
+			inputCondition: types.QueryCondition{
+				Step:    types.StepDay,
+				GroupBy: types.GroupByFieldDay,
+				SharedCosts: types.ShareCosts{
+					{
+						IdleCostFilters: types.IdleCostFilters{
+							{
+								IncludeAll: true,
+							},
+						},
+						ManagementCostFilters: types.ManagementCostFilters{
+							{
+								IncludeAll: true,
+							},
+						},
+						SharingStrategy: types.SharingStrategyProportionally,
+					},
+				},
+			},
+			outputTotalItemNum:          1,
+			outputQueriedItemNum:        1,
+			outputQueriedItemCost:       1600,
+			outputQueriedItemSharedCost: 1120,
 		},
 		{
 			name:           "monthly cost",

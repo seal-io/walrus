@@ -238,7 +238,10 @@ func (c *Collector) applyIdleCost(ccs []*model.ClusterCost, acs []*model.Allocat
 		key := fmt.Sprintf("%s-%s", v.StartTime.String(), v.EndTime.String())
 		if ac, ok := allocationCosts[key]; ok {
 			ccs[i].AllocationCost = ac
-			ccs[i].IdleCost = ccs[i].TotalCost - ccs[i].ManagementCost - ac
+			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ac
+			if idleCost > 0 {
+				ccs[i].IdleCost = idleCost
+			}
 		}
 	}
 }
