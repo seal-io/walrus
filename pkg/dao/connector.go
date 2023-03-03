@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.ConnectorCreate, error) {
@@ -28,6 +29,11 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 
 		// optional.
 		c.SetDescription(r.Description)
+		if !r.FinOpsCustomPricing.IsZero() {
+			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
+		} else if r.Type == types.ConnectorTypeK8s {
+			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
+		}
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -52,6 +58,10 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 		SetEnableFinOps(input.EnableFinOps).
 		SetStatus(input.Status).
 		SetStatusMessage(input.StatusMessage)
+
+	if !input.FinOpsCustomPricing.IsZero() {
+		c.SetFinOpsCustomPricing(input.FinOpsCustomPricing)
+	}
 	if input.Name != "" {
 		c.SetName(input.Name)
 	}

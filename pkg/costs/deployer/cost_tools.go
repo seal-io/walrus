@@ -4,24 +4,34 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/url"
+	"path"
 
 	"helm.sh/helm/v3/pkg/repo"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	appv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/platformk8s"
 )
 
 const (
-	NamespaceSeal  = "seal"
-	NamePrometheus = "seal-prometheus"
-	NameOpencost   = "seal-opencost"
+	NamespaceSeal              = "seal"
+	NamePrometheus             = "seal-prometheus"
+	NameOpencost               = "seal-opencost"
+	ConfigMapNameOpencost      = "seal-opencost"
+	pathOpencostRefreshPricing = "/refreshPricing"
 )
 
 const (
 	defaultPrometheusChartTgz = "prometheus-19.6.1.tgz"
 	defaultPrometheusRepo     = "https://prometheus-community.github.io/helm-charts"
+)
+
+var (
+	pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", NamespaceSeal, NameOpencost)
 )
 
 type input struct {
@@ -128,6 +138,34 @@ func opencostScrape() (string, error) {
 		return "", fmt.Errorf("error excute template %s: %w", tmplPrometheusScrapeJob.Name(), err)
 	}
 	return buf.String(), nil
+}
+
+func opencostCustomPricingConfigMap(conn *model.Connector) *v1.ConfigMap {
+	data := map[string]string{
+		"CPU":     conn.FinOpsCustomPricing.CPU,
+		"SpotCPU": conn.FinOpsCustomPricing.SpotCPU,
+		"RAM":     conn.FinOpsCustomPricing.RAM,
+		"SpotRAM": conn.FinOpsCustomPricing.SpotRAM,
+		"GPU":     conn.FinOpsCustomPricing.GPU,
+		"Storage": conn.FinOpsCustomPricing.Storage,
+	}
+
+	return &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ConfigMapNameOpencost,
+		},
+		Data: data,
+	}
+}
+
+func opencostRefreshPricingURL(restCfg *rest.Config) (string, error) {
+	u, err := url.Parse(restCfg.Host)
+	if err != nil {
+		return "", err
+	}
+
+	u.Path = path.Join(u.Path, pathServiceProxy, pathOpencostRefreshPricing)
+	return u.String(), nil
 }
 
 func prometheus() (*ChartApp, error) {

@@ -153,6 +153,10 @@ spec:
               value: "AIzaSyD29bGxmHAVEOBYtgd8sYM2gM2ekfxQX4U" # The GCP Pricing API requires a key. This is supplied just for evaluation.
             - name: CLUSTER_ID
               value: {{.ClusterID}} # Default cluster ID to use if cluster_id is not set in Prometheus metrics.
+            - name: PRICING_CONFIGMAP_NAME
+              value: {{.Name}}
+            - name: KUBECOST_NAMESPACE
+              value: {{.Namespace}}
           imagePullPolicy: Always
 ---
 kind: Service

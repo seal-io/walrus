@@ -67,6 +67,11 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) (view.UpdateRe
 		return nil, err
 	}
 
+	err = pkgconn.Notify(ctx, h.modelClient, entity, false)
+	if err != nil {
+		return nil, err
+	}
+
 	return model.ExposeConnector(entity), nil
 }
 
