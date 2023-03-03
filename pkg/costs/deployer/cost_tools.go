@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	NamespaceSeal              = "seal"
+	NamespaceSeal              = "seal-system"
 	NamePrometheus             = "seal-prometheus"
 	NameOpencost               = "seal-opencost"
 	ConfigMapNameOpencost      = "seal-opencost"
@@ -175,7 +175,7 @@ func prometheus() (*ChartApp, error) {
 	}
 
 	values := map[string]interface{}{
-		"pushgateway": map[string]interface{}{
+		"prometheus-pushgateway": map[string]interface{}{
 			"enabled": false,
 		},
 		"alertmanager": map[string]interface{}{

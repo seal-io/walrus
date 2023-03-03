@@ -125,10 +125,10 @@ func (in *CostSyncTask) SyncK8sCost(ctx context.Context, conn *model.Connector, 
 			return err
 		}
 
-		stepStart = stepEnd
 		in.logger.Debugf("create %d clusterCosts, %d allocationResourceCosts for connector:%s, within %s, %s",
 			len(cc), len(ac), conn.Name, stepStart.String(), stepEnd.String(),
 		)
+		stepStart = stepEnd
 	}
 	return nil
 }

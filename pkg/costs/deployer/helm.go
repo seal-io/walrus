@@ -160,16 +160,25 @@ func (h *Helm) Clean() {
 }
 
 func isSucceed(res *release.Release) bool {
+	if res.Info == nil {
+		return false
+	}
 	status := res.Info.Status
 	return status == release.StatusDeployed || status == release.StatusSuperseded
 }
 
 func isUnderway(res *release.Release) bool {
+	if res.Info == nil {
+		return false
+	}
 	status := res.Info.Status
 	return status == release.StatusUninstalling || status == release.StatusPendingInstall || status == release.StatusPendingUpgrade || status == release.StatusPendingRollback
 }
 
 func isFailed(res *release.Release) bool {
+	if res.Info == nil {
+		return false
+	}
 	status := res.Info.Status
 	return status == release.StatusFailed
 }
