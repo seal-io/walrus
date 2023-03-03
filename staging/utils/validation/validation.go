@@ -38,5 +38,9 @@ func TimeRange(startTime, endTime time.Time) error {
 	if endTime.Before(startTime) {
 		return errors.New("invalid time range: end time is early than start time")
 	}
+
+	if startTime.Location().String() != endTime.Location().String() {
+		return errors.New("invalid time range: start time and end time are in different time zones")
+	}
 	return nil
 }

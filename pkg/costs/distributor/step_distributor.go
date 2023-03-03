@@ -37,7 +37,7 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 
 	for i, item := range items {
 		var (
-			bucket   = item.StartTime.String()
+			bucket   = item.StartTime.Format(time.RFC3339)
 			shares   = scb[bucket]
 			workload = wb[bucket]
 		)
@@ -49,17 +49,18 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 }
 
 func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	orderBy, err := cond.GroupBy.OrderBySQL()
+	_, offset := startTime.Zone()
+	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	groupBy, err := cond.GroupBy.GroupBySQL()
+	groupBy, err := groupByWithZoneOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	dateTrunc, err := cond.Step.DateTruncSQL()
+	dateTrunc, err := dateTruncWithZoneOffsetSQL(cond.Step, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -140,7 +141,8 @@ func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime ti
 		return nil, nil
 	}
 
-	dateTrunc, err := step.DateTruncSQL()
+	_, offset := startTime.Zone()
+	dateTrunc, err := dateTruncWithZoneOffsetSQL(step, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +207,7 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 
 	bucket := make(map[string]*SharedCost)
 	for _, v := range costs {
-		key := v.StartTime.String()
+		key := v.StartTime.Format(time.RFC3339)
 		bucket[key].StartTime = v.StartTime
 		bucket[key].AllocationCost += v.AllocationCost
 	}
@@ -248,7 +250,7 @@ func (r *stepDistributor) sharedIdleCost(ctx context.Context, startTime, endTime
 
 	bucket := make(map[string]*SharedCost)
 	for _, v := range costs {
-		key := v.StartTime.String()
+		key := v.StartTime.Format(time.RFC3339)
 		if _, ok := bucket[key]; !ok {
 			bucket[key] = &SharedCost{}
 		}
@@ -291,7 +293,7 @@ func (r *stepDistributor) sharedManagementCost(ctx context.Context, startTime, e
 
 	bucket := make(map[string]*SharedCost)
 	for _, v := range costs {
-		key := v.StartTime.String()
+		key := v.StartTime.Format(time.RFC3339)
 		if _, ok := bucket[key]; !ok {
 			bucket[key] = &SharedCost{}
 		}
@@ -310,7 +312,8 @@ func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, en
 		}
 	)
 
-	dateTrunc, err := step.DateTruncSQL()
+	_, offset := startTime.Zone()
+	dateTrunc, err := dateTruncWithZoneOffsetSQL(step, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +334,7 @@ func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, en
 
 	bucket := make(map[string]view.Resource)
 	for _, v := range costs {
-		key := v.StartTime.String()
+		key := v.StartTime.Format(time.RFC3339)
 		bucket[key] = v
 	}
 	return bucket, nil
