@@ -48,6 +48,8 @@ type ConnectorCreateInput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Custom pricing user defined
+	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
 
 // Model converts the ConnectorCreateInput to Connector.
@@ -64,6 +66,7 @@ func (in ConnectorCreateInput) Model() *Connector {
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsStatus:        in.FinOpsStatus,
 		FinOpsStatusMessage: in.FinOpsStatusMessage,
+		FinOpsCustomPricing: in.FinOpsCustomPricing,
 	}
 	return entity
 }
@@ -92,6 +95,8 @@ type ConnectorUpdateInput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Custom pricing user defined
+	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
 
 // Model converts the ConnectorUpdateInput to Connector.
@@ -108,6 +113,7 @@ func (in ConnectorUpdateInput) Model() *Connector {
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsStatus:        in.FinOpsStatus,
 		FinOpsStatusMessage: in.FinOpsStatusMessage,
+		FinOpsCustomPricing: in.FinOpsCustomPricing,
 	}
 	return entity
 }
@@ -142,6 +148,8 @@ type ConnectorOutput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Custom pricing user defined
+	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationshipOutput `json:"environments,omitempty"`
 	// Resources that belong to the application.
@@ -172,6 +180,7 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsStatus:        in.FinOpsStatus,
 		FinOpsStatusMessage: in.FinOpsStatusMessage,
+		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
 		Resources:           ExposeApplicationResources(in.Edges.Resources),
 		ClusterCosts:        ExposeClusterCosts(in.Edges.ClusterCosts),

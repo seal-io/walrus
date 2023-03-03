@@ -165,6 +165,20 @@ func (cc *ConnectorCreate) SetNillableFinOpsStatusMessage(s *string) *ConnectorC
 	return cc
 }
 
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (cc *ConnectorCreate) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorCreate {
+	cc.mutation.SetFinOpsCustomPricing(tocp)
+	return cc
+}
+
+// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorCreate {
+	if tocp != nil {
+		cc.SetFinOpsCustomPricing(*tocp)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *ConnectorCreate) SetID(t types.ID) *ConnectorCreate {
 	cc.mutation.SetID(t)
@@ -407,6 +421,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.FinOpsStatusMessage(); ok {
 		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
 		_node.FinOpsStatusMessage = value
+	}
+	if value, ok := cc.mutation.FinOpsCustomPricing(); ok {
+		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
+		_node.FinOpsCustomPricing = value
 	}
 	if nodes := cc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -682,6 +700,24 @@ func (u *ConnectorUpsert) ClearFinOpsStatusMessage() *ConnectorUpsert {
 	return u
 }
 
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (u *ConnectorUpsert) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsert {
+	u.Set(connector.FieldFinOpsCustomPricing, v)
+	return u
+}
+
+// UpdateFinOpsCustomPricing sets the "finOpsCustomPricing" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateFinOpsCustomPricing() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldFinOpsCustomPricing)
+	return u
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (u *ConnectorUpsert) ClearFinOpsCustomPricing() *ConnectorUpsert {
+	u.SetNull(connector.FieldFinOpsCustomPricing)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -922,6 +958,27 @@ func (u *ConnectorUpsertOne) UpdateFinOpsStatusMessage() *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) ClearFinOpsStatusMessage() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsStatusMessage()
+	})
+}
+
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (u *ConnectorUpsertOne) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsCustomPricing(v)
+	})
+}
+
+// UpdateFinOpsCustomPricing sets the "finOpsCustomPricing" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateFinOpsCustomPricing() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsCustomPricing()
+	})
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (u *ConnectorUpsertOne) ClearFinOpsCustomPricing() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsCustomPricing()
 	})
 }
 
@@ -1328,6 +1385,27 @@ func (u *ConnectorUpsertBulk) UpdateFinOpsStatusMessage() *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) ClearFinOpsStatusMessage() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsStatusMessage()
+	})
+}
+
+// SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
+func (u *ConnectorUpsertBulk) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetFinOpsCustomPricing(v)
+	})
+}
+
+// UpdateFinOpsCustomPricing sets the "finOpsCustomPricing" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateFinOpsCustomPricing() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateFinOpsCustomPricing()
+	})
+}
+
+// ClearFinOpsCustomPricing clears the value of the "finOpsCustomPricing" field.
+func (u *ConnectorUpsertBulk) ClearFinOpsCustomPricing() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearFinOpsCustomPricing()
 	})
 }
 
