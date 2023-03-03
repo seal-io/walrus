@@ -39,18 +39,18 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*model.PerspectiveOutput, error) {
 	var entity = req.Model()
 
 	var creates, err = dao.PerspectiveCreates(h.modelClient, entity)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = creates[0].Save(ctx)
+	entity, err = creates[0].Save(ctx)
 	if err != nil {
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to create perspective: %w", err)
+		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to create perspective: %w", err)
 	}
-	return nil
+	return model.ExposePerspective(entity), nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
@@ -61,19 +61,19 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	return nil
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) (*model.PerspectiveOutput, error) {
 	var entity = req.Model()
 
-	var updates, err = dao.PerspectiveUpdates(h.modelClient, entity)
+	var update, err = dao.PerspectiveUpdate(h.modelClient, entity)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = updates[0].Exec(ctx)
+	entity, err = update.Save(ctx)
 	if err != nil {
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to update perspective: %w", err)
+		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to update perspective: %w", err)
 	}
 
-	return nil
+	return model.ExposePerspective(entity), nil
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {

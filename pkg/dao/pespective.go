@@ -36,32 +36,24 @@ func PerspectiveCreates(mc model.ClientSet, input ...*model.Perspective) ([]*mod
 	return rrs, nil
 }
 
-func PerspectiveUpdates(mc model.ClientSet, input ...*model.Perspective) ([]*model.PerspectiveUpdate, error) {
-	if len(input) == 0 {
-		return nil, errors.New("invalid input: empty list")
+func PerspectiveUpdate(mc model.ClientSet, input *model.Perspective) (*model.PerspectiveUpdateOne, error) {
+	if input == nil {
+		return nil, errors.New("invalid input: nil entity")
 	}
-
-	var rrs = make([]*model.PerspectiveUpdate, len(input))
-	for i, r := range input {
-		if r == nil {
-			return nil, errors.New("invalid input: nil entity")
-		}
-		// predicated.
-		var ps = []predicate.Perspective{
-			perspective.ID(r.ID),
-		}
-		var c = mc.Perspectives().Update().
-			Where(ps...)
-		if r.StartTime != "" {
-			c.SetStartTime(r.StartTime)
-		}
-		if r.EndTime != "" {
-			c.SetStartTime(r.EndTime)
-		}
-		if len(r.AllocationQueries) != 0 {
-			c.SetAllocationQueries(r.AllocationQueries)
-		}
-		rrs[i] = c
+	// predicated.
+	var ps = []predicate.Perspective{
+		perspective.ID(input.ID),
 	}
-	return rrs, nil
+	var c = mc.Perspectives().UpdateOne(input).
+		Where(ps...)
+	if input.StartTime != "" {
+		c.SetStartTime(input.StartTime)
+	}
+	if input.EndTime != "" {
+		c.SetEndTime(input.EndTime)
+	}
+	if len(input.AllocationQueries) != 0 {
+		c.SetAllocationQueries(input.AllocationQueries)
+	}
+	return c, nil
 }

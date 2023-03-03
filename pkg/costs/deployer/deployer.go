@@ -131,8 +131,13 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 	defer helm.Clean()
 
 	res, err := helm.GetRelease(app.Name)
-	if err != nil && !strings.Contains(err.Error(), "not found") {
-		return fmt.Errorf("error get release %s:%s, %w", app.Namespace, app.Name, err)
+	if err != nil {
+		// error isn't found
+		if !strings.Contains(err.Error(), "not found") {
+			return fmt.Errorf("error get release %s:%s, %w", app.Namespace, app.Name, err)
+		}
+
+		// error is not found, continue to install
 	} else {
 		switch {
 		case isSucceed(res) && !replace:

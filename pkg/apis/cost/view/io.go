@@ -2,9 +2,11 @@ package view
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -53,6 +55,15 @@ func (r *AllocationCostRequest) Validate() error {
 
 	if len(r.Filters) == 0 {
 		return errors.New("invalid filter: blank")
+	}
+
+	if r.Step != "" && slice.ContainsAny([]types.GroupByField{
+		types.GroupByFieldDay,
+		types.GroupByFieldWeek,
+		types.GroupByFieldMonth,
+		types.GroupByFieldYear,
+	}, r.GroupBy) {
+		return fmt.Errorf("invalid step: already group by %s", r.GroupBy)
 	}
 	return nil
 }
