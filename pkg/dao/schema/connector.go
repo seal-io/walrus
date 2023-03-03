@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 type Connector struct {
@@ -48,6 +49,9 @@ func (Connector) Fields() []ent.Field {
 			Optional(),
 		field.String("finOpsStatusMessage").
 			Comment("Extra message for finOps tools status, like error details.").
+			Optional(),
+		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
+			Comment("Custom pricing user defined").
 			Optional(),
 	}
 }
