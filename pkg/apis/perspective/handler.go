@@ -136,25 +136,32 @@ func (h Handler) CollectionRouteFields(ctx *gin.Context, req view.CollectionRout
 		ps = append(ps, sql.LTE(allocationcost.FieldEndTime, req.EndTime))
 	}
 
-	labelKeys, err := h.modelClient.AllocationCosts().Query().
-		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.Expr(fmt.Sprintf(`DISTINCT(jsonb_object_keys(%s))`, allocationcost.FieldLabels)),
-			)
-		}).
-		Strings(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
+	switch req.FieldType {
+	case view.FieldTypeGroupBy:
+		return view.BuiltInPerspectiveGroupFields, len(view.BuiltInPerspectiveGroupFields), nil
+	case view.FieldTypeStep:
+		return view.BuiltInPerspectiveStepFields, len(view.BuiltInPerspectiveStepFields), nil
+	default:
+		labelKeys, err := h.modelClient.AllocationCosts().Query().
+			Modify(func(s *sql.Selector) {
+				s.Where(
+					sql.And(ps...),
+				).SelectExpr(
+					sql.Expr(fmt.Sprintf(`DISTINCT(jsonb_object_keys(%s))`, allocationcost.FieldLabels)),
+				)
+			}).
+			Strings(ctx)
+		if err != nil {
+			return nil, 0, err
+		}
 
-	fields := view.BuiltInPerspectiveFields
-	for _, v := range labelKeys {
-		fields = append(fields, view.LabelKeyToPF(v))
+		fields := view.BuiltInPerspectiveFilterFields
+		for _, v := range labelKeys {
+			fields = append(fields, view.LabelKeyToPerspectiveField(v))
+		}
+		count := len(fields)
+		return fields, count, nil
 	}
-	count := len(fields)
-	return fields, count, nil
 }
 
 func (h Handler) CollectionRouteValues(ctx *gin.Context, req view.CollectionRouteFieldValuesRequest) (view.CollectionRouteValuesResponse, int, error) {

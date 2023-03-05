@@ -108,9 +108,9 @@ const (
 	GroupByFieldYear  GroupByField = "year"
 
 	// built-in labels
-	GroupByFieldProject     GroupByField = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
-	GroupByFieldEnvironment GroupByField = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
-	GroupByFieldApplication GroupByField = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app"
+	GroupByFieldProject     = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
+	GroupByFieldEnvironment = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
+	GroupByFieldApplication = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app"
 )
 
 func (f *GroupByField) IsLabel() bool {

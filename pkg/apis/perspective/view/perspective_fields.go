@@ -4,23 +4,50 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-var BuiltInPerspectiveFields = []PerspectiveField{
-	PF("Connector", types.FilterFieldConnectorID),
-	PF("Project", types.FilterFieldProject),
-	PF("Environment", types.FilterFieldEnvironment),
-	PF("Application", types.FilterFieldApplication),
-	PF("Cluster Name", types.FilterFieldClusterName),
-	PF("Namespace", types.FilterFieldNamespace),
-	PF("Node", types.FilterFieldNode),
-	PF("Controller", types.FilterFieldController),
-	PF("Controller Kind", types.FilterFieldControllerKind),
-	PF("Pod", types.FilterFieldPod),
-	PF("Container", types.FilterFieldContainer),
+var BuiltInPerspectiveFilterFields = []PerspectiveField{
+	FilterPerspectiveField("Connector", types.FilterFieldConnectorID),
+	FilterPerspectiveField("Project", types.FilterFieldProject),
+	FilterPerspectiveField("Environment", types.FilterFieldEnvironment),
+	FilterPerspectiveField("Application", types.FilterFieldApplication),
+	FilterPerspectiveField("Cluster Name", types.FilterFieldClusterName),
+	FilterPerspectiveField("Namespace", types.FilterFieldNamespace),
+	FilterPerspectiveField("Node", types.FilterFieldNode),
+	FilterPerspectiveField("Controller", types.FilterFieldController),
+	FilterPerspectiveField("Controller Kind", types.FilterFieldControllerKind),
+	FilterPerspectiveField("Pod", types.FilterFieldPod),
+	FilterPerspectiveField("Container", types.FilterFieldContainer),
+}
+
+var BuiltInPerspectiveGroupFields = []PerspectiveField{
+	GroupByPerspectiveField("Connector", types.GroupByFieldConnectorID),
+	GroupByPerspectiveField("Project", types.GroupByFieldProject),
+	GroupByPerspectiveField("Environment", types.GroupByFieldEnvironment),
+	GroupByPerspectiveField("Application", types.GroupByFieldApplication),
+	GroupByPerspectiveField("Cluster Name", types.GroupByFieldClusterName),
+	GroupByPerspectiveField("Namespace", types.GroupByFieldNamespace),
+	GroupByPerspectiveField("Node", types.GroupByFieldNode),
+	GroupByPerspectiveField("Controller", types.GroupByFieldController),
+	GroupByPerspectiveField("Controller Kind", types.GroupByFieldControllerKind),
+	GroupByPerspectiveField("Pod", types.GroupByFieldPod),
+	GroupByPerspectiveField("Container", types.GroupByFieldContainer),
+	GroupByPerspectiveField("Workload", types.GroupByFieldWorkload),
+	GroupByPerspectiveField("Day", types.GroupByFieldDay),
+	GroupByPerspectiveField("Week", types.GroupByFieldWeek),
+	GroupByPerspectiveField("Month", types.GroupByFieldMonth),
+	GroupByPerspectiveField("Year", types.GroupByFieldYear),
+}
+
+var BuiltInPerspectiveStepFields = []PerspectiveField{
+	StepPerspectiveField("Cumulative", ""),
+	StepPerspectiveField("Daily", types.StepDay),
+	StepPerspectiveField("Weekly", types.StepWeek),
+	StepPerspectiveField("Monthly", types.StepMonth),
+	StepPerspectiveField("Yearly", types.StepYear),
 }
 
 type PerspectiveField struct {
-	Label     string            `json:"label"`
-	FieldName types.FilterField `json:"fieldName"`
+	Label     string `json:"label"`
+	FieldName string `json:"fieldName"`
 }
 
 type PerspectiveValue struct {
@@ -28,16 +55,30 @@ type PerspectiveValue struct {
 	Value string `json:"value"`
 }
 
-func PF(label string, fieldName types.FilterField) PerspectiveField {
+func FilterPerspectiveField(label string, fieldName types.FilterField) PerspectiveField {
 	return PerspectiveField{
 		Label:     label,
-		FieldName: fieldName,
+		FieldName: string(fieldName),
 	}
 }
 
-func LabelKeyToPF(labelKey string) PerspectiveField {
+func GroupByPerspectiveField(label string, fieldName types.GroupByField) PerspectiveField {
+	return PerspectiveField{
+		Label:     label,
+		FieldName: string(fieldName),
+	}
+}
+
+func StepPerspectiveField(label string, fieldName types.Step) PerspectiveField {
+	return PerspectiveField{
+		Label:     label,
+		FieldName: string(fieldName),
+	}
+}
+
+func LabelKeyToPerspectiveField(labelKey string) PerspectiveField {
 	return PerspectiveField{
 		Label:     labelKey,
-		FieldName: types.FilterField(types.LabelPrefix + labelKey),
+		FieldName: types.LabelPrefix + labelKey,
 	}
 }

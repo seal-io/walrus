@@ -98,11 +98,30 @@ type CollectionGetResponse = []*model.PerspectiveOutput
 
 // Extensional APIs
 
+type FieldType string
+
+const (
+	FieldTypeGroupBy = "groupBy"
+	FieldTypeFilter  = "filter"
+	FieldTypeStep    = "step"
+)
+
 type CollectionRouteFieldsRequest struct {
 	_ struct{} `route:"GET=/fields"`
 
 	StartTime *time.Time `query:"startTime"`
 	EndTime   *time.Time `query:"endTime"`
+	FieldType FieldType  `query:"fieldType"`
+}
+
+func (r *CollectionRouteFieldsRequest) Validate() error {
+	if r.FieldType == "" {
+		return errors.New("invalid field type: blank")
+	}
+	if r.FieldType != FieldTypeFilter && r.FieldType != FieldTypeGroupBy && r.FieldType != FieldTypeStep {
+		return errors.New("invalid field type: not support")
+	}
+	return nil
 }
 
 type CollectionRouteFieldsResponse = []PerspectiveField
@@ -113,20 +132,25 @@ type CollectionRouteFieldValuesRequest struct {
 	StartTime *time.Time        `query:"startTime"`
 	EndTime   *time.Time        `query:"endTime"`
 	FieldName types.FilterField `query:"fieldName"`
+	FieldType FieldType         `query:"fieldType"`
 }
 
 func (r *CollectionRouteFieldValuesRequest) Validate() error {
 	if r.StartTime != nil && r.EndTime != nil && r.EndTime.Before(*r.StartTime) {
 		return errors.New("invalid time range: end time is early than start time")
 	}
-
 	if r.FieldName == "" {
 		return errors.New("invalid field name: blank")
 	}
-
+	if r.FieldType == "" {
+		return errors.New("invalid field type: blank")
+	}
+	if r.FieldType != FieldTypeFilter {
+		return errors.New("invalid field type: not support")
+	}
 	if !strings.HasPrefix(string(r.FieldName), types.LabelPrefix) {
-		for _, v := range BuiltInPerspectiveFields {
-			if v.FieldName == r.FieldName {
+		for _, v := range BuiltInPerspectiveFilterFields {
+			if v.FieldName == string(r.FieldName) {
 				return nil
 			}
 		}
