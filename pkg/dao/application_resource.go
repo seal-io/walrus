@@ -25,7 +25,8 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 			SetName(r.Name).
 			SetType(r.Type).
 			SetModule(r.Module).
-			SetMode(r.Mode)
+			SetMode(r.Mode).
+			SetDeployerType(r.DeployerType)
 
 		resources[i] = c
 	}
