@@ -3,18 +3,11 @@ package modules
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
-
-	"github.com/hashicorp/go-getter"
-	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/bus"
-	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -66,45 +59,9 @@ func syncSchema(ctx context.Context, message BusMessage) error {
 
 	log.Debugf("syncing schema for module %s", message.Refer.ID)
 
-	tmpDir := files.TempDir("seal-module-*")
-	defer os.RemoveAll(tmpDir)
-
-	if err := getter.Get(tmpDir, message.Refer.Source); err != nil {
-		return err
-	}
-	mod, _ := tfconfig.LoadModule(tmpDir)
-
-	readme, err := getReadme(tmpDir)
+	moduleSchema, err := loadTerraformModuleSchema(module.Source)
 	if err != nil {
 		return err
-	}
-
-	moduleSchema := &types.ModuleSchema{
-		Readme: readme,
-	}
-
-	for _, v := range mod.Variables {
-		// TODO more custom schema fields by parsing tf comments
-		moduleSchema.Variables = append(moduleSchema.Variables, types.ModuleVariable{
-			Name:        v.Name,
-			Type:        v.Type,
-			Description: v.Description,
-			Default:     v.Default,
-			Required:    v.Required,
-			Sensitive:   v.Sensitive,
-		})
-	}
-
-	for _, v := range mod.Outputs {
-		moduleSchema.Outputs = append(moduleSchema.Outputs, types.ModuleOutput{
-			Name:        v.Name,
-			Description: v.Description,
-			Sensitive:   v.Sensitive,
-		})
-	}
-
-	for name := range mod.RequiredProviders {
-		moduleSchema.RequiredConnectorTypes = append(moduleSchema.RequiredConnectorTypes, name)
 	}
 
 	module.Schema = moduleSchema
@@ -116,17 +73,4 @@ func syncSchema(ctx context.Context, message BusMessage) error {
 	}
 
 	return update.Exec(ctx)
-}
-
-func getReadme(dir string) (string, error) {
-	path := filepath.Join(dir, "README.md")
-	if files.Exists(path) {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return "", err
-		}
-		return string(content), nil
-	}
-
-	return "", nil
 }
