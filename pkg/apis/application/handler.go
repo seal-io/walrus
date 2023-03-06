@@ -72,6 +72,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 		Where(application.ID(req.ID)).
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Select(
+				applicationmodulerelationship.FieldApplicationID,
 				applicationmodulerelationship.FieldModuleID,
 				applicationmodulerelationship.FieldName,
 				applicationmodulerelationship.FieldVariables)
