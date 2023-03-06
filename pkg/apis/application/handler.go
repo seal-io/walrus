@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/gin-gonic/gin"
+	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/application/view"
 	"github.com/seal-io/seal/pkg/dao"
@@ -12,17 +13,21 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/platform"
+	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/platformtf"
 )
 
-func Handle(mc model.ClientSet) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config) Handler {
 	return Handler{
 		modelClient: mc,
+		kubeConfig:  kc,
 	}
 }
 
 type Handler struct {
 	modelClient model.ClientSet
+	kubeConfig  *rest.Config
 }
 
 func (h Handler) Kind() string {
@@ -191,4 +196,58 @@ func (h Handler) GetRevisions(ctx *gin.Context, req view.GetRevisionsRequest) (v
 	}
 
 	return model.ExposeApplicationRevisions(entities), cnt, nil
+}
+
+func (h Handler) CreateDeployments(ctx *gin.Context, req view.CreateDeploymentRequest) error {
+	createOpts := deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	d, err := platform.GetDeployer(ctx, createOpts)
+	if err != nil {
+		return err
+	}
+
+	app, err := h.modelClient.Applications().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	err = d.Apply(ctx, app, deployer.ApplyOptions{
+		// TODO get from settings
+		SkipTLSVerify: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h Handler) DeleteDeployments(ctx *gin.Context, req view.DeleteDeploymentRequest) error {
+	deployOpts := deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	d, err := platform.GetDeployer(ctx, deployOpts)
+	if err != nil {
+		return err
+	}
+
+	app, err := h.modelClient.Applications().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	err = d.Destroy(ctx, app, deployer.DestroyOptions{
+		// TODO get from settings
+		SkipTLSVerify: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

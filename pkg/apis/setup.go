@@ -77,7 +77,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
-		runtime.MustRouteResource(r, application.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig))
 		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
 			applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))

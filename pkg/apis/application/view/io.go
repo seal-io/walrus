@@ -139,3 +139,7 @@ func (r *GetRevisionsRequest) ValidateWith(ctx context.Context, input any) error
 }
 
 type GetRevisionsResponse = []*model.ApplicationRevisionOutput
+
+type CreateDeploymentRequest = GetRequest
+
+type DeleteDeploymentRequest = GetRequest
