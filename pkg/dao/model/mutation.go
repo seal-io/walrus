@@ -4105,6 +4105,7 @@ type ApplicationResourceMutation struct {
 	mode               *string
 	_type              *string
 	name               *string
+	deployerType       *string
 	clearedFields      map[string]struct{}
 	application        *types.ID
 	clearedapplication bool
@@ -4605,6 +4606,42 @@ func (m *ApplicationResourceMutation) ResetName() {
 	m.name = nil
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (m *ApplicationResourceMutation) SetDeployerType(s string) {
+	m.deployerType = &s
+}
+
+// DeployerType returns the value of the "deployerType" field in the mutation.
+func (m *ApplicationResourceMutation) DeployerType() (r string, exists bool) {
+	v := m.deployerType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeployerType returns the old "deployerType" field's value of the ApplicationResource entity.
+// If the ApplicationResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationResourceMutation) OldDeployerType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeployerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeployerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeployerType: %w", err)
+	}
+	return oldValue.DeployerType, nil
+}
+
+// ResetDeployerType resets all changes to the "deployerType" field.
+func (m *ApplicationResourceMutation) ResetDeployerType() {
+	m.deployerType = nil
+}
+
 // ClearApplication clears the "application" edge to the Application entity.
 func (m *ApplicationResourceMutation) ClearApplication() {
 	m.clearedapplication = true
@@ -4691,7 +4728,7 @@ func (m *ApplicationResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationResourceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.status != nil {
 		fields = append(fields, applicationresource.FieldStatus)
 	}
@@ -4722,6 +4759,9 @@ func (m *ApplicationResourceMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, applicationresource.FieldName)
 	}
+	if m.deployerType != nil {
+		fields = append(fields, applicationresource.FieldDeployerType)
+	}
 	return fields
 }
 
@@ -4750,6 +4790,8 @@ func (m *ApplicationResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case applicationresource.FieldName:
 		return m.Name()
+	case applicationresource.FieldDeployerType:
+		return m.DeployerType()
 	}
 	return nil, false
 }
@@ -4779,6 +4821,8 @@ func (m *ApplicationResourceMutation) OldField(ctx context.Context, name string)
 		return m.OldType(ctx)
 	case applicationresource.FieldName:
 		return m.OldName(ctx)
+	case applicationresource.FieldDeployerType:
+		return m.OldDeployerType(ctx)
 	}
 	return nil, fmt.Errorf("unknown ApplicationResource field %s", name)
 }
@@ -4857,6 +4901,13 @@ func (m *ApplicationResourceMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case applicationresource.FieldDeployerType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeployerType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationResource field %s", name)
@@ -4951,6 +5002,9 @@ func (m *ApplicationResourceMutation) ResetField(name string) error {
 		return nil
 	case applicationresource.FieldName:
 		m.ResetName()
+		return nil
+	case applicationresource.FieldDeployerType:
+		m.ResetDeployerType()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationResource field %s", name)

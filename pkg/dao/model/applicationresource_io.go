@@ -38,6 +38,8 @@ type ApplicationResourceCreateInput struct {
 	Type string `json:"type"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name"`
+	// Type of deployer
+	DeployerType string `json:"deployerType"`
 	// Application to which the resource belongs.
 	Application ApplicationQueryInput `json:"application"`
 	// Connector to which the resource deploys.
@@ -53,6 +55,7 @@ func (in ApplicationResourceCreateInput) Model() *ApplicationResource {
 		Mode:          in.Mode,
 		Type:          in.Type,
 		Name:          in.Name,
+		DeployerType:  in.DeployerType,
 	}
 	entity.ApplicationID = in.Application.ID
 	entity.ConnectorID = in.Connector.ID
@@ -99,6 +102,8 @@ type ApplicationResourceOutput struct {
 	Type string `json:"type,omitempty"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name,omitempty"`
+	// Type of deployer
+	DeployerType string `json:"deployerType,omitempty"`
 	// Application to which the resource belongs.
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Connector to which the resource deploys.
@@ -120,6 +125,7 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		Mode:          in.Mode,
 		Type:          in.Type,
 		Name:          in.Name,
+		DeployerType:  in.DeployerType,
 		Application:   ExposeApplication(in.Edges.Application),
 		Connector:     ExposeConnector(in.Edges.Connector),
 	}

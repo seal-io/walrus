@@ -227,6 +227,10 @@ func init() {
 	applicationresourceDescName := applicationresourceFields[5].Descriptor()
 	// applicationresource.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	applicationresource.NameValidator = applicationresourceDescName.Validators[0].(func(string) error)
+	// applicationresourceDescDeployerType is the schema descriptor for deployerType field.
+	applicationresourceDescDeployerType := applicationresourceFields[6].Descriptor()
+	// applicationresource.DeployerTypeValidator is a validator for the "deployerType" field. It is called by the builders before save.
+	applicationresource.DeployerTypeValidator = applicationresourceDescDeployerType.Validators[0].(func(string) error)
 	applicationrevisionMixin := schema.ApplicationRevision{}.Mixin()
 	applicationrevisionMixinHooks0 := applicationrevisionMixin[0].Hooks()
 	applicationrevision.Hooks[0] = applicationrevisionMixinHooks0[0]
