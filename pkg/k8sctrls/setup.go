@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/k8sctrls/configmap"
+	"github.com/seal-io/seal/pkg/platformtf"
 )
 
 func init() {
@@ -59,9 +59,10 @@ type Reconciler interface {
 func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, error) {
 	// setup reconciler below.
 	return []Reconciler{
-		configmap.Reconciler{
-			Logger:      opts.GetLogger().WithName("configmap"),
+		platformtf.JobReconciler{
+			Logger:      opts.GetLogger().WithName("platformtf-job"),
 			KubeClient:  opts.GetClient(),
+			Kubeconfig:  opts.GetConfig(),
 			ModelClient: opts.ModelClient,
 		},
 	}, nil

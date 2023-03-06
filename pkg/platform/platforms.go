@@ -7,6 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformk8s"
+	"github.com/seal-io/seal/pkg/platformtf"
 )
 
 // GetDeployer returns deployer.Deployer with the given deployer.CreateOptions.
@@ -27,7 +28,7 @@ var dpCreators map[deployer.Type]deployer.Creator
 func init() {
 	// register deployer creators as below.
 	dpCreators = map[deployer.Type]deployer.Creator{
-		// TODO
+		platformtf.DeployerType: platformtf.NewDeployer,
 	}
 }
 

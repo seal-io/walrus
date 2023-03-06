@@ -14,42 +14,43 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-// ConnectorSeparator is used to separate the connector id and the instance name.
-const ConnectorSeparator = "connector--"
+// connectorSeparator is used to separate the connector id and the instance name.
+const connectorSeparator = "connector--"
 
 type Parser struct{}
 
 // ParseAppRevision parse the application revision output(terraform state) to application resources.
 func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.ApplicationResources, error) {
-	return p.ParseState(revision.Output, revision.ApplicationID)
+	return p.ParseState(revision.Output, revision)
 }
 
 // ParseState parse the terraform state to application resources.
-func (p Parser) ParseState(stateStr string, applicationID types.ID) (model.ApplicationResources, error) {
+func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
+	var logger = log.WithName("platformtf").WithName("parser")
+	var revisionState state
 	var applicationResources model.ApplicationResources
-	var state state
-	if err := json.Unmarshal([]byte(stateStr), &state); err != nil {
+	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {
 		return nil, err
 	}
 
-	for _, rs := range state.Resources {
+	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
 		case "managed", "data":
 		default:
-			log.Errorf("unknown resource mode: %s", rs.Mode)
+			logger.Errorf("unknown resource mode: %s", rs.Mode)
 			continue
 		}
 
 		// "module": "module.singleton[0]" or "module": "module.singleton"
 		moduleName, err := ParseInstanceModuleName(rs.Module)
 		if err != nil {
-			log.Errorf("invalid module format: %s", rs.Module)
+			logger.Errorf("invalid module format: %s", rs.Module)
 			continue
 		}
 		// try to get "singleton" from module
 		connector, err := ParseInstanceProviderConnector(rs.Provider)
 		if err != nil {
-			log.Errorf("invalid provider format: %s", rs.Provider)
+			logger.Errorf("invalid provider format: %s", rs.Provider)
 			continue
 		}
 
@@ -60,12 +61,13 @@ func (p Parser) ParseState(stateStr string, applicationID types.ID) (model.Appli
 			}
 
 			applicationResource := &model.ApplicationResource{
-				ApplicationID: applicationID,
+				ApplicationID: revision.ApplicationID,
 				ConnectorID:   types.ID(connector),
 				Mode:          rs.Mode,
 				Module:        moduleName,
 				Type:          rs.Type,
 				Name:          instanceID,
+				DeployerType:  revision.DeployerType,
 			}
 
 			applicationResources = append(applicationResources, applicationResource)
@@ -75,10 +77,6 @@ func (p Parser) ParseState(stateStr string, applicationID types.ID) (model.Appli
 	return applicationResources, nil
 }
 
-func NewParser() *Parser {
-	return &Parser{}
-}
-
 // ParseInstanceModuleName get the module name from the module instance string.
 func ParseInstanceModuleName(str string) (string, error) {
 	if str == "" {
@@ -86,12 +84,11 @@ func ParseInstanceModuleName(str string) (string, error) {
 	}
 
 	traversal, parseDiags := hclsyntax.ParseTraversalAbs([]byte(str), "", hcl.Pos{Line: 1, Column: 1})
-
 	if parseDiags.HasErrors() {
 		return "", fmt.Errorf("invalid module format: %s", str)
 	}
 
-	name := ""
+	var name string
 	for _, t := range traversal {
 		switch tt := t.(type) {
 		case hcl.TraverseAttr:
@@ -106,7 +103,7 @@ func ParseInstanceModuleName(str string) (string, error) {
 
 // ParseInstanceProviderConnector get the provider connector from the provider instance string.
 func ParseInstanceProviderConnector(providerString string) (string, error) {
-	providers := strings.Split(providerString, ConnectorSeparator)
+	providers := strings.Split(providerString, connectorSeparator)
 	if len(providers) != 2 {
 		return "", fmt.Errorf("provider name error: %s", providerString)
 	}
