@@ -160,6 +160,7 @@ var (
 		{Name: "mode", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
+		{Name: "deployer_type", Type: field.TypeString},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -171,13 +172,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_resources_applications_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[9]},
+				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_resources_connectors_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				Columns:    []*schema.Column{ApplicationResourcesColumns[11]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -191,7 +192,7 @@ var (
 			{
 				Name:    "applicationresource_application_id_connector_id_module_mode_type_name",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationResourcesColumns[9], ApplicationResourcesColumns[10], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8]},
+				Columns: []*schema.Column{ApplicationResourcesColumns[10], ApplicationResourcesColumns[11], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8]},
 			},
 		},
 	}

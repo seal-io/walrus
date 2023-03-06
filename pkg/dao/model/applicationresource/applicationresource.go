@@ -36,6 +36,8 @@ const (
 	FieldType = "type"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldDeployerType holds the string denoting the deployertype field in the database.
+	FieldDeployerType = "deployer_type"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldMode,
 	FieldType,
 	FieldName,
+	FieldDeployerType,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -108,6 +111,8 @@ var (
 	TypeValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DeployerTypeValidator is a validator for the "deployerType" field. It is called by the builders before save.
+	DeployerTypeValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

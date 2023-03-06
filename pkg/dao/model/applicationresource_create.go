@@ -122,6 +122,12 @@ func (arc *ApplicationResourceCreate) SetName(s string) *ApplicationResourceCrea
 	return arc
 }
 
+// SetDeployerType sets the "deployerType" field.
+func (arc *ApplicationResourceCreate) SetDeployerType(s string) *ApplicationResourceCreate {
+	arc.mutation.SetDeployerType(s)
+	return arc
+}
+
 // SetID sets the "id" field.
 func (arc *ApplicationResourceCreate) SetID(t types.ID) *ApplicationResourceCreate {
 	arc.mutation.SetID(t)
@@ -248,6 +254,14 @@ func (arc *ApplicationResourceCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.name": %w`, err)}
 		}
 	}
+	if _, ok := arc.mutation.DeployerType(); !ok {
+		return &ValidationError{Name: "deployerType", err: errors.New(`model: missing required field "ApplicationResource.deployerType"`)}
+	}
+	if v, ok := arc.mutation.DeployerType(); ok {
+		if err := applicationresource.DeployerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "deployerType", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.deployerType": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.ApplicationID(); !ok {
 		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationResource.application"`)}
 	}
@@ -322,6 +336,10 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 	if value, ok := arc.mutation.Name(); ok {
 		_spec.SetField(applicationresource.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := arc.mutation.DeployerType(); ok {
+		_spec.SetField(applicationresource.FieldDeployerType, field.TypeString, value)
+		_node.DeployerType = value
 	}
 	if nodes := arc.mutation.ApplicationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -502,6 +520,9 @@ func (u *ApplicationResourceUpsertOne) UpdateNewValues() *ApplicationResourceUps
 		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(applicationresource.FieldName)
+		}
+		if _, exists := u.create.mutation.DeployerType(); exists {
+			s.SetIgnore(applicationresource.FieldDeployerType)
 		}
 	}))
 	return u
@@ -789,6 +810,9 @@ func (u *ApplicationResourceUpsertBulk) UpdateNewValues() *ApplicationResourceUp
 			}
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(applicationresource.FieldName)
+			}
+			if _, exists := b.mutation.DeployerType(); exists {
+				s.SetIgnore(applicationresource.FieldDeployerType)
 			}
 		}
 	}))

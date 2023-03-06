@@ -111,6 +111,11 @@ func Name(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldName, v))
 }
 
+// DeployerType applies equality check predicate on the "deployerType" field. It's identical to DeployerTypeEQ.
+func DeployerType(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldDeployerType, v))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldStatus, v))
@@ -739,6 +744,71 @@ func NameEqualFold(v string) predicate.ApplicationResource {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldName, v))
+}
+
+// DeployerTypeEQ applies the EQ predicate on the "deployerType" field.
+func DeployerTypeEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldDeployerType, v))
+}
+
+// DeployerTypeNEQ applies the NEQ predicate on the "deployerType" field.
+func DeployerTypeNEQ(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldDeployerType, v))
+}
+
+// DeployerTypeIn applies the In predicate on the "deployerType" field.
+func DeployerTypeIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldDeployerType, vs...))
+}
+
+// DeployerTypeNotIn applies the NotIn predicate on the "deployerType" field.
+func DeployerTypeNotIn(vs ...string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldDeployerType, vs...))
+}
+
+// DeployerTypeGT applies the GT predicate on the "deployerType" field.
+func DeployerTypeGT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldDeployerType, v))
+}
+
+// DeployerTypeGTE applies the GTE predicate on the "deployerType" field.
+func DeployerTypeGTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldDeployerType, v))
+}
+
+// DeployerTypeLT applies the LT predicate on the "deployerType" field.
+func DeployerTypeLT(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldDeployerType, v))
+}
+
+// DeployerTypeLTE applies the LTE predicate on the "deployerType" field.
+func DeployerTypeLTE(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldDeployerType, v))
+}
+
+// DeployerTypeContains applies the Contains predicate on the "deployerType" field.
+func DeployerTypeContains(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContains(FieldDeployerType, v))
+}
+
+// DeployerTypeHasPrefix applies the HasPrefix predicate on the "deployerType" field.
+func DeployerTypeHasPrefix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldDeployerType, v))
+}
+
+// DeployerTypeHasSuffix applies the HasSuffix predicate on the "deployerType" field.
+func DeployerTypeHasSuffix(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldDeployerType, v))
+}
+
+// DeployerTypeEqualFold applies the EqualFold predicate on the "deployerType" field.
+func DeployerTypeEqualFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldDeployerType, v))
+}
+
+// DeployerTypeContainsFold applies the ContainsFold predicate on the "deployerType" field.
+func DeployerTypeContainsFold(v string) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldDeployerType, v))
 }
 
 // HasApplication applies the HasEdge predicate on the "application" edge.

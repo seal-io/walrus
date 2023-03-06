@@ -43,6 +43,8 @@ type ApplicationResource struct {
 	Type string `json:"type,omitempty"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name,omitempty"`
+	// Type of deployer
+	DeployerType string `json:"deployerType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
 	Edges ApplicationResourceEdges `json:"edges,omitempty"`
@@ -90,7 +92,7 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName:
+		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case applicationresource.FieldCreateTime, applicationresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -179,6 +181,12 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.Name = value.String
 			}
+		case applicationresource.FieldDeployerType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field deployerType", values[i])
+			} else if value.Valid {
+				ar.DeployerType = value.String
+			}
 		}
 	}
 	return nil
@@ -250,6 +258,9 @@ func (ar *ApplicationResource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ar.Name)
+	builder.WriteString(", ")
+	builder.WriteString("deployerType=")
+	builder.WriteString(ar.DeployerType)
 	builder.WriteByte(')')
 	return builder.String()
 }
