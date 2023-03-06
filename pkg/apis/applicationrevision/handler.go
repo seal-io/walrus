@@ -180,12 +180,14 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 	}
 
 	// create newResource
-	resourcesToCreate, err := dao.ApplicationResourceCreates(h.modelClient, newResources...)
-	if err != nil {
-		return err
-	}
-	if _, err = h.modelClient.ApplicationResources().CreateBulk(resourcesToCreate...).Save(ctx); err != nil {
-		return err
+	if len(newResources) > 0 {
+		resourcesToCreate, err := dao.ApplicationResourceCreates(h.modelClient, newResources...)
+		if err != nil {
+			return err
+		}
+		if _, err = h.modelClient.ApplicationResources().CreateBulk(resourcesToCreate...).Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	return nil
