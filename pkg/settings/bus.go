@@ -9,8 +9,12 @@ import (
 
 // BusMessage wraps the changed model.Setting as a bus.Message.
 type BusMessage struct {
+	// ModelClient holds the model.ClientSet of this calling session,
+	// it should be a transactional DAO client,
+	// please don't keep for long-term using.
 	ModelClient model.ClientSet
-	Refer       model.Settings
+	// Refer holds the updating model.Setting list of this calling session.
+	Refer model.Settings
 }
 
 // Notify notifies the changed model.Setting.
