@@ -1,11 +1,19 @@
 package deployer
 
-import "context"
+import (
+	"context"
+
+	"k8s.io/client-go/rest"
+
+	"github.com/seal-io/seal/pkg/dao/model"
+)
 
 // CreateOptions holds the options for creating Deployer.
 type CreateOptions struct {
 	// Type indicates the type for creating.
-	Type Type
+	Type        Type
+	ModelClient model.ClientSet
+	KubeConfig  *rest.Config
 }
 
 // Creator is a factory func to create Deployer.

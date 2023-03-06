@@ -8,14 +8,16 @@ import (
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/utils/log"
 )
 
 func NewManager(cfg *rest.Config) (*Manager, error) {
 	var logger = log.WithName("k8sctrls")
 	var mgr, err = ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
-		Logger: log.AsLogr(logger),
+		Scheme:    scheme.Scheme,
+		Logger:    log.AsLogr(logger),
+		Namespace: platformtf.Namespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes controller manager: %w", err)

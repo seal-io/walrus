@@ -48,6 +48,11 @@ var (
 	CostToolsCheckCronExpr = newValue("CostToolsCheckCronExpr", editable, initializeFrom("0 */10 * ? * *"), modifyWith(cronExpression))
 )
 
+// deployment settings
+
+// TerraformDeployerImage indicates the image for terraform deployment.
+var TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), nil)
+
 // setting property list.
 const (
 	_default uint8 = 0
