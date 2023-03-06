@@ -24,6 +24,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		init func(context.Context, initOptions) error
 	}
 	var inits = []initor{
+		{name: "cronjobs", init: r.initCronJobs},
 		{name: "modules", init: r.initModules},
 		{name: "roles", init: r.initRoles},
 		{name: "settings", init: r.initSettings},
