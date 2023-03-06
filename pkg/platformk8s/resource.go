@@ -35,10 +35,8 @@ type resource struct {
 
 // parseResources parse the given model.ApplicationResource to resource list.
 func (op Operator) parseResources(ctx context.Context, res *model.ApplicationResource) ([]resource, error) {
-	// TODO(thxCode): get deployer of the application resource.
-	var dt = types.DeployerTypeTF
-	if dt != types.DeployerTypeTF {
-		return nil, resourceParsingError("unknown deployer type: " + dt)
+	if res.DeployerType != types.DeployerTypeTF {
+		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
 
 	if res.Type == "helm_release" {
