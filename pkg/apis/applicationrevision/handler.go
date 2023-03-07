@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
 	"github.com/seal-io/seal/pkg/dao"
@@ -20,20 +19,22 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func Handle(mc model.ClientSet, kubeconfig *rest.Config) Handler {
+func Handle(mc model.ClientSet) Handler {
 	return Handler{
 		modelClient: mc,
-		kubeconfig:  kubeconfig,
 	}
 }
 
 type Handler struct {
 	modelClient model.ClientSet
-	kubeconfig  *rest.Config
 }
 
 func (h Handler) Kind() string {
 	return "ApplicationRevision"
+}
+
+func (h Handler) Validating() any {
+	return h.modelClient
 }
 
 // Basic APIs
@@ -48,15 +49,35 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return model.ExposeApplicationRevision(entity), nil
 }
 
-// Basic APIs
+// Batch APIs
+
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.ApplicationRevisions().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
 
 var (
-	getFields  = applicationrevision.Columns
-	sortFields = []string{applicationrevision.FieldCreateTime}
+	getFields = []string{
+		applicationrevision.FieldID,
+		applicationrevision.FieldStatus,
+		applicationrevision.FieldStatusMessage,
+		applicationrevision.FieldCreateTime,
+	}
+	sortFields = []string{
+		applicationrevision.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ApplicationRevisions().Query()
+	var query = h.modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.InstanceID(req.InstanceID))
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
@@ -71,10 +92,11 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(sortFields); ok {
+	if orders, ok := req.Sorting(sortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
+		Unique(false). // allow returning without sorting keys.
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -87,23 +109,23 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 // GetTerraformStates get the terraform states of the application revision deployment.
 func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformStatesRequest) (view.GetTerraformStatesResponse, error) {
-	get, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
+	var entity, err = h.modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.ID(req.ID)).
+		Select(applicationrevision.FieldOutput).
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if get.Output == "" {
+	if entity.Output == "" {
 		return nil, nil
 	}
-
-	return view.GetTerraformStatesResponse(get.Output), nil
+	return view.GetTerraformStatesResponse(entity.Output), nil
 }
 
 // UpdateTerraformStates update the terraform states of the application revision deployment.
 func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) error {
-	revision, err := h.modelClient.
-		ApplicationRevisions().
-		UpdateOneID(req.ID).
+	var entity, err = h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
 		SetOutput(string(req.RawMessage)).
 		Save(ctx)
 	if err != nil {
@@ -112,15 +134,13 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 
 	defer func() {
 		if err != nil {
-			statusMessage := revision.StatusMessage + err.Error()
+			statusMessage := entity.StatusMessage + err.Error()
 
 			// timeout context
 			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			_, updateErr := h.modelClient.
-				ApplicationRevisions().
-				UpdateOneID(req.ID).
+			_, updateErr := h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
 				SetStatus(status.ApplicationRevisionStatusFailed).
 				SetStatusMessage(statusMessage).
 				Save(updateCtx)
@@ -133,7 +153,7 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 
 	// TODO (alex) using Topic to parse the application resources
 	var parser platformtf.Parser
-	applicationResources, err := parser.ParseAppRevision(revision)
+	applicationResources, err := parser.ParseAppRevision(entity)
 	if err != nil {
 		return err
 	}
@@ -144,21 +164,19 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 	// fetch the old resources of the application
 	oldResources, err := h.modelClient.ApplicationResources().
 		Query().
-		Where(applicationresource.ApplicationID(revision.ApplicationID)).
+		Where(applicationresource.InstanceID(entity.InstanceID)).
 		All(ctx)
 	if err != nil {
 		return err
 	}
 	oldResourceSet := sets.NewString()
 	for _, r := range oldResources {
-		uniqueKey := strs.Join("-", string(r.ConnectorID), r.Name, r.Type, r.Module, r.Mode)
-		oldResourceSet.Insert(uniqueKey)
+		oldResourceSet.Insert(getFingerprint(r))
 	}
 
 	for _, ar := range applicationResources {
 		// check if the resource is exists
-		key := strs.Join("-", string(ar.ConnectorID), ar.Name, ar.Type, ar.Module, ar.Mode)
-		exists := oldResourceSet.Has(key)
+		exists := oldResourceSet.Has(getFingerprint(ar))
 		if exists {
 			existResourceIDs = append(existResourceIDs, ar.ID)
 		} else {
@@ -168,10 +186,9 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 
 	// diff application resource of this revision and the latest revision
 	// if the resource is not in the latest revision, delete it
-	_, err = h.modelClient.ApplicationResources().
-		Delete().
+	_, err = h.modelClient.ApplicationResources().Delete().
 		Where(
-			applicationresource.ApplicationID(revision.ApplicationID),
+			applicationresource.InstanceID(entity.InstanceID),
 			applicationresource.IDNotIn(existResourceIDs...),
 		).
 		Exec(ctx)
@@ -185,10 +202,18 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		if err != nil {
 			return err
 		}
-		if _, err = h.modelClient.ApplicationResources().CreateBulk(resourcesToCreate...).Save(ctx); err != nil {
+		_, err = h.modelClient.ApplicationResources().CreateBulk(resourcesToCreate...).
+			Save(ctx)
+		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// TODO(thxCode): generate by entc.
+func getFingerprint(r *model.ApplicationResource) string {
+	// align to schema definition.
+	return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
 }
