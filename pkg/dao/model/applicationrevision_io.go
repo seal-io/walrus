@@ -38,12 +38,12 @@ type ApplicationRevisionCreateInput struct {
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
 	Output string `json:"output,omitempty"`
-	// type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
-	// deployment duration(seconds) of the of application revision
+	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
-	// Application to which the revision belongs.
-	Application ApplicationQueryInput `json:"application"`
+	// Application instance to which the revision belongs.
+	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Environment to which the revision deploys.
 	Environment EnvironmentQueryInput `json:"environment"`
 }
@@ -60,7 +60,7 @@ func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 		DeployerType:   in.DeployerType,
 		Duration:       in.Duration,
 	}
-	entity.ApplicationID = in.Application.ID
+	entity.InstanceID = in.Instance.ID
 	entity.EnvironmentID = in.Environment.ID
 	return entity
 }
@@ -81,9 +81,9 @@ type ApplicationRevisionUpdateInput struct {
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
 	Output string `json:"output,omitempty"`
-	// type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
-	// deployment duration(seconds) of the of application revision
+	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
 }
 
@@ -115,12 +115,12 @@ type ApplicationRevisionOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
-	// type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
-	// deployment duration(seconds) of the of application revision
+	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
-	// Application to which the revision belongs.
-	Application *ApplicationOutput `json:"application,omitempty"`
+	// Application instance to which the revision belongs.
+	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Environment to which the revision deploys.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
 }
@@ -138,13 +138,13 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 		Modules:       in.Modules,
 		DeployerType:  in.DeployerType,
 		Duration:      in.Duration,
-		Application:   ExposeApplication(in.Edges.Application),
+		Instance:      ExposeApplicationInstance(in.Edges.Instance),
 		Environment:   ExposeEnvironment(in.Edges.Environment),
 	}
-	if entity.Application == nil {
-		entity.Application = &ApplicationOutput{}
+	if entity.Instance == nil {
+		entity.Instance = &ApplicationInstanceOutput{}
 	}
-	entity.Application.ID = in.ApplicationID
+	entity.Instance.ID = in.InstanceID
 	if entity.Environment == nil {
 		entity.Environment = &EnvironmentOutput{}
 	}

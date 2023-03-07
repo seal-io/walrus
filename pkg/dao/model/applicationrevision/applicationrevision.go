@@ -24,8 +24,8 @@ const (
 	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
-	// FieldApplicationID holds the string denoting the applicationid field in the database.
-	FieldApplicationID = "application_id"
+	// FieldInstanceID holds the string denoting the instanceid field in the database.
+	FieldInstanceID = "instance_id"
 	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
 	FieldEnvironmentID = "environment_id"
 	// FieldModules holds the string denoting the modules field in the database.
@@ -40,19 +40,19 @@ const (
 	FieldDeployerType = "deployer_type"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
-	// EdgeApplication holds the string denoting the application edge name in mutations.
-	EdgeApplication = "application"
+	// EdgeInstance holds the string denoting the instance edge name in mutations.
+	EdgeInstance = "instance"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
 	EdgeEnvironment = "environment"
 	// Table holds the table name of the applicationrevision in the database.
 	Table = "application_revisions"
-	// ApplicationTable is the table that holds the application relation/edge.
-	ApplicationTable = "application_revisions"
-	// ApplicationInverseTable is the table name for the Application entity.
-	// It exists in this package in order to avoid circular dependency with the "application" package.
-	ApplicationInverseTable = "applications"
-	// ApplicationColumn is the table column denoting the application relation/edge.
-	ApplicationColumn = "application_id"
+	// InstanceTable is the table that holds the instance relation/edge.
+	InstanceTable = "application_revisions"
+	// InstanceInverseTable is the table name for the ApplicationInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationinstance" package.
+	InstanceInverseTable = "application_instances"
+	// InstanceColumn is the table column denoting the instance relation/edge.
+	InstanceColumn = "instance_id"
 	// EnvironmentTable is the table that holds the environment relation/edge.
 	EnvironmentTable = "application_revisions"
 	// EnvironmentInverseTable is the table name for the Environment entity.
@@ -68,7 +68,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldStatusMessage,
 	FieldCreateTime,
-	FieldApplicationID,
+	FieldInstanceID,
 	FieldEnvironmentID,
 	FieldModules,
 	FieldInputVariables,
@@ -97,8 +97,8 @@ var (
 	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
-	// ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
-	ApplicationIDValidator func(string) error
+	// InstanceIDValidator is a validator for the "instanceID" field. It is called by the builders before save.
+	InstanceIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
 	// DefaultModules holds the default value on creation for the "modules" field.

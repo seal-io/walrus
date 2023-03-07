@@ -75,9 +75,9 @@ func (amrc *ApplicationModuleRelationshipCreate) SetName(s string) *ApplicationM
 	return amrc
 }
 
-// SetVariables sets the "variables" field.
-func (amrc *ApplicationModuleRelationshipCreate) SetVariables(m map[string]interface{}) *ApplicationModuleRelationshipCreate {
-	amrc.mutation.SetVariables(m)
+// SetAttributes sets the "attributes" field.
+func (amrc *ApplicationModuleRelationshipCreate) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipCreate {
+	amrc.mutation.SetAttributes(m)
 	return amrc
 }
 
@@ -210,9 +210,9 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 		_spec.SetField(applicationmodulerelationship.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := amrc.mutation.Variables(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldVariables, field.TypeJSON, value)
-		_node.Variables = value
+	if value, ok := amrc.mutation.Attributes(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
+		_node.Attributes = value
 	}
 	if nodes := amrc.mutation.ApplicationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -320,21 +320,21 @@ func (u *ApplicationModuleRelationshipUpsert) UpdateUpdateTime() *ApplicationMod
 	return u
 }
 
-// SetVariables sets the "variables" field.
-func (u *ApplicationModuleRelationshipUpsert) SetVariables(v map[string]interface{}) *ApplicationModuleRelationshipUpsert {
-	u.Set(applicationmodulerelationship.FieldVariables, v)
+// SetAttributes sets the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsert) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsert {
+	u.Set(applicationmodulerelationship.FieldAttributes, v)
 	return u
 }
 
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *ApplicationModuleRelationshipUpsert) UpdateVariables() *ApplicationModuleRelationshipUpsert {
-	u.SetExcluded(applicationmodulerelationship.FieldVariables)
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsert) UpdateAttributes() *ApplicationModuleRelationshipUpsert {
+	u.SetExcluded(applicationmodulerelationship.FieldAttributes)
 	return u
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (u *ApplicationModuleRelationshipUpsert) ClearVariables() *ApplicationModuleRelationshipUpsert {
-	u.SetNull(applicationmodulerelationship.FieldVariables)
+// ClearAttributes clears the value of the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsert) ClearAttributes() *ApplicationModuleRelationshipUpsert {
+	u.SetNull(applicationmodulerelationship.FieldAttributes)
 	return u
 }
 
@@ -406,24 +406,24 @@ func (u *ApplicationModuleRelationshipUpsertOne) UpdateUpdateTime() *Application
 	})
 }
 
-// SetVariables sets the "variables" field.
-func (u *ApplicationModuleRelationshipUpsertOne) SetVariables(v map[string]interface{}) *ApplicationModuleRelationshipUpsertOne {
+// SetAttributes sets the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsertOne) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsertOne {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.SetVariables(v)
+		s.SetAttributes(v)
 	})
 }
 
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *ApplicationModuleRelationshipUpsertOne) UpdateVariables() *ApplicationModuleRelationshipUpsertOne {
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsertOne) UpdateAttributes() *ApplicationModuleRelationshipUpsertOne {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.UpdateVariables()
+		s.UpdateAttributes()
 	})
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (u *ApplicationModuleRelationshipUpsertOne) ClearVariables() *ApplicationModuleRelationshipUpsertOne {
+// ClearAttributes clears the value of the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsertOne) ClearAttributes() *ApplicationModuleRelationshipUpsertOne {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.ClearVariables()
+		s.ClearAttributes()
 	})
 }
 
@@ -634,24 +634,24 @@ func (u *ApplicationModuleRelationshipUpsertBulk) UpdateUpdateTime() *Applicatio
 	})
 }
 
-// SetVariables sets the "variables" field.
-func (u *ApplicationModuleRelationshipUpsertBulk) SetVariables(v map[string]interface{}) *ApplicationModuleRelationshipUpsertBulk {
+// SetAttributes sets the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsertBulk) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsertBulk {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.SetVariables(v)
+		s.SetAttributes(v)
 	})
 }
 
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *ApplicationModuleRelationshipUpsertBulk) UpdateVariables() *ApplicationModuleRelationshipUpsertBulk {
+// UpdateAttributes sets the "attributes" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsertBulk) UpdateAttributes() *ApplicationModuleRelationshipUpsertBulk {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.UpdateVariables()
+		s.UpdateAttributes()
 	})
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (u *ApplicationModuleRelationshipUpsertBulk) ClearVariables() *ApplicationModuleRelationshipUpsertBulk {
+// ClearAttributes clears the value of the "attributes" field.
+func (u *ApplicationModuleRelationshipUpsertBulk) ClearAttributes() *ApplicationModuleRelationshipUpsertBulk {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
-		s.ClearVariables()
+		s.ClearAttributes()
 	})
 }
 

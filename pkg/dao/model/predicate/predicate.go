@@ -15,6 +15,9 @@ type AllocationCost func(*sql.Selector)
 // Application is the predicate function for application builders.
 type Application func(*sql.Selector)
 
+// ApplicationInstance is the predicate function for applicationinstance builders.
+type ApplicationInstance func(*sql.Selector)
+
 // ApplicationModuleRelationship is the predicate function for applicationmodulerelationship builders.
 type ApplicationModuleRelationship func(*sql.Selector)
 

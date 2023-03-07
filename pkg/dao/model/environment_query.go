@@ -16,7 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -28,14 +28,14 @@ import (
 // EnvironmentQuery is the builder for querying Environment entities.
 type EnvironmentQuery struct {
 	config
-	ctx              *QueryContext
-	order            []OrderFunc
-	inters           []Interceptor
-	predicates       []predicate.Environment
-	withConnectors   *EnvironmentConnectorRelationshipQuery
-	withApplications *ApplicationQuery
-	withRevisions    *ApplicationRevisionQuery
-	modifiers        []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []OrderFunc
+	inters         []Interceptor
+	predicates     []predicate.Environment
+	withConnectors *EnvironmentConnectorRelationshipQuery
+	withInstances  *ApplicationInstanceQuery
+	withRevisions  *ApplicationRevisionQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -97,9 +97,9 @@ func (eq *EnvironmentQuery) QueryConnectors() *EnvironmentConnectorRelationshipQ
 	return query
 }
 
-// QueryApplications chains the current query on the "applications" edge.
-func (eq *EnvironmentQuery) QueryApplications() *ApplicationQuery {
-	query := (&ApplicationClient{config: eq.config}).Query()
+// QueryInstances chains the current query on the "instances" edge.
+func (eq *EnvironmentQuery) QueryInstances() *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -110,12 +110,12 @@ func (eq *EnvironmentQuery) QueryApplications() *ApplicationQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ApplicationsTable, environment.ApplicationsColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.InstancesTable, environment.InstancesColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -334,14 +334,14 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		return nil
 	}
 	return &EnvironmentQuery{
-		config:           eq.config,
-		ctx:              eq.ctx.Clone(),
-		order:            append([]OrderFunc{}, eq.order...),
-		inters:           append([]Interceptor{}, eq.inters...),
-		predicates:       append([]predicate.Environment{}, eq.predicates...),
-		withConnectors:   eq.withConnectors.Clone(),
-		withApplications: eq.withApplications.Clone(),
-		withRevisions:    eq.withRevisions.Clone(),
+		config:         eq.config,
+		ctx:            eq.ctx.Clone(),
+		order:          append([]OrderFunc{}, eq.order...),
+		inters:         append([]Interceptor{}, eq.inters...),
+		predicates:     append([]predicate.Environment{}, eq.predicates...),
+		withConnectors: eq.withConnectors.Clone(),
+		withInstances:  eq.withInstances.Clone(),
+		withRevisions:  eq.withRevisions.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
 		path: eq.path,
@@ -359,14 +359,14 @@ func (eq *EnvironmentQuery) WithConnectors(opts ...func(*EnvironmentConnectorRel
 	return eq
 }
 
-// WithApplications tells the query-builder to eager-load the nodes that are connected to
-// the "applications" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithApplications(opts ...func(*ApplicationQuery)) *EnvironmentQuery {
-	query := (&ApplicationClient{config: eq.config}).Query()
+// WithInstances tells the query-builder to eager-load the nodes that are connected to
+// the "instances" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithInstances(opts ...func(*ApplicationInstanceQuery)) *EnvironmentQuery {
+	query := (&ApplicationInstanceClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withApplications = query
+	eq.withInstances = query
 	return eq
 }
 
@@ -461,7 +461,7 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		_spec       = eq.querySpec()
 		loadedTypes = [3]bool{
 			eq.withConnectors != nil,
-			eq.withApplications != nil,
+			eq.withInstances != nil,
 			eq.withRevisions != nil,
 		}
 	)
@@ -497,10 +497,10 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
-	if query := eq.withApplications; query != nil {
-		if err := eq.loadApplications(ctx, query, nodes,
-			func(n *Environment) { n.Edges.Applications = []*Application{} },
-			func(n *Environment, e *Application) { n.Edges.Applications = append(n.Edges.Applications, e) }); err != nil {
+	if query := eq.withInstances; query != nil {
+		if err := eq.loadInstances(ctx, query, nodes,
+			func(n *Environment) { n.Edges.Instances = []*ApplicationInstance{} },
+			func(n *Environment, e *ApplicationInstance) { n.Edges.Instances = append(n.Edges.Instances, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -541,7 +541,7 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadApplications(ctx context.Context, query *ApplicationQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Application)) error {
+func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *ApplicationInstanceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationInstance)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[types.ID]*Environment)
 	for i := range nodes {
@@ -551,8 +551,8 @@ func (eq *EnvironmentQuery) loadApplications(ctx context.Context, query *Applica
 			init(nodes[i])
 		}
 	}
-	query.Where(predicate.Application(func(s *sql.Selector) {
-		s.Where(sql.InValues(environment.ApplicationsColumn, fks...))
+	query.Where(predicate.ApplicationInstance(func(s *sql.Selector) {
+		s.Where(sql.InValues(environment.InstancesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

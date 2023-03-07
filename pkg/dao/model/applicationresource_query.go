@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -26,13 +26,13 @@ import (
 // ApplicationResourceQuery is the builder for querying ApplicationResource entities.
 type ApplicationResourceQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.ApplicationResource
-	withApplication *ApplicationQuery
-	withConnector   *ConnectorQuery
-	modifiers       []func(*sql.Selector)
+	ctx           *QueryContext
+	order         []OrderFunc
+	inters        []Interceptor
+	predicates    []predicate.ApplicationResource
+	withInstance  *ApplicationInstanceQuery
+	withConnector *ConnectorQuery
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -69,9 +69,9 @@ func (arq *ApplicationResourceQuery) Order(o ...OrderFunc) *ApplicationResourceQ
 	return arq
 }
 
-// QueryApplication chains the current query on the "application" edge.
-func (arq *ApplicationResourceQuery) QueryApplication() *ApplicationQuery {
-	query := (&ApplicationClient{config: arq.config}).Query()
+// QueryInstance chains the current query on the "instance" edge.
+func (arq *ApplicationResourceQuery) QueryInstance() *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: arq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := arq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -82,11 +82,11 @@ func (arq *ApplicationResourceQuery) QueryApplication() *ApplicationQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, selector),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.ApplicationTable, applicationresource.ApplicationColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.InstanceTable, applicationresource.InstanceColumn),
 		)
 		schemaConfig := arq.schemaConfig
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -306,27 +306,27 @@ func (arq *ApplicationResourceQuery) Clone() *ApplicationResourceQuery {
 		return nil
 	}
 	return &ApplicationResourceQuery{
-		config:          arq.config,
-		ctx:             arq.ctx.Clone(),
-		order:           append([]OrderFunc{}, arq.order...),
-		inters:          append([]Interceptor{}, arq.inters...),
-		predicates:      append([]predicate.ApplicationResource{}, arq.predicates...),
-		withApplication: arq.withApplication.Clone(),
-		withConnector:   arq.withConnector.Clone(),
+		config:        arq.config,
+		ctx:           arq.ctx.Clone(),
+		order:         append([]OrderFunc{}, arq.order...),
+		inters:        append([]Interceptor{}, arq.inters...),
+		predicates:    append([]predicate.ApplicationResource{}, arq.predicates...),
+		withInstance:  arq.withInstance.Clone(),
+		withConnector: arq.withConnector.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
 	}
 }
 
-// WithApplication tells the query-builder to eager-load the nodes that are connected to
-// the "application" edge. The optional arguments are used to configure the query builder of the edge.
-func (arq *ApplicationResourceQuery) WithApplication(opts ...func(*ApplicationQuery)) *ApplicationResourceQuery {
-	query := (&ApplicationClient{config: arq.config}).Query()
+// WithInstance tells the query-builder to eager-load the nodes that are connected to
+// the "instance" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationResourceQuery) WithInstance(opts ...func(*ApplicationInstanceQuery)) *ApplicationResourceQuery {
+	query := (&ApplicationInstanceClient{config: arq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	arq.withApplication = query
+	arq.withInstance = query
 	return arq
 }
 
@@ -420,7 +420,7 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 		nodes       = []*ApplicationResource{}
 		_spec       = arq.querySpec()
 		loadedTypes = [2]bool{
-			arq.withApplication != nil,
+			arq.withInstance != nil,
 			arq.withConnector != nil,
 		}
 	)
@@ -447,9 +447,9 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := arq.withApplication; query != nil {
-		if err := arq.loadApplication(ctx, query, nodes, nil,
-			func(n *ApplicationResource, e *Application) { n.Edges.Application = e }); err != nil {
+	if query := arq.withInstance; query != nil {
+		if err := arq.loadInstance(ctx, query, nodes, nil,
+			func(n *ApplicationResource, e *ApplicationInstance) { n.Edges.Instance = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -462,11 +462,11 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 	return nodes, nil
 }
 
-func (arq *ApplicationResourceQuery) loadApplication(ctx context.Context, query *ApplicationQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *Application)) error {
+func (arq *ApplicationResourceQuery) loadInstance(ctx context.Context, query *ApplicationInstanceQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *ApplicationInstance)) error {
 	ids := make([]types.ID, 0, len(nodes))
 	nodeids := make(map[types.ID][]*ApplicationResource)
 	for i := range nodes {
-		fk := nodes[i].ApplicationID
+		fk := nodes[i].InstanceID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -475,7 +475,7 @@ func (arq *ApplicationResourceQuery) loadApplication(ctx context.Context, query 
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(application.IDIn(ids...))
+	query.Where(applicationinstance.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -483,7 +483,7 @@ func (arq *ApplicationResourceQuery) loadApplication(ctx context.Context, query 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "instanceID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

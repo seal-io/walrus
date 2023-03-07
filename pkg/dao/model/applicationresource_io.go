@@ -38,10 +38,10 @@ type ApplicationResourceCreateInput struct {
 	Type string `json:"type"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name"`
-	// Type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType"`
-	// Application to which the resource belongs.
-	Application ApplicationQueryInput `json:"application"`
+	// Application instance to which the resource belongs.
+	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Connector to which the resource deploys.
 	Connector ConnectorQueryInput `json:"connector"`
 }
@@ -57,7 +57,7 @@ func (in ApplicationResourceCreateInput) Model() *ApplicationResource {
 		Name:          in.Name,
 		DeployerType:  in.DeployerType,
 	}
-	entity.ApplicationID = in.Application.ID
+	entity.InstanceID = in.Instance.ID
 	entity.ConnectorID = in.Connector.ID
 	return entity
 }
@@ -102,10 +102,10 @@ type ApplicationResourceOutput struct {
 	Type string `json:"type,omitempty"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name,omitempty"`
-	// Type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
-	// Application to which the resource belongs.
-	Application *ApplicationOutput `json:"application,omitempty"`
+	// Application instance to which the resource belongs.
+	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Connector to which the resource deploys.
 	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
@@ -126,13 +126,13 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		Type:          in.Type,
 		Name:          in.Name,
 		DeployerType:  in.DeployerType,
-		Application:   ExposeApplication(in.Edges.Application),
+		Instance:      ExposeApplicationInstance(in.Edges.Instance),
 		Connector:     ExposeConnector(in.Edges.Connector),
 	}
-	if entity.Application == nil {
-		entity.Application = &ApplicationOutput{}
+	if entity.Instance == nil {
+		entity.Instance = &ApplicationInstanceOutput{}
 	}
-	entity.Application.ID = in.ApplicationID
+	entity.Instance.ID = in.InstanceID
 	if entity.Connector == nil {
 		entity.Connector = &ConnectorOutput{}
 	}

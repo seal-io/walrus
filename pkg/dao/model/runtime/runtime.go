@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
@@ -155,10 +156,35 @@ func init() {
 	applicationDescProjectID := applicationFields[0].Descriptor()
 	// application.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
 	application.ProjectIDValidator = applicationDescProjectID.Validators[0].(func(string) error)
-	// applicationDescEnvironmentID is the schema descriptor for environmentID field.
-	applicationDescEnvironmentID := applicationFields[1].Descriptor()
-	// application.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
-	application.EnvironmentIDValidator = applicationDescEnvironmentID.Validators[0].(func(string) error)
+	applicationinstanceMixin := schema.ApplicationInstance{}.Mixin()
+	applicationinstanceMixinHooks0 := applicationinstanceMixin[0].Hooks()
+	applicationinstance.Hooks[0] = applicationinstanceMixinHooks0[0]
+	applicationinstanceMixinFields2 := applicationinstanceMixin[2].Fields()
+	_ = applicationinstanceMixinFields2
+	applicationinstanceFields := schema.ApplicationInstance{}.Fields()
+	_ = applicationinstanceFields
+	// applicationinstanceDescCreateTime is the schema descriptor for createTime field.
+	applicationinstanceDescCreateTime := applicationinstanceMixinFields2[0].Descriptor()
+	// applicationinstance.DefaultCreateTime holds the default value on creation for the createTime field.
+	applicationinstance.DefaultCreateTime = applicationinstanceDescCreateTime.Default.(func() time.Time)
+	// applicationinstanceDescUpdateTime is the schema descriptor for updateTime field.
+	applicationinstanceDescUpdateTime := applicationinstanceMixinFields2[1].Descriptor()
+	// applicationinstance.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	applicationinstance.DefaultUpdateTime = applicationinstanceDescUpdateTime.Default.(func() time.Time)
+	// applicationinstance.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	applicationinstance.UpdateDefaultUpdateTime = applicationinstanceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// applicationinstanceDescApplicationID is the schema descriptor for applicationID field.
+	applicationinstanceDescApplicationID := applicationinstanceFields[0].Descriptor()
+	// applicationinstance.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
+	applicationinstance.ApplicationIDValidator = applicationinstanceDescApplicationID.Validators[0].(func(string) error)
+	// applicationinstanceDescEnvironmentID is the schema descriptor for environmentID field.
+	applicationinstanceDescEnvironmentID := applicationinstanceFields[1].Descriptor()
+	// applicationinstance.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
+	applicationinstance.EnvironmentIDValidator = applicationinstanceDescEnvironmentID.Validators[0].(func(string) error)
+	// applicationinstanceDescName is the schema descriptor for name field.
+	applicationinstanceDescName := applicationinstanceFields[2].Descriptor()
+	// applicationinstance.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	applicationinstance.NameValidator = applicationinstanceDescName.Validators[0].(func(string) error)
 	applicationmodulerelationshipMixin := schema.ApplicationModuleRelationship{}.Mixin()
 	applicationmodulerelationshipMixinFields0 := applicationmodulerelationshipMixin[0].Fields()
 	_ = applicationmodulerelationshipMixinFields0
@@ -203,10 +229,10 @@ func init() {
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	applicationresource.UpdateDefaultUpdateTime = applicationresourceDescUpdateTime.UpdateDefault.(func() time.Time)
-	// applicationresourceDescApplicationID is the schema descriptor for applicationID field.
-	applicationresourceDescApplicationID := applicationresourceFields[0].Descriptor()
-	// applicationresource.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
-	applicationresource.ApplicationIDValidator = applicationresourceDescApplicationID.Validators[0].(func(string) error)
+	// applicationresourceDescInstanceID is the schema descriptor for instanceID field.
+	applicationresourceDescInstanceID := applicationresourceFields[0].Descriptor()
+	// applicationresource.InstanceIDValidator is a validator for the "instanceID" field. It is called by the builders before save.
+	applicationresource.InstanceIDValidator = applicationresourceDescInstanceID.Validators[0].(func(string) error)
 	// applicationresourceDescConnectorID is the schema descriptor for connectorID field.
 	applicationresourceDescConnectorID := applicationresourceFields[1].Descriptor()
 	// applicationresource.ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
@@ -242,10 +268,10 @@ func init() {
 	applicationrevisionDescCreateTime := applicationrevisionMixinFields2[0].Descriptor()
 	// applicationrevision.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationrevision.DefaultCreateTime = applicationrevisionDescCreateTime.Default.(func() time.Time)
-	// applicationrevisionDescApplicationID is the schema descriptor for applicationID field.
-	applicationrevisionDescApplicationID := applicationrevisionFields[0].Descriptor()
-	// applicationrevision.ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
-	applicationrevision.ApplicationIDValidator = applicationrevisionDescApplicationID.Validators[0].(func(string) error)
+	// applicationrevisionDescInstanceID is the schema descriptor for instanceID field.
+	applicationrevisionDescInstanceID := applicationrevisionFields[0].Descriptor()
+	// applicationrevision.InstanceIDValidator is a validator for the "instanceID" field. It is called by the builders before save.
+	applicationrevision.InstanceIDValidator = applicationrevisionDescInstanceID.Validators[0].(func(string) error)
 	// applicationrevisionDescEnvironmentID is the schema descriptor for environmentID field.
 	applicationrevisionDescEnvironmentID := applicationrevisionFields[1].Descriptor()
 	// applicationrevision.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.

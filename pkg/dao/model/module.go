@@ -39,7 +39,7 @@ type Module struct {
 	Source string `json:"source,omitempty"`
 	// Version of the module.
 	Version string `json:"version,omitempty"`
-	// Schema of the module
+	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleQuery when eager-loading is set.

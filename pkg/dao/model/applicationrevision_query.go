@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -30,7 +30,7 @@ type ApplicationRevisionQuery struct {
 	order           []OrderFunc
 	inters          []Interceptor
 	predicates      []predicate.ApplicationRevision
-	withApplication *ApplicationQuery
+	withInstance    *ApplicationInstanceQuery
 	withEnvironment *EnvironmentQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -69,9 +69,9 @@ func (arq *ApplicationRevisionQuery) Order(o ...OrderFunc) *ApplicationRevisionQ
 	return arq
 }
 
-// QueryApplication chains the current query on the "application" edge.
-func (arq *ApplicationRevisionQuery) QueryApplication() *ApplicationQuery {
-	query := (&ApplicationClient{config: arq.config}).Query()
+// QueryInstance chains the current query on the "instance" edge.
+func (arq *ApplicationRevisionQuery) QueryInstance() *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: arq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := arq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -82,11 +82,11 @@ func (arq *ApplicationRevisionQuery) QueryApplication() *ApplicationQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, selector),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.ApplicationTable, applicationrevision.ApplicationColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.InstanceTable, applicationrevision.InstanceColumn),
 		)
 		schemaConfig := arq.schemaConfig
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationRevision
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -311,7 +311,7 @@ func (arq *ApplicationRevisionQuery) Clone() *ApplicationRevisionQuery {
 		order:           append([]OrderFunc{}, arq.order...),
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.ApplicationRevision{}, arq.predicates...),
-		withApplication: arq.withApplication.Clone(),
+		withInstance:    arq.withInstance.Clone(),
 		withEnvironment: arq.withEnvironment.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
@@ -319,14 +319,14 @@ func (arq *ApplicationRevisionQuery) Clone() *ApplicationRevisionQuery {
 	}
 }
 
-// WithApplication tells the query-builder to eager-load the nodes that are connected to
-// the "application" edge. The optional arguments are used to configure the query builder of the edge.
-func (arq *ApplicationRevisionQuery) WithApplication(opts ...func(*ApplicationQuery)) *ApplicationRevisionQuery {
-	query := (&ApplicationClient{config: arq.config}).Query()
+// WithInstance tells the query-builder to eager-load the nodes that are connected to
+// the "instance" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationRevisionQuery) WithInstance(opts ...func(*ApplicationInstanceQuery)) *ApplicationRevisionQuery {
+	query := (&ApplicationInstanceClient{config: arq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	arq.withApplication = query
+	arq.withInstance = query
 	return arq
 }
 
@@ -420,7 +420,7 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 		nodes       = []*ApplicationRevision{}
 		_spec       = arq.querySpec()
 		loadedTypes = [2]bool{
-			arq.withApplication != nil,
+			arq.withInstance != nil,
 			arq.withEnvironment != nil,
 		}
 	)
@@ -447,9 +447,9 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := arq.withApplication; query != nil {
-		if err := arq.loadApplication(ctx, query, nodes, nil,
-			func(n *ApplicationRevision, e *Application) { n.Edges.Application = e }); err != nil {
+	if query := arq.withInstance; query != nil {
+		if err := arq.loadInstance(ctx, query, nodes, nil,
+			func(n *ApplicationRevision, e *ApplicationInstance) { n.Edges.Instance = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -462,11 +462,11 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 	return nodes, nil
 }
 
-func (arq *ApplicationRevisionQuery) loadApplication(ctx context.Context, query *ApplicationQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *Application)) error {
+func (arq *ApplicationRevisionQuery) loadInstance(ctx context.Context, query *ApplicationInstanceQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *ApplicationInstance)) error {
 	ids := make([]types.ID, 0, len(nodes))
 	nodeids := make(map[types.ID][]*ApplicationRevision)
 	for i := range nodes {
-		fk := nodes[i].ApplicationID
+		fk := nodes[i].InstanceID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -475,7 +475,7 @@ func (arq *ApplicationRevisionQuery) loadApplication(ctx context.Context, query 
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(application.IDIn(ids...))
+	query.Where(applicationinstance.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -483,7 +483,7 @@ func (arq *ApplicationRevisionQuery) loadApplication(ctx context.Context, query 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "instanceID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

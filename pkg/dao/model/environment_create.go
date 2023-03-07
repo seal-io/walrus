@@ -16,7 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -84,31 +84,25 @@ func (ec *EnvironmentCreate) SetNillableUpdateTime(t *time.Time) *EnvironmentCre
 	return ec
 }
 
-// SetVariables sets the "variables" field.
-func (ec *EnvironmentCreate) SetVariables(m map[string]interface{}) *EnvironmentCreate {
-	ec.mutation.SetVariables(m)
-	return ec
-}
-
 // SetID sets the "id" field.
 func (ec *EnvironmentCreate) SetID(t types.ID) *EnvironmentCreate {
 	ec.mutation.SetID(t)
 	return ec
 }
 
-// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (ec *EnvironmentCreate) AddApplicationIDs(ids ...types.ID) *EnvironmentCreate {
-	ec.mutation.AddApplicationIDs(ids...)
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (ec *EnvironmentCreate) AddInstanceIDs(ids ...types.ID) *EnvironmentCreate {
+	ec.mutation.AddInstanceIDs(ids...)
 	return ec
 }
 
-// AddApplications adds the "applications" edges to the Application entity.
-func (ec *EnvironmentCreate) AddApplications(a ...*Application) *EnvironmentCreate {
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (ec *EnvironmentCreate) AddInstances(a ...*ApplicationInstance) *EnvironmentCreate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return ec.AddApplicationIDs(ids...)
+	return ec.AddInstanceIDs(ids...)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
@@ -260,25 +254,21 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := ec.mutation.Variables(); ok {
-		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
-		_node.Variables = value
-	}
-	if nodes := ec.mutation.ApplicationsIDs(); len(nodes) > 0 {
+	if nodes := ec.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = ec.schemaConfig.Application
+		edge.Schema = ec.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -410,24 +400,6 @@ func (u *EnvironmentUpsert) UpdateUpdateTime() *EnvironmentUpsert {
 	return u
 }
 
-// SetVariables sets the "variables" field.
-func (u *EnvironmentUpsert) SetVariables(v map[string]interface{}) *EnvironmentUpsert {
-	u.Set(environment.FieldVariables, v)
-	return u
-}
-
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *EnvironmentUpsert) UpdateVariables() *EnvironmentUpsert {
-	u.SetExcluded(environment.FieldVariables)
-	return u
-}
-
-// ClearVariables clears the value of the "variables" field.
-func (u *EnvironmentUpsert) ClearVariables() *EnvironmentUpsert {
-	u.SetNull(environment.FieldVariables)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -539,27 +511,6 @@ func (u *EnvironmentUpsertOne) SetUpdateTime(v time.Time) *EnvironmentUpsertOne 
 func (u *EnvironmentUpsertOne) UpdateUpdateTime() *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetVariables sets the "variables" field.
-func (u *EnvironmentUpsertOne) SetVariables(v map[string]interface{}) *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetVariables(v)
-	})
-}
-
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *EnvironmentUpsertOne) UpdateVariables() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateVariables()
-	})
-}
-
-// ClearVariables clears the value of the "variables" field.
-func (u *EnvironmentUpsertOne) ClearVariables() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearVariables()
 	})
 }
 
@@ -837,27 +788,6 @@ func (u *EnvironmentUpsertBulk) SetUpdateTime(v time.Time) *EnvironmentUpsertBul
 func (u *EnvironmentUpsertBulk) UpdateUpdateTime() *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetVariables sets the "variables" field.
-func (u *EnvironmentUpsertBulk) SetVariables(v map[string]interface{}) *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetVariables(v)
-	})
-}
-
-// UpdateVariables sets the "variables" field to the value that was provided on create.
-func (u *EnvironmentUpsertBulk) UpdateVariables() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateVariables()
-	})
-}
-
-// ClearVariables clears the value of the "variables" field.
-func (u *EnvironmentUpsertBulk) ClearVariables() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.ClearVariables()
 	})
 }
 

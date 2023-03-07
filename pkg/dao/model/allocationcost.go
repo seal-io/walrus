@@ -23,63 +23,63 @@ type AllocationCost struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Usage start time for current cost
+	// Usage start time for current cost.
 	StartTime time.Time `json:"startTime,omitempty"`
-	// Usage end time for current cost
+	// Usage end time for current cost.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Usage minutes from start time to end time
+	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
-	// ID of the connector
+	// ID of the connector.
 	ConnectorID types.ID `json:"connectorID,omitempty"`
-	// Resource name for current cost, could be __unmounted__
+	// Resource name for current cost, could be __unmounted__.
 	Name string `json:"name,omitempty"`
-	// String generated from resource properties, used to identify this cost
+	// String generated from resource properties, used to identify this cost.
 	Fingerprint string `json:"fingerprint,omitempty"`
-	// Cluster name for current cost
+	// Cluster name for current cost.
 	ClusterName string `json:"clusterName,omitempty"`
-	// Namespace for current cost
+	// Namespace for current cost.
 	Namespace string `json:"namespace,omitempty"`
-	// Node for current cost
+	// Node for current cost.
 	Node string `json:"node,omitempty"`
-	// Controller name for the cost linked resource
+	// Controller name for the cost linked resource.
 	Controller string `json:"controller,omitempty"`
 	// Controller kind for the cost linked resource, deployment, statefulSet etc.
 	ControllerKind string `json:"controllerKind,omitempty"`
-	// Pod name for current cost
+	// Pod name for current cost.
 	Pod string `json:"pod,omitempty"`
-	// Container name for current cost
+	// Container name for current cost.
 	Container string `json:"container,omitempty"`
-	// PV list for current cost linked
+	// PV list for current cost linked.
 	Pvs map[string]types.PVCost `json:"pvs,omitempty"`
-	// Labels for the cost linked resource
+	// Labels for the cost linked resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Cost number
+	// Cost number.
 	TotalCost float64 `json:"totalCost,omitempty"`
-	// Cost currency
+	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// Cpu cost for current cost
+	// Cpu cost for current cost.
 	CpuCost float64 `json:"cpuCost,omitempty"`
-	// Cpu core requested
+	// Cpu core requested.
 	CpuCoreRequest float64 `json:"cpuCoreRequest,omitempty"`
-	// GPU cost for current cost
+	// GPU cost for current cost.
 	GpuCost float64 `json:"gpuCost,omitempty"`
-	// GPU core count
+	// GPU core count.
 	GpuCount float64 `json:"gpuCount,omitempty"`
-	// Ram cost for current cost
+	// Ram cost for current cost.
 	RamCost float64 `json:"ramCost,omitempty"`
-	// Ram requested in byte
+	// Ram requested in byte.
 	RamByteRequest float64 `json:"ramByteRequest,omitempty"`
-	// PV cost for current cost linked
+	// PV cost for current cost linked.
 	PvCost float64 `json:"pvCost,omitempty"`
-	// PV bytes for current cost linked
+	// PV bytes for current cost linked.
 	PvBytes float64 `json:"pvBytes,omitempty"`
-	// CPU core average usage
+	// CPU core average usage.
 	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
-	// CPU core max usage
+	// CPU core max usage.
 	CpuCoreUsageMax float64 `json:"cpuCoreUsageMax,omitempty"`
-	// Ram average usage in byte
+	// Ram average usage in byte.
 	RamByteUsageAverage float64 `json:"ramByteUsageAverage,omitempty"`
-	// Ram max usage in byte
+	// Ram max usage in byte.
 	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AllocationCostQuery when eager-loading is set.
@@ -88,7 +88,7 @@ type AllocationCost struct {
 
 // AllocationCostEdges holds the relations/edges for other nodes in the graph.
 type AllocationCostEdges struct {
-	// Connector current cost linked
+	// Connector current cost linked.
 	Connector *Connector `json:"connector,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

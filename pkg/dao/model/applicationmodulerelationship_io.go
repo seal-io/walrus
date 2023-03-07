@@ -34,8 +34,8 @@ func (in ApplicationModuleRelationshipQueryInput) Model() *ApplicationModuleRela
 type ApplicationModuleRelationshipCreateInput struct {
 	// Name of the module customized to the application.
 	Name string `json:"name"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	// Attributes to configure the module.
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application ApplicationQueryInput `json:"application"`
 	// Modules that connect to the relationship.
@@ -45,8 +45,8 @@ type ApplicationModuleRelationshipCreateInput struct {
 // Model converts the ApplicationModuleRelationshipCreateInput to ApplicationModuleRelationship.
 func (in ApplicationModuleRelationshipCreateInput) Model() *ApplicationModuleRelationship {
 	var entity = &ApplicationModuleRelationship{
-		Name:      in.Name,
-		Variables: in.Variables,
+		Name:       in.Name,
+		Attributes: in.Attributes,
 	}
 	entity.ApplicationID = in.Application.ID
 	entity.ModuleID = in.Module.ID
@@ -57,8 +57,8 @@ func (in ApplicationModuleRelationshipCreateInput) Model() *ApplicationModuleRel
 type ApplicationModuleRelationshipUpdateInput struct {
 	// Name of the module customized to the application.
 	Name string `json:"name"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	// Attributes to configure the module.
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application ApplicationQueryInput `json:"application,omitempty"`
 	// Modules that connect to the relationship.
@@ -68,8 +68,8 @@ type ApplicationModuleRelationshipUpdateInput struct {
 // Model converts the ApplicationModuleRelationshipUpdateInput to ApplicationModuleRelationship.
 func (in ApplicationModuleRelationshipUpdateInput) Model() *ApplicationModuleRelationship {
 	var entity = &ApplicationModuleRelationship{
-		Name:      in.Name,
-		Variables: in.Variables,
+		Name:       in.Name,
+		Attributes: in.Attributes,
 	}
 	entity.ApplicationID = in.Application.ID
 	entity.ModuleID = in.Module.ID
@@ -84,8 +84,8 @@ type ApplicationModuleRelationshipOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	// Attributes to configure the module.
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Modules that connect to the relationship.
@@ -101,7 +101,7 @@ func ExposeApplicationModuleRelationship(in *ApplicationModuleRelationship) *App
 		Name:        in.Name,
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
-		Variables:   in.Variables,
+		Attributes:  in.Attributes,
 		Application: ExposeApplication(in.Edges.Application),
 		Module:      ExposeModule(in.Edges.Module),
 	}

@@ -12,7 +12,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -31,8 +31,8 @@ type ApplicationResource struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// ID of the application to which the resource belongs.
-	ApplicationID types.ID `json:"applicationID,omitempty"`
+	// ID of the application instance to which the resource belongs.
+	InstanceID types.ID `json:"instanceID,omitempty"`
 	// ID of the connector to which the resource deploys.
 	ConnectorID types.ID `json:"connectorID,omitempty"`
 	// Name of the module that generates the resource.
@@ -43,7 +43,7 @@ type ApplicationResource struct {
 	Type string `json:"type,omitempty"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
 	Name string `json:"name,omitempty"`
-	// Type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
@@ -52,8 +52,8 @@ type ApplicationResource struct {
 
 // ApplicationResourceEdges holds the relations/edges for other nodes in the graph.
 type ApplicationResourceEdges struct {
-	// Application to which the resource belongs.
-	Application *Application `json:"application,omitempty"`
+	// Application instance to which the resource belongs.
+	Instance *ApplicationInstance `json:"instance,omitempty"`
 	// Connector to which the resource deploys.
 	Connector *Connector `json:"connector,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -61,17 +61,17 @@ type ApplicationResourceEdges struct {
 	loadedTypes [2]bool
 }
 
-// ApplicationOrErr returns the Application value or an error if the edge
+// InstanceOrErr returns the Instance value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ApplicationResourceEdges) ApplicationOrErr() (*Application, error) {
+func (e ApplicationResourceEdges) InstanceOrErr() (*ApplicationInstance, error) {
 	if e.loadedTypes[0] {
-		if e.Application == nil {
+		if e.Instance == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: application.Label}
+			return nil, &NotFoundError{label: applicationinstance.Label}
 		}
-		return e.Application, nil
+		return e.Instance, nil
 	}
-	return nil, &NotLoadedError{edge: "application"}
+	return nil, &NotLoadedError{edge: "instance"}
 }
 
 // ConnectorOrErr returns the Connector value or an error if the edge
@@ -96,7 +96,7 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case applicationresource.FieldCreateTime, applicationresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case applicationresource.FieldID, applicationresource.FieldApplicationID, applicationresource.FieldConnectorID:
+		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID:
 			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationResource", columns[i])
@@ -145,11 +145,11 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				ar.UpdateTime = new(time.Time)
 				*ar.UpdateTime = value.Time
 			}
-		case applicationresource.FieldApplicationID:
+		case applicationresource.FieldInstanceID:
 			if value, ok := values[i].(*types.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field applicationID", values[i])
+				return fmt.Errorf("unexpected type %T for field instanceID", values[i])
 			} else if value != nil {
-				ar.ApplicationID = *value
+				ar.InstanceID = *value
 			}
 		case applicationresource.FieldConnectorID:
 			if value, ok := values[i].(*types.ID); !ok {
@@ -192,9 +192,9 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 	return nil
 }
 
-// QueryApplication queries the "application" edge of the ApplicationResource entity.
-func (ar *ApplicationResource) QueryApplication() *ApplicationQuery {
-	return NewApplicationResourceClient(ar.config).QueryApplication(ar)
+// QueryInstance queries the "instance" edge of the ApplicationResource entity.
+func (ar *ApplicationResource) QueryInstance() *ApplicationInstanceQuery {
+	return NewApplicationResourceClient(ar.config).QueryInstance(ar)
 }
 
 // QueryConnector queries the "connector" edge of the ApplicationResource entity.
@@ -241,8 +241,8 @@ func (ar *ApplicationResource) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("applicationID=")
-	builder.WriteString(fmt.Sprintf("%v", ar.ApplicationID))
+	builder.WriteString("instanceID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.InstanceID))
 	builder.WriteString(", ")
 	builder.WriteString("connectorID=")
 	builder.WriteString(fmt.Sprintf("%v", ar.ConnectorID))

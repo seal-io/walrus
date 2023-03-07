@@ -32,8 +32,8 @@ type ApplicationModuleRelationship struct {
 	ModuleID string `json:"moduleID"`
 	// Name of the module customized to the application.
 	Name string `json:"name,omitempty"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	// Attributes to configure the module.
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationModuleRelationshipQuery when eager-loading is set.
 	Edges ApplicationModuleRelationshipEdges `json:"edges,omitempty"`
@@ -81,7 +81,7 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationmodulerelationship.FieldVariables:
+		case applicationmodulerelationship.FieldAttributes:
 			values[i] = new([]byte)
 		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldName:
 			values[i] = new(sql.NullString)
@@ -136,12 +136,12 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 			} else if value.Valid {
 				amr.Name = value.String
 			}
-		case applicationmodulerelationship.FieldVariables:
+		case applicationmodulerelationship.FieldAttributes:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field variables", values[i])
+				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &amr.Variables); err != nil {
-					return fmt.Errorf("unmarshal field variables: %w", err)
+				if err := json.Unmarshal(*value, &amr.Attributes); err != nil {
+					return fmt.Errorf("unmarshal field attributes: %w", err)
 				}
 			}
 		}
@@ -200,8 +200,8 @@ func (amr *ApplicationModuleRelationship) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(amr.Name)
 	builder.WriteString(", ")
-	builder.WriteString("variables=")
-	builder.WriteString(fmt.Sprintf("%v", amr.Variables))
+	builder.WriteString("attributes=")
+	builder.WriteString(fmt.Sprintf("%v", amr.Attributes))
 	builder.WriteByte(')')
 	return builder.String()
 }

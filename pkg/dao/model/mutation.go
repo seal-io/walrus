@@ -14,6 +14,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
@@ -47,6 +48,7 @@ const (
 	// Node types.
 	TypeAllocationCost                   = "AllocationCost"
 	TypeApplication                      = "Application"
+	TypeApplicationInstance              = "ApplicationInstance"
 	TypeApplicationModuleRelationship    = "ApplicationModuleRelationship"
 	TypeApplicationResource              = "ApplicationResource"
 	TypeApplicationRevision              = "ApplicationRevision"
@@ -2611,28 +2613,25 @@ func (m *AllocationCostMutation) ResetEdge(name string) error {
 // ApplicationMutation represents an operation that mutates the Application nodes in the graph.
 type ApplicationMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *types.ID
-	name               *string
-	description        *string
-	labels             *map[string]string
-	createTime         *time.Time
-	updateTime         *time.Time
-	clearedFields      map[string]struct{}
-	project            *types.ID
-	clearedproject     bool
-	environment        *types.ID
-	clearedenvironment bool
-	resources          map[types.ID]struct{}
-	removedresources   map[types.ID]struct{}
-	clearedresources   bool
-	revisions          map[types.ID]struct{}
-	removedrevisions   map[types.ID]struct{}
-	clearedrevisions   bool
-	done               bool
-	oldValue           func(context.Context) (*Application, error)
-	predicates         []predicate.Application
+	op               Op
+	typ              string
+	id               *types.ID
+	name             *string
+	description      *string
+	labels           *map[string]string
+	createTime       *time.Time
+	updateTime       *time.Time
+	variables        *[]types.ApplicationVariable
+	appendvariables  []types.ApplicationVariable
+	clearedFields    map[string]struct{}
+	project          *types.ID
+	clearedproject   bool
+	instances        map[types.ID]struct{}
+	removedinstances map[types.ID]struct{}
+	clearedinstances bool
+	done             bool
+	oldValue         func(context.Context) (*Application, error)
+	predicates       []predicate.Application
 }
 
 var _ ent.Mutation = (*ApplicationMutation)(nil)
@@ -2968,40 +2967,69 @@ func (m *ApplicationMutation) ResetProjectID() {
 	m.project = nil
 }
 
-// SetEnvironmentID sets the "environmentID" field.
-func (m *ApplicationMutation) SetEnvironmentID(t types.ID) {
-	m.environment = &t
+// SetVariables sets the "variables" field.
+func (m *ApplicationMutation) SetVariables(tv []types.ApplicationVariable) {
+	m.variables = &tv
+	m.appendvariables = nil
 }
 
-// EnvironmentID returns the value of the "environmentID" field in the mutation.
-func (m *ApplicationMutation) EnvironmentID() (r types.ID, exists bool) {
-	v := m.environment
+// Variables returns the value of the "variables" field in the mutation.
+func (m *ApplicationMutation) Variables() (r []types.ApplicationVariable, exists bool) {
+	v := m.variables
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEnvironmentID returns the old "environmentID" field's value of the Application entity.
+// OldVariables returns the old "variables" field's value of the Application entity.
 // If the Application object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationMutation) OldEnvironmentID(ctx context.Context) (v types.ID, err error) {
+func (m *ApplicationMutation) OldVariables(ctx context.Context) (v []types.ApplicationVariable, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
+		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
+		return v, errors.New("OldVariables requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
+		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
 	}
-	return oldValue.EnvironmentID, nil
+	return oldValue.Variables, nil
 }
 
-// ResetEnvironmentID resets all changes to the "environmentID" field.
-func (m *ApplicationMutation) ResetEnvironmentID() {
-	m.environment = nil
+// AppendVariables adds tv to the "variables" field.
+func (m *ApplicationMutation) AppendVariables(tv []types.ApplicationVariable) {
+	m.appendvariables = append(m.appendvariables, tv...)
+}
+
+// AppendedVariables returns the list of values that were appended to the "variables" field in this mutation.
+func (m *ApplicationMutation) AppendedVariables() ([]types.ApplicationVariable, bool) {
+	if len(m.appendvariables) == 0 {
+		return nil, false
+	}
+	return m.appendvariables, true
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (m *ApplicationMutation) ClearVariables() {
+	m.variables = nil
+	m.appendvariables = nil
+	m.clearedFields[application.FieldVariables] = struct{}{}
+}
+
+// VariablesCleared returns if the "variables" field was cleared in this mutation.
+func (m *ApplicationMutation) VariablesCleared() bool {
+	_, ok := m.clearedFields[application.FieldVariables]
+	return ok
+}
+
+// ResetVariables resets all changes to the "variables" field.
+func (m *ApplicationMutation) ResetVariables() {
+	m.variables = nil
+	m.appendvariables = nil
+	delete(m.clearedFields, application.FieldVariables)
 }
 
 // ClearProject clears the "project" edge to the Project entity.
@@ -3030,138 +3058,58 @@ func (m *ApplicationMutation) ResetProject() {
 	m.clearedproject = false
 }
 
-// ClearEnvironment clears the "environment" edge to the Environment entity.
-func (m *ApplicationMutation) ClearEnvironment() {
-	m.clearedenvironment = true
-}
-
-// EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
-func (m *ApplicationMutation) EnvironmentCleared() bool {
-	return m.clearedenvironment
-}
-
-// EnvironmentIDs returns the "environment" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *ApplicationMutation) EnvironmentIDs() (ids []types.ID) {
-	if id := m.environment; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetEnvironment resets all changes to the "environment" edge.
-func (m *ApplicationMutation) ResetEnvironment() {
-	m.environment = nil
-	m.clearedenvironment = false
-}
-
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by ids.
-func (m *ApplicationMutation) AddResourceIDs(ids ...types.ID) {
-	if m.resources == nil {
-		m.resources = make(map[types.ID]struct{})
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by ids.
+func (m *ApplicationMutation) AddInstanceIDs(ids ...types.ID) {
+	if m.instances == nil {
+		m.instances = make(map[types.ID]struct{})
 	}
 	for i := range ids {
-		m.resources[ids[i]] = struct{}{}
+		m.instances[ids[i]] = struct{}{}
 	}
 }
 
-// ClearResources clears the "resources" edge to the ApplicationResource entity.
-func (m *ApplicationMutation) ClearResources() {
-	m.clearedresources = true
+// ClearInstances clears the "instances" edge to the ApplicationInstance entity.
+func (m *ApplicationMutation) ClearInstances() {
+	m.clearedinstances = true
 }
 
-// ResourcesCleared reports if the "resources" edge to the ApplicationResource entity was cleared.
-func (m *ApplicationMutation) ResourcesCleared() bool {
-	return m.clearedresources
+// InstancesCleared reports if the "instances" edge to the ApplicationInstance entity was cleared.
+func (m *ApplicationMutation) InstancesCleared() bool {
+	return m.clearedinstances
 }
 
-// RemoveResourceIDs removes the "resources" edge to the ApplicationResource entity by IDs.
-func (m *ApplicationMutation) RemoveResourceIDs(ids ...types.ID) {
-	if m.removedresources == nil {
-		m.removedresources = make(map[types.ID]struct{})
+// RemoveInstanceIDs removes the "instances" edge to the ApplicationInstance entity by IDs.
+func (m *ApplicationMutation) RemoveInstanceIDs(ids ...types.ID) {
+	if m.removedinstances == nil {
+		m.removedinstances = make(map[types.ID]struct{})
 	}
 	for i := range ids {
-		delete(m.resources, ids[i])
-		m.removedresources[ids[i]] = struct{}{}
+		delete(m.instances, ids[i])
+		m.removedinstances[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedResources returns the removed IDs of the "resources" edge to the ApplicationResource entity.
-func (m *ApplicationMutation) RemovedResourcesIDs() (ids []types.ID) {
-	for id := range m.removedresources {
+// RemovedInstances returns the removed IDs of the "instances" edge to the ApplicationInstance entity.
+func (m *ApplicationMutation) RemovedInstancesIDs() (ids []types.ID) {
+	for id := range m.removedinstances {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResourcesIDs returns the "resources" edge IDs in the mutation.
-func (m *ApplicationMutation) ResourcesIDs() (ids []types.ID) {
-	for id := range m.resources {
+// InstancesIDs returns the "instances" edge IDs in the mutation.
+func (m *ApplicationMutation) InstancesIDs() (ids []types.ID) {
+	for id := range m.instances {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetResources resets all changes to the "resources" edge.
-func (m *ApplicationMutation) ResetResources() {
-	m.resources = nil
-	m.clearedresources = false
-	m.removedresources = nil
-}
-
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by ids.
-func (m *ApplicationMutation) AddRevisionIDs(ids ...types.ID) {
-	if m.revisions == nil {
-		m.revisions = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		m.revisions[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRevisions clears the "revisions" edge to the ApplicationRevision entity.
-func (m *ApplicationMutation) ClearRevisions() {
-	m.clearedrevisions = true
-}
-
-// RevisionsCleared reports if the "revisions" edge to the ApplicationRevision entity was cleared.
-func (m *ApplicationMutation) RevisionsCleared() bool {
-	return m.clearedrevisions
-}
-
-// RemoveRevisionIDs removes the "revisions" edge to the ApplicationRevision entity by IDs.
-func (m *ApplicationMutation) RemoveRevisionIDs(ids ...types.ID) {
-	if m.removedrevisions == nil {
-		m.removedrevisions = make(map[types.ID]struct{})
-	}
-	for i := range ids {
-		delete(m.revisions, ids[i])
-		m.removedrevisions[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRevisions returns the removed IDs of the "revisions" edge to the ApplicationRevision entity.
-func (m *ApplicationMutation) RemovedRevisionsIDs() (ids []types.ID) {
-	for id := range m.removedrevisions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RevisionsIDs returns the "revisions" edge IDs in the mutation.
-func (m *ApplicationMutation) RevisionsIDs() (ids []types.ID) {
-	for id := range m.revisions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRevisions resets all changes to the "revisions" edge.
-func (m *ApplicationMutation) ResetRevisions() {
-	m.revisions = nil
-	m.clearedrevisions = false
-	m.removedrevisions = nil
+// ResetInstances resets all changes to the "instances" edge.
+func (m *ApplicationMutation) ResetInstances() {
+	m.instances = nil
+	m.clearedinstances = false
+	m.removedinstances = nil
 }
 
 // Where appends a list predicates to the ApplicationMutation builder.
@@ -3217,8 +3165,8 @@ func (m *ApplicationMutation) Fields() []string {
 	if m.project != nil {
 		fields = append(fields, application.FieldProjectID)
 	}
-	if m.environment != nil {
-		fields = append(fields, application.FieldEnvironmentID)
+	if m.variables != nil {
+		fields = append(fields, application.FieldVariables)
 	}
 	return fields
 }
@@ -3240,8 +3188,8 @@ func (m *ApplicationMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case application.FieldProjectID:
 		return m.ProjectID()
-	case application.FieldEnvironmentID:
-		return m.EnvironmentID()
+	case application.FieldVariables:
+		return m.Variables()
 	}
 	return nil, false
 }
@@ -3263,8 +3211,8 @@ func (m *ApplicationMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldUpdateTime(ctx)
 	case application.FieldProjectID:
 		return m.OldProjectID(ctx)
-	case application.FieldEnvironmentID:
-		return m.OldEnvironmentID(ctx)
+	case application.FieldVariables:
+		return m.OldVariables(ctx)
 	}
 	return nil, fmt.Errorf("unknown Application field %s", name)
 }
@@ -3316,12 +3264,12 @@ func (m *ApplicationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectID(v)
 		return nil
-	case application.FieldEnvironmentID:
-		v, ok := value.(types.ID)
+	case application.FieldVariables:
+		v, ok := value.([]types.ApplicationVariable)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEnvironmentID(v)
+		m.SetVariables(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Application field %s", name)
@@ -3356,6 +3304,9 @@ func (m *ApplicationMutation) ClearedFields() []string {
 	if m.FieldCleared(application.FieldDescription) {
 		fields = append(fields, application.FieldDescription)
 	}
+	if m.FieldCleared(application.FieldVariables) {
+		fields = append(fields, application.FieldVariables)
+	}
 	return fields
 }
 
@@ -3372,6 +3323,9 @@ func (m *ApplicationMutation) ClearField(name string) error {
 	switch name {
 	case application.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case application.FieldVariables:
+		m.ClearVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown Application nullable field %s", name)
@@ -3399,8 +3353,8 @@ func (m *ApplicationMutation) ResetField(name string) error {
 	case application.FieldProjectID:
 		m.ResetProjectID()
 		return nil
-	case application.FieldEnvironmentID:
-		m.ResetEnvironmentID()
+	case application.FieldVariables:
+		m.ResetVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown Application field %s", name)
@@ -3408,18 +3362,12 @@ func (m *ApplicationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApplicationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 2)
 	if m.project != nil {
 		edges = append(edges, application.EdgeProject)
 	}
-	if m.environment != nil {
-		edges = append(edges, application.EdgeEnvironment)
-	}
-	if m.resources != nil {
-		edges = append(edges, application.EdgeResources)
-	}
-	if m.revisions != nil {
-		edges = append(edges, application.EdgeRevisions)
+	if m.instances != nil {
+		edges = append(edges, application.EdgeInstances)
 	}
 	return edges
 }
@@ -3432,19 +3380,9 @@ func (m *ApplicationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.project; id != nil {
 			return []ent.Value{*id}
 		}
-	case application.EdgeEnvironment:
-		if id := m.environment; id != nil {
-			return []ent.Value{*id}
-		}
-	case application.EdgeResources:
-		ids := make([]ent.Value, 0, len(m.resources))
-		for id := range m.resources {
-			ids = append(ids, id)
-		}
-		return ids
-	case application.EdgeRevisions:
-		ids := make([]ent.Value, 0, len(m.revisions))
-		for id := range m.revisions {
+	case application.EdgeInstances:
+		ids := make([]ent.Value, 0, len(m.instances))
+		for id := range m.instances {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3454,12 +3392,9 @@ func (m *ApplicationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ApplicationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
-	if m.removedresources != nil {
-		edges = append(edges, application.EdgeResources)
-	}
-	if m.removedrevisions != nil {
-		edges = append(edges, application.EdgeRevisions)
+	edges := make([]string, 0, 2)
+	if m.removedinstances != nil {
+		edges = append(edges, application.EdgeInstances)
 	}
 	return edges
 }
@@ -3468,15 +3403,9 @@ func (m *ApplicationMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ApplicationMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case application.EdgeResources:
-		ids := make([]ent.Value, 0, len(m.removedresources))
-		for id := range m.removedresources {
-			ids = append(ids, id)
-		}
-		return ids
-	case application.EdgeRevisions:
-		ids := make([]ent.Value, 0, len(m.removedrevisions))
-		for id := range m.removedrevisions {
+	case application.EdgeInstances:
+		ids := make([]ent.Value, 0, len(m.removedinstances))
+		for id := range m.removedinstances {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3486,18 +3415,12 @@ func (m *ApplicationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApplicationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 2)
 	if m.clearedproject {
 		edges = append(edges, application.EdgeProject)
 	}
-	if m.clearedenvironment {
-		edges = append(edges, application.EdgeEnvironment)
-	}
-	if m.clearedresources {
-		edges = append(edges, application.EdgeResources)
-	}
-	if m.clearedrevisions {
-		edges = append(edges, application.EdgeRevisions)
+	if m.clearedinstances {
+		edges = append(edges, application.EdgeInstances)
 	}
 	return edges
 }
@@ -3508,12 +3431,8 @@ func (m *ApplicationMutation) EdgeCleared(name string) bool {
 	switch name {
 	case application.EdgeProject:
 		return m.clearedproject
-	case application.EdgeEnvironment:
-		return m.clearedenvironment
-	case application.EdgeResources:
-		return m.clearedresources
-	case application.EdgeRevisions:
-		return m.clearedrevisions
+	case application.EdgeInstances:
+		return m.clearedinstances
 	}
 	return false
 }
@@ -3524,9 +3443,6 @@ func (m *ApplicationMutation) ClearEdge(name string) error {
 	switch name {
 	case application.EdgeProject:
 		m.ClearProject()
-		return nil
-	case application.EdgeEnvironment:
-		m.ClearEnvironment()
 		return nil
 	}
 	return fmt.Errorf("unknown Application unique edge %s", name)
@@ -3539,17 +3455,1047 @@ func (m *ApplicationMutation) ResetEdge(name string) error {
 	case application.EdgeProject:
 		m.ResetProject()
 		return nil
-	case application.EdgeEnvironment:
-		m.ResetEnvironment()
-		return nil
-	case application.EdgeResources:
-		m.ResetResources()
-		return nil
-	case application.EdgeRevisions:
-		m.ResetRevisions()
+	case application.EdgeInstances:
+		m.ResetInstances()
 		return nil
 	}
 	return fmt.Errorf("unknown Application edge %s", name)
+}
+
+// ApplicationInstanceMutation represents an operation that mutates the ApplicationInstance nodes in the graph.
+type ApplicationInstanceMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *types.ID
+	status             *string
+	statusMessage      *string
+	createTime         *time.Time
+	updateTime         *time.Time
+	name               *string
+	variables          *map[string]interface{}
+	clearedFields      map[string]struct{}
+	application        *types.ID
+	clearedapplication bool
+	environment        *types.ID
+	clearedenvironment bool
+	revisions          map[types.ID]struct{}
+	removedrevisions   map[types.ID]struct{}
+	clearedrevisions   bool
+	resources          map[types.ID]struct{}
+	removedresources   map[types.ID]struct{}
+	clearedresources   bool
+	done               bool
+	oldValue           func(context.Context) (*ApplicationInstance, error)
+	predicates         []predicate.ApplicationInstance
+}
+
+var _ ent.Mutation = (*ApplicationInstanceMutation)(nil)
+
+// applicationInstanceOption allows management of the mutation configuration using functional options.
+type applicationInstanceOption func(*ApplicationInstanceMutation)
+
+// newApplicationInstanceMutation creates new mutation for the ApplicationInstance entity.
+func newApplicationInstanceMutation(c config, op Op, opts ...applicationInstanceOption) *ApplicationInstanceMutation {
+	m := &ApplicationInstanceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeApplicationInstance,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withApplicationInstanceID sets the ID field of the mutation.
+func withApplicationInstanceID(id types.ID) applicationInstanceOption {
+	return func(m *ApplicationInstanceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ApplicationInstance
+		)
+		m.oldValue = func(ctx context.Context) (*ApplicationInstance, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ApplicationInstance.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withApplicationInstance sets the old ApplicationInstance of the mutation.
+func withApplicationInstance(node *ApplicationInstance) applicationInstanceOption {
+	return func(m *ApplicationInstanceMutation) {
+		m.oldValue = func(context.Context) (*ApplicationInstance, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ApplicationInstanceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ApplicationInstanceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ApplicationInstance entities.
+func (m *ApplicationInstanceMutation) SetID(id types.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ApplicationInstanceMutation) ID() (id types.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ApplicationInstanceMutation) IDs(ctx context.Context) ([]types.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []types.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ApplicationInstance.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetStatus sets the "status" field.
+func (m *ApplicationInstanceMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ApplicationInstanceMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ApplicationInstanceMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[applicationinstance.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ApplicationInstanceMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[applicationinstance.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ApplicationInstanceMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, applicationinstance.FieldStatus)
+}
+
+// SetStatusMessage sets the "statusMessage" field.
+func (m *ApplicationInstanceMutation) SetStatusMessage(s string) {
+	m.statusMessage = &s
+}
+
+// StatusMessage returns the value of the "statusMessage" field in the mutation.
+func (m *ApplicationInstanceMutation) StatusMessage() (r string, exists bool) {
+	v := m.statusMessage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatusMessage returns the old "statusMessage" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldStatusMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatusMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatusMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatusMessage: %w", err)
+	}
+	return oldValue.StatusMessage, nil
+}
+
+// ClearStatusMessage clears the value of the "statusMessage" field.
+func (m *ApplicationInstanceMutation) ClearStatusMessage() {
+	m.statusMessage = nil
+	m.clearedFields[applicationinstance.FieldStatusMessage] = struct{}{}
+}
+
+// StatusMessageCleared returns if the "statusMessage" field was cleared in this mutation.
+func (m *ApplicationInstanceMutation) StatusMessageCleared() bool {
+	_, ok := m.clearedFields[applicationinstance.FieldStatusMessage]
+	return ok
+}
+
+// ResetStatusMessage resets all changes to the "statusMessage" field.
+func (m *ApplicationInstanceMutation) ResetStatusMessage() {
+	m.statusMessage = nil
+	delete(m.clearedFields, applicationinstance.FieldStatusMessage)
+}
+
+// SetCreateTime sets the "createTime" field.
+func (m *ApplicationInstanceMutation) SetCreateTime(t time.Time) {
+	m.createTime = &t
+}
+
+// CreateTime returns the value of the "createTime" field in the mutation.
+func (m *ApplicationInstanceMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.createTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "createTime" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "createTime" field.
+func (m *ApplicationInstanceMutation) ResetCreateTime() {
+	m.createTime = nil
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (m *ApplicationInstanceMutation) SetUpdateTime(t time.Time) {
+	m.updateTime = &t
+}
+
+// UpdateTime returns the value of the "updateTime" field in the mutation.
+func (m *ApplicationInstanceMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.updateTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "updateTime" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "updateTime" field.
+func (m *ApplicationInstanceMutation) ResetUpdateTime() {
+	m.updateTime = nil
+}
+
+// SetApplicationID sets the "applicationID" field.
+func (m *ApplicationInstanceMutation) SetApplicationID(t types.ID) {
+	m.application = &t
+}
+
+// ApplicationID returns the value of the "applicationID" field in the mutation.
+func (m *ApplicationInstanceMutation) ApplicationID() (r types.ID, exists bool) {
+	v := m.application
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplicationID returns the old "applicationID" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldApplicationID(ctx context.Context) (v types.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplicationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplicationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplicationID: %w", err)
+	}
+	return oldValue.ApplicationID, nil
+}
+
+// ResetApplicationID resets all changes to the "applicationID" field.
+func (m *ApplicationInstanceMutation) ResetApplicationID() {
+	m.application = nil
+}
+
+// SetEnvironmentID sets the "environmentID" field.
+func (m *ApplicationInstanceMutation) SetEnvironmentID(t types.ID) {
+	m.environment = &t
+}
+
+// EnvironmentID returns the value of the "environmentID" field in the mutation.
+func (m *ApplicationInstanceMutation) EnvironmentID() (r types.ID, exists bool) {
+	v := m.environment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnvironmentID returns the old "environmentID" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldEnvironmentID(ctx context.Context) (v types.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
+	}
+	return oldValue.EnvironmentID, nil
+}
+
+// ResetEnvironmentID resets all changes to the "environmentID" field.
+func (m *ApplicationInstanceMutation) ResetEnvironmentID() {
+	m.environment = nil
+}
+
+// SetName sets the "name" field.
+func (m *ApplicationInstanceMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ApplicationInstanceMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ApplicationInstanceMutation) ResetName() {
+	m.name = nil
+}
+
+// SetVariables sets the "variables" field.
+func (m *ApplicationInstanceMutation) SetVariables(value map[string]interface{}) {
+	m.variables = &value
+}
+
+// Variables returns the value of the "variables" field in the mutation.
+func (m *ApplicationInstanceMutation) Variables() (r map[string]interface{}, exists bool) {
+	v := m.variables
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVariables returns the old "variables" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldVariables(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVariables requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
+	}
+	return oldValue.Variables, nil
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (m *ApplicationInstanceMutation) ClearVariables() {
+	m.variables = nil
+	m.clearedFields[applicationinstance.FieldVariables] = struct{}{}
+}
+
+// VariablesCleared returns if the "variables" field was cleared in this mutation.
+func (m *ApplicationInstanceMutation) VariablesCleared() bool {
+	_, ok := m.clearedFields[applicationinstance.FieldVariables]
+	return ok
+}
+
+// ResetVariables resets all changes to the "variables" field.
+func (m *ApplicationInstanceMutation) ResetVariables() {
+	m.variables = nil
+	delete(m.clearedFields, applicationinstance.FieldVariables)
+}
+
+// ClearApplication clears the "application" edge to the Application entity.
+func (m *ApplicationInstanceMutation) ClearApplication() {
+	m.clearedapplication = true
+}
+
+// ApplicationCleared reports if the "application" edge to the Application entity was cleared.
+func (m *ApplicationInstanceMutation) ApplicationCleared() bool {
+	return m.clearedapplication
+}
+
+// ApplicationIDs returns the "application" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ApplicationID instead. It exists only for internal usage by the builders.
+func (m *ApplicationInstanceMutation) ApplicationIDs() (ids []types.ID) {
+	if id := m.application; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetApplication resets all changes to the "application" edge.
+func (m *ApplicationInstanceMutation) ResetApplication() {
+	m.application = nil
+	m.clearedapplication = false
+}
+
+// ClearEnvironment clears the "environment" edge to the Environment entity.
+func (m *ApplicationInstanceMutation) ClearEnvironment() {
+	m.clearedenvironment = true
+}
+
+// EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
+func (m *ApplicationInstanceMutation) EnvironmentCleared() bool {
+	return m.clearedenvironment
+}
+
+// EnvironmentIDs returns the "environment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EnvironmentID instead. It exists only for internal usage by the builders.
+func (m *ApplicationInstanceMutation) EnvironmentIDs() (ids []types.ID) {
+	if id := m.environment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEnvironment resets all changes to the "environment" edge.
+func (m *ApplicationInstanceMutation) ResetEnvironment() {
+	m.environment = nil
+	m.clearedenvironment = false
+}
+
+// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by ids.
+func (m *ApplicationInstanceMutation) AddRevisionIDs(ids ...types.ID) {
+	if m.revisions == nil {
+		m.revisions = make(map[types.ID]struct{})
+	}
+	for i := range ids {
+		m.revisions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRevisions clears the "revisions" edge to the ApplicationRevision entity.
+func (m *ApplicationInstanceMutation) ClearRevisions() {
+	m.clearedrevisions = true
+}
+
+// RevisionsCleared reports if the "revisions" edge to the ApplicationRevision entity was cleared.
+func (m *ApplicationInstanceMutation) RevisionsCleared() bool {
+	return m.clearedrevisions
+}
+
+// RemoveRevisionIDs removes the "revisions" edge to the ApplicationRevision entity by IDs.
+func (m *ApplicationInstanceMutation) RemoveRevisionIDs(ids ...types.ID) {
+	if m.removedrevisions == nil {
+		m.removedrevisions = make(map[types.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.revisions, ids[i])
+		m.removedrevisions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRevisions returns the removed IDs of the "revisions" edge to the ApplicationRevision entity.
+func (m *ApplicationInstanceMutation) RemovedRevisionsIDs() (ids []types.ID) {
+	for id := range m.removedrevisions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RevisionsIDs returns the "revisions" edge IDs in the mutation.
+func (m *ApplicationInstanceMutation) RevisionsIDs() (ids []types.ID) {
+	for id := range m.revisions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRevisions resets all changes to the "revisions" edge.
+func (m *ApplicationInstanceMutation) ResetRevisions() {
+	m.revisions = nil
+	m.clearedrevisions = false
+	m.removedrevisions = nil
+}
+
+// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by ids.
+func (m *ApplicationInstanceMutation) AddResourceIDs(ids ...types.ID) {
+	if m.resources == nil {
+		m.resources = make(map[types.ID]struct{})
+	}
+	for i := range ids {
+		m.resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResources clears the "resources" edge to the ApplicationResource entity.
+func (m *ApplicationInstanceMutation) ClearResources() {
+	m.clearedresources = true
+}
+
+// ResourcesCleared reports if the "resources" edge to the ApplicationResource entity was cleared.
+func (m *ApplicationInstanceMutation) ResourcesCleared() bool {
+	return m.clearedresources
+}
+
+// RemoveResourceIDs removes the "resources" edge to the ApplicationResource entity by IDs.
+func (m *ApplicationInstanceMutation) RemoveResourceIDs(ids ...types.ID) {
+	if m.removedresources == nil {
+		m.removedresources = make(map[types.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.resources, ids[i])
+		m.removedresources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResources returns the removed IDs of the "resources" edge to the ApplicationResource entity.
+func (m *ApplicationInstanceMutation) RemovedResourcesIDs() (ids []types.ID) {
+	for id := range m.removedresources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResourcesIDs returns the "resources" edge IDs in the mutation.
+func (m *ApplicationInstanceMutation) ResourcesIDs() (ids []types.ID) {
+	for id := range m.resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResources resets all changes to the "resources" edge.
+func (m *ApplicationInstanceMutation) ResetResources() {
+	m.resources = nil
+	m.clearedresources = false
+	m.removedresources = nil
+}
+
+// Where appends a list predicates to the ApplicationInstanceMutation builder.
+func (m *ApplicationInstanceMutation) Where(ps ...predicate.ApplicationInstance) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ApplicationInstanceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ApplicationInstanceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ApplicationInstance, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ApplicationInstanceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ApplicationInstanceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ApplicationInstance).
+func (m *ApplicationInstanceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ApplicationInstanceMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.status != nil {
+		fields = append(fields, applicationinstance.FieldStatus)
+	}
+	if m.statusMessage != nil {
+		fields = append(fields, applicationinstance.FieldStatusMessage)
+	}
+	if m.createTime != nil {
+		fields = append(fields, applicationinstance.FieldCreateTime)
+	}
+	if m.updateTime != nil {
+		fields = append(fields, applicationinstance.FieldUpdateTime)
+	}
+	if m.application != nil {
+		fields = append(fields, applicationinstance.FieldApplicationID)
+	}
+	if m.environment != nil {
+		fields = append(fields, applicationinstance.FieldEnvironmentID)
+	}
+	if m.name != nil {
+		fields = append(fields, applicationinstance.FieldName)
+	}
+	if m.variables != nil {
+		fields = append(fields, applicationinstance.FieldVariables)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ApplicationInstanceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case applicationinstance.FieldStatus:
+		return m.Status()
+	case applicationinstance.FieldStatusMessage:
+		return m.StatusMessage()
+	case applicationinstance.FieldCreateTime:
+		return m.CreateTime()
+	case applicationinstance.FieldUpdateTime:
+		return m.UpdateTime()
+	case applicationinstance.FieldApplicationID:
+		return m.ApplicationID()
+	case applicationinstance.FieldEnvironmentID:
+		return m.EnvironmentID()
+	case applicationinstance.FieldName:
+		return m.Name()
+	case applicationinstance.FieldVariables:
+		return m.Variables()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ApplicationInstanceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case applicationinstance.FieldStatus:
+		return m.OldStatus(ctx)
+	case applicationinstance.FieldStatusMessage:
+		return m.OldStatusMessage(ctx)
+	case applicationinstance.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case applicationinstance.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case applicationinstance.FieldApplicationID:
+		return m.OldApplicationID(ctx)
+	case applicationinstance.FieldEnvironmentID:
+		return m.OldEnvironmentID(ctx)
+	case applicationinstance.FieldName:
+		return m.OldName(ctx)
+	case applicationinstance.FieldVariables:
+		return m.OldVariables(ctx)
+	}
+	return nil, fmt.Errorf("unknown ApplicationInstance field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationInstanceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case applicationinstance.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case applicationinstance.FieldStatusMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatusMessage(v)
+		return nil
+	case applicationinstance.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case applicationinstance.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case applicationinstance.FieldApplicationID:
+		v, ok := value.(types.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplicationID(v)
+		return nil
+	case applicationinstance.FieldEnvironmentID:
+		v, ok := value.(types.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnvironmentID(v)
+		return nil
+	case applicationinstance.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case applicationinstance.FieldVariables:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVariables(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationInstance field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ApplicationInstanceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ApplicationInstanceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationInstanceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ApplicationInstance numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ApplicationInstanceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(applicationinstance.FieldStatus) {
+		fields = append(fields, applicationinstance.FieldStatus)
+	}
+	if m.FieldCleared(applicationinstance.FieldStatusMessage) {
+		fields = append(fields, applicationinstance.FieldStatusMessage)
+	}
+	if m.FieldCleared(applicationinstance.FieldVariables) {
+		fields = append(fields, applicationinstance.FieldVariables)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ApplicationInstanceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ApplicationInstanceMutation) ClearField(name string) error {
+	switch name {
+	case applicationinstance.FieldStatus:
+		m.ClearStatus()
+		return nil
+	case applicationinstance.FieldStatusMessage:
+		m.ClearStatusMessage()
+		return nil
+	case applicationinstance.FieldVariables:
+		m.ClearVariables()
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationInstance nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ApplicationInstanceMutation) ResetField(name string) error {
+	switch name {
+	case applicationinstance.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case applicationinstance.FieldStatusMessage:
+		m.ResetStatusMessage()
+		return nil
+	case applicationinstance.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case applicationinstance.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case applicationinstance.FieldApplicationID:
+		m.ResetApplicationID()
+		return nil
+	case applicationinstance.FieldEnvironmentID:
+		m.ResetEnvironmentID()
+		return nil
+	case applicationinstance.FieldName:
+		m.ResetName()
+		return nil
+	case applicationinstance.FieldVariables:
+		m.ResetVariables()
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationInstance field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ApplicationInstanceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.application != nil {
+		edges = append(edges, applicationinstance.EdgeApplication)
+	}
+	if m.environment != nil {
+		edges = append(edges, applicationinstance.EdgeEnvironment)
+	}
+	if m.revisions != nil {
+		edges = append(edges, applicationinstance.EdgeRevisions)
+	}
+	if m.resources != nil {
+		edges = append(edges, applicationinstance.EdgeResources)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ApplicationInstanceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case applicationinstance.EdgeApplication:
+		if id := m.application; id != nil {
+			return []ent.Value{*id}
+		}
+	case applicationinstance.EdgeEnvironment:
+		if id := m.environment; id != nil {
+			return []ent.Value{*id}
+		}
+	case applicationinstance.EdgeRevisions:
+		ids := make([]ent.Value, 0, len(m.revisions))
+		for id := range m.revisions {
+			ids = append(ids, id)
+		}
+		return ids
+	case applicationinstance.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.resources))
+		for id := range m.resources {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ApplicationInstanceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedrevisions != nil {
+		edges = append(edges, applicationinstance.EdgeRevisions)
+	}
+	if m.removedresources != nil {
+		edges = append(edges, applicationinstance.EdgeResources)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ApplicationInstanceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case applicationinstance.EdgeRevisions:
+		ids := make([]ent.Value, 0, len(m.removedrevisions))
+		for id := range m.removedrevisions {
+			ids = append(ids, id)
+		}
+		return ids
+	case applicationinstance.EdgeResources:
+		ids := make([]ent.Value, 0, len(m.removedresources))
+		for id := range m.removedresources {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ApplicationInstanceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedapplication {
+		edges = append(edges, applicationinstance.EdgeApplication)
+	}
+	if m.clearedenvironment {
+		edges = append(edges, applicationinstance.EdgeEnvironment)
+	}
+	if m.clearedrevisions {
+		edges = append(edges, applicationinstance.EdgeRevisions)
+	}
+	if m.clearedresources {
+		edges = append(edges, applicationinstance.EdgeResources)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ApplicationInstanceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case applicationinstance.EdgeApplication:
+		return m.clearedapplication
+	case applicationinstance.EdgeEnvironment:
+		return m.clearedenvironment
+	case applicationinstance.EdgeRevisions:
+		return m.clearedrevisions
+	case applicationinstance.EdgeResources:
+		return m.clearedresources
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ApplicationInstanceMutation) ClearEdge(name string) error {
+	switch name {
+	case applicationinstance.EdgeApplication:
+		m.ClearApplication()
+		return nil
+	case applicationinstance.EdgeEnvironment:
+		m.ClearEnvironment()
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationInstance unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ApplicationInstanceMutation) ResetEdge(name string) error {
+	switch name {
+	case applicationinstance.EdgeApplication:
+		m.ResetApplication()
+		return nil
+	case applicationinstance.EdgeEnvironment:
+		m.ResetEnvironment()
+		return nil
+	case applicationinstance.EdgeRevisions:
+		m.ResetRevisions()
+		return nil
+	case applicationinstance.EdgeResources:
+		m.ResetResources()
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationInstance edge %s", name)
 }
 
 // ApplicationModuleRelationshipMutation represents an operation that mutates the ApplicationModuleRelationship nodes in the graph.
@@ -3560,7 +4506,7 @@ type ApplicationModuleRelationshipMutation struct {
 	createTime         *time.Time
 	updateTime         *time.Time
 	name               *string
-	variables          *map[string]interface{}
+	attributes         *map[string]interface{}
 	clearedFields      map[string]struct{}
 	application        *types.ID
 	clearedapplication bool
@@ -3704,36 +4650,36 @@ func (m *ApplicationModuleRelationshipMutation) ResetName() {
 	m.name = nil
 }
 
-// SetVariables sets the "variables" field.
-func (m *ApplicationModuleRelationshipMutation) SetVariables(value map[string]interface{}) {
-	m.variables = &value
+// SetAttributes sets the "attributes" field.
+func (m *ApplicationModuleRelationshipMutation) SetAttributes(value map[string]interface{}) {
+	m.attributes = &value
 }
 
-// Variables returns the value of the "variables" field in the mutation.
-func (m *ApplicationModuleRelationshipMutation) Variables() (r map[string]interface{}, exists bool) {
-	v := m.variables
+// Attributes returns the value of the "attributes" field in the mutation.
+func (m *ApplicationModuleRelationshipMutation) Attributes() (r map[string]interface{}, exists bool) {
+	v := m.attributes
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (m *ApplicationModuleRelationshipMutation) ClearVariables() {
-	m.variables = nil
-	m.clearedFields[applicationmodulerelationship.FieldVariables] = struct{}{}
+// ClearAttributes clears the value of the "attributes" field.
+func (m *ApplicationModuleRelationshipMutation) ClearAttributes() {
+	m.attributes = nil
+	m.clearedFields[applicationmodulerelationship.FieldAttributes] = struct{}{}
 }
 
-// VariablesCleared returns if the "variables" field was cleared in this mutation.
-func (m *ApplicationModuleRelationshipMutation) VariablesCleared() bool {
-	_, ok := m.clearedFields[applicationmodulerelationship.FieldVariables]
+// AttributesCleared returns if the "attributes" field was cleared in this mutation.
+func (m *ApplicationModuleRelationshipMutation) AttributesCleared() bool {
+	_, ok := m.clearedFields[applicationmodulerelationship.FieldAttributes]
 	return ok
 }
 
-// ResetVariables resets all changes to the "variables" field.
-func (m *ApplicationModuleRelationshipMutation) ResetVariables() {
-	m.variables = nil
-	delete(m.clearedFields, applicationmodulerelationship.FieldVariables)
+// ResetAttributes resets all changes to the "attributes" field.
+func (m *ApplicationModuleRelationshipMutation) ResetAttributes() {
+	m.attributes = nil
+	delete(m.clearedFields, applicationmodulerelationship.FieldAttributes)
 }
 
 // ClearApplication clears the "application" edge to the Application entity.
@@ -3838,8 +4784,8 @@ func (m *ApplicationModuleRelationshipMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, applicationmodulerelationship.FieldName)
 	}
-	if m.variables != nil {
-		fields = append(fields, applicationmodulerelationship.FieldVariables)
+	if m.attributes != nil {
+		fields = append(fields, applicationmodulerelationship.FieldAttributes)
 	}
 	return fields
 }
@@ -3859,8 +4805,8 @@ func (m *ApplicationModuleRelationshipMutation) Field(name string) (ent.Value, b
 		return m.ModuleID()
 	case applicationmodulerelationship.FieldName:
 		return m.Name()
-	case applicationmodulerelationship.FieldVariables:
-		return m.Variables()
+	case applicationmodulerelationship.FieldAttributes:
+		return m.Attributes()
 	}
 	return nil, false
 }
@@ -3912,12 +4858,12 @@ func (m *ApplicationModuleRelationshipMutation) SetField(name string, value ent.
 		}
 		m.SetName(v)
 		return nil
-	case applicationmodulerelationship.FieldVariables:
+	case applicationmodulerelationship.FieldAttributes:
 		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetVariables(v)
+		m.SetAttributes(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationModuleRelationship field %s", name)
@@ -3949,8 +4895,8 @@ func (m *ApplicationModuleRelationshipMutation) AddField(name string, value ent.
 // mutation.
 func (m *ApplicationModuleRelationshipMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(applicationmodulerelationship.FieldVariables) {
-		fields = append(fields, applicationmodulerelationship.FieldVariables)
+	if m.FieldCleared(applicationmodulerelationship.FieldAttributes) {
+		fields = append(fields, applicationmodulerelationship.FieldAttributes)
 	}
 	return fields
 }
@@ -3966,8 +4912,8 @@ func (m *ApplicationModuleRelationshipMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ApplicationModuleRelationshipMutation) ClearField(name string) error {
 	switch name {
-	case applicationmodulerelationship.FieldVariables:
-		m.ClearVariables()
+	case applicationmodulerelationship.FieldAttributes:
+		m.ClearAttributes()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationModuleRelationship nullable field %s", name)
@@ -3992,8 +4938,8 @@ func (m *ApplicationModuleRelationshipMutation) ResetField(name string) error {
 	case applicationmodulerelationship.FieldName:
 		m.ResetName()
 		return nil
-	case applicationmodulerelationship.FieldVariables:
-		m.ResetVariables()
+	case applicationmodulerelationship.FieldAttributes:
+		m.ResetAttributes()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationModuleRelationship field %s", name)
@@ -4094,26 +5040,26 @@ func (m *ApplicationModuleRelationshipMutation) ResetEdge(name string) error {
 // ApplicationResourceMutation represents an operation that mutates the ApplicationResource nodes in the graph.
 type ApplicationResourceMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *types.ID
-	status             *string
-	statusMessage      *string
-	createTime         *time.Time
-	updateTime         *time.Time
-	module             *string
-	mode               *string
-	_type              *string
-	name               *string
-	deployerType       *string
-	clearedFields      map[string]struct{}
-	application        *types.ID
-	clearedapplication bool
-	connector          *types.ID
-	clearedconnector   bool
-	done               bool
-	oldValue           func(context.Context) (*ApplicationResource, error)
-	predicates         []predicate.ApplicationResource
+	op               Op
+	typ              string
+	id               *types.ID
+	status           *string
+	statusMessage    *string
+	createTime       *time.Time
+	updateTime       *time.Time
+	module           *string
+	mode             *string
+	_type            *string
+	name             *string
+	deployerType     *string
+	clearedFields    map[string]struct{}
+	instance         *types.ID
+	clearedinstance  bool
+	connector        *types.ID
+	clearedconnector bool
+	done             bool
+	oldValue         func(context.Context) (*ApplicationResource, error)
+	predicates       []predicate.ApplicationResource
 }
 
 var _ ent.Mutation = (*ApplicationResourceMutation)(nil)
@@ -4390,40 +5336,40 @@ func (m *ApplicationResourceMutation) ResetUpdateTime() {
 	m.updateTime = nil
 }
 
-// SetApplicationID sets the "applicationID" field.
-func (m *ApplicationResourceMutation) SetApplicationID(t types.ID) {
-	m.application = &t
+// SetInstanceID sets the "instanceID" field.
+func (m *ApplicationResourceMutation) SetInstanceID(t types.ID) {
+	m.instance = &t
 }
 
-// ApplicationID returns the value of the "applicationID" field in the mutation.
-func (m *ApplicationResourceMutation) ApplicationID() (r types.ID, exists bool) {
-	v := m.application
+// InstanceID returns the value of the "instanceID" field in the mutation.
+func (m *ApplicationResourceMutation) InstanceID() (r types.ID, exists bool) {
+	v := m.instance
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldApplicationID returns the old "applicationID" field's value of the ApplicationResource entity.
+// OldInstanceID returns the old "instanceID" field's value of the ApplicationResource entity.
 // If the ApplicationResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationResourceMutation) OldApplicationID(ctx context.Context) (v types.ID, err error) {
+func (m *ApplicationResourceMutation) OldInstanceID(ctx context.Context) (v types.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldApplicationID is only allowed on UpdateOne operations")
+		return v, errors.New("OldInstanceID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldApplicationID requires an ID field in the mutation")
+		return v, errors.New("OldInstanceID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldApplicationID: %w", err)
+		return v, fmt.Errorf("querying old value for OldInstanceID: %w", err)
 	}
-	return oldValue.ApplicationID, nil
+	return oldValue.InstanceID, nil
 }
 
-// ResetApplicationID resets all changes to the "applicationID" field.
-func (m *ApplicationResourceMutation) ResetApplicationID() {
-	m.application = nil
+// ResetInstanceID resets all changes to the "instanceID" field.
+func (m *ApplicationResourceMutation) ResetInstanceID() {
+	m.instance = nil
 }
 
 // SetConnectorID sets the "connectorID" field.
@@ -4642,30 +5588,30 @@ func (m *ApplicationResourceMutation) ResetDeployerType() {
 	m.deployerType = nil
 }
 
-// ClearApplication clears the "application" edge to the Application entity.
-func (m *ApplicationResourceMutation) ClearApplication() {
-	m.clearedapplication = true
+// ClearInstance clears the "instance" edge to the ApplicationInstance entity.
+func (m *ApplicationResourceMutation) ClearInstance() {
+	m.clearedinstance = true
 }
 
-// ApplicationCleared reports if the "application" edge to the Application entity was cleared.
-func (m *ApplicationResourceMutation) ApplicationCleared() bool {
-	return m.clearedapplication
+// InstanceCleared reports if the "instance" edge to the ApplicationInstance entity was cleared.
+func (m *ApplicationResourceMutation) InstanceCleared() bool {
+	return m.clearedinstance
 }
 
-// ApplicationIDs returns the "application" edge IDs in the mutation.
+// InstanceIDs returns the "instance" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ApplicationID instead. It exists only for internal usage by the builders.
-func (m *ApplicationResourceMutation) ApplicationIDs() (ids []types.ID) {
-	if id := m.application; id != nil {
+// InstanceID instead. It exists only for internal usage by the builders.
+func (m *ApplicationResourceMutation) InstanceIDs() (ids []types.ID) {
+	if id := m.instance; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetApplication resets all changes to the "application" edge.
-func (m *ApplicationResourceMutation) ResetApplication() {
-	m.application = nil
-	m.clearedapplication = false
+// ResetInstance resets all changes to the "instance" edge.
+func (m *ApplicationResourceMutation) ResetInstance() {
+	m.instance = nil
+	m.clearedinstance = false
 }
 
 // ClearConnector clears the "connector" edge to the Connector entity.
@@ -4741,8 +5687,8 @@ func (m *ApplicationResourceMutation) Fields() []string {
 	if m.updateTime != nil {
 		fields = append(fields, applicationresource.FieldUpdateTime)
 	}
-	if m.application != nil {
-		fields = append(fields, applicationresource.FieldApplicationID)
+	if m.instance != nil {
+		fields = append(fields, applicationresource.FieldInstanceID)
 	}
 	if m.connector != nil {
 		fields = append(fields, applicationresource.FieldConnectorID)
@@ -4778,8 +5724,8 @@ func (m *ApplicationResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case applicationresource.FieldUpdateTime:
 		return m.UpdateTime()
-	case applicationresource.FieldApplicationID:
-		return m.ApplicationID()
+	case applicationresource.FieldInstanceID:
+		return m.InstanceID()
 	case applicationresource.FieldConnectorID:
 		return m.ConnectorID()
 	case applicationresource.FieldModule:
@@ -4809,8 +5755,8 @@ func (m *ApplicationResourceMutation) OldField(ctx context.Context, name string)
 		return m.OldCreateTime(ctx)
 	case applicationresource.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case applicationresource.FieldApplicationID:
-		return m.OldApplicationID(ctx)
+	case applicationresource.FieldInstanceID:
+		return m.OldInstanceID(ctx)
 	case applicationresource.FieldConnectorID:
 		return m.OldConnectorID(ctx)
 	case applicationresource.FieldModule:
@@ -4860,12 +5806,12 @@ func (m *ApplicationResourceMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetUpdateTime(v)
 		return nil
-	case applicationresource.FieldApplicationID:
+	case applicationresource.FieldInstanceID:
 		v, ok := value.(types.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetApplicationID(v)
+		m.SetInstanceID(v)
 		return nil
 	case applicationresource.FieldConnectorID:
 		v, ok := value.(types.ID)
@@ -4985,8 +5931,8 @@ func (m *ApplicationResourceMutation) ResetField(name string) error {
 	case applicationresource.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case applicationresource.FieldApplicationID:
-		m.ResetApplicationID()
+	case applicationresource.FieldInstanceID:
+		m.ResetInstanceID()
 		return nil
 	case applicationresource.FieldConnectorID:
 		m.ResetConnectorID()
@@ -5013,8 +5959,8 @@ func (m *ApplicationResourceMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApplicationResourceMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.application != nil {
-		edges = append(edges, applicationresource.EdgeApplication)
+	if m.instance != nil {
+		edges = append(edges, applicationresource.EdgeInstance)
 	}
 	if m.connector != nil {
 		edges = append(edges, applicationresource.EdgeConnector)
@@ -5026,8 +5972,8 @@ func (m *ApplicationResourceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ApplicationResourceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case applicationresource.EdgeApplication:
-		if id := m.application; id != nil {
+	case applicationresource.EdgeInstance:
+		if id := m.instance; id != nil {
 			return []ent.Value{*id}
 		}
 	case applicationresource.EdgeConnector:
@@ -5053,8 +5999,8 @@ func (m *ApplicationResourceMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApplicationResourceMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedapplication {
-		edges = append(edges, applicationresource.EdgeApplication)
+	if m.clearedinstance {
+		edges = append(edges, applicationresource.EdgeInstance)
 	}
 	if m.clearedconnector {
 		edges = append(edges, applicationresource.EdgeConnector)
@@ -5066,8 +6012,8 @@ func (m *ApplicationResourceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ApplicationResourceMutation) EdgeCleared(name string) bool {
 	switch name {
-	case applicationresource.EdgeApplication:
-		return m.clearedapplication
+	case applicationresource.EdgeInstance:
+		return m.clearedinstance
 	case applicationresource.EdgeConnector:
 		return m.clearedconnector
 	}
@@ -5078,8 +6024,8 @@ func (m *ApplicationResourceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ApplicationResourceMutation) ClearEdge(name string) error {
 	switch name {
-	case applicationresource.EdgeApplication:
-		m.ClearApplication()
+	case applicationresource.EdgeInstance:
+		m.ClearInstance()
 		return nil
 	case applicationresource.EdgeConnector:
 		m.ClearConnector()
@@ -5092,8 +6038,8 @@ func (m *ApplicationResourceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ApplicationResourceMutation) ResetEdge(name string) error {
 	switch name {
-	case applicationresource.EdgeApplication:
-		m.ResetApplication()
+	case applicationresource.EdgeInstance:
+		m.ResetInstance()
 		return nil
 	case applicationresource.EdgeConnector:
 		m.ResetConnector()
@@ -5120,8 +6066,8 @@ type ApplicationRevisionMutation struct {
 	duration           *int
 	addduration        *int
 	clearedFields      map[string]struct{}
-	application        *types.ID
-	clearedapplication bool
+	instance           *types.ID
+	clearedinstance    bool
 	environment        *types.ID
 	clearedenvironment bool
 	done               bool
@@ -5367,40 +6313,40 @@ func (m *ApplicationRevisionMutation) ResetCreateTime() {
 	m.createTime = nil
 }
 
-// SetApplicationID sets the "applicationID" field.
-func (m *ApplicationRevisionMutation) SetApplicationID(t types.ID) {
-	m.application = &t
+// SetInstanceID sets the "instanceID" field.
+func (m *ApplicationRevisionMutation) SetInstanceID(t types.ID) {
+	m.instance = &t
 }
 
-// ApplicationID returns the value of the "applicationID" field in the mutation.
-func (m *ApplicationRevisionMutation) ApplicationID() (r types.ID, exists bool) {
-	v := m.application
+// InstanceID returns the value of the "instanceID" field in the mutation.
+func (m *ApplicationRevisionMutation) InstanceID() (r types.ID, exists bool) {
+	v := m.instance
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldApplicationID returns the old "applicationID" field's value of the ApplicationRevision entity.
+// OldInstanceID returns the old "instanceID" field's value of the ApplicationRevision entity.
 // If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationRevisionMutation) OldApplicationID(ctx context.Context) (v types.ID, err error) {
+func (m *ApplicationRevisionMutation) OldInstanceID(ctx context.Context) (v types.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldApplicationID is only allowed on UpdateOne operations")
+		return v, errors.New("OldInstanceID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldApplicationID requires an ID field in the mutation")
+		return v, errors.New("OldInstanceID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldApplicationID: %w", err)
+		return v, fmt.Errorf("querying old value for OldInstanceID: %w", err)
 	}
-	return oldValue.ApplicationID, nil
+	return oldValue.InstanceID, nil
 }
 
-// ResetApplicationID resets all changes to the "applicationID" field.
-func (m *ApplicationRevisionMutation) ResetApplicationID() {
-	m.application = nil
+// ResetInstanceID resets all changes to the "instanceID" field.
+func (m *ApplicationRevisionMutation) ResetInstanceID() {
+	m.instance = nil
 }
 
 // SetEnvironmentID sets the "environmentID" field.
@@ -5690,30 +6636,30 @@ func (m *ApplicationRevisionMutation) ResetDuration() {
 	m.addduration = nil
 }
 
-// ClearApplication clears the "application" edge to the Application entity.
-func (m *ApplicationRevisionMutation) ClearApplication() {
-	m.clearedapplication = true
+// ClearInstance clears the "instance" edge to the ApplicationInstance entity.
+func (m *ApplicationRevisionMutation) ClearInstance() {
+	m.clearedinstance = true
 }
 
-// ApplicationCleared reports if the "application" edge to the Application entity was cleared.
-func (m *ApplicationRevisionMutation) ApplicationCleared() bool {
-	return m.clearedapplication
+// InstanceCleared reports if the "instance" edge to the ApplicationInstance entity was cleared.
+func (m *ApplicationRevisionMutation) InstanceCleared() bool {
+	return m.clearedinstance
 }
 
-// ApplicationIDs returns the "application" edge IDs in the mutation.
+// InstanceIDs returns the "instance" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ApplicationID instead. It exists only for internal usage by the builders.
-func (m *ApplicationRevisionMutation) ApplicationIDs() (ids []types.ID) {
-	if id := m.application; id != nil {
+// InstanceID instead. It exists only for internal usage by the builders.
+func (m *ApplicationRevisionMutation) InstanceIDs() (ids []types.ID) {
+	if id := m.instance; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetApplication resets all changes to the "application" edge.
-func (m *ApplicationRevisionMutation) ResetApplication() {
-	m.application = nil
-	m.clearedapplication = false
+// ResetInstance resets all changes to the "instance" edge.
+func (m *ApplicationRevisionMutation) ResetInstance() {
+	m.instance = nil
+	m.clearedinstance = false
 }
 
 // ClearEnvironment clears the "environment" edge to the Environment entity.
@@ -5786,8 +6732,8 @@ func (m *ApplicationRevisionMutation) Fields() []string {
 	if m.createTime != nil {
 		fields = append(fields, applicationrevision.FieldCreateTime)
 	}
-	if m.application != nil {
-		fields = append(fields, applicationrevision.FieldApplicationID)
+	if m.instance != nil {
+		fields = append(fields, applicationrevision.FieldInstanceID)
 	}
 	if m.environment != nil {
 		fields = append(fields, applicationrevision.FieldEnvironmentID)
@@ -5824,8 +6770,8 @@ func (m *ApplicationRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.StatusMessage()
 	case applicationrevision.FieldCreateTime:
 		return m.CreateTime()
-	case applicationrevision.FieldApplicationID:
-		return m.ApplicationID()
+	case applicationrevision.FieldInstanceID:
+		return m.InstanceID()
 	case applicationrevision.FieldEnvironmentID:
 		return m.EnvironmentID()
 	case applicationrevision.FieldModules:
@@ -5855,8 +6801,8 @@ func (m *ApplicationRevisionMutation) OldField(ctx context.Context, name string)
 		return m.OldStatusMessage(ctx)
 	case applicationrevision.FieldCreateTime:
 		return m.OldCreateTime(ctx)
-	case applicationrevision.FieldApplicationID:
-		return m.OldApplicationID(ctx)
+	case applicationrevision.FieldInstanceID:
+		return m.OldInstanceID(ctx)
 	case applicationrevision.FieldEnvironmentID:
 		return m.OldEnvironmentID(ctx)
 	case applicationrevision.FieldModules:
@@ -5901,12 +6847,12 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetCreateTime(v)
 		return nil
-	case applicationrevision.FieldApplicationID:
+	case applicationrevision.FieldInstanceID:
 		v, ok := value.(types.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetApplicationID(v)
+		m.SetInstanceID(v)
 		return nil
 	case applicationrevision.FieldEnvironmentID:
 		v, ok := value.(types.ID)
@@ -6045,8 +6991,8 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 	case applicationrevision.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
-	case applicationrevision.FieldApplicationID:
-		m.ResetApplicationID()
+	case applicationrevision.FieldInstanceID:
+		m.ResetInstanceID()
 		return nil
 	case applicationrevision.FieldEnvironmentID:
 		m.ResetEnvironmentID()
@@ -6076,8 +7022,8 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApplicationRevisionMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.application != nil {
-		edges = append(edges, applicationrevision.EdgeApplication)
+	if m.instance != nil {
+		edges = append(edges, applicationrevision.EdgeInstance)
 	}
 	if m.environment != nil {
 		edges = append(edges, applicationrevision.EdgeEnvironment)
@@ -6089,8 +7035,8 @@ func (m *ApplicationRevisionMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ApplicationRevisionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case applicationrevision.EdgeApplication:
-		if id := m.application; id != nil {
+	case applicationrevision.EdgeInstance:
+		if id := m.instance; id != nil {
 			return []ent.Value{*id}
 		}
 	case applicationrevision.EdgeEnvironment:
@@ -6116,8 +7062,8 @@ func (m *ApplicationRevisionMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApplicationRevisionMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedapplication {
-		edges = append(edges, applicationrevision.EdgeApplication)
+	if m.clearedinstance {
+		edges = append(edges, applicationrevision.EdgeInstance)
 	}
 	if m.clearedenvironment {
 		edges = append(edges, applicationrevision.EdgeEnvironment)
@@ -6129,8 +7075,8 @@ func (m *ApplicationRevisionMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ApplicationRevisionMutation) EdgeCleared(name string) bool {
 	switch name {
-	case applicationrevision.EdgeApplication:
-		return m.clearedapplication
+	case applicationrevision.EdgeInstance:
+		return m.clearedinstance
 	case applicationrevision.EdgeEnvironment:
 		return m.clearedenvironment
 	}
@@ -6141,8 +7087,8 @@ func (m *ApplicationRevisionMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ApplicationRevisionMutation) ClearEdge(name string) error {
 	switch name {
-	case applicationrevision.EdgeApplication:
-		m.ClearApplication()
+	case applicationrevision.EdgeInstance:
+		m.ClearInstance()
 		return nil
 	case applicationrevision.EdgeEnvironment:
 		m.ClearEnvironment()
@@ -6155,8 +7101,8 @@ func (m *ApplicationRevisionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ApplicationRevisionMutation) ResetEdge(name string) error {
 	switch name {
-	case applicationrevision.EdgeApplication:
-		m.ResetApplication()
+	case applicationrevision.EdgeInstance:
+		m.ResetInstance()
 		return nil
 	case applicationrevision.EdgeEnvironment:
 		m.ResetEnvironment()
@@ -9015,25 +9961,24 @@ func (m *ConnectorMutation) ResetEdge(name string) error {
 // EnvironmentMutation represents an operation that mutates the Environment nodes in the graph.
 type EnvironmentMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *types.ID
-	name                *string
-	description         *string
-	labels              *map[string]string
-	createTime          *time.Time
-	updateTime          *time.Time
-	variables           *map[string]interface{}
-	clearedFields       map[string]struct{}
-	applications        map[types.ID]struct{}
-	removedapplications map[types.ID]struct{}
-	clearedapplications bool
-	revisions           map[types.ID]struct{}
-	removedrevisions    map[types.ID]struct{}
-	clearedrevisions    bool
-	done                bool
-	oldValue            func(context.Context) (*Environment, error)
-	predicates          []predicate.Environment
+	op               Op
+	typ              string
+	id               *types.ID
+	name             *string
+	description      *string
+	labels           *map[string]string
+	createTime       *time.Time
+	updateTime       *time.Time
+	clearedFields    map[string]struct{}
+	instances        map[types.ID]struct{}
+	removedinstances map[types.ID]struct{}
+	clearedinstances bool
+	revisions        map[types.ID]struct{}
+	removedrevisions map[types.ID]struct{}
+	clearedrevisions bool
+	done             bool
+	oldValue         func(context.Context) (*Environment, error)
+	predicates       []predicate.Environment
 }
 
 var _ ent.Mutation = (*EnvironmentMutation)(nil)
@@ -9333,107 +10278,58 @@ func (m *EnvironmentMutation) ResetUpdateTime() {
 	m.updateTime = nil
 }
 
-// SetVariables sets the "variables" field.
-func (m *EnvironmentMutation) SetVariables(value map[string]interface{}) {
-	m.variables = &value
-}
-
-// Variables returns the value of the "variables" field in the mutation.
-func (m *EnvironmentMutation) Variables() (r map[string]interface{}, exists bool) {
-	v := m.variables
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldVariables returns the old "variables" field's value of the Environment entity.
-// If the Environment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentMutation) OldVariables(ctx context.Context) (v map[string]interface{}, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVariables requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
-	}
-	return oldValue.Variables, nil
-}
-
-// ClearVariables clears the value of the "variables" field.
-func (m *EnvironmentMutation) ClearVariables() {
-	m.variables = nil
-	m.clearedFields[environment.FieldVariables] = struct{}{}
-}
-
-// VariablesCleared returns if the "variables" field was cleared in this mutation.
-func (m *EnvironmentMutation) VariablesCleared() bool {
-	_, ok := m.clearedFields[environment.FieldVariables]
-	return ok
-}
-
-// ResetVariables resets all changes to the "variables" field.
-func (m *EnvironmentMutation) ResetVariables() {
-	m.variables = nil
-	delete(m.clearedFields, environment.FieldVariables)
-}
-
-// AddApplicationIDs adds the "applications" edge to the Application entity by ids.
-func (m *EnvironmentMutation) AddApplicationIDs(ids ...types.ID) {
-	if m.applications == nil {
-		m.applications = make(map[types.ID]struct{})
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by ids.
+func (m *EnvironmentMutation) AddInstanceIDs(ids ...types.ID) {
+	if m.instances == nil {
+		m.instances = make(map[types.ID]struct{})
 	}
 	for i := range ids {
-		m.applications[ids[i]] = struct{}{}
+		m.instances[ids[i]] = struct{}{}
 	}
 }
 
-// ClearApplications clears the "applications" edge to the Application entity.
-func (m *EnvironmentMutation) ClearApplications() {
-	m.clearedapplications = true
+// ClearInstances clears the "instances" edge to the ApplicationInstance entity.
+func (m *EnvironmentMutation) ClearInstances() {
+	m.clearedinstances = true
 }
 
-// ApplicationsCleared reports if the "applications" edge to the Application entity was cleared.
-func (m *EnvironmentMutation) ApplicationsCleared() bool {
-	return m.clearedapplications
+// InstancesCleared reports if the "instances" edge to the ApplicationInstance entity was cleared.
+func (m *EnvironmentMutation) InstancesCleared() bool {
+	return m.clearedinstances
 }
 
-// RemoveApplicationIDs removes the "applications" edge to the Application entity by IDs.
-func (m *EnvironmentMutation) RemoveApplicationIDs(ids ...types.ID) {
-	if m.removedapplications == nil {
-		m.removedapplications = make(map[types.ID]struct{})
+// RemoveInstanceIDs removes the "instances" edge to the ApplicationInstance entity by IDs.
+func (m *EnvironmentMutation) RemoveInstanceIDs(ids ...types.ID) {
+	if m.removedinstances == nil {
+		m.removedinstances = make(map[types.ID]struct{})
 	}
 	for i := range ids {
-		delete(m.applications, ids[i])
-		m.removedapplications[ids[i]] = struct{}{}
+		delete(m.instances, ids[i])
+		m.removedinstances[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedApplications returns the removed IDs of the "applications" edge to the Application entity.
-func (m *EnvironmentMutation) RemovedApplicationsIDs() (ids []types.ID) {
-	for id := range m.removedapplications {
+// RemovedInstances returns the removed IDs of the "instances" edge to the ApplicationInstance entity.
+func (m *EnvironmentMutation) RemovedInstancesIDs() (ids []types.ID) {
+	for id := range m.removedinstances {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ApplicationsIDs returns the "applications" edge IDs in the mutation.
-func (m *EnvironmentMutation) ApplicationsIDs() (ids []types.ID) {
-	for id := range m.applications {
+// InstancesIDs returns the "instances" edge IDs in the mutation.
+func (m *EnvironmentMutation) InstancesIDs() (ids []types.ID) {
+	for id := range m.instances {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetApplications resets all changes to the "applications" edge.
-func (m *EnvironmentMutation) ResetApplications() {
-	m.applications = nil
-	m.clearedapplications = false
-	m.removedapplications = nil
+// ResetInstances resets all changes to the "instances" edge.
+func (m *EnvironmentMutation) ResetInstances() {
+	m.instances = nil
+	m.clearedinstances = false
+	m.removedinstances = nil
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by ids.
@@ -9524,7 +10420,7 @@ func (m *EnvironmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnvironmentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, environment.FieldName)
 	}
@@ -9539,9 +10435,6 @@ func (m *EnvironmentMutation) Fields() []string {
 	}
 	if m.updateTime != nil {
 		fields = append(fields, environment.FieldUpdateTime)
-	}
-	if m.variables != nil {
-		fields = append(fields, environment.FieldVariables)
 	}
 	return fields
 }
@@ -9561,8 +10454,6 @@ func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case environment.FieldUpdateTime:
 		return m.UpdateTime()
-	case environment.FieldVariables:
-		return m.Variables()
 	}
 	return nil, false
 }
@@ -9582,8 +10473,6 @@ func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCreateTime(ctx)
 	case environment.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case environment.FieldVariables:
-		return m.OldVariables(ctx)
 	}
 	return nil, fmt.Errorf("unknown Environment field %s", name)
 }
@@ -9628,13 +10517,6 @@ func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
-	case environment.FieldVariables:
-		v, ok := value.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetVariables(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
 }
@@ -9668,9 +10550,6 @@ func (m *EnvironmentMutation) ClearedFields() []string {
 	if m.FieldCleared(environment.FieldDescription) {
 		fields = append(fields, environment.FieldDescription)
 	}
-	if m.FieldCleared(environment.FieldVariables) {
-		fields = append(fields, environment.FieldVariables)
-	}
 	return fields
 }
 
@@ -9687,9 +10566,6 @@ func (m *EnvironmentMutation) ClearField(name string) error {
 	switch name {
 	case environment.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case environment.FieldVariables:
-		m.ClearVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown Environment nullable field %s", name)
@@ -9714,9 +10590,6 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 	case environment.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case environment.FieldVariables:
-		m.ResetVariables()
-		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
 }
@@ -9724,8 +10597,8 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EnvironmentMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.applications != nil {
-		edges = append(edges, environment.EdgeApplications)
+	if m.instances != nil {
+		edges = append(edges, environment.EdgeInstances)
 	}
 	if m.revisions != nil {
 		edges = append(edges, environment.EdgeRevisions)
@@ -9737,9 +10610,9 @@ func (m *EnvironmentMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case environment.EdgeApplications:
-		ids := make([]ent.Value, 0, len(m.applications))
-		for id := range m.applications {
+	case environment.EdgeInstances:
+		ids := make([]ent.Value, 0, len(m.instances))
+		for id := range m.instances {
 			ids = append(ids, id)
 		}
 		return ids
@@ -9756,8 +10629,8 @@ func (m *EnvironmentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EnvironmentMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.removedapplications != nil {
-		edges = append(edges, environment.EdgeApplications)
+	if m.removedinstances != nil {
+		edges = append(edges, environment.EdgeInstances)
 	}
 	if m.removedrevisions != nil {
 		edges = append(edges, environment.EdgeRevisions)
@@ -9769,9 +10642,9 @@ func (m *EnvironmentMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case environment.EdgeApplications:
-		ids := make([]ent.Value, 0, len(m.removedapplications))
-		for id := range m.removedapplications {
+	case environment.EdgeInstances:
+		ids := make([]ent.Value, 0, len(m.removedinstances))
+		for id := range m.removedinstances {
 			ids = append(ids, id)
 		}
 		return ids
@@ -9788,8 +10661,8 @@ func (m *EnvironmentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EnvironmentMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedapplications {
-		edges = append(edges, environment.EdgeApplications)
+	if m.clearedinstances {
+		edges = append(edges, environment.EdgeInstances)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, environment.EdgeRevisions)
@@ -9801,8 +10674,8 @@ func (m *EnvironmentMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *EnvironmentMutation) EdgeCleared(name string) bool {
 	switch name {
-	case environment.EdgeApplications:
-		return m.clearedapplications
+	case environment.EdgeInstances:
+		return m.clearedinstances
 	case environment.EdgeRevisions:
 		return m.clearedrevisions
 	}
@@ -9821,8 +10694,8 @@ func (m *EnvironmentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *EnvironmentMutation) ResetEdge(name string) error {
 	switch name {
-	case environment.EdgeApplications:
-		m.ResetApplications()
+	case environment.EdgeInstances:
+		m.ResetInstances()
 		return nil
 	case environment.EdgeRevisions:
 		m.ResetRevisions()

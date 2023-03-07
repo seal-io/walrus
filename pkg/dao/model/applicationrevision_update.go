@@ -174,8 +174,8 @@ func (aru *ApplicationRevisionUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (aru *ApplicationRevisionUpdate) check() error {
-	if _, ok := aru.mutation.ApplicationID(); aru.mutation.ApplicationCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ApplicationRevision.application"`)
+	if _, ok := aru.mutation.InstanceID(); aru.mutation.InstanceCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationRevision.instance"`)
 	}
 	if _, ok := aru.mutation.EnvironmentID(); aru.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationRevision.environment"`)
@@ -415,8 +415,8 @@ func (aruo *ApplicationRevisionUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (aruo *ApplicationRevisionUpdateOne) check() error {
-	if _, ok := aruo.mutation.ApplicationID(); aruo.mutation.ApplicationCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ApplicationRevision.application"`)
+	if _, ok := aruo.mutation.InstanceID(); aruo.mutation.InstanceCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ApplicationRevision.instance"`)
 	}
 	if _, ok := aruo.mutation.EnvironmentID(); aruo.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationRevision.environment"`)

@@ -38,7 +38,7 @@ type ModuleCreateInput struct {
 	Source string `json:"source"`
 	// Version of the module.
 	Version string `json:"version,omitempty"`
-	// Schema of the module
+	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
 
@@ -72,7 +72,7 @@ type ModuleUpdateInput struct {
 	Source string `json:"source,omitempty"`
 	// Version of the module.
 	Version string `json:"version,omitempty"`
-	// Schema of the module
+	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
 
@@ -111,7 +111,7 @@ type ModuleOutput struct {
 	Source string `json:"source,omitempty"`
 	// Version of the module.
 	Version string `json:"version,omitempty"`
-	// Schema of the module
+	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Applications holds the value of the applications edge.
 	Applications []*ApplicationModuleRelationshipOutput `json:"applications,omitempty"`
