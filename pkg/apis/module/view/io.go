@@ -1,6 +1,7 @@
 package view
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-getter"
@@ -62,12 +63,24 @@ type GetResponse = *model.ModuleOutput
 
 // Batch APIs
 
+type CollectionDeleteRequest []*model.ModuleQueryInput
+
+func (r CollectionDeleteRequest) Validate() error {
+	if len(r) == 0 {
+		return errors.New("invalid input: empty")
+	}
+	for _, i := range r {
+		if err := validation.IsQualifiedName(i.ID); err != nil {
+			return fmt.Errorf("invalid id: %w", err)
+		}
+	}
+	return nil
+}
+
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
 	runtime.RequestExtracting `query:",inline"`
 	runtime.RequestSorting    `query:",inline"`
-
-	Group string `query:"_group,omitempty"`
 }
 
 type CollectionGetResponse = []*model.ModuleOutput
