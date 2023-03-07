@@ -18,18 +18,17 @@ defaults:
 on:
   push:
     branches:
-      - 'main'
-      - 'release/*'
+      - "main"
+      - "release/*"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
     branches:
-      - 'main'
-      - 'release/*'
-  workflow_dispatch: { }
+      - "main"
+      - "release/*"
+  workflow_dispatch: {}
 
 jobs:
-
   skip:
     timeout-minutes: 5
     runs-on: ubuntu-22.04
@@ -83,7 +82,7 @@ jobs:
     needs:
       - skip
       - check
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-22.04
     steps:
       - name: Setup Go
@@ -120,7 +119,7 @@ jobs:
       contents: read
       actions: read
       id-token: write
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -183,10 +182,10 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           set -euo pipefail
-          
+
           # login
           cosign login "docker.io" -u "${DOCKERHUB_USERNAME}" -p "${DOCKERHUB_PASSWORD}"
-          
+
           # prove
           curl -o slsa-generator --retry 3 --retry-all-errors --retry-delay 3 -sSfL \
             "https://github.com/slsa-framework/slsa-github-generator/releases/download/${SLSA_GITHUB_GENERATOR_VERSION}/${SLSA_GITHUB_GENERATOR}"
