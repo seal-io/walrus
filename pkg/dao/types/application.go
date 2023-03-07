@@ -6,6 +6,16 @@ type ApplicationModule struct {
 	ModuleID string `json:"moduleID"`
 	// Name of the module customized to the application.
 	Name string `json:"name"`
-	// Variables to configure the module.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	// attributes to configure the module.
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
+}
+
+// ApplicationVariable holds the definition of a variable of application.
+// TODO(thxCode): provide a general variable definition to migrate this and ModuleVariable.
+type ApplicationVariable struct {
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`
+	Description string      `json:"description,omitempty"`
+	Default     interface{} `json:"default,omitempty"`
+	Required    bool        `json:"required,omitempty"`
 }

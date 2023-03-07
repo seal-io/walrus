@@ -24,15 +24,15 @@ func (ApplicationResource) Mixin() []ent.Mixin {
 
 func (ApplicationResource) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("applicationID", "connectorID", "module", "mode", "type", "name").
+		index.Fields("instanceID", "connectorID", "module", "mode", "type", "name").
 			Unique(),
 	}
 }
 
 func (ApplicationResource) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("applicationID").
-			Comment("ID of the application to which the resource belongs.").
+		id.Field("instanceID").
+			Comment("ID of the application instance to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
 		id.Field("connectorID").
@@ -70,11 +70,11 @@ func (ApplicationResource) Fields() []ent.Field {
 
 func (ApplicationResource) Edges() []ent.Edge {
 	return []ent.Edge{
-		// application 1-* application resources.
-		edge.From("application", Application.Type).
+		// application instance 1-* application resources.
+		edge.From("instance", ApplicationInstance.Type).
 			Ref("resources").
-			Field("applicationID").
-			Comment("Application to which the resource belongs.").
+			Field("instanceID").
+			Comment("Application instance to which the resource belongs.").
 			Unique().
 			Required().
 			Immutable(),
