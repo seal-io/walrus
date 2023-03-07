@@ -26,7 +26,8 @@ func (Connector) Mixin() []ent.Mixin {
 
 func (Connector) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name").Unique(),
+		index.Fields("name").
+			Unique(),
 	}
 }
 

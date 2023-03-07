@@ -24,7 +24,8 @@ func (Application) Mixin() []ent.Mixin {
 
 func (Application) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("projectID", "name").Unique(),
+		index.Fields("projectID", "name").
+			Unique(),
 	}
 }
 

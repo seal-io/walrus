@@ -23,7 +23,8 @@ func (Project) Mixin() []ent.Mixin {
 
 func (Project) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name").Unique(),
+		index.Fields("name").
+			Unique(),
 	}
 }
 
