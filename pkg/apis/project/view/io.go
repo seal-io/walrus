@@ -1,13 +1,10 @@
 package view
 
 import (
-	"context"
 	"errors"
-	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/project"
 )
 
 // Basic APIs
@@ -53,35 +50,26 @@ type GetResponse = *model.ProjectOutput
 
 // Batch APIs
 
+type CollectionDeleteRequest []*model.ProjectQueryInput
+
+func (r CollectionDeleteRequest) Validate() error {
+	if len(r) == 0 {
+		return errors.New("invalid input: empty")
+	}
+	for _, i := range r {
+		if !i.ID.Valid(0) {
+			return errors.New("invalid id: blank")
+		}
+	}
+	return nil
+}
+
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
+	runtime.RequestExtracting `query:",inline"`
 	runtime.RequestSorting    `query:",inline"`
 }
 
 type CollectionGetResponse = []*model.ProjectOutput
 
 // Extensional APIs
-
-type GetApplicationsRequest struct {
-	*model.ProjectQueryInput  `uri:",inline"`
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
-}
-
-func (r *GetApplicationsRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-	_, err := modelClient.Projects().Query().
-		Where(project.ID(r.ID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
-	}
-	return nil
-}
-
-type GetApplicationsResponse = []*model.ApplicationOutput
