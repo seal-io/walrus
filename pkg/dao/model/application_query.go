@@ -17,10 +17,8 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
@@ -30,16 +28,14 @@ import (
 // ApplicationQuery is the builder for querying Application entities.
 type ApplicationQuery struct {
 	config
-	ctx             *QueryContext
-	order           []OrderFunc
-	inters          []Interceptor
-	predicates      []predicate.Application
-	withProject     *ProjectQuery
-	withEnvironment *EnvironmentQuery
-	withResources   *ApplicationResourceQuery
-	withRevisions   *ApplicationRevisionQuery
-	withModules     *ApplicationModuleRelationshipQuery
-	modifiers       []func(*sql.Selector)
+	ctx           *QueryContext
+	order         []OrderFunc
+	inters        []Interceptor
+	predicates    []predicate.Application
+	withProject   *ProjectQuery
+	withInstances *ApplicationInstanceQuery
+	withModules   *ApplicationModuleRelationshipQuery
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -101,9 +97,9 @@ func (aq *ApplicationQuery) QueryProject() *ProjectQuery {
 	return query
 }
 
-// QueryEnvironment chains the current query on the "environment" edge.
-func (aq *ApplicationQuery) QueryEnvironment() *EnvironmentQuery {
-	query := (&EnvironmentClient{config: aq.config}).Query()
+// QueryInstances chains the current query on the "instances" edge.
+func (aq *ApplicationQuery) QueryInstances() *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: aq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -114,62 +110,12 @@ func (aq *ApplicationQuery) QueryEnvironment() *EnvironmentQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(application.Table, application.FieldID, selector),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, application.EnvironmentTable, application.EnvironmentColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, application.InstancesTable, application.InstancesColumn),
 		)
 		schemaConfig := aq.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Application
-		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryResources chains the current query on the "resources" edge.
-func (aq *ApplicationQuery) QueryResources() *ApplicationResourceQuery {
-	query := (&ApplicationResourceClient{config: aq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := aq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := aq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(application.Table, application.FieldID, selector),
-			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, application.ResourcesTable, application.ResourcesColumn),
-		)
-		schemaConfig := aq.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationResource
-		step.Edge.Schema = schemaConfig.ApplicationResource
-		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryRevisions chains the current query on the "revisions" edge.
-func (aq *ApplicationQuery) QueryRevisions() *ApplicationRevisionQuery {
-	query := (&ApplicationRevisionClient{config: aq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := aq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := aq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(application.Table, application.FieldID, selector),
-			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, application.RevisionsTable, application.RevisionsColumn),
-		)
-		schemaConfig := aq.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -388,16 +334,14 @@ func (aq *ApplicationQuery) Clone() *ApplicationQuery {
 		return nil
 	}
 	return &ApplicationQuery{
-		config:          aq.config,
-		ctx:             aq.ctx.Clone(),
-		order:           append([]OrderFunc{}, aq.order...),
-		inters:          append([]Interceptor{}, aq.inters...),
-		predicates:      append([]predicate.Application{}, aq.predicates...),
-		withProject:     aq.withProject.Clone(),
-		withEnvironment: aq.withEnvironment.Clone(),
-		withResources:   aq.withResources.Clone(),
-		withRevisions:   aq.withRevisions.Clone(),
-		withModules:     aq.withModules.Clone(),
+		config:        aq.config,
+		ctx:           aq.ctx.Clone(),
+		order:         append([]OrderFunc{}, aq.order...),
+		inters:        append([]Interceptor{}, aq.inters...),
+		predicates:    append([]predicate.Application{}, aq.predicates...),
+		withProject:   aq.withProject.Clone(),
+		withInstances: aq.withInstances.Clone(),
+		withModules:   aq.withModules.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -415,36 +359,14 @@ func (aq *ApplicationQuery) WithProject(opts ...func(*ProjectQuery)) *Applicatio
 	return aq
 }
 
-// WithEnvironment tells the query-builder to eager-load the nodes that are connected to
-// the "environment" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *ApplicationQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ApplicationQuery {
-	query := (&EnvironmentClient{config: aq.config}).Query()
+// WithInstances tells the query-builder to eager-load the nodes that are connected to
+// the "instances" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *ApplicationQuery) WithInstances(opts ...func(*ApplicationInstanceQuery)) *ApplicationQuery {
+	query := (&ApplicationInstanceClient{config: aq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withEnvironment = query
-	return aq
-}
-
-// WithResources tells the query-builder to eager-load the nodes that are connected to
-// the "resources" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *ApplicationQuery) WithResources(opts ...func(*ApplicationResourceQuery)) *ApplicationQuery {
-	query := (&ApplicationResourceClient{config: aq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	aq.withResources = query
-	return aq
-}
-
-// WithRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *ApplicationQuery) WithRevisions(opts ...func(*ApplicationRevisionQuery)) *ApplicationQuery {
-	query := (&ApplicationRevisionClient{config: aq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	aq.withRevisions = query
+	aq.withInstances = query
 	return aq
 }
 
@@ -537,11 +459,9 @@ func (aq *ApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Application{}
 		_spec       = aq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [3]bool{
 			aq.withProject != nil,
-			aq.withEnvironment != nil,
-			aq.withResources != nil,
-			aq.withRevisions != nil,
+			aq.withInstances != nil,
 			aq.withModules != nil,
 		}
 	)
@@ -574,23 +494,10 @@ func (aq *ApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
-	if query := aq.withEnvironment; query != nil {
-		if err := aq.loadEnvironment(ctx, query, nodes, nil,
-			func(n *Application, e *Environment) { n.Edges.Environment = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := aq.withResources; query != nil {
-		if err := aq.loadResources(ctx, query, nodes,
-			func(n *Application) { n.Edges.Resources = []*ApplicationResource{} },
-			func(n *Application, e *ApplicationResource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := aq.withRevisions; query != nil {
-		if err := aq.loadRevisions(ctx, query, nodes,
-			func(n *Application) { n.Edges.Revisions = []*ApplicationRevision{} },
-			func(n *Application, e *ApplicationRevision) { n.Edges.Revisions = append(n.Edges.Revisions, e) }); err != nil {
+	if query := aq.withInstances; query != nil {
+		if err := aq.loadInstances(ctx, query, nodes,
+			func(n *Application) { n.Edges.Instances = []*ApplicationInstance{} },
+			func(n *Application, e *ApplicationInstance) { n.Edges.Instances = append(n.Edges.Instances, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -633,36 +540,7 @@ func (aq *ApplicationQuery) loadProject(ctx context.Context, query *ProjectQuery
 	}
 	return nil
 }
-func (aq *ApplicationQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*Application, init func(*Application), assign func(*Application, *Environment)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*Application)
-	for i := range nodes {
-		fk := nodes[i].EnvironmentID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(environment.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (aq *ApplicationQuery) loadResources(ctx context.Context, query *ApplicationResourceQuery, nodes []*Application, init func(*Application), assign func(*Application, *ApplicationResource)) error {
+func (aq *ApplicationQuery) loadInstances(ctx context.Context, query *ApplicationInstanceQuery, nodes []*Application, init func(*Application), assign func(*Application, *ApplicationInstance)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[types.ID]*Application)
 	for i := range nodes {
@@ -672,35 +550,8 @@ func (aq *ApplicationQuery) loadResources(ctx context.Context, query *Applicatio
 			init(nodes[i])
 		}
 	}
-	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(application.ResourcesColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.ApplicationID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (aq *ApplicationQuery) loadRevisions(ctx context.Context, query *ApplicationRevisionQuery, nodes []*Application, init func(*Application), assign func(*Application, *ApplicationRevision)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Application)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.Where(predicate.ApplicationRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(application.RevisionsColumn, fks...))
+	query.Where(predicate.ApplicationInstance(func(s *sql.Selector) {
+		s.Where(sql.InValues(application.InstancesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

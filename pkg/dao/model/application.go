@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -36,8 +35,8 @@ type Application struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the project to which the application belongs.
 	ProjectID types.ID `json:"projectID,omitempty"`
-	// ID of the environment to which the application deploys.
-	EnvironmentID types.ID `json:"environmentID,omitempty"`
+	// Variables definition of the application, the variables of instance derived by this definition
+	Variables []types.ApplicationVariable `json:"variables,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges ApplicationEdges `json:"edges,omitempty"`
@@ -47,17 +46,13 @@ type Application struct {
 type ApplicationEdges struct {
 	// Project to which this application belongs.
 	Project *Project `json:"project,omitempty"`
-	// Environment to which the application belongs.
-	Environment *Environment `json:"environment,omitempty"`
-	// Resources that belong to the application.
-	Resources []*ApplicationResource `json:"resources,omitempty"`
-	// Revisions that belong to this application.
-	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
+	// Application instances that belong to this application.
+	Instances []*ApplicationInstance `json:"instances,omitempty"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationship `json:"modules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [3]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -73,41 +68,19 @@ func (e ApplicationEdges) ProjectOrErr() (*Project, error) {
 	return nil, &NotLoadedError{edge: "project"}
 }
 
-// EnvironmentOrErr returns the Environment value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ApplicationEdges) EnvironmentOrErr() (*Environment, error) {
+// InstancesOrErr returns the Instances value or an error if the edge
+// was not loaded in eager-loading.
+func (e ApplicationEdges) InstancesOrErr() ([]*ApplicationInstance, error) {
 	if e.loadedTypes[1] {
-		if e.Environment == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: environment.Label}
-		}
-		return e.Environment, nil
+		return e.Instances, nil
 	}
-	return nil, &NotLoadedError{edge: "environment"}
-}
-
-// ResourcesOrErr returns the Resources value or an error if the edge
-// was not loaded in eager-loading.
-func (e ApplicationEdges) ResourcesOrErr() ([]*ApplicationResource, error) {
-	if e.loadedTypes[2] {
-		return e.Resources, nil
-	}
-	return nil, &NotLoadedError{edge: "resources"}
-}
-
-// RevisionsOrErr returns the Revisions value or an error if the edge
-// was not loaded in eager-loading.
-func (e ApplicationEdges) RevisionsOrErr() ([]*ApplicationRevision, error) {
-	if e.loadedTypes[3] {
-		return e.Revisions, nil
-	}
-	return nil, &NotLoadedError{edge: "revisions"}
+	return nil, &NotLoadedError{edge: "instances"}
 }
 
 // ModulesOrErr returns the Modules value or an error if the edge
 // was not loaded in eager-loading.
 func (e ApplicationEdges) ModulesOrErr() ([]*ApplicationModuleRelationship, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[2] {
 		return e.Modules, nil
 	}
 	return nil, &NotLoadedError{edge: "modules"}
@@ -118,13 +91,13 @@ func (*Application) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case application.FieldLabels:
+		case application.FieldLabels, application.FieldVariables:
 			values[i] = new([]byte)
 		case application.FieldName, application.FieldDescription:
 			values[i] = new(sql.NullString)
 		case application.FieldCreateTime, application.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case application.FieldID, application.FieldProjectID, application.FieldEnvironmentID:
+		case application.FieldID, application.FieldProjectID:
 			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Application", columns[i])
@@ -187,11 +160,13 @@ func (a *Application) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				a.ProjectID = *value
 			}
-		case application.FieldEnvironmentID:
-			if value, ok := values[i].(*types.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
-			} else if value != nil {
-				a.EnvironmentID = *value
+		case application.FieldVariables:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field variables", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &a.Variables); err != nil {
+					return fmt.Errorf("unmarshal field variables: %w", err)
+				}
 			}
 		}
 	}
@@ -203,19 +178,9 @@ func (a *Application) QueryProject() *ProjectQuery {
 	return NewApplicationClient(a.config).QueryProject(a)
 }
 
-// QueryEnvironment queries the "environment" edge of the Application entity.
-func (a *Application) QueryEnvironment() *EnvironmentQuery {
-	return NewApplicationClient(a.config).QueryEnvironment(a)
-}
-
-// QueryResources queries the "resources" edge of the Application entity.
-func (a *Application) QueryResources() *ApplicationResourceQuery {
-	return NewApplicationClient(a.config).QueryResources(a)
-}
-
-// QueryRevisions queries the "revisions" edge of the Application entity.
-func (a *Application) QueryRevisions() *ApplicationRevisionQuery {
-	return NewApplicationClient(a.config).QueryRevisions(a)
+// QueryInstances queries the "instances" edge of the Application entity.
+func (a *Application) QueryInstances() *ApplicationInstanceQuery {
+	return NewApplicationClient(a.config).QueryInstances(a)
 }
 
 // QueryModules queries the "modules" edge of the Application entity.
@@ -268,8 +233,8 @@ func (a *Application) String() string {
 	builder.WriteString("projectID=")
 	builder.WriteString(fmt.Sprintf("%v", a.ProjectID))
 	builder.WriteString(", ")
-	builder.WriteString("environmentID=")
-	builder.WriteString(fmt.Sprintf("%v", a.EnvironmentID))
+	builder.WriteString("variables=")
+	builder.WriteString(fmt.Sprintf("%v", a.Variables))
 	builder.WriteByte(')')
 	return builder.String()
 }

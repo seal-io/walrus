@@ -86,11 +86,6 @@ func ProjectID(v types.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldProjectID, v))
 }
 
-// EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldEQ(FieldEnvironmentID, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldName, v))
@@ -381,74 +376,14 @@ func ProjectIDContainsFold(v types.ID) predicate.Application {
 	return predicate.Application(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
-// EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
-func EnvironmentIDEQ(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldEQ(FieldEnvironmentID, v))
+// VariablesIsNil applies the IsNil predicate on the "variables" field.
+func VariablesIsNil() predicate.Application {
+	return predicate.Application(sql.FieldIsNull(FieldVariables))
 }
 
-// EnvironmentIDNEQ applies the NEQ predicate on the "environmentID" field.
-func EnvironmentIDNEQ(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldNEQ(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDIn applies the In predicate on the "environmentID" field.
-func EnvironmentIDIn(vs ...types.ID) predicate.Application {
-	return predicate.Application(sql.FieldIn(FieldEnvironmentID, vs...))
-}
-
-// EnvironmentIDNotIn applies the NotIn predicate on the "environmentID" field.
-func EnvironmentIDNotIn(vs ...types.ID) predicate.Application {
-	return predicate.Application(sql.FieldNotIn(FieldEnvironmentID, vs...))
-}
-
-// EnvironmentIDGT applies the GT predicate on the "environmentID" field.
-func EnvironmentIDGT(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldGT(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDGTE applies the GTE predicate on the "environmentID" field.
-func EnvironmentIDGTE(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldGTE(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDLT applies the LT predicate on the "environmentID" field.
-func EnvironmentIDLT(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldLT(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDLTE applies the LTE predicate on the "environmentID" field.
-func EnvironmentIDLTE(v types.ID) predicate.Application {
-	return predicate.Application(sql.FieldLTE(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDContains applies the Contains predicate on the "environmentID" field.
-func EnvironmentIDContains(v types.ID) predicate.Application {
-	vc := string(v)
-	return predicate.Application(sql.FieldContains(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environmentID" field.
-func EnvironmentIDHasPrefix(v types.ID) predicate.Application {
-	vc := string(v)
-	return predicate.Application(sql.FieldHasPrefix(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environmentID" field.
-func EnvironmentIDHasSuffix(v types.ID) predicate.Application {
-	vc := string(v)
-	return predicate.Application(sql.FieldHasSuffix(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDEqualFold applies the EqualFold predicate on the "environmentID" field.
-func EnvironmentIDEqualFold(v types.ID) predicate.Application {
-	vc := string(v)
-	return predicate.Application(sql.FieldEqualFold(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDContainsFold applies the ContainsFold predicate on the "environmentID" field.
-func EnvironmentIDContainsFold(v types.ID) predicate.Application {
-	vc := string(v)
-	return predicate.Application(sql.FieldContainsFold(FieldEnvironmentID, vc))
+// VariablesNotNil applies the NotNil predicate on the "variables" field.
+func VariablesNotNil() predicate.Application {
+	return predicate.Application(sql.FieldNotNull(FieldVariables))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.
@@ -484,97 +419,31 @@ func HasProjectWith(preds ...predicate.Project) predicate.Application {
 	})
 }
 
-// HasEnvironment applies the HasEdge predicate on the "environment" edge.
-func HasEnvironment() predicate.Application {
+// HasInstances applies the HasEdge predicate on the "instances" edge.
+func HasInstances() predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
-func HasEnvironmentWith(preds ...predicate.Environment) predicate.Application {
+// HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
+func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(EnvironmentInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+			sqlgraph.To(InstancesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Application
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasResources applies the HasEdge predicate on the "resources" edge.
-func HasResources() predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationResource
-		step.Edge.Schema = schemaConfig.ApplicationResource
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasResourcesWith applies the HasEdge predicate on the "resources" edge with a given conditions (other predicates).
-func HasResourcesWith(preds ...predicate.ApplicationResource) predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ResourcesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationResource
-		step.Edge.Schema = schemaConfig.ApplicationResource
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasRevisions applies the HasEdge predicate on the "revisions" edge.
-func HasRevisions() predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
-func HasRevisionsWith(preds ...predicate.ApplicationRevision) predicate.Application {
-	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RevisionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

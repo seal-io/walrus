@@ -36,6 +36,18 @@ func (f ApplicationFunc) Mutate(ctx context.Context, m model.Mutation) (model.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationMutation", m)
 }
 
+// The ApplicationInstanceFunc type is an adapter to allow the use of ordinary
+// function as ApplicationInstance mutator.
+type ApplicationInstanceFunc func(context.Context, *model.ApplicationInstanceMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationInstanceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ApplicationInstanceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationInstanceMutation", m)
+}
+
 // The ApplicationModuleRelationshipFunc type is an adapter to allow the use of ordinary
 // function as ApplicationModuleRelationship mutator.
 type ApplicationModuleRelationshipFunc func(context.Context, *model.ApplicationModuleRelationshipMutation) (model.Value, error)

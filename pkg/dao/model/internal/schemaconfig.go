@@ -12,6 +12,7 @@ import "context"
 type SchemaConfig struct {
 	AllocationCost                   string // AllocationCost table.
 	Application                      string // Application table.
+	ApplicationInstance              string // ApplicationInstance table.
 	ApplicationModuleRelationship    string // ApplicationModuleRelationship table.
 	ApplicationResource              string // ApplicationResource table.
 	ApplicationRevision              string // ApplicationRevision table.

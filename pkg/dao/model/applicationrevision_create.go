@@ -16,7 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -72,9 +72,9 @@ func (arc *ApplicationRevisionCreate) SetNillableCreateTime(t *time.Time) *Appli
 	return arc
 }
 
-// SetApplicationID sets the "applicationID" field.
-func (arc *ApplicationRevisionCreate) SetApplicationID(t types.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetApplicationID(t)
+// SetInstanceID sets the "instanceID" field.
+func (arc *ApplicationRevisionCreate) SetInstanceID(t types.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetInstanceID(t)
 	return arc
 }
 
@@ -142,9 +142,9 @@ func (arc *ApplicationRevisionCreate) SetID(t types.ID) *ApplicationRevisionCrea
 	return arc
 }
 
-// SetApplication sets the "application" edge to the Application entity.
-func (arc *ApplicationRevisionCreate) SetApplication(a *Application) *ApplicationRevisionCreate {
-	return arc.SetApplicationID(a.ID)
+// SetInstance sets the "instance" edge to the ApplicationInstance entity.
+func (arc *ApplicationRevisionCreate) SetInstance(a *ApplicationInstance) *ApplicationRevisionCreate {
+	return arc.SetInstanceID(a.ID)
 }
 
 // SetEnvironment sets the "environment" edge to the Environment entity.
@@ -220,12 +220,12 @@ func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ApplicationRevision.createTime"`)}
 	}
-	if _, ok := arc.mutation.ApplicationID(); !ok {
-		return &ValidationError{Name: "applicationID", err: errors.New(`model: missing required field "ApplicationRevision.applicationID"`)}
+	if _, ok := arc.mutation.InstanceID(); !ok {
+		return &ValidationError{Name: "instanceID", err: errors.New(`model: missing required field "ApplicationRevision.instanceID"`)}
 	}
-	if v, ok := arc.mutation.ApplicationID(); ok {
-		if err := applicationrevision.ApplicationIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "applicationID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.applicationID": %w`, err)}
+	if v, ok := arc.mutation.InstanceID(); ok {
+		if err := applicationrevision.InstanceIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "instanceID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.instanceID": %w`, err)}
 		}
 	}
 	if _, ok := arc.mutation.EnvironmentID(); !ok {
@@ -254,8 +254,8 @@ func (arc *ApplicationRevisionCreate) check() error {
 	if _, ok := arc.mutation.Duration(); !ok {
 		return &ValidationError{Name: "duration", err: errors.New(`model: missing required field "ApplicationRevision.duration"`)}
 	}
-	if _, ok := arc.mutation.ApplicationID(); !ok {
-		return &ValidationError{Name: "application", err: errors.New(`model: missing required edge "ApplicationRevision.application"`)}
+	if _, ok := arc.mutation.InstanceID(); !ok {
+		return &ValidationError{Name: "instance", err: errors.New(`model: missing required edge "ApplicationRevision.instance"`)}
 	}
 	if _, ok := arc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "ApplicationRevision.environment"`)}
@@ -333,17 +333,17 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		_spec.SetField(applicationrevision.FieldDuration, field.TypeInt, value)
 		_node.Duration = value
 	}
-	if nodes := arc.mutation.ApplicationIDs(); len(nodes) > 0 {
+	if nodes := arc.mutation.InstanceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   applicationrevision.ApplicationTable,
-			Columns: []string{applicationrevision.ApplicationColumn},
+			Table:   applicationrevision.InstanceTable,
+			Columns: []string{applicationrevision.InstanceColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
@@ -351,7 +351,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ApplicationID = nodes[0]
+		_node.InstanceID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := arc.mutation.EnvironmentIDs(); len(nodes) > 0 {
@@ -561,8 +561,8 @@ func (u *ApplicationRevisionUpsertOne) UpdateNewValues() *ApplicationRevisionUps
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(applicationrevision.FieldCreateTime)
 		}
-		if _, exists := u.create.mutation.ApplicationID(); exists {
-			s.SetIgnore(applicationrevision.FieldApplicationID)
+		if _, exists := u.create.mutation.InstanceID(); exists {
+			s.SetIgnore(applicationrevision.FieldInstanceID)
 		}
 		if _, exists := u.create.mutation.EnvironmentID(); exists {
 			s.SetIgnore(applicationrevision.FieldEnvironmentID)
@@ -913,8 +913,8 @@ func (u *ApplicationRevisionUpsertBulk) UpdateNewValues() *ApplicationRevisionUp
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(applicationrevision.FieldCreateTime)
 			}
-			if _, exists := b.mutation.ApplicationID(); exists {
-				s.SetIgnore(applicationrevision.FieldApplicationID)
+			if _, exists := b.mutation.InstanceID(); exists {
+				s.SetIgnore(applicationrevision.FieldInstanceID)
 			}
 			if _, exists := b.mutation.EnvironmentID(); exists {
 				s.SetIgnore(applicationrevision.FieldEnvironmentID)

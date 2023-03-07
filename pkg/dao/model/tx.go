@@ -21,6 +21,8 @@ type Tx struct {
 	AllocationCost *AllocationCostClient
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
+	// ApplicationInstance is the client for interacting with the ApplicationInstance builders.
+	ApplicationInstance *ApplicationInstanceClient
 	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
 	ApplicationModuleRelationship *ApplicationModuleRelationshipClient
 	// ApplicationResource is the client for interacting with the ApplicationResource builders.
@@ -182,6 +184,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.AllocationCost = NewAllocationCostClient(tx.config)
 	tx.Application = NewApplicationClient(tx.config)
+	tx.ApplicationInstance = NewApplicationInstanceClient(tx.config)
 	tx.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(tx.config)
 	tx.ApplicationResource = NewApplicationResourceClient(tx.config)
 	tx.ApplicationRevision = NewApplicationRevisionClient(tx.config)
@@ -267,6 +270,11 @@ func (tx *Tx) AllocationCosts() *AllocationCostClient {
 // Applications implements the ClientSet.
 func (tx *Tx) Applications() *ApplicationClient {
 	return tx.Application
+}
+
+// ApplicationInstances implements the ClientSet.
+func (tx *Tx) ApplicationInstances() *ApplicationInstanceClient {
+	return tx.ApplicationInstance
 }
 
 // ApplicationModuleRelationships implements the ClientSet.

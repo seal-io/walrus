@@ -48,7 +48,7 @@ type ConnectorCreateInput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
-	// Custom pricing user defined
+	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
 
@@ -95,7 +95,7 @@ type ConnectorUpdateInput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
-	// Custom pricing user defined
+	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
 
@@ -148,7 +148,7 @@ type ConnectorOutput struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
-	// Custom pricing user defined
+	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationshipOutput `json:"environments,omitempty"`
@@ -156,7 +156,7 @@ type ConnectorOutput struct {
 	Resources []*ApplicationResourceOutput `json:"resources,omitempty"`
 	// Cluster costs that linked to the connection
 	ClusterCosts []*ClusterCostOutput `json:"clusterCosts,omitempty"`
-	// Cluster allocation resource costs that linked to the connection
+	// Cluster allocation resource costs that linked to the connection.
 	AllocationCosts []*AllocationCostOutput `json:"allocationCosts,omitempty"`
 }
 

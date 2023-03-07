@@ -48,7 +48,7 @@ type Connector struct {
 	FinOpsStatus string `json:"finOpsStatus,omitempty"`
 	// Extra message for finOps tools status, like error details.
 	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
-	// Custom pricing user defined
+	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
@@ -63,7 +63,7 @@ type ConnectorEdges struct {
 	Resources []*ApplicationResource `json:"resources,omitempty"`
 	// Cluster costs that linked to the connection
 	ClusterCosts []*ClusterCost `json:"clusterCosts,omitempty"`
-	// Cluster allocation resource costs that linked to the connection
+	// Cluster allocation resource costs that linked to the connection.
 	AllocationCosts []*AllocationCost `json:"allocationCosts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

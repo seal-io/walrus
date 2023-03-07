@@ -24,8 +24,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldApplicationID holds the string denoting the applicationid field in the database.
-	FieldApplicationID = "application_id"
+	// FieldInstanceID holds the string denoting the instanceid field in the database.
+	FieldInstanceID = "instance_id"
 	// FieldConnectorID holds the string denoting the connectorid field in the database.
 	FieldConnectorID = "connector_id"
 	// FieldModule holds the string denoting the module field in the database.
@@ -38,19 +38,19 @@ const (
 	FieldName = "name"
 	// FieldDeployerType holds the string denoting the deployertype field in the database.
 	FieldDeployerType = "deployer_type"
-	// EdgeApplication holds the string denoting the application edge name in mutations.
-	EdgeApplication = "application"
+	// EdgeInstance holds the string denoting the instance edge name in mutations.
+	EdgeInstance = "instance"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
 	EdgeConnector = "connector"
 	// Table holds the table name of the applicationresource in the database.
 	Table = "application_resources"
-	// ApplicationTable is the table that holds the application relation/edge.
-	ApplicationTable = "application_resources"
-	// ApplicationInverseTable is the table name for the Application entity.
-	// It exists in this package in order to avoid circular dependency with the "application" package.
-	ApplicationInverseTable = "applications"
-	// ApplicationColumn is the table column denoting the application relation/edge.
-	ApplicationColumn = "application_id"
+	// InstanceTable is the table that holds the instance relation/edge.
+	InstanceTable = "application_resources"
+	// InstanceInverseTable is the table name for the ApplicationInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationinstance" package.
+	InstanceInverseTable = "application_instances"
+	// InstanceColumn is the table column denoting the instance relation/edge.
+	InstanceColumn = "instance_id"
 	// ConnectorTable is the table that holds the connector relation/edge.
 	ConnectorTable = "application_resources"
 	// ConnectorInverseTable is the table name for the Connector entity.
@@ -67,7 +67,7 @@ var Columns = []string{
 	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldApplicationID,
+	FieldInstanceID,
 	FieldConnectorID,
 	FieldModule,
 	FieldMode,
@@ -99,8 +99,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// ApplicationIDValidator is a validator for the "applicationID" field. It is called by the builders before save.
-	ApplicationIDValidator func(string) error
+	// InstanceIDValidator is a validator for the "instanceID" field. It is called by the builders before save.
+	InstanceIDValidator func(string) error
 	// ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
 	ConnectorIDValidator func(string) error
 	// ModuleValidator is a validator for the "module" field. It is called by the builders before save.

@@ -40,6 +40,7 @@ type (
 	hooks struct {
 		AllocationCost                   []ent.Hook
 		Application                      []ent.Hook
+		ApplicationInstance              []ent.Hook
 		ApplicationModuleRelationship    []ent.Hook
 		ApplicationResource              []ent.Hook
 		ApplicationRevision              []ent.Hook
@@ -58,6 +59,7 @@ type (
 	inters struct {
 		AllocationCost                   []ent.Interceptor
 		Application                      []ent.Interceptor
+		ApplicationInstance              []ent.Interceptor
 		ApplicationModuleRelationship    []ent.Interceptor
 		ApplicationResource              []ent.Interceptor
 		ApplicationRevision              []ent.Interceptor

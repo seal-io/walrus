@@ -321,14 +321,14 @@ func NameContainsFold(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldContainsFold(FieldName, v))
 }
 
-// VariablesIsNil applies the IsNil predicate on the "variables" field.
-func VariablesIsNil() predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldIsNull(FieldVariables))
+// AttributesIsNil applies the IsNil predicate on the "attributes" field.
+func AttributesIsNil() predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldIsNull(FieldAttributes))
 }
 
-// VariablesNotNil applies the NotNil predicate on the "variables" field.
-func VariablesNotNil() predicate.ApplicationModuleRelationship {
-	return predicate.ApplicationModuleRelationship(sql.FieldNotNull(FieldVariables))
+// AttributesNotNil applies the NotNil predicate on the "attributes" field.
+func AttributesNotNil() predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldNotNull(FieldAttributes))
 }
 
 // HasApplication applies the HasEdge predicate on the "application" edge.

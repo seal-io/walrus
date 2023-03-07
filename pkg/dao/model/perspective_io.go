@@ -26,15 +26,15 @@ func (in PerspectiveQueryInput) Model() *Perspective {
 
 // PerspectiveCreateInput is the input for the Perspective creation.
 type PerspectiveCreateInput struct {
-	// Name for current perspective
+	// Name for current perspective.
 	Name string `json:"name"`
-	// Start time for current perspective
+	// Start time for current perspective.
 	StartTime string `json:"startTime"`
-	// End time for current perspective
+	// End time for current perspective.
 	EndTime string `json:"endTime"`
-	// Is builtin Perspective
+	// Is builtin Perspective.
 	Builtin bool `json:"builtin,omitempty"`
-	// Indicated the perspective included allocation queries, record the used query condition
+	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
 }
 
@@ -54,13 +54,13 @@ func (in PerspectiveCreateInput) Model() *Perspective {
 type PerspectiveUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID types.ID `uri:"id" json:"-"`
-	// Start time for current perspective
+	// Start time for current perspective.
 	StartTime string `json:"startTime,omitempty"`
-	// End time for current perspective
+	// End time for current perspective.
 	EndTime string `json:"endTime,omitempty"`
-	// Is builtin Perspective
+	// Is builtin Perspective.
 	Builtin bool `json:"builtin,omitempty"`
-	// Indicated the perspective included allocation queries, record the used query condition
+	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
 }
 
@@ -84,15 +84,15 @@ type PerspectiveOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Name for current perspective
+	// Name for current perspective.
 	Name string `json:"name,omitempty"`
-	// Start time for current perspective
+	// Start time for current perspective.
 	StartTime string `json:"startTime,omitempty"`
-	// End time for current perspective
+	// End time for current perspective.
 	EndTime string `json:"endTime,omitempty"`
-	// Is builtin Perspective
+	// Is builtin Perspective.
 	Builtin bool `json:"builtin,omitempty"`
-	// Indicated the perspective included allocation queries, record the used query condition
+	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
 }
 

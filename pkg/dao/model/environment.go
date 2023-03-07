@@ -32,8 +32,6 @@ type Environment struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Variables of the environment.
-	Variables map[string]interface{} `json:"variables,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges EnvironmentEdges `json:"edges,omitempty"`
@@ -43,9 +41,9 @@ type Environment struct {
 type EnvironmentEdges struct {
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty"`
-	// Applications that belong to the environment.
-	Applications []*Application `json:"applications,omitempty"`
-	// Revisions that belong to the environment.
+	// Application instances that belong to the environment.
+	Instances []*ApplicationInstance `json:"instances,omitempty"`
+	// Application revisions that belong to the environment.
 	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -61,13 +59,13 @@ func (e EnvironmentEdges) ConnectorsOrErr() ([]*EnvironmentConnectorRelationship
 	return nil, &NotLoadedError{edge: "connectors"}
 }
 
-// ApplicationsOrErr returns the Applications value or an error if the edge
+// InstancesOrErr returns the Instances value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) ApplicationsOrErr() ([]*Application, error) {
+func (e EnvironmentEdges) InstancesOrErr() ([]*ApplicationInstance, error) {
 	if e.loadedTypes[1] {
-		return e.Applications, nil
+		return e.Instances, nil
 	}
-	return nil, &NotLoadedError{edge: "applications"}
+	return nil, &NotLoadedError{edge: "instances"}
 }
 
 // RevisionsOrErr returns the Revisions value or an error if the edge
@@ -84,7 +82,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case environment.FieldLabels, environment.FieldVariables:
+		case environment.FieldLabels:
 			values[i] = new([]byte)
 		case environment.FieldName, environment.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -147,14 +145,6 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 				e.UpdateTime = new(time.Time)
 				*e.UpdateTime = value.Time
 			}
-		case environment.FieldVariables:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field variables", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &e.Variables); err != nil {
-					return fmt.Errorf("unmarshal field variables: %w", err)
-				}
-			}
 		}
 	}
 	return nil
@@ -165,9 +155,9 @@ func (e *Environment) QueryConnectors() *EnvironmentConnectorRelationshipQuery {
 	return NewEnvironmentClient(e.config).QueryConnectors(e)
 }
 
-// QueryApplications queries the "applications" edge of the Environment entity.
-func (e *Environment) QueryApplications() *ApplicationQuery {
-	return NewEnvironmentClient(e.config).QueryApplications(e)
+// QueryInstances queries the "instances" edge of the Environment entity.
+func (e *Environment) QueryInstances() *ApplicationInstanceQuery {
+	return NewEnvironmentClient(e.config).QueryInstances(e)
 }
 
 // QueryRevisions queries the "revisions" edge of the Environment entity.
@@ -216,9 +206,6 @@ func (e *Environment) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("variables=")
-	builder.WriteString(fmt.Sprintf("%v", e.Variables))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -81,9 +81,9 @@ func UpdateTime(v time.Time) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// ApplicationID applies equality check predicate on the "applicationID" field. It's identical to ApplicationIDEQ.
-func ApplicationID(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldApplicationID, v))
+// InstanceID applies equality check predicate on the "instanceID" field. It's identical to InstanceIDEQ.
+func InstanceID(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldInstanceID, v))
 }
 
 // ConnectorID applies equality check predicate on the "connectorID" field. It's identical to ConnectorIDEQ.
@@ -346,74 +346,74 @@ func UpdateTimeLTE(v time.Time) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// ApplicationIDEQ applies the EQ predicate on the "applicationID" field.
-func ApplicationIDEQ(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldApplicationID, v))
+// InstanceIDEQ applies the EQ predicate on the "instanceID" field.
+func InstanceIDEQ(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldInstanceID, v))
 }
 
-// ApplicationIDNEQ applies the NEQ predicate on the "applicationID" field.
-func ApplicationIDNEQ(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNEQ(FieldApplicationID, v))
+// InstanceIDNEQ applies the NEQ predicate on the "instanceID" field.
+func InstanceIDNEQ(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldInstanceID, v))
 }
 
-// ApplicationIDIn applies the In predicate on the "applicationID" field.
-func ApplicationIDIn(vs ...types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldIn(FieldApplicationID, vs...))
+// InstanceIDIn applies the In predicate on the "instanceID" field.
+func InstanceIDIn(vs ...types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldInstanceID, vs...))
 }
 
-// ApplicationIDNotIn applies the NotIn predicate on the "applicationID" field.
-func ApplicationIDNotIn(vs ...types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNotIn(FieldApplicationID, vs...))
+// InstanceIDNotIn applies the NotIn predicate on the "instanceID" field.
+func InstanceIDNotIn(vs ...types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldInstanceID, vs...))
 }
 
-// ApplicationIDGT applies the GT predicate on the "applicationID" field.
-func ApplicationIDGT(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGT(FieldApplicationID, v))
+// InstanceIDGT applies the GT predicate on the "instanceID" field.
+func InstanceIDGT(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldInstanceID, v))
 }
 
-// ApplicationIDGTE applies the GTE predicate on the "applicationID" field.
-func ApplicationIDGTE(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGTE(FieldApplicationID, v))
+// InstanceIDGTE applies the GTE predicate on the "instanceID" field.
+func InstanceIDGTE(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldInstanceID, v))
 }
 
-// ApplicationIDLT applies the LT predicate on the "applicationID" field.
-func ApplicationIDLT(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLT(FieldApplicationID, v))
+// InstanceIDLT applies the LT predicate on the "instanceID" field.
+func InstanceIDLT(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldInstanceID, v))
 }
 
-// ApplicationIDLTE applies the LTE predicate on the "applicationID" field.
-func ApplicationIDLTE(v types.ID) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLTE(FieldApplicationID, v))
+// InstanceIDLTE applies the LTE predicate on the "instanceID" field.
+func InstanceIDLTE(v types.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldInstanceID, v))
 }
 
-// ApplicationIDContains applies the Contains predicate on the "applicationID" field.
-func ApplicationIDContains(v types.ID) predicate.ApplicationResource {
+// InstanceIDContains applies the Contains predicate on the "instanceID" field.
+func InstanceIDContains(v types.ID) predicate.ApplicationResource {
 	vc := string(v)
-	return predicate.ApplicationResource(sql.FieldContains(FieldApplicationID, vc))
+	return predicate.ApplicationResource(sql.FieldContains(FieldInstanceID, vc))
 }
 
-// ApplicationIDHasPrefix applies the HasPrefix predicate on the "applicationID" field.
-func ApplicationIDHasPrefix(v types.ID) predicate.ApplicationResource {
+// InstanceIDHasPrefix applies the HasPrefix predicate on the "instanceID" field.
+func InstanceIDHasPrefix(v types.ID) predicate.ApplicationResource {
 	vc := string(v)
-	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldApplicationID, vc))
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldInstanceID, vc))
 }
 
-// ApplicationIDHasSuffix applies the HasSuffix predicate on the "applicationID" field.
-func ApplicationIDHasSuffix(v types.ID) predicate.ApplicationResource {
+// InstanceIDHasSuffix applies the HasSuffix predicate on the "instanceID" field.
+func InstanceIDHasSuffix(v types.ID) predicate.ApplicationResource {
 	vc := string(v)
-	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldApplicationID, vc))
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldInstanceID, vc))
 }
 
-// ApplicationIDEqualFold applies the EqualFold predicate on the "applicationID" field.
-func ApplicationIDEqualFold(v types.ID) predicate.ApplicationResource {
+// InstanceIDEqualFold applies the EqualFold predicate on the "instanceID" field.
+func InstanceIDEqualFold(v types.ID) predicate.ApplicationResource {
 	vc := string(v)
-	return predicate.ApplicationResource(sql.FieldEqualFold(FieldApplicationID, vc))
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldInstanceID, vc))
 }
 
-// ApplicationIDContainsFold applies the ContainsFold predicate on the "applicationID" field.
-func ApplicationIDContainsFold(v types.ID) predicate.ApplicationResource {
+// InstanceIDContainsFold applies the ContainsFold predicate on the "instanceID" field.
+func InstanceIDContainsFold(v types.ID) predicate.ApplicationResource {
 	vc := string(v)
-	return predicate.ApplicationResource(sql.FieldContainsFold(FieldApplicationID, vc))
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldInstanceID, vc))
 }
 
 // ConnectorIDEQ applies the EQ predicate on the "connectorID" field.
@@ -811,30 +811,30 @@ func DeployerTypeContainsFold(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldDeployerType, v))
 }
 
-// HasApplication applies the HasEdge predicate on the "application" edge.
-func HasApplication() predicate.ApplicationResource {
+// HasInstance applies the HasEdge predicate on the "instance" edge.
+func HasInstance() predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, InstanceTable, InstanceColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
-func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationResource {
+// HasInstanceWith applies the HasEdge predicate on the "instance" edge with a given conditions (other predicates).
+func HasInstanceWith(preds ...predicate.ApplicationInstance) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+			sqlgraph.To(InstanceInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, InstanceTable, InstanceColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

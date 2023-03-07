@@ -26,12 +26,10 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldVariables holds the string denoting the variables field in the database.
-	FieldVariables = "variables"
 	// EdgeConnectors holds the string denoting the connectors edge name in mutations.
 	EdgeConnectors = "connectors"
-	// EdgeApplications holds the string denoting the applications edge name in mutations.
-	EdgeApplications = "applications"
+	// EdgeInstances holds the string denoting the instances edge name in mutations.
+	EdgeInstances = "instances"
 	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
 	EdgeRevisions = "revisions"
 	// Table holds the table name of the environment in the database.
@@ -43,13 +41,13 @@ const (
 	ConnectorsInverseTable = "environment_connector_relationships"
 	// ConnectorsColumn is the table column denoting the connectors relation/edge.
 	ConnectorsColumn = "environment_id"
-	// ApplicationsTable is the table that holds the applications relation/edge.
-	ApplicationsTable = "applications"
-	// ApplicationsInverseTable is the table name for the Application entity.
-	// It exists in this package in order to avoid circular dependency with the "application" package.
-	ApplicationsInverseTable = "applications"
-	// ApplicationsColumn is the table column denoting the applications relation/edge.
-	ApplicationsColumn = "environment_id"
+	// InstancesTable is the table that holds the instances relation/edge.
+	InstancesTable = "application_instances"
+	// InstancesInverseTable is the table name for the ApplicationInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationinstance" package.
+	InstancesInverseTable = "application_instances"
+	// InstancesColumn is the table column denoting the instances relation/edge.
+	InstancesColumn = "environment_id"
 	// RevisionsTable is the table that holds the revisions relation/edge.
 	RevisionsTable = "application_revisions"
 	// RevisionsInverseTable is the table name for the ApplicationRevision entity.
@@ -67,7 +65,6 @@ var Columns = []string{
 	FieldLabels,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldVariables,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

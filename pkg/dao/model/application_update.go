@@ -13,11 +13,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -75,34 +75,37 @@ func (au *ApplicationUpdate) SetUpdateTime(t time.Time) *ApplicationUpdate {
 	return au
 }
 
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (au *ApplicationUpdate) AddResourceIDs(ids ...types.ID) *ApplicationUpdate {
-	au.mutation.AddResourceIDs(ids...)
+// SetVariables sets the "variables" field.
+func (au *ApplicationUpdate) SetVariables(tv []types.ApplicationVariable) *ApplicationUpdate {
+	au.mutation.SetVariables(tv)
 	return au
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (au *ApplicationUpdate) AddResources(a ...*ApplicationResource) *ApplicationUpdate {
+// AppendVariables appends tv to the "variables" field.
+func (au *ApplicationUpdate) AppendVariables(tv []types.ApplicationVariable) *ApplicationUpdate {
+	au.mutation.AppendVariables(tv)
+	return au
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (au *ApplicationUpdate) ClearVariables() *ApplicationUpdate {
+	au.mutation.ClearVariables()
+	return au
+}
+
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (au *ApplicationUpdate) AddInstanceIDs(ids ...types.ID) *ApplicationUpdate {
+	au.mutation.AddInstanceIDs(ids...)
+	return au
+}
+
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (au *ApplicationUpdate) AddInstances(a ...*ApplicationInstance) *ApplicationUpdate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return au.AddResourceIDs(ids...)
-}
-
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (au *ApplicationUpdate) AddRevisionIDs(ids ...types.ID) *ApplicationUpdate {
-	au.mutation.AddRevisionIDs(ids...)
-	return au
-}
-
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (au *ApplicationUpdate) AddRevisions(a ...*ApplicationRevision) *ApplicationUpdate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return au.AddRevisionIDs(ids...)
+	return au.AddInstanceIDs(ids...)
 }
 
 // Mutation returns the ApplicationMutation object of the builder.
@@ -110,46 +113,25 @@ func (au *ApplicationUpdate) Mutation() *ApplicationMutation {
 	return au.mutation
 }
 
-// ClearResources clears all "resources" edges to the ApplicationResource entity.
-func (au *ApplicationUpdate) ClearResources() *ApplicationUpdate {
-	au.mutation.ClearResources()
+// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
+func (au *ApplicationUpdate) ClearInstances() *ApplicationUpdate {
+	au.mutation.ClearInstances()
 	return au
 }
 
-// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (au *ApplicationUpdate) RemoveResourceIDs(ids ...types.ID) *ApplicationUpdate {
-	au.mutation.RemoveResourceIDs(ids...)
+// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
+func (au *ApplicationUpdate) RemoveInstanceIDs(ids ...types.ID) *ApplicationUpdate {
+	au.mutation.RemoveInstanceIDs(ids...)
 	return au
 }
 
-// RemoveResources removes "resources" edges to ApplicationResource entities.
-func (au *ApplicationUpdate) RemoveResources(a ...*ApplicationResource) *ApplicationUpdate {
+// RemoveInstances removes "instances" edges to ApplicationInstance entities.
+func (au *ApplicationUpdate) RemoveInstances(a ...*ApplicationInstance) *ApplicationUpdate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return au.RemoveResourceIDs(ids...)
-}
-
-// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
-func (au *ApplicationUpdate) ClearRevisions() *ApplicationUpdate {
-	au.mutation.ClearRevisions()
-	return au
-}
-
-// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (au *ApplicationUpdate) RemoveRevisionIDs(ids ...types.ID) *ApplicationUpdate {
-	au.mutation.RemoveRevisionIDs(ids...)
-	return au
-}
-
-// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
-func (au *ApplicationUpdate) RemoveRevisions(a ...*ApplicationRevision) *ApplicationUpdate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return au.RemoveRevisionIDs(ids...)
+	return au.RemoveInstanceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -204,9 +186,6 @@ func (au *ApplicationUpdate) check() error {
 	if _, ok := au.mutation.ProjectID(); au.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Application.project"`)
 	}
-	if _, ok := au.mutation.EnvironmentID(); au.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Application.environment"`)
-	}
 	return nil
 }
 
@@ -243,115 +222,69 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := au.mutation.UpdateTime(); ok {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 	}
-	if au.mutation.ResourcesCleared() {
+	if value, ok := au.mutation.Variables(); ok {
+		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
+	}
+	if value, ok := au.mutation.AppendedVariables(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, application.FieldVariables, value)
+		})
+	}
+	if au.mutation.VariablesCleared() {
+		_spec.ClearField(application.FieldVariables, field.TypeJSON)
+	}
+	if au.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = au.schemaConfig.ApplicationResource
+		edge.Schema = au.schemaConfig.ApplicationInstance
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !au.mutation.ResourcesCleared() {
+	if nodes := au.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !au.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = au.schemaConfig.ApplicationResource
+		edge.Schema = au.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.ResourcesIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = au.schemaConfig.ApplicationResource
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if au.mutation.RevisionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = au.schemaConfig.ApplicationRevision
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !au.mutation.RevisionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = au.schemaConfig.ApplicationRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.RevisionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = au.schemaConfig.ApplicationRevision
+		edge.Schema = au.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -419,34 +352,37 @@ func (auo *ApplicationUpdateOne) SetUpdateTime(t time.Time) *ApplicationUpdateOn
 	return auo
 }
 
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (auo *ApplicationUpdateOne) AddResourceIDs(ids ...types.ID) *ApplicationUpdateOne {
-	auo.mutation.AddResourceIDs(ids...)
+// SetVariables sets the "variables" field.
+func (auo *ApplicationUpdateOne) SetVariables(tv []types.ApplicationVariable) *ApplicationUpdateOne {
+	auo.mutation.SetVariables(tv)
 	return auo
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (auo *ApplicationUpdateOne) AddResources(a ...*ApplicationResource) *ApplicationUpdateOne {
+// AppendVariables appends tv to the "variables" field.
+func (auo *ApplicationUpdateOne) AppendVariables(tv []types.ApplicationVariable) *ApplicationUpdateOne {
+	auo.mutation.AppendVariables(tv)
+	return auo
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (auo *ApplicationUpdateOne) ClearVariables() *ApplicationUpdateOne {
+	auo.mutation.ClearVariables()
+	return auo
+}
+
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (auo *ApplicationUpdateOne) AddInstanceIDs(ids ...types.ID) *ApplicationUpdateOne {
+	auo.mutation.AddInstanceIDs(ids...)
+	return auo
+}
+
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (auo *ApplicationUpdateOne) AddInstances(a ...*ApplicationInstance) *ApplicationUpdateOne {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return auo.AddResourceIDs(ids...)
-}
-
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (auo *ApplicationUpdateOne) AddRevisionIDs(ids ...types.ID) *ApplicationUpdateOne {
-	auo.mutation.AddRevisionIDs(ids...)
-	return auo
-}
-
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (auo *ApplicationUpdateOne) AddRevisions(a ...*ApplicationRevision) *ApplicationUpdateOne {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return auo.AddRevisionIDs(ids...)
+	return auo.AddInstanceIDs(ids...)
 }
 
 // Mutation returns the ApplicationMutation object of the builder.
@@ -454,46 +390,25 @@ func (auo *ApplicationUpdateOne) Mutation() *ApplicationMutation {
 	return auo.mutation
 }
 
-// ClearResources clears all "resources" edges to the ApplicationResource entity.
-func (auo *ApplicationUpdateOne) ClearResources() *ApplicationUpdateOne {
-	auo.mutation.ClearResources()
+// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
+func (auo *ApplicationUpdateOne) ClearInstances() *ApplicationUpdateOne {
+	auo.mutation.ClearInstances()
 	return auo
 }
 
-// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (auo *ApplicationUpdateOne) RemoveResourceIDs(ids ...types.ID) *ApplicationUpdateOne {
-	auo.mutation.RemoveResourceIDs(ids...)
+// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
+func (auo *ApplicationUpdateOne) RemoveInstanceIDs(ids ...types.ID) *ApplicationUpdateOne {
+	auo.mutation.RemoveInstanceIDs(ids...)
 	return auo
 }
 
-// RemoveResources removes "resources" edges to ApplicationResource entities.
-func (auo *ApplicationUpdateOne) RemoveResources(a ...*ApplicationResource) *ApplicationUpdateOne {
+// RemoveInstances removes "instances" edges to ApplicationInstance entities.
+func (auo *ApplicationUpdateOne) RemoveInstances(a ...*ApplicationInstance) *ApplicationUpdateOne {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return auo.RemoveResourceIDs(ids...)
-}
-
-// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
-func (auo *ApplicationUpdateOne) ClearRevisions() *ApplicationUpdateOne {
-	auo.mutation.ClearRevisions()
-	return auo
-}
-
-// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (auo *ApplicationUpdateOne) RemoveRevisionIDs(ids ...types.ID) *ApplicationUpdateOne {
-	auo.mutation.RemoveRevisionIDs(ids...)
-	return auo
-}
-
-// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
-func (auo *ApplicationUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *ApplicationUpdateOne {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return auo.RemoveRevisionIDs(ids...)
+	return auo.RemoveInstanceIDs(ids...)
 }
 
 // Where appends a list predicates to the ApplicationUpdate builder.
@@ -561,9 +476,6 @@ func (auo *ApplicationUpdateOne) check() error {
 	if _, ok := auo.mutation.ProjectID(); auo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Application.project"`)
 	}
-	if _, ok := auo.mutation.EnvironmentID(); auo.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Application.environment"`)
-	}
 	return nil
 }
 
@@ -617,115 +529,69 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 	if value, ok := auo.mutation.UpdateTime(); ok {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 	}
-	if auo.mutation.ResourcesCleared() {
+	if value, ok := auo.mutation.Variables(); ok {
+		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
+	}
+	if value, ok := auo.mutation.AppendedVariables(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, application.FieldVariables, value)
+		})
+	}
+	if auo.mutation.VariablesCleared() {
+		_spec.ClearField(application.FieldVariables, field.TypeJSON)
+	}
+	if auo.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = auo.schemaConfig.ApplicationResource
+		edge.Schema = auo.schemaConfig.ApplicationInstance
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !auo.mutation.ResourcesCleared() {
+	if nodes := auo.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !auo.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = auo.schemaConfig.ApplicationResource
+		edge.Schema = auo.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.ResourcesIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = auo.schemaConfig.ApplicationResource
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if auo.mutation.RevisionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = auo.schemaConfig.ApplicationRevision
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !auo.mutation.RevisionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = auo.schemaConfig.ApplicationRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.RevisionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = auo.schemaConfig.ApplicationRevision
+		edge.Schema = auo.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

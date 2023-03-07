@@ -17,6 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
@@ -60,6 +61,7 @@ func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		allocationcost.Table:                   allocationcost.ValidColumn,
 		application.Table:                      application.ValidColumn,
+		applicationinstance.Table:              applicationinstance.ValidColumn,
 		applicationmodulerelationship.Table:    applicationmodulerelationship.ValidColumn,
 		applicationresource.Table:              applicationresource.ValidColumn,
 		applicationrevision.Table:              applicationrevision.ValidColumn,

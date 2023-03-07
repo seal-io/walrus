@@ -26,15 +26,15 @@ type Perspective struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Name for current perspective
+	// Name for current perspective.
 	Name string `json:"name,omitempty"`
-	// Start time for current perspective
+	// Start time for current perspective.
 	StartTime string `json:"startTime,omitempty"`
-	// End time for current perspective
+	// End time for current perspective.
 	EndTime string `json:"endTime,omitempty"`
-	// Is builtin Perspective
+	// Is builtin Perspective.
 	Builtin bool `json:"builtin,omitempty"`
-	// Indicated the perspective included allocation queries, record the used query condition
+	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
 }
 

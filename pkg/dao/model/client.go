@@ -16,6 +16,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
@@ -45,6 +46,8 @@ type Client struct {
 	AllocationCost *AllocationCostClient
 	// Application is the client for interacting with the Application builders.
 	Application *ApplicationClient
+	// ApplicationInstance is the client for interacting with the ApplicationInstance builders.
+	ApplicationInstance *ApplicationInstanceClient
 	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
 	ApplicationModuleRelationship *ApplicationModuleRelationshipClient
 	// ApplicationResource is the client for interacting with the ApplicationResource builders.
@@ -88,6 +91,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AllocationCost = NewAllocationCostClient(c.config)
 	c.Application = NewApplicationClient(c.config)
+	c.ApplicationInstance = NewApplicationInstanceClient(c.config)
 	c.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(c.config)
 	c.ApplicationResource = NewApplicationResourceClient(c.config)
 	c.ApplicationRevision = NewApplicationRevisionClient(c.config)
@@ -137,6 +141,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                           cfg,
 		AllocationCost:                   NewAllocationCostClient(cfg),
 		Application:                      NewApplicationClient(cfg),
+		ApplicationInstance:              NewApplicationInstanceClient(cfg),
 		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
 		ApplicationResource:              NewApplicationResourceClient(cfg),
 		ApplicationRevision:              NewApplicationRevisionClient(cfg),
@@ -172,6 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                           cfg,
 		AllocationCost:                   NewAllocationCostClient(cfg),
 		Application:                      NewApplicationClient(cfg),
+		ApplicationInstance:              NewApplicationInstanceClient(cfg),
 		ApplicationModuleRelationship:    NewApplicationModuleRelationshipClient(cfg),
 		ApplicationResource:              NewApplicationResourceClient(cfg),
 		ApplicationRevision:              NewApplicationRevisionClient(cfg),
@@ -216,6 +222,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.AllocationCost.Use(hooks...)
 	c.Application.Use(hooks...)
+	c.ApplicationInstance.Use(hooks...)
 	c.ApplicationModuleRelationship.Use(hooks...)
 	c.ApplicationResource.Use(hooks...)
 	c.ApplicationRevision.Use(hooks...)
@@ -237,6 +244,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.AllocationCost.Intercept(interceptors...)
 	c.Application.Intercept(interceptors...)
+	c.ApplicationInstance.Intercept(interceptors...)
 	c.ApplicationModuleRelationship.Intercept(interceptors...)
 	c.ApplicationResource.Intercept(interceptors...)
 	c.ApplicationRevision.Intercept(interceptors...)
@@ -261,6 +269,11 @@ func (c *Client) AllocationCosts() *AllocationCostClient {
 // Applications implements the ClientSet.
 func (c *Client) Applications() *ApplicationClient {
 	return c.Application
+}
+
+// ApplicationInstances implements the ClientSet.
+func (c *Client) ApplicationInstances() *ApplicationInstanceClient {
+	return c.ApplicationInstance
 }
 
 // ApplicationModuleRelationships implements the ClientSet.
@@ -378,6 +391,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AllocationCost.mutate(ctx, m)
 	case *ApplicationMutation:
 		return c.Application.mutate(ctx, m)
+	case *ApplicationInstanceMutation:
+		return c.ApplicationInstance.mutate(ctx, m)
 	case *ApplicationModuleRelationshipMutation:
 		return c.ApplicationModuleRelationship.mutate(ctx, m)
 	case *ApplicationResourceMutation:
@@ -660,57 +675,19 @@ func (c *ApplicationClient) QueryProject(a *Application) *ProjectQuery {
 	return query
 }
 
-// QueryEnvironment queries the environment edge of a Application.
-func (c *ApplicationClient) QueryEnvironment(a *Application) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
+// QueryInstances queries the instances edge of a Application.
+func (c *ApplicationClient) QueryInstances(a *Application) *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, application.EnvironmentTable, application.EnvironmentColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, application.InstancesTable, application.InstancesColumn),
 		)
 		schemaConfig := a.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Application
-		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryResources queries the resources edge of a Application.
-func (c *ApplicationClient) QueryResources(a *Application) *ApplicationResourceQuery {
-	query := (&ApplicationResourceClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := a.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, application.ResourcesTable, application.ResourcesColumn),
-		)
-		schemaConfig := a.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationResource
-		step.Edge.Schema = schemaConfig.ApplicationResource
-		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRevisions queries the revisions edge of a Application.
-func (c *ApplicationClient) QueryRevisions(a *Application) *ApplicationRevisionQuery {
-	query := (&ApplicationRevisionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := a.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(application.Table, application.FieldID, id),
-			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, application.RevisionsTable, application.RevisionsColumn),
-		)
-		schemaConfig := a.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -759,6 +736,201 @@ func (c *ApplicationClient) mutate(ctx context.Context, m *ApplicationMutation) 
 		return (&ApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Application mutation op: %q", m.Op())
+	}
+}
+
+// ApplicationInstanceClient is a client for the ApplicationInstance schema.
+type ApplicationInstanceClient struct {
+	config
+}
+
+// NewApplicationInstanceClient returns a client for the ApplicationInstance from the given config.
+func NewApplicationInstanceClient(c config) *ApplicationInstanceClient {
+	return &ApplicationInstanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applicationinstance.Hooks(f(g(h())))`.
+func (c *ApplicationInstanceClient) Use(hooks ...Hook) {
+	c.hooks.ApplicationInstance = append(c.hooks.ApplicationInstance, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applicationinstance.Intercept(f(g(h())))`.
+func (c *ApplicationInstanceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ApplicationInstance = append(c.inters.ApplicationInstance, interceptors...)
+}
+
+// Create returns a builder for creating a ApplicationInstance entity.
+func (c *ApplicationInstanceClient) Create() *ApplicationInstanceCreate {
+	mutation := newApplicationInstanceMutation(c.config, OpCreate)
+	return &ApplicationInstanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ApplicationInstance entities.
+func (c *ApplicationInstanceClient) CreateBulk(builders ...*ApplicationInstanceCreate) *ApplicationInstanceCreateBulk {
+	return &ApplicationInstanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ApplicationInstance.
+func (c *ApplicationInstanceClient) Update() *ApplicationInstanceUpdate {
+	mutation := newApplicationInstanceMutation(c.config, OpUpdate)
+	return &ApplicationInstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ApplicationInstanceClient) UpdateOne(ai *ApplicationInstance) *ApplicationInstanceUpdateOne {
+	mutation := newApplicationInstanceMutation(c.config, OpUpdateOne, withApplicationInstance(ai))
+	return &ApplicationInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ApplicationInstanceClient) UpdateOneID(id types.ID) *ApplicationInstanceUpdateOne {
+	mutation := newApplicationInstanceMutation(c.config, OpUpdateOne, withApplicationInstanceID(id))
+	return &ApplicationInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ApplicationInstance.
+func (c *ApplicationInstanceClient) Delete() *ApplicationInstanceDelete {
+	mutation := newApplicationInstanceMutation(c.config, OpDelete)
+	return &ApplicationInstanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ApplicationInstanceClient) DeleteOne(ai *ApplicationInstance) *ApplicationInstanceDeleteOne {
+	return c.DeleteOneID(ai.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ApplicationInstanceClient) DeleteOneID(id types.ID) *ApplicationInstanceDeleteOne {
+	builder := c.Delete().Where(applicationinstance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ApplicationInstanceDeleteOne{builder}
+}
+
+// Query returns a query builder for ApplicationInstance.
+func (c *ApplicationInstanceClient) Query() *ApplicationInstanceQuery {
+	return &ApplicationInstanceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeApplicationInstance},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ApplicationInstance entity by its id.
+func (c *ApplicationInstanceClient) Get(ctx context.Context, id types.ID) (*ApplicationInstance, error) {
+	return c.Query().Where(applicationinstance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ApplicationInstanceClient) GetX(ctx context.Context, id types.ID) *ApplicationInstance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryApplication queries the application edge of a ApplicationInstance.
+func (c *ApplicationInstanceClient) QueryApplication(ai *ApplicationInstance) *ApplicationQuery {
+	query := (&ApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationinstance.Table, applicationinstance.FieldID, id),
+			sqlgraph.To(application.Table, application.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationinstance.ApplicationTable, applicationinstance.ApplicationColumn),
+		)
+		schemaConfig := ai.schemaConfig
+		step.To.Schema = schemaConfig.Application
+		step.Edge.Schema = schemaConfig.ApplicationInstance
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a ApplicationInstance.
+func (c *ApplicationInstanceClient) QueryEnvironment(ai *ApplicationInstance) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationinstance.Table, applicationinstance.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationinstance.EnvironmentTable, applicationinstance.EnvironmentColumn),
+		)
+		schemaConfig := ai.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.ApplicationInstance
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRevisions queries the revisions edge of a ApplicationInstance.
+func (c *ApplicationInstanceClient) QueryRevisions(ai *ApplicationInstance) *ApplicationRevisionQuery {
+	query := (&ApplicationRevisionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationinstance.Table, applicationinstance.FieldID, id),
+			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, applicationinstance.RevisionsTable, applicationinstance.RevisionsColumn),
+		)
+		schemaConfig := ai.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationRevision
+		step.Edge.Schema = schemaConfig.ApplicationRevision
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryResources queries the resources edge of a ApplicationInstance.
+func (c *ApplicationInstanceClient) QueryResources(ai *ApplicationInstance) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationinstance.Table, applicationinstance.FieldID, id),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, applicationinstance.ResourcesTable, applicationinstance.ResourcesColumn),
+		)
+		schemaConfig := ai.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ApplicationInstanceClient) Hooks() []Hook {
+	hooks := c.hooks.ApplicationInstance
+	return append(hooks[:len(hooks):len(hooks)], applicationinstance.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ApplicationInstanceClient) Interceptors() []Interceptor {
+	return c.inters.ApplicationInstance
+}
+
+func (c *ApplicationInstanceClient) mutate(ctx context.Context, m *ApplicationInstanceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ApplicationInstanceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ApplicationInstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ApplicationInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ApplicationInstanceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ApplicationInstance mutation op: %q", m.Op())
 	}
 }
 
@@ -957,18 +1129,18 @@ func (c *ApplicationResourceClient) GetX(ctx context.Context, id types.ID) *Appl
 	return obj
 }
 
-// QueryApplication queries the application edge of a ApplicationResource.
-func (c *ApplicationResourceClient) QueryApplication(ar *ApplicationResource) *ApplicationQuery {
-	query := (&ApplicationClient{config: c.config}).Query()
+// QueryInstance queries the instance edge of a ApplicationResource.
+func (c *ApplicationResourceClient) QueryInstance(ar *ApplicationResource) *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ar.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, id),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.ApplicationTable, applicationresource.ApplicationColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.InstanceTable, applicationresource.InstanceColumn),
 		)
 		schemaConfig := ar.schemaConfig
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
 		return fromV, nil
@@ -1114,18 +1286,18 @@ func (c *ApplicationRevisionClient) GetX(ctx context.Context, id types.ID) *Appl
 	return obj
 }
 
-// QueryApplication queries the application edge of a ApplicationRevision.
-func (c *ApplicationRevisionClient) QueryApplication(ar *ApplicationRevision) *ApplicationQuery {
-	query := (&ApplicationClient{config: c.config}).Query()
+// QueryInstance queries the instance edge of a ApplicationRevision.
+func (c *ApplicationRevisionClient) QueryInstance(ar *ApplicationRevision) *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ar.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(applicationrevision.Table, applicationrevision.FieldID, id),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.ApplicationTable, applicationrevision.ApplicationColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationrevision.InstanceTable, applicationrevision.InstanceColumn),
 		)
 		schemaConfig := ar.schemaConfig
-		step.To.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationRevision
 		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
 		return fromV, nil
@@ -1622,19 +1794,19 @@ func (c *EnvironmentClient) QueryConnectors(e *Environment) *EnvironmentConnecto
 	return query
 }
 
-// QueryApplications queries the applications edge of a Environment.
-func (c *EnvironmentClient) QueryApplications(e *Environment) *ApplicationQuery {
-	query := (&ApplicationClient{config: c.config}).Query()
+// QueryInstances queries the instances edge of a Environment.
+func (c *EnvironmentClient) QueryInstances(e *Environment) *ApplicationInstanceQuery {
+	query := (&ApplicationInstanceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := e.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, id),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.ApplicationsTable, environment.ApplicationsColumn),
+			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.InstancesTable, environment.InstancesColumn),
 		)
 		schemaConfig := e.schemaConfig
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
 	}

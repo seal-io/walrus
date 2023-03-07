@@ -15,6 +15,9 @@ type ClientSet interface {
 	// Applications returns the client for interacting with the Application builders.
 	Applications() *ApplicationClient
 
+	// ApplicationInstances returns the client for interacting with the ApplicationInstance builders.
+	ApplicationInstances() *ApplicationInstanceClient
+
 	// ApplicationModuleRelationships returns the client for interacting with the ApplicationModuleRelationship builders.
 	ApplicationModuleRelationships() *ApplicationModuleRelationshipClient
 
@@ -75,6 +78,12 @@ type AllocationCostClientGetter interface {
 type ApplicationClientGetter interface {
 	// Applications returns the client for interacting with the Application builders.
 	Applications() *ApplicationClient
+}
+
+// ApplicationInstanceClientGetter is an interface that allows getting ApplicationInstanceClient.
+type ApplicationInstanceClientGetter interface {
+	// ApplicationInstances returns the client for interacting with the ApplicationInstance builders.
+	ApplicationInstances() *ApplicationInstanceClient
 }
 
 // ApplicationModuleRelationshipClientGetter is an interface that allows getting ApplicationModuleRelationshipClient.

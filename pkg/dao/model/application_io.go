@@ -32,10 +32,10 @@ type ApplicationCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Variables definition of the application, the variables of instance derived by this definition
+	Variables []types.ApplicationVariable `json:"variables,omitempty"`
 	// Project to which this application belongs.
 	Project ProjectQueryInput `json:"project"`
-	// Environment to which the application belongs.
-	Environment EnvironmentQueryInput `json:"environment"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipCreateInput `json:"modules,omitempty"`
 }
@@ -46,9 +46,9 @@ func (in ApplicationCreateInput) Model() *Application {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Variables:   in.Variables,
 	}
 	entity.ProjectID = in.Project.ID
-	entity.EnvironmentID = in.Environment.ID
 	for i := 0; i < len(in.Modules); i++ {
 		if in.Modules[i] == nil {
 			continue
@@ -68,6 +68,8 @@ type ApplicationUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Variables definition of the application, the variables of instance derived by this definition
+	Variables []types.ApplicationVariable `json:"variables,omitempty"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipUpdateInput `json:"modules,omitempty"`
 }
@@ -79,6 +81,7 @@ func (in ApplicationUpdateInput) Model() *Application {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Variables:   in.Variables,
 	}
 	for i := 0; i < len(in.Modules); i++ {
 		if in.Modules[i] == nil {
@@ -103,14 +106,12 @@ type ApplicationOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Variables definition of the application, the variables of instance derived by this definition
+	Variables []types.ApplicationVariable `json:"variables,omitempty"`
 	// Project to which this application belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
-	// Environment to which the application belongs.
-	Environment *EnvironmentOutput `json:"environment,omitempty"`
-	// Resources that belong to the application.
-	Resources []*ApplicationResourceOutput `json:"resources,omitempty"`
-	// Revisions that belong to this application.
-	Revisions []*ApplicationRevisionOutput `json:"revisions,omitempty"`
+	// Application instances that belong to this application.
+	Instances []*ApplicationInstanceOutput `json:"instances,omitempty"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipOutput `json:"modules,omitempty"`
 }
@@ -127,20 +128,15 @@ func ExposeApplication(in *Application) *ApplicationOutput {
 		Labels:      in.Labels,
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
+		Variables:   in.Variables,
 		Project:     ExposeProject(in.Edges.Project),
-		Environment: ExposeEnvironment(in.Edges.Environment),
-		Resources:   ExposeApplicationResources(in.Edges.Resources),
-		Revisions:   ExposeApplicationRevisions(in.Edges.Revisions),
+		Instances:   ExposeApplicationInstances(in.Edges.Instances),
 		Modules:     ExposeApplicationModuleRelationships(in.Edges.Modules),
 	}
 	if entity.Project == nil {
 		entity.Project = &ProjectOutput{}
 	}
 	entity.Project.ID = in.ProjectID
-	if entity.Environment == nil {
-		entity.Environment = &EnvironmentOutput{}
-	}
-	entity.Environment.ID = in.EnvironmentID
 	return entity
 }
 

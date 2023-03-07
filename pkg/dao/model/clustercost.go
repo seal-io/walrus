@@ -22,33 +22,33 @@ type ClusterCost struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Usage start time for current cost
+	// Usage start time for current cost.
 	StartTime time.Time `json:"startTime,omitempty"`
-	// Usage end time for current cost
+	// Usage end time for current cost.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Usage minutes from start time to end time
+	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
-	// ID of the connector
+	// ID of the connector.
 	ConnectorID types.ID `json:"connectorID,omitempty"`
-	// Cluster name for current cost
+	// Cluster name for current cost.
 	ClusterName string `json:"clusterName,omitempty"`
-	// Cost number
+	// Cost number.
 	TotalCost float64 `json:"totalCost,omitempty"`
-	// Cost currency
+	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost
+	// CPU cost for current cost.
 	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost
+	// GPU cost for current cost.
 	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost
+	// Ram cost for current cost.
 	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	StorageCost float64 `json:"storageCost,omitempty"`
-	// Allocation cost for current cost
+	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
-	// Idle cost for current cost
+	// Idle cost for current cost.
 	IdleCost float64 `json:"idleCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ClusterCostQuery when eager-loading is set.
@@ -57,7 +57,7 @@ type ClusterCost struct {
 
 // ClusterCostEdges holds the relations/edges for other nodes in the graph.
 type ClusterCostEdges struct {
-	// Connector current cost linked
+	// Connector current cost linked.
 	Connector *Connector `json:"connector,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

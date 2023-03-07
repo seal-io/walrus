@@ -40,15 +40,15 @@ func (amru *ApplicationModuleRelationshipUpdate) SetUpdateTime(t time.Time) *App
 	return amru
 }
 
-// SetVariables sets the "variables" field.
-func (amru *ApplicationModuleRelationshipUpdate) SetVariables(m map[string]interface{}) *ApplicationModuleRelationshipUpdate {
-	amru.mutation.SetVariables(m)
+// SetAttributes sets the "attributes" field.
+func (amru *ApplicationModuleRelationshipUpdate) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipUpdate {
+	amru.mutation.SetAttributes(m)
 	return amru
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (amru *ApplicationModuleRelationshipUpdate) ClearVariables() *ApplicationModuleRelationshipUpdate {
-	amru.mutation.ClearVariables()
+// ClearAttributes clears the value of the "attributes" field.
+func (amru *ApplicationModuleRelationshipUpdate) ClearAttributes() *ApplicationModuleRelationshipUpdate {
+	amru.mutation.ClearAttributes()
 	return amru
 }
 
@@ -125,11 +125,11 @@ func (amru *ApplicationModuleRelationshipUpdate) sqlSave(ctx context.Context) (n
 	if value, ok := amru.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := amru.mutation.Variables(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldVariables, field.TypeJSON, value)
+	if value, ok := amru.mutation.Attributes(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
 	}
-	if amru.mutation.VariablesCleared() {
-		_spec.ClearField(applicationmodulerelationship.FieldVariables, field.TypeJSON)
+	if amru.mutation.AttributesCleared() {
+		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeJSON)
 	}
 	_spec.Node.Schema = amru.schemaConfig.ApplicationModuleRelationship
 	ctx = internal.NewSchemaConfigContext(ctx, amru.schemaConfig)
@@ -161,15 +161,15 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) SetUpdateTime(t time.Time) 
 	return amruo
 }
 
-// SetVariables sets the "variables" field.
-func (amruo *ApplicationModuleRelationshipUpdateOne) SetVariables(m map[string]interface{}) *ApplicationModuleRelationshipUpdateOne {
-	amruo.mutation.SetVariables(m)
+// SetAttributes sets the "attributes" field.
+func (amruo *ApplicationModuleRelationshipUpdateOne) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipUpdateOne {
+	amruo.mutation.SetAttributes(m)
 	return amruo
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (amruo *ApplicationModuleRelationshipUpdateOne) ClearVariables() *ApplicationModuleRelationshipUpdateOne {
-	amruo.mutation.ClearVariables()
+// ClearAttributes clears the value of the "attributes" field.
+func (amruo *ApplicationModuleRelationshipUpdateOne) ClearAttributes() *ApplicationModuleRelationshipUpdateOne {
+	amruo.mutation.ClearAttributes()
 	return amruo
 }
 
@@ -283,11 +283,11 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) sqlSave(ctx context.Context
 	if value, ok := amruo.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := amruo.mutation.Variables(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldVariables, field.TypeJSON, value)
+	if value, ok := amruo.mutation.Attributes(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
 	}
-	if amruo.mutation.VariablesCleared() {
-		_spec.ClearField(applicationmodulerelationship.FieldVariables, field.TypeJSON)
+	if amruo.mutation.AttributesCleared() {
+		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeJSON)
 	}
 	_spec.Node.Schema = amruo.schemaConfig.ApplicationModuleRelationship
 	ctx = internal.NewSchemaConfigContext(ctx, amruo.schemaConfig)

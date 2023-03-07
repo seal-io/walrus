@@ -22,8 +22,8 @@ const (
 	FieldModuleID = "module_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldVariables holds the string denoting the variables field in the database.
-	FieldVariables = "variables"
+	// FieldAttributes holds the string denoting the attributes field in the database.
+	FieldAttributes = "attributes"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
 	// EdgeModule holds the string denoting the module edge name in mutations.
@@ -57,7 +57,7 @@ var Columns = []string{
 	FieldApplicationID,
 	FieldModuleID,
 	FieldName,
-	FieldVariables,
+	FieldAttributes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

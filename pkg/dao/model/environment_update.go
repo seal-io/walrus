@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
@@ -75,31 +75,19 @@ func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 	return eu
 }
 
-// SetVariables sets the "variables" field.
-func (eu *EnvironmentUpdate) SetVariables(m map[string]interface{}) *EnvironmentUpdate {
-	eu.mutation.SetVariables(m)
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (eu *EnvironmentUpdate) AddInstanceIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.AddInstanceIDs(ids...)
 	return eu
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (eu *EnvironmentUpdate) ClearVariables() *EnvironmentUpdate {
-	eu.mutation.ClearVariables()
-	return eu
-}
-
-// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (eu *EnvironmentUpdate) AddApplicationIDs(ids ...types.ID) *EnvironmentUpdate {
-	eu.mutation.AddApplicationIDs(ids...)
-	return eu
-}
-
-// AddApplications adds the "applications" edges to the Application entity.
-func (eu *EnvironmentUpdate) AddApplications(a ...*Application) *EnvironmentUpdate {
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (eu *EnvironmentUpdate) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return eu.AddApplicationIDs(ids...)
+	return eu.AddInstanceIDs(ids...)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
@@ -122,25 +110,25 @@ func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
 }
 
-// ClearApplications clears all "applications" edges to the Application entity.
-func (eu *EnvironmentUpdate) ClearApplications() *EnvironmentUpdate {
-	eu.mutation.ClearApplications()
+// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
+func (eu *EnvironmentUpdate) ClearInstances() *EnvironmentUpdate {
+	eu.mutation.ClearInstances()
 	return eu
 }
 
-// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
-func (eu *EnvironmentUpdate) RemoveApplicationIDs(ids ...types.ID) *EnvironmentUpdate {
-	eu.mutation.RemoveApplicationIDs(ids...)
+// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
+func (eu *EnvironmentUpdate) RemoveInstanceIDs(ids ...types.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveInstanceIDs(ids...)
 	return eu
 }
 
-// RemoveApplications removes "applications" edges to Application entities.
-func (eu *EnvironmentUpdate) RemoveApplications(a ...*Application) *EnvironmentUpdate {
+// RemoveInstances removes "instances" edges to ApplicationInstance entities.
+func (eu *EnvironmentUpdate) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return eu.RemoveApplicationIDs(ids...)
+	return eu.RemoveInstanceIDs(ids...)
 }
 
 // ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
@@ -249,64 +237,58 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := eu.mutation.Variables(); ok {
-		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
-	}
-	if eu.mutation.VariablesCleared() {
-		_spec.ClearField(environment.FieldVariables, field.TypeJSON)
-	}
-	if eu.mutation.ApplicationsCleared() {
+	if eu.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = eu.schemaConfig.Application
+		edge.Schema = eu.schemaConfig.ApplicationInstance
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !eu.mutation.ApplicationsCleared() {
+	if nodes := eu.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !eu.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = eu.schemaConfig.Application
+		edge.Schema = eu.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.ApplicationsIDs(); len(nodes) > 0 {
+	if nodes := eu.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = eu.schemaConfig.Application
+		edge.Schema = eu.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -431,31 +413,19 @@ func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOn
 	return euo
 }
 
-// SetVariables sets the "variables" field.
-func (euo *EnvironmentUpdateOne) SetVariables(m map[string]interface{}) *EnvironmentUpdateOne {
-	euo.mutation.SetVariables(m)
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (euo *EnvironmentUpdateOne) AddInstanceIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddInstanceIDs(ids...)
 	return euo
 }
 
-// ClearVariables clears the value of the "variables" field.
-func (euo *EnvironmentUpdateOne) ClearVariables() *EnvironmentUpdateOne {
-	euo.mutation.ClearVariables()
-	return euo
-}
-
-// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (euo *EnvironmentUpdateOne) AddApplicationIDs(ids ...types.ID) *EnvironmentUpdateOne {
-	euo.mutation.AddApplicationIDs(ids...)
-	return euo
-}
-
-// AddApplications adds the "applications" edges to the Application entity.
-func (euo *EnvironmentUpdateOne) AddApplications(a ...*Application) *EnvironmentUpdateOne {
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (euo *EnvironmentUpdateOne) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return euo.AddApplicationIDs(ids...)
+	return euo.AddInstanceIDs(ids...)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
@@ -478,25 +448,25 @@ func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
 }
 
-// ClearApplications clears all "applications" edges to the Application entity.
-func (euo *EnvironmentUpdateOne) ClearApplications() *EnvironmentUpdateOne {
-	euo.mutation.ClearApplications()
+// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
+func (euo *EnvironmentUpdateOne) ClearInstances() *EnvironmentUpdateOne {
+	euo.mutation.ClearInstances()
 	return euo
 }
 
-// RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveApplicationIDs(ids ...types.ID) *EnvironmentUpdateOne {
-	euo.mutation.RemoveApplicationIDs(ids...)
+// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveInstanceIDs(ids ...types.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveInstanceIDs(ids...)
 	return euo
 }
 
-// RemoveApplications removes "applications" edges to Application entities.
-func (euo *EnvironmentUpdateOne) RemoveApplications(a ...*Application) *EnvironmentUpdateOne {
+// RemoveInstances removes "instances" edges to ApplicationInstance entities.
+func (euo *EnvironmentUpdateOne) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return euo.RemoveApplicationIDs(ids...)
+	return euo.RemoveInstanceIDs(ids...)
 }
 
 // ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
@@ -635,64 +605,58 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := euo.mutation.Variables(); ok {
-		_spec.SetField(environment.FieldVariables, field.TypeJSON, value)
-	}
-	if euo.mutation.VariablesCleared() {
-		_spec.ClearField(environment.FieldVariables, field.TypeJSON)
-	}
-	if euo.mutation.ApplicationsCleared() {
+	if euo.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = euo.schemaConfig.Application
+		edge.Schema = euo.schemaConfig.ApplicationInstance
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.RemovedApplicationsIDs(); len(nodes) > 0 && !euo.mutation.ApplicationsCleared() {
+	if nodes := euo.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !euo.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = euo.schemaConfig.Application
+		edge.Schema = euo.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.ApplicationsIDs(); len(nodes) > 0 {
+	if nodes := euo.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.ApplicationsTable,
-			Columns: []string{environment.ApplicationsColumn},
+			Table:   environment.InstancesTable,
+			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: application.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = euo.schemaConfig.Application
+		edge.Schema = euo.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

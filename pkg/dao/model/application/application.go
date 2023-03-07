@@ -28,16 +28,12 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldProjectID holds the string denoting the projectid field in the database.
 	FieldProjectID = "project_id"
-	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
-	FieldEnvironmentID = "environment_id"
+	// FieldVariables holds the string denoting the variables field in the database.
+	FieldVariables = "variables"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
-	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
-	EdgeEnvironment = "environment"
-	// EdgeResources holds the string denoting the resources edge name in mutations.
-	EdgeResources = "resources"
-	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
-	EdgeRevisions = "revisions"
+	// EdgeInstances holds the string denoting the instances edge name in mutations.
+	EdgeInstances = "instances"
 	// EdgeModules holds the string denoting the modules edge name in mutations.
 	EdgeModules = "modules"
 	// Table holds the table name of the application in the database.
@@ -49,27 +45,13 @@ const (
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
 	ProjectColumn = "project_id"
-	// EnvironmentTable is the table that holds the environment relation/edge.
-	EnvironmentTable = "applications"
-	// EnvironmentInverseTable is the table name for the Environment entity.
-	// It exists in this package in order to avoid circular dependency with the "environment" package.
-	EnvironmentInverseTable = "environments"
-	// EnvironmentColumn is the table column denoting the environment relation/edge.
-	EnvironmentColumn = "environment_id"
-	// ResourcesTable is the table that holds the resources relation/edge.
-	ResourcesTable = "application_resources"
-	// ResourcesInverseTable is the table name for the ApplicationResource entity.
-	// It exists in this package in order to avoid circular dependency with the "applicationresource" package.
-	ResourcesInverseTable = "application_resources"
-	// ResourcesColumn is the table column denoting the resources relation/edge.
-	ResourcesColumn = "application_id"
-	// RevisionsTable is the table that holds the revisions relation/edge.
-	RevisionsTable = "application_revisions"
-	// RevisionsInverseTable is the table name for the ApplicationRevision entity.
-	// It exists in this package in order to avoid circular dependency with the "applicationrevision" package.
-	RevisionsInverseTable = "application_revisions"
-	// RevisionsColumn is the table column denoting the revisions relation/edge.
-	RevisionsColumn = "application_id"
+	// InstancesTable is the table that holds the instances relation/edge.
+	InstancesTable = "application_instances"
+	// InstancesInverseTable is the table name for the ApplicationInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "applicationinstance" package.
+	InstancesInverseTable = "application_instances"
+	// InstancesColumn is the table column denoting the instances relation/edge.
+	InstancesColumn = "application_id"
 	// ModulesTable is the table that holds the modules relation/edge.
 	ModulesTable = "application_module_relationships"
 	// ModulesInverseTable is the table name for the ApplicationModuleRelationship entity.
@@ -88,7 +70,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldProjectID,
-	FieldEnvironmentID,
+	FieldVariables,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -120,8 +102,6 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
 	ProjectIDValidator func(string) error
-	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
-	EnvironmentIDValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

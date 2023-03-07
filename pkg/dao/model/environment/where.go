@@ -301,16 +301,6 @@ func UpdateTimeLTE(v time.Time) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// VariablesIsNil applies the IsNil predicate on the "variables" field.
-func VariablesIsNil() predicate.Environment {
-	return predicate.Environment(sql.FieldIsNull(FieldVariables))
-}
-
-// VariablesNotNil applies the NotNil predicate on the "variables" field.
-func VariablesNotNil() predicate.Environment {
-	return predicate.Environment(sql.FieldNotNull(FieldVariables))
-}
-
 // HasConnectors applies the HasEdge predicate on the "connectors" edge.
 func HasConnectors() predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
@@ -344,31 +334,31 @@ func HasConnectorsWith(preds ...predicate.EnvironmentConnectorRelationship) pred
 	})
 }
 
-// HasApplications applies the HasEdge predicate on the "applications" edge.
-func HasApplications() predicate.Environment {
+// HasInstances applies the HasEdge predicate on the "instances" edge.
+func HasInstances() predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ApplicationsTable, ApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasApplicationsWith applies the HasEdge predicate on the "applications" edge with a given conditions (other predicates).
-func HasApplicationsWith(preds ...predicate.Application) predicate.Environment {
+// HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
+func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ApplicationsTable, ApplicationsColumn),
+			sqlgraph.To(InstancesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.ApplicationInstance
+		step.Edge.Schema = schemaConfig.ApplicationInstance
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

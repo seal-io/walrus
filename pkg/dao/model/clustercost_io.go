@@ -22,33 +22,33 @@ func (in ClusterCostQueryInput) Model() *ClusterCost {
 
 // ClusterCostCreateInput is the input for the ClusterCost creation.
 type ClusterCostCreateInput struct {
-	// Usage start time for current cost
+	// Usage start time for current cost.
 	StartTime time.Time `json:"startTime,omitempty"`
-	// Usage end time for current cost
+	// Usage end time for current cost.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Usage minutes from start time to end time
+	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
-	// Cluster name for current cost
+	// Cluster name for current cost.
 	ClusterName string `json:"clusterName"`
-	// Cost number
+	// Cost number.
 	TotalCost float64 `json:"totalCost,omitempty"`
-	// Cost currency
+	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost
+	// CPU cost for current cost.
 	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost
+	// GPU cost for current cost.
 	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost
+	// Ram cost for current cost.
 	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	StorageCost float64 `json:"storageCost,omitempty"`
-	// Allocation cost for current cost
+	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
-	// Idle cost for current cost
+	// Idle cost for current cost.
 	IdleCost float64 `json:"idleCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
-	// Connector current cost linked
+	// Connector current cost linked.
 	Connector ConnectorQueryInput `json:"connector"`
 }
 
@@ -77,23 +77,23 @@ func (in ClusterCostCreateInput) Model() *ClusterCost {
 type ClusterCostUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID int `uri:"id" json:"-"`
-	// Cost number
+	// Cost number.
 	TotalCost float64 `json:"totalCost,omitempty"`
-	// Cost currency
+	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost
+	// CPU cost for current cost.
 	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost
+	// GPU cost for current cost.
 	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost
+	// Ram cost for current cost.
 	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	StorageCost float64 `json:"storageCost,omitempty"`
-	// Allocation cost for current cost
+	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
-	// Idle cost for current cost
+	// Idle cost for current cost.
 	IdleCost float64 `json:"idleCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
 }
 
@@ -118,33 +118,33 @@ func (in ClusterCostUpdateInput) Model() *ClusterCost {
 type ClusterCostOutput struct {
 	// ID holds the value of the "id" field.
 	ID int `json:"id,omitempty"`
-	// Usage start time for current cost
+	// Usage start time for current cost.
 	StartTime time.Time `json:"startTime,omitempty"`
-	// Usage end time for current cost
+	// Usage end time for current cost.
 	EndTime time.Time `json:"endTime,omitempty"`
-	// Usage minutes from start time to end time
+	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
-	// Cluster name for current cost
+	// Cluster name for current cost.
 	ClusterName string `json:"clusterName,omitempty"`
-	// Cost number
+	// Cost number.
 	TotalCost float64 `json:"totalCost,omitempty"`
-	// Cost currency
+	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost
+	// CPU cost for current cost.
 	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost
+	// GPU cost for current cost.
 	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost
+	// Ram cost for current cost.
 	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	StorageCost float64 `json:"storageCost,omitempty"`
-	// Allocation cost for current cost
+	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
-	// Idle cost for current cost
+	// Idle cost for current cost.
 	IdleCost float64 `json:"idleCost,omitempty"`
-	// Storage cost for current cost
+	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
-	// Connector current cost linked
+	// Connector current cost linked.
 	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
 

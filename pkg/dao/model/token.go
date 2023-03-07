@@ -25,9 +25,9 @@ type Token struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// The token name of casdoor
+	// The token name of casdoor.
 	CasdoorTokenName string `json:"-"`
-	// The token owner of casdoor
+	// The token owner of casdoor.
 	CasdoorTokenOwner string `json:"-"`
 	// The name of token.
 	Name string `json:"name,omitempty"`

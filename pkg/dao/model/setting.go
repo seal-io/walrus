@@ -25,15 +25,15 @@ type Setting struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// The name of system setting
+	// The name of system setting.
 	Name string `json:"name,omitempty"`
-	// The value of system setting, store in string
+	// The value of system setting, store in string.
 	Value string `json:"value,omitempty"`
-	// Indicate the system setting should be hidden or not, default is visible
+	// Indicate the system setting should be hidden or not, default is visible.
 	Hidden *bool `json:"hidden,omitempty"`
-	// Indicate the system setting should be edited or not, default is readonly
+	// Indicate the system setting should be edited or not, default is readonly.
 	Editable *bool `json:"editable,omitempty"`
-	// Indicate the system setting should be exposed or not, default is exposed
+	// Indicate the system setting should be exposed or not, default is exposed.
 	Private *bool `json:"private,omitempty"`
 }
 

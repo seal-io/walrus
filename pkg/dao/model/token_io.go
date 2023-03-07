@@ -26,9 +26,9 @@ func (in TokenQueryInput) Model() *Token {
 
 // TokenCreateInput is the input for the Token creation.
 type TokenCreateInput struct {
-	// The token name of casdoor
+	// The token name of casdoor.
 	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
-	// The token owner of casdoor
+	// The token owner of casdoor.
 	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
 	// The name of token.
 	Name string `json:"name"`
@@ -51,9 +51,9 @@ func (in TokenCreateInput) Model() *Token {
 type TokenUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID types.ID `uri:"id" json:"-"`
-	// The token name of casdoor
+	// The token name of casdoor.
 	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
-	// The token owner of casdoor
+	// The token owner of casdoor.
 	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
 	// The name of token.
 	Name string `json:"name,omitempty"`

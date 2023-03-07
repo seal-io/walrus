@@ -32,8 +32,6 @@ type EnvironmentCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Variables of the environment.
-	Variables map[string]interface{} `json:"variables,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `json:"connectors,omitempty"`
 }
@@ -44,7 +42,6 @@ func (in EnvironmentCreateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Variables:   in.Variables,
 	}
 	for i := 0; i < len(in.Connectors); i++ {
 		if in.Connectors[i] == nil {
@@ -65,8 +62,6 @@ type EnvironmentUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Variables of the environment.
-	Variables map[string]interface{} `json:"variables,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipUpdateInput `json:"connectors,omitempty"`
 }
@@ -78,7 +73,6 @@ func (in EnvironmentUpdateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Variables:   in.Variables,
 	}
 	for i := 0; i < len(in.Connectors); i++ {
 		if in.Connectors[i] == nil {
@@ -103,13 +97,11 @@ type EnvironmentOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Variables of the environment.
-	Variables map[string]interface{} `json:"variables,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipOutput `json:"connectors,omitempty"`
-	// Applications that belong to the environment.
-	Applications []*ApplicationOutput `json:"applications,omitempty"`
-	// Revisions that belong to the environment.
+	// Application instances that belong to the environment.
+	Instances []*ApplicationInstanceOutput `json:"instances,omitempty"`
+	// Application revisions that belong to the environment.
 	Revisions []*ApplicationRevisionOutput `json:"revisions,omitempty"`
 }
 
@@ -119,16 +111,15 @@ func ExposeEnvironment(in *Environment) *EnvironmentOutput {
 		return nil
 	}
 	var entity = &EnvironmentOutput{
-		ID:           in.ID,
-		Name:         in.Name,
-		Description:  in.Description,
-		Labels:       in.Labels,
-		CreateTime:   in.CreateTime,
-		UpdateTime:   in.UpdateTime,
-		Variables:    in.Variables,
-		Connectors:   ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
-		Applications: ExposeApplications(in.Edges.Applications),
-		Revisions:    ExposeApplicationRevisions(in.Edges.Revisions),
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
+		Connectors:  ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
+		Instances:   ExposeApplicationInstances(in.Edges.Instances),
+		Revisions:   ExposeApplicationRevisions(in.Edges.Revisions),
 	}
 	return entity
 }

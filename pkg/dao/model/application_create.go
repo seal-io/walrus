@@ -17,9 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -92,9 +90,9 @@ func (ac *ApplicationCreate) SetProjectID(t types.ID) *ApplicationCreate {
 	return ac
 }
 
-// SetEnvironmentID sets the "environmentID" field.
-func (ac *ApplicationCreate) SetEnvironmentID(t types.ID) *ApplicationCreate {
-	ac.mutation.SetEnvironmentID(t)
+// SetVariables sets the "variables" field.
+func (ac *ApplicationCreate) SetVariables(tv []types.ApplicationVariable) *ApplicationCreate {
+	ac.mutation.SetVariables(tv)
 	return ac
 }
 
@@ -109,39 +107,19 @@ func (ac *ApplicationCreate) SetProject(p *Project) *ApplicationCreate {
 	return ac.SetProjectID(p.ID)
 }
 
-// SetEnvironment sets the "environment" edge to the Environment entity.
-func (ac *ApplicationCreate) SetEnvironment(e *Environment) *ApplicationCreate {
-	return ac.SetEnvironmentID(e.ID)
-}
-
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (ac *ApplicationCreate) AddResourceIDs(ids ...types.ID) *ApplicationCreate {
-	ac.mutation.AddResourceIDs(ids...)
+// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
+func (ac *ApplicationCreate) AddInstanceIDs(ids ...types.ID) *ApplicationCreate {
+	ac.mutation.AddInstanceIDs(ids...)
 	return ac
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (ac *ApplicationCreate) AddResources(a ...*ApplicationResource) *ApplicationCreate {
+// AddInstances adds the "instances" edges to the ApplicationInstance entity.
+func (ac *ApplicationCreate) AddInstances(a ...*ApplicationInstance) *ApplicationCreate {
 	ids := make([]types.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return ac.AddResourceIDs(ids...)
-}
-
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (ac *ApplicationCreate) AddRevisionIDs(ids ...types.ID) *ApplicationCreate {
-	ac.mutation.AddRevisionIDs(ids...)
-	return ac
-}
-
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (ac *ApplicationCreate) AddRevisions(a ...*ApplicationRevision) *ApplicationCreate {
-	ids := make([]types.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return ac.AddRevisionIDs(ids...)
+	return ac.AddInstanceIDs(ids...)
 }
 
 // Mutation returns the ApplicationMutation object of the builder.
@@ -229,19 +207,8 @@ func (ac *ApplicationCreate) check() error {
 			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Application.projectID": %w`, err)}
 		}
 	}
-	if _, ok := ac.mutation.EnvironmentID(); !ok {
-		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "Application.environmentID"`)}
-	}
-	if v, ok := ac.mutation.EnvironmentID(); ok {
-		if err := application.EnvironmentIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "environmentID", err: fmt.Errorf(`model: validator failed for field "Application.environmentID": %w`, err)}
-		}
-	}
 	if _, ok := ac.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Application.project"`)}
-	}
-	if _, ok := ac.mutation.EnvironmentID(); !ok {
-		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Application.environment"`)}
 	}
 	return nil
 }
@@ -300,6 +267,10 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if value, ok := ac.mutation.Variables(); ok {
+		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
+		_node.Variables = value
+	}
 	if nodes := ac.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -321,62 +292,21 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_node.ProjectID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ac.mutation.EnvironmentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   application.EnvironmentTable,
-			Columns: []string{application.EnvironmentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: environment.FieldID,
-				},
-			},
-		}
-		edge.Schema = ac.schemaConfig.Application
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.EnvironmentID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.ResourcesIDs(); len(nodes) > 0 {
+	if nodes := ac.mutation.InstancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   application.ResourcesTable,
-			Columns: []string{application.ResourcesColumn},
+			Table:   application.InstancesTable,
+			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
+					Column: applicationinstance.FieldID,
 				},
 			},
 		}
-		edge.Schema = ac.schemaConfig.ApplicationResource
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.RevisionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   application.RevisionsTable,
-			Columns: []string{application.RevisionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
-			},
-		}
-		edge.Schema = ac.schemaConfig.ApplicationRevision
+		edge.Schema = ac.schemaConfig.ApplicationInstance
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -488,6 +418,24 @@ func (u *ApplicationUpsert) UpdateUpdateTime() *ApplicationUpsert {
 	return u
 }
 
+// SetVariables sets the "variables" field.
+func (u *ApplicationUpsert) SetVariables(v []types.ApplicationVariable) *ApplicationUpsert {
+	u.Set(application.FieldVariables, v)
+	return u
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationUpsert) UpdateVariables() *ApplicationUpsert {
+	u.SetExcluded(application.FieldVariables)
+	return u
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationUpsert) ClearVariables() *ApplicationUpsert {
+	u.SetNull(application.FieldVariables)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -510,9 +458,6 @@ func (u *ApplicationUpsertOne) UpdateNewValues() *ApplicationUpsertOne {
 		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(application.FieldProjectID)
-		}
-		if _, exists := u.create.mutation.EnvironmentID(); exists {
-			s.SetIgnore(application.FieldEnvironmentID)
 		}
 	}))
 	return u
@@ -605,6 +550,27 @@ func (u *ApplicationUpsertOne) SetUpdateTime(v time.Time) *ApplicationUpsertOne 
 func (u *ApplicationUpsertOne) UpdateUpdateTime() *ApplicationUpsertOne {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ApplicationUpsertOne) SetVariables(v []types.ApplicationVariable) *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationUpsertOne) UpdateVariables() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationUpsertOne) ClearVariables() *ApplicationUpsertOne {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearVariables()
 	})
 }
 
@@ -793,9 +759,6 @@ func (u *ApplicationUpsertBulk) UpdateNewValues() *ApplicationUpsertBulk {
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(application.FieldProjectID)
 			}
-			if _, exists := b.mutation.EnvironmentID(); exists {
-				s.SetIgnore(application.FieldEnvironmentID)
-			}
 		}
 	}))
 	return u
@@ -888,6 +851,27 @@ func (u *ApplicationUpsertBulk) SetUpdateTime(v time.Time) *ApplicationUpsertBul
 func (u *ApplicationUpsertBulk) UpdateUpdateTime() *ApplicationUpsertBulk {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ApplicationUpsertBulk) SetVariables(v []types.ApplicationVariable) *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationUpsertBulk) UpdateVariables() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationUpsertBulk) ClearVariables() *ApplicationUpsertBulk {
+	return u.Update(func(s *ApplicationUpsert) {
+		s.ClearVariables()
 	})
 }
 

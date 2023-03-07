@@ -13,7 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -30,8 +30,8 @@ type ApplicationRevision struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// ID of the application to which the revision belongs.
-	ApplicationID types.ID `json:"applicationID,omitempty"`
+	// ID of the application instance to which the revision belongs.
+	InstanceID types.ID `json:"instanceID,omitempty"`
 	// ID of the environment to which the application deploys.
 	EnvironmentID types.ID `json:"environmentID,omitempty"`
 	// Application modules.
@@ -42,9 +42,9 @@ type ApplicationRevision struct {
 	InputPlan string `json:"-"`
 	// Output of the revision.
 	Output string `json:"-"`
-	// type of deployer
+	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
-	// deployment duration(seconds) of the of application revision
+	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
@@ -53,8 +53,8 @@ type ApplicationRevision struct {
 
 // ApplicationRevisionEdges holds the relations/edges for other nodes in the graph.
 type ApplicationRevisionEdges struct {
-	// Application to which the revision belongs.
-	Application *Application `json:"application,omitempty"`
+	// Application instance to which the revision belongs.
+	Instance *ApplicationInstance `json:"instance,omitempty"`
 	// Environment to which the revision deploys.
 	Environment *Environment `json:"environment,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -62,17 +62,17 @@ type ApplicationRevisionEdges struct {
 	loadedTypes [2]bool
 }
 
-// ApplicationOrErr returns the Application value or an error if the edge
+// InstanceOrErr returns the Instance value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ApplicationRevisionEdges) ApplicationOrErr() (*Application, error) {
+func (e ApplicationRevisionEdges) InstanceOrErr() (*ApplicationInstance, error) {
 	if e.loadedTypes[0] {
-		if e.Application == nil {
+		if e.Instance == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: application.Label}
+			return nil, &NotFoundError{label: applicationinstance.Label}
 		}
-		return e.Application, nil
+		return e.Instance, nil
 	}
-	return nil, &NotLoadedError{edge: "application"}
+	return nil, &NotLoadedError{edge: "instance"}
 }
 
 // EnvironmentOrErr returns the Environment value or an error if the edge
@@ -101,7 +101,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case applicationrevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
-		case applicationrevision.FieldID, applicationrevision.FieldApplicationID, applicationrevision.FieldEnvironmentID:
+		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationRevision", columns[i])
@@ -143,11 +143,11 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 				ar.CreateTime = new(time.Time)
 				*ar.CreateTime = value.Time
 			}
-		case applicationrevision.FieldApplicationID:
+		case applicationrevision.FieldInstanceID:
 			if value, ok := values[i].(*types.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field applicationID", values[i])
+				return fmt.Errorf("unexpected type %T for field instanceID", values[i])
 			} else if value != nil {
-				ar.ApplicationID = *value
+				ar.InstanceID = *value
 			}
 		case applicationrevision.FieldEnvironmentID:
 			if value, ok := values[i].(*types.ID); !ok {
@@ -200,9 +200,9 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 	return nil
 }
 
-// QueryApplication queries the "application" edge of the ApplicationRevision entity.
-func (ar *ApplicationRevision) QueryApplication() *ApplicationQuery {
-	return NewApplicationRevisionClient(ar.config).QueryApplication(ar)
+// QueryInstance queries the "instance" edge of the ApplicationRevision entity.
+func (ar *ApplicationRevision) QueryInstance() *ApplicationInstanceQuery {
+	return NewApplicationRevisionClient(ar.config).QueryInstance(ar)
 }
 
 // QueryEnvironment queries the "environment" edge of the ApplicationRevision entity.
@@ -244,8 +244,8 @@ func (ar *ApplicationRevision) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("applicationID=")
-	builder.WriteString(fmt.Sprintf("%v", ar.ApplicationID))
+	builder.WriteString("instanceID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.InstanceID))
 	builder.WriteString(", ")
 	builder.WriteString("environmentID=")
 	builder.WriteString(fmt.Sprintf("%v", ar.EnvironmentID))
