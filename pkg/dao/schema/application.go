@@ -11,7 +11,7 @@ import (
 )
 
 type Application struct {
-	schema
+	ent.Schema
 }
 
 func (Application) Mixin() []ent.Mixin {

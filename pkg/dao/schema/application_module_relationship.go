@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	ents "entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type ApplicationModuleRelationship struct {
-	relationSchema
+	ent.Schema
 }
 
 func (ApplicationModuleRelationship) Mixin() []ent.Mixin {
@@ -20,8 +21,8 @@ func (ApplicationModuleRelationship) Mixin() []ent.Mixin {
 	}
 }
 
-func (ApplicationModuleRelationship) Annotations() []Annotation {
-	return []Annotation{
+func (ApplicationModuleRelationship) Annotations() []ents.Annotation {
+	return []ents.Annotation{
 		field.ID("application_id", "module_id", "name"),
 	}
 }

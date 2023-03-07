@@ -12,7 +12,7 @@ import (
 )
 
 type Connector struct {
-	schema
+	ent.Schema
 }
 
 func (Connector) Mixin() []ent.Mixin {
