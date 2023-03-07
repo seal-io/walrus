@@ -10,7 +10,7 @@ import (
 )
 
 type Project struct {
-	schema
+	ent.Schema
 }
 
 func (Project) Mixin() []ent.Mixin {

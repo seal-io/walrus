@@ -9,10 +9,19 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
 type Role struct {
-	schema
+	ent.Schema
+}
+
+func (Role) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.ID{},
+		mixin.Time{},
+	}
 }
 
 func (Role) Indexes() []ent.Index {

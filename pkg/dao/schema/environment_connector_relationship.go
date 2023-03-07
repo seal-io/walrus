@@ -3,18 +3,26 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	ents "entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/id"
 )
 
 type EnvironmentConnectorRelationship struct {
-	relationSchema
+	ent.Schema
 }
 
-func (EnvironmentConnectorRelationship) Annotations() []Annotation {
-	return []Annotation{
+func (EnvironmentConnectorRelationship) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.CreateTime{},
+	}
+}
+
+func (EnvironmentConnectorRelationship) Annotations() []ents.Annotation {
+	return []ents.Annotation{
 		field.ID("environment_id", "connector_id"),
 	}
 }

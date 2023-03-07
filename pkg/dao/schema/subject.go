@@ -6,10 +6,19 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+
+	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
 type Subject struct {
-	schema
+	ent.Schema
+}
+
+func (Subject) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.ID{},
+		mixin.Time{},
+	}
 }
 
 func (Subject) Indexes() []ent.Index {

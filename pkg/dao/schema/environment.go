@@ -11,7 +11,7 @@ import (
 )
 
 type Environment struct {
-	schema
+	ent.Schema
 }
 
 func (Environment) Mixin() []ent.Mixin {

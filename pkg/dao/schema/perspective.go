@@ -5,12 +5,20 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Perspective holds the schema definition for cost perspectives.
 type Perspective struct {
-	schema
+	ent.Schema
+}
+
+func (Perspective) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.ID{},
+		mixin.Time{},
+	}
 }
 
 func (Perspective) Indexes() []ent.Index {

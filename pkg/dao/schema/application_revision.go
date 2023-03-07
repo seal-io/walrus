@@ -11,7 +11,7 @@ import (
 )
 
 type ApplicationRevision struct {
-	schema
+	ent.Schema
 }
 
 func (ApplicationRevision) Mixin() []ent.Mixin {
