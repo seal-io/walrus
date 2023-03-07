@@ -60,7 +60,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		return nil, 0, err
 	}
 
-	dateTrunc, err := dateTruncWithZoneOffsetSQL(cond.Step, offset)
+	dateTrunc, err := DateTruncWithZoneOffsetSQL(cond.Step, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -76,7 +76,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		}
 	)
 
-	or := filterToPredicates(cond.Filters)
+	or := FilterToSQLPredicates(cond.Filters)
 	if len(or) != 0 {
 		ps = append(ps, or...)
 	}
@@ -142,7 +142,7 @@ func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime ti
 	}
 
 	_, offset := startTime.Zone()
-	dateTrunc, err := dateTruncWithZoneOffsetSQL(step, offset)
+	dateTrunc, err := DateTruncWithZoneOffsetSQL(step, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	var or = filterToPredicates(cond.Filters)
+	var or = FilterToSQLPredicates(cond.Filters)
 	if len(or) != 0 {
 		filters = append(filters, or...)
 	}
@@ -313,7 +313,7 @@ func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, en
 	)
 
 	_, offset := startTime.Zone()
-	dateTrunc, err := dateTruncWithZoneOffsetSQL(step, offset)
+	dateTrunc, err := DateTruncWithZoneOffsetSQL(step, offset)
 	if err != nil {
 		return nil, err
 	}

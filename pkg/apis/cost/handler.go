@@ -3,7 +3,6 @@ package cost
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -56,7 +55,7 @@ func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.Alloca
 
 func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCostRequest) (*view.SummaryCostResponse, error) {
 	// total
-	var ps = []*sql.Predicate{
+	var clusterCostPs = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 	}
@@ -64,7 +63,7 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 	totalCost, err := h.modelClient.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
-				sql.And(ps...),
+				sql.And(clusterCostPs...),
 			).SelectExpr(
 				sql.ExprFunc(func(b *sql.Builder) {
 					b.WriteString(fmt.Sprintf(`COALESCE(SUM(%s),0)`, clustercost.FieldTotalCost))
@@ -80,7 +79,7 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 	clusters, err := h.modelClient.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
-				sql.And(ps...),
+				sql.And(clusterCostPs...),
 			).Select(
 				clustercost.FieldConnectorID,
 			).Distinct()
@@ -90,14 +89,20 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 	}
 
 	// project
-	var projects []struct {
-		Value string `json:"value"`
-	}
-	ps = append(ps, sqljson.ValueIsNotNull(allocationcost.FieldLabels))
+	var (
+		projectCostPs = []*sql.Predicate{
+			sql.GTE(allocationcost.FieldStartTime, req.StartTime),
+			sql.LTE(allocationcost.FieldEndTime, req.EndTime),
+			sqljson.ValueIsNotNull(allocationcost.FieldLabels),
+		}
+		projects []struct {
+			Value string `json:"value"`
+		}
+	)
 	err = h.modelClient.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
-				sql.And(ps...),
+				sql.And(projectCostPs...),
 			).SelectExpr(
 				sql.Expr(fmt.Sprintf(`DISTINCT(labels ->> '%s') AS value`, types.LabelSealProject)),
 			)
@@ -113,8 +118,15 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 		}
 	}
 
+	// days
+	_, offset := req.StartTime.Zone()
+	days, err := h.clusterCostExistedDays(ctx, clusterCostPs, offset)
+	if err != nil {
+		return nil, err
+	}
+
 	// average
-	averageDailyCost := averageDaily(req.StartTime, req.EndTime, totalCost)
+	averageDailyCost := averageDaily(days, totalCost)
 	return &view.SummaryCostResponse{
 		TotalCost:        totalCost,
 		AverageDailyCost: averageDailyCost,
@@ -127,6 +139,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 	var ps = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
+		sql.EQ(allocationcost.FieldConnectorID, req.ConnectorID),
 	}
 
 	var s []view.SummaryClusterCostResponse
@@ -150,8 +163,15 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 		return nil, nil
 	}
 
+	// days
+	_, offset := req.StartTime.Zone()
+	days, err := h.clusterCostExistedDays(ctx, ps, offset)
+	if err != nil {
+		return nil, err
+	}
+
 	summary := s[0]
-	summary.AverageDailyCost = averageDaily(req.StartTime, req.EndTime, summary.TotalCost)
+	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
 	return &summary, nil
 }
 
@@ -180,8 +200,15 @@ func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.Su
 		return nil, nil
 	}
 
+	// days
+	_, offset := req.StartTime.Zone()
+	days, err := h.allocationCostExistedDays(ctx, ps, offset)
+	if err != nil {
+		return nil, err
+	}
+
 	summary := s[0]
-	summary.AverageDailyCost = averageDaily(req.StartTime, req.EndTime, s[0].TotalCost)
+	summary.AverageDailyCost = averageDaily(days, s[0].TotalCost)
 	return &summary, nil
 }
 
@@ -197,8 +224,20 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		return nil, runtime.Errorf(http.StatusInternalServerError, "error query allocation cost: %w", err)
 	}
 
+	// days
+	var ps = []*sql.Predicate{
+		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
+		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
+	}
+	ps = append(ps, distributor.FilterToSQLPredicates(cond.Filters)...)
+
+	_, offset := req.StartTime.Zone()
+	days, err := h.allocationCostExistedDays(ctx, ps, offset)
+	if err != nil {
+		return nil, err
+	}
+
 	summary := &view.SummaryQueriedCostResponse{}
-	summary.ConnectorCount = count
 	for _, v := range items {
 		summary.TotalCost += v.TotalCost
 		summary.TotalCost += v.TotalCost
@@ -208,19 +247,66 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		summary.RamCost += v.RamCost
 		summary.PvCost += v.PvCost
 	}
-
+	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
+	summary.ConnectorCount = count
 	return summary, nil
 }
 
-func averageDaily(startTime, endTime time.Time, total float64) float64 {
-	if total == 0 {
+func (h Handler) clusterCostExistedDays(ctx *gin.Context, ps []*sql.Predicate, offset int) (int, error) {
+	groupBy, err := distributor.DateTruncWithZoneOffsetSQL(types.StepDay, offset)
+	if err != nil {
+		return 0, err
+	}
+
+	days, err := h.modelClient.ClusterCosts().Query().
+		Modify(func(s *sql.Selector) {
+			subQuery := sql.Select(groupBy).
+				Where(
+					sql.And(ps...),
+				).
+				From(sql.Table(clustercost.Table)).As("subQuery").
+				GroupBy(groupBy)
+
+			s.Count().From(subQuery)
+		}).
+		Int(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("error get cluster cost time range: %w", err)
+	}
+
+	return days, nil
+}
+
+func (h Handler) allocationCostExistedDays(ctx *gin.Context, ps []*sql.Predicate, offset int) (int, error) {
+	groupBy, err := distributor.DateTruncWithZoneOffsetSQL(types.StepDay, offset)
+	if err != nil {
+		return 0, err
+	}
+
+	days, err := h.modelClient.AllocationCosts().Query().
+		Modify(func(s *sql.Selector) {
+			subQuery := sql.Select(groupBy).
+				Where(
+					sql.And(ps...),
+				).
+				From(sql.Table(allocationcost.Table)).As("subQuery").
+				GroupBy(groupBy)
+
+			s.Count().From(subQuery)
+		}).
+		Int(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("error get allocation cost time range: %w", err)
+	}
+
+	return days, nil
+}
+
+func averageDaily(days int, total float64) float64 {
+	if total == 0 || days == 0 {
 		return 0
 	}
 
 	// average
-	day := endTime.Sub(startTime).Hours() / 24.0
-	if day == 0 {
-		return 0
-	}
-	return total / day
+	return total / float64(days)
 }

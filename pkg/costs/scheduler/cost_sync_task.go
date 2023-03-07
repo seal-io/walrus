@@ -89,7 +89,7 @@ func (in *CostSyncTask) SyncK8sCost(ctx context.Context, conn *model.Connector, 
 		return err
 	}
 
-	startTime, endTime, err := in.timeRange(ctx, restCfg, args)
+	startTime, endTime, err := in.timeRange(ctx, restCfg, conn, args)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (in *CostSyncTask) batchCreateAllocationCosts(ctx context.Context, costs []
 	return nil
 }
 
-func (in *CostSyncTask) timeRange(ctx context.Context, restCfg *rest.Config, args []interface{}) (*time.Time, *time.Time, error) {
+func (in *CostSyncTask) timeRange(ctx context.Context, restCfg *rest.Config, conn *model.Connector, args []interface{}) (*time.Time, *time.Time, error) {
 	// time range from args.
 	var startTime, endTime *time.Time
 	for i, v := range args {
@@ -219,7 +219,10 @@ func (in *CostSyncTask) timeRange(ctx context.Context, restCfg *rest.Config, arg
 	startTime = &s
 	endTime = &e
 
-	existed, err := in.client.ClusterCosts().Query().Order(model.Desc(clustercost.FieldEndTime)).First(ctx)
+	existed, err := in.client.ClusterCosts().Query().
+		Where(clustercost.ConnectorID(conn.ID)).
+		Order(model.Desc(clustercost.FieldEndTime)).
+		First(ctx)
 	if err != nil {
 		if model.IsNotFound(err) {
 			return startTime, endTime, nil

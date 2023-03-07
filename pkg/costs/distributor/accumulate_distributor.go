@@ -3,18 +3,15 @@ package distributor
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqljson"
 
 	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/strs"
 )
 
 type accumulateDistributor struct {
@@ -65,7 +62,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	or := filterToPredicates(cond.Filters)
+	or := FilterToSQLPredicates(cond.Filters)
 	if len(or) != 0 {
 		ps = append(ps, or...)
 	}
@@ -164,7 +161,7 @@ func (r *accumulateDistributor) sharedAllocationCost(ctx context.Context, startT
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	var or = filterToPredicates(cond.Filters)
+	var or = FilterToSQLPredicates(cond.Filters)
 	if len(or) != 0 {
 		filters = append(filters, or...)
 	}
@@ -279,59 +276,4 @@ func (r *accumulateDistributor) totalAllocationCost(ctx context.Context, startTi
 	}
 
 	return acCost, nil
-}
-
-func filterToPredicates(filters types.AllocationCostFilters) []*sql.Predicate {
-	var or []*sql.Predicate
-	for _, cond := range filters {
-		var and []*sql.Predicate
-		for _, andCond := range cond {
-			if ps := ruleToPredicates(andCond); ps != nil {
-				and = append(and, ps)
-			}
-		}
-
-		if len(and) != 0 {
-			or = append(or, sql.And(and...))
-		}
-	}
-	return or
-}
-
-func ruleToPredicates(cond types.FilterRule) *sql.Predicate {
-	if cond.IncludeAll {
-		return nil
-	}
-
-	toArgs := func(values []string) []any {
-		var args []any
-		for _, v := range cond.Values {
-			args = append(args, v)
-		}
-		return args
-	}
-
-	var pred *sql.Predicate
-	// label query
-	if strings.HasPrefix(string(cond.FieldName), types.LabelPrefix) {
-		labelName := strings.TrimPrefix(string(cond.FieldName), types.LabelPrefix)
-		switch cond.Operator {
-		case types.OperatorIn:
-			pred = sqljson.ValueIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
-		case types.OperatorNotIn:
-			pred = sqljson.ValueNotIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
-		}
-		return pred
-	}
-
-	// other field query
-	fieldName := strs.Underscore(string(cond.FieldName))
-	switch cond.Operator {
-	case types.OperatorIn:
-		pred = sql.In(fieldName, toArgs(cond.Values)...)
-	case types.OperatorNotIn:
-		pred = sql.NotIn(fieldName, toArgs(cond.Values))
-	}
-
-	return pred
 }

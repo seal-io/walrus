@@ -5,6 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+
+	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -18,8 +22,8 @@ type SharedCost struct {
 	Condition      types.SharedCost `json:"condition"`
 }
 
-// dateTruncWithZoneOffsetSQL generate the date trunc sql from step and timezone offset, offset is in seconds east of UTC
-func dateTruncWithZoneOffsetSQL(field types.Step, offset int) (string, error) {
+// DateTruncWithZoneOffsetSQL generate the date trunc sql from step and timezone offset, offset is in seconds east of UTC
+func DateTruncWithZoneOffsetSQL(field types.Step, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid step: blank")
 	}
@@ -98,4 +102,60 @@ func timeZoneInPosix(offset int) string {
 		timeZone = fmt.Sprintf("UTC%s%d", utcOffSig, utcOffHrs)
 	}
 	return timeZone
+}
+
+// FilterToSQLPredicates create sql predicate from filters
+func FilterToSQLPredicates(filters types.AllocationCostFilters) []*sql.Predicate {
+	var or []*sql.Predicate
+	for _, cond := range filters {
+		var and []*sql.Predicate
+		for _, andCond := range cond {
+			if ps := ruleToSQLPredicates(andCond); ps != nil {
+				and = append(and, ps)
+			}
+		}
+
+		if len(and) != 0 {
+			or = append(or, sql.And(and...))
+		}
+	}
+	return or
+}
+
+func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
+	if cond.IncludeAll {
+		return nil
+	}
+
+	toArgs := func(values []string) []any {
+		var args []any
+		for _, v := range cond.Values {
+			args = append(args, v)
+		}
+		return args
+	}
+
+	var pred *sql.Predicate
+	// label query
+	if strings.HasPrefix(string(cond.FieldName), types.LabelPrefix) {
+		labelName := strings.TrimPrefix(string(cond.FieldName), types.LabelPrefix)
+		switch cond.Operator {
+		case types.OperatorIn:
+			pred = sqljson.ValueIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
+		case types.OperatorNotIn:
+			pred = sqljson.ValueNotIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
+		}
+		return pred
+	}
+
+	// other field query
+	fieldName := strs.Underscore(string(cond.FieldName))
+	switch cond.Operator {
+	case types.OperatorIn:
+		pred = sql.In(fieldName, toArgs(cond.Values)...)
+	case types.OperatorNotIn:
+		pred = sql.NotIn(fieldName, toArgs(cond.Values))
+	}
+
+	return pred
 }
