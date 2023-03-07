@@ -23,18 +23,24 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		name string
 		init func(context.Context, initOptions) error
 	}
+
 	var inits = []initor{
-		{name: "cronjobs", init: r.initCronJobs},
-		{name: "modules", init: r.initModules},
-		{name: "roles", init: r.initRoles},
 		{name: "settings", init: r.initSettings},
-		{name: "subjects", init: r.initSubjects},
-		{name: "perspective", init: r.initPerspectives},
-		{name: "subscribers", init: r.initSubscribes},
+		{name: "subscribers", init: r.initSubscribers},
 	}
+	inits = append(inits,
+		initor{name: "modules", init: r.initModules},
+		initor{name: "roles", init: r.initRoles},
+		initor{name: "subjects", init: r.initSubjects},
+		initor{name: "perspective", init: r.initPerspectives},
+		initor{name: "cronjobs", init: r.initCronJobs},
+	)
 	if r.EnableAuthn {
-		inits = append(inits, initor{name: "casdoor", init: r.initCasdoor})
+		inits = append(inits,
+			initor{name: "casdoor", init: r.initCasdoor},
+		)
 	}
+
 	for i := range inits {
 		if err = inits[i].init(ctx, opts); err != nil {
 			return fmt.Errorf("%s: %w", inits[i].name, err)
