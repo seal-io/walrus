@@ -6,8 +6,6 @@ import (
 	"github.com/seal-io/seal/pkg/apis/project/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 )
 
@@ -71,6 +69,27 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 // Batch APIs
 
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Projects().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
+
+var (
+	getFields = project.WithoutFields(
+		project.FieldUpdateTime)
+	sortFields = []string{
+		project.FieldName,
+		project.FieldCreateTime}
+)
+
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Projects().Query()
 
@@ -81,16 +100,18 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	// get entities.
-	var sortFields = []string{project.FieldCreateTime, project.FieldUpdateTime}
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
+	}
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
 	}
 	if orders, ok := req.Sorting(sortFields, model.Desc(project.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Select(project.WithoutFields(project.FieldUpdateTime)...).
-		Unique(false). // allow returning without sorting keys.
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -100,45 +121,3 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 // Extensional APIs
-
-var (
-	applicationGetFields = application.WithoutFields(
-		application.FieldProjectID,
-		application.FieldUpdateTime)
-	applicationSortFields = []string{
-		application.FieldName,
-		application.FieldCreateTime}
-)
-
-func (h Handler) GetApplications(ctx *gin.Context, req view.GetApplicationsRequest) (view.GetApplicationsResponse, int, error) {
-	var query = h.modelClient.Applications().Query().
-		Where(application.ProjectID(req.ID))
-
-	// get count.
-	cnt, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// get entities.
-	if limit, offset, ok := req.Paging(); ok {
-		query.Limit(limit).Offset(offset)
-	}
-	if fields, ok := req.Extracting(applicationGetFields, applicationGetFields...); ok {
-		query.Select(fields...)
-	}
-	if orders, ok := req.Sorting(applicationSortFields, model.Desc(application.FieldCreateTime)); ok {
-		query.Order(orders...)
-	}
-	entities, err := query.
-		Unique(false). // allow returning without sorting keys.
-		WithEnvironment(func(eq *model.EnvironmentQuery) {
-			eq.Select(environment.FieldName)
-		}).
-		All(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return model.ExposeApplications(entities), cnt, nil
-}
