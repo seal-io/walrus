@@ -48,6 +48,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	if err != nil {
 		return nil, err
 	}
+
 	return model.ExposeConnector(entity), nil
 }
 
@@ -55,27 +56,22 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	return h.modelClient.Connectors().DeleteOne(req.Model()).Exec(ctx)
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) (view.UpdateResponse, error) {
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	var entity = req.Model()
 
 	var update, err = dao.ConnectorUpdate(h.modelClient, entity)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	entity, err = update.Save(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = pkgconn.Notify(ctx, h.modelClient, entity, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.ExposeConnector(entity), nil
+	return pkgconn.Notify(ctx, h.modelClient, entity, false)
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.UpdateResponse, error) {
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	var entity, err = h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -85,6 +81,19 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.UpdateResponse
 }
 
 // Batch APIs
+
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Connectors().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
 
 var (
 	getFields = connector.WithoutFields(
@@ -117,6 +126,8 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
