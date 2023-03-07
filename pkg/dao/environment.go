@@ -78,8 +78,7 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			SetName(r.Name)
 
 		// optional.
-		c.SetDescription(r.Description).
-			SetVariables(r.Variables)
+		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -205,8 +204,7 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 		// conditional.
 		var c = mc.Environments().Update().
 			Where(ps...).
-			SetDescription(r.Description).
-			SetVariables(r.Variables)
+			SetDescription(r.Description)
 		if r.Name != "" {
 			c.SetName(r.Name)
 		}
