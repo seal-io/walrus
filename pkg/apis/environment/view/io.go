@@ -50,6 +50,20 @@ type GetResponse = *model.EnvironmentOutput
 
 // Batch APIs
 
+type CollectionDeleteRequest []*model.EnvironmentQueryInput
+
+func (r CollectionDeleteRequest) Validate() error {
+	if len(r) == 0 {
+		return errors.New("invalid input: empty")
+	}
+	for _, i := range r {
+		if !i.ID.Valid(0) {
+			return errors.New("invalid id: blank")
+		}
+	}
+	return nil
+}
+
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
 	runtime.RequestExtracting `query:",inline"`

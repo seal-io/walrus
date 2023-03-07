@@ -68,10 +68,10 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 		Where(environment.ID(req.ID)).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
-				Select(
-						environmentconnectorrelationship.FieldEnvironmentID,
-						environmentconnectorrelationship.FieldConnectorID).
-				Unique(false). // allow returning without sorting keys.
+				Select(environmentconnectorrelationship.FieldEnvironmentID).
+				// allow returning without sorting keys.
+				Unique(false).
+				Select(environmentconnectorrelationship.FieldConnectorID).
 				WithConnector(
 					func(cq *model.ConnectorQuery) {
 						cq.Select(
@@ -89,6 +89,19 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 }
 
 // Batch APIs
+
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Environments().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
 
 var (
 	getFields = environment.WithoutFields(
@@ -118,20 +131,19 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Unique(false). // allow returning without sorting keys.
+		// allow returning without sorting keys.
+		Unique(false).
+		// must extract connectors.
+		Select(environment.FieldID).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			// includes connectors.
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
-				Select(
-						environmentconnectorrelationship.FieldEnvironmentID,
-						environmentconnectorrelationship.FieldConnectorID).
-				Unique(false). // allow returning without sorting keys.
-				WithConnector(
-					func(cq *model.ConnectorQuery) {
-						cq.Select(
-							connector.FieldID,
-							connector.FieldType,
-							connector.FieldName)
-					})
+				WithConnector(func(cq *model.ConnectorQuery) {
+					cq.Select(
+						connector.FieldID,
+						connector.FieldType,
+						connector.FieldName)
+				})
 		}).
 		All(ctx)
 	if err != nil {
