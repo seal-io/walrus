@@ -15,7 +15,8 @@ type Perspective struct {
 
 func (Perspective) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("name").Unique(),
+		index.Fields("name").
+			Unique(),
 	}
 }
 
