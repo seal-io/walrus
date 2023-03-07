@@ -24,8 +24,8 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 
 func (ApplicationRevision) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("applicationID").
-			Comment("ID of the application to which the revision belongs.").
+		id.Field("instanceID").
+			Comment("ID of the application instance to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
 		id.Field("environmentID").
@@ -56,11 +56,11 @@ func (ApplicationRevision) Fields() []ent.Field {
 
 func (ApplicationRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// application 1-* application revisions.
-		edge.From("application", Application.Type).
+		// application instance 1-* application revisions.
+		edge.From("instance", ApplicationInstance.Type).
 			Ref("revisions").
-			Field("applicationID").
-			Comment("Application to which the revision belongs.").
+			Field("instanceID").
+			Comment("Application instance to which the revision belongs.").
 			Unique().
 			Required().
 			Immutable(),

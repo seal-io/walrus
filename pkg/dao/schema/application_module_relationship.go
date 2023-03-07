@@ -43,8 +43,8 @@ func (ApplicationModuleRelationship) Fields() []ent.Field {
 			Comment("Name of the module customized to the application.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("variables", map[string]interface{}{}).
-			Comment("Variables to configure the module.").
+		field.JSON("attributes", map[string]interface{}{}).
+			Comment("Attributes to configure the module.").
 			Optional(),
 	}
 }
