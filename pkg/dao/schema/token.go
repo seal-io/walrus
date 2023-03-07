@@ -20,11 +20,11 @@ func (Token) Indexes() []ent.Index {
 func (Token) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("casdoorTokenName").
-			Comment("The token name of casdoor").
+			Comment("The token name of casdoor.").
 			NotEmpty().
 			Sensitive(),
 		field.String("casdoorTokenOwner").
-			Comment("The token owner of casdoor").
+			Comment("The token owner of casdoor.").
 			NotEmpty().
 			Sensitive(),
 		field.String("name").

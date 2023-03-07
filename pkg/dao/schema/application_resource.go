@@ -62,7 +62,7 @@ func (ApplicationResource) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		field.String("deployerType").
-			Comment("Type of deployer").
+			Comment("Type of deployer.").
 			NotEmpty().
 			Immutable(),
 	}

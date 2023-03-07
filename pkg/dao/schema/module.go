@@ -40,7 +40,7 @@ func (Module) Fields() []ent.Field {
 			Comment("Version of the module.").
 			Optional(),
 		field.JSON("schema", &types.ModuleSchema{}).
-			Comment("Schema of the module").
+			Comment("Schema of the module.").
 			Default(&types.ModuleSchema{}),
 	}
 }

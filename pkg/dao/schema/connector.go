@@ -52,7 +52,7 @@ func (Connector) Fields() []ent.Field {
 			Comment("Extra message for finOps tools status, like error details.").
 			Optional(),
 		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
-			Comment("Custom pricing user defined").
+			Comment("Custom pricing user defined.").
 			Optional(),
 	}
 }
@@ -80,7 +80,7 @@ func (Connector) Edges() []ent.Edge {
 			),
 		// connector 1-* allocation costs.
 		edge.To("allocationCosts", AllocationCost.Type).
-			Comment("Cluster allocation resource costs that linked to the connection").
+			Comment("Cluster allocation resource costs that linked to the connection.").
 			Annotations(
 				entsql.Annotation{
 					OnDelete: entsql.Cascade,
