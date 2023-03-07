@@ -95,13 +95,28 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 // Batch APIs
 
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Modules().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
+
 var (
 	getFields  = module.Columns
-	sortFields = []string{module.FieldID, module.FieldCreateTime, module.FieldUpdateTime}
+	sortFields = []string{
+		module.FieldID,
+		module.FieldStatus,
+		module.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-
 	var query = h.modelClient.Modules().Query()
 
 	// get count.
@@ -117,10 +132,12 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(sortFields); ok {
+	if orders, ok := req.Sorting(sortFields, model.Desc(module.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
