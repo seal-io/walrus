@@ -2,7 +2,6 @@ package perspective
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -10,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/perspective/view"
-	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
@@ -39,7 +37,7 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*model.PerspectiveOutput, error) {
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var entity = req.Model()
 
 	var creates, err = dao.PerspectiveCreates(h.modelClient, entity)
@@ -48,32 +46,24 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*model.Perspe
 	}
 	entity, err = creates[0].Save(ctx)
 	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to create perspective: %w", err)
+		return nil, err
 	}
+
 	return model.ExposePerspective(entity), nil
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	var err = h.modelClient.Perspectives().DeleteOne(req.Model()).Exec(ctx)
-	if err != nil {
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to delete perspective: %w", err)
-	}
-	return nil
+	return h.modelClient.Perspectives().DeleteOne(req.Model()).Exec(ctx)
 }
 
-func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) (*model.PerspectiveOutput, error) {
+func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	var entity = req.Model()
 
 	var update, err = dao.PerspectiveUpdate(h.modelClient, entity)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	entity, err = update.Save(ctx)
-	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to update perspective: %w", err)
-	}
-
-	return model.ExposePerspective(entity), nil
+	return update.Exec(ctx)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -87,11 +77,24 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 // Batch APIs
 
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Perspectives().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
+
 var (
 	getFields  = perspective.Columns
 	sortFields = []string{
-		perspective.FieldCreateTime,
-		perspective.FieldUpdateTime}
+		perspective.FieldName,
+		perspective.FieldCreateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
@@ -115,6 +118,8 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
