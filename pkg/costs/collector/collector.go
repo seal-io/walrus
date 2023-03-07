@@ -176,7 +176,7 @@ func (c *Collector) clusterCosts(startTime, endTime *time.Time, step time.Durati
 
 // getClusterCostWithinRange get cluster cost within range.
 func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*model.ClusterCost, error) {
-	offset := math.Ceil(time.Since(*endTime).Minutes())
+	offset := time.Since(*endTime).Seconds()
 	if offset < 0 {
 		return nil, nil
 	}
@@ -186,7 +186,7 @@ func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*mod
 		// e.g. 1h
 		"window": []string{fmt.Sprintf("%.0fm", window)},
 		// e.g. 1h
-		"offset": []string{fmt.Sprintf("%.0fm", offset)},
+		"offset": []string{fmt.Sprintf("%.0fs", offset)},
 	}
 
 	u, err := url.Parse(c.restCfg.Host)
@@ -230,12 +230,12 @@ func (c *Collector) applyIdleCost(ccs []*model.ClusterCost, acs []*model.Allocat
 	var allocationCosts = make(map[string]float64)
 
 	for _, v := range acs {
-		key := fmt.Sprintf("%s-%s", v.StartTime.String(), v.EndTime.String())
+		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
 		allocationCosts[key] += v.TotalCost
 	}
 
 	for i, v := range ccs {
-		key := fmt.Sprintf("%s-%s", v.StartTime.String(), v.EndTime.String())
+		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
 		if ac, ok := allocationCosts[key]; ok {
 			ccs[i].AllocationCost = ac
 			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ac
