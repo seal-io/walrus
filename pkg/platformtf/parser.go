@@ -61,15 +61,14 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 			}
 
 			applicationResource := &model.ApplicationResource{
-				ApplicationID: revision.ApplicationID,
-				ConnectorID:   types.ID(connector),
-				Mode:          rs.Mode,
-				Module:        moduleName,
-				Type:          rs.Type,
-				Name:          instanceID,
-				DeployerType:  revision.DeployerType,
+				InstanceID:   revision.InstanceID,
+				ConnectorID:  types.ID(connector),
+				Mode:         rs.Mode,
+				Module:       moduleName,
+				Type:         rs.Type,
+				Name:         instanceID,
+				DeployerType: revision.DeployerType,
 			}
-
 			applicationResources = append(applicationResources, applicationResource)
 		}
 	}

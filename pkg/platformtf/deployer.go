@@ -2,6 +2,7 @@ package platformtf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -70,22 +71,38 @@ func (d Deployer) Type() deployer.Type {
 }
 
 // Apply will apply the application to deploy the application.
-func (d Deployer) Apply(ctx context.Context, app *model.Application, applyOpts deployer.ApplyOptions) error {
-	applicationRevision, connectors, err := d.CreateApplicationRevision(ctx, app)
+func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) error {
+	connectors, err := d.getConnectors(ctx, ai)
+	if err != nil {
+		return err
+	}
+
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if err != nil {
-			// update app revision status to failed.
-			_, updateErr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-				SetStatus(status.ApplicationRevisionStatusFailed).
-				SetStatusMessage(err.Error()).
-				Save(ctx)
-			if updateErr != nil {
-				d.logger.Errorf("failed to update application revision status: %v", updateErr)
-			}
+		if err == nil {
+			return
+		}
+		// TODO(thxCode): process the error status reporting in one place.
+		var errMsg = err.Error()
+		// report to application revision.
+		_, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+			SetStatus(status.ApplicationRevisionStatusFailed).
+			SetStatusMessage(errMsg).
+			Save(ctx)
+		if rerr != nil {
+			d.logger.Errorf("failed to update application revision status: %v", rerr)
+		}
+		// report to application instance.
+		_, rerr = d.modelClient.ApplicationInstances().UpdateOneID(applicationRevision.InstanceID).
+			SetStatus(status.ApplicationInstanceStatusDeployFailed).
+			SetStatusMessage(errMsg).
+			Save(ctx)
+		if rerr != nil {
+			d.logger.Errorf("failed to update application instance status: %v", rerr)
 		}
 	}()
 
@@ -120,10 +137,10 @@ func (d Deployer) Apply(ctx context.Context, app *model.Application, applyOpts d
 // Destroy will destroy the resource of the application.
 // 1. get the latest revision, and checkAppRevision it if it is running.
 // 2. if not running, then destroy the latest revision.
-func (d Deployer) Destroy(ctx context.Context, app *model.Application, destroyOpts deployer.DestroyOptions) error {
+func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
 	applicationRevision, err := d.modelClient.ApplicationRevisions().Query().
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Where(applicationrevision.ApplicationID(app.ID)).
+		Where(applicationrevision.InstanceID(ai.ID)).
 		First(ctx)
 	if err != nil {
 		return err
@@ -134,15 +151,26 @@ func (d Deployer) Destroy(ctx context.Context, app *model.Application, destroyOp
 	}
 
 	defer func() {
-		if err != nil {
-			// update app revision status to failed
-			_, updateErr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-				SetStatus(status.ApplicationRevisionStatusFailed).
-				SetStatusMessage(err.Error()).
-				Save(ctx)
-			if updateErr != nil {
-				d.logger.Errorf("failed to update application revision status: %v", updateErr)
-			}
+		if err == nil {
+			return
+		}
+		// TODO(thxCode): process the error status reporting in one place.
+		var errMsg = err.Error()
+		// report to application revision.
+		_, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+			SetStatus(status.ApplicationRevisionStatusFailed).
+			SetStatusMessage(errMsg).
+			Save(ctx)
+		if rerr != nil {
+			d.logger.Errorf("failed to update application revision status: %v", rerr)
+		}
+		// report to application instance.
+		_, rerr = d.modelClient.ApplicationInstances().UpdateOneID(applicationRevision.InstanceID).
+			SetStatus(status.ApplicationInstanceStatusDeleteFailed).
+			SetStatusMessage(errMsg).
+			Save(ctx)
+		if rerr != nil {
+			d.logger.Errorf("failed to update application instance status: %v", rerr)
 		}
 	}()
 
@@ -154,7 +182,7 @@ func (d Deployer) Destroy(ctx context.Context, app *model.Application, destroyOp
 		return err
 	}
 
-	_, connectors, err := d.getApplicationEnvAndConnectors(ctx, app)
+	connectors, err := d.getConnectors(ctx, ai)
 	if err != nil {
 		return err
 	}
@@ -224,81 +252,59 @@ func (d Deployer) createSecrets(ctx context.Context, opts CreateSecretsOptions) 
 // get the latest revision, and check it if it is running.
 // if not running, then apply the latest revision.
 // if running, then wait for the latest revision to be applied.
-// create app revision and get connectors.
-func (d Deployer) CreateApplicationRevision(
-	ctx context.Context,
-	app *model.Application,
-) (*model.ApplicationRevision, model.Connectors, error) {
+func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.ApplicationInstance) (*model.ApplicationRevision, error) {
 	// output of the previous revision should be inherited to the new one
 	// when creating a new revision.
-	prevOutput := ""
+	var prevOutput string
 	applicationRevision, err := d.modelClient.ApplicationRevisions().Query().
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Where(applicationrevision.ApplicationID(app.ID)).
+		Where(applicationrevision.InstanceID(ai.ID)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
-		return nil, nil, err
+		return nil, err
 	}
 	ok, err := d.checkRevisionStatus(applicationRevision)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if !ok {
-		return nil, nil, fmt.Errorf("application deployment is running")
+		return nil, errors.New("application deployment is running")
 	}
 	if applicationRevision != nil {
 		prevOutput = applicationRevision.Output
 	}
 
-	env, connectors, err := d.getApplicationEnvAndConnectors(ctx, app)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	// create new revision with modules.
+	var modules []types.ApplicationModule
 	amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
-		Where(applicationmodulerelationship.ApplicationID(app.ID)).
+		Where(applicationmodulerelationship.ApplicationID(ai.ID)).
 		All(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-
-	var applicationModules []types.ApplicationModule
 	for _, amr := range amrs {
-		// merge variables, environment variables will override module variables.
-		envVariables := env.Variables
-		variables := amr.Variables
-		for k, v := range envVariables {
-			if _, ok := variables[k]; ok {
-				variables[k] = v
-			}
-		}
-		if variables == nil {
-			variables = make(map[string]interface{})
-		}
-
-		applicationModules = append(applicationModules, types.ApplicationModule{
-			ModuleID:  amr.ModuleID,
-			Name:      amr.ModuleID,
-			Variables: variables,
+		modules = append(modules, types.ApplicationModule{
+			ModuleID:   amr.ModuleID,
+			Name:       amr.ModuleID,
+			Attributes: amr.Attributes,
 		})
 	}
 
 	newRevision, err := d.modelClient.ApplicationRevisions().Create().
-		SetApplicationID(app.ID).
-		SetEnvironmentID(app.EnvironmentID).
-		SetModules(applicationModules).
-		SetInputVariables(env.Variables).
+		SetInstanceID(ai.ID).
+		SetEnvironmentID(ai.EnvironmentID).
+		SetModules(modules).
+		SetInputVariables(ai.Variables).
 		SetInputPlan("").
 		SetOutput(prevOutput).
 		SetStatus(status.ApplicationRevisionStatusRunning).
 		SetDeployerType(DeployerType).
 		Save(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return newRevision, connectors, nil
+	return newRevision, nil
 }
 
 // checkRevisionStatus check the revision status.
@@ -310,10 +316,7 @@ func (d Deployer) checkRevisionStatus(applicationRevision *model.ApplicationRevi
 }
 
 // LoadConfig returns terraform config for deployment.
-func (d Deployer) LoadConfig(
-	ctx context.Context,
-	opts CreateSecretsOptions,
-) (string, error) {
+func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (string, error) {
 	if opts.ApplicationRevision.InputPlan != "" {
 		return opts.ApplicationRevision.InputPlan, nil
 	}
@@ -397,19 +400,16 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 }
 
 // GetModuleConfigs returns module configs to get terraform module config block from application revision.
-func (d Deployer) GetModuleConfigs(
-	ctx context.Context,
-	appRevision *model.ApplicationRevision,
-) ([]*config.ModuleConfig, error) {
+func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, error) {
 	var (
 		moduleConfigs []*config.ModuleConfig
 		// app module relationship module ids
-		amrsModuleIDs = make([]string, 0, len(appRevision.Modules))
+		amrsModuleIDs = make([]string, 0, len(ar.Modules))
 		// module id -> module source
 		moduleSourceMap = make(map[string]*model.Module, 0)
 	)
 
-	for _, m := range appRevision.Modules {
+	for _, m := range ar.Modules {
 		amrsModuleIDs = append(amrsModuleIDs, m.ModuleID)
 	}
 	modules, err := d.modelClient.Modules().
@@ -424,10 +424,10 @@ func (d Deployer) GetModuleConfigs(
 	for _, m := range modules {
 		moduleSourceMap[m.ID] = m
 	}
-	for _, m := range appRevision.Modules {
+	for _, m := range ar.Modules {
 		moduleConfig := &config.ModuleConfig{
-			Module:    moduleSourceMap[m.ModuleID],
-			Variables: m.Variables,
+			Module:     moduleSourceMap[m.ModuleID],
+			Attributes: m.Attributes,
 		}
 		moduleConfigs = append(moduleConfigs, moduleConfig)
 	}
@@ -435,26 +435,25 @@ func (d Deployer) GetModuleConfigs(
 	return moduleConfigs, nil
 }
 
-func (d Deployer) getApplicationEnvAndConnectors(ctx context.Context, application *model.Application) (*model.Environment, model.Connectors, error) {
-	env, err := d.modelClient.Environments().Query().
-		WithConnectors().
-		Where(environment.ID(application.EnvironmentID)).
-		Only(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	connIDs := make([]types.ID, 0, len(env.Edges.Connectors))
-	for _, c := range env.Edges.Connectors {
-		connIDs = append(connIDs, c.ConnectorID)
-	}
-
-	connectors, err := d.modelClient.Connectors().Query().
-		Where(connector.IDIn(connIDs...)).
+func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstance) (model.Connectors, error) {
+	var rs, err = d.modelClient.EnvironmentConnectorRelationships().Query().
+		Where(environmentconnectorrelationship.EnvironmentID(ai.EnvironmentID)).
+		WithConnector(func(cq *model.ConnectorQuery) {
+			cq.Select(
+				connector.FieldID,
+				connector.FieldName,
+				connector.FieldType,
+				connector.FieldConfigVersion,
+				connector.FieldConfigData)
+		}).
 		All(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return env, connectors, nil
+	var cs model.Connectors
+	for i := range rs {
+		cs = append(cs, rs[i].Edges.Connector)
+	}
+	return cs, nil
 }

@@ -35,9 +35,10 @@ import (
 )
 
 type SetupOptions struct {
-	EnableAuthn bool
-	K8sConfig   *rest.Config
-	ModelClient *model.Client
+	TlsCertified bool
+	EnableAuthn  bool
+	K8sConfig    *rest.Config
+	ModelClient  *model.Client
 }
 
 func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, error) {
@@ -78,8 +79,8 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
-		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig))
-		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig))
+		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
+		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
 			applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient))

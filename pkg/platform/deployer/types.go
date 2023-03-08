@@ -15,12 +15,12 @@ type Deployer interface {
 	// Type returns Type.
 	Type() Type
 
-	// Apply creates/updates the resources of the given application,
+	// Apply creates/updates the resources of the given application instance,
 	// also cleans stale resources of the given application.
-	Apply(context.Context, *model.Application, ApplyOptions) error
+	Apply(context.Context, *model.ApplicationInstance, ApplyOptions) error
 
-	// Destroy cleans all resources of the given application.
-	Destroy(context.Context, *model.Application, DestroyOptions) error
+	// Destroy cleans all resources of the given application instance.
+	Destroy(context.Context, *model.ApplicationInstance, DestroyOptions) error
 }
 
 // ApplyOptions holds the options of Deployer's Apply action.
