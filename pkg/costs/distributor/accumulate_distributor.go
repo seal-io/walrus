@@ -29,7 +29,7 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 		return nil, 0, err
 	}
 
-	workloadCost, err := r.totalAllocationCost(ctx, startTime, endTime)
+	workloadCosts, err := r.totalAllocationCost(ctx, startTime, endTime)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -39,9 +39,12 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 		if item.ItemName == "" {
 			item.ItemName = types.UnallocatedLabel
 		}
-		applySharedCost(count, &item.Cost, sharedCosts, workloadCost)
+		applySharedCost(count, &item.Cost, sharedCosts, workloadCosts)
 	}
 
+	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
+		return nil, 0, err
+	}
 	return allocationCosts, count, nil
 }
 
