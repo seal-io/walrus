@@ -1,6 +1,7 @@
 package application
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
@@ -11,18 +12,24 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/platform"
+	"github.com/seal-io/seal/pkg/platform/deployer"
+	"github.com/seal-io/seal/pkg/platformtf"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
 	return Handler{
-		modelClient: mc,
-		kubeConfig:  kc,
+		modelClient:  mc,
+		kubeConfig:   kc,
+		tlsCertified: tc,
 	}
 }
 
 type Handler struct {
-	modelClient model.ClientSet
-	kubeConfig  *rest.Config
+	modelClient  model.ClientSet
+	kubeConfig   *rest.Config
+	tlsCertified bool
 }
 
 func (h Handler) Kind() string {
@@ -162,3 +169,51 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 // Extensional APIs
+
+func (h Handler) RouteDeploy(ctx *gin.Context, req view.RouteDeployRequest) error {
+	var entity = req.Model()
+
+	// get deployer.
+	var createOpts = deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	dp, err := platform.GetDeployer(ctx, createOpts)
+	if err != nil {
+		return err
+	}
+
+	// create/update instance, mark status to deploying.
+	entity.ID, err = h.modelClient.ApplicationInstances().Create().
+		SetApplicationID(entity.ApplicationID).
+		SetEnvironmentID(entity.EnvironmentID).
+		SetName(entity.Name).
+		SetVariables(entity.Variables).
+		SetStatus(status.ApplicationInstanceStatusDeploying).
+		SetStatusMessage("").
+		OnConflict(
+			sql.ConflictColumns(
+				applicationinstance.FieldApplicationID,
+				applicationinstance.FieldEnvironmentID,
+				applicationinstance.FieldName),
+		).
+		Update(func(upsert *model.ApplicationInstanceUpsert) {
+			if entity.Variables != nil {
+				upsert.UpdateVariables()
+			}
+			upsert.UpdateStatus()
+			upsert.UpdateStatusMessage()
+			upsert.UpdateUpdateTime()
+		}).
+		ID(ctx)
+	if err != nil {
+		return err
+	}
+
+	// apply instance.
+	var applyOpts = deployer.ApplyOptions{
+		SkipTLSVerify: !h.tlsCertified,
+	}
+	return dp.Apply(ctx, entity, applyOpts)
+}

@@ -16,8 +16,8 @@ import (
 // ModuleConfig is a struct with model.Module and its variables.
 type ModuleConfig struct {
 	Module *model.Module
-	// Variables is the variables of the module.
-	Variables map[string]interface{}
+	// Attributes is the attributes of the module.
+	Attributes map[string]interface{}
 }
 
 // CreateOptions represents the CreateOptions of the Config.
@@ -79,7 +79,7 @@ type (
 	  block1 = &Block{
 	  	Type: "provider",
 	      Labels: []string{"aws"},
-	  	Variables: map[string]interface{}{
+	  	Attributes: map[string]interface{}{
 	  		"region": "us-east-1",
 	  	},
 	  },
@@ -92,7 +92,7 @@ type (
 	  block2 = &Block{
 	  	Type: "data",
 	  	Labels: []string{"lable1", "label2"},
-	  	Variables: map[string]interface{}{
+	  	Attributes: map[string]interface{}{
 	  		"test": "test"
 	  	},
 	  }
@@ -376,7 +376,7 @@ func loadModuleBlocks(moduleBlocks []*ModuleConfig, providers Blocks) Blocks {
 		providersMap[name] = fmt.Sprintf("$${%s.%s}", name, alias)
 	}
 	for _, m := range moduleBlocks {
-		block := convertModuleToBlock(m.Module, m.Variables)
+		block := convertModuleToBlock(m.Module, m.Attributes)
 		// inject providers alias to the module
 		block.Attributes["providers"] = providersMap
 		blocks = append(blocks, block)

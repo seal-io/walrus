@@ -48,14 +48,14 @@ func convertK8sConnectorToBlock(connector *model.Connector, secretMountPath stri
 }
 
 // convertModuleToBlock returns module block for the given module and variables.
-func convertModuleToBlock(m *model.Module, variables map[string]interface{}) *Block {
+func convertModuleToBlock(m *model.Module, attributes map[string]interface{}) *Block {
 	var block Block
 	// TODO need check the module required providers from schema?
-	variables["source"] = m.Source
+	attributes["source"] = m.Source
 	block = Block{
 		Type:       BlockTypeModule,
 		Labels:     []string{m.ID},
-		Attributes: variables,
+		Attributes: attributes,
 	}
 
 	return &block

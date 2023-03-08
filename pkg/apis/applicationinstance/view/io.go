@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -67,3 +68,26 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 type CollectionGetResponse = []*model.ApplicationInstanceOutput
 
 // Extensional APIs
+
+type RouteUpgradeRequest struct {
+	_ struct{} `route:"PUT=/upgrade"`
+
+	*model.ApplicationInstanceUpdateInput `uri:",inline" json:",inline"`
+}
+
+func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	_, err := modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(r.ID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid id: not found")
+	}
+
+	return nil
+}

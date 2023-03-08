@@ -1,13 +1,21 @@
 package status
 
 const (
-	Error        = "error"
-	Ready        = "ready"
-	Initializing = "initializing"
+	Initializing = "Initializing"
+	Ready        = "Ready"
+	Error        = "Error"
 )
 
 const (
-	ApplicationRevisionStatusRunning   = "running"
-	ApplicationRevisionStatusSucceeded = "succeeded"
-	ApplicationRevisionStatusFailed    = "failed"
+	ApplicationInstanceStatusDeploying    = "Deploying"
+	ApplicationInstanceStatusDeployed     = "Deployed"
+	ApplicationInstanceStatusDeployFailed = "DeployFailed"
+	ApplicationInstanceStatusDeleting     = "Deleting"
+	ApplicationInstanceStatusDeleteFailed = "DeleteFailed"
+)
+
+const (
+	ApplicationRevisionStatusRunning   = "Running"
+	ApplicationRevisionStatusSucceeded = "Succeeded"
+	ApplicationRevisionStatusFailed    = "Failed"
 )

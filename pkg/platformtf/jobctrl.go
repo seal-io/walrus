@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/log"
@@ -74,7 +75,9 @@ func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	if err = r.syncApplicationRevisionStatus(ctx, job); err != nil {
-		return ctrl.Result{}, err
+		// ignores error, since they can't be fixed by an immediate requeue.
+		var ignore = model.IsNotFound(err)
+		return ctrl.Result{Requeue: !ignore}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -126,13 +129,48 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
+	// report to application revision.
 	duration := time.Since(*appRevision.CreateTime).Seconds()
-	// update application revision status and status message.
-	if _, err = r.ModelClient.ApplicationRevisions().UpdateOneID(types.ID(appRevisionID)).
+	appRevision, err = r.ModelClient.ApplicationRevisions().UpdateOneID(types.ID(appRevisionID)).
 		SetStatus(revisionStatus).
 		SetStatusMessage(revisionStatusMessage).
 		SetDuration(int(duration)).
-		Save(ctx); err != nil {
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+	// report to application instance.
+	appInstance, err := r.ModelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(appRevision.InstanceID)).
+		Select(
+			applicationinstance.FieldID,
+			applicationinstance.FieldStatus).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+	switch revisionStatus {
+	case status.ApplicationRevisionStatusSucceeded:
+		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
+			// delete application instance.
+			err = r.ModelClient.ApplicationInstances().DeleteOne(appInstance).
+				Exec(ctx)
+		} else {
+			err = r.ModelClient.ApplicationInstances().UpdateOne(appInstance).
+				SetStatus(status.ApplicationInstanceStatusDeployed).
+				Exec(ctx)
+		}
+	case status.ApplicationRevisionStatusFailed:
+		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
+			appInstance.Status = status.ApplicationInstanceStatusDeleteFailed
+		} else {
+			appInstance.Status = status.ApplicationInstanceStatusDeployFailed
+		}
+		err = r.ModelClient.ApplicationInstances().UpdateOne(appInstance).
+			SetStatus(appInstance.Status).
+			Exec(ctx)
+	}
+	if err != nil {
 		return err
 	}
 
@@ -180,11 +218,7 @@ func (r JobReconciler) deleteSecret(ctx context.Context, secretName string) erro
 }
 
 // CreateJob create a job to run terraform deployment.
-func CreateJob(
-	ctx context.Context,
-	clientSet *kubernetes.Clientset,
-	opts JobCreateOptions,
-) error {
+func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCreateOptions) error {
 	var (
 		logger = log.WithName("platformtf").WithName("jobctrl")
 
