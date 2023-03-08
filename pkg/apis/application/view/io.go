@@ -7,8 +7,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
@@ -20,9 +20,6 @@ type CreateRequest struct {
 func (r *CreateRequest) Validate() error {
 	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
-	}
-	if r.Environment.ID == "" {
-		return errors.New("invalid environment id: blank")
 	}
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
@@ -81,65 +78,43 @@ type GetResponse = *model.ApplicationOutput
 
 // Batch APIs
 
+type CollectionDeleteRequest []*model.ApplicationQueryInput
+
+func (r CollectionDeleteRequest) Validate() error {
+	if len(r) == 0 {
+		return errors.New("invalid input: empty")
+	}
+	for _, i := range r {
+		if !i.ID.Valid(0) {
+			return errors.New("invalid id: blank")
+		}
+	}
+	return nil
+}
+
+type CollectionGetRequest struct {
+	runtime.RequestPagination `query:",inline"`
+	runtime.RequestExtracting `query:",inline"`
+	runtime.RequestSorting    `query:",inline"`
+
+	ProjectID types.ID `query:"projectID"`
+}
+
+func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+	_, err := modelClient.Projects().Query().
+		Where(project.ID(r.ProjectID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid project id: not found")
+	}
+	return nil
+}
+
+type CollectionGetResponse = []*model.ApplicationOutput
+
 // Extensional APIs
-
-type GetResourcesRequest struct {
-	*model.ApplicationQueryInput `uri:",inline"`
-	runtime.RequestPagination    `query:",inline"`
-	runtime.RequestExtracting    `query:",inline"`
-	runtime.RequestSorting       `query:",inline"`
-
-	WithoutKeys bool `query:"withoutKeys,omitempty"`
-}
-
-func (r *GetResourcesRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-	_, err := modelClient.Applications().Query().
-		Where(application.ID(r.ID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
-	}
-	return nil
-}
-
-type ApplicationResource struct {
-	*model.ApplicationResourceOutput `json:",inline"`
-
-	OperatorKeys  *operator.Keys `json:"operatorKeys"`
-	ConnectorName string         `json:"connectorName"`
-}
-
-type GetResourcesResponse = []ApplicationResource
-
-type GetRevisionsRequest struct {
-	*model.ApplicationQueryInput `uri:",inline"`
-	runtime.RequestPagination    `query:",inline"`
-	runtime.RequestExtracting    `query:",inline"`
-	runtime.RequestSorting       `query:",inline"`
-}
-
-func (r *GetRevisionsRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-	_, err := modelClient.Applications().Query().
-		Where(application.ID(r.ID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
-	}
-	return nil
-}
-
-type GetRevisionsResponse = []*model.ApplicationRevisionOutput
-
-type CreateDeploymentRequest = GetRequest
-
-type DeleteDeploymentRequest = GetRequest

@@ -8,14 +8,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/deployer"
-	"github.com/seal-io/seal/pkg/platform/operator"
-	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config) Handler {
@@ -75,12 +70,16 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	var entity, err = h.modelClient.Applications().Query().
 		Where(application.ID(req.ID)).
+		// must extract modules.
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
-			rq.Select(
-				applicationmodulerelationship.FieldApplicationID,
-				applicationmodulerelationship.FieldModuleID,
-				applicationmodulerelationship.FieldName,
-				applicationmodulerelationship.FieldVariables)
+			rq.Order(model.Asc(applicationmodulerelationship.FieldCreateTime)).
+				Select(
+					applicationmodulerelationship.FieldApplicationID,
+					applicationmodulerelationship.FieldModuleID,
+					applicationmodulerelationship.FieldName,
+					applicationmodulerelationship.FieldAttributes).
+				// allow returning without sorting keys.
+				Unique(false)
 		}).
 		Only(ctx)
 	if err != nil {
@@ -92,23 +91,31 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 // Batch APIs
 
-// Extensional APIs
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		for i := range req {
+			err = tx.Applications().DeleteOne(req[i].Model()).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return
+	})
+}
 
 var (
-	resourceGetFields = applicationresource.WithoutFields(
-		applicationresource.FieldApplicationID,
-		applicationresource.FieldUpdateTime)
-	resourceSortFields = []string{
-		applicationresource.FieldCreateTime,
-		applicationresource.FieldModule,
-		applicationresource.FieldMode,
-		applicationresource.FieldType,
-		applicationresource.FieldName}
+	getFields = application.WithoutFields(
+		application.FieldProjectID,
+		application.FieldUpdateTime)
+	sortFields = []string{
+		application.FieldName,
+		application.FieldCreateTime}
 )
 
-func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (view.GetResourcesResponse, int, error) {
-	var query = h.modelClient.ApplicationResources().Query().
-		Where(applicationresource.ApplicationID(req.ID))
+func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
+	var query = h.modelClient.Applications().Query().
+		Where(application.ProjectID(req.ProjectID))
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
@@ -120,134 +127,38 @@ func (h Handler) GetResources(ctx *gin.Context, req view.GetResourcesRequest) (v
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
-	if fields, ok := req.Extracting(resourceGetFields, resourceGetFields...); ok {
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(resourceSortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
+	if orders, ok := req.Sorting(sortFields, model.Desc(application.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
-		Unique(false). // allow returning without sorting keys.
-		WithConnector(func(cq *model.ConnectorQuery) {
-			cq.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData)
+		// allow returning without sorting keys.
+		Unique(false).
+		// must extract application instances.
+		WithInstances(func(iq *model.ApplicationInstanceQuery) {
+			iq.Order(model.Asc(applicationinstance.FieldCreateTime)).
+				// earlier 5 instances.
+				Limit(5).
+				Select(
+					applicationinstance.FieldApplicationID,
+					applicationinstance.FieldID,
+					applicationinstance.FieldName).
+				// allow returning without sorting keys.
+				Unique(false).
+				// must extract environment.
+				Select(applicationinstance.FieldEnvironmentID).
+				WithEnvironment(func(eq *model.EnvironmentQuery) {
+					eq.Select(environment.FieldName)
+				})
 		}).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	var resp = make(view.GetResourcesResponse, len(entities))
-	for i := 0; i < len(entities); i++ {
-		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
-
-		if !req.WithoutKeys {
-			// fetch operable keys.
-			var op operator.Operator
-			op, err = platform.GetOperator(ctx,
-				operator.CreateOptions{Connector: *entities[i].Edges.Connector})
-			if err != nil {
-				return nil, 0, err
-			}
-			resp[i].OperatorKeys, err = op.GetKeys(ctx, *entities[i])
-			if err != nil {
-				return nil, 0, err
-			}
-		}
-	}
-	return resp, cnt, nil
+	return model.ExposeApplications(entities), cnt, nil
 }
 
-var (
-	revisionGetFields  = applicationrevision.Columns
-	revisionSortFields = []string{
-		applicationrevision.FieldCreateTime,
-	}
-)
-
-func (h Handler) GetRevisions(ctx *gin.Context, req view.GetRevisionsRequest) (view.GetRevisionsResponse, int, error) {
-	var query = h.modelClient.ApplicationRevisions().Query().
-		Where(applicationrevision.ApplicationID(req.ID))
-
-	// get count.
-	cnt, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// get entities.
-	if limit, offset, ok := req.Paging(); ok {
-		query.Limit(limit).Offset(offset)
-	}
-	if fields, ok := req.Extracting(revisionGetFields, revisionGetFields...); ok {
-		query.Select(fields...)
-	}
-	if orders, ok := req.Sorting(revisionSortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
-		query.Order(orders...)
-	}
-	entities, err := query.
-		Unique(false). // allow returning without sorting keys.
-		All(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return model.ExposeApplicationRevisions(entities), cnt, nil
-}
-
-func (h Handler) CreateDeployments(ctx *gin.Context, req view.CreateDeploymentRequest) error {
-	createOpts := deployer.CreateOptions{
-		Type:        platformtf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-	d, err := platform.GetDeployer(ctx, createOpts)
-	if err != nil {
-		return err
-	}
-
-	app, err := h.modelClient.Applications().Get(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-
-	err = d.Apply(ctx, app, deployer.ApplyOptions{
-		// TODO get from settings
-		SkipTLSVerify: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h Handler) DeleteDeployments(ctx *gin.Context, req view.DeleteDeploymentRequest) error {
-	deployOpts := deployer.CreateOptions{
-		Type:        platformtf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-	d, err := platform.GetDeployer(ctx, deployOpts)
-	if err != nil {
-		return err
-	}
-
-	app, err := h.modelClient.Applications().Get(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-
-	err = d.Destroy(ctx, app, deployer.DestroyOptions{
-		// TODO get from settings
-		SkipTLSVerify: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// Extensional APIs

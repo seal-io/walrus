@@ -46,8 +46,8 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 			SetName(rs.Name)
 
 		// optional.
-		if rs.Variables != nil {
-			c.SetVariables(rs.Variables)
+		if rs.Attributes != nil {
+			c.SetAttributes(rs.Attributes)
 		}
 		createRss[i] = c
 	}
@@ -81,13 +81,15 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		// required.
 		var c = mc.Applications().Create().
 			SetName(r.Name).
-			SetProjectID(r.ProjectID).
-			SetEnvironmentID(r.EnvironmentID)
+			SetProjectID(r.ProjectID)
 
 		// optional.
 		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
+		}
+		if r.Variables != nil {
+			c.SetVariables(r.Variables)
 		}
 		rrs[i] = &WrappedApplicationCreate{
 			entity:   input[i],
@@ -150,8 +152,8 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 			SetName(rs.Name)
 
 		// optional.
-		if rs.Variables != nil {
-			c.SetVariables(rs.Variables)
+		if rs.Attributes != nil {
+			c.SetAttributes(rs.Attributes)
 		}
 
 		err = c.OnConflict(
@@ -161,7 +163,9 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 				applicationmodulerelationship.FieldName,
 			)).
 			Update(func(upsert *model.ApplicationModuleRelationshipUpsert) {
-				upsert.UpdateVariables()
+				if rs.Attributes != nil {
+					upsert.UpdateAttributes()
+				}
 				upsert.UpdateUpdateTime()
 			}).
 			Exec(ctx)
@@ -232,6 +236,9 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		}
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
+		}
+		if r.Variables != nil {
+			c.SetVariables(r.Variables)
 		}
 		rrs[i] = &WrappedApplicationUpdate{
 			entity:           input[i],
