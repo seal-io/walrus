@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -20,32 +21,35 @@ type stepDistributor struct {
 }
 
 func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	items, count, err := r.AllocationCosts(ctx, startTime, endTime, cond)
+	allocationCosts, count, err := r.AllocationCosts(ctx, startTime, endTime, cond)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	scb, err := r.SharedCosts(ctx, startTime, endTime, cond.SharedCosts, cond.Step)
+	sharedCosts, err := r.SharedCosts(ctx, startTime, endTime, cond.SharedCosts, cond.Step)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	wb, err := r.totalAllocationCost(ctx, startTime, endTime, cond.Step)
+	workloadCosts, err := r.totalAllocationCost(ctx, startTime, endTime, cond.Step)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	for i, item := range items {
+	for i, item := range allocationCosts {
 		var (
 			bucket   = item.StartTime.Format(time.RFC3339)
-			shares   = scb[bucket]
-			workload = wb[bucket]
+			shares   = sharedCosts[bucket]
+			workload = workloadCosts[bucket]
 		)
 
-		applySharedCost(count, &items[i].Cost, shares, workload.TotalCost)
+		applySharedCost(count, &allocationCosts[i].Cost, shares, workload.TotalCost)
 	}
 
-	return items, count, nil
+	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
+		return nil, 0, err
+	}
+	return allocationCosts, count, nil
 }
 
 func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
@@ -338,6 +342,36 @@ func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, en
 		bucket[key] = v
 	}
 	return bucket, nil
+}
+
+func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []view.Resource, groupBy types.GroupByField) error {
+	if groupBy != types.GroupByFieldConnectorID {
+		return nil
+	}
+
+	// group by connector id
+	conns, err := client.Connectors().Query().
+		Where(
+			connector.TypeEQ(types.ConnectorTypeK8s),
+		).
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+		).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i, v := range items {
+		for _, conn := range conns {
+			if v.ItemName == conn.ID.String() {
+				items[i].ItemName = conn.Name
+				break
+			}
+		}
+	}
+	return nil
 }
 
 func applySharedCost(count int, allocationCost *view.Cost, shares []*SharedCost, workloadCost float64) {
