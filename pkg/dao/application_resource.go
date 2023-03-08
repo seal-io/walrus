@@ -11,16 +11,15 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var resources = make([]*model.ApplicationResourceCreate, len(input))
-	for i := range input {
-		r := input[i]
-		// required.
+	var rrs = make([]*model.ApplicationResourceCreate, len(input))
+	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		c := mc.ApplicationResources().Create().
-			SetApplicationID(r.ApplicationID).
+		// required.
+		var c = mc.ApplicationResources().Create().
+			SetInstanceID(r.InstanceID).
 			SetConnectorID(r.ConnectorID).
 			SetName(r.Name).
 			SetType(r.Type).
@@ -28,8 +27,7 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 			SetMode(r.Mode).
 			SetDeployerType(r.DeployerType)
 
-		resources[i] = c
+		rrs[i] = c
 	}
-
-	return resources, nil
+	return rrs, nil
 }
