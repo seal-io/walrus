@@ -3,23 +3,25 @@ package view
 import (
 	"context"
 	"errors"
+	"net/http"
 
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform/operator"
 )
 
-// Basic APIs
-
-// GetRequest loads model.ApplicationResource with the request ID in validating.
-type GetRequest struct {
+// ApplicationResourceQuery loads model.ApplicationResource with the request ID in validating.
+type ApplicationResourceQuery struct {
 	*model.ApplicationResourceQueryInput `uri:",inline"`
 
 	Entity *model.ApplicationResource `json:"-"`
 }
 
-func (r *GetRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
@@ -29,7 +31,7 @@ func (r *GetRequest) ValidateWith(ctx context.Context, input any) error {
 	var entity, err = modelClient.ApplicationResources().Query().
 		Where(applicationresource.ID(r.ID)).
 		Select(applicationresource.WithoutFields(
-			applicationresource.FieldApplicationID,
+			applicationresource.FieldInstanceID,
 			applicationresource.FieldUpdateTime)...).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
@@ -46,16 +48,50 @@ func (r *GetRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
+// Basic APIs
+
 // Batch APIs
+
+type CollectionGetRequest struct {
+	runtime.RequestPagination `query:",inline"`
+	runtime.RequestExtracting `query:",inline"`
+	runtime.RequestSorting    `query:",inline"`
+
+	InstanceID  types.ID `query:"instanceID"`
+	WithoutKeys bool     `query:"withoutKeys,omitempty"`
+}
+
+func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.InstanceID.Valid(0) {
+		return errors.New("invalid instance id: blank")
+	}
+	_, err := modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(r.InstanceID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid instance id: not found")
+	}
+	return nil
+}
+
+type ApplicationResource struct {
+	*model.ApplicationResourceOutput `json:",inline"`
+
+	Keys *operator.Keys `json:"keys"`
+}
+
+type CollectionGetResponse = []ApplicationResource
 
 // Extensional APIs
 
-type GetKeysRequest = GetRequest
+type GetKeysRequest = ApplicationResourceQuery
 
 type GetKeysResponse = *operator.Keys
 
 type StreamLogRequest struct {
-	GetRequest `uri:",inline"`
+	ApplicationResourceQuery `uri:",inline"`
 
 	Key          string `query:"key"`
 	Previous     bool   `query:"previous,omitempty"`
@@ -73,11 +109,11 @@ func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
 			return errors.New("invalid since seconds: illegal")
 		}
 	}
-	return r.GetRequest.ValidateWith(ctx, input)
+	return r.ApplicationResourceQuery.ValidateWith(ctx, input)
 }
 
 type StreamExecRequest struct {
-	GetRequest `uri:",inline"`
+	ApplicationResourceQuery `uri:",inline"`
 
 	Key    string `query:"key"`
 	Shell  string `query:"shell,omitempty"`
@@ -102,5 +138,5 @@ func (r *StreamExecRequest) ValidateWith(ctx context.Context, input any) error {
 	} else if r.Height == 0 {
 		r.Height = 100
 	}
-	return r.GetRequest.ValidateWith(ctx, input)
+	return r.ApplicationResourceQuery.ValidateWith(ctx, input)
 }
