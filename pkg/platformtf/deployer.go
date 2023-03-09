@@ -274,7 +274,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	// create new revision with modules.
 	var modules []types.ApplicationModule
 	amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
-		Where(applicationmodulerelationship.ApplicationID(ai.ID)).
+		Where(applicationmodulerelationship.ApplicationID(ai.ApplicationID)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -282,7 +282,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	for _, amr := range amrs {
 		modules = append(modules, types.ApplicationModule{
 			ModuleID:   amr.ModuleID,
-			Name:       amr.ModuleID,
+			Name:       amr.Name,
 			Attributes: amr.Attributes,
 		})
 	}
