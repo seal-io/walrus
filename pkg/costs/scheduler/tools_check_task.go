@@ -31,7 +31,7 @@ func (in *ToolsCheckTask) Process(ctx context.Context, args ...interface{}) erro
 		return err
 	}
 
-	wg := gopool.WaitGroup()
+	wg := gopool.Group()
 	for i := range conns {
 		var conn = conns[i]
 		if !conn.EnableFinOps {

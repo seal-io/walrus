@@ -56,9 +56,9 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		return fmt.Errorf("error setting up apis server: %w", err)
 	}
 
-	var g, ctx = gopool.GroupWithContext(c)
+	var g = gopool.GroupWithContextIn(c)
 
-	g.Go(func() error {
+	g.Go(func(ctx context.Context) error {
 		var h = handler
 		var lg = newStdLogger(s.logger.WithName("https"))
 		var ls, err = newTcpListener(ctx, opts.BindAddress, 443)
@@ -114,7 +114,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 	})
 
 	// serve http.
-	g.Go(func() error {
+	g.Go(func(ctx context.Context) error {
 		var h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var u = *r.URL
 			u.Scheme = "https"
