@@ -20,6 +20,11 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			Source:      "github.com/gitlawr/modules/webservice",
 		},
 		{
+			ID:          "webservice-from-source",
+			Description: "Build and run a containerized service from source code.",
+			Source:      "github.com/gitlawr/modules/webservice-from-source",
+		},
+		{
 			ID:          "aws-rds",
 			Description: "An AWS RDS instance.",
 			Source:      "github.com/gitlawr/modules/aws-rds",
