@@ -3,7 +3,6 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,8 +28,6 @@ const (
 )
 
 type CostSyncTask struct {
-	mu sync.RWMutex
-
 	client model.ClientSet
 	logger log.Logger
 }
@@ -38,14 +35,11 @@ type CostSyncTask struct {
 func NewCostSyncTask(client model.ClientSet) (*CostSyncTask, error) {
 	return &CostSyncTask{
 		client: client,
-		logger: log.WithName("cost"),
+		logger: log.WithName("cost").WithName("sync-cost"),
 	}, nil
 }
 
 func (in *CostSyncTask) Process(ctx context.Context, args ...interface{}) error {
-	in.mu.Lock()
-	defer in.mu.Unlock()
-
 	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
