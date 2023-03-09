@@ -14,11 +14,11 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s"
 )
 
 const (
-	NamespaceSeal              = "seal-system"
 	NamePrometheus             = "seal-prometheus"
 	NameOpencost               = "seal-opencost"
 	ConfigMapNameOpencost      = "seal-opencost"
@@ -31,7 +31,7 @@ const (
 )
 
 var (
-	pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", NamespaceSeal, NameOpencost)
+	pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", types.SealSystemNamespace, NameOpencost)
 )
 
 type input struct {
@@ -85,16 +85,16 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 		return fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	dep, err := appv1Client.Deployments(NamespaceSeal).Get(ctx, NameOpencost, metav1.GetOptions{})
+	dep, err := appv1Client.Deployments(types.SealSystemNamespace).Get(ctx, NameOpencost, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("error get tool %s:%s, %w", NamespaceSeal, NameOpencost, err)
+		return fmt.Errorf("error get tool %s:%s, %w", types.SealSystemNamespace, NameOpencost, err)
 	}
 
 	if dep.Status.ReadyReplicas != *dep.Spec.Replicas {
-		return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details", NamespaceSeal, NameOpencost, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
+		return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details", types.SealSystemNamespace, NameOpencost, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
 	}
 
-	helm, err := NewHelm(NamespaceSeal, kubeconfig)
+	helm, err := NewHelm(types.SealSystemNamespace, kubeconfig)
 	if err != nil {
 		return fmt.Errorf("error create helm client: %w", err)
 	}
@@ -106,7 +106,7 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 	}
 
 	if isFailed(release) {
-		return fmt.Errorf("release %s:%s status is failed, check helm release details", NamespaceSeal, NamePrometheus)
+		return fmt.Errorf("release %s:%s status is failed, check helm release details", types.SealSystemNamespace, NamePrometheus)
 	}
 
 	return nil
@@ -115,9 +115,9 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 func opencost(clusterName string) ([]byte, error) {
 	var data = input{
 		Name:               NameOpencost,
-		Namespace:          NamespaceSeal,
+		Namespace:          types.SealSystemNamespace,
 		ClusterID:          clusterName,
-		PrometheusEndpoint: fmt.Sprintf("http://%s-server.%s.svc:80", NamePrometheus, NamespaceSeal),
+		PrometheusEndpoint: fmt.Sprintf("http://%s-server.%s.svc:80", NamePrometheus, types.SealSystemNamespace),
 	}
 
 	buf := &bytes.Buffer{}
@@ -130,7 +130,7 @@ func opencost(clusterName string) ([]byte, error) {
 func opencostScrape() (string, error) {
 	var data = input{
 		Name:      NameOpencost,
-		Namespace: NamespaceSeal,
+		Namespace: types.SealSystemNamespace,
 	}
 
 	buf := &bytes.Buffer{}
@@ -196,7 +196,7 @@ func prometheus() (*ChartApp, error) {
 
 	return &ChartApp{
 		Name:         NamePrometheus,
-		Namespace:    NamespaceSeal,
+		Namespace:    types.SealSystemNamespace,
 		ChartTgzName: defaultPrometheusChartTgz,
 		Values:       values,
 		Entry:        entry,

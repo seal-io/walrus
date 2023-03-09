@@ -100,7 +100,8 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	)
 	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
 	if !ok {
-		return fmt.Errorf("job %s does not have label %s", job.Name, _applicationRevisionIDLabel)
+		// not a deployer job
+		return nil
 	}
 	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, types.ID(appRevisionID))
 	if err != nil {
@@ -155,7 +156,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 		return "", err
 	}
 	var ls = "job-name=" + jobName
-	pods, err := clientSet.CoreV1().Pods(Namespace).
+	pods, err := clientSet.CoreV1().Pods(types.SealSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: ls})
 	if err != nil {
 		return "", err
@@ -164,7 +165,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	var logs string
 	for _, pod := range pods.Items {
 		var podLogs []byte
-		podLogs, err = clientSet.CoreV1().Pods(Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{}).DoRaw(ctx)
+		podLogs, err = clientSet.CoreV1().Pods(types.SealSystemNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{}).DoRaw(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -179,7 +180,7 @@ func (r JobReconciler) deleteSecret(ctx context.Context, secretName string) erro
 	if err != nil {
 		return err
 	}
-	err = clientSet.CoreV1().Secrets(Namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+	err = clientSet.CoreV1().Secrets(types.SealSystemNamespace).Delete(ctx, secretName, metav1.DeleteOptions{})
 	if err != nil && !kerrors.IsNotFound(err) {
 		return err
 	}
@@ -209,7 +210,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		},
 	}
 
-	_, err := clientSet.BatchV1().Jobs(Namespace).Create(ctx, job, metav1.CreateOptions{})
+	_, err := clientSet.BatchV1().Jobs(types.SealSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		if kerrors.IsAlreadyExists(err) {
 			logger.Warnf("job %s already exists", name)
@@ -222,48 +223,14 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 	return nil
 }
 
-// CreateNamespace create a job namespace if not exist.
-func CreateNamespace(ctx context.Context, clientSet *kubernetes.Clientset, namespace string) error {
-	createNamespace := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
-		},
-	}
-	// create namespace if not exist.
-	_, err := clientSet.CoreV1().
-		Namespaces().
-		Create(ctx, &createNamespace, metav1.CreateOptions{})
-	if err != nil && !kerrors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return nil
-}
-
 // CreateSecret create a secret to store terraform config.
 func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name string, data map[string][]byte) error {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
 		Data:       data,
 	}
-	_, err := clientSet.CoreV1().Secrets(Namespace).Create(ctx, secret, metav1.CreateOptions{})
+	_, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil && !kerrors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return nil
-}
-
-// CreateConfigmap create a configmap to store terraform config.
-func CreateConfigmap(ctx context.Context, clientSet *kubernetes.Clientset, name string, data map[string]string) error {
-	configMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
-		Data:       data,
-	}
-	_, err := clientSet.CoreV1().
-		ConfigMaps(Namespace).
-		Create(ctx, configMap, metav1.CreateOptions{})
-	if err != nil {
 		return err
 	}
 
@@ -292,7 +259,8 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 			},
 		},
 		Spec: corev1.PodSpec{
-			RestartPolicy: corev1.RestartPolicyNever,
+			ServiceAccountName: types.DeployerServiceAccountName,
+			RestartPolicy:      corev1.RestartPolicyNever,
 			Containers: []corev1.Container{
 				{
 					Name:            "deployment",

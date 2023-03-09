@@ -22,7 +22,7 @@ import (
 
 // cost endpoint access path.
 var (
-	pathServiceProxy         = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", deployer.NamespaceSeal, deployer.NameOpencost)
+	pathServiceProxy         = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", types.SealSystemNamespace, deployer.NameOpencost)
 	pathAllocation           = "/allocation/compute"
 	pathClusterCost          = "/clusterCosts"
 	pathPrometheusQueryRange = "/prometheusQueryRange"
