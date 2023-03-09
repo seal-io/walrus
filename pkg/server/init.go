@@ -29,6 +29,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 
 	var inits = []initor{
 		{name: "settings", init: r.initSettings},
+		{name: "cronjobs", init: r.initCronJobs},
 		{name: "subscribers", init: r.initSubscribers},
 	}
 	inits = append(inits,
@@ -36,7 +37,6 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "roles", init: r.initRoles},
 		initor{name: "subjects", init: r.initSubjects},
 		initor{name: "perspective", init: r.initPerspectives},
-		initor{name: "cronjobs", init: r.initCronJobs},
 		initor{name: "projects", init: r.initDefaultProject},
 		initor{name: "environments", init: r.initDefaultEnvironment},
 		initor{name: "deployer-runtime", init: r.initDeployerRuntime},
