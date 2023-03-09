@@ -43,6 +43,10 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 			workload = workloadCosts[bucket]
 		)
 
+		if item.ItemName == "" {
+			allocationCosts[i].ItemName = types.UnallocatedLabel
+		}
+
 		applySharedCost(count, &allocationCosts[i].Cost, shares, workload.TotalCost)
 	}
 
@@ -196,14 +200,11 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 		Modify(func(s *sql.Selector) {
 			s.Where(
 				sql.And(filters...),
-			)
+			).SelectExpr(
+				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
+				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "allocationCost")(s)),
+			).GroupBy(dateTrunc)
 		}).
-		GroupBy(dateTrunc).
-		Aggregate(
-			model.As(
-				model.Sum(allocationcost.FieldTotalCost), "allocationCost",
-			),
-		).
 		Scan(ctx, &costs)
 	if err != nil {
 		return nil, fmt.Errorf("error query shared allocation cost: %w", err)
@@ -212,6 +213,9 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 	bucket := make(map[string]*SharedCost)
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
+		if _, ok := bucket[key]; !ok {
+			bucket[key] = &SharedCost{}
+		}
 		bucket[key].StartTime = v.StartTime
 		bucket[key].AllocationCost += v.AllocationCost
 	}
