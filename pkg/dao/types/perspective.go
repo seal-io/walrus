@@ -12,6 +12,7 @@ type (
 		GroupBy     GroupByField          `json:"groupBy,omitempty"`
 		Step        Step                  `json:"step,omitempty"`
 		Paging      QueryPagination       `json:"paging,omitempty"`
+		Query       string                `json:"query"`
 	}
 )
 

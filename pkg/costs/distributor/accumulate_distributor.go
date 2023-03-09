@@ -19,7 +19,7 @@ type accumulateDistributor struct {
 }
 
 func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	allocationCosts, count, err := r.allocationResourceCosts(ctx, startTime, endTime, cond)
+	allocationCosts, totalCount, queriedCount, err := r.allocationResourceCosts(ctx, startTime, endTime, cond)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -39,25 +39,26 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 		if item.ItemName == "" {
 			item.ItemName = types.UnallocatedLabel
 		}
-		applySharedCost(count, &item.Cost, sharedCosts, workloadCosts)
+		applySharedCost(totalCount, &item.Cost, sharedCosts, workloadCosts)
 	}
 
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
 		return nil, 0, err
 	}
-	return allocationCosts, count, nil
+	return allocationCosts, queriedCount, nil
 }
 
-func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
+func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, int, error) {
+	// condition
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
 	groupBy, err := groupByWithZoneOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
 	var ps = []*sql.Predicate{
@@ -70,22 +71,45 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		ps = append(ps, or...)
 	}
 
-	count, err := r.client.AllocationCosts().Query().
-		Modify(func(s *sql.Selector) {
-			subQuery := sql.Select(groupBy).
-				Where(
-					sql.And(ps...),
-				).
-				From(sql.Table(allocationcost.Table)).As("subQuery").
-				GroupBy(groupBy)
+	var havingPs *sql.Predicate
+	if cond.Query != "" {
+		havingPs, err = havingSQL(ctx, r.client, cond.GroupBy, groupBy, cond.Query)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+	}
 
-			s.Count().From(subQuery)
+	countSubQuery := sql.Select(groupBy).
+		Where(sql.And(ps...)).
+		GroupBy(groupBy).
+		From(sql.Table(allocationcost.Table)).
+		As("subQuery")
+
+	// total count
+	totalCount, err := r.client.AllocationCosts().Query().
+		Modify(func(s *sql.Selector) {
+			s.Count().From(countSubQuery)
 		}).
 		Int(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
+	// queried count
+	queriedCount, err := r.client.AllocationCosts().Query().
+		Modify(func(s *sql.Selector) {
+			if havingPs != nil {
+				countSubQuery.Having(havingPs)
+			}
+
+			s.Count().From(countSubQuery)
+		}).
+		Int(ctx)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	// queried items
 	query := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -102,6 +126,10 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 			).OrderExpr(
 				sql.Expr(orderBy),
 			)
+
+			if havingPs != nil {
+				s.Having(havingPs)
+			}
 		})
 
 	var (
@@ -116,9 +144,9 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 
 	var items []view.Resource
 	if err = query.Scan(ctx, &items); err != nil {
-		return nil, 0, fmt.Errorf("error query allocation cost: %w", err)
+		return nil, 0, 0, fmt.Errorf("error query allocation cost: %w", err)
 	}
-	return items, count, nil
+	return items, totalCount, queriedCount, nil
 }
 
 func (r *accumulateDistributor) sharedCosts(ctx context.Context, startTime, endTime time.Time, conds types.ShareCosts) ([]*SharedCost, error) {

@@ -1,6 +1,7 @@
 package distributor
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -8,7 +9,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
 
+	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -84,6 +87,47 @@ END`, types.UnallocatedLabel, types.UnallocatedLabel, types.UnallocatedLabel)
 		groupBy = strs.Underscore(string(field))
 	}
 	return groupBy, nil
+}
+
+// havingSQL generate the having sql with group by and query keyword
+func havingSQL(
+	ctx context.Context,
+	client model.ClientSet,
+	groupBy types.GroupByField,
+	groupBySQL string,
+	query string,
+) (*sql.Predicate, error) {
+	if query == "" {
+		return nil, fmt.Errorf("invalid query: blank")
+	}
+	if groupBy == "" || groupBySQL == "" {
+		return nil, fmt.Errorf("invalid group by: blank")
+	}
+
+	var having *sql.Predicate
+	switch {
+	case groupBy == types.GroupByFieldConnectorID:
+		connIDs, err := client.Connectors().Query().
+			Where(
+				connector.NameContainsFold(query),
+				connector.TypeEQ(types.ConnectorTypeK8s),
+			).IDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		args := make([]any, len(connIDs))
+		for i := range connIDs {
+			args[i] = connIDs[i]
+		}
+
+		having = sql.In(allocationcost.FieldConnectorID, args...)
+	default:
+		col := sql.Max(fmt.Sprintf(`CAST((%s) AS varchar)`, groupBySQL))
+		pattern := fmt.Sprintf("%%%s%%", query)
+		having = sql.Like(col, pattern)
+	}
+	return having, nil
 }
 
 // timeZoneInPosix is in posix timezone string format
