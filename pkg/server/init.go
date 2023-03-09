@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/client-go/rest"
+
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
 type initOptions struct {
+	K8sConfig   *rest.Config
 	ModelClient *model.Client
 }
 
@@ -36,6 +39,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "cronjobs", init: r.initCronJobs},
 		initor{name: "projects", init: r.initDefaultProject},
 		initor{name: "environments", init: r.initDefaultEnvironment},
+		initor{name: "deployer-runtime", init: r.initDeployerRuntime},
 	)
 	if r.EnableAuthn {
 		inits = append(inits,

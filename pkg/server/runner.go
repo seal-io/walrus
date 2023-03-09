@@ -322,6 +322,7 @@ func (r *Server) Run(c context.Context) error {
 	log.Info("initializing")
 	var modelClient = getModelClient(rdsDrvDialect, rdsDrv)
 	var initOpts = initOptions{
+		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
 	}
 	if err = r.init(ctx, initOpts); err != nil {

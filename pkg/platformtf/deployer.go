@@ -24,9 +24,6 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-// Namespace the namespace to deploy the application.
-const Namespace = "seal-system"
-
 // DeployerType the type of deployer.
 const DeployerType = types.DeployerTypeTF
 
@@ -48,23 +45,16 @@ type CreateSecretsOptions struct {
 // terraform will get and update deployment states from this API.
 const _backendAPI = "/v1/application-revisions/%s/terraform-states"
 
-func NewDeployer(ctx context.Context, opts deployer.CreateOptions) (deployer.Deployer, error) {
+func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deployer, error) {
 	clientSet, err := kubernetes.NewForConfig(opts.KubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubernetes client set: %w", err)
 	}
-	var d = &Deployer{
+	return &Deployer{
 		modelClient: opts.ModelClient,
 		clientSet:   clientSet,
 		logger:      log.WithName("deployer").WithName("terraform"),
-	}
-	// create deploy namespace.
-	err = CreateNamespace(ctx, d.clientSet, Namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	return d, nil
+	}, nil
 }
 
 func (d Deployer) Type() deployer.Type {
