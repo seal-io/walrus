@@ -11,6 +11,7 @@ go 1.19
 require (
 	entgo.io/ent v0.11.8
 	github.com/GoogleCloudPlatform/terraformer v0.8.18
+	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-logr/logr v1.2.3
@@ -71,6 +72,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
+	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/alitto/pond v1.8.3 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3 // indirect
@@ -119,7 +121,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
