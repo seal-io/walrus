@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/settings"
 )
 
-func (r *Server) initCronJobs(ctx context.Context, opts initOptions) error {
+func (r *Server) initBackgroundTasks(ctx context.Context, opts initOptions) error {
 	var cs = cron.JobCreators{
 		settings.CostCollectCronExpr.Name():    buildCostCollectJobCreator(opts.ModelClient),
 		settings.CostToolsCheckCronExpr.Name(): buildCostToolsCheckJobCreator(opts.ModelClient),
