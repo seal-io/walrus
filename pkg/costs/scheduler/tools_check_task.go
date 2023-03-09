@@ -3,7 +3,6 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -15,8 +14,6 @@ import (
 )
 
 type ToolsCheckTask struct {
-	mu sync.RWMutex
-
 	client model.ClientSet
 	logger log.Logger
 }
@@ -24,14 +21,11 @@ type ToolsCheckTask struct {
 func NewToolsCheckTask(client model.ClientSet) (*ToolsCheckTask, error) {
 	return &ToolsCheckTask{
 		client: client,
-		logger: log.WithName("cost"),
+		logger: log.WithName("cost").WithName("check-status"),
 	}, nil
 }
 
 func (in *ToolsCheckTask) Process(ctx context.Context, args ...interface{}) error {
-	in.mu.Lock()
-	defer in.mu.Unlock()
-
 	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err

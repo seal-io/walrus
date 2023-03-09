@@ -40,7 +40,7 @@ func New(kubeCfg string) (*Deployer, error) {
 	return &Deployer{
 		restCfg: restCfg,
 		kubeCfg: kubeCfg,
-		logger:  log.WithName("cost"),
+		logger:  log.WithName("cost").WithName("deployer"),
 	}, nil
 }
 
