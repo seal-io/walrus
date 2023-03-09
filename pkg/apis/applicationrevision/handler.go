@@ -5,18 +5,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
-	"github.com/seal-io/seal/pkg/dao"
+	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/pkg/topic/platformtf"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -140,80 +136,28 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			_, updateErr := h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
+			updateRevision, updateErr := h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
 				SetStatus(status.ApplicationRevisionStatusFailed).
 				SetStatusMessage(statusMessage).
 				Save(updateCtx)
 
 			if updateErr != nil {
 				log.Errorf("update application revision status failed: %v", updateErr)
+				return
+			}
+
+			if err = revisionbus.Notify(ctx, h.modelClient, updateRevision); err != nil {
+				log.Errorf("add application revision update notify err: %w", err)
 			}
 		}
 	}()
 
-	// TODO (alex) using Topic to parse the application resources
-	var parser platformtf.Parser
-	applicationResources, err := parser.ParseAppRevision(entity)
-	if err != nil {
+	if err = revisionbus.Notify(ctx, h.modelClient, entity); err != nil {
 		return err
 	}
 
-	existResourceIDs := make([]types.ID, 0)
-	newResources := make(model.ApplicationResources, 0)
-
-	// fetch the old resources of the application
-	oldResources, err := h.modelClient.ApplicationResources().
-		Query().
-		Where(applicationresource.InstanceID(entity.InstanceID)).
-		All(ctx)
-	if err != nil {
-		return err
-	}
-	oldResourceSet := sets.NewString()
-	for _, r := range oldResources {
-		oldResourceSet.Insert(getFingerprint(r))
-	}
-
-	for _, ar := range applicationResources {
-		// check if the resource is exists
-		exists := oldResourceSet.Has(getFingerprint(ar))
-		if exists {
-			existResourceIDs = append(existResourceIDs, ar.ID)
-		} else {
-			newResources = append(newResources, ar)
-		}
-	}
-
-	// diff application resource of this revision and the latest revision
-	// if the resource is not in the latest revision, delete it
-	_, err = h.modelClient.ApplicationResources().Delete().
-		Where(
-			applicationresource.InstanceID(entity.InstanceID),
-			applicationresource.IDNotIn(existResourceIDs...),
-		).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	// create newResource
-	if len(newResources) > 0 {
-		resourcesToCreate, err := dao.ApplicationResourceCreates(h.modelClient, newResources...)
-		if err != nil {
-			return err
-		}
-		_, err = h.modelClient.ApplicationResources().CreateBulk(resourcesToCreate...).
-			Save(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// TODO(thxCode): generate by entc.
-func getFingerprint(r *model.ApplicationResource) string {
-	// align to schema definition.
-	return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
+	return platformtf.Notify(ctx, platformtf.Name, platformtf.Message{
+		ModelClient:         h.modelClient,
+		ApplicationRevision: entity,
+	})
 }

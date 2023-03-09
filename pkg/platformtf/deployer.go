@@ -8,6 +8,7 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
+	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
@@ -86,23 +87,19 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		if err == nil {
 			return
 		}
-		// TODO(thxCode): process the error status reporting in one place.
 		var errMsg = err.Error()
 		// report to application revision.
-		_, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+		entity, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
 			SetStatus(status.ApplicationRevisionStatusFailed).
 			SetStatusMessage(errMsg).
 			Save(ctx)
 		if rerr != nil {
 			d.logger.Errorf("failed to update application revision status: %v", rerr)
+			return
 		}
-		// report to application instance.
-		_, rerr = d.modelClient.ApplicationInstances().UpdateOneID(applicationRevision.InstanceID).
-			SetStatus(status.ApplicationInstanceStatusDeployFailed).
-			SetStatusMessage(errMsg).
-			Save(ctx)
-		if rerr != nil {
-			d.logger.Errorf("failed to update application instance status: %v", rerr)
+
+		if err = revisionbus.Notify(ctx, d.modelClient, entity); err != nil {
+			d.logger.Errorf("add application revision update notify err: %w", err)
 		}
 	}()
 
@@ -154,31 +151,31 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		if err == nil {
 			return
 		}
-		// TODO(thxCode): process the error status reporting in one place.
 		var errMsg = err.Error()
 		// report to application revision.
-		_, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+		applicationRevision, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
 			SetStatus(status.ApplicationRevisionStatusFailed).
 			SetStatusMessage(errMsg).
 			Save(ctx)
 		if rerr != nil {
 			d.logger.Errorf("failed to update application revision status: %v", rerr)
+			return
 		}
-		// report to application instance.
-		_, rerr = d.modelClient.ApplicationInstances().UpdateOneID(applicationRevision.InstanceID).
-			SetStatus(status.ApplicationInstanceStatusDeleteFailed).
-			SetStatusMessage(errMsg).
-			Save(ctx)
-		if rerr != nil {
-			d.logger.Errorf("failed to update application instance status: %v", rerr)
+
+		if err = revisionbus.Notify(ctx, d.modelClient, applicationRevision); err != nil {
+			d.logger.Errorf("add application revision update notify err: %w", err)
 		}
 	}()
 
 	// set app revision status to running
-	_, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+	applicationRevision, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
 		SetStatus(status.ApplicationRevisionStatusRunning).
 		Save(ctx)
 	if err != nil {
+		return err
+	}
+
+	if err = revisionbus.Notify(ctx, d.modelClient, applicationRevision); err != nil {
 		return err
 	}
 
@@ -370,10 +367,14 @@ func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (st
 		return "", err
 	}
 	// save input plan to app revision
-	_, err = d.modelClient.ApplicationRevisions().UpdateOne(opts.ApplicationRevision).
+	revision, err := d.modelClient.ApplicationRevisions().UpdateOne(opts.ApplicationRevision).
 		SetInputPlan(string(tfConfigBytes)).
 		Save(ctx)
 	if err != nil {
+		return "", err
+	}
+
+	if err = revisionbus.Notify(ctx, d.modelClient, revision); err != nil {
 		return "", err
 	}
 
