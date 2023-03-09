@@ -4,11 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/module/view"
+	modbus "github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/modules"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -43,7 +43,9 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
-	modules.Notify(ctx, h.modelClient, entity)
+	if err = modbus.Notify(ctx, h.modelClient, entity); err != nil {
+		return nil, err
+	}
 
 	return model.ExposeModule(entity), nil
 }
@@ -78,11 +80,11 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return err
 	}
 
-	if shouldSyncSchema {
-		modules.Notify(ctx, h.modelClient, entity)
+	if !shouldSyncSchema {
+		return nil
 	}
 
-	return nil
+	return modbus.Notify(ctx, h.modelClient, entity)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -164,7 +166,5 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 		return err
 	}
 
-	modules.Notify(ctx, h.modelClient, m)
-
-	return nil
+	return modbus.Notify(ctx, h.modelClient, m)
 }

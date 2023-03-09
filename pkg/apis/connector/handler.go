@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
-	pkgconn "github.com/seal-io/seal/pkg/connectors"
+	connbus "github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/costs/scheduler"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -44,7 +44,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
-	err = pkgconn.Notify(ctx, h.modelClient, entity, false)
+	err = connbus.Notify(ctx, h.modelClient, entity, false)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return err
 	}
 
-	return pkgconn.Notify(ctx, h.modelClient, entity, false)
+	return connbus.Notify(ctx, h.modelClient, entity, false)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -154,7 +154,7 @@ func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRe
 		return err
 	}
 
-	return pkgconn.Notify(ctx, h.modelClient, o, true)
+	return connbus.Notify(ctx, h.modelClient, o, true)
 }
 
 func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataRequest) error {

@@ -5,16 +5,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
+	modbus "github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/modules"
 )
 
 func (r *Server) initModules(ctx context.Context, opts initOptions) error {
-	if err := modules.AddSubscriber("sync-module-schema-handler", modules.SyncSchema); err != nil {
-		return err
-	}
 
 	var builtin = []*model.Module{
 		{
@@ -55,7 +52,10 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			return err
 		}
 
-		modules.Notify(ctx, opts.ModelClient, builtin[i])
+		err = modbus.Notify(ctx, opts.ModelClient, builtin[i])
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

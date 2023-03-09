@@ -24,7 +24,7 @@ const (
 	attributeShowIf  = "show_if"
 )
 
-func loadTerraformModuleSchema(source string) (*types.ModuleSchema, error) {
+func LoadTerraformModuleSchema(source string) (*types.ModuleSchema, error) {
 	tmpDir := filepath.Join(os.TempDir(), "seal-module-"+strs.String(10))
 	defer os.RemoveAll(tmpDir)
 

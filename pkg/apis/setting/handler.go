@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/setting/view"
+	settingbus "github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -37,7 +38,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		if err != nil {
 			return err
 		}
-		return settings.Notify(ctx, tx, model.Settings{
+		return settingbus.Notify(ctx, tx, model.Settings{
 			&model.Setting{
 				Name:  req.Name,
 				Value: *req.Value,
@@ -83,7 +84,7 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 				Value: *req[i].Value,
 			})
 		}
-		return settings.Notify(ctx, tx, list)
+		return settingbus.Notify(ctx, tx, list)
 	})
 }
 

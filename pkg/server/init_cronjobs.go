@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	settingbus "github.com/seal-io/seal/pkg/bus/setting"
 	costskd "github.com/seal-io/seal/pkg/costs/scheduler"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/settings"
@@ -31,7 +32,7 @@ func (r *Server) initCronJobs(ctx context.Context, opts initOptions) error {
 		return err
 	}
 
-	err = settings.AddSubscriber("cron-expression", js.Sync)
+	err = settingbus.AddSubscriber("cron-expression", js.Sync)
 	if err != nil {
 		return err
 	}
@@ -105,7 +106,7 @@ func (js jobCreators) Register(ctx context.Context) error {
 }
 
 // Sync observes the cron expr setting changes and re-register jobs.
-func (js jobCreators) Sync(ctx context.Context, m settings.BusMessage) error {
+func (js jobCreators) Sync(ctx context.Context, m settingbus.BusMessage) error {
 	var logger = log.WithName("jobs")
 
 	type job struct {
