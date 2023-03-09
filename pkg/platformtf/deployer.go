@@ -123,18 +123,11 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 
 // Destroy will destroy the resource of the application.
 // 1. get the latest revision, and checkAppRevision it if it is running.
-// 2. if not running, then destroy the latest revision.
+// 2. if not running, then destroy resources.
 func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
-	applicationRevision, err := d.modelClient.ApplicationRevisions().Query().
-		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Where(applicationrevision.InstanceID(ai.ID)).
-		First(ctx)
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai)
 	if err != nil {
 		return err
-	}
-
-	if applicationRevision.Status == status.ApplicationRevisionStatusRunning {
-		return fmt.Errorf("application deployment is running")
 	}
 
 	defer func() {
@@ -156,18 +149,6 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 			d.logger.Errorf("add application revision update notify err: %w", err)
 		}
 	}()
-
-	// set app revision status to running
-	applicationRevision, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-		SetStatus(status.ApplicationRevisionStatusRunning).
-		Save(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err = revisionbus.Notify(ctx, d.modelClient, applicationRevision); err != nil {
-		return err
-	}
 
 	connectors, err := d.getConnectors(ctx, ai)
 	if err != nil {
