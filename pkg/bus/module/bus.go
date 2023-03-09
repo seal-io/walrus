@@ -52,11 +52,6 @@ func SyncSchema(ctx context.Context, message BusMessage) error {
 func syncSchema(ctx context.Context, message BusMessage) error {
 	module := message.Refer
 
-	if module.Schema != nil {
-		// Short circuit when the schema is presented. To refresh the schema, set it to nil first.
-		return nil
-	}
-
 	log.Debugf("syncing schema for module %s", message.Refer.ID)
 
 	moduleSchema, err := modules.LoadTerraformModuleSchema(module.Source)
