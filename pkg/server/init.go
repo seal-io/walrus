@@ -34,6 +34,8 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "subjects", init: r.initSubjects},
 		initor{name: "perspective", init: r.initPerspectives},
 		initor{name: "cronjobs", init: r.initCronJobs},
+		initor{name: "projects", init: r.initDefaultProject},
+		initor{name: "environments", init: r.initDefaultEnvironment},
 	)
 	if r.EnableAuthn {
 		inits = append(inits,
