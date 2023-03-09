@@ -6,6 +6,8 @@ import (
 	"github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/bus/module"
+	"github.com/seal-io/seal/pkg/bus/setting"
+	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -26,6 +28,10 @@ func Setup(ctx context.Context, opts SetupOptions) error {
 	}
 
 	if err := applicationrevision.AddSubscriber("revision-update-subscriber", applicationrevision.OnRevisionUpdate); err != nil {
+		return err
+	}
+
+	if err := setting.AddSubscriber("cron-expression", cron.Sync); err != nil {
 		return err
 	}
 
