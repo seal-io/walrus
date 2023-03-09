@@ -15,8 +15,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/log"
@@ -139,38 +139,8 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	if err != nil {
 		return err
 	}
-	// report to application instance.
-	appInstance, err := r.ModelClient.ApplicationInstances().Query().
-		Where(applicationinstance.ID(appRevision.InstanceID)).
-		Select(
-			applicationinstance.FieldID,
-			applicationinstance.FieldStatus).
-		Only(ctx)
-	if err != nil {
-		return err
-	}
-	switch revisionStatus {
-	case status.ApplicationRevisionStatusSucceeded:
-		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
-			// delete application instance.
-			err = r.ModelClient.ApplicationInstances().DeleteOne(appInstance).
-				Exec(ctx)
-		} else {
-			err = r.ModelClient.ApplicationInstances().UpdateOne(appInstance).
-				SetStatus(status.ApplicationInstanceStatusDeployed).
-				Exec(ctx)
-		}
-	case status.ApplicationRevisionStatusFailed:
-		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
-			appInstance.Status = status.ApplicationInstanceStatusDeleteFailed
-		} else {
-			appInstance.Status = status.ApplicationInstanceStatusDeployFailed
-		}
-		err = r.ModelClient.ApplicationInstances().UpdateOne(appInstance).
-			SetStatus(appInstance.Status).
-			Exec(ctx)
-	}
-	if err != nil {
+
+	if err = revisionbus.Notify(ctx, r.ModelClient, appRevision); err != nil {
 		return err
 	}
 

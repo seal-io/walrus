@@ -3,6 +3,7 @@ package bus
 import (
 	"context"
 
+	"github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -20,8 +21,11 @@ func Setup(ctx context.Context, opts SetupOptions) error {
 	if err := connector.AddSubscriber("connector-cost-tools-subscriber", connector.EnsureCostTools); err != nil {
 		return err
 	}
-
 	if err := connector.AddSubscriber("connector-cost-custom-pricing-subscriber", connector.SyncCostCustomPricing); err != nil {
+		return err
+	}
+
+	if err := applicationrevision.AddSubscriber("revision-update-subscriber", applicationrevision.OnRevisionUpdate); err != nil {
 		return err
 	}
 

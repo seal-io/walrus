@@ -32,6 +32,7 @@ func (r *Server) initCronJobs(ctx context.Context, opts initOptions) error {
 		return err
 	}
 
+	// TODO move to bus.Setup
 	err = settingbus.AddSubscriber("cron-expression", js.Sync)
 	if err != nil {
 		return err
