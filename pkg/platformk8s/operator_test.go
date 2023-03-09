@@ -16,8 +16,10 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/utils/log"
 )
 
 // TestOperator tests all actions of Operator if found a valid local kubeconfig.
@@ -31,7 +33,10 @@ func TestOperator(t *testing.T) {
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	var op = Operator{RestConfig: k8sCfg}
+	var op = Operator{
+		Logger:     log.WithName("operator").WithName("k8s"),
+		RestConfig: k8sCfg,
+	}
 
 	t.Run("IsConnected", func(t *testing.T) {
 		var _, err = op.IsConnected(ctx)
@@ -87,8 +92,9 @@ func TestOperator(t *testing.T) {
 
 	// mock application resource.
 	var res = model.ApplicationResource{
-		Type: "kubernetes_pod",
-		Name: p.Namespace + "/" + p.Name,
+		Type:         "kubernetes_pod",
+		Name:         p.Namespace + "/" + p.Name,
+		DeployerType: types.DeployerTypeTF,
 	}
 
 	t.Run("GetKeys", func(t *testing.T) {
@@ -104,7 +110,7 @@ func TestOperator(t *testing.T) {
 					Keys: []operator.Key{
 						{
 							Name:       "nginx",
-							Value:      p.Name + "/run/nginx",
+							Value:      p.Namespace + "/" + p.Name + "/run/nginx",
 							Loggable:   pointer.Bool(true),
 							Executable: pointer.Bool(true),
 						},
@@ -117,7 +123,7 @@ func TestOperator(t *testing.T) {
 	t.Run("Log", func(t *testing.T) {
 		var ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
-		var err = op.Log(ctx, p.Name+"/run/nginx", operator.LogOptions{
+		var err = op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.LogOptions{
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
 		})
@@ -149,7 +155,7 @@ func TestOperator(t *testing.T) {
 			}
 		}()
 
-		err = op.Exec(ctx, p.Name+"/run/nginx", operator.ExecOptions{
+		err = op.Exec(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.ExecOptions{
 			Out:   testLogWriter(t.Logf),
 			In:    r,
 			Shell: "bash",
