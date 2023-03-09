@@ -1,4 +1,4 @@
-package modules
+package module
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/modules"
 	"github.com/seal-io/seal/utils/bus"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
@@ -19,9 +20,8 @@ type BusMessage struct {
 }
 
 // Notify notifies the changed model.Module.
-// It calls SyncSchema asynchronously and expects no error to be returned
-func Notify(ctx context.Context, mc model.ClientSet, refer *model.Module) {
-	_ = bus.Publish(ctx, BusMessage{ModelClient: mc, Refer: refer})
+func Notify(ctx context.Context, mc model.ClientSet, refer *model.Module) error {
+	return bus.Publish(ctx, BusMessage{ModelClient: mc, Refer: refer})
 }
 
 // AddSubscriber add the subscriber to handle the changed notification from model.Module.
@@ -59,7 +59,7 @@ func syncSchema(ctx context.Context, message BusMessage) error {
 
 	log.Debugf("syncing schema for module %s", message.Refer.ID)
 
-	moduleSchema, err := loadTerraformModuleSchema(module.Source)
+	moduleSchema, err := modules.LoadTerraformModuleSchema(module.Source)
 	if err != nil {
 		return err
 	}

@@ -118,7 +118,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		caseMessage := fmt.Sprintf("test case: %s", tc.name)
-		actualOutput, actualError := loadTerraformModuleSchema(filepath.Join(pwd, tc.input))
+		actualOutput, actualError := LoadTerraformModuleSchema(filepath.Join(pwd, tc.input))
 
 		if tc.expectedError {
 			assert.Error(t, actualError, caseMessage)
