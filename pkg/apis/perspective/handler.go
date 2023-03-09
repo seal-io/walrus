@@ -244,6 +244,9 @@ func (h Handler) CollectionRouteValues(ctx *gin.Context, req view.CollectionRout
 	}
 
 	for _, v := range values {
+		if v == "" {
+			continue
+		}
 		pvalues = append(pvalues, view.PerspectiveValue{
 			Label: v,
 			Value: v,
