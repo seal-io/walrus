@@ -117,6 +117,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		logger.Debugf("job is succeeded, job: %s", job.Name)
 	}
 	if job.Status.Failed > 0 {
+		isComplete = true
 		// get job pods logs
 		logs, err := r.getJobPodsLogs(ctx, job.Name)
 		if err != nil {
