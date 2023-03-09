@@ -28,6 +28,15 @@ var (
 	pathPrometheusQueryRange = "/prometheusQueryRange"
 )
 
+// labelMapping indicate the relation between opencost converted label and original label
+var (
+	labelMapping = map[string]string{
+		"seal_io_project":     types.LabelSealProject,
+		"seal_io_environment": types.LabelSealEnvironment,
+		"seal_io_app":         types.LabelSealApplication,
+	}
+)
+
 // prometheus expression.
 const (
 	// exprClusterMgmtHrCost defined expression for management cost.
@@ -122,7 +131,7 @@ func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step 
 				Pod:                 v.Properties.Pod,
 				Container:           v.Properties.Container,
 				Pvs:                 toPVs(v.PVs),
-				Labels:              v.Properties.Labels,
+				Labels:              toLabels(v.Properties.Labels),
 				TotalCost:           ka.TotalCost(),
 				CpuCost:             ka.CPUTotalCost(),
 				CpuCoreRequest:      ka.CPUCoreRequestAverage,
@@ -320,4 +329,15 @@ func toPVs(pvAlloc kubecost.PVAllocations) map[string]types.PVCost {
 		}
 	}
 	return pvs
+}
+
+func toLabels(origin map[string]string) map[string]string {
+	labels := origin
+	for k, v := range origin {
+		mapping, ok := labelMapping[k]
+		if ok {
+			labels[mapping] = v
+		}
+	}
+	return labels
 }
