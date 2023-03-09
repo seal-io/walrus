@@ -151,7 +151,8 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 				Select(
 					applicationinstance.FieldApplicationID,
 					applicationinstance.FieldID,
-					applicationinstance.FieldName).
+					applicationinstance.FieldName,
+					applicationinstance.FieldStatus).
 				// allow returning without sorting keys.
 				Unique(false).
 				// must extract environment.
