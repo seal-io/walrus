@@ -2,8 +2,14 @@ package settings
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 
+	imgdistref "github.com/distribution/distribution/reference"
+
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/utils/cron"
@@ -20,7 +26,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 		for i := range validates {
 			var ok, err = validates[i](ctx, name, oldValue, newValue)
 			if err != nil {
-				return err
+				return runtime.Errorf(http.StatusBadRequest, "invalid setting %s: %w", name, err)
 			}
 			if !ok {
 				return nil
@@ -40,6 +46,15 @@ func modifyWith(validates ...modifyValidator) modifier {
 // modifyValidator defines the stereotype for validating writing.
 type modifyValidator func(ctx context.Context, name, oldVal, newVal string) (bool, error)
 
+// notBlank implements the modifyValidator stereotype,
+// which means the value can be modified if not blank.
+func notBlank(ctx context.Context, name, oldVal, newVal string) (bool, error) {
+	if strings.TrimSpace(newVal) == "" {
+		return false, errors.New("blank value")
+	}
+	return true, nil
+}
+
 // many implements the modifyValidator stereotype,
 // which means the value can be modified if not the same.
 func many(ctx context.Context, name, oldVal, newVal string) (bool, error) {
@@ -50,7 +65,7 @@ func many(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // which means the value can be modified if blank.
 func once(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if oldVal != "" && oldVal != "{}" && oldVal != "[]" {
-		return false, fmt.Errorf("setting %s has been configured", name)
+		return false, errors.New("already configured")
 	}
 	return true, nil
 }
@@ -90,6 +105,18 @@ func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool, error) {
 	if newValue != "" {
 		var err = cron.ValidateCronExpr(newValue)
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+// containerImageReference implements the modifyValidator stereotype,
+// which means the value can be modified if it's container image reference.
+func containerImageReference(ctx context.Context, name, oldValue, newValue string) (bool, error) {
+	if newValue != "" {
+		var _, err = imgdistref.ParseNormalizedNamed(newValue)
 		if err != nil {
 			return false, err
 		}

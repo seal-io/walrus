@@ -35,23 +35,20 @@ var (
 	ServeUrl = newValue("ServeUrl", editable, nil, modifyWith(httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
 	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFrom("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
+	// TerraformDeployerImage indicates the image for terraform deployment.
+	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), modifyWith(notBlank, containerImageReference))
 )
 
-// cronjob settings
+// the built-in settings for server cron jobs.
 var (
 	// CostCollectCronExpr indicates the cron expression of collect cost data,
 	// default cron expression means executing collection per hour,
 	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
 	CostCollectCronExpr = newValue("CostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(cronExpression))
 	// CostToolsCheckCronExpr indicates the cron expression of check cost tools ready,
-	// default cron expression means executing check every 10 minutes
+	// default cron expression means executing check every 10 minutes.
 	CostToolsCheckCronExpr = newValue("CostToolsCheckCronExpr", editable, initializeFrom("0 */10 * ? * *"), modifyWith(cronExpression))
 )
-
-// deployment settings
-
-// TerraformDeployerImage indicates the image for terraform deployment.
-var TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), nil)
 
 // setting property list.
 const (
