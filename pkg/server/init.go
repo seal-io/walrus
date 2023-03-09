@@ -29,7 +29,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 
 	var inits = []initor{
 		{name: "settings", init: r.initSettings},
-		{name: "cronjobs", init: r.initCronJobs},
+		{name: "backgroundTasks", init: r.initBackgroundTasks},
 		{name: "subscribers", init: r.initSubscribers},
 	}
 	inits = append(inits,
