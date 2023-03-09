@@ -360,13 +360,34 @@ func TestAllocationResourceCosts(t *testing.T) {
 			outputQueriedItemNum: 1,
 			outputItemCost:       50,
 		},
+		{
+			name:           "include query",
+			inputStartTime: startTime,
+			inputEndTime:   endTime,
+			inputCondition: types.QueryCondition{
+				Filters: types.AllocationCostFilters{
+					{
+						{
+							FieldName: testFilterFieldEnv,
+							Operator:  types.OperatorIn,
+							Values:    []string{"dev"},
+						},
+					},
+				},
+				GroupBy: types.GroupByFieldNamespace,
+				Query:   "namespace-t1",
+			},
+			outputTotalItemNum:   1,
+			outputQueriedItemNum: 1,
+			outputItemCost:       50,
+		},
 	}
 
 	for _, v := range cases {
 		dsb := accumulateDistributor{client: client}
-		items, total, err := dsb.allocationResourceCosts(ctx, v.inputStartTime, v.inputEndTime, v.inputCondition)
+		items, _, queried, err := dsb.allocationResourceCosts(ctx, v.inputStartTime, v.inputEndTime, v.inputCondition)
 		assert.Nil(t, err, "%s: error get allocation resource cost: %w", v.name, err)
-		assert.Equal(t, v.outputTotalItemNum, total, "%s: total item number mismatch", v.name)
+		assert.Equal(t, v.outputTotalItemNum, queried, "%s: total item number mismatch", v.name)
 		assert.Len(t, items, v.outputQueriedItemNum, "%s: queried item length mismatch", v.name)
 		assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost, "%s: first item total cost mismatch", v.name)
 	}
