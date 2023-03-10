@@ -11127,6 +11127,7 @@ type ModuleMutation struct {
 	createTime    *time.Time
 	updateTime    *time.Time
 	description   *string
+	icon          *string
 	labels        *map[string]string
 	source        *string
 	version       *string
@@ -11460,6 +11461,55 @@ func (m *ModuleMutation) ResetDescription() {
 	delete(m.clearedFields, module.FieldDescription)
 }
 
+// SetIcon sets the "icon" field.
+func (m *ModuleMutation) SetIcon(s string) {
+	m.icon = &s
+}
+
+// Icon returns the value of the "icon" field in the mutation.
+func (m *ModuleMutation) Icon() (r string, exists bool) {
+	v := m.icon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcon returns the old "icon" field's value of the Module entity.
+// If the Module object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleMutation) OldIcon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcon: %w", err)
+	}
+	return oldValue.Icon, nil
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (m *ModuleMutation) ClearIcon() {
+	m.icon = nil
+	m.clearedFields[module.FieldIcon] = struct{}{}
+}
+
+// IconCleared returns if the "icon" field was cleared in this mutation.
+func (m *ModuleMutation) IconCleared() bool {
+	_, ok := m.clearedFields[module.FieldIcon]
+	return ok
+}
+
+// ResetIcon resets all changes to the "icon" field.
+func (m *ModuleMutation) ResetIcon() {
+	m.icon = nil
+	delete(m.clearedFields, module.FieldIcon)
+}
+
 // SetLabels sets the "labels" field.
 func (m *ModuleMutation) SetLabels(value map[string]string) {
 	m.labels = &value
@@ -11651,7 +11701,7 @@ func (m *ModuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModuleMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.status != nil {
 		fields = append(fields, module.FieldStatus)
 	}
@@ -11666,6 +11716,9 @@ func (m *ModuleMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, module.FieldDescription)
+	}
+	if m.icon != nil {
+		fields = append(fields, module.FieldIcon)
 	}
 	if m.labels != nil {
 		fields = append(fields, module.FieldLabels)
@@ -11697,6 +11750,8 @@ func (m *ModuleMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case module.FieldDescription:
 		return m.Description()
+	case module.FieldIcon:
+		return m.Icon()
 	case module.FieldLabels:
 		return m.Labels()
 	case module.FieldSource:
@@ -11724,6 +11779,8 @@ func (m *ModuleMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldUpdateTime(ctx)
 	case module.FieldDescription:
 		return m.OldDescription(ctx)
+	case module.FieldIcon:
+		return m.OldIcon(ctx)
 	case module.FieldLabels:
 		return m.OldLabels(ctx)
 	case module.FieldSource:
@@ -11775,6 +11832,13 @@ func (m *ModuleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case module.FieldIcon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcon(v)
 		return nil
 	case module.FieldLabels:
 		v, ok := value.(map[string]string)
@@ -11843,6 +11907,9 @@ func (m *ModuleMutation) ClearedFields() []string {
 	if m.FieldCleared(module.FieldDescription) {
 		fields = append(fields, module.FieldDescription)
 	}
+	if m.FieldCleared(module.FieldIcon) {
+		fields = append(fields, module.FieldIcon)
+	}
 	if m.FieldCleared(module.FieldVersion) {
 		fields = append(fields, module.FieldVersion)
 	}
@@ -11869,6 +11936,9 @@ func (m *ModuleMutation) ClearField(name string) error {
 	case module.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case module.FieldIcon:
+		m.ClearIcon()
+		return nil
 	case module.FieldVersion:
 		m.ClearVersion()
 		return nil
@@ -11894,6 +11964,9 @@ func (m *ModuleMutation) ResetField(name string) error {
 		return nil
 	case module.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case module.FieldIcon:
+		m.ResetIcon()
 		return nil
 	case module.FieldLabels:
 		m.ResetLabels()

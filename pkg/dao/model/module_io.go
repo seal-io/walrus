@@ -32,6 +32,8 @@ type ModuleCreateInput struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the module.
 	Description string `json:"description,omitempty"`
+	// A URL to an SVG or PNG image to be used as an icon.
+	Icon string `json:"icon,omitempty"`
 	// Labels of the module.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
@@ -48,6 +50,7 @@ func (in ModuleCreateInput) Model() *Module {
 		Status:        in.Status,
 		StatusMessage: in.StatusMessage,
 		Description:   in.Description,
+		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
 		Version:       in.Version,
@@ -66,6 +69,8 @@ type ModuleUpdateInput struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the module.
 	Description string `json:"description,omitempty"`
+	// A URL to an SVG or PNG image to be used as an icon.
+	Icon string `json:"icon,omitempty"`
 	// Labels of the module.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
@@ -83,6 +88,7 @@ func (in ModuleUpdateInput) Model() *Module {
 		Status:        in.Status,
 		StatusMessage: in.StatusMessage,
 		Description:   in.Description,
+		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
 		Version:       in.Version,
@@ -105,6 +111,8 @@ type ModuleOutput struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Description of the module.
 	Description string `json:"description,omitempty"`
+	// A URL to an SVG or PNG image to be used as an icon.
+	Icon string `json:"icon,omitempty"`
 	// Labels of the module.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
@@ -129,6 +137,7 @@ func ExposeModule(in *Module) *ModuleOutput {
 		CreateTime:    in.CreateTime,
 		UpdateTime:    in.UpdateTime,
 		Description:   in.Description,
+		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
 		Version:       in.Version,

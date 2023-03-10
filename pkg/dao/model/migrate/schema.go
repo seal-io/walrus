@@ -405,6 +405,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
 		{Name: "source", Type: field.TypeString},
 		{Name: "version", Type: field.TypeString, Nullable: true},

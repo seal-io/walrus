@@ -33,6 +33,8 @@ type Module struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Description of the module.
 	Description string `json:"description,omitempty"`
+	// A URL to an SVG or PNG image to be used as an icon.
+	Icon string `json:"icon,omitempty"`
 	// Labels of the module.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
@@ -71,7 +73,7 @@ func (*Module) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case module.FieldLabels, module.FieldSchema:
 			values[i] = new([]byte)
-		case module.FieldID, module.FieldStatus, module.FieldStatusMessage, module.FieldDescription, module.FieldSource, module.FieldVersion:
+		case module.FieldID, module.FieldStatus, module.FieldStatusMessage, module.FieldDescription, module.FieldIcon, module.FieldSource, module.FieldVersion:
 			values[i] = new(sql.NullString)
 		case module.FieldCreateTime, module.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -127,6 +129,12 @@ func (m *Module) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				m.Description = value.String
+			}
+		case module.FieldIcon:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field icon", values[i])
+			} else if value.Valid {
+				m.Icon = value.String
 			}
 		case module.FieldLabels:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -207,6 +215,9 @@ func (m *Module) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("icon=")
+	builder.WriteString(m.Icon)
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", m.Labels))

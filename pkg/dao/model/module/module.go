@@ -26,6 +26,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldIcon holds the string denoting the icon field in the database.
+	FieldIcon = "icon"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
 	// FieldSource holds the string denoting the source field in the database.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldDescription,
+	FieldIcon,
 	FieldLabels,
 	FieldSource,
 	FieldVersion,
