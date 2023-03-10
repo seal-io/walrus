@@ -41,7 +41,7 @@ type Connector struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
-	ConfigData map[string]interface{} `json:"configData,omitempty"`
+	ConfigData map[string]interface{} `json:"-"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Status of the finOps tools.
@@ -313,8 +313,7 @@ func (c *Connector) String() string {
 	builder.WriteString("configVersion=")
 	builder.WriteString(c.ConfigVersion)
 	builder.WriteString(", ")
-	builder.WriteString("configData=")
-	builder.WriteString(fmt.Sprintf("%v", c.ConfigData))
+	builder.WriteString("configData=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("enableFinOps=")
 	builder.WriteString(fmt.Sprintf("%v", c.EnableFinOps))
