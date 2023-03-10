@@ -449,15 +449,15 @@ func init() {
 	// module.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	module.UpdateDefaultUpdateTime = moduleDescUpdateTime.UpdateDefault.(func() time.Time)
 	// moduleDescLabels is the schema descriptor for labels field.
-	moduleDescLabels := moduleFields[2].Descriptor()
+	moduleDescLabels := moduleFields[3].Descriptor()
 	// module.DefaultLabels holds the default value on creation for the labels field.
 	module.DefaultLabels = moduleDescLabels.Default.(map[string]string)
 	// moduleDescSource is the schema descriptor for source field.
-	moduleDescSource := moduleFields[3].Descriptor()
+	moduleDescSource := moduleFields[4].Descriptor()
 	// module.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	module.SourceValidator = moduleDescSource.Validators[0].(func(string) error)
 	// moduleDescSchema is the schema descriptor for schema field.
-	moduleDescSchema := moduleFields[5].Descriptor()
+	moduleDescSchema := moduleFields[6].Descriptor()
 	// module.DefaultSchema holds the default value on creation for the schema field.
 	module.DefaultSchema = moduleDescSchema.Default.(*types.ModuleSchema)
 	// moduleDescID is the schema descriptor for id field.

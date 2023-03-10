@@ -101,6 +101,26 @@ func (mu *ModuleUpdate) ClearDescription() *ModuleUpdate {
 	return mu
 }
 
+// SetIcon sets the "icon" field.
+func (mu *ModuleUpdate) SetIcon(s string) *ModuleUpdate {
+	mu.mutation.SetIcon(s)
+	return mu
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (mu *ModuleUpdate) SetNillableIcon(s *string) *ModuleUpdate {
+	if s != nil {
+		mu.SetIcon(*s)
+	}
+	return mu
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (mu *ModuleUpdate) ClearIcon() *ModuleUpdate {
+	mu.mutation.ClearIcon()
+	return mu
+}
+
 // SetLabels sets the "labels" field.
 func (mu *ModuleUpdate) SetLabels(m map[string]string) *ModuleUpdate {
 	mu.mutation.SetLabels(m)
@@ -229,6 +249,12 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if mu.mutation.DescriptionCleared() {
 		_spec.ClearField(module.FieldDescription, field.TypeString)
 	}
+	if value, ok := mu.mutation.Icon(); ok {
+		_spec.SetField(module.FieldIcon, field.TypeString, value)
+	}
+	if mu.mutation.IconCleared() {
+		_spec.ClearField(module.FieldIcon, field.TypeString)
+	}
 	if value, ok := mu.mutation.Labels(); ok {
 		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
 	}
@@ -331,6 +357,26 @@ func (muo *ModuleUpdateOne) SetNillableDescription(s *string) *ModuleUpdateOne {
 // ClearDescription clears the value of the "description" field.
 func (muo *ModuleUpdateOne) ClearDescription() *ModuleUpdateOne {
 	muo.mutation.ClearDescription()
+	return muo
+}
+
+// SetIcon sets the "icon" field.
+func (muo *ModuleUpdateOne) SetIcon(s string) *ModuleUpdateOne {
+	muo.mutation.SetIcon(s)
+	return muo
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (muo *ModuleUpdateOne) SetNillableIcon(s *string) *ModuleUpdateOne {
+	if s != nil {
+		muo.SetIcon(*s)
+	}
+	return muo
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (muo *ModuleUpdateOne) ClearIcon() *ModuleUpdateOne {
+	muo.mutation.ClearIcon()
 	return muo
 }
 
@@ -491,6 +537,12 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	}
 	if muo.mutation.DescriptionCleared() {
 		_spec.ClearField(module.FieldDescription, field.TypeString)
+	}
+	if value, ok := muo.mutation.Icon(); ok {
+		_spec.SetField(module.FieldIcon, field.TypeString, value)
+	}
+	if muo.mutation.IconCleared() {
+		_spec.ClearField(module.FieldIcon, field.TypeString)
 	}
 	if value, ok := muo.mutation.Labels(); ok {
 		_spec.SetField(module.FieldLabels, field.TypeJSON, value)

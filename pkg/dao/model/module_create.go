@@ -98,6 +98,20 @@ func (mc *ModuleCreate) SetNillableDescription(s *string) *ModuleCreate {
 	return mc
 }
 
+// SetIcon sets the "icon" field.
+func (mc *ModuleCreate) SetIcon(s string) *ModuleCreate {
+	mc.mutation.SetIcon(s)
+	return mc
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (mc *ModuleCreate) SetNillableIcon(s *string) *ModuleCreate {
+	if s != nil {
+		mc.SetIcon(*s)
+	}
+	return mc
+}
+
 // SetLabels sets the "labels" field.
 func (mc *ModuleCreate) SetLabels(m map[string]string) *ModuleCreate {
 	mc.mutation.SetLabels(m)
@@ -273,6 +287,10 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		_spec.SetField(module.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if value, ok := mc.mutation.Icon(); ok {
+		_spec.SetField(module.FieldIcon, field.TypeString, value)
+		_node.Icon = value
+	}
 	if value, ok := mc.mutation.Labels(); ok {
 		_spec.SetField(module.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
@@ -404,6 +422,24 @@ func (u *ModuleUpsert) UpdateDescription() *ModuleUpsert {
 // ClearDescription clears the value of the "description" field.
 func (u *ModuleUpsert) ClearDescription() *ModuleUpsert {
 	u.SetNull(module.FieldDescription)
+	return u
+}
+
+// SetIcon sets the "icon" field.
+func (u *ModuleUpsert) SetIcon(v string) *ModuleUpsert {
+	u.Set(module.FieldIcon, v)
+	return u
+}
+
+// UpdateIcon sets the "icon" field to the value that was provided on create.
+func (u *ModuleUpsert) UpdateIcon() *ModuleUpsert {
+	u.SetExcluded(module.FieldIcon)
+	return u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *ModuleUpsert) ClearIcon() *ModuleUpsert {
+	u.SetNull(module.FieldIcon)
 	return u
 }
 
@@ -586,6 +622,27 @@ func (u *ModuleUpsertOne) UpdateDescription() *ModuleUpsertOne {
 func (u *ModuleUpsertOne) ClearDescription() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
 		s.ClearDescription()
+	})
+}
+
+// SetIcon sets the "icon" field.
+func (u *ModuleUpsertOne) SetIcon(v string) *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetIcon(v)
+	})
+}
+
+// UpdateIcon sets the "icon" field to the value that was provided on create.
+func (u *ModuleUpsertOne) UpdateIcon() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateIcon()
+	})
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *ModuleUpsertOne) ClearIcon() *ModuleUpsertOne {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearIcon()
 	})
 }
 
@@ -940,6 +997,27 @@ func (u *ModuleUpsertBulk) UpdateDescription() *ModuleUpsertBulk {
 func (u *ModuleUpsertBulk) ClearDescription() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
 		s.ClearDescription()
+	})
+}
+
+// SetIcon sets the "icon" field.
+func (u *ModuleUpsertBulk) SetIcon(v string) *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.SetIcon(v)
+	})
+}
+
+// UpdateIcon sets the "icon" field to the value that was provided on create.
+func (u *ModuleUpsertBulk) UpdateIcon() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.UpdateIcon()
+	})
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (u *ModuleUpsertBulk) ClearIcon() *ModuleUpsertBulk {
+	return u.Update(func(s *ModuleUpsert) {
+		s.ClearIcon()
 	})
 }
 
