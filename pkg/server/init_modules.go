@@ -28,11 +28,13 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			ID:          "aws-rds",
 			Description: "An AWS RDS instance.",
 			Source:      "github.com/gitlawr/modules/aws-rds",
+			Icon:        "https://raw.githubusercontent.com/sashee/aws-svg-icons/ddf2928b65d8f18c20c6a792740ec934804e7a25/docs/Architecture-Service-Icons_07302021/Arch_Database/64/Arch_Amazon-RDS_64.svg",
 		},
 		{
 			ID:          "mysql",
 			Description: "A containerized mysql instance.",
 			Source:      "github.com/gitlawr/modules/mysql",
+			Icon:        "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
 		},
 	}
 

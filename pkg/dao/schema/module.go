@@ -30,6 +30,9 @@ func (Module) Fields() []ent.Field {
 		field.String("description").
 			Comment("Description of the module.").
 			Optional(),
+		field.String("icon").
+			Comment("A URL to an SVG or PNG image to be used as an icon.").
+			Optional(),
 		field.JSON("labels", map[string]string{}).
 			Comment("Labels of the module.").
 			Default(map[string]string{}),

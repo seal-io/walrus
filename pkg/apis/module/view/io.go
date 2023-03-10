@@ -3,6 +3,7 @@ package view
 import (
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/hashicorp/go-getter"
 
@@ -20,7 +21,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) Validate() error {
-	return validate(r.ID, r.Source)
+	return validate(r.Model())
 }
 
 func (r *CreateRequest) Model() *model.Module {
@@ -38,15 +39,18 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) Validate() error {
-	return validate(r.ID, r.Source)
+	return validate(r.Model())
 }
 
-func validate(id string, source string) error {
-	if err := validation.IsQualifiedName(id); err != nil {
+func validate(m *model.Module) error {
+	if err := validation.IsQualifiedName(m.ID); err != nil {
 		return err
 	}
-	if _, err := getter.Detect(source, "", getter.Detectors); err != nil {
+	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
+	}
+	if _, err := url.ParseRequestURI(m.Icon); err != nil {
+		return fmt.Errorf("invalid icon URL: %w", err)
 	}
 	return nil
 }
