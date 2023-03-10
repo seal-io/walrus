@@ -140,8 +140,6 @@ type ConnectorOutput struct {
 	Type string `json:"type,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
-	// Connector config data.
-	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Status of the finOps tools.
@@ -176,7 +174,6 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		UpdateTime:          in.UpdateTime,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
-		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsStatus:        in.FinOpsStatus,
 		FinOpsStatusMessage: in.FinOpsStatusMessage,
