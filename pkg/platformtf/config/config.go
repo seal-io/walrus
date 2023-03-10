@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/utils/bytespool"
+	"github.com/seal-io/seal/utils/maps"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -314,7 +315,8 @@ func (b *Block) ToNestedMap() map[string]interface{} {
 // Print returns the block as a config string.
 // mapObjects is a map of objects that have been printed already.
 func (b *Block) Print(format string, mapObjects map[string]struct{}) ([]byte, error) {
-	outputBytes, err := terraformutils.Print(b.ToNestedMap(), mapObjects, format)
+	nestedMap := maps.RemoveNullsCopy(b.ToNestedMap())
+	outputBytes, err := terraformutils.Print(nestedMap, mapObjects, format)
 	if err != nil {
 		return nil, err
 	}
