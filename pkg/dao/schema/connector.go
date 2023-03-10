@@ -42,7 +42,8 @@ func (Connector) Fields() []ent.Field {
 			NotEmpty(),
 		field.JSON("configData", map[string]interface{}{}).
 			Comment("Connector config data.").
-			Default(map[string]interface{}{}),
+			Default(map[string]interface{}{}).
+			Sensitive(),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
 		field.String("finOpsStatus").
