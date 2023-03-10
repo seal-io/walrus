@@ -3,17 +3,16 @@ package view
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 	"time"
 
+	"github.com/seal-io/seal/pkg/apis/cost/validation"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 // Basic APIs
@@ -34,10 +33,8 @@ func (r *CreateRequest) Validate() error {
 	if r.EndTime == "" {
 		return errors.New("invalid end time: blank")
 	}
-	if err := validateAllocationQueries(r.AllocationQueries); err != nil {
-		return err
-	}
-	return nil
+
+	return validation.ValidateAllocationQueries(r.AllocationQueries)
 }
 
 type CreateResponse = *model.PerspectiveOutput
@@ -54,7 +51,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.IsNaive() {
 		return errors.New("invalid id: blank")
 	}
-	if err := validateAllocationQueries(r.AllocationQueries); err != nil {
+	if err := validation.ValidateAllocationQueries(r.AllocationQueries); err != nil {
 		return err
 	}
 
@@ -180,21 +177,3 @@ func (r *CollectionRouteFieldValuesRequest) Validate() error {
 }
 
 type CollectionRouteValuesResponse = []PerspectiveValue
-
-func validateAllocationQueries(queries []types.QueryCondition) error {
-	if len(queries) == 0 {
-		return errors.New("invalid allocation queries: blank")
-	}
-
-	for _, v := range queries {
-		if v.Step != "" && slice.ContainsAny([]types.GroupByField{
-			types.GroupByFieldDay,
-			types.GroupByFieldWeek,
-			types.GroupByFieldMonth,
-			types.GroupByFieldYear,
-		}, v.GroupBy) {
-			return fmt.Errorf("invalid step: already group by %s", v.GroupBy)
-		}
-	}
-	return nil
-}
