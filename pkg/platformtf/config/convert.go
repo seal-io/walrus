@@ -26,7 +26,7 @@ func convertConnectorToBlock(connector *model.Connector, secretMountPath string,
 
 // convertK8sConnectorToBlock returns kubernetes provider block.
 func convertK8sConnectorToBlock(connector *model.Connector, secretMountPath string, connSeparator string) (*Block, error) {
-	var variables = make(map[string]interface{})
+	var attributes = make(map[string]interface{})
 
 	if _, ok := _connectorToTFProvider[connector.Type]; !ok {
 		return nil, fmt.Errorf("connector type %s is not supported", connector.Type)
@@ -36,12 +36,12 @@ func convertK8sConnectorToBlock(connector *model.Connector, secretMountPath stri
 	}
 
 	// NB(alex) the config path should keep the same with the secret mount path in deployer.
-	variables["config_path"] = secretMountPath + "/" + GetConnectorSecretConfigName(connector.ID.String())
-	variables["alias"] = connSeparator + connector.ID.String()
+	attributes["config_path"] = secretMountPath + "/" + GetConnectorSecretConfigName(connector.ID.String())
+	attributes["alias"] = connSeparator + connector.ID.String()
 
 	return &Block{
 		Type:       BlockTypeProvider,
-		Attributes: variables,
+		Attributes: attributes,
 		// convert the connector type to provider type.
 		Labels: []string{_connectorToTFProvider[connector.Type]},
 	}, nil
