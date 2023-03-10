@@ -2,11 +2,10 @@ package view
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	costvalidation "github.com/seal-io/seal/pkg/apis/cost/validation"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -57,15 +56,7 @@ func (r *AllocationCostRequest) Validate() error {
 		return errors.New("invalid filter: blank")
 	}
 
-	if r.Step != "" && slice.ContainsAny([]types.GroupByField{
-		types.GroupByFieldDay,
-		types.GroupByFieldWeek,
-		types.GroupByFieldMonth,
-		types.GroupByFieldYear,
-	}, r.GroupBy) {
-		return fmt.Errorf("invalid step: already group by %s", r.GroupBy)
-	}
-	return nil
+	return costvalidation.ValidateAllocationQuery(r.QueryCondition)
 }
 
 type SummaryCostRequest struct {
@@ -156,6 +147,15 @@ func (r *SummaryQueriedCostRequest) Validate() error {
 
 	if len(r.Filters) == 0 {
 		return errors.New("invalid filters: blank")
+	}
+	if err := costvalidation.ValidateAllocationCostFilters(r.Filters); err != nil {
+		return err
+	}
+
+	if len(r.SharedCosts) != 0 {
+		if err := costvalidation.ValidateShareCostFilters(r.SharedCosts); err != nil {
+			return err
+		}
 	}
 	return nil
 }
