@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"time"
 
 	"helm.sh/helm/v3/pkg/repo"
 	v1 "k8s.io/api/core/v1"
@@ -13,9 +14,13 @@ import (
 	appv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformk8s"
+	"github.com/seal-io/seal/utils/gopool"
+	"github.com/seal-io/seal/utils/log"
 )
 
 const (
@@ -41,7 +46,7 @@ type input struct {
 	PrometheusEndpoint string
 }
 
-func DeployCostTools(ctx context.Context, conn *model.Connector, replace bool) error {
+func deployCostTools(ctx context.Context, conn *model.Connector, replace bool) error {
 	apiConfig, kubeconfig, err := platformk8s.LoadApiConfig(*conn)
 	if err != nil {
 		return err
@@ -201,4 +206,56 @@ func prometheus() (*ChartApp, error) {
 		Values:       values,
 		Entry:        entry,
 	}, nil
+}
+
+const (
+	ensureCostToolTimeout = 3 * time.Minute
+)
+
+// EnsureCostTools install the cost tools.
+func EnsureCostTools(_ context.Context, message connector.BusMessage) error {
+	if !message.Refer.EnableFinOps {
+		return nil
+	}
+
+	gopool.Go(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), ensureCostToolTimeout)
+		defer cancel()
+
+		var (
+			st  string
+			msg string
+		)
+		err := ensureCostTools(ctx, message)
+		if err != nil {
+			st = status.Error
+			msg = fmt.Sprintf("error ensure cost tools: %v", err)
+			log.Errorf("error ensure cost tools for connector %s: %v", message.Refer.Name, err)
+		} else {
+			st = status.Ready
+			msg = ""
+		}
+
+		updateErr := message.ModelClient.Connectors().
+			UpdateOneID(message.Refer.ID).
+			SetFinOpsStatus(st).
+			SetFinOpsStatusMessage(msg).
+			Exec(ctx)
+		if updateErr != nil {
+			log.Errorf("failed to update connector %s: %v", message.Refer.Name, updateErr)
+		}
+
+	})
+	return nil
+}
+
+func ensureCostTools(ctx context.Context, message connector.BusMessage) error {
+	log.WithName("cost").Debugf("ensuring cost tools for connector %s", message.Refer.Name)
+
+	conn, err := message.ModelClient.Connectors().Get(ctx, message.Refer.ID)
+	if err != nil {
+		return err
+	}
+
+	return deployCostTools(ctx, conn, message.Replace)
 }

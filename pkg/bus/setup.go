@@ -7,8 +7,11 @@ import (
 	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/bus/setting"
+	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/modules"
+	"github.com/seal-io/seal/pkg/platformtf"
 )
 
 type SetupOptions struct {
@@ -16,18 +19,18 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) error {
-	if err := module.AddSubscriber("sync-module-schema-handler", module.SyncSchema); err != nil {
+	if err := module.AddSubscriber("sync-module-schema-handler", modules.SyncSchema); err != nil {
 		return err
 	}
 
-	if err := connector.AddSubscriber("connector-cost-tools-subscriber", connector.EnsureCostTools); err != nil {
+	if err := connector.AddSubscriber("connector-cost-tools-subscriber", deployer.EnsureCostTools); err != nil {
 		return err
 	}
-	if err := connector.AddSubscriber("connector-cost-custom-pricing-subscriber", connector.SyncCostCustomPricing); err != nil {
+	if err := connector.AddSubscriber("connector-cost-custom-pricing-subscriber", deployer.SyncCostCustomPricing); err != nil {
 		return err
 	}
 
-	if err := applicationrevision.AddSubscriber("revision-update-subscriber", applicationrevision.OnRevisionUpdate); err != nil {
+	if err := applicationrevision.AddSubscriber("revision-update-subscriber", platformtf.SyncApplicationRevisionStatus); err != nil {
 		return err
 	}
 

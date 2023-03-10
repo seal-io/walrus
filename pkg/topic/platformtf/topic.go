@@ -18,12 +18,12 @@ import (
 
 const Name topic.Topic = "Terraform"
 
-type Message struct {
+type TopicMessage struct {
 	ModelClient         model.ClientSet
 	ApplicationRevision *model.ApplicationRevision
 }
 
-func Notify(ctx context.Context, name topic.Topic, message Message) error {
+func Notify(ctx context.Context, name topic.Topic, message TopicMessage) error {
 	return topic.Publish(ctx, name, message)
 }
 
@@ -43,7 +43,7 @@ func AddSubscriber(ctx context.Context, name topic.Topic) error {
 				return
 			}
 
-			message, ok := e.Data.(Message)
+			message, ok := e.Data.(TopicMessage)
 			if !ok {
 				logger.Warnf("message type error, data: %v", e.Data)
 				continue
@@ -58,7 +58,7 @@ func AddSubscriber(ctx context.Context, name topic.Topic) error {
 	return nil
 }
 
-func updateResource(ctx context.Context, message Message) error {
+func updateResource(ctx context.Context, message TopicMessage) error {
 	var parser platformtf.Parser
 	applicationResources, err := parser.ParseAppRevision(message.ApplicationRevision)
 	if err != nil {

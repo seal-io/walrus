@@ -156,7 +156,7 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		return err
 	}
 
-	return platformtf.Notify(ctx, platformtf.Name, platformtf.Message{
+	return platformtf.Notify(ctx, platformtf.Name, platformtf.TopicMessage{
 		ModelClient:         h.modelClient,
 		ApplicationRevision: entity,
 	})
