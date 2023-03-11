@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/topic/platformtf"
+	"github.com/seal-io/seal/pkg/platformtf"
+	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
 )
 
 type SetupOptions struct {
@@ -12,7 +13,7 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) error {
-	if err := platformtf.AddSubscriber(ctx, platformtf.Name); err != nil {
+	if err := tftopic.AddSubscriber(ctx, tftopic.Name, platformtf.UpdateResource); err != nil {
 		return err
 	}
 
