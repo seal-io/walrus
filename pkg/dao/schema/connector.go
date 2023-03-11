@@ -46,11 +46,11 @@ func (Connector) Fields() []ent.Field {
 			Sensitive(),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
-		field.String("finOpsStatus").
-			Comment("Status of the finOps tools.").
+		field.String("finOpsSyncStatus").
+			Comment("Status of the cost data synchronization.").
 			Optional(),
-		field.String("finOpsStatusMessage").
-			Comment("Extra message for finOps tools status, like error details.").
+		field.String("finOpsSyncStatusMessage").
+			Comment("Extra message for cost data synchronization, like error details, last synced time.").
 			Optional(),
 		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
 			Comment("Custom pricing user defined.").

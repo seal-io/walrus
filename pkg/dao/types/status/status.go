@@ -1,9 +1,20 @@
 package status
 
 const (
-	Initializing = "Initializing"
-	Ready        = "Ready"
-	Error        = "Error"
+	ConnectorStatusInitializing = "Initializing"
+	ConnectorStatusDeploying    = "Deploying"
+	ConnectorStatusReady        = "Ready"
+	ConnectorStatusError        = "Error"
+
+	ConnectorFinOpsSyncStatusWaiting = "Waiting"
+	ConnectorFinOpsSyncStatusSynced  = "Synced"
+	ConnectorFinOpsSyncStatusError   = "Error"
+)
+
+const (
+	ModuleStatusInitializing = "Initializing"
+	ModuleStatusReady        = "Ready"
+	ModuleStatusError        = "Error"
 )
 
 const (
