@@ -38,10 +38,10 @@ const (
 	FieldConfigData = "config_data"
 	// FieldEnableFinOps holds the string denoting the enablefinops field in the database.
 	FieldEnableFinOps = "enable_fin_ops"
-	// FieldFinOpsStatus holds the string denoting the finopsstatus field in the database.
-	FieldFinOpsStatus = "fin_ops_status"
-	// FieldFinOpsStatusMessage holds the string denoting the finopsstatusmessage field in the database.
-	FieldFinOpsStatusMessage = "fin_ops_status_message"
+	// FieldFinOpsSyncStatus holds the string denoting the finopssyncstatus field in the database.
+	FieldFinOpsSyncStatus = "fin_ops_sync_status"
+	// FieldFinOpsSyncStatusMessage holds the string denoting the finopssyncstatusmessage field in the database.
+	FieldFinOpsSyncStatusMessage = "fin_ops_sync_status_message"
 	// FieldFinOpsCustomPricing holds the string denoting the finopscustompricing field in the database.
 	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
@@ -98,8 +98,8 @@ var Columns = []string{
 	FieldConfigVersion,
 	FieldConfigData,
 	FieldEnableFinOps,
-	FieldFinOpsStatus,
-	FieldFinOpsStatusMessage,
+	FieldFinOpsSyncStatus,
+	FieldFinOpsSyncStatusMessage,
 	FieldFinOpsCustomPricing,
 }
 

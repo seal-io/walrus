@@ -137,30 +137,30 @@ func (cc *ConnectorCreate) SetEnableFinOps(b bool) *ConnectorCreate {
 	return cc
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cc *ConnectorCreate) SetFinOpsStatus(s string) *ConnectorCreate {
-	cc.mutation.SetFinOpsStatus(s)
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (cc *ConnectorCreate) SetFinOpsSyncStatus(s string) *ConnectorCreate {
+	cc.mutation.SetFinOpsSyncStatus(s)
 	return cc
 }
 
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableFinOpsStatus(s *string) *ConnectorCreate {
+// SetNillableFinOpsSyncStatus sets the "finOpsSyncStatus" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableFinOpsSyncStatus(s *string) *ConnectorCreate {
 	if s != nil {
-		cc.SetFinOpsStatus(*s)
+		cc.SetFinOpsSyncStatus(*s)
 	}
 	return cc
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cc *ConnectorCreate) SetFinOpsStatusMessage(s string) *ConnectorCreate {
-	cc.mutation.SetFinOpsStatusMessage(s)
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (cc *ConnectorCreate) SetFinOpsSyncStatusMessage(s string) *ConnectorCreate {
+	cc.mutation.SetFinOpsSyncStatusMessage(s)
 	return cc
 }
 
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableFinOpsStatusMessage(s *string) *ConnectorCreate {
+// SetNillableFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableFinOpsSyncStatusMessage(s *string) *ConnectorCreate {
 	if s != nil {
-		cc.SetFinOpsStatusMessage(*s)
+		cc.SetFinOpsSyncStatusMessage(*s)
 	}
 	return cc
 }
@@ -414,13 +414,13 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
 		_node.EnableFinOps = value
 	}
-	if value, ok := cc.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
-		_node.FinOpsStatus = value
+	if value, ok := cc.mutation.FinOpsSyncStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatus, field.TypeString, value)
+		_node.FinOpsSyncStatus = value
 	}
-	if value, ok := cc.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
-		_node.FinOpsStatusMessage = value
+	if value, ok := cc.mutation.FinOpsSyncStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatusMessage, field.TypeString, value)
+		_node.FinOpsSyncStatusMessage = value
 	}
 	if value, ok := cc.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
@@ -664,39 +664,39 @@ func (u *ConnectorUpsert) UpdateEnableFinOps() *ConnectorUpsert {
 	return u
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsert) SetFinOpsStatus(v string) *ConnectorUpsert {
-	u.Set(connector.FieldFinOpsStatus, v)
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (u *ConnectorUpsert) SetFinOpsSyncStatus(v string) *ConnectorUpsert {
+	u.Set(connector.FieldFinOpsSyncStatus, v)
 	return u
 }
 
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateFinOpsStatus() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldFinOpsStatus)
+// UpdateFinOpsSyncStatus sets the "finOpsSyncStatus" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateFinOpsSyncStatus() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldFinOpsSyncStatus)
 	return u
 }
 
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsert) ClearFinOpsStatus() *ConnectorUpsert {
-	u.SetNull(connector.FieldFinOpsStatus)
+// ClearFinOpsSyncStatus clears the value of the "finOpsSyncStatus" field.
+func (u *ConnectorUpsert) ClearFinOpsSyncStatus() *ConnectorUpsert {
+	u.SetNull(connector.FieldFinOpsSyncStatus)
 	return u
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsert) SetFinOpsStatusMessage(v string) *ConnectorUpsert {
-	u.Set(connector.FieldFinOpsStatusMessage, v)
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsert) SetFinOpsSyncStatusMessage(v string) *ConnectorUpsert {
+	u.Set(connector.FieldFinOpsSyncStatusMessage, v)
 	return u
 }
 
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateFinOpsStatusMessage() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldFinOpsStatusMessage)
+// UpdateFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateFinOpsSyncStatusMessage() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldFinOpsSyncStatusMessage)
 	return u
 }
 
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsert) ClearFinOpsStatusMessage() *ConnectorUpsert {
-	u.SetNull(connector.FieldFinOpsStatusMessage)
+// ClearFinOpsSyncStatusMessage clears the value of the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsert) ClearFinOpsSyncStatusMessage() *ConnectorUpsert {
+	u.SetNull(connector.FieldFinOpsSyncStatusMessage)
 	return u
 }
 
@@ -919,45 +919,45 @@ func (u *ConnectorUpsertOne) UpdateEnableFinOps() *ConnectorUpsertOne {
 	})
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsertOne) SetFinOpsStatus(v string) *ConnectorUpsertOne {
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (u *ConnectorUpsertOne) SetFinOpsSyncStatus(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatus(v)
+		s.SetFinOpsSyncStatus(v)
 	})
 }
 
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateFinOpsStatus() *ConnectorUpsertOne {
+// UpdateFinOpsSyncStatus sets the "finOpsSyncStatus" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateFinOpsSyncStatus() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatus()
+		s.UpdateFinOpsSyncStatus()
 	})
 }
 
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsertOne) ClearFinOpsStatus() *ConnectorUpsertOne {
+// ClearFinOpsSyncStatus clears the value of the "finOpsSyncStatus" field.
+func (u *ConnectorUpsertOne) ClearFinOpsSyncStatus() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatus()
+		s.ClearFinOpsSyncStatus()
 	})
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertOne) SetFinOpsStatusMessage(v string) *ConnectorUpsertOne {
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsertOne) SetFinOpsSyncStatusMessage(v string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatusMessage(v)
+		s.SetFinOpsSyncStatusMessage(v)
 	})
 }
 
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateFinOpsStatusMessage() *ConnectorUpsertOne {
+// UpdateFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateFinOpsSyncStatusMessage() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatusMessage()
+		s.UpdateFinOpsSyncStatusMessage()
 	})
 }
 
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertOne) ClearFinOpsStatusMessage() *ConnectorUpsertOne {
+// ClearFinOpsSyncStatusMessage clears the value of the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsertOne) ClearFinOpsSyncStatusMessage() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatusMessage()
+		s.ClearFinOpsSyncStatusMessage()
 	})
 }
 
@@ -1346,45 +1346,45 @@ func (u *ConnectorUpsertBulk) UpdateEnableFinOps() *ConnectorUpsertBulk {
 	})
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsertBulk) SetFinOpsStatus(v string) *ConnectorUpsertBulk {
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (u *ConnectorUpsertBulk) SetFinOpsSyncStatus(v string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatus(v)
+		s.SetFinOpsSyncStatus(v)
 	})
 }
 
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateFinOpsStatus() *ConnectorUpsertBulk {
+// UpdateFinOpsSyncStatus sets the "finOpsSyncStatus" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateFinOpsSyncStatus() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatus()
+		s.UpdateFinOpsSyncStatus()
 	})
 }
 
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsertBulk) ClearFinOpsStatus() *ConnectorUpsertBulk {
+// ClearFinOpsSyncStatus clears the value of the "finOpsSyncStatus" field.
+func (u *ConnectorUpsertBulk) ClearFinOpsSyncStatus() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatus()
+		s.ClearFinOpsSyncStatus()
 	})
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertBulk) SetFinOpsStatusMessage(v string) *ConnectorUpsertBulk {
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsertBulk) SetFinOpsSyncStatusMessage(v string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatusMessage(v)
+		s.SetFinOpsSyncStatusMessage(v)
 	})
 }
 
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateFinOpsStatusMessage() *ConnectorUpsertBulk {
+// UpdateFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateFinOpsSyncStatusMessage() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatusMessage()
+		s.UpdateFinOpsSyncStatusMessage()
 	})
 }
 
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertBulk) ClearFinOpsStatusMessage() *ConnectorUpsertBulk {
+// ClearFinOpsSyncStatusMessage clears the value of the "finOpsSyncStatusMessage" field.
+func (u *ConnectorUpsertBulk) ClearFinOpsSyncStatusMessage() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatusMessage()
+		s.ClearFinOpsSyncStatusMessage()
 	})
 }
 

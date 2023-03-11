@@ -134,43 +134,43 @@ func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
 	return cu
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cu *ConnectorUpdate) SetFinOpsStatus(s string) *ConnectorUpdate {
-	cu.mutation.SetFinOpsStatus(s)
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (cu *ConnectorUpdate) SetFinOpsSyncStatus(s string) *ConnectorUpdate {
+	cu.mutation.SetFinOpsSyncStatus(s)
 	return cu
 }
 
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableFinOpsStatus(s *string) *ConnectorUpdate {
+// SetNillableFinOpsSyncStatus sets the "finOpsSyncStatus" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableFinOpsSyncStatus(s *string) *ConnectorUpdate {
 	if s != nil {
-		cu.SetFinOpsStatus(*s)
+		cu.SetFinOpsSyncStatus(*s)
 	}
 	return cu
 }
 
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (cu *ConnectorUpdate) ClearFinOpsStatus() *ConnectorUpdate {
-	cu.mutation.ClearFinOpsStatus()
+// ClearFinOpsSyncStatus clears the value of the "finOpsSyncStatus" field.
+func (cu *ConnectorUpdate) ClearFinOpsSyncStatus() *ConnectorUpdate {
+	cu.mutation.ClearFinOpsSyncStatus()
 	return cu
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cu *ConnectorUpdate) SetFinOpsStatusMessage(s string) *ConnectorUpdate {
-	cu.mutation.SetFinOpsStatusMessage(s)
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (cu *ConnectorUpdate) SetFinOpsSyncStatusMessage(s string) *ConnectorUpdate {
+	cu.mutation.SetFinOpsSyncStatusMessage(s)
 	return cu
 }
 
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdate {
+// SetNillableFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field if the given value is not nil.
+func (cu *ConnectorUpdate) SetNillableFinOpsSyncStatusMessage(s *string) *ConnectorUpdate {
 	if s != nil {
-		cu.SetFinOpsStatusMessage(*s)
+		cu.SetFinOpsSyncStatusMessage(*s)
 	}
 	return cu
 }
 
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (cu *ConnectorUpdate) ClearFinOpsStatusMessage() *ConnectorUpdate {
-	cu.mutation.ClearFinOpsStatusMessage()
+// ClearFinOpsSyncStatusMessage clears the value of the "finOpsSyncStatusMessage" field.
+func (cu *ConnectorUpdate) ClearFinOpsSyncStatusMessage() *ConnectorUpdate {
+	cu.mutation.ClearFinOpsSyncStatusMessage()
 	return cu
 }
 
@@ -418,17 +418,17 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
 	}
-	if value, ok := cu.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
+	if value, ok := cu.mutation.FinOpsSyncStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatus, field.TypeString, value)
 	}
-	if cu.mutation.FinOpsStatusCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
+	if cu.mutation.FinOpsSyncStatusCleared() {
+		_spec.ClearField(connector.FieldFinOpsSyncStatus, field.TypeString)
 	}
-	if value, ok := cu.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
+	if value, ok := cu.mutation.FinOpsSyncStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatusMessage, field.TypeString, value)
 	}
-	if cu.mutation.FinOpsStatusMessageCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
+	if cu.mutation.FinOpsSyncStatusMessageCleared() {
+		_spec.ClearField(connector.FieldFinOpsSyncStatusMessage, field.TypeString)
 	}
 	if value, ok := cu.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
@@ -727,43 +727,43 @@ func (cuo *ConnectorUpdateOne) SetEnableFinOps(b bool) *ConnectorUpdateOne {
 	return cuo
 }
 
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cuo *ConnectorUpdateOne) SetFinOpsStatus(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetFinOpsStatus(s)
+// SetFinOpsSyncStatus sets the "finOpsSyncStatus" field.
+func (cuo *ConnectorUpdateOne) SetFinOpsSyncStatus(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetFinOpsSyncStatus(s)
 	return cuo
 }
 
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatus(s *string) *ConnectorUpdateOne {
+// SetNillableFinOpsSyncStatus sets the "finOpsSyncStatus" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableFinOpsSyncStatus(s *string) *ConnectorUpdateOne {
 	if s != nil {
-		cuo.SetFinOpsStatus(*s)
+		cuo.SetFinOpsSyncStatus(*s)
 	}
 	return cuo
 }
 
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (cuo *ConnectorUpdateOne) ClearFinOpsStatus() *ConnectorUpdateOne {
-	cuo.mutation.ClearFinOpsStatus()
+// ClearFinOpsSyncStatus clears the value of the "finOpsSyncStatus" field.
+func (cuo *ConnectorUpdateOne) ClearFinOpsSyncStatus() *ConnectorUpdateOne {
+	cuo.mutation.ClearFinOpsSyncStatus()
 	return cuo
 }
 
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cuo *ConnectorUpdateOne) SetFinOpsStatusMessage(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetFinOpsStatusMessage(s)
+// SetFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field.
+func (cuo *ConnectorUpdateOne) SetFinOpsSyncStatusMessage(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetFinOpsSyncStatusMessage(s)
 	return cuo
 }
 
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdateOne {
+// SetNillableFinOpsSyncStatusMessage sets the "finOpsSyncStatusMessage" field if the given value is not nil.
+func (cuo *ConnectorUpdateOne) SetNillableFinOpsSyncStatusMessage(s *string) *ConnectorUpdateOne {
 	if s != nil {
-		cuo.SetFinOpsStatusMessage(*s)
+		cuo.SetFinOpsSyncStatusMessage(*s)
 	}
 	return cuo
 }
 
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (cuo *ConnectorUpdateOne) ClearFinOpsStatusMessage() *ConnectorUpdateOne {
-	cuo.mutation.ClearFinOpsStatusMessage()
+// ClearFinOpsSyncStatusMessage clears the value of the "finOpsSyncStatusMessage" field.
+func (cuo *ConnectorUpdateOne) ClearFinOpsSyncStatusMessage() *ConnectorUpdateOne {
+	cuo.mutation.ClearFinOpsSyncStatusMessage()
 	return cuo
 }
 
@@ -1041,17 +1041,17 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if value, ok := cuo.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
 	}
-	if value, ok := cuo.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
+	if value, ok := cuo.mutation.FinOpsSyncStatus(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatus, field.TypeString, value)
 	}
-	if cuo.mutation.FinOpsStatusCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
+	if cuo.mutation.FinOpsSyncStatusCleared() {
+		_spec.ClearField(connector.FieldFinOpsSyncStatus, field.TypeString)
 	}
-	if value, ok := cuo.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
+	if value, ok := cuo.mutation.FinOpsSyncStatusMessage(); ok {
+		_spec.SetField(connector.FieldFinOpsSyncStatusMessage, field.TypeString, value)
 	}
-	if cuo.mutation.FinOpsStatusMessageCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
+	if cuo.mutation.FinOpsSyncStatusMessageCleared() {
+		_spec.ClearField(connector.FieldFinOpsSyncStatusMessage, field.TypeString)
 	}
 	if value, ok := cuo.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)

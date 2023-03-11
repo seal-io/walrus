@@ -44,10 +44,10 @@ type ConnectorCreateInput struct {
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Status of the cost data synchronization.
+	FinOpsSyncStatus string `json:"finOpsSyncStatus,omitempty"`
+	// Extra message for cost data synchronization, like error details, last synced time.
+	FinOpsSyncStatusMessage string `json:"finOpsSyncStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
@@ -55,18 +55,18 @@ type ConnectorCreateInput struct {
 // Model converts the ConnectorCreateInput to Connector.
 func (in ConnectorCreateInput) Model() *Connector {
 	var entity = &Connector{
-		Name:                in.Name,
-		Description:         in.Description,
-		Labels:              in.Labels,
-		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
-		Type:                in.Type,
-		ConfigVersion:       in.ConfigVersion,
-		ConfigData:          in.ConfigData,
-		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
-		FinOpsCustomPricing: in.FinOpsCustomPricing,
+		Name:                    in.Name,
+		Description:             in.Description,
+		Labels:                  in.Labels,
+		Status:                  in.Status,
+		StatusMessage:           in.StatusMessage,
+		Type:                    in.Type,
+		ConfigVersion:           in.ConfigVersion,
+		ConfigData:              in.ConfigData,
+		EnableFinOps:            in.EnableFinOps,
+		FinOpsSyncStatus:        in.FinOpsSyncStatus,
+		FinOpsSyncStatusMessage: in.FinOpsSyncStatusMessage,
+		FinOpsCustomPricing:     in.FinOpsCustomPricing,
 	}
 	return entity
 }
@@ -91,10 +91,10 @@ type ConnectorUpdateInput struct {
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Status of the cost data synchronization.
+	FinOpsSyncStatus string `json:"finOpsSyncStatus,omitempty"`
+	// Extra message for cost data synchronization, like error details, last synced time.
+	FinOpsSyncStatusMessage string `json:"finOpsSyncStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
@@ -102,18 +102,18 @@ type ConnectorUpdateInput struct {
 // Model converts the ConnectorUpdateInput to Connector.
 func (in ConnectorUpdateInput) Model() *Connector {
 	var entity = &Connector{
-		ID:                  in.ID,
-		Name:                in.Name,
-		Description:         in.Description,
-		Labels:              in.Labels,
-		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
-		ConfigVersion:       in.ConfigVersion,
-		ConfigData:          in.ConfigData,
-		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
-		FinOpsCustomPricing: in.FinOpsCustomPricing,
+		ID:                      in.ID,
+		Name:                    in.Name,
+		Description:             in.Description,
+		Labels:                  in.Labels,
+		Status:                  in.Status,
+		StatusMessage:           in.StatusMessage,
+		ConfigVersion:           in.ConfigVersion,
+		ConfigData:              in.ConfigData,
+		EnableFinOps:            in.EnableFinOps,
+		FinOpsSyncStatus:        in.FinOpsSyncStatus,
+		FinOpsSyncStatusMessage: in.FinOpsSyncStatusMessage,
+		FinOpsCustomPricing:     in.FinOpsCustomPricing,
 	}
 	return entity
 }
@@ -142,10 +142,10 @@ type ConnectorOutput struct {
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Status of the cost data synchronization.
+	FinOpsSyncStatus string `json:"finOpsSyncStatus,omitempty"`
+	// Extra message for cost data synchronization, like error details, last synced time.
+	FinOpsSyncStatusMessage string `json:"finOpsSyncStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Environments holds the value of the environments edge.
@@ -164,24 +164,24 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		return nil
 	}
 	var entity = &ConnectorOutput{
-		ID:                  in.ID,
-		Name:                in.Name,
-		Description:         in.Description,
-		Labels:              in.Labels,
-		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
-		CreateTime:          in.CreateTime,
-		UpdateTime:          in.UpdateTime,
-		Type:                in.Type,
-		ConfigVersion:       in.ConfigVersion,
-		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
-		FinOpsCustomPricing: in.FinOpsCustomPricing,
-		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
-		Resources:           ExposeApplicationResources(in.Edges.Resources),
-		ClusterCosts:        ExposeClusterCosts(in.Edges.ClusterCosts),
-		AllocationCosts:     ExposeAllocationCosts(in.Edges.AllocationCosts),
+		ID:                      in.ID,
+		Name:                    in.Name,
+		Description:             in.Description,
+		Labels:                  in.Labels,
+		Status:                  in.Status,
+		StatusMessage:           in.StatusMessage,
+		CreateTime:              in.CreateTime,
+		UpdateTime:              in.UpdateTime,
+		Type:                    in.Type,
+		ConfigVersion:           in.ConfigVersion,
+		EnableFinOps:            in.EnableFinOps,
+		FinOpsSyncStatus:        in.FinOpsSyncStatus,
+		FinOpsSyncStatusMessage: in.FinOpsSyncStatusMessage,
+		FinOpsCustomPricing:     in.FinOpsCustomPricing,
+		Environments:            ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
+		Resources:               ExposeApplicationResources(in.Edges.Resources),
+		ClusterCosts:            ExposeClusterCosts(in.Edges.ClusterCosts),
+		AllocationCosts:         ExposeAllocationCosts(in.Edges.AllocationCosts),
 	}
 	return entity
 }

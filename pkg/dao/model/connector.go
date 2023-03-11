@@ -44,10 +44,10 @@ type Connector struct {
 	ConfigData map[string]interface{} `json:"-"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
+	// Status of the cost data synchronization.
+	FinOpsSyncStatus string `json:"finOpsSyncStatus,omitempty"`
+	// Extra message for cost data synchronization, like error details, last synced time.
+	FinOpsSyncStatusMessage string `json:"finOpsSyncStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -115,7 +115,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
-		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion, connector.FieldFinOpsStatus, connector.FieldFinOpsStatusMessage:
+		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion, connector.FieldFinOpsSyncStatus, connector.FieldFinOpsSyncStatusMessage:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -214,17 +214,17 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.EnableFinOps = value.Bool
 			}
-		case connector.FieldFinOpsStatus:
+		case connector.FieldFinOpsSyncStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field finOpsStatus", values[i])
+				return fmt.Errorf("unexpected type %T for field finOpsSyncStatus", values[i])
 			} else if value.Valid {
-				c.FinOpsStatus = value.String
+				c.FinOpsSyncStatus = value.String
 			}
-		case connector.FieldFinOpsStatusMessage:
+		case connector.FieldFinOpsSyncStatusMessage:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field finOpsStatusMessage", values[i])
+				return fmt.Errorf("unexpected type %T for field finOpsSyncStatusMessage", values[i])
 			} else if value.Valid {
-				c.FinOpsStatusMessage = value.String
+				c.FinOpsSyncStatusMessage = value.String
 			}
 		case connector.FieldFinOpsCustomPricing:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -318,11 +318,11 @@ func (c *Connector) String() string {
 	builder.WriteString("enableFinOps=")
 	builder.WriteString(fmt.Sprintf("%v", c.EnableFinOps))
 	builder.WriteString(", ")
-	builder.WriteString("finOpsStatus=")
-	builder.WriteString(c.FinOpsStatus)
+	builder.WriteString("finOpsSyncStatus=")
+	builder.WriteString(c.FinOpsSyncStatus)
 	builder.WriteString(", ")
-	builder.WriteString("finOpsStatusMessage=")
-	builder.WriteString(c.FinOpsStatusMessage)
+	builder.WriteString("finOpsSyncStatusMessage=")
+	builder.WriteString(c.FinOpsSyncStatusMessage)
 	builder.WriteString(", ")
 	builder.WriteString("finOpsCustomPricing=")
 	builder.WriteString(fmt.Sprintf("%v", c.FinOpsCustomPricing))
