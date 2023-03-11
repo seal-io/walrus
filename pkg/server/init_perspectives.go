@@ -123,7 +123,7 @@ func perspectiveAll() *model.Perspective {
 						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
-				GroupBy: types.GroupByFieldClusterName,
+				GroupBy: types.GroupByFieldConnectorID,
 				Paging: types.QueryPagination{
 					Page:    1,
 					PerPage: 10,
