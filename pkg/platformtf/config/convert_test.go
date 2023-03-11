@@ -7,7 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
-func TestConvertModuleToBlock(t *testing.T) {
+func TestToModuleBlock(t *testing.T) {
 	type input struct {
 		Module     *model.Module
 		Attributes map[string]interface{}
@@ -134,7 +134,7 @@ func TestConvertModuleToBlock(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			block := convertModuleToBlock(tc.Input.Module, tc.Input.Attributes)
+			block := ToModuleBlock(tc.Input.Module, tc.Input.Attributes)
 			if block.Labels[0] != tc.Expected.Labels[0] {
 				t.Errorf("expected block label %s, got %s", tc.Expected.Labels[0], block.Labels[0])
 			}
