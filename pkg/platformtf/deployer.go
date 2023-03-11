@@ -10,6 +10,7 @@ import (
 
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -428,4 +429,46 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 		cs = append(cs, rs[i].Edges.Connector)
 	}
 	return cs, nil
+}
+
+func SyncApplicationRevisionStatus(ctx context.Context, message revisionbus.BusMessage) error {
+	var (
+		mc       = message.ModelClient
+		revision = message.Refer
+	)
+
+	// report to application instance.
+	appInstance, err := mc.ApplicationInstances().Query().
+		Where(applicationinstance.ID(revision.InstanceID)).
+		Select(
+			applicationinstance.FieldID,
+			applicationinstance.FieldStatus).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+	switch revision.Status {
+	case status.ApplicationRevisionStatusSucceeded:
+		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
+			// delete application instance.
+			err = mc.ApplicationInstances().DeleteOne(appInstance).
+				Exec(ctx)
+		} else {
+			err = mc.ApplicationInstances().UpdateOne(appInstance).
+				SetStatus(status.ApplicationInstanceStatusDeployed).
+				Exec(ctx)
+		}
+	case status.ApplicationRevisionStatusFailed:
+		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
+			appInstance.Status = status.ApplicationInstanceStatusDeleteFailed
+		} else {
+			appInstance.Status = status.ApplicationInstanceStatusDeployFailed
+		}
+		err = mc.ApplicationInstances().UpdateOne(appInstance).
+			SetStatus(appInstance.Status).
+			SetStatusMessage(revision.StatusMessage).
+			Exec(ctx)
+	}
+
+	return err
 }

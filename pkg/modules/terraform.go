@@ -1,6 +1,8 @@
 package modules
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -9,8 +11,12 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
+	"github.com/seal-io/seal/pkg/bus/module"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/files"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/reader"
@@ -24,7 +30,7 @@ const (
 	attributeShowIf  = "show_if"
 )
 
-func LoadTerraformModuleSchema(source string) (*types.ModuleSchema, error) {
+func loadTerraformModuleSchema(source string) (*types.ModuleSchema, error) {
 	tmpDir := filepath.Join(os.TempDir(), "seal-module-"+strs.String(10))
 	defer os.RemoveAll(tmpDir)
 
@@ -143,4 +149,50 @@ func setTerraformVariableExtensions(variable *types.ModuleVariable, comments []s
 			}
 		}
 	}
+}
+
+// SyncSchema fetches a remote module and updates the module schema in the background.
+func SyncSchema(ctx context.Context, message module.BusMessage) error {
+	gopool.Go(func() {
+		if err := syncSchema(ctx, message); err != nil {
+			module := message.Refer
+			module.Status = status.Error
+			module.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
+			update, updateErr := dao.ModuleUpdate(message.ModelClient, module)
+			if updateErr != nil {
+				log.Errorf("failed to prepare module update: %v", updateErr)
+				return
+			}
+			if updateErr = update.Exec(ctx); updateErr != nil {
+				log.Errorf("failed to update module %s: %v", module.ID, updateErr)
+			}
+		}
+	})
+	return nil
+}
+
+func syncSchema(ctx context.Context, message module.BusMessage) error {
+	module := message.Refer
+
+	if module.Schema != nil {
+		// Short circuit when the schema is presented. To refresh the schema, set it to nil first.
+		return nil
+	}
+
+	log.Debugf("syncing schema for module %s", message.Refer.ID)
+
+	moduleSchema, err := loadTerraformModuleSchema(module.Source)
+	if err != nil {
+		return err
+	}
+
+	module.Schema = moduleSchema
+	module.Status = status.Ready
+
+	update, err := dao.ModuleUpdate(message.ModelClient, module)
+	if err != nil {
+		return err
+	}
+
+	return update.Exec(ctx)
 }

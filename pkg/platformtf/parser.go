@@ -1,17 +1,23 @@
 package platformtf
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/types"
+	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // connectorSeparator is used to separate the connector id and the instance name.
@@ -137,4 +143,76 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 	}
 
 	return "", fmt.Errorf("no id found in instance object state: %v", is)
+}
+
+func UpdateResource(ctx context.Context, message tftopic.TopicMessage) error {
+	var parser Parser
+	applicationResources, err := parser.ParseAppRevision(message.ApplicationRevision)
+	if err != nil {
+		return err
+	}
+
+	return message.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var (
+			existResourceIDs = make([]types.ID, 0)
+			newResources     = make(model.ApplicationResources, 0)
+		)
+
+		// fetch the old resources of the application
+		oldResources, err := message.ModelClient.ApplicationResources().
+			Query().
+			Where(applicationresource.InstanceID(message.ApplicationRevision.InstanceID)).
+			All(ctx)
+		if err != nil {
+			return err
+		}
+		oldResourceSet := sets.NewString()
+		for _, r := range oldResources {
+			uniqueKey := getFingerprint(r)
+			oldResourceSet.Insert(uniqueKey)
+		}
+
+		for _, ar := range applicationResources {
+			// check if the resource is exists.
+			key := getFingerprint(ar)
+			exists := oldResourceSet.Has(key)
+			if exists {
+				existResourceIDs = append(existResourceIDs, ar.ID)
+			} else {
+				newResources = append(newResources, ar)
+			}
+		}
+
+		// diff application resource of this revision and the latest revision.
+		// if the resource is not in the latest revision, delete it.
+		_, err = message.ModelClient.ApplicationResources().
+			Delete().
+			Where(
+				applicationresource.InstanceID(message.ApplicationRevision.InstanceID),
+				applicationresource.IDNotIn(existResourceIDs...),
+			).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		// create newResource.
+		if len(newResources) > 0 {
+			resourcesToCreate, err := dao.ApplicationResourceCreates(message.ModelClient, newResources...)
+			if err != nil {
+				return err
+			}
+			if _, err = message.ModelClient.ApplicationResources().CreateBulk(resourcesToCreate...).Save(ctx); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+// TODO(thxCode): generate by entc.
+func getFingerprint(r *model.ApplicationResource) string {
+	// align to schema definition.
+	return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
 }
