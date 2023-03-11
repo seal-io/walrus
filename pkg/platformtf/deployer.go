@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
@@ -291,7 +292,7 @@ func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (st
 
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
-	moduleConfigs, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
+	moduleConfigs, requiredConnTypes, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
 	if err != nil {
 		return "", err
 	}
@@ -320,6 +321,7 @@ func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (st
 		SkipTLSVerify:      opts.SkipTLSVerify,
 		Connectors:         opts.Connectors,
 		ModuleConfigs:      moduleConfigs,
+		RequiredProviders:  requiredConnTypes,
 	}
 	conf, err := config.NewConfig(configOpts)
 	if err != nil {
@@ -365,16 +367,17 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 		}
 
 		// NB(alex) the secret file name must be config + connector id to match with terraform provider in config convert.
-		secretFileName := config.GetConnectorSecretConfigName(c.ID.String())
+		secretFileName := config.GetSecretK8sConfigName(c.ID.String())
 		secretData[secretFileName] = []byte(s)
 	}
 	return secretData, nil
 }
 
-// GetModuleConfigs returns module configs to get terraform module config block from application revision.
-func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, error) {
+// GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
+func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, []string, error) {
 	var (
-		moduleConfigs []*config.ModuleConfig
+		requiredConnectorSet = sets.NewString()
+		moduleConfigs        []*config.ModuleConfig
 		// app module relationship module ids
 		amrsModuleIDs = make([]string, 0, len(ar.Modules))
 		// module id -> module source
@@ -386,25 +389,38 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 	}
 	modules, err := d.modelClient.Modules().
 		Query().
-		Select(module.FieldID, module.FieldSource).
+		Select(
+			module.FieldID,
+			module.FieldSource,
+			module.FieldSchema,
+		).
 		Where(module.IDIn(amrsModuleIDs...)).
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, m := range modules {
 		moduleSourceMap[m.ID] = m
 	}
 	for _, m := range ar.Modules {
+		mod, ok := moduleSourceMap[m.ModuleID]
+		if !ok {
+			return nil, nil, fmt.Errorf("module %s not found", m.ModuleID)
+		}
+
 		moduleConfig := &config.ModuleConfig{
-			Module:     moduleSourceMap[m.ModuleID],
+			Module:     mod,
 			Attributes: m.Attributes,
 		}
 		moduleConfigs = append(moduleConfigs, moduleConfig)
+
+		if mod.Schema != nil {
+			requiredConnectorSet.Insert(mod.Schema.RequiredConnectorTypes...)
+		}
 	}
 
-	return moduleConfigs, nil
+	return moduleConfigs, requiredConnectorSet.List(), err
 }
 
 func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstance) (model.Connectors, error) {

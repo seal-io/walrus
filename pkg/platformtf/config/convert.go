@@ -3,54 +3,106 @@ package config
 import (
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-var (
-	// connector type to terraform provider type map.
-	_connectorToTFProvider = map[string]string{
-		types.ConnectorTypeK8s: "kubernetes",
+const (
+	ProviderK8s  = "kubernetes"
+	ProviderHelm = "helm"
+)
+
+// _providerConvertors mutate the connector to provider block.
+var _providerConvertors = make(map[string]Convertor, 0)
+
+type ProviderConvertOptions struct {
+	SecretMountPath string
+	ConnSeparator   string
+}
+
+func init() {
+	convertors := []Convertor{
+		K8sConvertor{},
+		HelmConvertor{},
+		// add more convertors
 	}
-)
 
-// convertConnectorToBlock returns provider block for the given connector.
-func convertConnectorToBlock(connector *model.Connector, secretMountPath string, connSeparator string) (*Block, error) {
-	switch connector.Type {
-	case types.ConnectorTypeK8s:
-		return convertK8sConnectorToBlock(connector, secretMountPath, connSeparator)
-	default:
-		return nil, fmt.Errorf("connector type %s is not supported", connector.Type)
+	for _, c := range convertors {
+		_providerConvertors[c.ProviderType()] = c
 	}
 }
 
-// convertK8sConnectorToBlock returns kubernetes provider block.
-func convertK8sConnectorToBlock(connector *model.Connector, secretMountPath string, connSeparator string) (*Block, error) {
-	var attributes = make(map[string]interface{})
-
-	if _, ok := _connectorToTFProvider[connector.Type]; !ok {
-		return nil, fmt.Errorf("connector type %s is not supported", connector.Type)
-	}
-	if _, ok := connector.ConfigData["kubeconfig"]; !ok {
-		return nil, fmt.Errorf("kubeconfig is not set for kubernetes connector")
+func NewConvertor(providerType string) Convertor {
+	if _, ok := _providerConvertors[providerType]; !ok {
+		return nil
 	}
 
-	// NB(alex) the config path should keep the same with the secret mount path in deployer.
-	attributes["config_path"] = secretMountPath + "/" + GetConnectorSecretConfigName(connector.ID.String())
-	attributes["alias"] = connSeparator + connector.ID.String()
-
-	return &Block{
-		Type:       BlockTypeProvider,
-		Attributes: attributes,
-		// convert the connector type to provider type.
-		Labels: []string{_connectorToTFProvider[connector.Type]},
-	}, nil
+	return _providerConvertors[providerType]
 }
 
-// convertModuleToBlock returns module block for the given module and variables.
-func convertModuleToBlock(m *model.Module, attributes map[string]interface{}) *Block {
+// ToProviderBlocks converts the connectors to provider blocks.
+func ToProviderBlocks(providers []string, connectors model.Connectors, createOpts ProviderConvertOptions) (Blocks, error) {
+	var blocks []*Block
+	for _, p := range providers {
+		var (
+			opts  ConvertOptions
+			conns model.Connectors
+		)
+		switch p {
+		case ProviderK8s, ProviderHelm:
+			opts = K8sConvertorOptions{
+				ConnSeparator: createOpts.ConnSeparator,
+				ConfigPath:    createOpts.SecretMountPath,
+			}
+		default:
+			// TODO add more options
+		}
+
+		convertor := NewConvertor(p)
+		if convertor == nil {
+			// it may be a valid use case. For example,
+			// a null provider in a module and it doesn't need to match any connector.
+			continue
+		}
+
+		conns = convertor.GetConnectors(connectors)
+		if conns == nil {
+			return nil, fmt.Errorf("failed to get connector for provider %s", p)
+		}
+
+		convertBlocks, err := convertor.ToBlocks(conns, opts)
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, convertBlocks...)
+	}
+
+	if !validateRequiredProviders(providers, blocks) {
+		return nil, fmt.Errorf("failed to validate providers: %v, current blockProviders: %v", providers, blocks)
+	}
+
+	return blocks, nil
+}
+
+// validateRequiredProviders validates blocks contains all required providers.
+func validateRequiredProviders(providers []string, blocks Blocks) bool {
+	var blockProviders []string
+	for _, b := range blocks {
+		if len(b.Labels) == 0 {
+			continue
+		}
+		providerType := b.Labels[0]
+		blockProviders = append(blockProviders, providerType)
+	}
+
+	currentProvidersSet := sets.NewString(blockProviders...)
+	return currentProvidersSet.HasAll(providers...)
+}
+
+// ToModuleBlock returns module block for the given module and variables.
+func ToModuleBlock(m *model.Module, attributes map[string]interface{}) *Block {
 	var block Block
-	// TODO need check the module required providers from schema?
 	attributes["source"] = m.Source
 	block = Block{
 		Type:       BlockTypeModule,
@@ -61,8 +113,8 @@ func convertModuleToBlock(m *model.Module, attributes map[string]interface{}) *B
 	return &block
 }
 
-// GetConnectorSecretConfigName returns the secret config name for the given connector.
+// GetSecretK8sConfigName returns the secret config name for the given connector.
 // used for kubernetes connector. or other connectors which need to store the kubeconfig in secret.
-func GetConnectorSecretConfigName(connectorID string) string {
+func GetSecretK8sConfigName(connectorID string) string {
 	return fmt.Sprintf("config%s", connectorID)
 }

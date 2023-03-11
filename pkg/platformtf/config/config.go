@@ -26,6 +26,9 @@ type CreateOptions struct {
 	SecretMountPath string
 	// ConnectorSeparator is the separator of the terraform provider alias name and id.
 	ConnectorSeparator string
+	// RequiredProviders is the required providers of the terraform config.
+	// e.g. ["kubernetes", "helm"]
+	RequiredProviders []string
 
 	// Address is the backend address of the terraform config.
 	Address string
@@ -88,21 +91,19 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 
 	// other blocks like provider, module, etc.
 	// load provider blocks
-	blocks, err := loadProviderBlocks(opts.Connectors,
-		opts.SecretMountPath,
-		opts.ConnectorSeparator)
+	providerBlocks, err := loadProviderBlocks(opts)
 	if err != nil {
 		return nil, err
 	}
 	// load module blocks
-	moduleBlocks := loadModuleBlocks(opts.ModuleConfigs, blocks)
-	blocks = append(blocks, moduleBlocks...)
+	moduleBlocks := loadModuleBlocks(opts.ModuleConfigs, providerBlocks)
+	providerBlocks = append(providerBlocks, moduleBlocks...)
 
 	c := &Config{
 		format:     opts.Format,
 		mapObjects: make(map[string]struct{}),
 		TFBlocks:   tfBlocks,
-		Blocks:     blocks,
+		Blocks:     providerBlocks,
 	}
 
 	if err = c.validate(); err != nil {
@@ -266,18 +267,11 @@ func loadBackendBlock(address, token string, skipTLSVerify bool) *Block {
 }
 
 // loadProviderBlocks returns config providers to get terraform provider config block.
-func loadProviderBlocks(connectors model.Connectors, secretMountPath, connSeparator string) (Blocks, error) {
-	var configProviders Blocks
-	for _, c := range connectors {
-		block, err := convertConnectorToBlock(c, secretMountPath, connSeparator)
-		if err != nil {
-			return nil, err
-		}
-
-		configProviders = append(configProviders, block)
-	}
-
-	return configProviders, nil
+func loadProviderBlocks(opts CreateOptions) (Blocks, error) {
+	return ToProviderBlocks(opts.RequiredProviders, opts.Connectors, ProviderConvertOptions{
+		SecretMountPath: opts.SecretMountPath,
+		ConnSeparator:   opts.ConnectorSeparator,
+	})
 }
 
 // loadModuleBlocks returns config modules to get terraform module config block.
@@ -301,7 +295,7 @@ func loadModuleBlocks(moduleBlocks []*ModuleConfig, providers Blocks) Blocks {
 		providersMap[name] = fmt.Sprintf("$${%s.%s}", name, alias)
 	}
 	for _, m := range moduleBlocks {
-		block := convertModuleToBlock(m.Module, m.Attributes)
+		block := ToModuleBlock(m.Module, m.Attributes)
 		// inject providers alias to the module
 		block.Attributes["providers"] = providersMap
 		blocks = append(blocks, block)
