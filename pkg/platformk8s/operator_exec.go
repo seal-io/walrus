@@ -17,7 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformk8s/key"
-	"github.com/seal-io/seal/pkg/platformk8s/pods"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Exec implements operator.Operator.
@@ -38,10 +38,10 @@ func (op Operator) Exec(ctx context.Context, k string, opts operator.ExecOptions
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
-	if !pods.IsContainerExisted(p, pods.Container{Type: ct, Name: cn}) {
+	if !kube.IsContainerExisted(p, kube.Container{Type: ct, Name: cn}) {
 		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
-	if !pods.IsContainerRunning(p, pods.Container{Type: ct, Name: cn}) {
+	if !kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}) {
 		return fmt.Errorf("given %s container %s is not running in %s/%s pod", ct, cn, ns, pn)
 	}
 

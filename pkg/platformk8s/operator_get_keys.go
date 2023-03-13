@@ -18,7 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/platform/operator"
-	"github.com/seal-io/seal/pkg/platformk8s/pods"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 )
 
@@ -55,8 +55,8 @@ func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) 
 		return ps[i].CreationTimestamp.Time.After(ps[j].CreationTimestamp.Time)
 	})
 	for i := 0; i < len(ps); i++ {
-		var running = pods.IsPodRunning(&ps[i])
-		var states = pods.GetContainerStates(&ps[i])
+		var running = kube.IsPodRunning(&ps[i])
+		var states = kube.GetContainerStates(&ps[i])
 
 		var k = operator.Key{
 			Name: ps[i].Name, // pod name
@@ -66,8 +66,8 @@ func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) 
 			k.Keys = append(k.Keys, operator.Key{
 				Name:       states[j].Name,     // container name
 				Value:      states[j].String(), // key
-				Loggable:   pointer.Bool(states[j].State > pods.ContainerStateUnknown),
-				Executable: pointer.Bool(running && states[j].State == pods.ContainerStateRunning),
+				Loggable:   pointer.Bool(states[j].State > kube.ContainerStateUnknown),
+				Executable: pointer.Bool(running && states[j].State == kube.ContainerStateRunning),
 			})
 		}
 		ks.Keys = append(ks.Keys, k)
