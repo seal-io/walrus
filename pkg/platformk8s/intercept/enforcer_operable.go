@@ -10,27 +10,27 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// Helm returns Enforce to detect if the given Kubernetes GVK/GVR is valid.
-func Helm() Enforce {
+// Operable returns Enforcer to detect if the given Kubernetes GVK/GVR is operable enforcer.
+func Operable() Enforcer {
 	// singleton pattern.
-	return he
+	return opEnforcer
 }
 
-// helmEnforce implements Enforce.
-type helmEnforce struct {
+// operableEnforcer implements Enforcer.
+type operableEnforcer struct {
 	gvks sets.Set[schema.GroupVersionKind]
 	gvrs sets.Set[schema.GroupVersionResource]
 }
 
-func (e helmEnforce) AllowGVK(gvk schema.GroupVersionKind) bool {
+func (e operableEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
 	return e.gvks.Has(gvk)
 }
 
-func (e helmEnforce) AllowGVR(gvr schema.GroupVersionResource) bool {
+func (e operableEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
 	return e.gvrs.Has(gvr)
 }
 
-var he = helmEnforce{
+var opEnforcer = operableEnforcer{
 	gvks: sets.Set[schema.GroupVersionKind]{},
 	gvrs: sets.Set[schema.GroupVersionResource]{},
 }
@@ -38,7 +38,7 @@ var he = helmEnforce{
 func init() {
 	// emit, transfer and record.
 	//
-	// only consider operable types.
+	// only consider operableEnforcer types.
 	//
 	for _, gvk := range []schema.GroupVersionKind{
 		appsv1.SchemeGroupVersion.WithKind("DaemonSet"),
@@ -50,8 +50,8 @@ func init() {
 		corev1.SchemeGroupVersion.WithKind("ReplicationController"),
 		corev1.SchemeGroupVersion.WithKind("Pod"),
 	} {
-		he.gvks.Insert(gvk)
+		opEnforcer.gvks.Insert(gvk)
 		var gvr, _ = meta.UnsafeGuessKindToResource(gvk)
-		he.gvrs.Insert(gvr)
+		opEnforcer.gvrs.Insert(gvr)
 	}
 }

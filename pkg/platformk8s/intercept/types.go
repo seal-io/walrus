@@ -4,8 +4,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// Convert holds the functions to transfer the given string to a schema descriptor.
-type Convert interface {
+// Converter holds the functions to transfer the given string to a schema descriptor.
+type Converter interface {
 	// GetGVK returns the GroupVersionKind info with the given alias,
 	// and returns false if failed to convert.
 	GetGVK(alias string) (gvk schema.GroupVersionKind, ok bool)
@@ -15,9 +15,9 @@ type Convert interface {
 	GetGVR(alias string) (gvr schema.GroupVersionResource, ok bool)
 }
 
-// Enforce holds the functions to judge the given schema descriptor,
+// Enforcer holds the functions to judge the given schema descriptor,
 // whether to be interested in.
-type Enforce interface {
+type Enforcer interface {
 	// AllowGVK returns true if the given GroupVersionKind is valid.
 	AllowGVK(gvk schema.GroupVersionKind) (valid bool)
 
