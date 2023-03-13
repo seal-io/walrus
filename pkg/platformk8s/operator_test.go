@@ -91,7 +91,7 @@ func TestOperator(t *testing.T) {
 	}()
 
 	// mock application resource.
-	var res = model.ApplicationResource{
+	var res = &model.ApplicationResource{
 		Type:         "kubernetes_pod",
 		Name:         p.Namespace + "/" + p.Name,
 		DeployerType: types.DeployerTypeTF,

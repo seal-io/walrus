@@ -96,7 +96,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 			if err != nil {
 				return nil, 0, err
 			}
-			resp[i].Keys, err = op.GetKeys(ctx, *entities[i])
+			resp[i].Keys, err = op.GetKeys(ctx, entities[i])
 			if err != nil {
 				return nil, 0, err
 			}
@@ -122,7 +122,7 @@ func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKey
 		return nil, fmt.Errorf("cannot connect %s", res.Edges.Connector.Name)
 	}
 
-	return op.GetKeys(ctx, *res)
+	return op.GetKeys(ctx, res)
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest) error {

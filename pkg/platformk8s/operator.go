@@ -69,7 +69,7 @@ func (op Operator) IsConnected(ctx context.Context) (bool, error) {
 }
 
 // GetKeys implements operator.Operator.
-func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (*operator.Keys, error) {
+func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) (*operator.Keys, error) {
 	var psp, err = op.getPods(ctx, res)
 	if err != nil {
 		return nil, err
@@ -91,6 +91,7 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 	// }
 	var ks = operator.Keys{
 		Labels: []string{"Pod", "Container"},
+		Keys:   make([]operator.Key, 0),
 	}
 	if psp == nil {
 		return &ks, nil
@@ -120,9 +121,13 @@ func (op Operator) GetKeys(ctx context.Context, res model.ApplicationResource) (
 	return &ks, nil
 }
 
-func (op Operator) getPods(ctx context.Context, res model.ApplicationResource) (*[]core.Pod, error) {
+func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) (*[]core.Pod, error) {
+	if res == nil {
+		return nil, nil
+	}
+
 	// parse resources.
-	var rs, err = op.parseResources(ctx, &res)
+	var rs, err = op.parseResources(ctx, res)
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
