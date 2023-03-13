@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -104,9 +105,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestCollection[predicate.Perspective] `query:",inline"`
 
 	Name string `query:"name,omitempty"`
 }

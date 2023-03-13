@@ -138,9 +138,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestCollection[predicate.Subject] `query:",inline"`
 
 	Group string `query:"_group,omitempty"`
 }

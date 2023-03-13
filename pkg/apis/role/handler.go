@@ -27,6 +27,18 @@ func (h Handler) Kind() string {
 
 // Batch APIs
 
+var (
+	queryFields = []string{
+		role.FieldName,
+	}
+	getFields = role.WithoutFields(
+		role.FieldCreateTime,
+		role.FieldUpdateTime)
+	sortFields = []string{
+		role.FieldName,
+		role.FieldCreateTime}
+)
+
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	// do not export session level roles.
 	var input = []predicate.Role{
@@ -38,6 +50,9 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 	var query = h.modelClient.Roles().Query().
 		Where(input...)
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
@@ -49,9 +64,15 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+	if orders, ok := req.Sorting(sortFields, model.Desc(role.FieldCreateTime)); ok {
+		query.Order(orders...)
+	}
 	entities, err := query.
-		Select(role.WithoutFields(
-			role.FieldCreateTime, role.FieldUpdateTime)...).
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
