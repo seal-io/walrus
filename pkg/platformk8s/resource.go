@@ -34,7 +34,7 @@ type resource struct {
 }
 
 // parseResources parse the given model.ApplicationResource to resource list.
-func (op Operator) parseResources(ctx context.Context, res *model.ApplicationResource) ([]resource, error) {
+func parseResources(ctx context.Context, op Operator, res *model.ApplicationResource) ([]resource, error) {
 	if res.DeployerType != types.DeployerTypeTF {
 		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
