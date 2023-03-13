@@ -20,7 +20,7 @@ type Operator interface {
 	IsConnected(context.Context) (bool, error)
 
 	// GetKeys returns keys from the given resource.
-	GetKeys(context.Context, model.ApplicationResource) (*Keys, error)
+	GetKeys(context.Context, *model.ApplicationResource) (*Keys, error)
 
 	// Log gets logs from the given key.
 	Log(context.Context, string, LogOptions) error
