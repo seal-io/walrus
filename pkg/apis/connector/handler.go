@@ -5,7 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
 	connbus "github.com/seal-io/seal/pkg/bus/connector"
-	"github.com/seal-io/seal/pkg/costs/scheduler"
+	"github.com/seal-io/seal/pkg/costs/syncer"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -144,8 +144,8 @@ func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRe
 		return err
 	}
 
-	o.FinOpsStatus = status.Initializing
-	o.StatusMessage = ""
+	o.Status = status.ConnectorStatusDeploying
+	o.StatusMessage = "Applying cost tools"
 	update, err := dao.ConnectorUpdate(h.modelClient, o)
 	if err != nil {
 		return err
@@ -163,10 +163,10 @@ func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataReq
 		return err
 	}
 
-	task, err := scheduler.NewCostSyncTask(h.modelClient)
+	k8sCostSyncer, err := syncer.NewK8sCostSyncer(h.modelClient)
 	if err != nil {
 		return err
 	}
 
-	return task.SyncK8sCost(ctx, o, nil)
+	return k8sCostSyncer.Sync(ctx, o, nil, nil)
 }

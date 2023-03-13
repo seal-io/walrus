@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.ConnectorCreate, error) {
@@ -32,6 +33,9 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if !r.FinOpsCustomPricing.IsZero() {
 			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
 		} else if r.Type == types.ConnectorTypeK8s {
+			c.SetStatus(status.ConnectorStatusInitializing)
+			c.SetFinOpsSyncStatus(status.ConnectorFinOpsSyncStatusWaiting)
+			c.SetFinOpsSyncStatusMessage("It takes about an hour to generate hour-level cost data")
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
 		if r.Labels != nil {

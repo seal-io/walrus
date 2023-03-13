@@ -7,7 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/costs/deployer"
+	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/modules"
@@ -23,10 +23,10 @@ func Setup(ctx context.Context, opts SetupOptions) error {
 		return err
 	}
 
-	if err := connector.AddSubscriber("deployer-ensure-cost-tools", deployer.EnsureCostTools); err != nil {
+	if err := connector.AddSubscriber("connector-ensure-cost-tools", connectors.EnsureCostTools); err != nil {
 		return err
 	}
-	if err := connector.AddSubscriber("deployer-sync-cost-custom-pricing", deployer.SyncCostCustomPricing); err != nil {
+	if err := connector.AddSubscriber("connector-sync-cost-custom-pricing", connectors.SyncCostCustomPricing); err != nil {
 		return err
 	}
 

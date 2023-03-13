@@ -1,10 +1,11 @@
-package scheduler
+package syncer
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"go.uber.org/multierr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -14,11 +15,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformk8s"
-	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -27,45 +25,29 @@ const (
 	defaultStep         = 1 * time.Hour
 )
 
-type CostSyncTask struct {
+type K8sCostSyncer struct {
 	client model.ClientSet
 	logger log.Logger
 }
 
-func NewCostSyncTask(client model.ClientSet) (*CostSyncTask, error) {
-	return &CostSyncTask{
+func NewK8sCostSyncer(client model.ClientSet) (*K8sCostSyncer, error) {
+	return &K8sCostSyncer{
 		client: client,
-		logger: log.WithName("cost").WithName("sync-cost"),
+		logger: log.WithName("cost"),
 	}, nil
 }
 
-func (in *CostSyncTask) Process(ctx context.Context, args ...interface{}) error {
-	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
-	if err != nil {
-		return err
-	}
-
-	wg := gopool.Group()
-	for i := range conns {
-		var conn = conns[i]
-		if !conn.EnableFinOps {
-			continue
-		}
-
-		if conn.FinOpsStatus != status.Ready {
-			in.logger.Debugf("connector %s status is:%s, skip collect cost data", conn.Name, conn.FinOpsStatus)
-			continue
-		}
-
-		wg.Go(func() error {
-			return in.SyncK8sCost(ctx, conn, args)
-		})
-	}
-
-	return wg.Wait()
+func (in *K8sCostSyncer) SetLogger(logger log.Logger) {
+	in.logger = logger
 }
 
-func (in *CostSyncTask) SyncK8sCost(ctx context.Context, conn *model.Connector, args []interface{}) error {
+func (in *K8sCostSyncer) Sync(ctx context.Context, conn *model.Connector, startTime, endTime *time.Time) error {
+	syncErr := in.syncCost(ctx, conn, startTime, endTime)
+	updateErr := in.updateConnectorFinOpsStatus(ctx, conn, syncErr)
+	return multierr.Combine(syncErr, updateErr)
+}
+
+func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, startTime, endTime *time.Time) error {
 	in.logger.Debugf("collect cost for connector: %s", conn.Name)
 	apiConfig, _, err := platformk8s.LoadApiConfig(*conn)
 	if err != nil {
@@ -83,7 +65,7 @@ func (in *CostSyncTask) SyncK8sCost(ctx context.Context, conn *model.Connector, 
 		return err
 	}
 
-	startTime, endTime, err := in.timeRange(ctx, restCfg, conn, args)
+	startTime, endTime, err = in.timeRange(ctx, restCfg, conn, startTime, endTime)
 	if err != nil {
 		return err
 	}
@@ -127,7 +109,24 @@ func (in *CostSyncTask) SyncK8sCost(ctx context.Context, conn *model.Connector, 
 	return nil
 }
 
-func (in *CostSyncTask) batchCreateClusterCosts(ctx context.Context, costs []*model.ClusterCost) error {
+func (in *K8sCostSyncer) updateConnectorFinOpsStatus(ctx context.Context, conn *model.Connector, err error) error {
+	var (
+		s   = status.ConnectorFinOpsSyncStatusSynced
+		msg = fmt.Sprintf("Last synced at %s", time.Now().UTC().String())
+	)
+
+	if err != nil {
+		s = status.ConnectorFinOpsSyncStatusError
+		msg = err.Error()
+	}
+
+	return in.client.Connectors().UpdateOne(conn).
+		SetFinOpsSyncStatus(s).
+		SetFinOpsSyncStatusMessage(msg).
+		Exec(ctx)
+}
+
+func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*model.ClusterCost) error {
 	creates, err := dao.ClusterCostCreates(in.client, costs...)
 	if err != nil {
 		return err
@@ -147,7 +146,7 @@ func (in *CostSyncTask) batchCreateClusterCosts(ctx context.Context, costs []*mo
 	return nil
 }
 
-func (in *CostSyncTask) batchCreateAllocationCosts(ctx context.Context, costs []*model.AllocationCost) error {
+func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs []*model.AllocationCost) error {
 	creates, err := dao.AllocationCostCreates(in.client, costs...)
 	if err != nil {
 		return err
@@ -168,24 +167,8 @@ func (in *CostSyncTask) batchCreateAllocationCosts(ctx context.Context, costs []
 	return nil
 }
 
-func (in *CostSyncTask) timeRange(ctx context.Context, restCfg *rest.Config, conn *model.Connector, args []interface{}) (*time.Time, *time.Time, error) {
-	// time range from args.
-	var startTime, endTime *time.Time
-	for i, v := range args {
-		switch i {
-		case 1:
-			s, ok := v.(*time.Time)
-			if ok {
-				startTime = s
-			}
-		case 2:
-			s, ok := v.(*time.Time)
-			if ok {
-				endTime = s
-			}
-		}
-	}
-
+func (in *K8sCostSyncer) timeRange(ctx context.Context, restCfg *rest.Config, conn *model.Connector, startTime, endTime *time.Time) (*time.Time, *time.Time, error) {
+	// time range existed.
 	if startTime != nil && endTime != nil {
 		return startTime, endTime, nil
 	}

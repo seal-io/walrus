@@ -156,7 +156,7 @@ func SyncSchema(ctx context.Context, message module.BusMessage) error {
 	gopool.Go(func() {
 		if err := syncSchema(ctx, message); err != nil {
 			module := message.Refer
-			module.Status = status.Error
+			module.Status = status.ModuleStatusError
 			module.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
 			update, updateErr := dao.ModuleUpdate(message.ModelClient, module)
 			if updateErr != nil {
@@ -187,7 +187,7 @@ func syncSchema(ctx context.Context, message module.BusMessage) error {
 	}
 
 	module.Schema = moduleSchema
-	module.Status = status.Ready
+	module.Status = status.ModuleStatusReady
 
 	update, err := dao.ModuleUpdate(message.ModelClient, module)
 	if err != nil {
