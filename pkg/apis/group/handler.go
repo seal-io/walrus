@@ -125,8 +125,15 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 // Batch APIs
 
 var (
-	getFields  = subject.WithoutFields(subject.FieldCreateTime, subject.FieldLoginTo)
-	sortFields = []string{subject.FieldCreateTime, subject.FieldUpdateTime}
+	queryFields = []string{
+		subject.FieldName,
+	}
+	getFields = subject.WithoutFields(
+		subject.FieldCreateTime,
+		subject.FieldLoginTo)
+	sortFields = []string{
+		subject.FieldCreateTime,
+		subject.FieldUpdateTime}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
@@ -139,6 +146,9 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 	var query = h.modelClient.Subjects().Query().
 		Where(input...)
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)

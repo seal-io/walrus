@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform/operator"
 )
@@ -53,9 +54,7 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestCollection[predicate.ApplicationResource] `query:",inline"`
 
 	InstanceID  types.ID `query:"instanceID"`
 	WithoutKeys bool     `query:"withoutKeys,omitempty"`

@@ -88,6 +88,12 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 	})
 }
 
+var (
+	getFields = setting.WithoutFields(
+		setting.FieldCreateTime,
+		setting.FieldPrivate)
+)
+
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var input = []predicate.Setting{
 		setting.Private(false),
@@ -121,8 +127,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Limit(limit).Offset(offset)
 	}
 	entities, err := query.
-		Select(setting.WithoutFields(
-			setting.FieldCreateTime, setting.FieldPrivate)...).
+		Order(model.Desc(setting.FieldCreateTime)).
+		Select(getFields...).
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err

@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
 // Basic APIs
@@ -51,7 +52,8 @@ type GetResponse = *model.TokenOutput
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
+	runtime.RequestQuerying[predicate.Token] `query:",inline"`
+	runtime.RequestPagination                `query:",inline"`
 }
 
 type CollectionGetResponse = []*model.TokenOutput

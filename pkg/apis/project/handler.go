@@ -83,6 +83,9 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 }
 
 var (
+	queryFields = []string{
+		project.FieldName,
+	}
 	getFields = project.WithoutFields(
 		project.FieldUpdateTime)
 	sortFields = []string{
@@ -92,6 +95,9 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Projects().Query()
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)

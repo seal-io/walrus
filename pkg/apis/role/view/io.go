@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
 // Basic APIs
@@ -10,7 +11,7 @@ import (
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
+	runtime.RequestCollection[predicate.Role] `query:",inline"`
 
 	Domain string `query:"domain,omitempty"`
 }

@@ -37,6 +37,9 @@ func (h Handler) Validating() any {
 // Batch APIs
 
 var (
+	queryFields = []string{
+		applicationresource.FieldName,
+	}
 	getFields = applicationresource.WithoutFields(
 		applicationresource.FieldUpdateTime)
 	sortFields = []string{
@@ -50,6 +53,9 @@ var (
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.ApplicationResources().Query().
 		Where(applicationresource.InstanceID(req.InstanceID))
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)

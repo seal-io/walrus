@@ -122,11 +122,27 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 // Batch APIs
 
-func (h Handler) CollectionGet(ctx *gin.Context, _ view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Tokens().Query()
+var (
+	queryFields = []string{
+		token.FieldName,
+	}
+	getFields = token.WithoutFields(
+		token.FieldUpdateTime,
+		token.FieldCasdoorTokenName,
+		token.FieldCasdoorTokenOwner)
+)
 
-	var entities, err = query.Select(token.WithoutFields(
-		token.FieldUpdateTime, token.FieldCasdoorTokenName, token.FieldCasdoorTokenOwner)...).
+func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
+	var query = h.modelClient.Tokens().Query()
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
+
+	var entities, err = query.
+		Order(model.Desc(token.FieldCreateTime)).
+		Select(getFields...).
+		// allow returning without sorting keys.
+		Unique(false).
 		All(ctx)
 	if err != nil {
 		return nil, 0, err

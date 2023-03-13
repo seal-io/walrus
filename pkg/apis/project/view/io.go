@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
 // Basic APIs
@@ -65,9 +66,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestCollection[predicate.Project] `query:",inline"`
 }
 
 type CollectionGetResponse = []*model.ProjectOutput

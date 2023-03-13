@@ -96,6 +96,9 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 }
 
 var (
+	queryFields = []string{
+		connector.FieldName,
+	}
 	getFields = connector.WithoutFields(
 		connector.FieldConfigVersion,
 		connector.FieldConfigData,
@@ -108,6 +111,9 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Connectors().Query()
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)

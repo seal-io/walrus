@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -43,9 +44,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestCollection[predicate.ApplicationInstance] `query:",inline"`
 
 	ApplicationID types.ID `query:"applicationID"`
 }

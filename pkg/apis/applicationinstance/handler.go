@@ -84,6 +84,9 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 }
 
 var (
+	queryFields = []string{
+		applicationinstance.FieldName,
+	}
 	getFields = applicationinstance.WithoutFields(
 		applicationinstance.FieldApplicationID,
 		applicationinstance.FieldUpdateTime)
@@ -95,6 +98,9 @@ var (
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ApplicationID(req.ApplicationID))
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
