@@ -46,10 +46,11 @@ func (h termStream) Read(p []byte) (n int, err error) {
 			}
 			return
 		}
-		// resize command is something like `#{"Width":100,"Height":100}#`.
-		if n >= 24 && p[0] == '#' && p[1] == '{' && p[n-3] == '}' && p[n-2] == '#' {
+		// resize command is something like `#{"width":100,"height":100}#`
+		// without ending \n(line feed) and \r(carriage return) chars.
+		if n >= 24 && p[0] == '#' && p[1] == '{' && p[n-2] == '}' && p[n-1] == '#' {
 			var ts termSize
-			if err = json.Unmarshal(p[1:n-2], &ts); err == nil && ts.Width > 0 && ts.Height > 0 {
+			if err = json.Unmarshal(p[1:n-1], &ts); err == nil && ts.Width > 0 && ts.Height > 0 {
 				h.resize <- ts
 			}
 			continue
