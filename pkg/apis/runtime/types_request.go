@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/gorilla/websocket"
 	"go.uber.org/multierr"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -16,16 +17,18 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-type RequestCollection struct {
-	RequestQuerying   `query:",inline"`
-	RequestSorting    `query:",inline"`
-	RequestPagination `query:",inline"`
+type RequestCollection[T ~func(*sql.Selector)] struct {
+	RequestQuerying[T] `query:",inline"`
+	RequestSorting     `query:",inline"`
+	RequestPagination  `query:",inline"`
+	RequestExtracting  `query:",inline"`
 }
 
-func (r RequestCollection) Validate() (err error) {
+func (r RequestCollection[T]) Validate() (err error) {
 	var validates = []func() error{
 		r.RequestQuerying.Validate,
 		r.RequestSorting.Validate,
+		r.RequestExtracting.Validate,
 	}
 	for i := range validates {
 		if multierr.AppendInto(&err, validates[i]()) {
@@ -264,18 +267,38 @@ func (r RequestExtracting) ExtractingSet(allowFields []string, defaultFields ...
 	return sets.New[string](fields...)
 }
 
-type RequestQuerying struct {
+type RequestQuerying[T ~func(s *sql.Selector)] struct {
 	// Query specifies the content to search some preset fields,
 	// it's a case-insenstive fuzzy filter,
 	// i.e. /v1/repositories?query=repo%2Fname.
 	Query *string `query:"query,omitempty"`
 }
 
-func (r RequestQuerying) Validate() error {
+func (r RequestQuerying[T]) Validate() error {
 	if r.Query != nil && strings.TrimSpace(*r.Query) == "" {
 		return errors.New("blank query value is not allowed")
 	}
 	return nil
+}
+
+// Querying returns an OR predicate with the given search fields,
+// returns false if there is no query requesting.
+func (r RequestQuerying[T]) Querying(searchFields []string) (T, bool) {
+	if r.Query == nil || len(searchFields) == 0 {
+		return nil, false
+	}
+	var p = func(s *sql.Selector) {
+		var q = make([]*sql.Predicate, 0, len(searchFields))
+		for _, f := range searchFields {
+			q = append(q, sql.ContainsFold(s.C(f), *r.Query))
+		}
+		if len(q) == 1 {
+			s.Where(q[0])
+		} else {
+			s.Where(sql.Or(q...))
+		}
+	}
+	return p, true
 }
 
 type RequestOperating struct {
