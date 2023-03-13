@@ -96,8 +96,28 @@ func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, l
 			if multierr.AppendInto(&berr, err) {
 				continue
 			}
-			// TODO(thxCode): get status of the application resource.
-			_ = op
+			// get status of the application resource.
+			st, err := op.GetStatus(ctx, entities[i])
+			if err != nil {
+				berr = multierr.Append(berr, err)
+			}
+			if st == entities[i].Status {
+				// do not update if the status is same as previous.
+				continue
+			}
+			// update status of the application resource.
+			// TODO(thxCode): dig out the detail of status,
+			//   update to the status message.
+			err = in.modelClient.ApplicationResources().UpdateOne(entities[i]).
+				SetStatus(st).
+				Exec(ctx)
+			if err != nil {
+				if model.IsNotFound(err) {
+					// application resource has been deleted by other thread processing.
+					continue
+				}
+				berr = multierr.Append(berr, err)
+			}
 		}
 		return
 	}
