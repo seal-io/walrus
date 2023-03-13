@@ -7,6 +7,7 @@ import (
 
 	batch "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -80,7 +81,7 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 	}
 
 	// parse resources.
-	var rs, err = parseResources(ctx, op, res)
+	var rs, err = parseOperableResources(ctx, op, res)
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
@@ -93,28 +94,31 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 	// get pods of resources.
 	var ps []core.Pod
 	for _, r := range rs {
-		switch r.gvr.Resource {
+		switch r.Resource {
 		case "pods":
-			var p, err = op.getPod(ctx, r.ns, r.n)
+			var p, err = op.getPod(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
+			}
+			if p == nil {
+				continue
 			}
 			ps = append(ps, *p)
 		case "cronjobs":
-			var psp, err = op.getPodsOfCronJob(ctx, r.ns, r.n)
+			var psp, err = op.getPodsOfCronJob(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
-			if psp == nil || len(*psp) == 0 {
+			if psp == nil {
 				continue
 			}
 			ps = append(ps, *psp...)
 		default:
-			var psp, err = op.getPodsOfAny(ctx, r.gvr, r.ns, r.n)
+			var psp, err = op.getPodsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
-			if psp == nil || len(*psp) == 0 {
+			if psp == nil {
 				continue
 			}
 			ps = append(ps, *psp...)
@@ -135,8 +139,11 @@ func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) 
 	p, err := coreCli.Pods(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
 	if err != nil {
-		return nil, fmt.Errorf("error getting kubernetes %s/%s pod: %w",
-			ns, n, err)
+		if !kerrors.IsNotFound(err) {
+			return nil, fmt.Errorf("error getting kubernetes %s/%s pod: %w",
+				ns, n, err)
+		}
+		return nil, nil
 	}
 	return p, nil
 }
@@ -150,8 +157,11 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 	cj, err := batchCli.CronJobs(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
 	if err != nil {
-		return nil, fmt.Errorf("error getting kubernetes %s/%s cronjob: %w",
-			ns, n, err)
+		if !kerrors.IsNotFound(err) {
+			return nil, fmt.Errorf("error getting kubernetes %s/%s cronjob: %w",
+				ns, n, err)
+		}
+		return nil, nil
 	}
 
 	// fetch jobs in pagination and filter out.
@@ -194,8 +204,11 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 		pl, err = coreCli.Pods(ns).
 			List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // non quorum read
 		if err != nil {
-			return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
-				ns, ss, err)
+			if !kerrors.IsNotFound(err) {
+				return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
+					ns, ss, err)
+			}
+			continue
 		}
 		for j := 0; j < len(pl.Items); j++ {
 			ps = append(ps, pl.Items[j])
@@ -216,8 +229,11 @@ func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionReso
 	o, err := dynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
 	if err != nil {
-		return nil, fmt.Errorf("error getting kubernetes %s %s/%s: %w",
-			gvr.Resource, ns, n, err)
+		if !kerrors.IsNotFound(err) {
+			return nil, fmt.Errorf("error getting kubernetes %s %s/%s: %w",
+				gvr.Resource, ns, n, err)
+		}
+		return nil, nil
 	}
 	_, s, err := polymorphic.SelectorsForObject(o)
 	if err != nil {

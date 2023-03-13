@@ -9,10 +9,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// Terraform returns Convert to convert Terraform provider resource type to raw Kubernetes GVK/GVR.
-func Terraform() Convert {
+// Terraform returns Converter to convert Terraform provider resource type to raw Kubernetes GVK/GVR.
+func Terraform() Converter {
 	// singleton pattern.
-	return tc
+	return tfConvert
 }
 
 type terraformConvert struct {
@@ -30,7 +30,7 @@ func (c terraformConvert) GetGVR(alias string) (gvr schema.GroupVersionResource,
 	return
 }
 
-var tc = terraformConvert{
+var tfConvert = terraformConvert{
 	gvkm: map[string]schema.GroupVersionKind{},
 	gvrm: map[string]schema.GroupVersionResource{},
 }
@@ -38,7 +38,7 @@ var tc = terraformConvert{
 func init() {
 	// emit, transfer and record.
 	//
-	// only consider operable types,
+	// only consider operableEnforcer types,
 	// from https://registry.terraform.io/providers/hashicorp/kubernetes/2.18.1.
 	//
 	for _, alias := range []string{
@@ -73,7 +73,7 @@ func init() {
 			}
 			panic("it will never happen")
 		}()
-		tc.gvkm[alias] = gvk
-		tc.gvrm[alias], _ = meta.UnsafeGuessKindToResource(gvk)
+		tfConvert.gvkm[alias] = gvk
+		tfConvert.gvrm[alias], _ = meta.UnsafeGuessKindToResource(gvk)
 	}
 }

@@ -3,14 +3,13 @@ package platformk8s
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // resourceParsingError emits if the given model.ApplicationResource got deployer error.
@@ -28,48 +27,37 @@ func isResourceParsingError(err error) bool {
 
 // resource holds the GVR, namespace and name of a Kubernetes resource.
 type resource struct {
-	gvr schema.GroupVersionResource
-	ns  string
-	n   string
+	schema.GroupVersionResource
+
+	Namespace string
+	Name      string
 }
 
-// parseResources parse the given model.ApplicationResource to resource list.
-func parseResources(ctx context.Context, op Operator, res *model.ApplicationResource) ([]resource, error) {
+// parseOperableResources parse the given model.ApplicationResource to operable resource list.
+func parseOperableResources(ctx context.Context, op Operator, res *model.ApplicationResource) ([]resource, error) {
 	if res.DeployerType != types.DeployerTypeTF {
 		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
 
 	if res.Type == "helm_release" {
-		return parseResourcesOfHelm(ctx, op, res)
+		return parseOperableResourcesOfHelm(ctx, op, res)
 	}
 
 	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
 	if !ok {
 		return nil, nil
 	}
-	ns, n, ok := parseNamespacedName(res.Name)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse given resource name: %q", res.Name)
+	// only allow operable resource.
+	if !intercept.Operable().AllowGVR(gvr) {
+		return nil, nil
 	}
+	var ns, n = kube.ParseNamespacedName(res.Name)
 
 	var rs = make([]resource, 0, 1)
 	rs = append(rs, resource{
-		gvr: gvr,
-		ns:  ns,
-		n:   n,
+		GroupVersionResource: gvr,
+		Namespace:            ns,
+		Name:                 n,
 	})
 	return rs, nil
-}
-
-// parseNamespacedName parses the given string into {namespace, name},
-// returns false if not a valid namespaced name, e.g. kube-system/coredns.
-func parseNamespacedName(s string) (namespace, name string, ok bool) {
-	var ss = strings.SplitN(s, "/", 2)
-	ok = len(ss) == 2
-	if !ok {
-		return
-	}
-	namespace = ss[0]
-	name = ss[1]
-	return
 }
