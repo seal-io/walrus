@@ -22,6 +22,10 @@ type Operator interface {
 	// GetKeys returns keys from the given resource.
 	GetKeys(context.Context, *model.ApplicationResource) (*Keys, error)
 
+	// GetStatus gets status of the given resource,
+	// must returns "Unknown" if raises error.
+	GetStatus(context.Context, *model.ApplicationResource) (string, error)
+
 	// Log gets logs from the given key.
 	Log(context.Context, string, LogOptions) error
 
