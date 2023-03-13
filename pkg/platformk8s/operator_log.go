@@ -12,7 +12,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformk8s/key"
-	"github.com/seal-io/seal/pkg/platformk8s/pods"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Log implements operator.Operator.
@@ -33,14 +33,14 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
-	if !pods.IsContainerExisted(p, pods.Container{Type: ct, Name: cn}) {
+	if !kube.IsContainerExisted(p, kube.Container{Type: ct, Name: cn}) {
 		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
 
 	// stream.
 	var stmOpts = &core.PodLogOptions{
 		Container:    cn,
-		Follow:       pods.IsContainerRunning(p, pods.Container{Type: ct, Name: cn}),
+		Follow:       kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}),
 		Previous:     opts.Previous,
 		SinceSeconds: opts.SinceSeconds,
 		Timestamps:   opts.Timestamps,
