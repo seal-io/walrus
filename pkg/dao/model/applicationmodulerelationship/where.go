@@ -36,6 +36,11 @@ func ModuleID(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldModuleID, v))
 }
 
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldVersion, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldName, v))
@@ -254,6 +259,71 @@ func ModuleIDEqualFold(v string) predicate.ApplicationModuleRelationship {
 // ModuleIDContainsFold applies the ContainsFold predicate on the "module_id" field.
 func ModuleIDContainsFold(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldContainsFold(FieldModuleID, v))
+}
+
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldLTE(FieldVersion, v))
+}
+
+// VersionContains applies the Contains predicate on the "version" field.
+func VersionContains(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldContains(FieldVersion, v))
+}
+
+// VersionHasPrefix applies the HasPrefix predicate on the "version" field.
+func VersionHasPrefix(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldHasPrefix(FieldVersion, v))
+}
+
+// VersionHasSuffix applies the HasSuffix predicate on the "version" field.
+func VersionHasSuffix(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldHasSuffix(FieldVersion, v))
+}
+
+// VersionEqualFold applies the EqualFold predicate on the "version" field.
+func VersionEqualFold(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldEqualFold(FieldVersion, v))
+}
+
+// VersionContainsFold applies the ContainsFold predicate on the "version" field.
+func VersionContainsFold(v string) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldContainsFold(FieldVersion, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

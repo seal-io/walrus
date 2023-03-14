@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
@@ -30,6 +31,7 @@ type ModuleQuery struct {
 	inters           []Interceptor
 	predicates       []predicate.Module
 	withApplications *ApplicationModuleRelationshipQuery
+	withVersions     *ModuleVersionQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -86,6 +88,31 @@ func (mq *ModuleQuery) QueryApplications() *ApplicationModuleRelationshipQuery {
 		schemaConfig := mq.schemaConfig
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVersions chains the current query on the "versions" edge.
+func (mq *ModuleQuery) QueryVersions() *ModuleVersionQuery {
+	query := (&ModuleVersionClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, selector),
+			sqlgraph.To(moduleversion.Table, moduleversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.VersionsTable, module.VersionsColumn),
+		)
+		schemaConfig := mq.schemaConfig
+		step.To.Schema = schemaConfig.ModuleVersion
+		step.Edge.Schema = schemaConfig.ModuleVersion
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -285,6 +312,7 @@ func (mq *ModuleQuery) Clone() *ModuleQuery {
 		inters:           append([]Interceptor{}, mq.inters...),
 		predicates:       append([]predicate.Module{}, mq.predicates...),
 		withApplications: mq.withApplications.Clone(),
+		withVersions:     mq.withVersions.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
@@ -299,6 +327,17 @@ func (mq *ModuleQuery) WithApplications(opts ...func(*ApplicationModuleRelations
 		opt(query)
 	}
 	mq.withApplications = query
+	return mq
+}
+
+// WithVersions tells the query-builder to eager-load the nodes that are connected to
+// the "versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *ModuleQuery) WithVersions(opts ...func(*ModuleVersionQuery)) *ModuleQuery {
+	query := (&ModuleVersionClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withVersions = query
 	return mq
 }
 
@@ -380,8 +419,9 @@ func (mq *ModuleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Modul
 	var (
 		nodes       = []*Module{}
 		_spec       = mq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			mq.withApplications != nil,
+			mq.withVersions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -416,6 +456,13 @@ func (mq *ModuleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Modul
 			return nil, err
 		}
 	}
+	if query := mq.withVersions; query != nil {
+		if err := mq.loadVersions(ctx, query, nodes,
+			func(n *Module) { n.Edges.Versions = []*ModuleVersion{} },
+			func(n *Module, e *ModuleVersion) { n.Edges.Versions = append(n.Edges.Versions, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -441,6 +488,33 @@ func (mq *ModuleQuery) loadApplications(ctx context.Context, query *ApplicationM
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "module_id" returned %v for node %v`, fk, n)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (mq *ModuleQuery) loadVersions(ctx context.Context, query *ModuleVersionQuery, nodes []*Module, init func(*Module), assign func(*Module, *ModuleVersion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Module)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.ModuleVersion(func(s *sql.Selector) {
+		s.Where(sql.InValues(module.VersionsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ModuleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "moduleID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

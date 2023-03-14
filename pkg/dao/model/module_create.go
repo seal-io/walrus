@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -124,30 +125,25 @@ func (mc *ModuleCreate) SetSource(s string) *ModuleCreate {
 	return mc
 }
 
-// SetVersion sets the "version" field.
-func (mc *ModuleCreate) SetVersion(s string) *ModuleCreate {
-	mc.mutation.SetVersion(s)
-	return mc
-}
-
-// SetNillableVersion sets the "version" field if the given value is not nil.
-func (mc *ModuleCreate) SetNillableVersion(s *string) *ModuleCreate {
-	if s != nil {
-		mc.SetVersion(*s)
-	}
-	return mc
-}
-
-// SetSchema sets the "schema" field.
-func (mc *ModuleCreate) SetSchema(ts *types.ModuleSchema) *ModuleCreate {
-	mc.mutation.SetSchema(ts)
-	return mc
-}
-
 // SetID sets the "id" field.
 func (mc *ModuleCreate) SetID(s string) *ModuleCreate {
 	mc.mutation.SetID(s)
 	return mc
+}
+
+// AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
+func (mc *ModuleCreate) AddVersionIDs(ids ...types.ID) *ModuleCreate {
+	mc.mutation.AddVersionIDs(ids...)
+	return mc
+}
+
+// AddVersions adds the "versions" edges to the ModuleVersion entity.
+func (mc *ModuleCreate) AddVersions(m ...*ModuleVersion) *ModuleCreate {
+	ids := make([]types.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mc.AddVersionIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
@@ -197,10 +193,6 @@ func (mc *ModuleCreate) defaults() {
 		v := module.DefaultLabels
 		mc.mutation.SetLabels(v)
 	}
-	if _, ok := mc.mutation.Schema(); !ok {
-		v := module.DefaultSchema
-		mc.mutation.SetSchema(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -221,9 +213,6 @@ func (mc *ModuleCreate) check() error {
 		if err := module.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Module.source": %w`, err)}
 		}
-	}
-	if _, ok := mc.mutation.Schema(); !ok {
-		return &ValidationError{Name: "schema", err: errors.New(`model: missing required field "Module.schema"`)}
 	}
 	if v, ok := mc.mutation.ID(); ok {
 		if err := module.IDValidator(v); err != nil {
@@ -299,13 +288,25 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 		_node.Source = value
 	}
-	if value, ok := mc.mutation.Version(); ok {
-		_spec.SetField(module.FieldVersion, field.TypeString, value)
-		_node.Version = value
-	}
-	if value, ok := mc.mutation.Schema(); ok {
-		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
-		_node.Schema = value
+	if nodes := mc.mutation.VersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = mc.schemaConfig.ModuleVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -464,36 +465,6 @@ func (u *ModuleUpsert) SetSource(v string) *ModuleUpsert {
 // UpdateSource sets the "source" field to the value that was provided on create.
 func (u *ModuleUpsert) UpdateSource() *ModuleUpsert {
 	u.SetExcluded(module.FieldSource)
-	return u
-}
-
-// SetVersion sets the "version" field.
-func (u *ModuleUpsert) SetVersion(v string) *ModuleUpsert {
-	u.Set(module.FieldVersion, v)
-	return u
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleUpsert) UpdateVersion() *ModuleUpsert {
-	u.SetExcluded(module.FieldVersion)
-	return u
-}
-
-// ClearVersion clears the value of the "version" field.
-func (u *ModuleUpsert) ClearVersion() *ModuleUpsert {
-	u.SetNull(module.FieldVersion)
-	return u
-}
-
-// SetSchema sets the "schema" field.
-func (u *ModuleUpsert) SetSchema(v *types.ModuleSchema) *ModuleUpsert {
-	u.Set(module.FieldSchema, v)
-	return u
-}
-
-// UpdateSchema sets the "schema" field to the value that was provided on create.
-func (u *ModuleUpsert) UpdateSchema() *ModuleUpsert {
-	u.SetExcluded(module.FieldSchema)
 	return u
 }
 
@@ -671,41 +642,6 @@ func (u *ModuleUpsertOne) SetSource(v string) *ModuleUpsertOne {
 func (u *ModuleUpsertOne) UpdateSource() *ModuleUpsertOne {
 	return u.Update(func(s *ModuleUpsert) {
 		s.UpdateSource()
-	})
-}
-
-// SetVersion sets the "version" field.
-func (u *ModuleUpsertOne) SetVersion(v string) *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.SetVersion(v)
-	})
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleUpsertOne) UpdateVersion() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateVersion()
-	})
-}
-
-// ClearVersion clears the value of the "version" field.
-func (u *ModuleUpsertOne) ClearVersion() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearVersion()
-	})
-}
-
-// SetSchema sets the "schema" field.
-func (u *ModuleUpsertOne) SetSchema(v *types.ModuleSchema) *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.SetSchema(v)
-	})
-}
-
-// UpdateSchema sets the "schema" field to the value that was provided on create.
-func (u *ModuleUpsertOne) UpdateSchema() *ModuleUpsertOne {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateSchema()
 	})
 }
 
@@ -1046,41 +982,6 @@ func (u *ModuleUpsertBulk) SetSource(v string) *ModuleUpsertBulk {
 func (u *ModuleUpsertBulk) UpdateSource() *ModuleUpsertBulk {
 	return u.Update(func(s *ModuleUpsert) {
 		s.UpdateSource()
-	})
-}
-
-// SetVersion sets the "version" field.
-func (u *ModuleUpsertBulk) SetVersion(v string) *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.SetVersion(v)
-	})
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleUpsertBulk) UpdateVersion() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateVersion()
-	})
-}
-
-// ClearVersion clears the value of the "version" field.
-func (u *ModuleUpsertBulk) ClearVersion() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.ClearVersion()
-	})
-}
-
-// SetSchema sets the "schema" field.
-func (u *ModuleUpsertBulk) SetSchema(v *types.ModuleSchema) *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.SetSchema(v)
-	})
-}
-
-// UpdateSchema sets the "schema" field to the value that was provided on create.
-func (u *ModuleUpsertBulk) UpdateSchema() *ModuleUpsertBulk {
-	return u.Update(func(s *ModuleUpsert) {
-		s.UpdateSchema()
 	})
 }
 

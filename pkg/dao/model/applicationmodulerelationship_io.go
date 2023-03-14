@@ -32,6 +32,8 @@ func (in ApplicationModuleRelationshipQueryInput) Model() *ApplicationModuleRela
 
 // ApplicationModuleRelationshipCreateInput is the input for the ApplicationModuleRelationship creation.
 type ApplicationModuleRelationshipCreateInput struct {
+	// Version of the module to which the relationship connects.
+	Version string `json:"version"`
 	// Name of the module customized to the application.
 	Name string `json:"name"`
 	// Attributes to configure the module.
@@ -45,6 +47,7 @@ type ApplicationModuleRelationshipCreateInput struct {
 // Model converts the ApplicationModuleRelationshipCreateInput to ApplicationModuleRelationship.
 func (in ApplicationModuleRelationshipCreateInput) Model() *ApplicationModuleRelationship {
 	var entity = &ApplicationModuleRelationship{
+		Version:    in.Version,
 		Name:       in.Name,
 		Attributes: in.Attributes,
 	}
@@ -84,6 +87,8 @@ type ApplicationModuleRelationshipOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Version of the module to which the relationship connects.
+	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
@@ -101,6 +106,7 @@ func ExposeApplicationModuleRelationship(in *ApplicationModuleRelationship) *App
 		Name:        in.Name,
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
+		Version:     in.Version,
 		Attributes:  in.Attributes,
 		Application: ExposeApplication(in.Edges.Application),
 		Module:      ExposeModule(in.Edges.Module),

@@ -144,6 +144,18 @@ func (f ModuleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleMutation", m)
 }
 
+// The ModuleVersionFunc type is an adapter to allow the use of ordinary
+// function as ModuleVersion mutator.
+type ModuleVersionFunc func(context.Context, *model.ModuleVersionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModuleVersionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ModuleVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleVersionMutation", m)
+}
+
 // The PerspectiveFunc type is an adapter to allow the use of ordinary
 // function as Perspective mutator.
 type PerspectiveFunc func(context.Context, *model.PerspectiveMutation) (model.Value, error)

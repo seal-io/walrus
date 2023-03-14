@@ -21,6 +21,7 @@ type SchemaConfig struct {
 	Environment                      string // Environment table.
 	EnvironmentConnectorRelationship string // EnvironmentConnectorRelationship table.
 	Module                           string // Module table.
+	ModuleVersion                    string // ModuleVersion table.
 	Perspective                      string // Perspective table.
 	Project                          string // Project table.
 	Role                             string // Role table.

@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
@@ -57,6 +58,7 @@ const (
 	TypeEnvironment                      = "Environment"
 	TypeEnvironmentConnectorRelationship = "EnvironmentConnectorRelationship"
 	TypeModule                           = "Module"
+	TypeModuleVersion                    = "ModuleVersion"
 	TypePerspective                      = "Perspective"
 	TypeProject                          = "Project"
 	TypeRole                             = "Role"
@@ -4505,6 +4507,7 @@ type ApplicationModuleRelationshipMutation struct {
 	typ                string
 	createTime         *time.Time
 	updateTime         *time.Time
+	version            *string
 	name               *string
 	attributes         *map[string]interface{}
 	clearedFields      map[string]struct{}
@@ -4629,6 +4632,25 @@ func (m *ApplicationModuleRelationshipMutation) ModuleID() (r string, exists boo
 // ResetModuleID resets all changes to the "module_id" field.
 func (m *ApplicationModuleRelationshipMutation) ResetModuleID() {
 	m.module = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *ApplicationModuleRelationshipMutation) SetVersion(s string) {
+	m.version = &s
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *ApplicationModuleRelationshipMutation) Version() (r string, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *ApplicationModuleRelationshipMutation) ResetVersion() {
+	m.version = nil
 }
 
 // SetName sets the "name" field.
@@ -4768,7 +4790,7 @@ func (m *ApplicationModuleRelationshipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationModuleRelationshipMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.createTime != nil {
 		fields = append(fields, applicationmodulerelationship.FieldCreateTime)
 	}
@@ -4780,6 +4802,9 @@ func (m *ApplicationModuleRelationshipMutation) Fields() []string {
 	}
 	if m.module != nil {
 		fields = append(fields, applicationmodulerelationship.FieldModuleID)
+	}
+	if m.version != nil {
+		fields = append(fields, applicationmodulerelationship.FieldVersion)
 	}
 	if m.name != nil {
 		fields = append(fields, applicationmodulerelationship.FieldName)
@@ -4803,6 +4828,8 @@ func (m *ApplicationModuleRelationshipMutation) Field(name string) (ent.Value, b
 		return m.ApplicationID()
 	case applicationmodulerelationship.FieldModuleID:
 		return m.ModuleID()
+	case applicationmodulerelationship.FieldVersion:
+		return m.Version()
 	case applicationmodulerelationship.FieldName:
 		return m.Name()
 	case applicationmodulerelationship.FieldAttributes:
@@ -4850,6 +4877,13 @@ func (m *ApplicationModuleRelationshipMutation) SetField(name string, value ent.
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModuleID(v)
+		return nil
+	case applicationmodulerelationship.FieldVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
 		return nil
 	case applicationmodulerelationship.FieldName:
 		v, ok := value.(string)
@@ -4934,6 +4968,9 @@ func (m *ApplicationModuleRelationshipMutation) ResetField(name string) error {
 		return nil
 	case applicationmodulerelationship.FieldModuleID:
 		m.ResetModuleID()
+		return nil
+	case applicationmodulerelationship.FieldVersion:
+		m.ResetVersion()
 		return nil
 	case applicationmodulerelationship.FieldName:
 		m.ResetName()
@@ -11119,23 +11156,24 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetEdge(name string) error 
 // ModuleMutation represents an operation that mutates the Module nodes in the graph.
 type ModuleMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	status        *string
-	statusMessage *string
-	createTime    *time.Time
-	updateTime    *time.Time
-	description   *string
-	icon          *string
-	labels        *map[string]string
-	source        *string
-	version       *string
-	schema        **types.ModuleSchema
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Module, error)
-	predicates    []predicate.Module
+	op              Op
+	typ             string
+	id              *string
+	status          *string
+	statusMessage   *string
+	createTime      *time.Time
+	updateTime      *time.Time
+	description     *string
+	icon            *string
+	labels          *map[string]string
+	source          *string
+	clearedFields   map[string]struct{}
+	versions        map[types.ID]struct{}
+	removedversions map[types.ID]struct{}
+	clearedversions bool
+	done            bool
+	oldValue        func(context.Context) (*Module, error)
+	predicates      []predicate.Module
 }
 
 var _ ent.Mutation = (*ModuleMutation)(nil)
@@ -11582,89 +11620,58 @@ func (m *ModuleMutation) ResetSource() {
 	m.source = nil
 }
 
-// SetVersion sets the "version" field.
-func (m *ModuleMutation) SetVersion(s string) {
-	m.version = &s
-}
-
-// Version returns the value of the "version" field in the mutation.
-func (m *ModuleMutation) Version() (r string, exists bool) {
-	v := m.version
-	if v == nil {
-		return
+// AddVersionIDs adds the "versions" edge to the ModuleVersion entity by ids.
+func (m *ModuleMutation) AddVersionIDs(ids ...types.ID) {
+	if m.versions == nil {
+		m.versions = make(map[types.ID]struct{})
 	}
-	return *v, true
-}
-
-// OldVersion returns the old "version" field's value of the Module entity.
-// If the Module object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModuleMutation) OldVersion(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	for i := range ids {
+		m.versions[ids[i]] = struct{}{}
 	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVersion requires an ID field in the mutation")
+}
+
+// ClearVersions clears the "versions" edge to the ModuleVersion entity.
+func (m *ModuleMutation) ClearVersions() {
+	m.clearedversions = true
+}
+
+// VersionsCleared reports if the "versions" edge to the ModuleVersion entity was cleared.
+func (m *ModuleMutation) VersionsCleared() bool {
+	return m.clearedversions
+}
+
+// RemoveVersionIDs removes the "versions" edge to the ModuleVersion entity by IDs.
+func (m *ModuleMutation) RemoveVersionIDs(ids ...types.ID) {
+	if m.removedversions == nil {
+		m.removedversions = make(map[types.ID]struct{})
 	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	for i := range ids {
+		delete(m.versions, ids[i])
+		m.removedversions[ids[i]] = struct{}{}
 	}
-	return oldValue.Version, nil
 }
 
-// ClearVersion clears the value of the "version" field.
-func (m *ModuleMutation) ClearVersion() {
-	m.version = nil
-	m.clearedFields[module.FieldVersion] = struct{}{}
-}
-
-// VersionCleared returns if the "version" field was cleared in this mutation.
-func (m *ModuleMutation) VersionCleared() bool {
-	_, ok := m.clearedFields[module.FieldVersion]
-	return ok
-}
-
-// ResetVersion resets all changes to the "version" field.
-func (m *ModuleMutation) ResetVersion() {
-	m.version = nil
-	delete(m.clearedFields, module.FieldVersion)
-}
-
-// SetSchema sets the "schema" field.
-func (m *ModuleMutation) SetSchema(ts *types.ModuleSchema) {
-	m.schema = &ts
-}
-
-// Schema returns the value of the "schema" field in the mutation.
-func (m *ModuleMutation) Schema() (r *types.ModuleSchema, exists bool) {
-	v := m.schema
-	if v == nil {
-		return
+// RemovedVersions returns the removed IDs of the "versions" edge to the ModuleVersion entity.
+func (m *ModuleMutation) RemovedVersionsIDs() (ids []types.ID) {
+	for id := range m.removedversions {
+		ids = append(ids, id)
 	}
-	return *v, true
+	return
 }
 
-// OldSchema returns the old "schema" field's value of the Module entity.
-// If the Module object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ModuleMutation) OldSchema(ctx context.Context) (v *types.ModuleSchema, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
+// VersionsIDs returns the "versions" edge IDs in the mutation.
+func (m *ModuleMutation) VersionsIDs() (ids []types.ID) {
+	for id := range m.versions {
+		ids = append(ids, id)
 	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSchema requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSchema: %w", err)
-	}
-	return oldValue.Schema, nil
+	return
 }
 
-// ResetSchema resets all changes to the "schema" field.
-func (m *ModuleMutation) ResetSchema() {
-	m.schema = nil
+// ResetVersions resets all changes to the "versions" edge.
+func (m *ModuleMutation) ResetVersions() {
+	m.versions = nil
+	m.clearedversions = false
+	m.removedversions = nil
 }
 
 // Where appends a list predicates to the ModuleMutation builder.
@@ -11701,7 +11708,7 @@ func (m *ModuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModuleMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 8)
 	if m.status != nil {
 		fields = append(fields, module.FieldStatus)
 	}
@@ -11725,12 +11732,6 @@ func (m *ModuleMutation) Fields() []string {
 	}
 	if m.source != nil {
 		fields = append(fields, module.FieldSource)
-	}
-	if m.version != nil {
-		fields = append(fields, module.FieldVersion)
-	}
-	if m.schema != nil {
-		fields = append(fields, module.FieldSchema)
 	}
 	return fields
 }
@@ -11756,10 +11757,6 @@ func (m *ModuleMutation) Field(name string) (ent.Value, bool) {
 		return m.Labels()
 	case module.FieldSource:
 		return m.Source()
-	case module.FieldVersion:
-		return m.Version()
-	case module.FieldSchema:
-		return m.Schema()
 	}
 	return nil, false
 }
@@ -11785,10 +11782,6 @@ func (m *ModuleMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldLabels(ctx)
 	case module.FieldSource:
 		return m.OldSource(ctx)
-	case module.FieldVersion:
-		return m.OldVersion(ctx)
-	case module.FieldSchema:
-		return m.OldSchema(ctx)
 	}
 	return nil, fmt.Errorf("unknown Module field %s", name)
 }
@@ -11854,20 +11847,6 @@ func (m *ModuleMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSource(v)
 		return nil
-	case module.FieldVersion:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetVersion(v)
-		return nil
-	case module.FieldSchema:
-		v, ok := value.(*types.ModuleSchema)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSchema(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Module field %s", name)
 }
@@ -11910,9 +11889,6 @@ func (m *ModuleMutation) ClearedFields() []string {
 	if m.FieldCleared(module.FieldIcon) {
 		fields = append(fields, module.FieldIcon)
 	}
-	if m.FieldCleared(module.FieldVersion) {
-		fields = append(fields, module.FieldVersion)
-	}
 	return fields
 }
 
@@ -11938,9 +11914,6 @@ func (m *ModuleMutation) ClearField(name string) error {
 		return nil
 	case module.FieldIcon:
 		m.ClearIcon()
-		return nil
-	case module.FieldVersion:
-		m.ClearVersion()
 		return nil
 	}
 	return fmt.Errorf("unknown Module nullable field %s", name)
@@ -11974,62 +11947,747 @@ func (m *ModuleMutation) ResetField(name string) error {
 	case module.FieldSource:
 		m.ResetSource()
 		return nil
-	case module.FieldVersion:
-		m.ResetVersion()
-		return nil
-	case module.FieldSchema:
-		m.ResetSchema()
-		return nil
 	}
 	return fmt.Errorf("unknown Module field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ModuleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.versions != nil {
+		edges = append(edges, module.EdgeVersions)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ModuleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case module.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.versions))
+		for id := range m.versions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ModuleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedversions != nil {
+		edges = append(edges, module.EdgeVersions)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ModuleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case module.EdgeVersions:
+		ids := make([]ent.Value, 0, len(m.removedversions))
+		for id := range m.removedversions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ModuleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedversions {
+		edges = append(edges, module.EdgeVersions)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ModuleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case module.EdgeVersions:
+		return m.clearedversions
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ModuleMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Module unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ModuleMutation) ResetEdge(name string) error {
+	switch name {
+	case module.EdgeVersions:
+		m.ResetVersions()
+		return nil
+	}
 	return fmt.Errorf("unknown Module edge %s", name)
+}
+
+// ModuleVersionMutation represents an operation that mutates the ModuleVersion nodes in the graph.
+type ModuleVersionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *types.ID
+	createTime    *time.Time
+	updateTime    *time.Time
+	version       *string
+	source        *string
+	schema        **types.ModuleSchema
+	clearedFields map[string]struct{}
+	module        *string
+	clearedmodule bool
+	done          bool
+	oldValue      func(context.Context) (*ModuleVersion, error)
+	predicates    []predicate.ModuleVersion
+}
+
+var _ ent.Mutation = (*ModuleVersionMutation)(nil)
+
+// moduleVersionOption allows management of the mutation configuration using functional options.
+type moduleVersionOption func(*ModuleVersionMutation)
+
+// newModuleVersionMutation creates new mutation for the ModuleVersion entity.
+func newModuleVersionMutation(c config, op Op, opts ...moduleVersionOption) *ModuleVersionMutation {
+	m := &ModuleVersionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModuleVersion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModuleVersionID sets the ID field of the mutation.
+func withModuleVersionID(id types.ID) moduleVersionOption {
+	return func(m *ModuleVersionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ModuleVersion
+		)
+		m.oldValue = func(ctx context.Context) (*ModuleVersion, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ModuleVersion.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModuleVersion sets the old ModuleVersion of the mutation.
+func withModuleVersion(node *ModuleVersion) moduleVersionOption {
+	return func(m *ModuleVersionMutation) {
+		m.oldValue = func(context.Context) (*ModuleVersion, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModuleVersionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModuleVersionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("model: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ModuleVersion entities.
+func (m *ModuleVersionMutation) SetID(id types.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModuleVersionMutation) ID() (id types.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ModuleVersionMutation) IDs(ctx context.Context) ([]types.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []types.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ModuleVersion.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "createTime" field.
+func (m *ModuleVersionMutation) SetCreateTime(t time.Time) {
+	m.createTime = &t
+}
+
+// CreateTime returns the value of the "createTime" field in the mutation.
+func (m *ModuleVersionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.createTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "createTime" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "createTime" field.
+func (m *ModuleVersionMutation) ResetCreateTime() {
+	m.createTime = nil
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (m *ModuleVersionMutation) SetUpdateTime(t time.Time) {
+	m.updateTime = &t
+}
+
+// UpdateTime returns the value of the "updateTime" field in the mutation.
+func (m *ModuleVersionMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.updateTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "updateTime" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "updateTime" field.
+func (m *ModuleVersionMutation) ResetUpdateTime() {
+	m.updateTime = nil
+}
+
+// SetModuleID sets the "moduleID" field.
+func (m *ModuleVersionMutation) SetModuleID(s string) {
+	m.module = &s
+}
+
+// ModuleID returns the value of the "moduleID" field in the mutation.
+func (m *ModuleVersionMutation) ModuleID() (r string, exists bool) {
+	v := m.module
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModuleID returns the old "moduleID" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldModuleID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModuleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModuleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModuleID: %w", err)
+	}
+	return oldValue.ModuleID, nil
+}
+
+// ResetModuleID resets all changes to the "moduleID" field.
+func (m *ModuleVersionMutation) ResetModuleID() {
+	m.module = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *ModuleVersionMutation) SetVersion(s string) {
+	m.version = &s
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *ModuleVersionMutation) Version() (r string, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *ModuleVersionMutation) ResetVersion() {
+	m.version = nil
+}
+
+// SetSource sets the "source" field.
+func (m *ModuleVersionMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *ModuleVersionMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *ModuleVersionMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetSchema sets the "schema" field.
+func (m *ModuleVersionMutation) SetSchema(ts *types.ModuleSchema) {
+	m.schema = &ts
+}
+
+// Schema returns the value of the "schema" field in the mutation.
+func (m *ModuleVersionMutation) Schema() (r *types.ModuleSchema, exists bool) {
+	v := m.schema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchema returns the old "schema" field's value of the ModuleVersion entity.
+// If the ModuleVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModuleVersionMutation) OldSchema(ctx context.Context) (v *types.ModuleSchema, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchema: %w", err)
+	}
+	return oldValue.Schema, nil
+}
+
+// ResetSchema resets all changes to the "schema" field.
+func (m *ModuleVersionMutation) ResetSchema() {
+	m.schema = nil
+}
+
+// ClearModule clears the "module" edge to the Module entity.
+func (m *ModuleVersionMutation) ClearModule() {
+	m.clearedmodule = true
+}
+
+// ModuleCleared reports if the "module" edge to the Module entity was cleared.
+func (m *ModuleVersionMutation) ModuleCleared() bool {
+	return m.clearedmodule
+}
+
+// ModuleIDs returns the "module" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModuleID instead. It exists only for internal usage by the builders.
+func (m *ModuleVersionMutation) ModuleIDs() (ids []string) {
+	if id := m.module; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModule resets all changes to the "module" edge.
+func (m *ModuleVersionMutation) ResetModule() {
+	m.module = nil
+	m.clearedmodule = false
+}
+
+// Where appends a list predicates to the ModuleVersionMutation builder.
+func (m *ModuleVersionMutation) Where(ps ...predicate.ModuleVersion) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ModuleVersionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ModuleVersionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ModuleVersion, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ModuleVersionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ModuleVersionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ModuleVersion).
+func (m *ModuleVersionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModuleVersionMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.createTime != nil {
+		fields = append(fields, moduleversion.FieldCreateTime)
+	}
+	if m.updateTime != nil {
+		fields = append(fields, moduleversion.FieldUpdateTime)
+	}
+	if m.module != nil {
+		fields = append(fields, moduleversion.FieldModuleID)
+	}
+	if m.version != nil {
+		fields = append(fields, moduleversion.FieldVersion)
+	}
+	if m.source != nil {
+		fields = append(fields, moduleversion.FieldSource)
+	}
+	if m.schema != nil {
+		fields = append(fields, moduleversion.FieldSchema)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModuleVersionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case moduleversion.FieldCreateTime:
+		return m.CreateTime()
+	case moduleversion.FieldUpdateTime:
+		return m.UpdateTime()
+	case moduleversion.FieldModuleID:
+		return m.ModuleID()
+	case moduleversion.FieldVersion:
+		return m.Version()
+	case moduleversion.FieldSource:
+		return m.Source()
+	case moduleversion.FieldSchema:
+		return m.Schema()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModuleVersionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case moduleversion.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case moduleversion.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case moduleversion.FieldModuleID:
+		return m.OldModuleID(ctx)
+	case moduleversion.FieldVersion:
+		return m.OldVersion(ctx)
+	case moduleversion.FieldSource:
+		return m.OldSource(ctx)
+	case moduleversion.FieldSchema:
+		return m.OldSchema(ctx)
+	}
+	return nil, fmt.Errorf("unknown ModuleVersion field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleVersionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case moduleversion.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case moduleversion.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case moduleversion.FieldModuleID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModuleID(v)
+		return nil
+	case moduleversion.FieldVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case moduleversion.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case moduleversion.FieldSchema:
+		v, ok := value.(*types.ModuleSchema)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchema(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleVersion field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModuleVersionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModuleVersionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModuleVersionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ModuleVersion numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModuleVersionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModuleVersionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModuleVersionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ModuleVersion nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModuleVersionMutation) ResetField(name string) error {
+	switch name {
+	case moduleversion.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case moduleversion.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case moduleversion.FieldModuleID:
+		m.ResetModuleID()
+		return nil
+	case moduleversion.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case moduleversion.FieldSource:
+		m.ResetSource()
+		return nil
+	case moduleversion.FieldSchema:
+		m.ResetSchema()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleVersion field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModuleVersionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.module != nil {
+		edges = append(edges, moduleversion.EdgeModule)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModuleVersionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case moduleversion.EdgeModule:
+		if id := m.module; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModuleVersionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModuleVersionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModuleVersionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedmodule {
+		edges = append(edges, moduleversion.EdgeModule)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModuleVersionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case moduleversion.EdgeModule:
+		return m.clearedmodule
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModuleVersionMutation) ClearEdge(name string) error {
+	switch name {
+	case moduleversion.EdgeModule:
+		m.ClearModule()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleVersion unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModuleVersionMutation) ResetEdge(name string) error {
+	switch name {
+	case moduleversion.EdgeModule:
+		m.ResetModule()
+		return nil
+	}
+	return fmt.Errorf("unknown ModuleVersion edge %s", name)
 }
 
 // PerspectiveMutation represents an operation that mutates the Perspective nodes in the graph.

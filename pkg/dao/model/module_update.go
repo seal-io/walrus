@@ -17,6 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -133,35 +134,45 @@ func (mu *ModuleUpdate) SetSource(s string) *ModuleUpdate {
 	return mu
 }
 
-// SetVersion sets the "version" field.
-func (mu *ModuleUpdate) SetVersion(s string) *ModuleUpdate {
-	mu.mutation.SetVersion(s)
+// AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
+func (mu *ModuleUpdate) AddVersionIDs(ids ...types.ID) *ModuleUpdate {
+	mu.mutation.AddVersionIDs(ids...)
 	return mu
 }
 
-// SetNillableVersion sets the "version" field if the given value is not nil.
-func (mu *ModuleUpdate) SetNillableVersion(s *string) *ModuleUpdate {
-	if s != nil {
-		mu.SetVersion(*s)
+// AddVersions adds the "versions" edges to the ModuleVersion entity.
+func (mu *ModuleUpdate) AddVersions(m ...*ModuleVersion) *ModuleUpdate {
+	ids := make([]types.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return mu
-}
-
-// ClearVersion clears the value of the "version" field.
-func (mu *ModuleUpdate) ClearVersion() *ModuleUpdate {
-	mu.mutation.ClearVersion()
-	return mu
-}
-
-// SetSchema sets the "schema" field.
-func (mu *ModuleUpdate) SetSchema(ts *types.ModuleSchema) *ModuleUpdate {
-	mu.mutation.SetSchema(ts)
-	return mu
+	return mu.AddVersionIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
 func (mu *ModuleUpdate) Mutation() *ModuleMutation {
 	return mu.mutation
+}
+
+// ClearVersions clears all "versions" edges to the ModuleVersion entity.
+func (mu *ModuleUpdate) ClearVersions() *ModuleUpdate {
+	mu.mutation.ClearVersions()
+	return mu
+}
+
+// RemoveVersionIDs removes the "versions" edge to ModuleVersion entities by IDs.
+func (mu *ModuleUpdate) RemoveVersionIDs(ids ...types.ID) *ModuleUpdate {
+	mu.mutation.RemoveVersionIDs(ids...)
+	return mu
+}
+
+// RemoveVersions removes "versions" edges to ModuleVersion entities.
+func (mu *ModuleUpdate) RemoveVersions(m ...*ModuleVersion) *ModuleUpdate {
+	ids := make([]types.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveVersionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -261,14 +272,62 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
-	if value, ok := mu.mutation.Version(); ok {
-		_spec.SetField(module.FieldVersion, field.TypeString, value)
+	if mu.mutation.VersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ModuleVersion
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if mu.mutation.VersionCleared() {
-		_spec.ClearField(module.FieldVersion, field.TypeString)
+	if nodes := mu.mutation.RemovedVersionsIDs(); len(nodes) > 0 && !mu.mutation.VersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ModuleVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := mu.mutation.Schema(); ok {
-		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
+	if nodes := mu.mutation.VersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = mu.schemaConfig.ModuleVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = mu.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, mu.schemaConfig)
@@ -392,35 +451,45 @@ func (muo *ModuleUpdateOne) SetSource(s string) *ModuleUpdateOne {
 	return muo
 }
 
-// SetVersion sets the "version" field.
-func (muo *ModuleUpdateOne) SetVersion(s string) *ModuleUpdateOne {
-	muo.mutation.SetVersion(s)
+// AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
+func (muo *ModuleUpdateOne) AddVersionIDs(ids ...types.ID) *ModuleUpdateOne {
+	muo.mutation.AddVersionIDs(ids...)
 	return muo
 }
 
-// SetNillableVersion sets the "version" field if the given value is not nil.
-func (muo *ModuleUpdateOne) SetNillableVersion(s *string) *ModuleUpdateOne {
-	if s != nil {
-		muo.SetVersion(*s)
+// AddVersions adds the "versions" edges to the ModuleVersion entity.
+func (muo *ModuleUpdateOne) AddVersions(m ...*ModuleVersion) *ModuleUpdateOne {
+	ids := make([]types.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return muo
-}
-
-// ClearVersion clears the value of the "version" field.
-func (muo *ModuleUpdateOne) ClearVersion() *ModuleUpdateOne {
-	muo.mutation.ClearVersion()
-	return muo
-}
-
-// SetSchema sets the "schema" field.
-func (muo *ModuleUpdateOne) SetSchema(ts *types.ModuleSchema) *ModuleUpdateOne {
-	muo.mutation.SetSchema(ts)
-	return muo
+	return muo.AddVersionIDs(ids...)
 }
 
 // Mutation returns the ModuleMutation object of the builder.
 func (muo *ModuleUpdateOne) Mutation() *ModuleMutation {
 	return muo.mutation
+}
+
+// ClearVersions clears all "versions" edges to the ModuleVersion entity.
+func (muo *ModuleUpdateOne) ClearVersions() *ModuleUpdateOne {
+	muo.mutation.ClearVersions()
+	return muo
+}
+
+// RemoveVersionIDs removes the "versions" edge to ModuleVersion entities by IDs.
+func (muo *ModuleUpdateOne) RemoveVersionIDs(ids ...types.ID) *ModuleUpdateOne {
+	muo.mutation.RemoveVersionIDs(ids...)
+	return muo
+}
+
+// RemoveVersions removes "versions" edges to ModuleVersion entities.
+func (muo *ModuleUpdateOne) RemoveVersions(m ...*ModuleVersion) *ModuleUpdateOne {
+	ids := make([]types.ID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveVersionIDs(ids...)
 }
 
 // Where appends a list predicates to the ModuleUpdate builder.
@@ -550,14 +619,62 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 	if value, ok := muo.mutation.Source(); ok {
 		_spec.SetField(module.FieldSource, field.TypeString, value)
 	}
-	if value, ok := muo.mutation.Version(); ok {
-		_spec.SetField(module.FieldVersion, field.TypeString, value)
+	if muo.mutation.VersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ModuleVersion
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if muo.mutation.VersionCleared() {
-		_spec.ClearField(module.FieldVersion, field.TypeString)
+	if nodes := muo.mutation.RemovedVersionsIDs(); len(nodes) > 0 && !muo.mutation.VersionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ModuleVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := muo.mutation.Schema(); ok {
-		_spec.SetField(module.FieldSchema, field.TypeJSON, value)
+	if nodes := muo.mutation.VersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   module.VersionsTable,
+			Columns: []string{module.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: moduleversion.FieldID,
+				},
+			},
+		}
+		edge.Schema = muo.schemaConfig.ModuleVersion
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = muo.schemaConfig.Module
 	ctx = internal.NewSchemaConfigContext(ctx, muo.schemaConfig)

@@ -30,6 +30,8 @@ type ApplicationModuleRelationship struct {
 	ApplicationID types.ID `json:"applicationID"`
 	// ID of the module to which the relationship connects.
 	ModuleID string `json:"moduleID"`
+	// Version of the module to which the relationship connects.
+	Version string `json:"version,omitempty"`
 	// Name of the module customized to the application.
 	Name string `json:"name,omitempty"`
 	// Attributes to configure the module.
@@ -83,7 +85,7 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 		switch columns[i] {
 		case applicationmodulerelationship.FieldAttributes:
 			values[i] = new([]byte)
-		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldName:
+		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldVersion, applicationmodulerelationship.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationmodulerelationship.FieldCreateTime, applicationmodulerelationship.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -129,6 +131,12 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 				return fmt.Errorf("unexpected type %T for field module_id", values[i])
 			} else if value.Valid {
 				amr.ModuleID = value.String
+			}
+		case applicationmodulerelationship.FieldVersion:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				amr.Version = value.String
 			}
 		case applicationmodulerelationship.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -196,6 +204,9 @@ func (amr *ApplicationModuleRelationship) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("module_id=")
 	builder.WriteString(amr.ModuleID)
+	builder.WriteString(", ")
+	builder.WriteString("version=")
+	builder.WriteString(amr.Version)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(amr.Name)

@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -64,6 +65,8 @@ type Client struct {
 	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
+	// ModuleVersion is the client for interacting with the ModuleVersion builders.
+	ModuleVersion *ModuleVersionClient
 	// Perspective is the client for interacting with the Perspective builders.
 	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
@@ -100,6 +103,7 @@ func (c *Client) init() {
 	c.Environment = NewEnvironmentClient(c.config)
 	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
 	c.Module = NewModuleClient(c.config)
+	c.ModuleVersion = NewModuleVersionClient(c.config)
 	c.Perspective = NewPerspectiveClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -150,6 +154,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Module:                           NewModuleClient(cfg),
+		ModuleVersion:                    NewModuleVersionClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -186,6 +191,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Module:                           NewModuleClient(cfg),
+		ModuleVersion:                    NewModuleVersionClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -231,6 +237,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Environment.Use(hooks...)
 	c.EnvironmentConnectorRelationship.Use(hooks...)
 	c.Module.Use(hooks...)
+	c.ModuleVersion.Use(hooks...)
 	c.Perspective.Use(hooks...)
 	c.Project.Use(hooks...)
 	c.Role.Use(hooks...)
@@ -253,6 +260,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Environment.Intercept(interceptors...)
 	c.EnvironmentConnectorRelationship.Intercept(interceptors...)
 	c.Module.Intercept(interceptors...)
+	c.ModuleVersion.Intercept(interceptors...)
 	c.Perspective.Intercept(interceptors...)
 	c.Project.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
@@ -314,6 +322,11 @@ func (c *Client) EnvironmentConnectorRelationships() *EnvironmentConnectorRelati
 // Modules implements the ClientSet.
 func (c *Client) Modules() *ModuleClient {
 	return c.Module
+}
+
+// ModuleVersions implements the ClientSet.
+func (c *Client) ModuleVersions() *ModuleVersionClient {
+	return c.ModuleVersion
 }
 
 // Perspectives implements the ClientSet.
@@ -409,6 +422,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EnvironmentConnectorRelationship.mutate(ctx, m)
 	case *ModuleMutation:
 		return c.Module.mutate(ctx, m)
+	case *ModuleVersionMutation:
+		return c.ModuleVersion.mutate(ctx, m)
 	case *PerspectiveMutation:
 		return c.Perspective.mutate(ctx, m)
 	case *ProjectMutation:
@@ -2071,6 +2086,25 @@ func (c *ModuleClient) QueryApplications(m *Module) *ApplicationModuleRelationsh
 	return query
 }
 
+// QueryVersions queries the versions edge of a Module.
+func (c *ModuleClient) QueryVersions(m *Module) *ModuleVersionQuery {
+	query := (&ModuleVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(module.Table, module.FieldID, id),
+			sqlgraph.To(moduleversion.Table, moduleversion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, module.VersionsTable, module.VersionsColumn),
+		)
+		schemaConfig := m.schemaConfig
+		step.To.Schema = schemaConfig.ModuleVersion
+		step.Edge.Schema = schemaConfig.ModuleVersion
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ModuleClient) Hooks() []Hook {
 	return c.hooks.Module
@@ -2093,6 +2127,144 @@ func (c *ModuleClient) mutate(ctx context.Context, m *ModuleMutation) (Value, er
 		return (&ModuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Module mutation op: %q", m.Op())
+	}
+}
+
+// ModuleVersionClient is a client for the ModuleVersion schema.
+type ModuleVersionClient struct {
+	config
+}
+
+// NewModuleVersionClient returns a client for the ModuleVersion from the given config.
+func NewModuleVersionClient(c config) *ModuleVersionClient {
+	return &ModuleVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `moduleversion.Hooks(f(g(h())))`.
+func (c *ModuleVersionClient) Use(hooks ...Hook) {
+	c.hooks.ModuleVersion = append(c.hooks.ModuleVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `moduleversion.Intercept(f(g(h())))`.
+func (c *ModuleVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ModuleVersion = append(c.inters.ModuleVersion, interceptors...)
+}
+
+// Create returns a builder for creating a ModuleVersion entity.
+func (c *ModuleVersionClient) Create() *ModuleVersionCreate {
+	mutation := newModuleVersionMutation(c.config, OpCreate)
+	return &ModuleVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModuleVersion entities.
+func (c *ModuleVersionClient) CreateBulk(builders ...*ModuleVersionCreate) *ModuleVersionCreateBulk {
+	return &ModuleVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModuleVersion.
+func (c *ModuleVersionClient) Update() *ModuleVersionUpdate {
+	mutation := newModuleVersionMutation(c.config, OpUpdate)
+	return &ModuleVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModuleVersionClient) UpdateOne(mv *ModuleVersion) *ModuleVersionUpdateOne {
+	mutation := newModuleVersionMutation(c.config, OpUpdateOne, withModuleVersion(mv))
+	return &ModuleVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModuleVersionClient) UpdateOneID(id types.ID) *ModuleVersionUpdateOne {
+	mutation := newModuleVersionMutation(c.config, OpUpdateOne, withModuleVersionID(id))
+	return &ModuleVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModuleVersion.
+func (c *ModuleVersionClient) Delete() *ModuleVersionDelete {
+	mutation := newModuleVersionMutation(c.config, OpDelete)
+	return &ModuleVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ModuleVersionClient) DeleteOne(mv *ModuleVersion) *ModuleVersionDeleteOne {
+	return c.DeleteOneID(mv.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ModuleVersionClient) DeleteOneID(id types.ID) *ModuleVersionDeleteOne {
+	builder := c.Delete().Where(moduleversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModuleVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for ModuleVersion.
+func (c *ModuleVersionClient) Query() *ModuleVersionQuery {
+	return &ModuleVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeModuleVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ModuleVersion entity by its id.
+func (c *ModuleVersionClient) Get(ctx context.Context, id types.ID) (*ModuleVersion, error) {
+	return c.Query().Where(moduleversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModuleVersionClient) GetX(ctx context.Context, id types.ID) *ModuleVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModule queries the module edge of a ModuleVersion.
+func (c *ModuleVersionClient) QueryModule(mv *ModuleVersion) *ModuleQuery {
+	query := (&ModuleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := mv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(moduleversion.Table, moduleversion.FieldID, id),
+			sqlgraph.To(module.Table, module.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, moduleversion.ModuleTable, moduleversion.ModuleColumn),
+		)
+		schemaConfig := mv.schemaConfig
+		step.To.Schema = schemaConfig.Module
+		step.Edge.Schema = schemaConfig.ModuleVersion
+		fromV = sqlgraph.Neighbors(mv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModuleVersionClient) Hooks() []Hook {
+	hooks := c.hooks.ModuleVersion
+	return append(hooks[:len(hooks):len(hooks)], moduleversion.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ModuleVersionClient) Interceptors() []Interceptor {
+	return c.inters.ModuleVersion
+}
+
+func (c *ModuleVersionClient) mutate(ctx context.Context, m *ModuleVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ModuleVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ModuleVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ModuleVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ModuleVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ModuleVersion mutation op: %q", m.Op())
 	}
 }
 
