@@ -13,6 +13,11 @@ const (
 	ProviderHelm = "helm"
 )
 
+// _providersToValidate if the required providers contains any
+// of the _providersToValidates, it must be contained of the
+// generated Blocks labels.
+var _providersToValidate []string
+
 // _providerConvertors mutate the connector to provider block.
 var _providerConvertors = make(map[string]Convertor, 0)
 
@@ -27,9 +32,9 @@ func init() {
 		HelmConvertor{},
 		// add more convertors
 	}
-
 	for _, c := range convertors {
 		_providerConvertors[c.ProviderType()] = c
+		_providersToValidate = append(_providersToValidate, c.ProviderType())
 	}
 }
 
@@ -85,7 +90,8 @@ func ToProviderBlocks(providers []string, connectors model.Connectors, createOpt
 	return blocks, nil
 }
 
-// validateRequiredProviders validates blocks contains all required providers.
+// validateRequiredProviders if providers contains elements of _providersToValidate,
+// then the elements both in providers and _providersToValidate need to be checked.
 func validateRequiredProviders(providers []string, blocks Blocks) bool {
 	var blockProviders []string
 	for _, b := range blocks {
@@ -97,20 +103,33 @@ func validateRequiredProviders(providers []string, blocks Blocks) bool {
 	}
 
 	currentProvidersSet := sets.NewString(blockProviders...)
-	return currentProvidersSet.HasAll(providers...)
+	// get the intersection of the required providers and the providers to validate.
+	requiredProviderSet := sets.NewString(providers...)
+	providersToValidateSet := sets.NewString(_providersToValidate...)
+	intersectionProviders := requiredProviderSet.Intersection(providersToValidateSet)
+
+	return currentProvidersSet.IsSuperset(intersectionProviders)
 }
 
 // ToModuleBlock returns module block for the given module and variables.
-func ToModuleBlock(m *model.Module, attributes map[string]interface{}) *Block {
+func ToModuleBlock(mc *ModuleConfig) (*Block, error) {
 	var block Block
-	attributes["source"] = m.Source
-	block = Block{
-		Type:       BlockTypeModule,
-		Labels:     []string{m.ID},
-		Attributes: attributes,
+	if mc == nil || mc.Module == nil {
+		return nil, fmt.Errorf("module config error")
 	}
 
-	return &block
+	if mc.Attributes == nil {
+		mc.Attributes = make(map[string]interface{}, 0)
+	}
+
+	mc.Attributes["source"] = mc.Module.Source
+	block = Block{
+		Type:       BlockTypeModule,
+		Labels:     []string{mc.Name},
+		Attributes: mc.Attributes,
+	}
+
+	return &block, nil
 }
 
 // GetSecretK8sConfigName returns the secret config name for the given connector.

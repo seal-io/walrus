@@ -8,11 +8,14 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/utils/bytespool"
+	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
 
 // ModuleConfig is a struct with model.Module and its variables.
 type ModuleConfig struct {
+	// Name is the name of the app module relationship.
+	Name   string
 	Module *model.Module
 	// Attributes is the attributes of the module.
 	Attributes map[string]interface{}
@@ -275,7 +278,7 @@ func loadProviderBlocks(opts CreateOptions) (Blocks, error) {
 }
 
 // loadModuleBlocks returns config modules to get terraform module config block.
-func loadModuleBlocks(moduleBlocks []*ModuleConfig, providers Blocks) Blocks {
+func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 	var (
 		blocks       Blocks
 		providersMap = make(map[string]interface{})
@@ -294,8 +297,12 @@ func loadModuleBlocks(moduleBlocks []*ModuleConfig, providers Blocks) Blocks {
 
 		providersMap[name] = fmt.Sprintf("$${%s.%s}", name, alias)
 	}
-	for _, m := range moduleBlocks {
-		block := ToModuleBlock(m.Module, m.Attributes)
+	for _, mc := range moduleConfigs {
+		block, err := ToModuleBlock(mc)
+		if err != nil {
+			log.WithName("platformtf").WithName("config").Warnf("get module block failed, %w", mc)
+			continue
+		}
 		// inject providers alias to the module
 		block.Attributes["providers"] = providersMap
 		blocks = append(blocks, block)

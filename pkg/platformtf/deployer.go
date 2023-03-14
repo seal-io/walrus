@@ -411,6 +411,7 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 		}
 
 		moduleConfig := &config.ModuleConfig{
+			Name:       m.Name,
 			Module:     mod,
 			Attributes: m.Attributes,
 		}
