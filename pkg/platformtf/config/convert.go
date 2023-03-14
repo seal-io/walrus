@@ -114,15 +114,15 @@ func validateRequiredProviders(providers []string, blocks Blocks) bool {
 // ToModuleBlock returns module block for the given module and variables.
 func ToModuleBlock(mc *ModuleConfig) (*Block, error) {
 	var block Block
-	if mc == nil || mc.Module == nil {
-		return nil, fmt.Errorf("module config error")
+	if mc == nil || mc.ModuleVersion == nil {
+		return nil, fmt.Errorf("invalid module config: blank")
 	}
 
 	if mc.Attributes == nil {
 		mc.Attributes = make(map[string]interface{}, 0)
 	}
 
-	mc.Attributes["source"] = mc.Module.Source
+	mc.Attributes["source"] = mc.ModuleVersion.Source
 	block = Block{
 		Type:       BlockTypeModule,
 		Labels:     []string{mc.Name},

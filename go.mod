@@ -16,6 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-getter v1.7.0
+	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.13.0
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20230201191712-8cad743c8c26
 	github.com/lib/pq v1.10.7
@@ -159,7 +160,6 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
-	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect

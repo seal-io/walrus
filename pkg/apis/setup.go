@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/group"
 	"github.com/seal-io/seal/pkg/apis/health"
 	"github.com/seal-io/seal/pkg/apis/module"
+	"github.com/seal-io/seal/pkg/apis/moduleversion"
 	"github.com/seal-io/seal/pkg/apis/openapi"
 	"github.com/seal-io/seal/pkg/apis/perspective"
 	"github.com/seal-io/seal/pkg/apis/project"
@@ -93,6 +94,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, user.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, moduleversion.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, environment.Handle(opts.ModelClient))
 	}

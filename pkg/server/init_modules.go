@@ -45,6 +45,12 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		return err
 	}
 	for i := range creates {
+		_, err = opts.ModelClient.Modules().Get(ctx, builtin[i].ID)
+		if err != nil && !model.IsNotFound(err) {
+			return err
+		} else if err == nil {
+			continue
+		}
 		err = creates[i].
 			OnConflict(
 				sql.ConflictColumns(
@@ -54,7 +60,6 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			Update(func(upsert *model.ModuleUpsert) {
 				upsert.UpdateDescription()
 				upsert.UpdateSource()
-				upsert.UpdateVersion()
 			}).
 			Exec(ctx)
 		if err != nil {

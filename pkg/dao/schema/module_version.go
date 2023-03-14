@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )

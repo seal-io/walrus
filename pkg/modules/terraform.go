@@ -3,16 +3,20 @@ package modules
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
+	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/files"
@@ -28,21 +32,156 @@ const (
 	attributeGroup   = "group"
 	attributeOptions = "options"
 	attributeShowIf  = "show_if"
+
+	defaultModuleVersion = "0.0.0"
 )
 
-func loadTerraformModuleSchema(source string) (*types.ModuleSchema, error) {
-	tmpDir := filepath.Join(os.TempDir(), "seal-module-"+strs.String(10))
-	defer os.RemoveAll(tmpDir)
+// SyncSchema fetches a remote module and updates the module schema in the background.
+func SyncSchema(ctx context.Context, message module.BusMessage) error {
+	gopool.Go(func() {
+		if err := syncSchema(ctx, message); err != nil {
+			mod := message.Refer
+			mod.Status = status.Error
+			mod.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
+			update, updateErr := dao.ModuleUpdate(message.ModelClient, mod)
+			if updateErr != nil {
+				log.Errorf("failed to prepare module update: %v", updateErr)
+				return
+			}
+			if updateErr = update.Exec(ctx); updateErr != nil {
+				log.Errorf("failed to update module %s: %v", mod.ID, updateErr)
+			}
+		}
+	})
+	return nil
+}
 
-	if err := getter.Get(tmpDir, source); err != nil {
+func syncSchema(ctx context.Context, message module.BusMessage) error {
+	mod := message.Refer
+
+	log.Debugf("syncing schema for module %s", message.Refer.ID)
+
+	versions, err := loadTerraformModuleVersions(mod)
+	if err != nil {
+		return err
+	}
+
+	return message.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
+		// clean up previous module versions if there's any.
+		if _, err := tx.ModuleVersions().Delete().Where(moduleversion.ModuleID(mod.ID)).Exec(ctx); err != nil {
+			return err
+		}
+
+		creates, err := dao.ModuleVersionCreates(tx, versions...)
+		if err != nil {
+			return err
+		}
+
+		for _, c := range creates {
+			if _, err = c.Save(ctx); err != nil {
+				return err
+			}
+		}
+
+		mod.Status = status.Ready
+		update, err := dao.ModuleUpdate(message.ModelClient, mod)
+		if err != nil {
+			return err
+		}
+
+		return update.Exec(ctx)
+	})
+}
+
+func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error) {
+	mRoot := filepath.Join(os.TempDir(), "seal-module-"+strs.String(10))
+	defer os.RemoveAll(mRoot)
+
+	if err := getter.Get(mRoot, m.Source); err != nil {
 		return nil, err
 	}
-	mod, diags := tfconfig.LoadModule(tmpDir)
+
+	versions, err := getVersionsFromRoot(mRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := url.Parse(m.Source)
+	if err != nil {
+		return nil, err
+	}
+	modulePath := u.Path
+	if len(versions) == 0 {
+		// try to load a module version from the root
+		// This keeps compatible with terraform git source
+		schema, err := loadTerraformModuleSchema(mRoot)
+		if err != nil {
+			return nil, err
+		}
+
+		v := u.Query().Get("ref")
+		if v == "" {
+			v = defaultModuleVersion
+		}
+
+		return []*model.ModuleVersion{
+			{
+				ModuleID: m.ID,
+				Source:   m.Source,
+				Version:  v,
+				Schema:   schema,
+			},
+		}, nil
+	}
+
+	// Support reading different module versions in subdirectory
+	var mvs []*model.ModuleVersion
+	for _, v := range versions {
+		schema, err := loadTerraformModuleSchema(filepath.Join(mRoot, v))
+		if err != nil {
+			return nil, err
+		}
+
+		// ModuleVersion.Source is the concatenation of Module.Source and Version
+		u.JoinPath(modulePath, v)
+		mvs = append(mvs, &model.ModuleVersion{
+			ModuleID: m.ID,
+			Source:   u.String(),
+			Version:  v,
+			Schema:   schema,
+		})
+	}
+
+	return mvs, nil
+}
+
+func getVersionsFromRoot(root string) ([]string, error) {
+	var versions []string
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		if _, err = version.NewVersion(entry.Name()); err != nil {
+			continue
+		}
+
+		versions = append(versions, entry.Name())
+	}
+	return versions, nil
+}
+
+func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
+	mod, diags := tfconfig.LoadModule(path)
 	if diags.HasErrors() {
 		return nil, diags.Err()
 	}
 
-	readme, err := getReadme(tmpDir)
+	readme, err := getReadme(path)
 	if err != nil {
 		return nil, err
 	}
@@ -149,50 +288,4 @@ func setTerraformVariableExtensions(variable *types.ModuleVariable, comments []s
 			}
 		}
 	}
-}
-
-// SyncSchema fetches a remote module and updates the module schema in the background.
-func SyncSchema(ctx context.Context, message module.BusMessage) error {
-	gopool.Go(func() {
-		if err := syncSchema(ctx, message); err != nil {
-			module := message.Refer
-			module.Status = status.Error
-			module.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
-			update, updateErr := dao.ModuleUpdate(message.ModelClient, module)
-			if updateErr != nil {
-				log.Errorf("failed to prepare module update: %v", updateErr)
-				return
-			}
-			if updateErr = update.Exec(ctx); updateErr != nil {
-				log.Errorf("failed to update module %s: %v", module.ID, updateErr)
-			}
-		}
-	})
-	return nil
-}
-
-func syncSchema(ctx context.Context, message module.BusMessage) error {
-	module := message.Refer
-
-	if module.Schema != nil {
-		// Short circuit when the schema is presented. To refresh the schema, set it to nil first.
-		return nil
-	}
-
-	log.Debugf("syncing schema for module %s", message.Refer.ID)
-
-	moduleSchema, err := loadTerraformModuleSchema(module.Source)
-	if err != nil {
-		return err
-	}
-
-	module.Schema = moduleSchema
-	module.Status = status.Ready
-
-	update, err := dao.ModuleUpdate(message.ModelClient, module)
-	if err != nil {
-		return err
-	}
-
-	return update.Exec(ctx)
 }

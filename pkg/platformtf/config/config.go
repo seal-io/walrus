@@ -15,8 +15,8 @@ import (
 // ModuleConfig is a struct with model.Module and its variables.
 type ModuleConfig struct {
 	// Name is the name of the app module relationship.
-	Name   string
-	Module *model.Module
+	Name          string
+	ModuleVersion *model.ModuleVersion
 	// Attributes is the attributes of the module.
 	Attributes map[string]interface{}
 }
