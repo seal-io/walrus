@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -208,8 +209,12 @@ func init() {
 	applicationmodulerelationshipDescModuleID := applicationmodulerelationshipFields[1].Descriptor()
 	// applicationmodulerelationship.ModuleIDValidator is a validator for the "module_id" field. It is called by the builders before save.
 	applicationmodulerelationship.ModuleIDValidator = applicationmodulerelationshipDescModuleID.Validators[0].(func(string) error)
+	// applicationmodulerelationshipDescVersion is the schema descriptor for version field.
+	applicationmodulerelationshipDescVersion := applicationmodulerelationshipFields[2].Descriptor()
+	// applicationmodulerelationship.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	applicationmodulerelationship.VersionValidator = applicationmodulerelationshipDescVersion.Validators[0].(func(string) error)
 	// applicationmodulerelationshipDescName is the schema descriptor for name field.
-	applicationmodulerelationshipDescName := applicationmodulerelationshipFields[2].Descriptor()
+	applicationmodulerelationshipDescName := applicationmodulerelationshipFields[3].Descriptor()
 	// applicationmodulerelationship.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	applicationmodulerelationship.NameValidator = applicationmodulerelationshipDescName.Validators[0].(func(string) error)
 	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
@@ -456,14 +461,35 @@ func init() {
 	moduleDescSource := moduleFields[4].Descriptor()
 	// module.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	module.SourceValidator = moduleDescSource.Validators[0].(func(string) error)
-	// moduleDescSchema is the schema descriptor for schema field.
-	moduleDescSchema := moduleFields[6].Descriptor()
-	// module.DefaultSchema holds the default value on creation for the schema field.
-	module.DefaultSchema = moduleDescSchema.Default.(*types.ModuleSchema)
 	// moduleDescID is the schema descriptor for id field.
 	moduleDescID := moduleFields[0].Descriptor()
 	// module.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	module.IDValidator = moduleDescID.Validators[0].(func(string) error)
+	moduleversionMixin := schema.ModuleVersion{}.Mixin()
+	moduleversionMixinHooks0 := moduleversionMixin[0].Hooks()
+	moduleversion.Hooks[0] = moduleversionMixinHooks0[0]
+	moduleversionMixinFields1 := moduleversionMixin[1].Fields()
+	_ = moduleversionMixinFields1
+	moduleversionFields := schema.ModuleVersion{}.Fields()
+	_ = moduleversionFields
+	// moduleversionDescCreateTime is the schema descriptor for createTime field.
+	moduleversionDescCreateTime := moduleversionMixinFields1[0].Descriptor()
+	// moduleversion.DefaultCreateTime holds the default value on creation for the createTime field.
+	moduleversion.DefaultCreateTime = moduleversionDescCreateTime.Default.(func() time.Time)
+	// moduleversionDescUpdateTime is the schema descriptor for updateTime field.
+	moduleversionDescUpdateTime := moduleversionMixinFields1[1].Descriptor()
+	// moduleversion.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	moduleversion.DefaultUpdateTime = moduleversionDescUpdateTime.Default.(func() time.Time)
+	// moduleversion.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	moduleversion.UpdateDefaultUpdateTime = moduleversionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// moduleversionDescModuleID is the schema descriptor for moduleID field.
+	moduleversionDescModuleID := moduleversionFields[0].Descriptor()
+	// moduleversion.ModuleIDValidator is a validator for the "moduleID" field. It is called by the builders before save.
+	moduleversion.ModuleIDValidator = moduleversionDescModuleID.Validators[0].(func(string) error)
+	// moduleversionDescSchema is the schema descriptor for schema field.
+	moduleversionDescSchema := moduleversionFields[3].Descriptor()
+	// moduleversion.DefaultSchema holds the default value on creation for the schema field.
+	moduleversion.DefaultSchema = moduleversionDescSchema.Default.(*types.ModuleSchema)
 	perspectiveMixin := schema.Perspective{}.Mixin()
 	perspectiveMixinHooks0 := perspectiveMixin[0].Hooks()
 	perspective.Hooks[0] = perspectiveMixinHooks0[0]

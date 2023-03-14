@@ -5,11 +5,7 @@
 
 package model
 
-import (
-	"time"
-
-	"github.com/seal-io/seal/pkg/dao/types"
-)
+import "time"
 
 // ModuleQueryInput is the input for the Module query.
 type ModuleQueryInput struct {
@@ -38,10 +34,6 @@ type ModuleCreateInput struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
 	Source string `json:"source"`
-	// Version of the module.
-	Version string `json:"version,omitempty"`
-	// Schema of the module.
-	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
 
 // Model converts the ModuleCreateInput to Module.
@@ -53,8 +45,6 @@ func (in ModuleCreateInput) Model() *Module {
 		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
-		Version:       in.Version,
-		Schema:        in.Schema,
 	}
 	return entity
 }
@@ -75,10 +65,6 @@ type ModuleUpdateInput struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
 	Source string `json:"source,omitempty"`
-	// Version of the module.
-	Version string `json:"version,omitempty"`
-	// Schema of the module.
-	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
 
 // Model converts the ModuleUpdateInput to Module.
@@ -91,8 +77,6 @@ func (in ModuleUpdateInput) Model() *Module {
 		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
-		Version:       in.Version,
-		Schema:        in.Schema,
 	}
 	return entity
 }
@@ -117,12 +101,10 @@ type ModuleOutput struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
 	Source string `json:"source,omitempty"`
-	// Version of the module.
-	Version string `json:"version,omitempty"`
-	// Schema of the module.
-	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Applications holds the value of the applications edge.
 	Applications []*ApplicationModuleRelationshipOutput `json:"applications,omitempty"`
+	// versions of the module.
+	Versions []*ModuleVersionOutput `json:"versions,omitempty"`
 }
 
 // ExposeModule converts the Module to ModuleOutput.
@@ -140,9 +122,8 @@ func ExposeModule(in *Module) *ModuleOutput {
 		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
-		Version:       in.Version,
-		Schema:        in.Schema,
 		Applications:  ExposeApplicationModuleRelationships(in.Edges.Applications),
+		Versions:      ExposeModuleVersions(in.Edges.Versions),
 	}
 	return entity
 }

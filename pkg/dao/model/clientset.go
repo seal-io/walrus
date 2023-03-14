@@ -42,6 +42,9 @@ type ClientSet interface {
 	// Modules returns the client for interacting with the Module builders.
 	Modules() *ModuleClient
 
+	// ModuleVersions returns the client for interacting with the ModuleVersion builders.
+	ModuleVersions() *ModuleVersionClient
+
 	// Perspectives returns the client for interacting with the Perspective builders.
 	Perspectives() *PerspectiveClient
 
@@ -132,6 +135,12 @@ type EnvironmentConnectorRelationshipClientGetter interface {
 type ModuleClientGetter interface {
 	// Modules returns the client for interacting with the Module builders.
 	Modules() *ModuleClient
+}
+
+// ModuleVersionClientGetter is an interface that allows getting ModuleVersionClient.
+type ModuleVersionClientGetter interface {
+	// ModuleVersions returns the client for interacting with the ModuleVersion builders.
+	ModuleVersions() *ModuleVersionClient
 }
 
 // PerspectiveClientGetter is an interface that allows getting PerspectiveClient.

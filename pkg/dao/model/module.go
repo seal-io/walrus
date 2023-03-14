@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Module is the model entity for the Module schema.
@@ -39,10 +38,6 @@ type Module struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the module.
 	Source string `json:"source,omitempty"`
-	// Version of the module.
-	Version string `json:"version,omitempty"`
-	// Schema of the module.
-	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleQuery when eager-loading is set.
 	Edges ModuleEdges `json:"edges,omitempty"`
@@ -52,9 +47,11 @@ type Module struct {
 type ModuleEdges struct {
 	// Applications holds the value of the applications edge.
 	Applications []*ApplicationModuleRelationship `json:"applications,omitempty"`
+	// versions of the module.
+	Versions []*ModuleVersion `json:"versions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ApplicationsOrErr returns the Applications value or an error if the edge
@@ -66,14 +63,23 @@ func (e ModuleEdges) ApplicationsOrErr() ([]*ApplicationModuleRelationship, erro
 	return nil, &NotLoadedError{edge: "applications"}
 }
 
+// VersionsOrErr returns the Versions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ModuleEdges) VersionsOrErr() ([]*ModuleVersion, error) {
+	if e.loadedTypes[1] {
+		return e.Versions, nil
+	}
+	return nil, &NotLoadedError{edge: "versions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Module) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case module.FieldLabels, module.FieldSchema:
+		case module.FieldLabels:
 			values[i] = new([]byte)
-		case module.FieldID, module.FieldStatus, module.FieldStatusMessage, module.FieldDescription, module.FieldIcon, module.FieldSource, module.FieldVersion:
+		case module.FieldID, module.FieldStatus, module.FieldStatusMessage, module.FieldDescription, module.FieldIcon, module.FieldSource:
 			values[i] = new(sql.NullString)
 		case module.FieldCreateTime, module.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -150,20 +156,6 @@ func (m *Module) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Source = value.String
 			}
-		case module.FieldVersion:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field version", values[i])
-			} else if value.Valid {
-				m.Version = value.String
-			}
-		case module.FieldSchema:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field schema", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &m.Schema); err != nil {
-					return fmt.Errorf("unmarshal field schema: %w", err)
-				}
-			}
 		}
 	}
 	return nil
@@ -172,6 +164,11 @@ func (m *Module) assignValues(columns []string, values []any) error {
 // QueryApplications queries the "applications" edge of the Module entity.
 func (m *Module) QueryApplications() *ApplicationModuleRelationshipQuery {
 	return NewModuleClient(m.config).QueryApplications(m)
+}
+
+// QueryVersions queries the "versions" edge of the Module entity.
+func (m *Module) QueryVersions() *ModuleVersionQuery {
+	return NewModuleClient(m.config).QueryVersions(m)
 }
 
 // Update returns a builder for updating this Module.
@@ -224,12 +221,6 @@ func (m *Module) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("source=")
 	builder.WriteString(m.Source)
-	builder.WriteString(", ")
-	builder.WriteString("version=")
-	builder.WriteString(m.Version)
-	builder.WriteString(", ")
-	builder.WriteString("schema=")
-	builder.WriteString(fmt.Sprintf("%v", m.Schema))
 	builder.WriteByte(')')
 	return builder.String()
 }

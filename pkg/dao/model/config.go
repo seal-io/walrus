@@ -49,6 +49,7 @@ type (
 		Environment                      []ent.Hook
 		EnvironmentConnectorRelationship []ent.Hook
 		Module                           []ent.Hook
+		ModuleVersion                    []ent.Hook
 		Perspective                      []ent.Hook
 		Project                          []ent.Hook
 		Role                             []ent.Hook
@@ -68,6 +69,7 @@ type (
 		Environment                      []ent.Interceptor
 		EnvironmentConnectorRelationship []ent.Interceptor
 		Module                           []ent.Interceptor
+		ModuleVersion                    []ent.Interceptor
 		Perspective                      []ent.Interceptor
 		Project                          []ent.Interceptor
 		Role                             []ent.Interceptor

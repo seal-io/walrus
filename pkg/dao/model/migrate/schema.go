@@ -155,6 +155,7 @@ var (
 	ApplicationModuleRelationshipsColumns = []*schema.Column{
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "version", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeJSON, Nullable: true},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -164,17 +165,17 @@ var (
 	ApplicationModuleRelationshipsTable = &schema.Table{
 		Name:       "application_module_relationships",
 		Columns:    ApplicationModuleRelationshipsColumns,
-		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[4], ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[2]},
+		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[6], ApplicationModuleRelationshipsColumns[3]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_module_relationships_applications_application",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[4]},
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_module_relationships_modules_module",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
+				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[6]},
 				RefColumns: []*schema.Column{ModulesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -408,8 +409,6 @@ var (
 		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
 		{Name: "source", Type: field.TypeString},
-		{Name: "version", Type: field.TypeString, Nullable: true},
-		{Name: "schema", Type: field.TypeJSON},
 	}
 	// ModulesTable holds the schema information for the "modules" table.
 	ModulesTable = &schema.Table{
@@ -421,6 +420,37 @@ var (
 				Name:    "module_update_time",
 				Unique:  false,
 				Columns: []*schema.Column{ModulesColumns[4]},
+			},
+		},
+	}
+	// ModuleVersionsColumns holds the columns for the "module_versions" table.
+	ModuleVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "version", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString},
+		{Name: "schema", Type: field.TypeJSON},
+		{Name: "module_id", Type: field.TypeString},
+	}
+	// ModuleVersionsTable holds the schema information for the "module_versions" table.
+	ModuleVersionsTable = &schema.Table{
+		Name:       "module_versions",
+		Columns:    ModuleVersionsColumns,
+		PrimaryKey: []*schema.Column{ModuleVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "module_versions_modules_versions",
+				Columns:    []*schema.Column{ModuleVersionsColumns[6]},
+				RefColumns: []*schema.Column{ModulesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "moduleversion_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{ModuleVersionsColumns[2]},
 			},
 		},
 	}
@@ -613,6 +643,7 @@ var (
 		EnvironmentsTable,
 		EnvironmentConnectorRelationshipsTable,
 		ModulesTable,
+		ModuleVersionsTable,
 		PerspectivesTable,
 		ProjectsTable,
 		RolesTable,
@@ -636,4 +667,5 @@ func init() {
 	ClusterCostsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
+	ModuleVersionsTable.ForeignKeys[0].RefTable = ModulesTable
 }

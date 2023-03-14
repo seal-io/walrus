@@ -26,6 +26,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -70,6 +71,7 @@ func columnChecker(table string) func(string) error {
 		environment.Table:                      environment.ValidColumn,
 		environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
 		module.Table:                           module.ValidColumn,
+		moduleversion.Table:                    moduleversion.ValidColumn,
 		perspective.Table:                      perspective.ValidColumn,
 		project.Table:                          project.ValidColumn,
 		role.Table:                             role.ValidColumn,

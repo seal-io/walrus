@@ -39,6 +39,8 @@ type Tx struct {
 	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
 	// Module is the client for interacting with the Module builders.
 	Module *ModuleClient
+	// ModuleVersion is the client for interacting with the ModuleVersion builders.
+	ModuleVersion *ModuleVersionClient
 	// Perspective is the client for interacting with the Perspective builders.
 	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
@@ -193,6 +195,7 @@ func (tx *Tx) init() {
 	tx.Environment = NewEnvironmentClient(tx.config)
 	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
 	tx.Module = NewModuleClient(tx.config)
+	tx.ModuleVersion = NewModuleVersionClient(tx.config)
 	tx.Perspective = NewPerspectiveClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
@@ -315,6 +318,11 @@ func (tx *Tx) EnvironmentConnectorRelationships() *EnvironmentConnectorRelations
 // Modules implements the ClientSet.
 func (tx *Tx) Modules() *ModuleClient {
 	return tx.Module
+}
+
+// ModuleVersions implements the ClientSet.
+func (tx *Tx) ModuleVersions() *ModuleVersionClient {
+	return tx.ModuleVersion
 }
 
 // Perspectives implements the ClientSet.

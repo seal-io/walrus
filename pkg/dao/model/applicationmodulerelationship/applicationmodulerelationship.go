@@ -20,6 +20,8 @@ const (
 	FieldApplicationID = "application_id"
 	// FieldModuleID holds the string denoting the module_id field in the database.
 	FieldModuleID = "module_id"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldAttributes holds the string denoting the attributes field in the database.
@@ -56,6 +58,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldApplicationID,
 	FieldModuleID,
+	FieldVersion,
 	FieldName,
 	FieldAttributes,
 }
@@ -81,6 +84,8 @@ var (
 	ApplicationIDValidator func(string) error
 	// ModuleIDValidator is a validator for the "module_id" field. It is called by the builders before save.
 	ModuleIDValidator func(string) error
+	// VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	VersionValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 )

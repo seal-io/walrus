@@ -42,6 +42,9 @@ type EnvironmentConnectorRelationship func(*sql.Selector)
 // Module is the predicate function for module builders.
 type Module func(*sql.Selector)
 
+// ModuleVersion is the predicate function for moduleversion builders.
+type ModuleVersion func(*sql.Selector)
+
 // Perspective is the predicate function for perspective builders.
 type Perspective func(*sql.Selector)
 

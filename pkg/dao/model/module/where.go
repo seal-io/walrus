@@ -95,11 +95,6 @@ func Source(v string) predicate.Module {
 	return predicate.Module(sql.FieldEQ(FieldSource, v))
 }
 
-// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
-func Version(v string) predicate.Module {
-	return predicate.Module(sql.FieldEQ(FieldVersion, v))
-}
-
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.Module {
 	return predicate.Module(sql.FieldEQ(FieldStatus, v))
@@ -545,81 +540,6 @@ func SourceContainsFold(v string) predicate.Module {
 	return predicate.Module(sql.FieldContainsFold(FieldSource, v))
 }
 
-// VersionEQ applies the EQ predicate on the "version" field.
-func VersionEQ(v string) predicate.Module {
-	return predicate.Module(sql.FieldEQ(FieldVersion, v))
-}
-
-// VersionNEQ applies the NEQ predicate on the "version" field.
-func VersionNEQ(v string) predicate.Module {
-	return predicate.Module(sql.FieldNEQ(FieldVersion, v))
-}
-
-// VersionIn applies the In predicate on the "version" field.
-func VersionIn(vs ...string) predicate.Module {
-	return predicate.Module(sql.FieldIn(FieldVersion, vs...))
-}
-
-// VersionNotIn applies the NotIn predicate on the "version" field.
-func VersionNotIn(vs ...string) predicate.Module {
-	return predicate.Module(sql.FieldNotIn(FieldVersion, vs...))
-}
-
-// VersionGT applies the GT predicate on the "version" field.
-func VersionGT(v string) predicate.Module {
-	return predicate.Module(sql.FieldGT(FieldVersion, v))
-}
-
-// VersionGTE applies the GTE predicate on the "version" field.
-func VersionGTE(v string) predicate.Module {
-	return predicate.Module(sql.FieldGTE(FieldVersion, v))
-}
-
-// VersionLT applies the LT predicate on the "version" field.
-func VersionLT(v string) predicate.Module {
-	return predicate.Module(sql.FieldLT(FieldVersion, v))
-}
-
-// VersionLTE applies the LTE predicate on the "version" field.
-func VersionLTE(v string) predicate.Module {
-	return predicate.Module(sql.FieldLTE(FieldVersion, v))
-}
-
-// VersionContains applies the Contains predicate on the "version" field.
-func VersionContains(v string) predicate.Module {
-	return predicate.Module(sql.FieldContains(FieldVersion, v))
-}
-
-// VersionHasPrefix applies the HasPrefix predicate on the "version" field.
-func VersionHasPrefix(v string) predicate.Module {
-	return predicate.Module(sql.FieldHasPrefix(FieldVersion, v))
-}
-
-// VersionHasSuffix applies the HasSuffix predicate on the "version" field.
-func VersionHasSuffix(v string) predicate.Module {
-	return predicate.Module(sql.FieldHasSuffix(FieldVersion, v))
-}
-
-// VersionIsNil applies the IsNil predicate on the "version" field.
-func VersionIsNil() predicate.Module {
-	return predicate.Module(sql.FieldIsNull(FieldVersion))
-}
-
-// VersionNotNil applies the NotNil predicate on the "version" field.
-func VersionNotNil() predicate.Module {
-	return predicate.Module(sql.FieldNotNull(FieldVersion))
-}
-
-// VersionEqualFold applies the EqualFold predicate on the "version" field.
-func VersionEqualFold(v string) predicate.Module {
-	return predicate.Module(sql.FieldEqualFold(FieldVersion, v))
-}
-
-// VersionContainsFold applies the ContainsFold predicate on the "version" field.
-func VersionContainsFold(v string) predicate.Module {
-	return predicate.Module(sql.FieldContainsFold(FieldVersion, v))
-}
-
 // HasApplications applies the HasEdge predicate on the "applications" edge.
 func HasApplications() predicate.Module {
 	return predicate.Module(func(s *sql.Selector) {
@@ -645,6 +565,39 @@ func HasApplicationsWith(preds ...predicate.ApplicationModuleRelationship) predi
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasVersions applies the HasEdge predicate on the "versions" edge.
+func HasVersions() predicate.Module {
+	return predicate.Module(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ModuleVersion
+		step.Edge.Schema = schemaConfig.ModuleVersion
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVersionsWith applies the HasEdge predicate on the "versions" edge with a given conditions (other predicates).
+func HasVersionsWith(preds ...predicate.ModuleVersion) predicate.Module {
+	return predicate.Module(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(VersionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ModuleVersion
+		step.Edge.Schema = schemaConfig.ModuleVersion
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

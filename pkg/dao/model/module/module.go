@@ -7,8 +7,6 @@ package module
 
 import (
 	"time"
-
-	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -32,12 +30,10 @@ const (
 	FieldLabels = "labels"
 	// FieldSource holds the string denoting the source field in the database.
 	FieldSource = "source"
-	// FieldVersion holds the string denoting the version field in the database.
-	FieldVersion = "version"
-	// FieldSchema holds the string denoting the schema field in the database.
-	FieldSchema = "schema"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
 	EdgeApplications = "applications"
+	// EdgeVersions holds the string denoting the versions edge name in mutations.
+	EdgeVersions = "versions"
 	// Table holds the table name of the module in the database.
 	Table = "modules"
 	// ApplicationsTable is the table that holds the applications relation/edge.
@@ -47,6 +43,13 @@ const (
 	ApplicationsInverseTable = "application_module_relationships"
 	// ApplicationsColumn is the table column denoting the applications relation/edge.
 	ApplicationsColumn = "module_id"
+	// VersionsTable is the table that holds the versions relation/edge.
+	VersionsTable = "module_versions"
+	// VersionsInverseTable is the table name for the ModuleVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "moduleversion" package.
+	VersionsInverseTable = "module_versions"
+	// VersionsColumn is the table column denoting the versions relation/edge.
+	VersionsColumn = "module_id"
 )
 
 // Columns holds all SQL columns for module fields.
@@ -60,8 +63,6 @@ var Columns = []string{
 	FieldIcon,
 	FieldLabels,
 	FieldSource,
-	FieldVersion,
-	FieldSchema,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -85,8 +86,6 @@ var (
 	DefaultLabels map[string]string
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	SourceValidator func(string) error
-	// DefaultSchema holds the default value on creation for the "schema" field.
-	DefaultSchema *types.ModuleSchema
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )

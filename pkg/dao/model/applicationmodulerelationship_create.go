@@ -69,6 +69,12 @@ func (amrc *ApplicationModuleRelationshipCreate) SetModuleID(s string) *Applicat
 	return amrc
 }
 
+// SetVersion sets the "version" field.
+func (amrc *ApplicationModuleRelationshipCreate) SetVersion(s string) *ApplicationModuleRelationshipCreate {
+	amrc.mutation.SetVersion(s)
+	return amrc
+}
+
 // SetName sets the "name" field.
 func (amrc *ApplicationModuleRelationshipCreate) SetName(s string) *ApplicationModuleRelationshipCreate {
 	amrc.mutation.SetName(s)
@@ -160,6 +166,14 @@ func (amrc *ApplicationModuleRelationshipCreate) check() error {
 			return &ValidationError{Name: "module_id", err: fmt.Errorf(`model: validator failed for field "ApplicationModuleRelationship.module_id": %w`, err)}
 		}
 	}
+	if _, ok := amrc.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`model: missing required field "ApplicationModuleRelationship.version"`)}
+	}
+	if v, ok := amrc.mutation.Version(); ok {
+		if err := applicationmodulerelationship.VersionValidator(v); err != nil {
+			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "ApplicationModuleRelationship.version": %w`, err)}
+		}
+	}
 	if _, ok := amrc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "ApplicationModuleRelationship.name"`)}
 	}
@@ -205,6 +219,10 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 	if value, ok := amrc.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
+	}
+	if value, ok := amrc.mutation.Version(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldVersion, field.TypeString, value)
+		_node.Version = value
 	}
 	if value, ok := amrc.mutation.Name(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldName, field.TypeString, value)
@@ -357,6 +375,9 @@ func (u *ApplicationModuleRelationshipUpsertOne) UpdateNewValues() *ApplicationM
 		}
 		if _, exists := u.create.mutation.ModuleID(); exists {
 			s.SetIgnore(applicationmodulerelationship.FieldModuleID)
+		}
+		if _, exists := u.create.mutation.Version(); exists {
+			s.SetIgnore(applicationmodulerelationship.FieldVersion)
 		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(applicationmodulerelationship.FieldName)
@@ -584,6 +605,9 @@ func (u *ApplicationModuleRelationshipUpsertBulk) UpdateNewValues() *Application
 			}
 			if _, exists := b.mutation.ModuleID(); exists {
 				s.SetIgnore(applicationmodulerelationship.FieldModuleID)
+			}
+			if _, exists := b.mutation.Version(); exists {
+				s.SetIgnore(applicationmodulerelationship.FieldVersion)
 			}
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(applicationmodulerelationship.FieldName)
