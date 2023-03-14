@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/id"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type ApplicationModuleRelationship struct {
@@ -29,7 +29,7 @@ func (ApplicationModuleRelationship) Annotations() []ents.Annotation {
 
 func (ApplicationModuleRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("application_id").
+		oid.Field("application_id").
 			Comment("ID of the application to which the relationship connects.").
 			StructTag(`json:"applicationID"`).
 			NotEmpty().

@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/id"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type ApplicationResource struct {
@@ -31,11 +31,11 @@ func (ApplicationResource) Indexes() []ent.Index {
 
 func (ApplicationResource) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("instanceID").
+		oid.Field("instanceID").
 			Comment("ID of the application instance to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
-		id.Field("connectorID").
+		oid.Field("connectorID").
 			Comment("ID of the connector to which the resource deploys.").
 			NotEmpty().
 			Immutable(),

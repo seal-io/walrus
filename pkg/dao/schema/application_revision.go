@@ -7,7 +7,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/id"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type ApplicationRevision struct {
@@ -24,11 +24,11 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 
 func (ApplicationRevision) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("instanceID").
+		oid.Field("instanceID").
 			Comment("ID of the application instance to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
-		id.Field("environmentID").
+		oid.Field("environmentID").
 			Comment("ID of the environment to which the application deploys.").
 			NotEmpty().
 			Immutable(),
