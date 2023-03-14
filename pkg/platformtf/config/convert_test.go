@@ -17,8 +17,9 @@ func TestToModuleBlock(t *testing.T) {
 			Name: "Module with no attributes",
 			ModuleConfig: &ModuleConfig{
 				Name: "test1",
-				Module: &model.Module{
-					ID: "test",
+				ModuleVersion: &model.ModuleVersion{
+					ModuleID: "test",
+					Version:  "0.0.0",
 				},
 				Attributes: map[string]interface{}{},
 			},
@@ -32,8 +33,9 @@ func TestToModuleBlock(t *testing.T) {
 			Name: "Module with attributes",
 			ModuleConfig: &ModuleConfig{
 				Name: "test2",
-				Module: &model.Module{
-					ID: "test",
+				ModuleVersion: &model.ModuleVersion{
+					ModuleID: "test",
+					Version:  "0.0.0",
 				},
 				Attributes: map[string]interface{}{
 					"test": "test",
@@ -51,8 +53,9 @@ func TestToModuleBlock(t *testing.T) {
 			Name: "Module with null attributes",
 			ModuleConfig: &ModuleConfig{
 				Name: "test3",
-				Module: &model.Module{
-					ID: "test",
+				ModuleVersion: &model.ModuleVersion{
+					ModuleID: "test",
+					Version:  "0.0.0",
 				},
 				Attributes: map[string]interface{}{
 					"test": nil,
@@ -68,8 +71,9 @@ func TestToModuleBlock(t *testing.T) {
 			Name: "Module with nested attributes and null keys",
 			ModuleConfig: &ModuleConfig{
 				Name: "test4",
-				Module: &model.Module{
-					ID: "test",
+				ModuleVersion: &model.ModuleVersion{
+					ModuleID: "test",
+					Version:  "0.0.0",
 				},
 				Attributes: map[string]interface{}{
 					"test": map[string]interface{}{

@@ -16,7 +16,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
-	"github.com/seal-io/seal/pkg/dao/model/module"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
@@ -255,6 +256,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	for _, amr := range amrs {
 		modules = append(modules, types.ApplicationModule{
 			ModuleID:   amr.ModuleID,
+			Version:    amr.Version,
 			Name:       amr.Name,
 			Attributes: amr.Attributes,
 		})
@@ -378,46 +380,49 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 	var (
 		requiredConnectorSet = sets.NewString()
 		moduleConfigs        []*config.ModuleConfig
-		// app module relationship module ids
-		amrsModuleIDs = make([]string, 0, len(ar.Modules))
 		// module id -> module source
-		moduleSourceMap = make(map[string]*model.Module, 0)
+		moduleVersionMap = make(map[string]*model.ModuleVersion, 0)
+		predicates       = make([]predicate.ModuleVersion, 0)
 	)
 
 	for _, m := range ar.Modules {
-		amrsModuleIDs = append(amrsModuleIDs, m.ModuleID)
+		predicates = append(predicates, moduleversion.And(moduleversion.ModuleID(m.ModuleID), moduleversion.Version(m.Version)))
 	}
-	modules, err := d.modelClient.Modules().
+	moduleVersions, err := d.modelClient.ModuleVersions().
 		Query().
 		Select(
-			module.FieldID,
-			module.FieldSource,
-			module.FieldSchema,
+			moduleversion.FieldID,
+			moduleversion.FieldSource,
+			moduleversion.FieldSchema,
 		).
-		Where(module.IDIn(amrsModuleIDs...)).
+		Where(predicates...).
 		All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	for _, m := range modules {
-		moduleSourceMap[m.ID] = m
+	modVerMapKey := func(moduleID, version string) string {
+		return fmt.Sprintf("%s/%s", moduleID, version)
+	}
+
+	for _, m := range moduleVersions {
+		moduleVersionMap[modVerMapKey(m.ModuleID, m.Version)] = m
 	}
 	for _, m := range ar.Modules {
-		mod, ok := moduleSourceMap[m.ModuleID]
+		modVer, ok := moduleVersionMap[modVerMapKey(m.ModuleID, m.Version)]
 		if !ok {
-			return nil, nil, fmt.Errorf("module %s not found", m.ModuleID)
+			return nil, nil, fmt.Errorf("version %s of module %s not found", m.Version, m.ModuleID)
 		}
 
 		moduleConfig := &config.ModuleConfig{
-			Name:       m.Name,
-			Module:     mod,
-			Attributes: m.Attributes,
+			Name:          m.Name,
+			ModuleVersion: modVer,
+			Attributes:    m.Attributes,
 		}
 		moduleConfigs = append(moduleConfigs, moduleConfig)
 
-		if mod.Schema != nil {
-			requiredConnectorSet.Insert(mod.Schema.RequiredConnectorTypes...)
+		if modVer.Schema != nil {
+			requiredConnectorSet.Insert(modVer.Schema.RequiredConnectorTypes...)
 		}
 	}
 

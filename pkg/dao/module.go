@@ -28,7 +28,6 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		// optional.
 		c.SetDescription(r.Description)
 		c.SetIcon(r.Icon)
-		c.SetVersion(r.Version)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -58,12 +57,6 @@ func ModuleUpdate(mc model.ClientSet, input *model.Module) (*model.ModuleUpdateO
 	}
 	if input.Source != "" {
 		c.SetSource(input.Source)
-	}
-	if input.Version != "" {
-		c.SetVersion(input.Version)
-	}
-	if input.Schema != nil {
-		c.SetSchema(input.Schema)
 	}
 	return c, nil
 }

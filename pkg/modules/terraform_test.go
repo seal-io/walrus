@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -111,37 +111,104 @@ func TestLoadTerraformSchema(t *testing.T) {
 		},
 	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualOutput, actualError := loadTerraformModuleSchema(tc.input)
+
+			if tc.expectedError {
+				assert.Error(t, actualError)
+			} else {
+				assert.NoError(t, actualError)
+			}
+
+			if actualOutput == nil {
+				return
+			}
+
+			sortSchema(actualOutput)
+			assert.Equal(t, tc.expectedOutput, actualOutput)
+		})
+	}
+}
+
+func TestLoadTerraformModuleVersions(t *testing.T) {
+	testCases := []struct {
+		name           string
+		input          *model.Module
+		expectedOutput []*model.ModuleVersion
+		expectedError  bool
+	}{
+		{
+			name: "versioned-modules",
+			input: &model.Module{
+				ID:     "mock-id",
+				Source: "testdata/versioned_module",
+			},
+			expectedOutput: []*model.ModuleVersion{
+				{
+					ModuleID: "mock-id",
+					Version:  "0.0.1",
+					Schema: &types.ModuleSchema{
+						Readme: "# Version 0.0.1",
+					},
+				},
+				{
+					ModuleID: "mock-id",
+					Version:  "0.0.2",
+					Schema: &types.ModuleSchema{
+						Readme: "# Version 0.0.2",
+					},
+				},
+				{
+					ModuleID: "mock-id",
+					Version:  "100.0.0",
+					Schema: &types.ModuleSchema{
+						Readme: "# Version 100.0.0",
+					},
+				},
+			},
+		},
+	}
+
 	// Absolute path is required for getter.Get(dest, local_source)
 	pwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("failed to get pwd: %v", err)
 	}
 	for _, tc := range testCases {
-		caseMessage := fmt.Sprintf("test case: %s", tc.name)
-		actualOutput, actualError := loadTerraformModuleSchema(filepath.Join(pwd, tc.input))
+		t.Run(tc.name, func(t *testing.T) {
+			tc.input.Source = filepath.Join(pwd, tc.input.Source)
+			actualOutput, actualError := loadTerraformModuleVersions(tc.input)
+			if tc.expectedError {
+				assert.Error(t, actualError)
+			} else {
+				assert.NoError(t, actualError)
+			}
 
-		if tc.expectedError {
-			assert.Error(t, actualError, caseMessage)
-		} else {
-			assert.NoError(t, actualError, caseMessage)
-		}
+			assert.Equal(t, len(tc.expectedOutput), len(actualOutput))
 
-		if actualOutput == nil {
-			continue
-		}
+			for i, v := range tc.expectedOutput {
+				actualV := actualOutput[i]
 
-		// sort to avoid random-order results
-		sort.Slice(actualOutput.Outputs, func(i, j int) bool {
-			return actualOutput.Outputs[i].Name < actualOutput.Outputs[j].Name
+				assert.Equal(t, actualV.ModuleID, v.ModuleID)
+				assert.Equal(t, actualV.Version, v.Version)
+
+				sortSchema(actualV.Schema)
+				assert.Equal(t, actualV.Schema, v.Schema)
+			}
 		})
-		sort.Slice(actualOutput.RequiredConnectorTypes, func(i, j int) bool {
-			return actualOutput.RequiredConnectorTypes[i] < actualOutput.RequiredConnectorTypes[j]
-		})
-		sort.Slice(actualOutput.Variables, func(i, j int) bool {
-			return actualOutput.Variables[i].Name < actualOutput.Variables[j].Name
-		})
-
-		assert.Equal(t, tc.expectedOutput, actualOutput, caseMessage)
-
 	}
+}
+
+// sort to avoid random-order results
+func sortSchema(s *types.ModuleSchema) {
+	sort.Slice(s.Outputs, func(i, j int) bool {
+		return s.Outputs[i].Name < s.Outputs[j].Name
+	})
+	sort.Slice(s.RequiredConnectorTypes, func(i, j int) bool {
+		return s.RequiredConnectorTypes[i] < s.RequiredConnectorTypes[j]
+	})
+	sort.Slice(s.Variables, func(i, j int) bool {
+		return s.Variables[i].Name < s.Variables[j].Name
+	})
 }
