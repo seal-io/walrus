@@ -84,7 +84,7 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 		}
 	})
 
-	var closeMsg = websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
+	var closeMsg = websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closed")
 	var inputs = make([]reflect.Value, 0, 2)
 	inputs = append(inputs, reflect.ValueOf(proxy))
 	inputs = append(inputs, ri)
@@ -99,6 +99,9 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 			if errors.As(err, &we) {
 				closeMsg = websocket.FormatCloseMessage(we.Code, we.Text)
 			} else {
+				if ue := errors.Unwrap(err); ue != nil {
+					err = ue
+				}
 				closeMsg = websocket.FormatCloseMessage(websocket.CloseInternalServerErr, err.Error())
 			}
 		}

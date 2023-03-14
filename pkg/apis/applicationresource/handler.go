@@ -2,8 +2,10 @@ package applicationresource
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 
 	"github.com/seal-io/seal/pkg/apis/applicationresource/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -179,5 +181,15 @@ func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecReques
 		Shell:   req.Shell,
 		Resizer: ts,
 	}
-	return op.Exec(ctx, req.Key, opts)
+	err = op.Exec(ctx, req.Key, opts)
+	if err != nil {
+		if strings.Contains(err.Error(), "OCI runtime exec failed: exec failed:") {
+			return &websocket.CloseError{
+				Code: websocket.CloseUnsupportedData,
+				Text: "unresolved exec shell: " + req.Shell,
+			}
+		}
+		return err
+	}
+	return nil
 }

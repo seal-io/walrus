@@ -360,8 +360,8 @@ func (r RequestStream) Read(p []byte) (n int, err error) {
 	switch msgType {
 	default:
 		err = &websocket.CloseError{
-			Code: websocket.CloseProtocolError,
-			Text: "cannot process binary message",
+			Code: websocket.CloseUnsupportedData,
+			Text: "unresolved message type: binary",
 		}
 		return
 	case websocket.TextMessage:
