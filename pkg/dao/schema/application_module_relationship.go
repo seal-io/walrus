@@ -39,6 +39,10 @@ func (ApplicationModuleRelationship) Fields() []ent.Field {
 			StructTag(`json:"moduleID"`).
 			NotEmpty().
 			Immutable(),
+		field.String("version").
+			Comment("Version of the module to which the relationship connects.").
+			NotEmpty().
+			Immutable(),
 		field.String("name").
 			Comment("Name of the module customized to the application.").
 			NotEmpty().

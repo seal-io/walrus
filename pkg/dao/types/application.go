@@ -4,6 +4,8 @@ package types
 type ApplicationModule struct {
 	// ID of module that configure to the application.
 	ModuleID string `json:"moduleID"`
+	// Version of the module that configure to the application.
+	Version string `json:"version"`
 	// Name of the module customized to the application.
 	Name string `json:"name"`
 	// attributes to configure the module.
