@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/id"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type EnvironmentConnectorRelationship struct {
@@ -29,12 +29,12 @@ func (EnvironmentConnectorRelationship) Annotations() []ents.Annotation {
 
 func (EnvironmentConnectorRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("environment_id").
+		oid.Field("environment_id").
 			Comment("ID of the environment to which the relationship connects.").
 			StructTag(`json:"environmentID"`).
 			NotEmpty().
 			Immutable(),
-		id.Field("connector_id").
+		oid.Field("connector_id").
 			Comment("ID of the connector to which the relationship connects.").
 			StructTag(`json:"connectorID"`).
 			NotEmpty().

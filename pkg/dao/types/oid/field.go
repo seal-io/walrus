@@ -1,4 +1,4 @@
-package types
+package oid
 
 import (
 	"database/sql/driver"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func NewID(id uint64) ID {
+func New(id uint64) ID {
 	return ID(strconv.FormatUint(id, 10))
 }
 
@@ -15,10 +15,12 @@ func NewID(id uint64) ID {
 // also be good at catching composited primary keys.
 type ID string
 
+// String implements fmt.Stringer.
 func (i ID) String() string {
 	return string(i)
 }
 
+// Value implements driver.Valuer.
 func (i ID) Value() (driver.Value, error) {
 	r, err := strconv.ParseInt(string(i), 10, 64)
 	if err != nil {
@@ -27,6 +29,7 @@ func (i ID) Value() (driver.Value, error) {
 	return r, nil
 }
 
+// Scan implements sql.Scanner.
 func (i *ID) Scan(src any) error {
 	switch v := src.(type) {
 	case nil:

@@ -9,7 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/id"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type Application struct {
@@ -33,7 +33,7 @@ func (Application) Indexes() []ent.Index {
 
 func (Application) Fields() []ent.Field {
 	return []ent.Field{
-		id.Field("projectID").
+		oid.Field("projectID").
 			Comment("ID of the project to which the application belongs.").
 			NotEmpty().
 			Immutable(),

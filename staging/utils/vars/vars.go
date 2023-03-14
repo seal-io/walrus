@@ -2,6 +2,10 @@ package vars
 
 import "sync"
 
+func NewSetOnce[T any](v T) SetOnce[T] {
+	return SetOnce[T]{v: v}
+}
+
 type SetOnce[T any] struct {
 	o sync.Once
 	v T
@@ -15,6 +19,10 @@ func (i *SetOnce[T]) Set(v T) {
 
 func (i *SetOnce[T]) Get() T {
 	return i.v
+}
+
+func NewSetMany[T any](v T) SetMany[T] {
+	return SetMany[T]{v: v}
 }
 
 type SetMany[T any] struct {
