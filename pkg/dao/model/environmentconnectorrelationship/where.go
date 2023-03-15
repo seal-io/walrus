@@ -13,7 +13,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
@@ -22,12 +22,12 @@ func CreateTime(v time.Time) predicate.EnvironmentConnectorRelationship {
 }
 
 // EnvironmentID applies equality check predicate on the "environment_id" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentID(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // ConnectorID applies equality check predicate on the "connector_id" field. It's identical to ConnectorIDEQ.
-func ConnectorID(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorID(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldConnectorID, v))
 }
 
@@ -72,141 +72,141 @@ func CreateTimeLTE(v time.Time) predicate.EnvironmentConnectorRelationship {
 }
 
 // EnvironmentIDEQ applies the EQ predicate on the "environment_id" field.
-func EnvironmentIDEQ(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDEQ(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDNEQ applies the NEQ predicate on the "environment_id" field.
-func EnvironmentIDNEQ(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDNEQ(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldNEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDIn applies the In predicate on the "environment_id" field.
-func EnvironmentIDIn(vs ...types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDIn(vs ...oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDNotIn applies the NotIn predicate on the "environment_id" field.
-func EnvironmentIDNotIn(vs ...types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDNotIn(vs ...oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldNotIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDGT applies the GT predicate on the "environment_id" field.
-func EnvironmentIDGT(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDGT(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldGT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDGTE applies the GTE predicate on the "environment_id" field.
-func EnvironmentIDGTE(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDGTE(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldGTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLT applies the LT predicate on the "environment_id" field.
-func EnvironmentIDLT(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDLT(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldLT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLTE applies the LTE predicate on the "environment_id" field.
-func EnvironmentIDLTE(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDLTE(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldLTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDContains applies the Contains predicate on the "environment_id" field.
-func EnvironmentIDContains(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDContains(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldContains(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environment_id" field.
-func EnvironmentIDHasPrefix(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDHasPrefix(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldHasPrefix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environment_id" field.
-func EnvironmentIDHasSuffix(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDHasSuffix(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldHasSuffix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDEqualFold applies the EqualFold predicate on the "environment_id" field.
-func EnvironmentIDEqualFold(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDEqualFold(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEqualFold(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDContainsFold applies the ContainsFold predicate on the "environment_id" field.
-func EnvironmentIDContainsFold(v types.ID) predicate.EnvironmentConnectorRelationship {
+func EnvironmentIDContainsFold(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }
 
 // ConnectorIDEQ applies the EQ predicate on the "connector_id" field.
-func ConnectorIDEQ(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDEQ(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEQ(FieldConnectorID, v))
 }
 
 // ConnectorIDNEQ applies the NEQ predicate on the "connector_id" field.
-func ConnectorIDNEQ(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDNEQ(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldNEQ(FieldConnectorID, v))
 }
 
 // ConnectorIDIn applies the In predicate on the "connector_id" field.
-func ConnectorIDIn(vs ...types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDIn(vs ...oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldIn(FieldConnectorID, vs...))
 }
 
 // ConnectorIDNotIn applies the NotIn predicate on the "connector_id" field.
-func ConnectorIDNotIn(vs ...types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDNotIn(vs ...oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldNotIn(FieldConnectorID, vs...))
 }
 
 // ConnectorIDGT applies the GT predicate on the "connector_id" field.
-func ConnectorIDGT(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDGT(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldGT(FieldConnectorID, v))
 }
 
 // ConnectorIDGTE applies the GTE predicate on the "connector_id" field.
-func ConnectorIDGTE(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDGTE(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldGTE(FieldConnectorID, v))
 }
 
 // ConnectorIDLT applies the LT predicate on the "connector_id" field.
-func ConnectorIDLT(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDLT(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldLT(FieldConnectorID, v))
 }
 
 // ConnectorIDLTE applies the LTE predicate on the "connector_id" field.
-func ConnectorIDLTE(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDLTE(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(sql.FieldLTE(FieldConnectorID, v))
 }
 
 // ConnectorIDContains applies the Contains predicate on the "connector_id" field.
-func ConnectorIDContains(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDContains(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldContains(FieldConnectorID, vc))
 }
 
 // ConnectorIDHasPrefix applies the HasPrefix predicate on the "connector_id" field.
-func ConnectorIDHasPrefix(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDHasPrefix(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldHasPrefix(FieldConnectorID, vc))
 }
 
 // ConnectorIDHasSuffix applies the HasSuffix predicate on the "connector_id" field.
-func ConnectorIDHasSuffix(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDHasSuffix(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldHasSuffix(FieldConnectorID, vc))
 }
 
 // ConnectorIDEqualFold applies the EqualFold predicate on the "connector_id" field.
-func ConnectorIDEqualFold(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDEqualFold(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldEqualFold(FieldConnectorID, vc))
 }
 
 // ConnectorIDContainsFold applies the ContainsFold predicate on the "connector_id" field.
-func ConnectorIDContainsFold(v types.ID) predicate.EnvironmentConnectorRelationship {
+func ConnectorIDContainsFold(v oid.ID) predicate.EnvironmentConnectorRelationship {
 	vc := string(v)
 	return predicate.EnvironmentConnectorRelationship(sql.FieldContainsFold(FieldConnectorID, vc))
 }

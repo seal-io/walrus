@@ -16,14 +16,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationInstance is the model entity for the ApplicationInstance schema.
 type ApplicationInstance struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -33,9 +33,9 @@ type ApplicationInstance struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the instance belongs.
-	ApplicationID types.ID `json:"applicationID,omitempty"`
+	ApplicationID oid.ID `json:"applicationID,omitempty"`
 	// ID of the environment to which the instance deploys.
-	EnvironmentID types.ID `json:"environmentID,omitempty"`
+	EnvironmentID oid.ID `json:"environmentID,omitempty"`
 	// Name of the instance.
 	Name string `json:"name,omitempty"`
 	// Variables of the instance.
@@ -111,12 +111,12 @@ func (*ApplicationInstance) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationinstance.FieldVariables:
 			values[i] = new([]byte)
+		case applicationinstance.FieldID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
+			values[i] = new(oid.ID)
 		case applicationinstance.FieldStatus, applicationinstance.FieldStatusMessage, applicationinstance.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationinstance.FieldCreateTime, applicationinstance.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case applicationinstance.FieldID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationInstance", columns[i])
 		}
@@ -133,7 +133,7 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 	for i := range columns {
 		switch columns[i] {
 		case applicationinstance.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ai.ID = *value
@@ -165,13 +165,13 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 				*ai.UpdateTime = value.Time
 			}
 		case applicationinstance.FieldApplicationID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field applicationID", values[i])
 			} else if value != nil {
 				ai.ApplicationID = *value
 			}
 		case applicationinstance.FieldEnvironmentID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
 			} else if value != nil {
 				ai.EnvironmentID = *value

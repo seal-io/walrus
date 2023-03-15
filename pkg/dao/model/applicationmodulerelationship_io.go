@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationModuleRelationshipQueryInput is the input for the ApplicationModuleRelationship query.
 type ApplicationModuleRelationshipQueryInput struct {
 	// ID of the application to which the relationship connects.
-	ApplicationID types.ID `json:"applicationId"`
+	ApplicationID oid.ID `json:"applicationId"`
 	// ID of the module to which the relationship connects.
 	ModuleID string `json:"moduleId"`
 	// Name of the module customized to the application.

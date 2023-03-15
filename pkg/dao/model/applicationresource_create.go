@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationResourceCreate is the builder for creating a ApplicationResource entity.
@@ -87,14 +87,14 @@ func (arc *ApplicationResourceCreate) SetNillableUpdateTime(t *time.Time) *Appli
 }
 
 // SetInstanceID sets the "instanceID" field.
-func (arc *ApplicationResourceCreate) SetInstanceID(t types.ID) *ApplicationResourceCreate {
-	arc.mutation.SetInstanceID(t)
+func (arc *ApplicationResourceCreate) SetInstanceID(o oid.ID) *ApplicationResourceCreate {
+	arc.mutation.SetInstanceID(o)
 	return arc
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (arc *ApplicationResourceCreate) SetConnectorID(t types.ID) *ApplicationResourceCreate {
-	arc.mutation.SetConnectorID(t)
+func (arc *ApplicationResourceCreate) SetConnectorID(o oid.ID) *ApplicationResourceCreate {
+	arc.mutation.SetConnectorID(o)
 	return arc
 }
 
@@ -129,8 +129,8 @@ func (arc *ApplicationResourceCreate) SetDeployerType(s string) *ApplicationReso
 }
 
 // SetID sets the "id" field.
-func (arc *ApplicationResourceCreate) SetID(t types.ID) *ApplicationResourceCreate {
-	arc.mutation.SetID(t)
+func (arc *ApplicationResourceCreate) SetID(o oid.ID) *ApplicationResourceCreate {
+	arc.mutation.SetID(o)
 	return arc
 }
 
@@ -283,7 +283,7 @@ func (arc *ApplicationResourceCreate) sqlSave(ctx context.Context) (*Application
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -627,7 +627,7 @@ func (u *ApplicationResourceUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -641,7 +641,7 @@ func (u *ApplicationResourceUpsertOne) ID(ctx context.Context) (id types.ID, err
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationResourceUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ApplicationResourceUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

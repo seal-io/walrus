@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentCreate is the builder for creating a Environment entity.
@@ -85,20 +85,20 @@ func (ec *EnvironmentCreate) SetNillableUpdateTime(t *time.Time) *EnvironmentCre
 }
 
 // SetID sets the "id" field.
-func (ec *EnvironmentCreate) SetID(t types.ID) *EnvironmentCreate {
-	ec.mutation.SetID(t)
+func (ec *EnvironmentCreate) SetID(o oid.ID) *EnvironmentCreate {
+	ec.mutation.SetID(o)
 	return ec
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (ec *EnvironmentCreate) AddInstanceIDs(ids ...types.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) AddInstanceIDs(ids ...oid.ID) *EnvironmentCreate {
 	ec.mutation.AddInstanceIDs(ids...)
 	return ec
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (ec *EnvironmentCreate) AddInstances(a ...*ApplicationInstance) *EnvironmentCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -106,14 +106,14 @@ func (ec *EnvironmentCreate) AddInstances(a ...*ApplicationInstance) *Environmen
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (ec *EnvironmentCreate) AddRevisionIDs(ids ...types.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) AddRevisionIDs(ids ...oid.ID) *EnvironmentCreate {
 	ec.mutation.AddRevisionIDs(ids...)
 	return ec
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (ec *EnvironmentCreate) AddRevisions(a ...*ApplicationRevision) *EnvironmentCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -212,7 +212,7 @@ func (ec *EnvironmentCreate) sqlSave(ctx context.Context) (*Environment, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -530,7 +530,7 @@ func (u *EnvironmentUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -544,7 +544,7 @@ func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id types.ID, err error) 
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *EnvironmentUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *EnvironmentUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

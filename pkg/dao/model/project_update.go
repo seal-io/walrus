@@ -19,7 +19,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ProjectUpdate is the builder for updating Project entities.
@@ -75,18 +76,33 @@ func (pu *ProjectUpdate) SetUpdateTime(t time.Time) *ProjectUpdate {
 }
 
 // AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (pu *ProjectUpdate) AddApplicationIDs(ids ...types.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddApplicationIDs(ids ...oid.ID) *ProjectUpdate {
 	pu.mutation.AddApplicationIDs(ids...)
 	return pu
 }
 
 // AddApplications adds the "applications" edges to the Application entity.
 func (pu *ProjectUpdate) AddApplications(a ...*Application) *ProjectUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
 	return pu.AddApplicationIDs(ids...)
+}
+
+// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
+func (pu *ProjectUpdate) AddSecretIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.AddSecretIDs(ids...)
+	return pu
+}
+
+// AddSecrets adds the "secrets" edges to the Secret entity.
+func (pu *ProjectUpdate) AddSecrets(s ...*Secret) *ProjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.AddSecretIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -101,18 +117,39 @@ func (pu *ProjectUpdate) ClearApplications() *ProjectUpdate {
 }
 
 // RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
-func (pu *ProjectUpdate) RemoveApplicationIDs(ids ...types.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveApplicationIDs(ids ...oid.ID) *ProjectUpdate {
 	pu.mutation.RemoveApplicationIDs(ids...)
 	return pu
 }
 
 // RemoveApplications removes "applications" edges to Application entities.
 func (pu *ProjectUpdate) RemoveApplications(a ...*Application) *ProjectUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
 	return pu.RemoveApplicationIDs(ids...)
+}
+
+// ClearSecrets clears all "secrets" edges to the Secret entity.
+func (pu *ProjectUpdate) ClearSecrets() *ProjectUpdate {
+	pu.mutation.ClearSecrets()
+	return pu
+}
+
+// RemoveSecretIDs removes the "secrets" edge to Secret entities by IDs.
+func (pu *ProjectUpdate) RemoveSecretIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.RemoveSecretIDs(ids...)
+	return pu
+}
+
+// RemoveSecrets removes "secrets" edges to Secret entities.
+func (pu *ProjectUpdate) RemoveSecrets(s ...*Secret) *ProjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.RemoveSecretIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -257,6 +294,63 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.SecretsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Secret
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedSecretsIDs(); len(nodes) > 0 && !pu.mutation.SecretsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Secret
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.SecretsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = pu.schemaConfig.Secret
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
 	_spec.AddModifiers(pu.modifiers...)
@@ -320,18 +414,33 @@ func (puo *ProjectUpdateOne) SetUpdateTime(t time.Time) *ProjectUpdateOne {
 }
 
 // AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (puo *ProjectUpdateOne) AddApplicationIDs(ids ...types.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddApplicationIDs(ids ...oid.ID) *ProjectUpdateOne {
 	puo.mutation.AddApplicationIDs(ids...)
 	return puo
 }
 
 // AddApplications adds the "applications" edges to the Application entity.
 func (puo *ProjectUpdateOne) AddApplications(a ...*Application) *ProjectUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
 	return puo.AddApplicationIDs(ids...)
+}
+
+// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
+func (puo *ProjectUpdateOne) AddSecretIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.AddSecretIDs(ids...)
+	return puo
+}
+
+// AddSecrets adds the "secrets" edges to the Secret entity.
+func (puo *ProjectUpdateOne) AddSecrets(s ...*Secret) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.AddSecretIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -346,18 +455,39 @@ func (puo *ProjectUpdateOne) ClearApplications() *ProjectUpdateOne {
 }
 
 // RemoveApplicationIDs removes the "applications" edge to Application entities by IDs.
-func (puo *ProjectUpdateOne) RemoveApplicationIDs(ids ...types.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveApplicationIDs(ids ...oid.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveApplicationIDs(ids...)
 	return puo
 }
 
 // RemoveApplications removes "applications" edges to Application entities.
 func (puo *ProjectUpdateOne) RemoveApplications(a ...*Application) *ProjectUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
 	return puo.RemoveApplicationIDs(ids...)
+}
+
+// ClearSecrets clears all "secrets" edges to the Secret entity.
+func (puo *ProjectUpdateOne) ClearSecrets() *ProjectUpdateOne {
+	puo.mutation.ClearSecrets()
+	return puo
+}
+
+// RemoveSecretIDs removes the "secrets" edge to Secret entities by IDs.
+func (puo *ProjectUpdateOne) RemoveSecretIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveSecretIDs(ids...)
+	return puo
+}
+
+// RemoveSecrets removes "secrets" edges to Secret entities.
+func (puo *ProjectUpdateOne) RemoveSecrets(s ...*Secret) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.RemoveSecretIDs(ids...)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -527,6 +657,63 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.SecretsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Secret
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedSecretsIDs(); len(nodes) > 0 && !puo.mutation.SecretsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Secret
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.SecretsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = puo.schemaConfig.Secret
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -14,14 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Environment is the model entity for the Environment schema.
 type Environment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -84,12 +84,12 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case environment.FieldLabels:
 			values[i] = new([]byte)
+		case environment.FieldID:
+			values[i] = new(oid.ID)
 		case environment.FieldName, environment.FieldDescription:
 			values[i] = new(sql.NullString)
 		case environment.FieldCreateTime, environment.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case environment.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Environment", columns[i])
 		}
@@ -106,7 +106,7 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case environment.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				e.ID = *value

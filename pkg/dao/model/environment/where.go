@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id types.ID) predicate.Environment {
+func ID(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id types.ID) predicate.Environment {
+func IDEQ(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id types.ID) predicate.Environment {
+func IDNEQ(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...types.ID) predicate.Environment {
+func IDIn(ids ...oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...types.ID) predicate.Environment {
+func IDNotIn(ids ...oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id types.ID) predicate.Environment {
+func IDGT(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id types.ID) predicate.Environment {
+func IDGTE(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id types.ID) predicate.Environment {
+func IDLT(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id types.ID) predicate.Environment {
+func IDLTE(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldID, id))
 }
 

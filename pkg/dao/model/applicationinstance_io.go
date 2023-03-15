@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationInstanceQueryInput is the input for the ApplicationInstance query.
 type ApplicationInstanceQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ApplicationInstanceQueryInput to ApplicationInstance.
@@ -56,7 +56,7 @@ func (in ApplicationInstanceCreateInput) Model() *ApplicationInstance {
 // ApplicationInstanceUpdateInput is the input for the ApplicationInstance modification.
 type ApplicationInstanceUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -79,7 +79,7 @@ func (in ApplicationInstanceUpdateInput) Model() *ApplicationInstance {
 // ApplicationInstanceOutput is the output for the ApplicationInstance.
 type ApplicationInstanceOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.

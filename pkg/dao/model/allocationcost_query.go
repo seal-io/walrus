@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // AllocationCostQuery is the builder for querying AllocationCost entities.
@@ -417,8 +417,8 @@ func (acq *AllocationCostQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 }
 
 func (acq *AllocationCostQuery) loadConnector(ctx context.Context, query *ConnectorQuery, nodes []*AllocationCost, init func(*AllocationCost), assign func(*AllocationCost, *Connector)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*AllocationCost)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*AllocationCost)
 	for i := range nodes {
 		fk := nodes[i].ConnectorID
 		if _, ok := nodeids[fk]; !ok {

@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationModuleRelationshipCreate is the builder for creating a ApplicationModuleRelationship entity.
@@ -58,8 +58,8 @@ func (amrc *ApplicationModuleRelationshipCreate) SetNillableUpdateTime(t *time.T
 }
 
 // SetApplicationID sets the "application_id" field.
-func (amrc *ApplicationModuleRelationshipCreate) SetApplicationID(t types.ID) *ApplicationModuleRelationshipCreate {
-	amrc.mutation.SetApplicationID(t)
+func (amrc *ApplicationModuleRelationshipCreate) SetApplicationID(o oid.ID) *ApplicationModuleRelationshipCreate {
+	amrc.mutation.SetApplicationID(o)
 	return amrc
 }
 

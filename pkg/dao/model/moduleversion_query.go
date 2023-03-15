@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleVersionQuery is the builder for querying ModuleVersion entities.
@@ -116,8 +116,8 @@ func (mvq *ModuleVersionQuery) FirstX(ctx context.Context) *ModuleVersion {
 
 // FirstID returns the first ModuleVersion ID from the query.
 // Returns a *NotFoundError when no ModuleVersion ID was found.
-func (mvq *ModuleVersionQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (mvq *ModuleVersionQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = mvq.Limit(1).IDs(setContextOp(ctx, mvq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ func (mvq *ModuleVersionQuery) FirstID(ctx context.Context) (id types.ID, err er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mvq *ModuleVersionQuery) FirstIDX(ctx context.Context) types.ID {
+func (mvq *ModuleVersionQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := mvq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -167,8 +167,8 @@ func (mvq *ModuleVersionQuery) OnlyX(ctx context.Context) *ModuleVersion {
 // OnlyID is like Only, but returns the only ModuleVersion ID in the query.
 // Returns a *NotSingularError when more than one ModuleVersion ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mvq *ModuleVersionQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (mvq *ModuleVersionQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = mvq.Limit(2).IDs(setContextOp(ctx, mvq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (mvq *ModuleVersionQuery) OnlyID(ctx context.Context) (id types.ID, err err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mvq *ModuleVersionQuery) OnlyIDX(ctx context.Context) types.ID {
+func (mvq *ModuleVersionQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := mvq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -212,7 +212,7 @@ func (mvq *ModuleVersionQuery) AllX(ctx context.Context) []*ModuleVersion {
 }
 
 // IDs executes the query and returns a list of ModuleVersion IDs.
-func (mvq *ModuleVersionQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (mvq *ModuleVersionQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if mvq.ctx.Unique == nil && mvq.path != nil {
 		mvq.Unique(true)
 	}
@@ -224,7 +224,7 @@ func (mvq *ModuleVersionQuery) IDs(ctx context.Context) (ids []types.ID, err err
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mvq *ModuleVersionQuery) IDsX(ctx context.Context) []types.ID {
+func (mvq *ModuleVersionQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := mvq.IDs(ctx)
 	if err != nil {
 		panic(err)

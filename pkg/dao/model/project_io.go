@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ProjectQueryInput is the input for the Project query.
 type ProjectQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ProjectQueryInput to Project.
@@ -47,7 +47,7 @@ func (in ProjectCreateInput) Model() *Project {
 // ProjectUpdateInput is the input for the Project modification.
 type ProjectUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -70,7 +70,7 @@ func (in ProjectUpdateInput) Model() *Project {
 // ProjectOutput is the output for the Project.
 type ProjectOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -83,6 +83,8 @@ type ProjectOutput struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Applications that belong to the project.
 	Applications []*ApplicationOutput `json:"applications,omitempty"`
+	// Secrets that belong to the project.
+	Secrets []*SecretOutput `json:"secrets,omitempty"`
 }
 
 // ExposeProject converts the Project to ProjectOutput.
@@ -98,6 +100,7 @@ func ExposeProject(in *Project) *ProjectOutput {
 		CreateTime:   in.CreateTime,
 		UpdateTime:   in.UpdateTime,
 		Applications: ExposeApplications(in.Edges.Applications),
+		Secrets:      ExposeSecrets(in.Edges.Secrets),
 	}
 	return entity
 }

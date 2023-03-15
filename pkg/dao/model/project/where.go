@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id types.ID) predicate.Project {
+func ID(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id types.ID) predicate.Project {
+func IDEQ(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id types.ID) predicate.Project {
+func IDNEQ(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...types.ID) predicate.Project {
+func IDIn(ids ...oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...types.ID) predicate.Project {
+func IDNotIn(ids ...oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id types.ID) predicate.Project {
+func IDGT(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id types.ID) predicate.Project {
+func IDGTE(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id types.ID) predicate.Project {
+func IDLT(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id types.ID) predicate.Project {
+func IDLTE(id oid.ID) predicate.Project {
 	return predicate.Project(sql.FieldLTE(FieldID, id))
 }
 
@@ -326,6 +326,39 @@ func HasApplicationsWith(preds ...predicate.Application) predicate.Project {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.Application
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSecrets applies the HasEdge predicate on the "secrets" edge.
+func HasSecrets() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Secret
+		step.Edge.Schema = schemaConfig.Secret
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSecretsWith applies the HasEdge predicate on the "secrets" edge with a given conditions (other predicates).
+func HasSecretsWith(preds ...predicate.Secret) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SecretsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Secret
+		step.Edge.Schema = schemaConfig.Secret
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

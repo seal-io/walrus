@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationRevisionQueryInput is the input for the ApplicationRevision query.
 type ApplicationRevisionQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ApplicationRevisionQueryInput to ApplicationRevision.
@@ -68,7 +69,7 @@ func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 // ApplicationRevisionUpdateInput is the input for the ApplicationRevision modification.
 type ApplicationRevisionUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -106,7 +107,7 @@ func (in ApplicationRevisionUpdateInput) Model() *ApplicationRevision {
 // ApplicationRevisionOutput is the output for the ApplicationRevision.
 type ApplicationRevisionOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.

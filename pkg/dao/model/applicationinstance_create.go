@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationInstanceCreate is the builder for creating a ApplicationInstance entity.
@@ -89,14 +89,14 @@ func (aic *ApplicationInstanceCreate) SetNillableUpdateTime(t *time.Time) *Appli
 }
 
 // SetApplicationID sets the "applicationID" field.
-func (aic *ApplicationInstanceCreate) SetApplicationID(t types.ID) *ApplicationInstanceCreate {
-	aic.mutation.SetApplicationID(t)
+func (aic *ApplicationInstanceCreate) SetApplicationID(o oid.ID) *ApplicationInstanceCreate {
+	aic.mutation.SetApplicationID(o)
 	return aic
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (aic *ApplicationInstanceCreate) SetEnvironmentID(t types.ID) *ApplicationInstanceCreate {
-	aic.mutation.SetEnvironmentID(t)
+func (aic *ApplicationInstanceCreate) SetEnvironmentID(o oid.ID) *ApplicationInstanceCreate {
+	aic.mutation.SetEnvironmentID(o)
 	return aic
 }
 
@@ -113,8 +113,8 @@ func (aic *ApplicationInstanceCreate) SetVariables(m map[string]interface{}) *Ap
 }
 
 // SetID sets the "id" field.
-func (aic *ApplicationInstanceCreate) SetID(t types.ID) *ApplicationInstanceCreate {
-	aic.mutation.SetID(t)
+func (aic *ApplicationInstanceCreate) SetID(o oid.ID) *ApplicationInstanceCreate {
+	aic.mutation.SetID(o)
 	return aic
 }
 
@@ -129,14 +129,14 @@ func (aic *ApplicationInstanceCreate) SetEnvironment(e *Environment) *Applicatio
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (aic *ApplicationInstanceCreate) AddRevisionIDs(ids ...types.ID) *ApplicationInstanceCreate {
+func (aic *ApplicationInstanceCreate) AddRevisionIDs(ids ...oid.ID) *ApplicationInstanceCreate {
 	aic.mutation.AddRevisionIDs(ids...)
 	return aic
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (aic *ApplicationInstanceCreate) AddRevisions(a ...*ApplicationRevision) *ApplicationInstanceCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -144,14 +144,14 @@ func (aic *ApplicationInstanceCreate) AddRevisions(a ...*ApplicationRevision) *A
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (aic *ApplicationInstanceCreate) AddResourceIDs(ids ...types.ID) *ApplicationInstanceCreate {
+func (aic *ApplicationInstanceCreate) AddResourceIDs(ids ...oid.ID) *ApplicationInstanceCreate {
 	aic.mutation.AddResourceIDs(ids...)
 	return aic
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (aic *ApplicationInstanceCreate) AddResources(a ...*ApplicationResource) *ApplicationInstanceCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -265,7 +265,7 @@ func (aic *ApplicationInstanceCreate) sqlSave(ctx context.Context) (*Application
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -664,7 +664,7 @@ func (u *ApplicationInstanceUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationInstanceUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ApplicationInstanceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -678,7 +678,7 @@ func (u *ApplicationInstanceUpsertOne) ID(ctx context.Context) (id types.ID, err
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationInstanceUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ApplicationInstanceUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

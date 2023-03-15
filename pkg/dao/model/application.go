@@ -16,13 +16,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Application is the model entity for the Application schema.
 type Application struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -34,7 +35,7 @@ type Application struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the project to which the application belongs.
-	ProjectID types.ID `json:"projectID,omitempty"`
+	ProjectID oid.ID `json:"projectID,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
 	Variables []types.ApplicationVariable `json:"variables,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -93,12 +94,12 @@ func (*Application) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case application.FieldLabels, application.FieldVariables:
 			values[i] = new([]byte)
+		case application.FieldID, application.FieldProjectID:
+			values[i] = new(oid.ID)
 		case application.FieldName, application.FieldDescription:
 			values[i] = new(sql.NullString)
 		case application.FieldCreateTime, application.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case application.FieldID, application.FieldProjectID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Application", columns[i])
 		}
@@ -115,7 +116,7 @@ func (a *Application) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case application.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				a.ID = *value
@@ -155,7 +156,7 @@ func (a *Application) assignValues(columns []string, values []any) error {
 				*a.UpdateTime = value.Time
 			}
 		case application.FieldProjectID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				a.ProjectID = *value

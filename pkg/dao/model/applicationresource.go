@@ -15,14 +15,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationResource is the model entity for the ApplicationResource schema.
 type ApplicationResource struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -32,9 +32,9 @@ type ApplicationResource struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application instance to which the resource belongs.
-	InstanceID types.ID `json:"instanceID,omitempty"`
+	InstanceID oid.ID `json:"instanceID,omitempty"`
 	// ID of the connector to which the resource deploys.
-	ConnectorID types.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty"`
 	// Name of the module that generates the resource.
 	Module string `json:"module,omitempty"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
@@ -92,12 +92,12 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID:
+			values[i] = new(oid.ID)
 		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case applicationresource.FieldCreateTime, applicationresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationResource", columns[i])
 		}
@@ -114,7 +114,7 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 	for i := range columns {
 		switch columns[i] {
 		case applicationresource.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
@@ -146,13 +146,13 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				*ar.UpdateTime = value.Time
 			}
 		case applicationresource.FieldInstanceID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field instanceID", values[i])
 			} else if value != nil {
 				ar.InstanceID = *value
 			}
 		case applicationresource.FieldConnectorID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				ar.ConnectorID = *value

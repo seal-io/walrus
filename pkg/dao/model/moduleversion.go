@@ -16,13 +16,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleVersion is the model entity for the ModuleVersion schema.
 type ModuleVersion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -69,12 +70,12 @@ func (*ModuleVersion) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case moduleversion.FieldSchema:
 			values[i] = new([]byte)
+		case moduleversion.FieldID:
+			values[i] = new(oid.ID)
 		case moduleversion.FieldModuleID, moduleversion.FieldVersion, moduleversion.FieldSource:
 			values[i] = new(sql.NullString)
 		case moduleversion.FieldCreateTime, moduleversion.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case moduleversion.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ModuleVersion", columns[i])
 		}
@@ -91,7 +92,7 @@ func (mv *ModuleVersion) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case moduleversion.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				mv.ID = *value

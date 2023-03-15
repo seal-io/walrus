@@ -17,13 +17,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationRevision is the model entity for the ApplicationRevision schema.
 type ApplicationRevision struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -31,9 +32,9 @@ type ApplicationRevision struct {
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// ID of the application instance to which the revision belongs.
-	InstanceID types.ID `json:"instanceID,omitempty"`
+	InstanceID oid.ID `json:"instanceID,omitempty"`
 	// ID of the environment to which the application deploys.
-	EnvironmentID types.ID `json:"environmentID,omitempty"`
+	EnvironmentID oid.ID `json:"environmentID,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
@@ -95,14 +96,14 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationrevision.FieldModules, applicationrevision.FieldInputVariables:
 			values[i] = new([]byte)
+		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
+			values[i] = new(oid.ID)
 		case applicationrevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
 		case applicationrevision.FieldStatus, applicationrevision.FieldStatusMessage, applicationrevision.FieldInputPlan, applicationrevision.FieldOutput, applicationrevision.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case applicationrevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
-		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationRevision", columns[i])
 		}
@@ -119,7 +120,7 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 	for i := range columns {
 		switch columns[i] {
 		case applicationrevision.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
@@ -144,13 +145,13 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 				*ar.CreateTime = value.Time
 			}
 		case applicationrevision.FieldInstanceID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field instanceID", values[i])
 			} else if value != nil {
 				ar.InstanceID = *value
 			}
 		case applicationrevision.FieldEnvironmentID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
 			} else if value != nil {
 				ar.EnvironmentID = *value

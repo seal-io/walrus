@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationQuery is the builder for querying Application entities.
@@ -171,8 +171,8 @@ func (aq *ApplicationQuery) FirstX(ctx context.Context) *Application {
 
 // FirstID returns the first Application ID from the query.
 // Returns a *NotFoundError when no Application ID was found.
-func (aq *ApplicationQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (aq *ApplicationQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = aq.Limit(1).IDs(setContextOp(ctx, aq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (aq *ApplicationQuery) FirstID(ctx context.Context) (id types.ID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (aq *ApplicationQuery) FirstIDX(ctx context.Context) types.ID {
+func (aq *ApplicationQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := aq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -222,8 +222,8 @@ func (aq *ApplicationQuery) OnlyX(ctx context.Context) *Application {
 // OnlyID is like Only, but returns the only Application ID in the query.
 // Returns a *NotSingularError when more than one Application ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (aq *ApplicationQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (aq *ApplicationQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = aq.Limit(2).IDs(setContextOp(ctx, aq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -239,7 +239,7 @@ func (aq *ApplicationQuery) OnlyID(ctx context.Context) (id types.ID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (aq *ApplicationQuery) OnlyIDX(ctx context.Context) types.ID {
+func (aq *ApplicationQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := aq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -267,7 +267,7 @@ func (aq *ApplicationQuery) AllX(ctx context.Context) []*Application {
 }
 
 // IDs executes the query and returns a list of Application IDs.
-func (aq *ApplicationQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (aq *ApplicationQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if aq.ctx.Unique == nil && aq.path != nil {
 		aq.Unique(true)
 	}
@@ -279,7 +279,7 @@ func (aq *ApplicationQuery) IDs(ctx context.Context) (ids []types.ID, err error)
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aq *ApplicationQuery) IDsX(ctx context.Context) []types.ID {
+func (aq *ApplicationQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := aq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -512,8 +512,8 @@ func (aq *ApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 }
 
 func (aq *ApplicationQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Application, init func(*Application), assign func(*Application, *Project)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*Application)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*Application)
 	for i := range nodes {
 		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
@@ -542,7 +542,7 @@ func (aq *ApplicationQuery) loadProject(ctx context.Context, query *ProjectQuery
 }
 func (aq *ApplicationQuery) loadInstances(ctx context.Context, query *ApplicationInstanceQuery, nodes []*Application, init func(*Application), assign func(*Application, *ApplicationInstance)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Application)
+	nodeids := make(map[oid.ID]*Application)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -569,7 +569,7 @@ func (aq *ApplicationQuery) loadInstances(ctx context.Context, query *Applicatio
 }
 func (aq *ApplicationQuery) loadModules(ctx context.Context, query *ApplicationModuleRelationshipQuery, nodes []*Application, init func(*Application), assign func(*Application, *ApplicationModuleRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Application)
+	nodeids := make(map[oid.ID]*Application)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

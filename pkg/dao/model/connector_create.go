@@ -21,6 +21,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -113,8 +115,8 @@ func (cc *ConnectorCreate) SetConfigVersion(s string) *ConnectorCreate {
 }
 
 // SetConfigData sets the "configData" field.
-func (cc *ConnectorCreate) SetConfigData(m map[string]interface{}) *ConnectorCreate {
-	cc.mutation.SetConfigData(m)
+func (cc *ConnectorCreate) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorCreate {
+	cc.mutation.SetConfigData(c)
 	return cc
 }
 
@@ -139,20 +141,20 @@ func (cc *ConnectorCreate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCust
 }
 
 // SetID sets the "id" field.
-func (cc *ConnectorCreate) SetID(t types.ID) *ConnectorCreate {
-	cc.mutation.SetID(t)
+func (cc *ConnectorCreate) SetID(o oid.ID) *ConnectorCreate {
+	cc.mutation.SetID(o)
 	return cc
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (cc *ConnectorCreate) AddResourceIDs(ids ...types.ID) *ConnectorCreate {
+func (cc *ConnectorCreate) AddResourceIDs(ids ...oid.ID) *ConnectorCreate {
 	cc.mutation.AddResourceIDs(ids...)
 	return cc
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (cc *ConnectorCreate) AddResources(a ...*ApplicationResource) *ConnectorCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -307,7 +309,7 @@ func (cc *ConnectorCreate) sqlSave(ctx context.Context) (*Connector, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -362,7 +364,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_node.ConfigVersion = value
 	}
 	if value, ok := cc.mutation.ConfigData(); ok {
-		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
+		_spec.SetField(connector.FieldConfigData, field.TypeOther, value)
 		_node.ConfigData = value
 	}
 	if value, ok := cc.mutation.EnableFinOps(); ok {
@@ -570,7 +572,7 @@ func (u *ConnectorUpsert) UpdateConfigVersion() *ConnectorUpsert {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsert) SetConfigData(v map[string]interface{}) *ConnectorUpsert {
+func (u *ConnectorUpsert) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsert {
 	u.Set(connector.FieldConfigData, v)
 	return u
 }
@@ -764,7 +766,7 @@ func (u *ConnectorUpsertOne) UpdateConfigVersion() *ConnectorUpsertOne {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsertOne) SetConfigData(v map[string]interface{}) *ConnectorUpsertOne {
+func (u *ConnectorUpsertOne) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetConfigData(v)
 	})
@@ -828,7 +830,7 @@ func (u *ConnectorUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ConnectorUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ConnectorUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -842,7 +844,7 @@ func (u *ConnectorUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ConnectorUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ConnectorUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -1128,7 +1130,7 @@ func (u *ConnectorUpsertBulk) UpdateConfigVersion() *ConnectorUpsertBulk {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsertBulk) SetConfigData(v map[string]interface{}) *ConnectorUpsertBulk {
+func (u *ConnectorUpsertBulk) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetConfigData(v)
 	})

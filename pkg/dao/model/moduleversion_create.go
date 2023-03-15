@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleVersionCreate is the builder for creating a ModuleVersion entity.
@@ -82,8 +83,8 @@ func (mvc *ModuleVersionCreate) SetSchema(ts *types.ModuleSchema) *ModuleVersion
 }
 
 // SetID sets the "id" field.
-func (mvc *ModuleVersionCreate) SetID(t types.ID) *ModuleVersionCreate {
-	mvc.mutation.SetID(t)
+func (mvc *ModuleVersionCreate) SetID(o oid.ID) *ModuleVersionCreate {
+	mvc.mutation.SetID(o)
 	return mvc
 }
 
@@ -203,7 +204,7 @@ func (mvc *ModuleVersionCreate) sqlSave(ctx context.Context) (*ModuleVersion, er
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -446,7 +447,7 @@ func (u *ModuleVersionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ModuleVersionUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ModuleVersionUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -460,7 +461,7 @@ func (u *ModuleVersionUpsertOne) ID(ctx context.Context) (id types.ID, err error
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ModuleVersionUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ModuleVersionUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

@@ -18,7 +18,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ProjectCreate is the builder for creating a Project entity.
@@ -84,24 +85,39 @@ func (pc *ProjectCreate) SetNillableUpdateTime(t *time.Time) *ProjectCreate {
 }
 
 // SetID sets the "id" field.
-func (pc *ProjectCreate) SetID(t types.ID) *ProjectCreate {
-	pc.mutation.SetID(t)
+func (pc *ProjectCreate) SetID(o oid.ID) *ProjectCreate {
+	pc.mutation.SetID(o)
 	return pc
 }
 
 // AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (pc *ProjectCreate) AddApplicationIDs(ids ...types.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddApplicationIDs(ids ...oid.ID) *ProjectCreate {
 	pc.mutation.AddApplicationIDs(ids...)
 	return pc
 }
 
 // AddApplications adds the "applications" edges to the Application entity.
 func (pc *ProjectCreate) AddApplications(a ...*Application) *ProjectCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
 	return pc.AddApplicationIDs(ids...)
+}
+
+// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
+func (pc *ProjectCreate) AddSecretIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddSecretIDs(ids...)
+	return pc
+}
+
+// AddSecrets adds the "secrets" edges to the Secret entity.
+func (pc *ProjectCreate) AddSecrets(s ...*Secret) *ProjectCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pc.AddSecretIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -196,7 +212,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -253,6 +269,26 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.Application
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.SecretsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SecretsTable,
+			Columns: []string{project.SecretsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: secret.FieldID,
+				},
+			},
+		}
+		edge.Schema = pc.schemaConfig.Secret
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -494,7 +530,7 @@ func (u *ProjectUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ProjectUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ProjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -508,7 +544,7 @@ func (u *ProjectUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ProjectUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ProjectUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

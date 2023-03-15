@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // PerspectiveCreate is the builder for creating a Perspective entity.
@@ -95,8 +96,8 @@ func (pc *PerspectiveCreate) SetAllocationQueries(tc []types.QueryCondition) *Pe
 }
 
 // SetID sets the "id" field.
-func (pc *PerspectiveCreate) SetID(t types.ID) *PerspectiveCreate {
-	pc.mutation.SetID(t)
+func (pc *PerspectiveCreate) SetID(o oid.ID) *PerspectiveCreate {
+	pc.mutation.SetID(o)
 	return pc
 }
 
@@ -215,7 +216,7 @@ func (pc *PerspectiveCreate) sqlSave(ctx context.Context) (*Perspective, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -517,7 +518,7 @@ func (u *PerspectiveUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *PerspectiveUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *PerspectiveUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -531,7 +532,7 @@ func (u *PerspectiveUpsertOne) ID(ctx context.Context) (id types.ID, err error) 
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *PerspectiveUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *PerspectiveUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

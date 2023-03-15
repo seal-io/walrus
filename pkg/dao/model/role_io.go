@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/schema"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // RoleQueryInput is the input for the Role query.
 type RoleQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the RoleQueryInput to Role.
@@ -57,7 +57,7 @@ func (in RoleCreateInput) Model() *Role {
 // RoleUpdateInput is the input for the Role modification.
 type RoleUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
@@ -77,7 +77,7 @@ func (in RoleUpdateInput) Model() *Role {
 // RoleOutput is the output for the Role.
 type RoleOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.

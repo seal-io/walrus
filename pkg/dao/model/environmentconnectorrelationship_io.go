@@ -8,15 +8,15 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentConnectorRelationshipQueryInput is the input for the EnvironmentConnectorRelationship query.
 type EnvironmentConnectorRelationshipQueryInput struct {
 	// ID of the environment to which the relationship connects.
-	EnvironmentID types.ID `json:"environmentId"`
+	EnvironmentID oid.ID `json:"environmentId"`
 	// ID of the connector to which the relationship connects.
-	ConnectorID types.ID `json:"connectorId"`
+	ConnectorID oid.ID `json:"connectorId"`
 }
 
 // Model converts the EnvironmentConnectorRelationshipQueryInput to EnvironmentConnectorRelationship.

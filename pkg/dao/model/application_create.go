@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationCreate is the builder for creating a Application entity.
@@ -85,8 +86,8 @@ func (ac *ApplicationCreate) SetNillableUpdateTime(t *time.Time) *ApplicationCre
 }
 
 // SetProjectID sets the "projectID" field.
-func (ac *ApplicationCreate) SetProjectID(t types.ID) *ApplicationCreate {
-	ac.mutation.SetProjectID(t)
+func (ac *ApplicationCreate) SetProjectID(o oid.ID) *ApplicationCreate {
+	ac.mutation.SetProjectID(o)
 	return ac
 }
 
@@ -97,8 +98,8 @@ func (ac *ApplicationCreate) SetVariables(tv []types.ApplicationVariable) *Appli
 }
 
 // SetID sets the "id" field.
-func (ac *ApplicationCreate) SetID(t types.ID) *ApplicationCreate {
-	ac.mutation.SetID(t)
+func (ac *ApplicationCreate) SetID(o oid.ID) *ApplicationCreate {
+	ac.mutation.SetID(o)
 	return ac
 }
 
@@ -108,14 +109,14 @@ func (ac *ApplicationCreate) SetProject(p *Project) *ApplicationCreate {
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (ac *ApplicationCreate) AddInstanceIDs(ids ...types.ID) *ApplicationCreate {
+func (ac *ApplicationCreate) AddInstanceIDs(ids ...oid.ID) *ApplicationCreate {
 	ac.mutation.AddInstanceIDs(ids...)
 	return ac
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (ac *ApplicationCreate) AddInstances(a ...*ApplicationInstance) *ApplicationCreate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -225,7 +226,7 @@ func (ac *ApplicationCreate) sqlSave(ctx context.Context) (*Application, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -590,7 +591,7 @@ func (u *ApplicationUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ApplicationUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -604,7 +605,7 @@ func (u *ApplicationUpsertOne) ID(ctx context.Context) (id types.ID, err error) 
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ApplicationUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

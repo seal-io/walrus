@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationModuleRelationshipQuery is the builder for querying ApplicationModuleRelationship entities.
@@ -390,8 +390,8 @@ func (amrq *ApplicationModuleRelationshipQuery) sqlAll(ctx context.Context, hook
 }
 
 func (amrq *ApplicationModuleRelationshipQuery) loadApplication(ctx context.Context, query *ApplicationQuery, nodes []*ApplicationModuleRelationship, init func(*ApplicationModuleRelationship), assign func(*ApplicationModuleRelationship, *Application)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationModuleRelationship)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationModuleRelationship)
 	for i := range nodes {
 		fk := nodes[i].ApplicationID
 		if _, ok := nodeids[fk]; !ok {

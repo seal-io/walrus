@@ -17,7 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ClusterCostCreate is the builder for creating a ClusterCost entity.
@@ -47,8 +47,8 @@ func (ccc *ClusterCostCreate) SetMinutes(f float64) *ClusterCostCreate {
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (ccc *ClusterCostCreate) SetConnectorID(t types.ID) *ClusterCostCreate {
-	ccc.mutation.SetConnectorID(t)
+func (ccc *ClusterCostCreate) SetConnectorID(o oid.ID) *ClusterCostCreate {
+	ccc.mutation.SetConnectorID(o)
 	return ccc
 }
 

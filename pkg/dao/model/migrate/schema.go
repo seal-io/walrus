@@ -6,6 +6,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -320,7 +321,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
-		{Name: "config_data", Type: field.TypeJSON},
+		{Name: "config_data", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
 	}
@@ -537,6 +538,52 @@ var (
 			},
 		},
 	}
+	// SecretsColumns holds the columns for the "secrets" table.
+	SecretsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "value", Type: field.TypeString, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// SecretsTable holds the schema information for the "secrets" table.
+	SecretsTable = &schema.Table{
+		Name:       "secrets",
+		Columns:    SecretsColumns,
+		PrimaryKey: []*schema.Column{SecretsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "secrets_projects_secrets",
+				Columns:    []*schema.Column{SecretsColumns[5]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "secret_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{SecretsColumns[2]},
+			},
+			{
+				Name:    "secret_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{SecretsColumns[5], SecretsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "secret_name",
+				Unique:  true,
+				Columns: []*schema.Column{SecretsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL",
+				},
+			},
+		},
+	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -644,6 +691,7 @@ var (
 		PerspectivesTable,
 		ProjectsTable,
 		RolesTable,
+		SecretsTable,
 		SettingsTable,
 		SubjectsTable,
 		TokensTable,
@@ -665,4 +713,5 @@ func init() {
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 	ModuleVersionsTable.ForeignKeys[0].RefTable = ModulesTable
+	SecretsTable.ForeignKeys[0].RefTable = ProjectsTable
 }

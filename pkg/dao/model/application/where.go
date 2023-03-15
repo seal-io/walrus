@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id types.ID) predicate.Application {
+func ID(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id types.ID) predicate.Application {
+func IDEQ(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id types.ID) predicate.Application {
+func IDNEQ(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...types.ID) predicate.Application {
+func IDIn(ids ...oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...types.ID) predicate.Application {
+func IDNotIn(ids ...oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id types.ID) predicate.Application {
+func IDGT(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id types.ID) predicate.Application {
+func IDGTE(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id types.ID) predicate.Application {
+func IDLT(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id types.ID) predicate.Application {
+func IDLTE(id oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldLTE(FieldID, id))
 }
 
@@ -82,7 +82,7 @@ func UpdateTime(v time.Time) predicate.Application {
 }
 
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v types.ID) predicate.Application {
+func ProjectID(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldProjectID, v))
 }
 
@@ -307,71 +307,71 @@ func UpdateTimeLTE(v time.Time) predicate.Application {
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v types.ID) predicate.Application {
+func ProjectIDEQ(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v types.ID) predicate.Application {
+func ProjectIDNEQ(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldNEQ(FieldProjectID, v))
 }
 
 // ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...types.ID) predicate.Application {
+func ProjectIDIn(vs ...oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldIn(FieldProjectID, vs...))
 }
 
 // ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...types.ID) predicate.Application {
+func ProjectIDNotIn(vs ...oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldNotIn(FieldProjectID, vs...))
 }
 
 // ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v types.ID) predicate.Application {
+func ProjectIDGT(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldGT(FieldProjectID, v))
 }
 
 // ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v types.ID) predicate.Application {
+func ProjectIDGTE(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldGTE(FieldProjectID, v))
 }
 
 // ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v types.ID) predicate.Application {
+func ProjectIDLT(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldLT(FieldProjectID, v))
 }
 
 // ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v types.ID) predicate.Application {
+func ProjectIDLTE(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldLTE(FieldProjectID, v))
 }
 
 // ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v types.ID) predicate.Application {
+func ProjectIDContains(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldContains(FieldProjectID, vc))
 }
 
 // ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v types.ID) predicate.Application {
+func ProjectIDHasPrefix(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldHasPrefix(FieldProjectID, vc))
 }
 
 // ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v types.ID) predicate.Application {
+func ProjectIDHasSuffix(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldHasSuffix(FieldProjectID, vc))
 }
 
 // ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v types.ID) predicate.Application {
+func ProjectIDEqualFold(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldEqualFold(FieldProjectID, vc))
 }
 
 // ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v types.ID) predicate.Application {
+func ProjectIDContainsFold(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldContainsFold(FieldProjectID, vc))
 }

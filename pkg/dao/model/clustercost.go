@@ -14,7 +14,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ClusterCost is the model entity for the ClusterCost schema.
@@ -29,7 +29,7 @@ type ClusterCost struct {
 	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
 	// ID of the connector.
-	ConnectorID types.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty"`
 	// Cluster name for current cost.
 	ClusterName string `json:"clusterName,omitempty"`
 	// Cost number.
@@ -82,6 +82,8 @@ func (*ClusterCost) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case clustercost.FieldConnectorID:
+			values[i] = new(oid.ID)
 		case clustercost.FieldMinutes, clustercost.FieldTotalCost, clustercost.FieldCpuCost, clustercost.FieldGpuCost, clustercost.FieldRamCost, clustercost.FieldStorageCost, clustercost.FieldAllocationCost, clustercost.FieldIdleCost, clustercost.FieldManagementCost:
 			values[i] = new(sql.NullFloat64)
 		case clustercost.FieldID, clustercost.FieldCurrency:
@@ -90,8 +92,6 @@ func (*ClusterCost) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case clustercost.FieldStartTime, clustercost.FieldEndTime:
 			values[i] = new(sql.NullTime)
-		case clustercost.FieldConnectorID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ClusterCost", columns[i])
 		}
@@ -132,7 +132,7 @@ func (cc *ClusterCost) assignValues(columns []string, values []any) error {
 				cc.Minutes = value.Float64
 			}
 		case clustercost.FieldConnectorID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				cc.ConnectorID = *value

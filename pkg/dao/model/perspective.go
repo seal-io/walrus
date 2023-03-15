@@ -15,13 +15,14 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Perspective is the model entity for the Perspective schema.
 type Perspective struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -45,14 +46,14 @@ func (*Perspective) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case perspective.FieldAllocationQueries:
 			values[i] = new([]byte)
+		case perspective.FieldID:
+			values[i] = new(oid.ID)
 		case perspective.FieldBuiltin:
 			values[i] = new(sql.NullBool)
 		case perspective.FieldName, perspective.FieldStartTime, perspective.FieldEndTime:
 			values[i] = new(sql.NullString)
 		case perspective.FieldCreateTime, perspective.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case perspective.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Perspective", columns[i])
 		}
@@ -69,7 +70,7 @@ func (pe *Perspective) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case perspective.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				pe.ID = *value

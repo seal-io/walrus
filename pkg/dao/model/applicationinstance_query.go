@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationInstanceQuery is the builder for querying ApplicationInstance entities.
@@ -198,8 +198,8 @@ func (aiq *ApplicationInstanceQuery) FirstX(ctx context.Context) *ApplicationIns
 
 // FirstID returns the first ApplicationInstance ID from the query.
 // Returns a *NotFoundError when no ApplicationInstance ID was found.
-func (aiq *ApplicationInstanceQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (aiq *ApplicationInstanceQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = aiq.Limit(1).IDs(setContextOp(ctx, aiq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (aiq *ApplicationInstanceQuery) FirstID(ctx context.Context) (id types.ID, 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (aiq *ApplicationInstanceQuery) FirstIDX(ctx context.Context) types.ID {
+func (aiq *ApplicationInstanceQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := aiq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -249,8 +249,8 @@ func (aiq *ApplicationInstanceQuery) OnlyX(ctx context.Context) *ApplicationInst
 // OnlyID is like Only, but returns the only ApplicationInstance ID in the query.
 // Returns a *NotSingularError when more than one ApplicationInstance ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (aiq *ApplicationInstanceQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (aiq *ApplicationInstanceQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = aiq.Limit(2).IDs(setContextOp(ctx, aiq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -266,7 +266,7 @@ func (aiq *ApplicationInstanceQuery) OnlyID(ctx context.Context) (id types.ID, e
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (aiq *ApplicationInstanceQuery) OnlyIDX(ctx context.Context) types.ID {
+func (aiq *ApplicationInstanceQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := aiq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -294,7 +294,7 @@ func (aiq *ApplicationInstanceQuery) AllX(ctx context.Context) []*ApplicationIns
 }
 
 // IDs executes the query and returns a list of ApplicationInstance IDs.
-func (aiq *ApplicationInstanceQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (aiq *ApplicationInstanceQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if aiq.ctx.Unique == nil && aiq.path != nil {
 		aiq.Unique(true)
 	}
@@ -306,7 +306,7 @@ func (aiq *ApplicationInstanceQuery) IDs(ctx context.Context) (ids []types.ID, e
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aiq *ApplicationInstanceQuery) IDsX(ctx context.Context) []types.ID {
+func (aiq *ApplicationInstanceQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := aiq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -558,8 +558,8 @@ func (aiq *ApplicationInstanceQuery) sqlAll(ctx context.Context, hooks ...queryH
 }
 
 func (aiq *ApplicationInstanceQuery) loadApplication(ctx context.Context, query *ApplicationQuery, nodes []*ApplicationInstance, init func(*ApplicationInstance), assign func(*ApplicationInstance, *Application)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationInstance)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationInstance)
 	for i := range nodes {
 		fk := nodes[i].ApplicationID
 		if _, ok := nodeids[fk]; !ok {
@@ -587,8 +587,8 @@ func (aiq *ApplicationInstanceQuery) loadApplication(ctx context.Context, query 
 	return nil
 }
 func (aiq *ApplicationInstanceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*ApplicationInstance, init func(*ApplicationInstance), assign func(*ApplicationInstance, *Environment)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationInstance)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationInstance)
 	for i := range nodes {
 		fk := nodes[i].EnvironmentID
 		if _, ok := nodeids[fk]; !ok {
@@ -617,7 +617,7 @@ func (aiq *ApplicationInstanceQuery) loadEnvironment(ctx context.Context, query 
 }
 func (aiq *ApplicationInstanceQuery) loadRevisions(ctx context.Context, query *ApplicationRevisionQuery, nodes []*ApplicationInstance, init func(*ApplicationInstance), assign func(*ApplicationInstance, *ApplicationRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*ApplicationInstance)
+	nodeids := make(map[oid.ID]*ApplicationInstance)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -644,7 +644,7 @@ func (aiq *ApplicationInstanceQuery) loadRevisions(ctx context.Context, query *A
 }
 func (aiq *ApplicationInstanceQuery) loadResources(ctx context.Context, query *ApplicationResourceQuery, nodes []*ApplicationInstance, init func(*ApplicationInstance), assign func(*ApplicationInstance, *ApplicationResource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*ApplicationInstance)
+	nodeids := make(map[oid.ID]*ApplicationInstance)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

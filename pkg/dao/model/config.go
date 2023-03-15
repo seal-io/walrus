@@ -53,6 +53,7 @@ type (
 		Perspective                      []ent.Hook
 		Project                          []ent.Hook
 		Role                             []ent.Hook
+		Secret                           []ent.Hook
 		Setting                          []ent.Hook
 		Subject                          []ent.Hook
 		Token                            []ent.Hook
@@ -73,6 +74,7 @@ type (
 		Perspective                      []ent.Interceptor
 		Project                          []ent.Interceptor
 		Role                             []ent.Interceptor
+		Secret                           []ent.Interceptor
 		Setting                          []ent.Interceptor
 		Subject                          []ent.Interceptor
 		Token                            []ent.Interceptor

@@ -18,7 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleCreate is the builder for creating a Module entity.
@@ -132,14 +132,14 @@ func (mc *ModuleCreate) SetID(s string) *ModuleCreate {
 }
 
 // AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
-func (mc *ModuleCreate) AddVersionIDs(ids ...types.ID) *ModuleCreate {
+func (mc *ModuleCreate) AddVersionIDs(ids ...oid.ID) *ModuleCreate {
 	mc.mutation.AddVersionIDs(ids...)
 	return mc
 }
 
 // AddVersions adds the "versions" edges to the ModuleVersion entity.
 func (mc *ModuleCreate) AddVersions(m ...*ModuleVersion) *ModuleCreate {
-	ids := make([]types.ID, len(m))
+	ids := make([]oid.ID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}

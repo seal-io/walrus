@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ConnectorQuery is the builder for querying Connector entities.
@@ -198,8 +198,8 @@ func (cq *ConnectorQuery) FirstX(ctx context.Context) *Connector {
 
 // FirstID returns the first Connector ID from the query.
 // Returns a *NotFoundError when no Connector ID was found.
-func (cq *ConnectorQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (cq *ConnectorQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (cq *ConnectorQuery) FirstID(ctx context.Context) (id types.ID, err error) 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (cq *ConnectorQuery) FirstIDX(ctx context.Context) types.ID {
+func (cq *ConnectorQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -249,8 +249,8 @@ func (cq *ConnectorQuery) OnlyX(ctx context.Context) *Connector {
 // OnlyID is like Only, but returns the only Connector ID in the query.
 // Returns a *NotSingularError when more than one Connector ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (cq *ConnectorQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (cq *ConnectorQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -266,7 +266,7 @@ func (cq *ConnectorQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (cq *ConnectorQuery) OnlyIDX(ctx context.Context) types.ID {
+func (cq *ConnectorQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -294,7 +294,7 @@ func (cq *ConnectorQuery) AllX(ctx context.Context) []*Connector {
 }
 
 // IDs executes the query and returns a list of Connector IDs.
-func (cq *ConnectorQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (cq *ConnectorQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if cq.ctx.Unique == nil && cq.path != nil {
 		cq.Unique(true)
 	}
@@ -306,7 +306,7 @@ func (cq *ConnectorQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *ConnectorQuery) IDsX(ctx context.Context) []types.ID {
+func (cq *ConnectorQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -563,7 +563,7 @@ func (cq *ConnectorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Co
 
 func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *EnvironmentConnectorRelationshipQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *EnvironmentConnectorRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Connector)
+	nodeids := make(map[oid.ID]*Connector)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -590,7 +590,7 @@ func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *Environme
 }
 func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ApplicationResourceQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ApplicationResource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Connector)
+	nodeids := make(map[oid.ID]*Connector)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -617,7 +617,7 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ApplicationR
 }
 func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *ClusterCost)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Connector)
+	nodeids := make(map[oid.ID]*Connector)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -644,7 +644,7 @@ func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCo
 }
 func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *AllocationCostQuery, nodes []*Connector, init func(*Connector), assign func(*Connector, *AllocationCost)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Connector)
+	nodeids := make(map[oid.ID]*Connector)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleUpdate is the builder for updating Module entities.
@@ -135,14 +135,14 @@ func (mu *ModuleUpdate) SetSource(s string) *ModuleUpdate {
 }
 
 // AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
-func (mu *ModuleUpdate) AddVersionIDs(ids ...types.ID) *ModuleUpdate {
+func (mu *ModuleUpdate) AddVersionIDs(ids ...oid.ID) *ModuleUpdate {
 	mu.mutation.AddVersionIDs(ids...)
 	return mu
 }
 
 // AddVersions adds the "versions" edges to the ModuleVersion entity.
 func (mu *ModuleUpdate) AddVersions(m ...*ModuleVersion) *ModuleUpdate {
-	ids := make([]types.ID, len(m))
+	ids := make([]oid.ID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -161,14 +161,14 @@ func (mu *ModuleUpdate) ClearVersions() *ModuleUpdate {
 }
 
 // RemoveVersionIDs removes the "versions" edge to ModuleVersion entities by IDs.
-func (mu *ModuleUpdate) RemoveVersionIDs(ids ...types.ID) *ModuleUpdate {
+func (mu *ModuleUpdate) RemoveVersionIDs(ids ...oid.ID) *ModuleUpdate {
 	mu.mutation.RemoveVersionIDs(ids...)
 	return mu
 }
 
 // RemoveVersions removes "versions" edges to ModuleVersion entities.
 func (mu *ModuleUpdate) RemoveVersions(m ...*ModuleVersion) *ModuleUpdate {
-	ids := make([]types.ID, len(m))
+	ids := make([]oid.ID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -452,14 +452,14 @@ func (muo *ModuleUpdateOne) SetSource(s string) *ModuleUpdateOne {
 }
 
 // AddVersionIDs adds the "versions" edge to the ModuleVersion entity by IDs.
-func (muo *ModuleUpdateOne) AddVersionIDs(ids ...types.ID) *ModuleUpdateOne {
+func (muo *ModuleUpdateOne) AddVersionIDs(ids ...oid.ID) *ModuleUpdateOne {
 	muo.mutation.AddVersionIDs(ids...)
 	return muo
 }
 
 // AddVersions adds the "versions" edges to the ModuleVersion entity.
 func (muo *ModuleUpdateOne) AddVersions(m ...*ModuleVersion) *ModuleUpdateOne {
-	ids := make([]types.ID, len(m))
+	ids := make([]oid.ID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -478,14 +478,14 @@ func (muo *ModuleUpdateOne) ClearVersions() *ModuleUpdateOne {
 }
 
 // RemoveVersionIDs removes the "versions" edge to ModuleVersion entities by IDs.
-func (muo *ModuleUpdateOne) RemoveVersionIDs(ids ...types.ID) *ModuleUpdateOne {
+func (muo *ModuleUpdateOne) RemoveVersionIDs(ids ...oid.ID) *ModuleUpdateOne {
 	muo.mutation.RemoveVersionIDs(ids...)
 	return muo
 }
 
 // RemoveVersions removes "versions" edges to ModuleVersion entities.
 func (muo *ModuleUpdateOne) RemoveVersions(m ...*ModuleVersion) *ModuleUpdateOne {
-	ids := make([]types.ID, len(m))
+	ids := make([]oid.ID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
