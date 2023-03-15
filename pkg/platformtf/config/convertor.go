@@ -119,11 +119,6 @@ func (m HelmConvertor) ToBlock(connector *model.Connector, opts ConvertOptions) 
 		configPath = k8sOpts.ConfigPath + "/" + GetSecretK8sConfigName(connector.ID.String())
 		alias      = k8sOpts.ConnSeparator + connector.ID.String()
 		attributes = map[string]interface{}{
-			"kubernetes": []map[string]interface{}{
-				{
-					"config_path": configPath,
-				},
-			},
 			"alias": alias,
 		}
 	)
@@ -133,12 +128,32 @@ func (m HelmConvertor) ToBlock(connector *model.Connector, opts ConvertOptions) 
 		return nil, err
 	}
 
-	return &Block{
-		Type:       BlockTypeProvider,
-		Attributes: attributes,
-		// convert the connector type to provider type.
-		Labels: []string{ProviderHelm},
-	}, nil
+	// helm provider need a kubernetes block.
+	// it is not a regular attribute of the helm provider.
+	// e.g.
+	// provider "helm" {
+	// 	kubernetes {
+	// 		config_path = "xxx"
+	// 	}
+	// }
+
+	var (
+		helmBlock = &Block{
+			Type:       BlockTypeProvider,
+			Attributes: attributes,
+			// convert the connector type to provider type.
+			Labels: []string{ProviderHelm},
+		}
+		k8sBlock = &Block{
+			Type: BlockTypeK8s,
+			Attributes: map[string]interface{}{
+				"config_path": configPath,
+			},
+		}
+	)
+	helmBlock.AppendBlock(k8sBlock)
+
+	return helmBlock, nil
 }
 
 func (m HelmConvertor) ToBlocks(connectors model.Connectors, opts ConvertOptions) (Blocks, error) {

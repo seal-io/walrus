@@ -314,7 +314,6 @@ func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (st
 	}
 
 	configOpts := config.CreateOptions{
-		Format:             config.BlockFormatHCL,
 		SecretMountPath:    _secretMountPath,
 		ConnectorSeparator: connectorSeparator,
 		Address:            address,

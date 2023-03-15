@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"text/template"
+	"sync"
+
+	"github.com/hashicorp/hcl/v2/hclwrite"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/bytespool"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
 )
 
 // ModuleConfig is a struct with model.Module and its variables.
@@ -23,8 +23,6 @@ type ModuleConfig struct {
 
 // CreateOptions represents the CreateOptions of the Config.
 type CreateOptions struct {
-	// Format is the default print format of the Config, support hcl, json.
-	Format string
 	// SecretMountPath is the mount path of the secret in the terraform config.
 	SecretMountPath string
 	// ConnectorSeparator is the separator of the terraform provider alias name and id.
@@ -46,10 +44,9 @@ type CreateOptions struct {
 
 // Config handles the configuration of application to terraform config.
 type Config struct {
-	format       string
-	outputBuffer bytes.Buffer
-	// mapObjects is a map of objects that have been printed already.
-	mapObjects map[string]struct{}
+	once *sync.Once
+	// file is the hclwrite.File of the Config.
+	file *hclwrite.File
 
 	// TerraformBlocks terraform blocks like backend, required_providers, etc.
 	/**
@@ -103,16 +100,16 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 	providerBlocks = append(providerBlocks, moduleBlocks...)
 
 	c := &Config{
-		format:     opts.Format,
-		mapObjects: make(map[string]struct{}),
-		TFBlocks:   tfBlocks,
-		Blocks:     providerBlocks,
+		file:     hclwrite.NewEmptyFile(),
+		TFBlocks: tfBlocks,
+		Blocks:   providerBlocks,
+		once:     &sync.Once{},
 	}
 
 	if err = c.validate(); err != nil {
 		return nil, err
 	}
-	if err = c.initOutput(); err != nil {
+	if err = c.initBlocks(); err != nil {
 		return nil, err
 	}
 
@@ -120,10 +117,6 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	if c.format != BlockFormatHCL && c.format != BlockFormatJSON {
-		return fmt.Errorf("invalid format: %s", c.format)
-	}
-
 	for _, block := range c.TFBlocks {
 		if block.Type == "" {
 			return fmt.Errorf("invalid block type: %s", block.Type)
@@ -139,116 +132,101 @@ func (c *Config) validate() error {
 	return nil
 }
 
-// AddBlock adds a block to the configuration.
-func (c *Config) AddBlock(blocks Blocks) error {
-	var blocksOutput []byte
+// AddBlocks adds a block to the configuration.
+func (c *Config) AddBlocks(blocks Blocks) error {
+	var mu sync.Mutex
+	mu.Lock()
+	defer mu.Unlock()
 
 	c.Blocks = append(c.Blocks, blocks...)
 	for _, block := range blocks {
-		output, err := block.Print(c.format, c.mapObjects)
+		tBlock, err := block.ToHCLBlock()
 		if err != nil {
 			return err
 		}
 
-		blocksOutput = append(blocksOutput, output...)
-	}
-	_, err := c.outputBuffer.Write(blocksOutput)
-	if err != nil {
-		return err
+		c.file.Body().AppendBlock(tBlock)
 	}
 
 	return nil
 }
 
-// printTerraformBlocks prints terraform blocks of the configuration. e.g. backend, required_providers, etc.
-func (c *Config) printTerraformBlocks() ([]byte, error) {
-	terraformTpl := `terraform {
-{{ range $block := .Blocks }}
-{{ $block }}
-{{ end -}}
-}
+// appendTerraformBlocks prints terraform blocks of the configuration. e.g. backend, required_providers, etc.
+func (c *Config) appendTerraformBlocks() error {
+	// terraform block
+	tfBlock := hclwrite.NewBlock(BlockTypeTerraform, nil)
+	tfBody := tfBlock.Body()
 
-`
-	data := struct {
-		Blocks []string
-	}{}
-	tpl, err := template.New("terraform").Parse(terraformTpl)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, block := range c.TFBlocks {
-		blockOutput, err := block.Print(c.format, c.mapObjects)
+	for i := 0; i < len(c.TFBlocks); i++ {
+		childBlock, err := c.TFBlocks[i].ToHCLBlock()
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		data.Blocks = append(data.Blocks, strs.Indent(2, string(blockOutput)))
-	}
-
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-// printBlocks prints other blocks of the configuration. e.g. provider, module, etc.
-func (c *Config) printBlocks() ([]byte, error) {
-	var b = bytespool.GetBuffer()
-	for _, block := range c.Blocks {
-		blockOutput, err := block.Print(c.format, c.mapObjects)
-		if err != nil {
-			return nil, err
-		}
-		blockOutput = append(blockOutput, []byte("\n")...)
-		_, err = b.Write(blockOutput)
-		if err != nil {
-			return nil, err
+		tfBody.AppendBlock(childBlock)
+		if i != len(c.TFBlocks)-1 {
+			tfBody.AppendNewline()
 		}
 	}
 
-	return b.Bytes(), nil
+	c.file.Body().AppendBlock(tfBlock)
+	c.file.Body().AppendNewline()
+	return nil
 }
 
-func (c *Config) initOutput() error {
-	tfOutput, err := c.printTerraformBlocks()
-	if err != nil {
-		return err
-	}
-
-	blocksOutput, err := c.printBlocks()
-	if err != nil {
-		return err
-	}
-
-	tfOutput = append(tfOutput, blocksOutput...)
-	tfOutput = Format(tfOutput)
-
-	_, err = c.outputBuffer.Write(tfOutput)
-	if err != nil {
-		return err
+// appendBlocks prints other blocks of the configuration. e.g. provider, module, etc.
+func (c *Config) appendBlocks() error {
+	for i := 0; i < len(c.Blocks); i++ {
+		childBlock, err := c.Blocks[i].ToHCLBlock()
+		if err != nil {
+			return err
+		}
+		c.file.Body().AppendBlock(childBlock)
+		c.file.Body().AppendNewline()
 	}
 
 	return nil
+}
+
+func (c *Config) initBlocks() (err error) {
+	c.once.Do(
+		func() {
+			if c.file == nil {
+				c.file = hclwrite.NewEmptyFile()
+			}
+
+			// terraform block
+			if err = c.appendTerraformBlocks(); err != nil {
+				return
+			}
+
+			// other blocks
+			if err = c.appendBlocks(); err != nil {
+				return
+			}
+		})
+	return
 }
 
 // WriteTo writes the config to the writer.
 func (c *Config) WriteTo(w io.Writer) (int64, error) {
-	return c.outputBuffer.WriteTo(w)
+	if err := c.initBlocks(); err != nil {
+		return 0, err
+	}
+
+	// format the file
+	formatted := hclwrite.Format(Format(c.file.Bytes()))
+
+	return io.Copy(w, bytes.NewReader(formatted))
 }
 
 // Reader returns a reader of the config.
 func (c *Config) Reader() (io.Reader, error) {
-	if c.outputBuffer.Len() == 0 {
-		err := c.initOutput()
-		if err != nil {
-			return nil, err
-		}
+	var buf bytes.Buffer
+	if _, err := c.WriteTo(&buf); err != nil {
+		return nil, err
 	}
 
-	return bytes.NewReader(c.outputBuffer.Bytes()), nil
+	return bytes.NewReader(buf.Bytes()), nil
 }
 
 func loadBackendBlock(address, token string, skipTLSVerify bool) *Block {
@@ -295,7 +273,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 		}
 		name := p.Labels[0]
 
-		providersMap[name] = fmt.Sprintf("$${%s.%s}", name, alias)
+		providersMap[name] = fmt.Sprintf("${%s.%s}", name, alias)
 	}
 	for _, mc := range moduleConfigs {
 		block, err := ToModuleBlock(mc)
