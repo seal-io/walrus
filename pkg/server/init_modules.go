@@ -18,11 +18,13 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			ID:          "webservice",
 			Description: "A long-running, scalable, containerized service that have a stable network endpoint to receive external network traffic.",
 			Source:      "github.com/gitlawr/modules/webservice",
+			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_web.svg",
 		},
 		{
-			ID:          "webservice-from-source",
-			Description: "Build and run a containerized service from source code.",
-			Source:      "github.com/gitlawr/modules/webservice-from-source",
+			ID:          "build-image",
+			Description: "Build a container image from source code.",
+			Source:      "github.com/gitlawr/modules/build-image",
+			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_containerimage.svg",
 		},
 		{
 			ID:          "aws-rds",
