@@ -37,6 +37,8 @@ var (
 	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFrom("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
 	// TerraformDeployerImage indicates the image for terraform deployment.
 	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), modifyWith(notBlank, containerImageReference))
+	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
+	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.
