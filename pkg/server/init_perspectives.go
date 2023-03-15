@@ -123,7 +123,7 @@ func perspectiveAll() *model.Perspective {
 						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
-				GroupBy: types.GroupByFieldClusterName,
+				GroupBy: types.GroupByFieldConnectorID,
 				Paging: types.QueryPagination{
 					Page:    1,
 					PerPage: 10,
@@ -155,12 +155,12 @@ func perspectiveCluster() *model.Perspective {
 					{
 						IdleCostFilters: types.IdleCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						ManagementCostFilters: types.ManagementCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						SharingStrategy: types.SharingStrategyProportionally,
@@ -178,7 +178,9 @@ func perspectiveCluster() *model.Perspective {
 				Filters: types.AllocationCostFilters{
 					{
 						{
-							IncludeAll: true,
+							FieldName: types.FilterFieldConnectorID,
+							Operator:  types.OperatorIn,
+							Values:    []string{"${connectorID}"},
 						},
 					},
 				},
@@ -186,12 +188,12 @@ func perspectiveCluster() *model.Perspective {
 					{
 						IdleCostFilters: types.IdleCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						ManagementCostFilters: types.ManagementCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						SharingStrategy: types.SharingStrategyProportionally,
@@ -208,7 +210,9 @@ func perspectiveCluster() *model.Perspective {
 				Filters: types.AllocationCostFilters{
 					{
 						{
-							IncludeAll: true,
+							FieldName: types.FilterFieldConnectorID,
+							Operator:  types.OperatorIn,
+							Values:    []string{"${connectorID}"},
 						},
 					},
 				},
@@ -216,12 +220,12 @@ func perspectiveCluster() *model.Perspective {
 					{
 						IdleCostFilters: types.IdleCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						ManagementCostFilters: types.ManagementCostFilters{
 							{
-								IncludeAll: true,
+								ConnectorID: "${connectorID}",
 							},
 						},
 						SharingStrategy: types.SharingStrategyProportionally,
@@ -254,21 +258,6 @@ func perspectiveProject() *model.Perspective {
 							Operator:  types.OperatorIn,
 							Values:    []string{"${project}"},
 						},
-					},
-				},
-				SharedCosts: types.ShareCosts{
-					{
-						IdleCostFilters: types.IdleCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						ManagementCostFilters: types.ManagementCostFilters{
-							{
-								IncludeAll: true,
-							},
-						},
-						SharingStrategy: types.SharingStrategyProportionally,
 					},
 				},
 				GroupBy: types.GroupByFieldApplication,
