@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"io"
+	"sync"
 	"testing"
 )
 
@@ -16,6 +16,10 @@ func TestConfig_Print(t *testing.T) {
 			},
 			Attributes: map[string]interface{}{
 				"ami": "ami-0c55b159cbfafe1f0",
+				"env": map[string]interface{}{
+					"test": "test",
+				},
+				"null": nil,
 			},
 		},
 		{
@@ -34,7 +38,7 @@ func TestConfig_Print(t *testing.T) {
 			},
 			Attributes: map[string]interface{}{
 				"providers": map[string]interface{}{
-					"kubernetes": "$${kubernetes.us-east-1}",
+					"kubernetes": "${kubernetes.us-east-1}",
 				},
 				"source": "github.com/terraform-aws-modules/terraform-aws-rds",
 			},
@@ -65,25 +69,26 @@ func TestConfig_Print(t *testing.T) {
 
 	testCases := []struct {
 		config   *Config
-		expected []string
+		expected string
 	}{
 		{
 			config: &Config{
-				format:   "hcl",
 				Blocks:   blocks,
 				TFBlocks: tfBlocks,
+				once:     &sync.Once{},
 			},
-			expected: []string{
-				`terraform {
-
+			expected: `terraform {
   backend "s3" {
     bucket = "terraform-state"
   }
-  
 }
 
 resource "aws_instance" "test" {
   ami = "ami-0c55b159cbfafe1f0"
+  env = {
+    test = "test"
+  }
+  null = null
 }
 
 provider "aws" {
@@ -94,7 +99,6 @@ module "mysql" {
   providers = {
     kubernetes = kubernetes.us-east-1
   }
-
   source = "github.com/terraform-aws-modules/terraform-aws-rds"
 }
 
@@ -103,34 +107,6 @@ data "aws_ami" "test" {
 }
 
 `,
-				`terraform {
-  backend "s3" {
-    bucket = "terraform-state"
-  }
-}
-
-resource "aws_instance" "test" {
-  ami = "ami-0c55b159cbfafe1f0"
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-module "mysql" {
-  source = "github.com/terraform-aws-modules/terraform-aws-rds"
-
-  providers = {
-    kubernetes = kubernetes.us-east-1
-  }
-}
-
-data "aws_ami" "test" {
-  owners = ["amazon"]
-}
-
-`,
-			},
 		},
 	}
 
@@ -145,16 +121,7 @@ data "aws_ami" "test" {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		found := false
-		for _, expected := range tc.expected {
-			if string(actual) == expected {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			fmt.Println(string(actual), string(tc.expected[0]))
+		if string(actual) != tc.expected {
 			t.Errorf("expected %#v, got %#v", tc.expected, string(actual))
 		}
 	}

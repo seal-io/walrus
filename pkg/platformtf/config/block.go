@@ -1,9 +1,13 @@
 package config
 
 import (
-	"github.com/GoogleCloudPlatform/terraformer/terraformutils"
+	"encoding/json"
+	"fmt"
+	"sort"
 
-	"github.com/seal-io/seal/utils/maps"
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
+	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
 type (
@@ -45,37 +49,125 @@ type (
 
 		// Attributes the Attributes of the block.
 		Attributes map[string]interface{}
+
+		hclBlock *hclwrite.Block
+
+		// childBlocks holds information about any child Blocks that the Block may have. This can be empty.
+		childBlocks Blocks
 	}
 
 	Blocks []*Block
 )
 
-// ToNestedMap returns a nested map with the block type as the root key
-// and labels are nested in the map with the attributes.
-func (b *Block) ToNestedMap() map[string]interface{} {
-	m := b.Attributes
-
-	for i := len(b.Labels) - 1; i >= 0; i-- {
-		m = map[string]interface{}{
-			b.Labels[i]: m,
-		}
-	}
-
-	m = map[string]interface{}{
-		b.Type: m,
-	}
-
-	return m
-}
-
-// Print returns the block as a config string.
-// mapObjects is a map of objects that have been printed already.
-func (b *Block) Print(format string, mapObjects map[string]struct{}) ([]byte, error) {
-	nestedMap := maps.RemoveNullsCopy(b.ToNestedMap())
-	outputBytes, err := terraformutils.Print(nestedMap, mapObjects, format)
+// EncodeToBytes returns the block as a config bytes.
+func (b *Block) EncodeToBytes() ([]byte, error) {
+	hclBlock, err := b.ToHCLBlock()
 	if err != nil {
 		return nil, err
 	}
 
-	return outputBytes, nil
+	f := hclwrite.NewEmptyFile()
+	body := f.Body()
+	body.AppendBlock(hclBlock)
+
+	return f.Bytes(), nil
+}
+
+// removeRing removes the ring in the block tree.
+func (b *Block) removeRing() {
+	stack := make([]*Block, 0)
+
+	removeRing(b, stack)
+}
+
+func (b *Block) AppendBlock(block *Block) {
+	if block == nil {
+		return
+	}
+
+	b.childBlocks = append(b.childBlocks, block)
+	// remove ring
+	b.removeRing()
+	// append block will cause the tree structure change,
+	// so we need to reset the hclBlock.
+	b.hclBlock = nil
+}
+
+// ToHCLBlock returns the block as a hclwrite.Block.
+func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
+	if b.Type == "" {
+		return nil, fmt.Errorf("block type is empty")
+	}
+
+	block := hclwrite.NewBlock(b.Type, b.Labels)
+	// append child blocks.
+	for i := 0; i < len(b.childBlocks); i++ {
+		cb, err := b.childBlocks[i].ToHCLBlock()
+		if err != nil {
+			return nil, err
+		}
+		block.Body().AppendBlock(cb)
+		if i != len(b.childBlocks)-1 {
+			block.Body().AppendNewline()
+		}
+	}
+	attributes, err := convertToCtyWithJson(b.Attributes)
+	if err != nil {
+		return nil, err
+	}
+	attrKeys := sortValueKeys(attributes)
+	if len(attrKeys) == 0 {
+		return block, nil
+	}
+	attrMap := attributes.AsValueMap()
+	for _, attr := range attrKeys {
+		block.Body().SetAttributeValue(attr, attrMap[attr])
+	}
+	b.hclBlock = block
+
+	return b.hclBlock, nil
+}
+
+// sortValueKeys will return a sorted list of the keys the val has.
+func sortValueKeys(val cty.Value) []string {
+	if !val.CanIterateElements() {
+		return nil
+	}
+	keys := make([]string, 0, val.LengthInt())
+	for it := val.ElementIterator(); it.Next(); {
+		k, _ := it.Element()
+		keys = append(keys, k.AsString())
+	}
+	sort.Strings(keys)
+
+	return keys
+}
+
+// convertToCtyWithJson Converts arbitrary go types that are json serializable to a cty Value
+// by using json as an intermediary representation.
+func convertToCtyWithJson(val interface{}) (cty.Value, error) {
+	jsonBytes, err := json.Marshal(val)
+	if err != nil {
+		return cty.NilVal, fmt.Errorf("failed to marshal value to json: %w", err)
+	}
+	var ctyJsonVal ctyjson.SimpleJSONValue
+	if err := ctyJsonVal.UnmarshalJSON(jsonBytes); err != nil {
+		return cty.NilVal, fmt.Errorf("failed to unmarshal json to cty value: %w", err)
+	}
+	return ctyJsonVal.Value, nil
+}
+
+// removeRing will remove the ring in the block tree.
+func removeRing(root *Block, stack []*Block) {
+	for i, child := range root.childBlocks {
+		for _, node := range stack {
+			if child == node {
+				root.childBlocks = append(root.childBlocks[:i], root.childBlocks[i+1:]...)
+				return
+			}
+		}
+		stack = append(stack, child)
+		removeRing(child, stack)
+		stack = stack[:len(stack)-1]
+	}
 }

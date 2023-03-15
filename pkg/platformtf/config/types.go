@@ -19,6 +19,9 @@ const (
 	// BlockTypeResource represents the resource block.
 	BlockTypeResource = "resource"
 
+	// BlockTypeK8s represents the kubernetes block.
+	BlockTypeK8s = "kubernetes"
+
 	// BlockFormatHCL represents the hcl format.
 	BlockFormatHCL = "hcl"
 	// BlockFormatJSON represents the json format.
