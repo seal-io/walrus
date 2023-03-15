@@ -3,10 +3,12 @@ package server
 import (
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	stdlog "log"
 	"path/filepath"
+	"strings"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -47,10 +49,12 @@ type Server struct {
 	KubeConnQPS     float64
 	KubeConnBurst   int
 
-	DataSourceAddress     string
-	DataSourceConnMaxOpen int
-	DataSourceConnMaxIdle int
-	DataSourceConnMaxLife time.Duration
+	DataSourceAddress        string
+	DataSourceConnMaxOpen    int
+	DataSourceConnMaxIdle    int
+	DataSourceConnMaxLife    time.Duration
+	DataSourceDataEncryptAlg string
+	DataSourceDataEncryptKey []byte
 
 	EnableAuthn   bool
 	CasdoorServer string
@@ -203,6 +207,32 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The maximum lifetime for connecting data source.",
 			Destination: &r.DataSourceConnMaxLife,
 			Value:       r.DataSourceConnMaxLife,
+		},
+		&cli.StringFlag{
+			Name: "data-source-data-encryption",
+			Usage: "The algorithm and key(in-hex string) for encrypting the user credentials storing in data source, e.g. " +
+				"aesgcm:3a9b4000d0ad8fbcd01eb922231d395d, aesgcm:b4d1c09dcf62214a05d85548b9217b34da63224d2605938abb6bf384050d2222",
+			Action: func(c *cli.Context, s string) error {
+				var ss = strings.SplitN(s, ":", 2)
+				if len(ss) != 2 {
+					return errors.New("invalid data-source-data-encryption: illegal format")
+				}
+				var alg = ss[0]
+				var key, err = hex.DecodeString(ss[1])
+				if err != nil {
+					return errors.New("invalid data-source-data-encryption: must in hex string")
+				}
+				switch alg {
+				default:
+					return errors.New("invalid data-source-data-encryption: unknown algorithm " + alg)
+				case "aesgcm":
+					if ks := len(key); ks != 16 && ks != 32 {
+						return errors.New("invalid data-source-data-encryption: must in 16 bytes or 32 bytes")
+					}
+				}
+				r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey = alg, key
+				return nil
+			},
 		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
