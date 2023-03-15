@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
 
 type Connector struct {
@@ -40,9 +41,9 @@ func (Connector) Fields() []ent.Field {
 		field.String("configVersion").
 			Comment("Connector config version.").
 			NotEmpty(),
-		field.JSON("configData", map[string]interface{}{}).
+		crypto.MapField[string, interface{}]("configData").
 			Comment("Connector config data.").
-			Default(map[string]interface{}{}).
+			Default(crypto.Map[string, interface{}]{}).
 			Sensitive(),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
