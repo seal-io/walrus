@@ -53,3 +53,10 @@ func parseUrl(str string, check urlSchemeChecker) (*url.URL, error) {
 	}
 	return v, nil
 }
+
+// isBlankValue returns ture if the given string is "blank",
+// includes empty object/array JSON string.
+func isBlankValue(v string) bool {
+	v = strings.TrimSpace(v)
+	return v == "" || v == "{}" || v == "[]"
+}
