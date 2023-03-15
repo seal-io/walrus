@@ -50,8 +50,10 @@ func validate(m *model.Module) error {
 	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
-	if _, err := url.ParseRequestURI(m.Icon); err != nil {
-		return fmt.Errorf("invalid icon URL: %w", err)
+	if m.Icon != "" {
+		if _, err := url.ParseRequestURI(m.Icon); err != nil {
+			return fmt.Errorf("invalid icon URL: %w", err)
+		}
 	}
 	return nil
 }
