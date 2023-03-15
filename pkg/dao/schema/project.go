@@ -36,5 +36,11 @@ func (Project) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
+		// project 1-* secrets.
+		edge.To("secrets", Secret.Type).
+			Comment("Secrets that belong to the project.").
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
