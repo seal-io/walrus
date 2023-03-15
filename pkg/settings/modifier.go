@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	imgdistref "github.com/distribution/distribution/reference"
 
@@ -49,7 +48,7 @@ type modifyValidator func(ctx context.Context, name, oldVal, newVal string) (boo
 // notBlank implements the modifyValidator stereotype,
 // which means the value can be modified if not blank.
 func notBlank(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	if strings.TrimSpace(newVal) == "" {
+	if isBlankValue(newVal) {
 		return false, errors.New("blank value")
 	}
 	return true, nil
@@ -64,7 +63,7 @@ func many(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // once implements the modifyValidator stereotype,
 // which means the value can be modified if blank.
 func once(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	if oldVal != "" && oldVal != "{}" && oldVal != "[]" {
+	if !isBlankValue(oldVal) {
 		return false, errors.New("already configured")
 	}
 	return true, nil

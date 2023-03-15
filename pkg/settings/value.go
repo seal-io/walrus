@@ -58,6 +58,9 @@ type Value interface {
 
 	// Set configures the value of the setting.
 	Set(context.Context, model.ClientSet, interface{}) error
+
+	// Cas configures the value of setting with CAS operation.
+	Cas(context.Context, model.ClientSet, func(oldVal string) (newVal string, err error)) error
 }
 
 var (
@@ -241,4 +244,36 @@ func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw inte
 			v.refer.Name, err)
 	}
 	return nil
+}
+
+// Cas implements the Value interface.
+func (v value) Cas(ctx context.Context, client model.ClientSet, op func(oldVal string) (newVal string, err error)) error {
+	if op == nil {
+		return nil
+	}
+	return client.WithTx(ctx, func(tx *model.Tx) error {
+		dbValue, err := tx.Settings().Query().
+			Select(setting.FieldValue).
+			Where(setting.Name(v.refer.Name)).
+			ForUpdate().
+			Only(ctx)
+		if err != nil {
+			return err
+		}
+		var oldVal = dbValue.Value
+		newVal, err := op(oldVal)
+		if err != nil {
+			return err
+		}
+		err = v.modify(ctx, tx, v.refer.Name, oldVal, newVal)
+		if err != nil {
+			return err
+		}
+		err = cacher.Set(v.refer.Name, []byte(newVal))
+		if err != nil {
+			logger.Warnf("error caching %s: %v",
+				v.refer.Name, err)
+		}
+		return nil
+	})
 }
