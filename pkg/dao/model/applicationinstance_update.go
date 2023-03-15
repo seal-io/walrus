@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationInstanceUpdate is the builder for updating ApplicationInstance entities.
@@ -96,14 +96,14 @@ func (aiu *ApplicationInstanceUpdate) ClearVariables() *ApplicationInstanceUpdat
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (aiu *ApplicationInstanceUpdate) AddRevisionIDs(ids ...types.ID) *ApplicationInstanceUpdate {
+func (aiu *ApplicationInstanceUpdate) AddRevisionIDs(ids ...oid.ID) *ApplicationInstanceUpdate {
 	aiu.mutation.AddRevisionIDs(ids...)
 	return aiu
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (aiu *ApplicationInstanceUpdate) AddRevisions(a ...*ApplicationRevision) *ApplicationInstanceUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -111,14 +111,14 @@ func (aiu *ApplicationInstanceUpdate) AddRevisions(a ...*ApplicationRevision) *A
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (aiu *ApplicationInstanceUpdate) AddResourceIDs(ids ...types.ID) *ApplicationInstanceUpdate {
+func (aiu *ApplicationInstanceUpdate) AddResourceIDs(ids ...oid.ID) *ApplicationInstanceUpdate {
 	aiu.mutation.AddResourceIDs(ids...)
 	return aiu
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (aiu *ApplicationInstanceUpdate) AddResources(a ...*ApplicationResource) *ApplicationInstanceUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -137,14 +137,14 @@ func (aiu *ApplicationInstanceUpdate) ClearRevisions() *ApplicationInstanceUpdat
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (aiu *ApplicationInstanceUpdate) RemoveRevisionIDs(ids ...types.ID) *ApplicationInstanceUpdate {
+func (aiu *ApplicationInstanceUpdate) RemoveRevisionIDs(ids ...oid.ID) *ApplicationInstanceUpdate {
 	aiu.mutation.RemoveRevisionIDs(ids...)
 	return aiu
 }
 
 // RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
 func (aiu *ApplicationInstanceUpdate) RemoveRevisions(a ...*ApplicationRevision) *ApplicationInstanceUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -158,14 +158,14 @@ func (aiu *ApplicationInstanceUpdate) ClearResources() *ApplicationInstanceUpdat
 }
 
 // RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (aiu *ApplicationInstanceUpdate) RemoveResourceIDs(ids ...types.ID) *ApplicationInstanceUpdate {
+func (aiu *ApplicationInstanceUpdate) RemoveResourceIDs(ids ...oid.ID) *ApplicationInstanceUpdate {
 	aiu.mutation.RemoveResourceIDs(ids...)
 	return aiu
 }
 
 // RemoveResources removes "resources" edges to ApplicationResource entities.
 func (aiu *ApplicationInstanceUpdate) RemoveResources(a ...*ApplicationResource) *ApplicationInstanceUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -461,14 +461,14 @@ func (aiuo *ApplicationInstanceUpdateOne) ClearVariables() *ApplicationInstanceU
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (aiuo *ApplicationInstanceUpdateOne) AddRevisionIDs(ids ...types.ID) *ApplicationInstanceUpdateOne {
+func (aiuo *ApplicationInstanceUpdateOne) AddRevisionIDs(ids ...oid.ID) *ApplicationInstanceUpdateOne {
 	aiuo.mutation.AddRevisionIDs(ids...)
 	return aiuo
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (aiuo *ApplicationInstanceUpdateOne) AddRevisions(a ...*ApplicationRevision) *ApplicationInstanceUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -476,14 +476,14 @@ func (aiuo *ApplicationInstanceUpdateOne) AddRevisions(a ...*ApplicationRevision
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (aiuo *ApplicationInstanceUpdateOne) AddResourceIDs(ids ...types.ID) *ApplicationInstanceUpdateOne {
+func (aiuo *ApplicationInstanceUpdateOne) AddResourceIDs(ids ...oid.ID) *ApplicationInstanceUpdateOne {
 	aiuo.mutation.AddResourceIDs(ids...)
 	return aiuo
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (aiuo *ApplicationInstanceUpdateOne) AddResources(a ...*ApplicationResource) *ApplicationInstanceUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -502,14 +502,14 @@ func (aiuo *ApplicationInstanceUpdateOne) ClearRevisions() *ApplicationInstanceU
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (aiuo *ApplicationInstanceUpdateOne) RemoveRevisionIDs(ids ...types.ID) *ApplicationInstanceUpdateOne {
+func (aiuo *ApplicationInstanceUpdateOne) RemoveRevisionIDs(ids ...oid.ID) *ApplicationInstanceUpdateOne {
 	aiuo.mutation.RemoveRevisionIDs(ids...)
 	return aiuo
 }
 
 // RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
 func (aiuo *ApplicationInstanceUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *ApplicationInstanceUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -523,14 +523,14 @@ func (aiuo *ApplicationInstanceUpdateOne) ClearResources() *ApplicationInstanceU
 }
 
 // RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (aiuo *ApplicationInstanceUpdateOne) RemoveResourceIDs(ids ...types.ID) *ApplicationInstanceUpdateOne {
+func (aiuo *ApplicationInstanceUpdateOne) RemoveResourceIDs(ids ...oid.ID) *ApplicationInstanceUpdateOne {
 	aiuo.mutation.RemoveResourceIDs(ids...)
 	return aiuo
 }
 
 // RemoveResources removes "resources" edges to ApplicationResource entities.
 func (aiuo *ApplicationInstanceUpdateOne) RemoveResources(a ...*ApplicationResource) *ApplicationInstanceUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}

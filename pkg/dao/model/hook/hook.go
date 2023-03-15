@@ -192,6 +192,18 @@ func (f RoleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.RoleMutation", m)
 }
 
+// The SecretFunc type is an adapter to allow the use of ordinary
+// function as Secret mutator.
+type SecretFunc func(context.Context, *model.SecretMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SecretFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.SecretMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.SecretMutation", m)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary
 // function as Setting mutator.
 type SettingFunc func(context.Context, *model.SettingMutation) (model.Value, error)

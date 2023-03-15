@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
 
 const (
@@ -126,7 +128,7 @@ var (
 	// ConfigVersionValidator is a validator for the "configVersion" field. It is called by the builders before save.
 	ConfigVersionValidator func(string) error
 	// DefaultConfigData holds the default value on creation for the "configData" field.
-	DefaultConfigData map[string]interface{}
+	DefaultConfigData crypto.Map[string, interface{}]
 )
 
 // WithoutFields returns the fields ignored the given list.

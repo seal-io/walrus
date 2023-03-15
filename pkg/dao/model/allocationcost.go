@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // AllocationCost is the model entity for the AllocationCost schema.
@@ -30,7 +31,7 @@ type AllocationCost struct {
 	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty"`
 	// ID of the connector.
-	ConnectorID types.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty"`
 	// Resource name for current cost, could be __unmounted__.
 	Name string `json:"name,omitempty"`
 	// String generated from resource properties, used to identify this cost.
@@ -115,6 +116,8 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case allocationcost.FieldPvs, allocationcost.FieldLabels:
 			values[i] = new([]byte)
+		case allocationcost.FieldConnectorID:
+			values[i] = new(oid.ID)
 		case allocationcost.FieldMinutes, allocationcost.FieldTotalCost, allocationcost.FieldCpuCost, allocationcost.FieldCpuCoreRequest, allocationcost.FieldGpuCost, allocationcost.FieldGpuCount, allocationcost.FieldRamCost, allocationcost.FieldRamByteRequest, allocationcost.FieldPvCost, allocationcost.FieldPvBytes, allocationcost.FieldCpuCoreUsageAverage, allocationcost.FieldCpuCoreUsageMax, allocationcost.FieldRamByteUsageAverage, allocationcost.FieldRamByteUsageMax:
 			values[i] = new(sql.NullFloat64)
 		case allocationcost.FieldID, allocationcost.FieldCurrency:
@@ -123,8 +126,6 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case allocationcost.FieldStartTime, allocationcost.FieldEndTime:
 			values[i] = new(sql.NullTime)
-		case allocationcost.FieldConnectorID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type AllocationCost", columns[i])
 		}
@@ -165,7 +166,7 @@ func (ac *AllocationCost) assignValues(columns []string, values []any) error {
 				ac.Minutes = value.Float64
 			}
 		case allocationcost.FieldConnectorID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				ac.ConnectorID = *value

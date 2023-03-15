@@ -15,6 +15,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -22,7 +24,7 @@ import (
 type Connector struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -40,7 +42,7 @@ type Connector struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
-	ConfigData map[string]interface{} `json:"-"`
+	ConfigData crypto.Map[string, interface{}] `json:"-"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -106,16 +108,18 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case connector.FieldLabels, connector.FieldStatus, connector.FieldConfigData, connector.FieldFinOpsCustomPricing:
+		case connector.FieldLabels, connector.FieldStatus, connector.FieldFinOpsCustomPricing:
 			values[i] = new([]byte)
+		case connector.FieldConfigData:
+			values[i] = new(crypto.Map[string, interface{}])
+		case connector.FieldID:
+			values[i] = new(oid.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
 		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case connector.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Connector", columns[i])
 		}
@@ -132,7 +136,7 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case connector.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				c.ID = *value
@@ -192,12 +196,10 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				c.ConfigVersion = value.String
 			}
 		case connector.FieldConfigData:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*crypto.Map[string, interface{}]); !ok {
 				return fmt.Errorf("unexpected type %T for field configData", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.ConfigData); err != nil {
-					return fmt.Errorf("unmarshal field configData: %w", err)
-				}
+			} else if value != nil {
+				c.ConfigData = *value
 			}
 		case connector.FieldEnableFinOps:
 			if value, ok := values[i].(*sql.NullBool); !ok {

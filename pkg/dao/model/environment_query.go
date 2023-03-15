@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentQuery is the builder for querying Environment entities.
@@ -171,8 +171,8 @@ func (eq *EnvironmentQuery) FirstX(ctx context.Context) *Environment {
 
 // FirstID returns the first Environment ID from the query.
 // Returns a *NotFoundError when no Environment ID was found.
-func (eq *EnvironmentQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (eq *EnvironmentQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = eq.Limit(1).IDs(setContextOp(ctx, eq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (eq *EnvironmentQuery) FirstID(ctx context.Context) (id types.ID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (eq *EnvironmentQuery) FirstIDX(ctx context.Context) types.ID {
+func (eq *EnvironmentQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := eq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -222,8 +222,8 @@ func (eq *EnvironmentQuery) OnlyX(ctx context.Context) *Environment {
 // OnlyID is like Only, but returns the only Environment ID in the query.
 // Returns a *NotSingularError when more than one Environment ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (eq *EnvironmentQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (eq *EnvironmentQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = eq.Limit(2).IDs(setContextOp(ctx, eq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -239,7 +239,7 @@ func (eq *EnvironmentQuery) OnlyID(ctx context.Context) (id types.ID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (eq *EnvironmentQuery) OnlyIDX(ctx context.Context) types.ID {
+func (eq *EnvironmentQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := eq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -267,7 +267,7 @@ func (eq *EnvironmentQuery) AllX(ctx context.Context) []*Environment {
 }
 
 // IDs executes the query and returns a list of Environment IDs.
-func (eq *EnvironmentQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (eq *EnvironmentQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if eq.ctx.Unique == nil && eq.path != nil {
 		eq.Unique(true)
 	}
@@ -279,7 +279,7 @@ func (eq *EnvironmentQuery) IDs(ctx context.Context) (ids []types.ID, err error)
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (eq *EnvironmentQuery) IDsX(ctx context.Context) []types.ID {
+func (eq *EnvironmentQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := eq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -516,7 +516,7 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *EnvironmentConnectorRelationshipQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *EnvironmentConnectorRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Environment)
+	nodeids := make(map[oid.ID]*Environment)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -543,7 +543,7 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 }
 func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *ApplicationInstanceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationInstance)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Environment)
+	nodeids := make(map[oid.ID]*Environment)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -570,7 +570,7 @@ func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *Applicatio
 }
 func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *ApplicationRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Environment)
+	nodeids := make(map[oid.ID]*Environment)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

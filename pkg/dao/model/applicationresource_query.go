@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationResourceQuery is the builder for querying ApplicationResource entities.
@@ -143,8 +143,8 @@ func (arq *ApplicationResourceQuery) FirstX(ctx context.Context) *ApplicationRes
 
 // FirstID returns the first ApplicationResource ID from the query.
 // Returns a *NotFoundError when no ApplicationResource ID was found.
-func (arq *ApplicationResourceQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (arq *ApplicationResourceQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = arq.Limit(1).IDs(setContextOp(ctx, arq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (arq *ApplicationResourceQuery) FirstID(ctx context.Context) (id types.ID, 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (arq *ApplicationResourceQuery) FirstIDX(ctx context.Context) types.ID {
+func (arq *ApplicationResourceQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := arq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -194,8 +194,8 @@ func (arq *ApplicationResourceQuery) OnlyX(ctx context.Context) *ApplicationReso
 // OnlyID is like Only, but returns the only ApplicationResource ID in the query.
 // Returns a *NotSingularError when more than one ApplicationResource ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (arq *ApplicationResourceQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (arq *ApplicationResourceQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = arq.Limit(2).IDs(setContextOp(ctx, arq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (arq *ApplicationResourceQuery) OnlyID(ctx context.Context) (id types.ID, e
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (arq *ApplicationResourceQuery) OnlyIDX(ctx context.Context) types.ID {
+func (arq *ApplicationResourceQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := arq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -239,7 +239,7 @@ func (arq *ApplicationResourceQuery) AllX(ctx context.Context) []*ApplicationRes
 }
 
 // IDs executes the query and returns a list of ApplicationResource IDs.
-func (arq *ApplicationResourceQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (arq *ApplicationResourceQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if arq.ctx.Unique == nil && arq.path != nil {
 		arq.Unique(true)
 	}
@@ -251,7 +251,7 @@ func (arq *ApplicationResourceQuery) IDs(ctx context.Context) (ids []types.ID, e
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (arq *ApplicationResourceQuery) IDsX(ctx context.Context) []types.ID {
+func (arq *ApplicationResourceQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := arq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -463,8 +463,8 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 }
 
 func (arq *ApplicationResourceQuery) loadInstance(ctx context.Context, query *ApplicationInstanceQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *ApplicationInstance)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationResource)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationResource)
 	for i := range nodes {
 		fk := nodes[i].InstanceID
 		if _, ok := nodeids[fk]; !ok {
@@ -492,8 +492,8 @@ func (arq *ApplicationResourceQuery) loadInstance(ctx context.Context, query *Ap
 	return nil
 }
 func (arq *ApplicationResourceQuery) loadConnector(ctx context.Context, query *ConnectorQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *Connector)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationResource)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationResource)
 	for i := range nodes {
 		fk := nodes[i].ConnectorID
 		if _, ok := nodeids[fk]; !ok {

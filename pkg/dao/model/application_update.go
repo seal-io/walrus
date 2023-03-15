@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationUpdate is the builder for updating Application entities.
@@ -94,14 +95,14 @@ func (au *ApplicationUpdate) ClearVariables() *ApplicationUpdate {
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (au *ApplicationUpdate) AddInstanceIDs(ids ...types.ID) *ApplicationUpdate {
+func (au *ApplicationUpdate) AddInstanceIDs(ids ...oid.ID) *ApplicationUpdate {
 	au.mutation.AddInstanceIDs(ids...)
 	return au
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (au *ApplicationUpdate) AddInstances(a ...*ApplicationInstance) *ApplicationUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -120,14 +121,14 @@ func (au *ApplicationUpdate) ClearInstances() *ApplicationUpdate {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (au *ApplicationUpdate) RemoveInstanceIDs(ids ...types.ID) *ApplicationUpdate {
+func (au *ApplicationUpdate) RemoveInstanceIDs(ids ...oid.ID) *ApplicationUpdate {
 	au.mutation.RemoveInstanceIDs(ids...)
 	return au
 }
 
 // RemoveInstances removes "instances" edges to ApplicationInstance entities.
 func (au *ApplicationUpdate) RemoveInstances(a ...*ApplicationInstance) *ApplicationUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -371,14 +372,14 @@ func (auo *ApplicationUpdateOne) ClearVariables() *ApplicationUpdateOne {
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (auo *ApplicationUpdateOne) AddInstanceIDs(ids ...types.ID) *ApplicationUpdateOne {
+func (auo *ApplicationUpdateOne) AddInstanceIDs(ids ...oid.ID) *ApplicationUpdateOne {
 	auo.mutation.AddInstanceIDs(ids...)
 	return auo
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (auo *ApplicationUpdateOne) AddInstances(a ...*ApplicationInstance) *ApplicationUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -397,14 +398,14 @@ func (auo *ApplicationUpdateOne) ClearInstances() *ApplicationUpdateOne {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (auo *ApplicationUpdateOne) RemoveInstanceIDs(ids ...types.ID) *ApplicationUpdateOne {
+func (auo *ApplicationUpdateOne) RemoveInstanceIDs(ids ...oid.ID) *ApplicationUpdateOne {
 	auo.mutation.RemoveInstanceIDs(ids...)
 	return auo
 }
 
 // RemoveInstances removes "instances" edges to ApplicationInstance entities.
 func (auo *ApplicationUpdateOne) RemoveInstances(a ...*ApplicationInstance) *ApplicationUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}

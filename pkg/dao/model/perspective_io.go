@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // PerspectiveQueryInput is the input for the Perspective query.
 type PerspectiveQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the PerspectiveQueryInput to Perspective.
@@ -53,7 +54,7 @@ func (in PerspectiveCreateInput) Model() *Perspective {
 // PerspectiveUpdateInput is the input for the Perspective modification.
 type PerspectiveUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Start time for current perspective.
 	StartTime string `json:"startTime,omitempty"`
 	// End time for current perspective.
@@ -79,7 +80,7 @@ func (in PerspectiveUpdateInput) Model() *Perspective {
 // PerspectiveOutput is the output for the Perspective.
 type PerspectiveOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.

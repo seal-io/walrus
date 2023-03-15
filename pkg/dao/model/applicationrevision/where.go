@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id types.ID) predicate.ApplicationRevision {
+func ID(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id types.ID) predicate.ApplicationRevision {
+func IDEQ(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id types.ID) predicate.ApplicationRevision {
+func IDNEQ(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...types.ID) predicate.ApplicationRevision {
+func IDIn(ids ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...types.ID) predicate.ApplicationRevision {
+func IDNotIn(ids ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id types.ID) predicate.ApplicationRevision {
+func IDGT(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id types.ID) predicate.ApplicationRevision {
+func IDGTE(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id types.ID) predicate.ApplicationRevision {
+func IDLT(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id types.ID) predicate.ApplicationRevision {
+func IDLTE(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldID, id))
 }
 
@@ -77,12 +77,12 @@ func CreateTime(v time.Time) predicate.ApplicationRevision {
 }
 
 // InstanceID applies equality check predicate on the "instanceID" field. It's identical to InstanceIDEQ.
-func InstanceID(v types.ID) predicate.ApplicationRevision {
+func InstanceID(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldInstanceID, v))
 }
 
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v types.ID) predicate.ApplicationRevision {
+func EnvironmentID(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
@@ -297,141 +297,141 @@ func CreateTimeLTE(v time.Time) predicate.ApplicationRevision {
 }
 
 // InstanceIDEQ applies the EQ predicate on the "instanceID" field.
-func InstanceIDEQ(v types.ID) predicate.ApplicationRevision {
+func InstanceIDEQ(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldInstanceID, v))
 }
 
 // InstanceIDNEQ applies the NEQ predicate on the "instanceID" field.
-func InstanceIDNEQ(v types.ID) predicate.ApplicationRevision {
+func InstanceIDNEQ(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldInstanceID, v))
 }
 
 // InstanceIDIn applies the In predicate on the "instanceID" field.
-func InstanceIDIn(vs ...types.ID) predicate.ApplicationRevision {
+func InstanceIDIn(vs ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldInstanceID, vs...))
 }
 
 // InstanceIDNotIn applies the NotIn predicate on the "instanceID" field.
-func InstanceIDNotIn(vs ...types.ID) predicate.ApplicationRevision {
+func InstanceIDNotIn(vs ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldInstanceID, vs...))
 }
 
 // InstanceIDGT applies the GT predicate on the "instanceID" field.
-func InstanceIDGT(v types.ID) predicate.ApplicationRevision {
+func InstanceIDGT(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldInstanceID, v))
 }
 
 // InstanceIDGTE applies the GTE predicate on the "instanceID" field.
-func InstanceIDGTE(v types.ID) predicate.ApplicationRevision {
+func InstanceIDGTE(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldInstanceID, v))
 }
 
 // InstanceIDLT applies the LT predicate on the "instanceID" field.
-func InstanceIDLT(v types.ID) predicate.ApplicationRevision {
+func InstanceIDLT(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldInstanceID, v))
 }
 
 // InstanceIDLTE applies the LTE predicate on the "instanceID" field.
-func InstanceIDLTE(v types.ID) predicate.ApplicationRevision {
+func InstanceIDLTE(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldInstanceID, v))
 }
 
 // InstanceIDContains applies the Contains predicate on the "instanceID" field.
-func InstanceIDContains(v types.ID) predicate.ApplicationRevision {
+func InstanceIDContains(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContains(FieldInstanceID, vc))
 }
 
 // InstanceIDHasPrefix applies the HasPrefix predicate on the "instanceID" field.
-func InstanceIDHasPrefix(v types.ID) predicate.ApplicationRevision {
+func InstanceIDHasPrefix(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldInstanceID, vc))
 }
 
 // InstanceIDHasSuffix applies the HasSuffix predicate on the "instanceID" field.
-func InstanceIDHasSuffix(v types.ID) predicate.ApplicationRevision {
+func InstanceIDHasSuffix(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldInstanceID, vc))
 }
 
 // InstanceIDEqualFold applies the EqualFold predicate on the "instanceID" field.
-func InstanceIDEqualFold(v types.ID) predicate.ApplicationRevision {
+func InstanceIDEqualFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldInstanceID, vc))
 }
 
 // InstanceIDContainsFold applies the ContainsFold predicate on the "instanceID" field.
-func InstanceIDContainsFold(v types.ID) predicate.ApplicationRevision {
+func InstanceIDContainsFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldInstanceID, vc))
 }
 
 // EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
-func EnvironmentIDEQ(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDEQ(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDNEQ applies the NEQ predicate on the "environmentID" field.
-func EnvironmentIDNEQ(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDNEQ(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDIn applies the In predicate on the "environmentID" field.
-func EnvironmentIDIn(vs ...types.ID) predicate.ApplicationRevision {
+func EnvironmentIDIn(vs ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDNotIn applies the NotIn predicate on the "environmentID" field.
-func EnvironmentIDNotIn(vs ...types.ID) predicate.ApplicationRevision {
+func EnvironmentIDNotIn(vs ...oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldNotIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDGT applies the GT predicate on the "environmentID" field.
-func EnvironmentIDGT(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDGT(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDGTE applies the GTE predicate on the "environmentID" field.
-func EnvironmentIDGTE(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDGTE(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldGTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLT applies the LT predicate on the "environmentID" field.
-func EnvironmentIDLT(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDLT(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLTE applies the LTE predicate on the "environmentID" field.
-func EnvironmentIDLTE(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDLTE(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDContains applies the Contains predicate on the "environmentID" field.
-func EnvironmentIDContains(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDContains(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContains(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environmentID" field.
-func EnvironmentIDHasPrefix(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDHasPrefix(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environmentID" field.
-func EnvironmentIDHasSuffix(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDHasSuffix(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDEqualFold applies the EqualFold predicate on the "environmentID" field.
-func EnvironmentIDEqualFold(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDEqualFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDContainsFold applies the ContainsFold predicate on the "environmentID" field.
-func EnvironmentIDContainsFold(v types.ID) predicate.ApplicationRevision {
+func EnvironmentIDContainsFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }

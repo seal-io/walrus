@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ModuleVersionQueryInput is the input for the ModuleVersion query.
 type ModuleVersionQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ModuleVersionQueryInput to ModuleVersion.
@@ -50,7 +51,7 @@ func (in ModuleVersionCreateInput) Model() *ModuleVersion {
 // ModuleVersionUpdateInput is the input for the ModuleVersion modification.
 type ModuleVersionUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
@@ -67,7 +68,7 @@ func (in ModuleVersionUpdateInput) Model() *ModuleVersion {
 // ModuleVersionOutput is the output for the ModuleVersion.
 type ModuleVersionOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.

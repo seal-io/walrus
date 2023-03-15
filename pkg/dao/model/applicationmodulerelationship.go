@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationModuleRelationship is the model entity for the ApplicationModuleRelationship schema.
@@ -27,7 +27,7 @@ type ApplicationModuleRelationship struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the application to which the relationship connects.
-	ApplicationID types.ID `json:"applicationID"`
+	ApplicationID oid.ID `json:"applicationID"`
 	// ID of the module to which the relationship connects.
 	ModuleID string `json:"moduleID"`
 	// Version of the module to which the relationship connects.
@@ -85,12 +85,12 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 		switch columns[i] {
 		case applicationmodulerelationship.FieldAttributes:
 			values[i] = new([]byte)
+		case applicationmodulerelationship.FieldApplicationID:
+			values[i] = new(oid.ID)
 		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldVersion, applicationmodulerelationship.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationmodulerelationship.FieldCreateTime, applicationmodulerelationship.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case applicationmodulerelationship.FieldApplicationID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ApplicationModuleRelationship", columns[i])
 		}
@@ -121,7 +121,7 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 				*amr.UpdateTime = value.Time
 			}
 		case applicationmodulerelationship.FieldApplicationID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field application_id", values[i])
 			} else if value != nil {
 				amr.ApplicationID = *value

@@ -22,6 +22,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -104,8 +106,8 @@ func (cu *ConnectorUpdate) SetConfigVersion(s string) *ConnectorUpdate {
 }
 
 // SetConfigData sets the "configData" field.
-func (cu *ConnectorUpdate) SetConfigData(m map[string]interface{}) *ConnectorUpdate {
-	cu.mutation.SetConfigData(m)
+func (cu *ConnectorUpdate) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorUpdate {
+	cu.mutation.SetConfigData(c)
 	return cu
 }
 
@@ -136,14 +138,14 @@ func (cu *ConnectorUpdate) ClearFinOpsCustomPricing() *ConnectorUpdate {
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (cu *ConnectorUpdate) AddResourceIDs(ids ...types.ID) *ConnectorUpdate {
+func (cu *ConnectorUpdate) AddResourceIDs(ids ...oid.ID) *ConnectorUpdate {
 	cu.mutation.AddResourceIDs(ids...)
 	return cu
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (cu *ConnectorUpdate) AddResources(a ...*ApplicationResource) *ConnectorUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -192,14 +194,14 @@ func (cu *ConnectorUpdate) ClearResources() *ConnectorUpdate {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...types.ID) *ConnectorUpdate {
+func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdate {
 	cu.mutation.RemoveResourceIDs(ids...)
 	return cu
 }
 
 // RemoveResources removes "resources" edges to ApplicationResource entities.
 func (cu *ConnectorUpdate) RemoveResources(a ...*ApplicationResource) *ConnectorUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -348,7 +350,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.ConfigData(); ok {
-		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
+		_spec.SetField(connector.FieldConfigData, field.TypeOther, value)
 	}
 	if value, ok := cu.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
@@ -619,8 +621,8 @@ func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 }
 
 // SetConfigData sets the "configData" field.
-func (cuo *ConnectorUpdateOne) SetConfigData(m map[string]interface{}) *ConnectorUpdateOne {
-	cuo.mutation.SetConfigData(m)
+func (cuo *ConnectorUpdateOne) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorUpdateOne {
+	cuo.mutation.SetConfigData(c)
 	return cuo
 }
 
@@ -651,14 +653,14 @@ func (cuo *ConnectorUpdateOne) ClearFinOpsCustomPricing() *ConnectorUpdateOne {
 }
 
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
-func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...types.ID) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddResourceIDs(ids...)
 	return cuo
 }
 
 // AddResources adds the "resources" edges to the ApplicationResource entity.
 func (cuo *ConnectorUpdateOne) AddResources(a ...*ApplicationResource) *ConnectorUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -707,14 +709,14 @@ func (cuo *ConnectorUpdateOne) ClearResources() *ConnectorUpdateOne {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
-func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...types.ID) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
 	cuo.mutation.RemoveResourceIDs(ids...)
 	return cuo
 }
 
 // RemoveResources removes "resources" edges to ApplicationResource entities.
 func (cuo *ConnectorUpdateOne) RemoveResources(a ...*ApplicationResource) *ConnectorUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -893,7 +895,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.ConfigData(); ok {
-		_spec.SetField(connector.FieldConfigData, field.TypeJSON, value)
+		_spec.SetField(connector.FieldConfigData, field.TypeOther, value)
 	}
 	if value, ok := cuo.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)

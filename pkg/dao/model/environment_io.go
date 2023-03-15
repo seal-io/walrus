@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentQueryInput is the input for the Environment query.
 type EnvironmentQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the EnvironmentQueryInput to Environment.
@@ -55,7 +55,7 @@ func (in EnvironmentCreateInput) Model() *Environment {
 // EnvironmentUpdateInput is the input for the Environment modification.
 type EnvironmentUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -86,7 +86,7 @@ func (in EnvironmentUpdateInput) Model() *Environment {
 // EnvironmentOutput is the output for the Environment.
 type EnvironmentOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.

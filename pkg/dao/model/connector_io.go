@@ -9,13 +9,15 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ConnectorQueryInput is the input for the Connector query.
 type ConnectorQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ConnectorQueryInput to Connector.
@@ -40,7 +42,7 @@ type ConnectorCreateInput struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion"`
 	// Connector config data.
-	ConfigData map[string]interface{} `json:"configData,omitempty"`
+	ConfigData crypto.Map[string, interface{}] `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -66,7 +68,7 @@ func (in ConnectorCreateInput) Model() *Connector {
 // ConnectorUpdateInput is the input for the Connector modification.
 type ConnectorUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -78,7 +80,7 @@ type ConnectorUpdateInput struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
-	ConfigData map[string]interface{} `json:"configData,omitempty"`
+	ConfigData crypto.Map[string, interface{}] `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -104,7 +106,7 @@ func (in ConnectorUpdateInput) Model() *Connector {
 // ConnectorOutput is the output for the Connector.
 type ConnectorOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.

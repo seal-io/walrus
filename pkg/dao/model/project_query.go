@@ -20,7 +20,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ProjectQuery is the builder for querying Project entities.
@@ -31,6 +32,7 @@ type ProjectQuery struct {
 	inters           []Interceptor
 	predicates       []predicate.Project
 	withApplications *ApplicationQuery
+	withSecrets      *SecretQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -93,6 +95,31 @@ func (pq *ProjectQuery) QueryApplications() *ApplicationQuery {
 	return query
 }
 
+// QuerySecrets chains the current query on the "secrets" edge.
+func (pq *ProjectQuery) QuerySecrets() *SecretQuery {
+	query := (&SecretClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(secret.Table, secret.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.SecretsTable, project.SecretsColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Secret
+		step.Edge.Schema = schemaConfig.Secret
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Project entity from the query.
 // Returns a *NotFoundError when no Project was found.
 func (pq *ProjectQuery) First(ctx context.Context) (*Project, error) {
@@ -117,8 +144,8 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 
 // FirstID returns the first Project ID from the query.
 // Returns a *NotFoundError when no Project ID was found.
-func (pq *ProjectQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (pq *ProjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -130,7 +157,7 @@ func (pq *ProjectQuery) FirstID(ctx context.Context) (id types.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pq *ProjectQuery) FirstIDX(ctx context.Context) types.ID {
+func (pq *ProjectQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -168,8 +195,8 @@ func (pq *ProjectQuery) OnlyX(ctx context.Context) *Project {
 // OnlyID is like Only, but returns the only Project ID in the query.
 // Returns a *NotSingularError when more than one Project ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (pq *ProjectQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (pq *ProjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -185,7 +212,7 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pq *ProjectQuery) OnlyIDX(ctx context.Context) types.ID {
+func (pq *ProjectQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -213,7 +240,7 @@ func (pq *ProjectQuery) AllX(ctx context.Context) []*Project {
 }
 
 // IDs executes the query and returns a list of Project IDs.
-func (pq *ProjectQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (pq *ProjectQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if pq.ctx.Unique == nil && pq.path != nil {
 		pq.Unique(true)
 	}
@@ -225,7 +252,7 @@ func (pq *ProjectQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *ProjectQuery) IDsX(ctx context.Context) []types.ID {
+func (pq *ProjectQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -286,6 +313,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		inters:           append([]Interceptor{}, pq.inters...),
 		predicates:       append([]predicate.Project{}, pq.predicates...),
 		withApplications: pq.withApplications.Clone(),
+		withSecrets:      pq.withSecrets.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -300,6 +328,17 @@ func (pq *ProjectQuery) WithApplications(opts ...func(*ApplicationQuery)) *Proje
 		opt(query)
 	}
 	pq.withApplications = query
+	return pq
+}
+
+// WithSecrets tells the query-builder to eager-load the nodes that are connected to
+// the "secrets" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithSecrets(opts ...func(*SecretQuery)) *ProjectQuery {
+	query := (&SecretClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withSecrets = query
 	return pq
 }
 
@@ -381,8 +420,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pq.withApplications != nil,
+			pq.withSecrets != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -415,12 +455,19 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			return nil, err
 		}
 	}
+	if query := pq.withSecrets; query != nil {
+		if err := pq.loadSecrets(ctx, query, nodes,
+			func(n *Project) { n.Edges.Secrets = []*Secret{} },
+			func(n *Project, e *Secret) { n.Edges.Secrets = append(n.Edges.Secrets, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (pq *ProjectQuery) loadApplications(ctx context.Context, query *ApplicationQuery, nodes []*Project, init func(*Project), assign func(*Project, *Application)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[types.ID]*Project)
+	nodeids := make(map[oid.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -430,6 +477,33 @@ func (pq *ProjectQuery) loadApplications(ctx context.Context, query *Application
 	}
 	query.Where(predicate.Application(func(s *sql.Selector) {
 		s.Where(sql.InValues(project.ApplicationsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadSecrets(ctx context.Context, query *SecretQuery, nodes []*Project, init func(*Project), assign func(*Project, *Secret)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Secret(func(s *sql.Selector) {
+		s.Where(sql.InValues(project.SecretsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

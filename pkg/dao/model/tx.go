@@ -47,6 +47,8 @@ type Tx struct {
 	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// Secret is the client for interacting with the Secret builders.
+	Secret *SecretClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Subject is the client for interacting with the Subject builders.
@@ -199,6 +201,7 @@ func (tx *Tx) init() {
 	tx.Perspective = NewPerspectiveClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.Secret = NewSecretClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
@@ -338,6 +341,11 @@ func (tx *Tx) Projects() *ProjectClient {
 // Roles implements the ClientSet.
 func (tx *Tx) Roles() *RoleClient {
 	return tx.Role
+}
+
+// Secrets implements the ClientSet.
+func (tx *Tx) Secrets() *SecretClient {
+	return tx.Secret
 }
 
 // Settings implements the ClientSet.

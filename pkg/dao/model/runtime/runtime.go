@@ -23,11 +23,13 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -393,7 +395,7 @@ func init() {
 	// connectorDescConfigData is the schema descriptor for configData field.
 	connectorDescConfigData := connectorFields[2].Descriptor()
 	// connector.DefaultConfigData holds the default value on creation for the configData field.
-	connector.DefaultConfigData = connectorDescConfigData.Default.(map[string]interface{})
+	connector.DefaultConfigData = connectorDescConfigData.Default.(crypto.Map[string, interface{}])
 	environmentMixin := schema.Environment{}.Mixin()
 	environmentMixinHooks0 := environmentMixin[0].Hooks()
 	environment.Hooks[0] = environmentMixinHooks0[0]
@@ -599,6 +601,31 @@ func init() {
 	roleDescSession := roleFields[5].Descriptor()
 	// role.DefaultSession holds the default value on creation for the session field.
 	role.DefaultSession = roleDescSession.Default.(bool)
+	secretMixin := schema.Secret{}.Mixin()
+	secretMixinHooks0 := secretMixin[0].Hooks()
+	secret.Hooks[0] = secretMixinHooks0[0]
+	secretMixinFields1 := secretMixin[1].Fields()
+	_ = secretMixinFields1
+	secretFields := schema.Secret{}.Fields()
+	_ = secretFields
+	// secretDescCreateTime is the schema descriptor for createTime field.
+	secretDescCreateTime := secretMixinFields1[0].Descriptor()
+	// secret.DefaultCreateTime holds the default value on creation for the createTime field.
+	secret.DefaultCreateTime = secretDescCreateTime.Default.(func() time.Time)
+	// secretDescUpdateTime is the schema descriptor for updateTime field.
+	secretDescUpdateTime := secretMixinFields1[1].Descriptor()
+	// secret.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	secret.DefaultUpdateTime = secretDescUpdateTime.Default.(func() time.Time)
+	// secret.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	secret.UpdateDefaultUpdateTime = secretDescUpdateTime.UpdateDefault.(func() time.Time)
+	// secretDescName is the schema descriptor for name field.
+	secretDescName := secretFields[1].Descriptor()
+	// secret.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	secret.NameValidator = secretDescName.Validators[0].(func(string) error)
+	// secretDescValue is the schema descriptor for value field.
+	secretDescValue := secretFields[2].Descriptor()
+	// secret.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	secret.ValueValidator = secretDescValue.Validators[0].(func(string) error)
 	settingMixin := schema.Setting{}.Mixin()
 	settingMixinHooks0 := settingMixin[0].Hooks()
 	setting.Hooks[0] = settingMixinHooks0[0]

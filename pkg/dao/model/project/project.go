@@ -28,6 +28,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// EdgeApplications holds the string denoting the applications edge name in mutations.
 	EdgeApplications = "applications"
+	// EdgeSecrets holds the string denoting the secrets edge name in mutations.
+	EdgeSecrets = "secrets"
 	// Table holds the table name of the project in the database.
 	Table = "projects"
 	// ApplicationsTable is the table that holds the applications relation/edge.
@@ -37,6 +39,13 @@ const (
 	ApplicationsInverseTable = "applications"
 	// ApplicationsColumn is the table column denoting the applications relation/edge.
 	ApplicationsColumn = "project_id"
+	// SecretsTable is the table that holds the secrets relation/edge.
+	SecretsTable = "secrets"
+	// SecretsInverseTable is the table name for the Secret entity.
+	// It exists in this package in order to avoid circular dependency with the "secret" package.
+	SecretsInverseTable = "secrets"
+	// SecretsColumn is the table column denoting the secrets relation/edge.
+	SecretsColumn = "project_id"
 )
 
 // Columns holds all SQL columns for project fields.

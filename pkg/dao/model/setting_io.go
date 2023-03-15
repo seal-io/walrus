@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // SettingQueryInput is the input for the Setting query.
 type SettingQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the SettingQueryInput to Setting.
@@ -53,7 +53,7 @@ func (in SettingCreateInput) Model() *Setting {
 // SettingUpdateInput is the input for the Setting modification.
 type SettingUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// The name of system setting.
 	Name string `json:"name,omitempty"`
 	// The value of system setting, store in string.
@@ -82,7 +82,7 @@ func (in SettingUpdateInput) Model() *Setting {
 // SettingOutput is the output for the Setting.
 type SettingOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.

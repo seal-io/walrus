@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // PerspectiveQuery is the builder for querying Perspective entities.
@@ -89,8 +89,8 @@ func (pq *PerspectiveQuery) FirstX(ctx context.Context) *Perspective {
 
 // FirstID returns the first Perspective ID from the query.
 // Returns a *NotFoundError when no Perspective ID was found.
-func (pq *PerspectiveQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (pq *PerspectiveQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func (pq *PerspectiveQuery) FirstID(ctx context.Context) (id types.ID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pq *PerspectiveQuery) FirstIDX(ctx context.Context) types.ID {
+func (pq *PerspectiveQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +140,8 @@ func (pq *PerspectiveQuery) OnlyX(ctx context.Context) *Perspective {
 // OnlyID is like Only, but returns the only Perspective ID in the query.
 // Returns a *NotSingularError when more than one Perspective ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (pq *PerspectiveQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (pq *PerspectiveQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (pq *PerspectiveQuery) OnlyID(ctx context.Context) (id types.ID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pq *PerspectiveQuery) OnlyIDX(ctx context.Context) types.ID {
+func (pq *PerspectiveQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,7 +185,7 @@ func (pq *PerspectiveQuery) AllX(ctx context.Context) []*Perspective {
 }
 
 // IDs executes the query and returns a list of Perspective IDs.
-func (pq *PerspectiveQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (pq *PerspectiveQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if pq.ctx.Unique == nil && pq.path != nil {
 		pq.Unique(true)
 	}
@@ -197,7 +197,7 @@ func (pq *PerspectiveQuery) IDs(ctx context.Context) (ids []types.ID, err error)
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *PerspectiveQuery) IDsX(ctx context.Context) []types.ID {
+func (pq *PerspectiveQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)

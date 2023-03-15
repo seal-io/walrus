@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // TokenQueryInput is the input for the Token query.
 type TokenQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the TokenQueryInput to Token.
@@ -50,7 +50,7 @@ func (in TokenCreateInput) Model() *Token {
 // TokenUpdateInput is the input for the Token modification.
 type TokenUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `uri:"id" json:"-"`
+	ID oid.ID `uri:"id" json:"-"`
 	// The token name of casdoor.
 	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
 	// The token owner of casdoor.
@@ -76,7 +76,7 @@ func (in TokenUpdateInput) Model() *Token {
 // TokenOutput is the output for the Token.
 type TokenOutput struct {
 	// ID holds the value of the "id" field.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.

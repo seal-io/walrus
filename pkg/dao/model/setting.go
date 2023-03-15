@@ -13,14 +13,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Setting is the model entity for the Setting schema.
 type Setting struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -42,14 +42,14 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case setting.FieldID:
+			values[i] = new(oid.ID)
 		case setting.FieldHidden, setting.FieldEditable, setting.FieldPrivate:
 			values[i] = new(sql.NullBool)
 		case setting.FieldName, setting.FieldValue:
 			values[i] = new(sql.NullString)
 		case setting.FieldCreateTime, setting.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case setting.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Setting", columns[i])
 		}
@@ -66,7 +66,7 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case setting.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				s.ID = *value

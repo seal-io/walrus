@@ -13,7 +13,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
@@ -27,7 +27,7 @@ func UpdateTime(v time.Time) predicate.ApplicationModuleRelationship {
 }
 
 // ApplicationID applies equality check predicate on the "application_id" field. It's identical to ApplicationIDEQ.
-func ApplicationID(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationID(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldApplicationID, v))
 }
 
@@ -127,71 +127,71 @@ func UpdateTimeLTE(v time.Time) predicate.ApplicationModuleRelationship {
 }
 
 // ApplicationIDEQ applies the EQ predicate on the "application_id" field.
-func ApplicationIDEQ(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDEQ(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDNEQ applies the NEQ predicate on the "application_id" field.
-func ApplicationIDNEQ(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDNEQ(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldNEQ(FieldApplicationID, v))
 }
 
 // ApplicationIDIn applies the In predicate on the "application_id" field.
-func ApplicationIDIn(vs ...types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDIn(vs ...oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDNotIn applies the NotIn predicate on the "application_id" field.
-func ApplicationIDNotIn(vs ...types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDNotIn(vs ...oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldNotIn(FieldApplicationID, vs...))
 }
 
 // ApplicationIDGT applies the GT predicate on the "application_id" field.
-func ApplicationIDGT(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDGT(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldGT(FieldApplicationID, v))
 }
 
 // ApplicationIDGTE applies the GTE predicate on the "application_id" field.
-func ApplicationIDGTE(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDGTE(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldGTE(FieldApplicationID, v))
 }
 
 // ApplicationIDLT applies the LT predicate on the "application_id" field.
-func ApplicationIDLT(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDLT(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldLT(FieldApplicationID, v))
 }
 
 // ApplicationIDLTE applies the LTE predicate on the "application_id" field.
-func ApplicationIDLTE(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDLTE(v oid.ID) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldLTE(FieldApplicationID, v))
 }
 
 // ApplicationIDContains applies the Contains predicate on the "application_id" field.
-func ApplicationIDContains(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDContains(v oid.ID) predicate.ApplicationModuleRelationship {
 	vc := string(v)
 	return predicate.ApplicationModuleRelationship(sql.FieldContains(FieldApplicationID, vc))
 }
 
 // ApplicationIDHasPrefix applies the HasPrefix predicate on the "application_id" field.
-func ApplicationIDHasPrefix(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDHasPrefix(v oid.ID) predicate.ApplicationModuleRelationship {
 	vc := string(v)
 	return predicate.ApplicationModuleRelationship(sql.FieldHasPrefix(FieldApplicationID, vc))
 }
 
 // ApplicationIDHasSuffix applies the HasSuffix predicate on the "application_id" field.
-func ApplicationIDHasSuffix(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDHasSuffix(v oid.ID) predicate.ApplicationModuleRelationship {
 	vc := string(v)
 	return predicate.ApplicationModuleRelationship(sql.FieldHasSuffix(FieldApplicationID, vc))
 }
 
 // ApplicationIDEqualFold applies the EqualFold predicate on the "application_id" field.
-func ApplicationIDEqualFold(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDEqualFold(v oid.ID) predicate.ApplicationModuleRelationship {
 	vc := string(v)
 	return predicate.ApplicationModuleRelationship(sql.FieldEqualFold(FieldApplicationID, vc))
 }
 
 // ApplicationIDContainsFold applies the ContainsFold predicate on the "application_id" field.
-func ApplicationIDContainsFold(v types.ID) predicate.ApplicationModuleRelationship {
+func ApplicationIDContainsFold(v oid.ID) predicate.ApplicationModuleRelationship {
 	vc := string(v)
 	return predicate.ApplicationModuleRelationship(sql.FieldContainsFold(FieldApplicationID, vc))
 }

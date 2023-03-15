@@ -14,14 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Project is the model entity for the Project schema.
 type Project struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID types.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty"`
 	// Name of the resource.
 	Name string `json:"name,omitempty"`
 	// Description of the resource.
@@ -41,9 +41,11 @@ type Project struct {
 type ProjectEdges struct {
 	// Applications that belong to the project.
 	Applications []*Application `json:"applications,omitempty"`
+	// Secrets that belong to the project.
+	Secrets []*Secret `json:"secrets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ApplicationsOrErr returns the Applications value or an error if the edge
@@ -55,6 +57,15 @@ func (e ProjectEdges) ApplicationsOrErr() ([]*Application, error) {
 	return nil, &NotLoadedError{edge: "applications"}
 }
 
+// SecretsOrErr returns the Secrets value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) SecretsOrErr() ([]*Secret, error) {
+	if e.loadedTypes[1] {
+		return e.Secrets, nil
+	}
+	return nil, &NotLoadedError{edge: "secrets"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Project) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -62,12 +73,12 @@ func (*Project) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case project.FieldLabels:
 			values[i] = new([]byte)
+		case project.FieldID:
+			values[i] = new(oid.ID)
 		case project.FieldName, project.FieldDescription:
 			values[i] = new(sql.NullString)
 		case project.FieldCreateTime, project.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case project.FieldID:
-			values[i] = new(types.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Project", columns[i])
 		}
@@ -84,7 +95,7 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case project.FieldID:
-			if value, ok := values[i].(*types.ID); !ok {
+			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				pr.ID = *value
@@ -131,6 +142,11 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 // QueryApplications queries the "applications" edge of the Project entity.
 func (pr *Project) QueryApplications() *ApplicationQuery {
 	return NewProjectClient(pr.config).QueryApplications(pr)
+}
+
+// QuerySecrets queries the "secrets" edge of the Project entity.
+func (pr *Project) QuerySecrets() *SecretQuery {
+	return NewProjectClient(pr.config).QuerySecrets(pr)
 }
 
 // Update returns a builder for updating this Project.

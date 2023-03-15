@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationRevisionQuery is the builder for querying ApplicationRevision entities.
@@ -143,8 +143,8 @@ func (arq *ApplicationRevisionQuery) FirstX(ctx context.Context) *ApplicationRev
 
 // FirstID returns the first ApplicationRevision ID from the query.
 // Returns a *NotFoundError when no ApplicationRevision ID was found.
-func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = arq.Limit(1).IDs(setContextOp(ctx, arq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (arq *ApplicationRevisionQuery) FirstID(ctx context.Context) (id types.ID, 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) FirstIDX(ctx context.Context) types.ID {
+func (arq *ApplicationRevisionQuery) FirstIDX(ctx context.Context) oid.ID {
 	id, err := arq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -194,8 +194,8 @@ func (arq *ApplicationRevisionQuery) OnlyX(ctx context.Context) *ApplicationRevi
 // OnlyID is like Only, but returns the only ApplicationRevision ID in the query.
 // Returns a *NotSingularError when more than one ApplicationRevision ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id types.ID, err error) {
-	var ids []types.ID
+func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
+	var ids []oid.ID
 	if ids, err = arq.Limit(2).IDs(setContextOp(ctx, arq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (arq *ApplicationRevisionQuery) OnlyID(ctx context.Context) (id types.ID, e
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) OnlyIDX(ctx context.Context) types.ID {
+func (arq *ApplicationRevisionQuery) OnlyIDX(ctx context.Context) oid.ID {
 	id, err := arq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -239,7 +239,7 @@ func (arq *ApplicationRevisionQuery) AllX(ctx context.Context) []*ApplicationRev
 }
 
 // IDs executes the query and returns a list of ApplicationRevision IDs.
-func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) (ids []types.ID, err error) {
+func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 	if arq.ctx.Unique == nil && arq.path != nil {
 		arq.Unique(true)
 	}
@@ -251,7 +251,7 @@ func (arq *ApplicationRevisionQuery) IDs(ctx context.Context) (ids []types.ID, e
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (arq *ApplicationRevisionQuery) IDsX(ctx context.Context) []types.ID {
+func (arq *ApplicationRevisionQuery) IDsX(ctx context.Context) []oid.ID {
 	ids, err := arq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -463,8 +463,8 @@ func (arq *ApplicationRevisionQuery) sqlAll(ctx context.Context, hooks ...queryH
 }
 
 func (arq *ApplicationRevisionQuery) loadInstance(ctx context.Context, query *ApplicationInstanceQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *ApplicationInstance)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationRevision)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationRevision)
 	for i := range nodes {
 		fk := nodes[i].InstanceID
 		if _, ok := nodeids[fk]; !ok {
@@ -492,8 +492,8 @@ func (arq *ApplicationRevisionQuery) loadInstance(ctx context.Context, query *Ap
 	return nil
 }
 func (arq *ApplicationRevisionQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*ApplicationRevision, init func(*ApplicationRevision), assign func(*ApplicationRevision, *Environment)) error {
-	ids := make([]types.ID, 0, len(nodes))
-	nodeids := make(map[types.ID][]*ApplicationRevision)
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationRevision)
 	for i := range nodes {
 		fk := nodes[i].EnvironmentID
 		if _, ok := nodeids[fk]; !ok {

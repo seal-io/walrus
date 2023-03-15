@@ -54,6 +54,9 @@ type ClientSet interface {
 	// Roles returns the client for interacting with the Role builders.
 	Roles() *RoleClient
 
+	// Secrets returns the client for interacting with the Secret builders.
+	Secrets() *SecretClient
+
 	// Settings returns the client for interacting with the Setting builders.
 	Settings() *SettingClient
 
@@ -159,6 +162,12 @@ type ProjectClientGetter interface {
 type RoleClientGetter interface {
 	// Roles returns the client for interacting with the Role builders.
 	Roles() *RoleClient
+}
+
+// SecretClientGetter is an interface that allows getting SecretClient.
+type SecretClientGetter interface {
+	// Secrets returns the client for interacting with the Secret builders.
+	Secrets() *SecretClient
 }
 
 // SettingClientGetter is an interface that allows getting SettingClient.

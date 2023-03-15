@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentUpdate is the builder for updating Environment entities.
@@ -76,14 +76,14 @@ func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (eu *EnvironmentUpdate) AddInstanceIDs(ids ...types.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) AddInstanceIDs(ids ...oid.ID) *EnvironmentUpdate {
 	eu.mutation.AddInstanceIDs(ids...)
 	return eu
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (eu *EnvironmentUpdate) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -91,14 +91,14 @@ func (eu *EnvironmentUpdate) AddInstances(a ...*ApplicationInstance) *Environmen
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (eu *EnvironmentUpdate) AddRevisionIDs(ids ...types.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) AddRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
 	eu.mutation.AddRevisionIDs(ids...)
 	return eu
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (eu *EnvironmentUpdate) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -117,14 +117,14 @@ func (eu *EnvironmentUpdate) ClearInstances() *EnvironmentUpdate {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (eu *EnvironmentUpdate) RemoveInstanceIDs(ids ...types.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) RemoveInstanceIDs(ids ...oid.ID) *EnvironmentUpdate {
 	eu.mutation.RemoveInstanceIDs(ids...)
 	return eu
 }
 
 // RemoveInstances removes "instances" edges to ApplicationInstance entities.
 func (eu *EnvironmentUpdate) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -138,14 +138,14 @@ func (eu *EnvironmentUpdate) ClearRevisions() *EnvironmentUpdate {
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (eu *EnvironmentUpdate) RemoveRevisionIDs(ids ...types.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) RemoveRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
 	eu.mutation.RemoveRevisionIDs(ids...)
 	return eu
 }
 
 // RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
 func (eu *EnvironmentUpdate) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -414,14 +414,14 @@ func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOn
 }
 
 // AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (euo *EnvironmentUpdateOne) AddInstanceIDs(ids ...types.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) AddInstanceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddInstanceIDs(ids...)
 	return euo
 }
 
 // AddInstances adds the "instances" edges to the ApplicationInstance entity.
 func (euo *EnvironmentUpdateOne) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -429,14 +429,14 @@ func (euo *EnvironmentUpdateOne) AddInstances(a ...*ApplicationInstance) *Enviro
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (euo *EnvironmentUpdateOne) AddRevisionIDs(ids ...types.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) AddRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddRevisionIDs(ids...)
 	return euo
 }
 
 // AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
 func (euo *EnvironmentUpdateOne) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -455,14 +455,14 @@ func (euo *EnvironmentUpdateOne) ClearInstances() *EnvironmentUpdateOne {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveInstanceIDs(ids ...types.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) RemoveInstanceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
 	euo.mutation.RemoveInstanceIDs(ids...)
 	return euo
 }
 
 // RemoveInstances removes "instances" edges to ApplicationInstance entities.
 func (euo *EnvironmentUpdateOne) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -476,14 +476,14 @@ func (euo *EnvironmentUpdateOne) ClearRevisions() *EnvironmentUpdateOne {
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveRevisionIDs(ids ...types.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) RemoveRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
 	euo.mutation.RemoveRevisionIDs(ids...)
 	return euo
 }
 
 // RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
 func (euo *EnvironmentUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
-	ids := make([]types.ID, len(a))
+	ids := make([]oid.ID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}

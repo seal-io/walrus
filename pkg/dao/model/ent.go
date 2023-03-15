@@ -30,6 +30,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
@@ -75,6 +76,7 @@ func columnChecker(table string) func(string) error {
 		perspective.Table:                      perspective.ValidColumn,
 		project.Table:                          project.ValidColumn,
 		role.Table:                             role.ValidColumn,
+		secret.Table:                           secret.ValidColumn,
 		setting.Table:                          setting.ValidColumn,
 		subject.Table:                          subject.ValidColumn,
 		token.Table:                            token.ValidColumn,

@@ -11,51 +11,51 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id types.ID) predicate.Perspective {
+func ID(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id types.ID) predicate.Perspective {
+func IDEQ(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id types.ID) predicate.Perspective {
+func IDNEQ(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...types.ID) predicate.Perspective {
+func IDIn(ids ...oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...types.ID) predicate.Perspective {
+func IDNotIn(ids ...oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id types.ID) predicate.Perspective {
+func IDGT(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id types.ID) predicate.Perspective {
+func IDGTE(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id types.ID) predicate.Perspective {
+func IDLT(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id types.ID) predicate.Perspective {
+func IDLTE(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldLTE(FieldID, id))
 }
 

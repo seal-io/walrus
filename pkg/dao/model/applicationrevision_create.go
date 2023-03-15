@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationRevisionCreate is the builder for creating a ApplicationRevision entity.
@@ -73,14 +74,14 @@ func (arc *ApplicationRevisionCreate) SetNillableCreateTime(t *time.Time) *Appli
 }
 
 // SetInstanceID sets the "instanceID" field.
-func (arc *ApplicationRevisionCreate) SetInstanceID(t types.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetInstanceID(t)
+func (arc *ApplicationRevisionCreate) SetInstanceID(o oid.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetInstanceID(o)
 	return arc
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (arc *ApplicationRevisionCreate) SetEnvironmentID(t types.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetEnvironmentID(t)
+func (arc *ApplicationRevisionCreate) SetEnvironmentID(o oid.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetEnvironmentID(o)
 	return arc
 }
 
@@ -137,8 +138,8 @@ func (arc *ApplicationRevisionCreate) SetNillableDuration(i *int) *ApplicationRe
 }
 
 // SetID sets the "id" field.
-func (arc *ApplicationRevisionCreate) SetID(t types.ID) *ApplicationRevisionCreate {
-	arc.mutation.SetID(t)
+func (arc *ApplicationRevisionCreate) SetID(o oid.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetID(o)
 	return arc
 }
 
@@ -275,7 +276,7 @@ func (arc *ApplicationRevisionCreate) sqlSave(ctx context.Context) (*Application
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*types.ID); ok {
+		if id, ok := _spec.ID.Value.(*oid.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -747,7 +748,7 @@ func (u *ApplicationRevisionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id types.ID, err error) {
+func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -761,7 +762,7 @@ func (u *ApplicationRevisionUpsertOne) ID(ctx context.Context) (id types.ID, err
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ApplicationRevisionUpsertOne) IDX(ctx context.Context) types.ID {
+func (u *ApplicationRevisionUpsertOne) IDX(ctx context.Context) oid.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
