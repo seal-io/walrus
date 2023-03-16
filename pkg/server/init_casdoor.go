@@ -22,7 +22,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	}
 
 	// login the builtin admin with initialized password.
-	adminSession, err := casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
+	adminSessions, err := casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 		casdoor.BuiltinAdmin, casdoor.BuiltinAdminInitPwd)
 	if err != nil {
 		// nothing to do if failed login the builtin admin at bootstrap phase.
@@ -31,7 +31,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 
 	// get the credential of the builtin application,
 	// so that boot the system token creation at below.
-	appCred, err := casdoor.GetApplicationCredential(ctx, adminSession,
+	appCred, err := casdoor.GetApplicationCredential(ctx, adminSessions,
 		casdoor.BuiltinApp)
 	if err != nil {
 		return err

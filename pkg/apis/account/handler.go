@@ -30,12 +30,12 @@ func Login() runtime.ErrorHandle {
 		}
 
 		// login
-		var internalSession, err = casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
+		var internalSessions, err = casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 			input.Username, input.Password)
 		if err != nil {
 			return runtime.Errorw(http.StatusUnauthorized, err)
 		}
-		var externalSession = casdoor.GetExternalSession(internalSession)
+		var externalSession = casdoor.GetExternalSession(internalSessions)
 		if externalSession == nil {
 			return runtime.Error(http.StatusInternalServerError, "failed to login")
 		}

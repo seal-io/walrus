@@ -8,16 +8,16 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func GetInternalSession(sealSession []*http.Cookie) *req.HttpCookie {
+func GetInternalSession(sealSessions []*http.Cookie) *req.HttpCookie {
 	var dst *req.HttpCookie
-	for i := range sealSession {
-		if sealSession[i] == nil || sealSession[i].Name != ExternalSessionCookieKey {
+	for i := range sealSessions {
+		if sealSessions[i] == nil || sealSessions[i].Name != ExternalSessionCookieKey {
 			continue
 		}
 		dst = &req.HttpCookie{}
 		dst.SetKey(InternalSessionCookieKey)
-		dst.SetValue(sealSession[i].Value)
-		dst.SetMaxAge(sealSession[i].MaxAge)
+		dst.SetValue(sealSessions[i].Value)
+		dst.SetMaxAge(sealSessions[i].MaxAge)
 		dst.SetPath("/")
 		dst.SetDomain("")
 		dst.SetSecure(false) // internal access
@@ -26,16 +26,16 @@ func GetInternalSession(sealSession []*http.Cookie) *req.HttpCookie {
 	return dst
 }
 
-func GetExternalSession(casdoorSession []*req.HttpCookie) *http.Cookie {
+func GetExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 	var dst *http.Cookie
-	for i := range casdoorSession {
-		if casdoorSession[i] == nil || string(casdoorSession[i].Key()) != InternalSessionCookieKey {
+	for i := range casdoorSessions {
+		if casdoorSessions[i] == nil || string(casdoorSessions[i].Key()) != InternalSessionCookieKey {
 			continue
 		}
 		dst = &http.Cookie{}
 		dst.Name = ExternalSessionCookieKey
-		dst.Value = string(casdoorSession[i].Value())
-		dst.MaxAge = casdoorSession[i].MaxAge()
+		dst.Value = string(casdoorSessions[i].Value())
+		dst.MaxAge = casdoorSessions[i].MaxAge()
 		dst.Path = "/"
 		dst.Domain = ""
 		dst.Secure = false // TODO

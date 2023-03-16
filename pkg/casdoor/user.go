@@ -40,10 +40,10 @@ func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCook
 	return userSession, nil
 }
 
-func SignOutUser(ctx context.Context, userSession []*req.HttpCookie) error {
+func SignOutUser(ctx context.Context, userSessions []*req.HttpCookie) error {
 	var logoutURL = fmt.Sprintf("%s/api/logout", endpoint.Get())
 	var err = req.HTTPRequest().
-		WithCookies(userSession...).
+		WithCookies(userSessions...).
 		PostWithContext(ctx, logoutURL).
 		Error()
 	if err != nil {
@@ -162,7 +162,7 @@ type UserInfo struct {
 	Name         string `json:"name"`
 }
 
-func GetUserInfo(ctx context.Context, userSession []*req.HttpCookie) (*UserInfo, error) {
+func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo, error) {
 	var getAccountURL = fmt.Sprintf("%s/api/get-account", endpoint.Get())
 	var account struct {
 		Sub          string `json:"sub"`
@@ -172,7 +172,7 @@ func GetUserInfo(ctx context.Context, userSession []*req.HttpCookie) (*UserInfo,
 		} `json:"data2"`
 	}
 	var err = req.HTTPRequest().
-		WithCookies(userSession...).
+		WithCookies(userSessions...).
 		GetWithContext(ctx, getAccountURL).
 		BodyJSON(&account)
 	if err != nil {
