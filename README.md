@@ -60,7 +60,7 @@ $ docker run -d -p 5432:5432 -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=Root1
 ### Local Casdoor via [Docker](https://docs.docker.com/desktop/install/mac-install/)
 
 ```bash
-$ docker run -d -p 8000:8000 sealio/casdoor:v1.197.0-seal.2
+$ docker run -d -p 8000:8000 sealio/casdoor:v1.197.0-seal.3
 
 ```
 
