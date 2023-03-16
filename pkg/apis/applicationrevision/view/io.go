@@ -36,21 +36,24 @@ type CollectionGetRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 	runtime.RequestSorting    `query:",inline"`
 
-	InstanceID types.ID `query:"instanceID"`
+	InstanceID types.ID `query:"instanceID,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
-	if !r.InstanceID.Valid(0) {
-		return errors.New("invalid instance id: blank")
+	if r.InstanceID != "" {
+		if !r.InstanceID.IsNaive() {
+			return errors.New("invalid instance id")
+		}
+		_, err := modelClient.ApplicationInstances().Query().
+			Where(applicationinstance.ID(r.InstanceID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Error(http.StatusNotFound, "invalid instance id: not found")
+		}
 	}
-	_, err := modelClient.ApplicationInstances().Query().
-		Where(applicationinstance.ID(r.InstanceID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid instance id: not found")
-	}
+
 	return nil
 }
 
