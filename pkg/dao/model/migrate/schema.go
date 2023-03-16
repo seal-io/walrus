@@ -443,7 +443,7 @@ var (
 				Symbol:     "module_versions_modules_versions",
 				Columns:    []*schema.Column{ModuleVersionsColumns[6]},
 				RefColumns: []*schema.Column{ModulesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{

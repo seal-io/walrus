@@ -40,6 +40,12 @@ func (amru *ApplicationModuleRelationshipUpdate) SetUpdateTime(t time.Time) *App
 	return amru
 }
 
+// SetVersion sets the "version" field.
+func (amru *ApplicationModuleRelationshipUpdate) SetVersion(s string) *ApplicationModuleRelationshipUpdate {
+	amru.mutation.SetVersion(s)
+	return amru
+}
+
 // SetAttributes sets the "attributes" field.
 func (amru *ApplicationModuleRelationshipUpdate) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipUpdate {
 	amru.mutation.SetAttributes(m)
@@ -95,6 +101,11 @@ func (amru *ApplicationModuleRelationshipUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (amru *ApplicationModuleRelationshipUpdate) check() error {
+	if v, ok := amru.mutation.Version(); ok {
+		if err := applicationmodulerelationship.VersionValidator(v); err != nil {
+			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "ApplicationModuleRelationship.version": %w`, err)}
+		}
+	}
 	if _, ok := amru.mutation.ApplicationID(); amru.mutation.ApplicationCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationModuleRelationship.application"`)
 	}
@@ -124,6 +135,9 @@ func (amru *ApplicationModuleRelationshipUpdate) sqlSave(ctx context.Context) (n
 	}
 	if value, ok := amru.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := amru.mutation.Version(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldVersion, field.TypeString, value)
 	}
 	if value, ok := amru.mutation.Attributes(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
@@ -158,6 +172,12 @@ type ApplicationModuleRelationshipUpdateOne struct {
 // SetUpdateTime sets the "updateTime" field.
 func (amruo *ApplicationModuleRelationshipUpdateOne) SetUpdateTime(t time.Time) *ApplicationModuleRelationshipUpdateOne {
 	amruo.mutation.SetUpdateTime(t)
+	return amruo
+}
+
+// SetVersion sets the "version" field.
+func (amruo *ApplicationModuleRelationshipUpdateOne) SetVersion(s string) *ApplicationModuleRelationshipUpdateOne {
+	amruo.mutation.SetVersion(s)
 	return amruo
 }
 
@@ -229,6 +249,11 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (amruo *ApplicationModuleRelationshipUpdateOne) check() error {
+	if v, ok := amruo.mutation.Version(); ok {
+		if err := applicationmodulerelationship.VersionValidator(v); err != nil {
+			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "ApplicationModuleRelationship.version": %w`, err)}
+		}
+	}
 	if _, ok := amruo.mutation.ApplicationID(); amruo.mutation.ApplicationCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ApplicationModuleRelationship.application"`)
 	}
@@ -282,6 +307,9 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) sqlSave(ctx context.Context
 	}
 	if value, ok := amruo.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := amruo.mutation.Version(); ok {
+		_spec.SetField(applicationmodulerelationship.FieldVersion, field.TypeString, value)
 	}
 	if value, ok := amruo.mutation.Attributes(); ok {
 		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)

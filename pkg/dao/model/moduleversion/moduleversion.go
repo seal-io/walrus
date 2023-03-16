@@ -79,6 +79,10 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// ModuleIDValidator is a validator for the "moduleID" field. It is called by the builders before save.
 	ModuleIDValidator func(string) error
+	// VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	VersionValidator func(string) error
+	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	SourceValidator func(string) error
 	// DefaultSchema holds the default value on creation for the "schema" field.
 	DefaultSchema *types.ModuleSchema
 )

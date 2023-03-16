@@ -27,9 +27,9 @@ func (in ModuleVersionQueryInput) Model() *ModuleVersion {
 // ModuleVersionCreateInput is the input for the ModuleVersion creation.
 type ModuleVersionCreateInput struct {
 	// Module version.
-	Version string `json:"version,omitempty"`
+	Version string `json:"version"`
 	// Module version source.
-	Source string `json:"source,omitempty"`
+	Source string `json:"source"`
 	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 	// Module holds the value of the module edge.
@@ -51,10 +51,6 @@ func (in ModuleVersionCreateInput) Model() *ModuleVersion {
 type ModuleVersionUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID types.ID `uri:"id" json:"-"`
-	// Module version.
-	Version string `json:"version,omitempty"`
-	// Module version source.
-	Source string `json:"source,omitempty"`
 	// Schema of the module.
 	Schema *types.ModuleSchema `json:"schema,omitempty"`
 }
@@ -62,10 +58,8 @@ type ModuleVersionUpdateInput struct {
 // Model converts the ModuleVersionUpdateInput to ModuleVersion.
 func (in ModuleVersionUpdateInput) Model() *ModuleVersion {
 	var entity = &ModuleVersion{
-		ID:      in.ID,
-		Version: in.Version,
-		Source:  in.Source,
-		Schema:  in.Schema,
+		ID:     in.ID,
+		Schema: in.Schema,
 	}
 	return entity
 }

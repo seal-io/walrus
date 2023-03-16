@@ -60,6 +60,8 @@ func (in ApplicationModuleRelationshipCreateInput) Model() *ApplicationModuleRel
 type ApplicationModuleRelationshipUpdateInput struct {
 	// Name of the module customized to the application.
 	Name string `json:"name"`
+	// Version of the module to which the relationship connects.
+	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
@@ -72,6 +74,7 @@ type ApplicationModuleRelationshipUpdateInput struct {
 func (in ApplicationModuleRelationshipUpdateInput) Model() *ApplicationModuleRelationship {
 	var entity = &ApplicationModuleRelationship{
 		Name:       in.Name,
+		Version:    in.Version,
 		Attributes: in.Attributes,
 	}
 	entity.ApplicationID = in.Application.ID
