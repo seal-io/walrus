@@ -82,8 +82,9 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 			rq.Order(model.Asc(applicationmodulerelationship.FieldCreateTime)).
 				Select(
 					applicationmodulerelationship.FieldApplicationID,
-					applicationmodulerelationship.FieldModuleID,
 					applicationmodulerelationship.FieldName,
+					applicationmodulerelationship.FieldModuleID,
+					applicationmodulerelationship.FieldVersion,
 					applicationmodulerelationship.FieldAttributes).
 				// allow returning without sorting keys.
 				Unique(false)

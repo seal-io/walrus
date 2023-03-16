@@ -392,6 +392,8 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 		Query().
 		Select(
 			moduleversion.FieldID,
+			moduleversion.FieldModuleID,
+			moduleversion.FieldVersion,
 			moduleversion.FieldSource,
 			moduleversion.FieldSchema,
 		).

@@ -43,6 +43,7 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 		var c = mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(created.ID).
 			SetModuleID(rs.ModuleID).
+			SetVersion(rs.Version).
 			SetName(rs.Name)
 
 		// optional.
@@ -130,6 +131,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 			rq.Select(
 				applicationmodulerelationship.FieldApplicationID,
 				applicationmodulerelationship.FieldModuleID,
+				applicationmodulerelationship.FieldVersion,
 				applicationmodulerelationship.FieldName,
 			)
 		}).
@@ -149,6 +151,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 		var c = mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(applicationID).
 			SetModuleID(rs.ModuleID).
+			SetVersion(rs.Version).
 			SetName(rs.Name)
 
 		// optional.
@@ -166,6 +169,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 				if rs.Attributes != nil {
 					upsert.UpdateAttributes()
 				}
+				upsert.UpdateVersion()
 				upsert.UpdateUpdateTime()
 			}).
 			Exec(ctx)
@@ -184,7 +188,6 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 		_, err = mc.ApplicationModuleRelationships().Delete().
 			Where(
 				applicationmodulerelationship.ApplicationID(rs.ApplicationID),
-				applicationmodulerelationship.ModuleID(rs.ModuleID),
 				applicationmodulerelationship.Name(rs.Name),
 			).
 			Exec(ctx)
