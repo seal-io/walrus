@@ -20,12 +20,12 @@ import (
 )
 
 func authn(c *gin.Context, modelClient model.ClientSet) error {
-	var token = casdoor.GetInternalToken(c.Request.Header)
+	var token = casdoor.GetToken(c.Request.Header)
 	if token != "" {
 		return authnWithToken(c, modelClient, token)
 	}
 
-	var internalSession = casdoor.GetInternalSession(c.Request.Cookies())
+	var internalSession = casdoor.GetSession(c.Request.Cookies())
 	if internalSession == nil {
 		// anonymous
 		return nil
@@ -92,7 +92,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 		// avoid d-dos
 		log.WithName("auth").Errorf("error getting user account: %v", err)
 		cache.StoreSessionSubject(string(internalSession.Value()), "", false)
-		return nil
+		return casdoor.InterruptSession(c.Writer, []*req.HttpCookie{internalSession})
 	}
 	// cache
 	loginGroup, err := getLoginGroup(c, modelClient, r.Name)
@@ -101,7 +101,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 	}
 	cache.StoreSessionSubject(string(internalSession.Value()), session.ToSubjectKey(loginGroup, r.Name), true)
 	session.StoreSubjectAuthnInfo(c, loginGroup, r.Name)
-	return nil
+	return casdoor.HoldSession(c.Writer, []*req.HttpCookie{internalSession})
 }
 
 func getLoginGroup(ctx context.Context, modelClient model.ClientSet, name string) (string, error) {
