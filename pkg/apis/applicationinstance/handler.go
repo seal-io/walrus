@@ -1,16 +1,23 @@
 package applicationinstance
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationinstance/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
+	"github.com/seal-io/seal/pkg/platformk8s"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/pkg/platformtf"
 )
 
@@ -165,4 +172,90 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) er
 		SkipTLSVerify: !h.tlsCertified,
 	}
 	return dp.Apply(ctx, entity, applyOpts)
+}
+
+func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (*view.AccessEndpointResponse, error) {
+	serviceType := "kubernetes_service"
+	ingressType := "kubernetes_ingress"
+	res, err := h.modelClient.ApplicationResources().Query().
+		Where(
+			applicationresource.InstanceID(req.ID),
+			applicationresource.TypeIn(serviceType, ingressType),
+		).
+		Select(
+			applicationresource.FieldConnectorID,
+			applicationresource.FieldType,
+			applicationresource.FieldName,
+		).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	// TODO: query from application resource after implemented store endpoints and conditional status in application resource status
+	conns, err := h.modelClient.Connectors().Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var connMap = make(map[types.ID]*model.Connector)
+	for _, v := range conns {
+		connMap[v.ID] = v
+	}
+
+	var connResMapping = make(map[*model.Connector]map[string][]string)
+	for _, v := range res {
+		conn := connMap[v.ConnectorID]
+		if conn == nil {
+			continue
+		}
+
+		if _, ok := connResMapping[conn]; !ok {
+			connResMapping[conn] = make(map[string][]string)
+		}
+		connResMapping[conn][v.Type] = append(connResMapping[conn][v.Type], v.Name)
+	}
+
+	var endpoints []kube.ResourceEndpoint
+	for conn, ress := range connResMapping {
+		k8sClient, err := k8sClientset(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		for resType, names := range ress {
+			switch resType {
+			case serviceType:
+				eps, err := kube.ServiceEndpointGetter(k8sClient).Endpoints(ctx, names...)
+				if err != nil {
+					return nil, err
+				}
+				endpoints = append(endpoints, eps...)
+			case ingressType:
+				eps, err := kube.IngressEndpointGetter(k8sClient).Endpoints(ctx, names...)
+				if err != nil {
+					return nil, err
+				}
+				endpoints = append(endpoints, eps...)
+			}
+		}
+	}
+	return &view.AccessEndpointResponse{
+		Endpoints: endpoints,
+	}, nil
+}
+
+func k8sClientset(conn *model.Connector) (*kubernetes.Clientset, error) {
+	restCfg, err := platformk8s.GetConfig(*conn)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := kubernetes.NewForConfig(restCfg)
+	if err != nil {
+		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
+	}
+	return client, nil
 }
