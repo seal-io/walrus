@@ -3,17 +3,19 @@ package server
 import (
 	"context"
 
-	costskd "github.com/seal-io/seal/pkg/costs/scheduler"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
-	pk8sskd "github.com/seal-io/seal/pkg/platformk8s/scheduler"
+	appresskd "github.com/seal-io/seal/pkg/scheduler/applicationresource"
+	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
+	costskd "github.com/seal-io/seal/pkg/scheduler/cost"
+
 	"github.com/seal-io/seal/pkg/settings"
 )
 
 func (r *Server) initBackgroundTasks(ctx context.Context, opts initOptions) error {
 	var cs = cron.JobCreators{
 		settings.CostCollectCronExpr.Name():         buildCostCollectJobCreator(opts.ModelClient),
-		settings.CostToolsCheckCronExpr.Name():      buildCostToolsCheckJobCreator(opts.ModelClient),
+		settings.ConnectorCheckCronExpr.Name():      buildConnectorCheckJobCreator(opts.ModelClient),
 		settings.ResourceStatusCheckCronExpr.Name(): buildResourceStatusCheckJobCreator(opts.ModelClient),
 	}
 	return cron.Register(ctx, opts.ModelClient, cs)
@@ -29,9 +31,9 @@ func buildCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildCostToolsCheckJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildConnectorCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = costskd.NewToolsCheckTask(mc)
+		var task, err = connskd.NewStatusCheckTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -41,7 +43,7 @@ func buildCostToolsCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceStatusCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = pk8sskd.NewResourceStatusCheckTask(mc)
+		var task, err = appresskd.NewResourceStatusCheckTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}

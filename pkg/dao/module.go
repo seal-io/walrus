@@ -23,7 +23,7 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		var c = mc.Modules().Create().
 			SetID(r.ID).
 			SetSource(r.Source).
-			SetStatus(status.Initializing)
+			SetStatus(status.ModuleStatusInitializing)
 
 		// optional.
 		c.SetDescription(r.Description)

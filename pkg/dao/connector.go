@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.ConnectorCreate, error) {
@@ -32,6 +33,14 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if !r.FinOpsCustomPricing.IsZero() {
 			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
 		} else if r.Type == types.ConnectorTypeK8s {
+			// set init status
+			status.ConnectorStatusProvisioned.Unknown(r, "Provisioning connector")
+			status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")
+			r.Status.Status = status.ConnectorStatusProvisionedTransitioning
+			r.Status.StatusMessage = status.ConnectorStatusProvisionedTransitioning
+			r.Status.Transitioning = true
+
+			// set default custom pricing
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
 		if r.Labels != nil {
@@ -55,9 +64,11 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 	// conditional.
 	var c = mc.Connectors().UpdateOne(input).
 		SetDescription(input.Description).
-		SetEnableFinOps(input.EnableFinOps).
-		SetStatus(input.Status).
-		SetStatusMessage(input.StatusMessage)
+		SetEnableFinOps(input.EnableFinOps)
+
+	if input.Status.ConditionChanged() {
+		c.SetStatus(input.Status)
+	}
 
 	if !input.FinOpsCustomPricing.IsZero() {
 		c.SetFinOpsCustomPricing(input.FinOpsCustomPricing)

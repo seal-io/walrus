@@ -11,7 +11,6 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -31,7 +30,7 @@ func UpdateCustomPricing(ctx context.Context, conn *model.Connector) error {
 		return err
 	}
 
-	if conn.FinOpsStatus != status.Ready {
+	if !status.ConnectorStatusReady.IsTrue(conn) {
 		return nil
 	}
 
@@ -97,13 +96,4 @@ func refreshCustomPricing(conn *model.Connector, restCfg *rest.Config) error {
 		return fmt.Errorf("error response from %s, expected %d but get code: %d", url, http.StatusOK, resp.StatusCode)
 	}
 	return nil
-}
-
-func SyncCostCustomPricing(ctx context.Context, message connector.BusMessage) error {
-	conn := message.Refer
-	if !conn.EnableFinOps {
-		return nil
-	}
-
-	return UpdateCustomPricing(ctx, conn)
 }

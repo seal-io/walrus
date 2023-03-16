@@ -67,7 +67,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	)
 
 	if shouldSyncSchema {
-		entity.Status = status.Initializing
+		entity.Status = status.ModuleStatusInitializing
 		entity.StatusMessage = ""
 	}
 
@@ -160,7 +160,7 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 	if err != nil {
 		return err
 	}
-	m.Status = status.Initializing
+	m.Status = status.ModuleStatusInitializing
 	m.StatusMessage = ""
 	update, err := dao.ModuleUpdate(h.modelClient, m)
 	if err != nil {
