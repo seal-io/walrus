@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/sqlx"
 )
 
 type stepDistributor struct {
@@ -69,7 +70,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		return nil, 0, 0, err
 	}
 
-	dateTrunc, err := DateTruncWithZoneOffsetSQL(cond.Step, offset)
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(cond.Step), offset)
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -176,7 +177,7 @@ func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime ti
 	}
 
 	_, offset := startTime.Zone()
-	dateTrunc, err := DateTruncWithZoneOffsetSQL(step, offset)
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(step), offset)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +348,7 @@ func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, en
 	)
 
 	_, offset := startTime.Zone()
-	dateTrunc, err := DateTruncWithZoneOffsetSQL(step, offset)
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(step), offset)
 	if err != nil {
 		return nil, err
 	}
