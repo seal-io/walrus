@@ -19,8 +19,8 @@ func (Connector) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.Meta{},
-		mixin.Status{},
 		mixin.Time{},
+		mixin.State{},
 	}
 }
 
@@ -46,12 +46,6 @@ func (Connector) Fields() []ent.Field {
 			Sensitive(),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
-		field.String("finOpsStatus").
-			Comment("Status of the finOps tools.").
-			Optional(),
-		field.String("finOpsStatusMessage").
-			Comment("Extra message for finOps tools status, like error details.").
-			Optional(),
 		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
 			Comment("Custom pricing user defined.").
 			Optional(),
