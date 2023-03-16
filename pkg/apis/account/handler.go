@@ -35,20 +35,19 @@ func Login() runtime.ErrorHandle {
 		if err != nil {
 			return runtime.Errorw(http.StatusUnauthorized, err)
 		}
-		var externalSession = casdoor.GetExternalSession(internalSessions)
-		if externalSession == nil {
+
+		// hold session
+		err = casdoor.HoldSession(ctx.Writer, internalSessions)
+		if err != nil {
 			return runtime.Error(http.StatusInternalServerError, "failed to login")
 		}
-
-		// grant
-		http.SetCookie(ctx.Writer, externalSession)
 		return nil
 	}
 }
 
 func Logout() runtime.Handle {
 	return func(ctx *gin.Context) {
-		var internalSession = casdoor.GetInternalSession(ctx.Request.Cookies())
+		var internalSession = casdoor.GetSession(ctx.Request.Cookies())
 		if internalSession == nil {
 			return
 		}
@@ -56,8 +55,8 @@ func Logout() runtime.Handle {
 		// logout
 		_ = casdoor.SignOutUser(ctx, []*req.HttpCookie{internalSession})
 
-		// revert
-		ctx.SetCookie(casdoor.ExternalSessionCookieKey, "", 0, "/", "", false, true)
+		// interrupt session
+		_ = casdoor.InterruptSession(ctx.Writer, []*req.HttpCookie{internalSession})
 		cache.CleanSessionSubject(string(internalSession.Value()))
 	}
 }
