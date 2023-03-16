@@ -45,9 +45,9 @@ var (
 	// default cron expression means executing collection per hour,
 	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
 	CostCollectCronExpr = newValue("CostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(notBlank, cronExpression))
-	// CostToolsCheckCronExpr indicates the cron expression of check cost tools ready,
+	// ConnectorCheckCronExpr indicates the cron expression of check connector status,
 	// default cron expression means executing check every 10 minutes.
-	CostToolsCheckCronExpr = newValue("CostToolsCheckCronExpr", editable, initializeFrom("0 */10 * ? * *"), modifyWith(notBlank, cronExpression))
+	ConnectorCheckCronExpr = newValue("ConnectorCheckCronExpr", editable, initializeFrom("0 */10 * ? * *"), modifyWith(notBlank, cronExpression))
 	// ResourceStatusCheckCronExpr indicates the cron expression of state application resource,
 	// default cron expression means stating every 1 minute.
 	ResourceStatusCheckCronExpr = newValue("ResourceStatusCheckCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
