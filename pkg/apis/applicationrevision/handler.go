@@ -72,8 +72,10 @@ var (
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ApplicationRevisions().Query().
-		Where(applicationrevision.InstanceID(req.InstanceID))
+	var query = h.modelClient.ApplicationRevisions().Query()
+	if req.InstanceID != "" {
+		query.Where(applicationrevision.InstanceID(req.InstanceID))
+	}
 
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
