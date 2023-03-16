@@ -41,8 +41,7 @@ func (ApplicationModuleRelationship) Fields() []ent.Field {
 			Immutable(),
 		field.String("version").
 			Comment("Version of the module to which the relationship connects.").
-			NotEmpty().
-			Immutable(),
+			NotEmpty(),
 		field.String("name").
 			Comment("Name of the module customized to the application.").
 			NotEmpty().
