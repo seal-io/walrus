@@ -15,6 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // Connector is the model entity for the Connector schema.
@@ -28,14 +29,12 @@ type Connector struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Status of the object.
+	Status status.Status `json:"status,omitempty"`
 	// Type of the connector.
 	Type string `json:"type,omitempty"`
 	// Connector config version.
@@ -44,10 +43,6 @@ type Connector struct {
 	ConfigData map[string]interface{} `json:"-"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -111,11 +106,11 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case connector.FieldLabels, connector.FieldConfigData, connector.FieldFinOpsCustomPricing:
+		case connector.FieldLabels, connector.FieldStatus, connector.FieldConfigData, connector.FieldFinOpsCustomPricing:
 			values[i] = new([]byte)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
-		case connector.FieldName, connector.FieldDescription, connector.FieldStatus, connector.FieldStatusMessage, connector.FieldType, connector.FieldConfigVersion, connector.FieldFinOpsStatus, connector.FieldFinOpsStatusMessage:
+		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -162,18 +157,6 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
-		case connector.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				c.Status = value.String
-			}
-		case connector.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
-			} else if value.Valid {
-				c.StatusMessage = value.String
-			}
 		case connector.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -187,6 +170,14 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.UpdateTime = new(time.Time)
 				*c.UpdateTime = value.Time
+			}
+		case connector.FieldStatus:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
 			}
 		case connector.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -213,18 +204,6 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enableFinOps", values[i])
 			} else if value.Valid {
 				c.EnableFinOps = value.Bool
-			}
-		case connector.FieldFinOpsStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field finOpsStatus", values[i])
-			} else if value.Valid {
-				c.FinOpsStatus = value.String
-			}
-		case connector.FieldFinOpsStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field finOpsStatusMessage", values[i])
-			} else if value.Valid {
-				c.FinOpsStatusMessage = value.String
 			}
 		case connector.FieldFinOpsCustomPricing:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -291,12 +270,6 @@ func (c *Connector) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", c.Labels))
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(c.Status)
-	builder.WriteString(", ")
-	builder.WriteString("statusMessage=")
-	builder.WriteString(c.StatusMessage)
-	builder.WriteString(", ")
 	if v := c.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -306,6 +279,9 @@ func (c *Connector) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", c.Status))
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(c.Type)
@@ -317,12 +293,6 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enableFinOps=")
 	builder.WriteString(fmt.Sprintf("%v", c.EnableFinOps))
-	builder.WriteString(", ")
-	builder.WriteString("finOpsStatus=")
-	builder.WriteString(c.FinOpsStatus)
-	builder.WriteString(", ")
-	builder.WriteString("finOpsStatusMessage=")
-	builder.WriteString(c.FinOpsStatusMessage)
 	builder.WriteString(", ")
 	builder.WriteString("finOpsCustomPricing=")
 	builder.WriteString(fmt.Sprintf("%v", c.FinOpsCustomPricing))

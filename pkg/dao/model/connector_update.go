@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ConnectorUpdate is the builder for updating Connector entities.
@@ -70,14 +71,20 @@ func (cu *ConnectorUpdate) SetLabels(m map[string]string) *ConnectorUpdate {
 	return cu
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (cu *ConnectorUpdate) SetUpdateTime(t time.Time) *ConnectorUpdate {
+	cu.mutation.SetUpdateTime(t)
+	return cu
+}
+
 // SetStatus sets the "status" field.
-func (cu *ConnectorUpdate) SetStatus(s string) *ConnectorUpdate {
+func (cu *ConnectorUpdate) SetStatus(s status.Status) *ConnectorUpdate {
 	cu.mutation.SetStatus(s)
 	return cu
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableStatus(s *string) *ConnectorUpdate {
+func (cu *ConnectorUpdate) SetNillableStatus(s *status.Status) *ConnectorUpdate {
 	if s != nil {
 		cu.SetStatus(*s)
 	}
@@ -87,32 +94,6 @@ func (cu *ConnectorUpdate) SetNillableStatus(s *string) *ConnectorUpdate {
 // ClearStatus clears the value of the "status" field.
 func (cu *ConnectorUpdate) ClearStatus() *ConnectorUpdate {
 	cu.mutation.ClearStatus()
-	return cu
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (cu *ConnectorUpdate) SetStatusMessage(s string) *ConnectorUpdate {
-	cu.mutation.SetStatusMessage(s)
-	return cu
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableStatusMessage(s *string) *ConnectorUpdate {
-	if s != nil {
-		cu.SetStatusMessage(*s)
-	}
-	return cu
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (cu *ConnectorUpdate) ClearStatusMessage() *ConnectorUpdate {
-	cu.mutation.ClearStatusMessage()
-	return cu
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (cu *ConnectorUpdate) SetUpdateTime(t time.Time) *ConnectorUpdate {
-	cu.mutation.SetUpdateTime(t)
 	return cu
 }
 
@@ -131,46 +112,6 @@ func (cu *ConnectorUpdate) SetConfigData(m map[string]interface{}) *ConnectorUpd
 // SetEnableFinOps sets the "enableFinOps" field.
 func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
 	cu.mutation.SetEnableFinOps(b)
-	return cu
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cu *ConnectorUpdate) SetFinOpsStatus(s string) *ConnectorUpdate {
-	cu.mutation.SetFinOpsStatus(s)
-	return cu
-}
-
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableFinOpsStatus(s *string) *ConnectorUpdate {
-	if s != nil {
-		cu.SetFinOpsStatus(*s)
-	}
-	return cu
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (cu *ConnectorUpdate) ClearFinOpsStatus() *ConnectorUpdate {
-	cu.mutation.ClearFinOpsStatus()
-	return cu
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cu *ConnectorUpdate) SetFinOpsStatusMessage(s string) *ConnectorUpdate {
-	cu.mutation.SetFinOpsStatusMessage(s)
-	return cu
-}
-
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdate {
-	if s != nil {
-		cu.SetFinOpsStatusMessage(*s)
-	}
-	return cu
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (cu *ConnectorUpdate) ClearFinOpsStatusMessage() *ConnectorUpdate {
-	cu.mutation.ClearFinOpsStatusMessage()
 	return cu
 }
 
@@ -394,20 +335,14 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 	}
-	if value, ok := cu.mutation.Status(); ok {
-		_spec.SetField(connector.FieldStatus, field.TypeString, value)
-	}
-	if cu.mutation.StatusCleared() {
-		_spec.ClearField(connector.FieldStatus, field.TypeString)
-	}
-	if value, ok := cu.mutation.StatusMessage(); ok {
-		_spec.SetField(connector.FieldStatusMessage, field.TypeString, value)
-	}
-	if cu.mutation.StatusMessageCleared() {
-		_spec.ClearField(connector.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := cu.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := cu.mutation.Status(); ok {
+		_spec.SetField(connector.FieldStatus, field.TypeJSON, value)
+	}
+	if cu.mutation.StatusCleared() {
+		_spec.ClearField(connector.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := cu.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
@@ -417,18 +352,6 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
-	}
-	if value, ok := cu.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
-	}
-	if cu.mutation.FinOpsStatusCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
-	}
-	if value, ok := cu.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
-	}
-	if cu.mutation.FinOpsStatusMessageCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
 	}
 	if value, ok := cu.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
@@ -663,14 +586,20 @@ func (cuo *ConnectorUpdateOne) SetLabels(m map[string]string) *ConnectorUpdateOn
 	return cuo
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (cuo *ConnectorUpdateOne) SetUpdateTime(t time.Time) *ConnectorUpdateOne {
+	cuo.mutation.SetUpdateTime(t)
+	return cuo
+}
+
 // SetStatus sets the "status" field.
-func (cuo *ConnectorUpdateOne) SetStatus(s string) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) SetStatus(s status.Status) *ConnectorUpdateOne {
 	cuo.mutation.SetStatus(s)
 	return cuo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableStatus(s *string) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) SetNillableStatus(s *status.Status) *ConnectorUpdateOne {
 	if s != nil {
 		cuo.SetStatus(*s)
 	}
@@ -680,32 +609,6 @@ func (cuo *ConnectorUpdateOne) SetNillableStatus(s *string) *ConnectorUpdateOne 
 // ClearStatus clears the value of the "status" field.
 func (cuo *ConnectorUpdateOne) ClearStatus() *ConnectorUpdateOne {
 	cuo.mutation.ClearStatus()
-	return cuo
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (cuo *ConnectorUpdateOne) SetStatusMessage(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetStatusMessage(s)
-	return cuo
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableStatusMessage(s *string) *ConnectorUpdateOne {
-	if s != nil {
-		cuo.SetStatusMessage(*s)
-	}
-	return cuo
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (cuo *ConnectorUpdateOne) ClearStatusMessage() *ConnectorUpdateOne {
-	cuo.mutation.ClearStatusMessage()
-	return cuo
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (cuo *ConnectorUpdateOne) SetUpdateTime(t time.Time) *ConnectorUpdateOne {
-	cuo.mutation.SetUpdateTime(t)
 	return cuo
 }
 
@@ -724,46 +627,6 @@ func (cuo *ConnectorUpdateOne) SetConfigData(m map[string]interface{}) *Connecto
 // SetEnableFinOps sets the "enableFinOps" field.
 func (cuo *ConnectorUpdateOne) SetEnableFinOps(b bool) *ConnectorUpdateOne {
 	cuo.mutation.SetEnableFinOps(b)
-	return cuo
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cuo *ConnectorUpdateOne) SetFinOpsStatus(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetFinOpsStatus(s)
-	return cuo
-}
-
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatus(s *string) *ConnectorUpdateOne {
-	if s != nil {
-		cuo.SetFinOpsStatus(*s)
-	}
-	return cuo
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (cuo *ConnectorUpdateOne) ClearFinOpsStatus() *ConnectorUpdateOne {
-	cuo.mutation.ClearFinOpsStatus()
-	return cuo
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cuo *ConnectorUpdateOne) SetFinOpsStatusMessage(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetFinOpsStatusMessage(s)
-	return cuo
-}
-
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableFinOpsStatusMessage(s *string) *ConnectorUpdateOne {
-	if s != nil {
-		cuo.SetFinOpsStatusMessage(*s)
-	}
-	return cuo
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (cuo *ConnectorUpdateOne) ClearFinOpsStatusMessage() *ConnectorUpdateOne {
-	cuo.mutation.ClearFinOpsStatusMessage()
 	return cuo
 }
 
@@ -1017,20 +880,14 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	if value, ok := cuo.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 	}
-	if value, ok := cuo.mutation.Status(); ok {
-		_spec.SetField(connector.FieldStatus, field.TypeString, value)
-	}
-	if cuo.mutation.StatusCleared() {
-		_spec.ClearField(connector.FieldStatus, field.TypeString)
-	}
-	if value, ok := cuo.mutation.StatusMessage(); ok {
-		_spec.SetField(connector.FieldStatusMessage, field.TypeString, value)
-	}
-	if cuo.mutation.StatusMessageCleared() {
-		_spec.ClearField(connector.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := cuo.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := cuo.mutation.Status(); ok {
+		_spec.SetField(connector.FieldStatus, field.TypeJSON, value)
+	}
+	if cuo.mutation.StatusCleared() {
+		_spec.ClearField(connector.FieldStatus, field.TypeJSON)
 	}
 	if value, ok := cuo.mutation.ConfigVersion(); ok {
 		_spec.SetField(connector.FieldConfigVersion, field.TypeString, value)
@@ -1040,18 +897,6 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if value, ok := cuo.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
-	}
-	if value, ok := cuo.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
-	}
-	if cuo.mutation.FinOpsStatusCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatus, field.TypeString)
-	}
-	if value, ok := cuo.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
-	}
-	if cuo.mutation.FinOpsStatusMessageCleared() {
-		_spec.ClearField(connector.FieldFinOpsStatusMessage, field.TypeString)
 	}
 	if value, ok := cuo.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)

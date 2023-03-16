@@ -360,8 +360,8 @@ func init() {
 	connector.Hooks[0] = connectorMixinHooks0[0]
 	connectorMixinFields1 := connectorMixin[1].Fields()
 	_ = connectorMixinFields1
-	connectorMixinFields3 := connectorMixin[3].Fields()
-	_ = connectorMixinFields3
+	connectorMixinFields2 := connectorMixin[2].Fields()
+	_ = connectorMixinFields2
 	connectorFields := schema.Connector{}.Fields()
 	_ = connectorFields
 	// connectorDescName is the schema descriptor for name field.
@@ -373,11 +373,11 @@ func init() {
 	// connector.DefaultLabels holds the default value on creation for the labels field.
 	connector.DefaultLabels = connectorDescLabels.Default.(map[string]string)
 	// connectorDescCreateTime is the schema descriptor for createTime field.
-	connectorDescCreateTime := connectorMixinFields3[0].Descriptor()
+	connectorDescCreateTime := connectorMixinFields2[0].Descriptor()
 	// connector.DefaultCreateTime holds the default value on creation for the createTime field.
 	connector.DefaultCreateTime = connectorDescCreateTime.Default.(func() time.Time)
 	// connectorDescUpdateTime is the schema descriptor for updateTime field.
-	connectorDescUpdateTime := connectorMixinFields3[1].Descriptor()
+	connectorDescUpdateTime := connectorMixinFields2[1].Descriptor()
 	// connector.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	connector.DefaultUpdateTime = connectorDescUpdateTime.Default.(func() time.Time)
 	// connector.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.

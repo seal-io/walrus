@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ConnectorQueryInput is the input for the Connector query.
@@ -32,10 +33,8 @@ type ConnectorCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	// Status of the object.
+	Status status.Status `json:"status,omitempty"`
 	// Type of the connector.
 	Type string `json:"type"`
 	// Connector config version.
@@ -44,10 +43,6 @@ type ConnectorCreateInput struct {
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
@@ -59,13 +54,10 @@ func (in ConnectorCreateInput) Model() *Connector {
 		Description:         in.Description,
 		Labels:              in.Labels,
 		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 	}
 	return entity
@@ -81,20 +73,14 @@ type ConnectorUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	// Status of the object.
+	Status status.Status `json:"status,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
 	ConfigData map[string]interface{} `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 }
@@ -107,12 +93,9 @@ func (in ConnectorUpdateInput) Model() *Connector {
 		Description:         in.Description,
 		Labels:              in.Labels,
 		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 	}
 	return entity
@@ -128,24 +111,18 @@ type ConnectorOutput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Status of the object.
+	Status status.Status `json:"status,omitempty"`
 	// Type of the connector.
 	Type string `json:"type,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
-	// Status of the finOps tools.
-	FinOpsStatus string `json:"finOpsStatus,omitempty"`
-	// Extra message for finOps tools status, like error details.
-	FinOpsStatusMessage string `json:"finOpsStatusMessage,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Environments holds the value of the environments edge.
@@ -168,15 +145,12 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		Name:                in.Name,
 		Description:         in.Description,
 		Labels:              in.Labels,
-		Status:              in.Status,
-		StatusMessage:       in.StatusMessage,
 		CreateTime:          in.CreateTime,
 		UpdateTime:          in.UpdateTime,
+		Status:              in.Status,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
 		EnableFinOps:        in.EnableFinOps,
-		FinOpsStatus:        in.FinOpsStatus,
-		FinOpsStatusMessage: in.FinOpsStatusMessage,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
 		Resources:           ExposeApplicationResources(in.Edges.Resources),
