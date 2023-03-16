@@ -486,6 +486,14 @@ func init() {
 	moduleversionDescModuleID := moduleversionFields[0].Descriptor()
 	// moduleversion.ModuleIDValidator is a validator for the "moduleID" field. It is called by the builders before save.
 	moduleversion.ModuleIDValidator = moduleversionDescModuleID.Validators[0].(func(string) error)
+	// moduleversionDescVersion is the schema descriptor for version field.
+	moduleversionDescVersion := moduleversionFields[1].Descriptor()
+	// moduleversion.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	moduleversion.VersionValidator = moduleversionDescVersion.Validators[0].(func(string) error)
+	// moduleversionDescSource is the schema descriptor for source field.
+	moduleversionDescSource := moduleversionFields[2].Descriptor()
+	// moduleversion.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	moduleversion.SourceValidator = moduleversionDescSource.Validators[0].(func(string) error)
 	// moduleversionDescSchema is the schema descriptor for schema field.
 	moduleversionDescSchema := moduleversionFields[3].Descriptor()
 	// moduleversion.DefaultSchema holds the default value on creation for the schema field.

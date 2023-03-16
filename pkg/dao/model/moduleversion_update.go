@@ -41,18 +41,6 @@ func (mvu *ModuleVersionUpdate) SetUpdateTime(t time.Time) *ModuleVersionUpdate 
 	return mvu
 }
 
-// SetVersion sets the "version" field.
-func (mvu *ModuleVersionUpdate) SetVersion(s string) *ModuleVersionUpdate {
-	mvu.mutation.SetVersion(s)
-	return mvu
-}
-
-// SetSource sets the "source" field.
-func (mvu *ModuleVersionUpdate) SetSource(s string) *ModuleVersionUpdate {
-	mvu.mutation.SetSource(s)
-	return mvu
-}
-
 // SetSchema sets the "schema" field.
 func (mvu *ModuleVersionUpdate) SetSchema(ts *types.ModuleSchema) *ModuleVersionUpdate {
 	mvu.mutation.SetSchema(ts)
@@ -135,12 +123,6 @@ func (mvu *ModuleVersionUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := mvu.mutation.UpdateTime(); ok {
 		_spec.SetField(moduleversion.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := mvu.mutation.Version(); ok {
-		_spec.SetField(moduleversion.FieldVersion, field.TypeString, value)
-	}
-	if value, ok := mvu.mutation.Source(); ok {
-		_spec.SetField(moduleversion.FieldSource, field.TypeString, value)
-	}
 	if value, ok := mvu.mutation.Schema(); ok {
 		_spec.SetField(moduleversion.FieldSchema, field.TypeJSON, value)
 	}
@@ -171,18 +153,6 @@ type ModuleVersionUpdateOne struct {
 // SetUpdateTime sets the "updateTime" field.
 func (mvuo *ModuleVersionUpdateOne) SetUpdateTime(t time.Time) *ModuleVersionUpdateOne {
 	mvuo.mutation.SetUpdateTime(t)
-	return mvuo
-}
-
-// SetVersion sets the "version" field.
-func (mvuo *ModuleVersionUpdateOne) SetVersion(s string) *ModuleVersionUpdateOne {
-	mvuo.mutation.SetVersion(s)
-	return mvuo
-}
-
-// SetSource sets the "source" field.
-func (mvuo *ModuleVersionUpdateOne) SetSource(s string) *ModuleVersionUpdateOne {
-	mvuo.mutation.SetSource(s)
 	return mvuo
 }
 
@@ -297,12 +267,6 @@ func (mvuo *ModuleVersionUpdateOne) sqlSave(ctx context.Context) (_node *ModuleV
 	}
 	if value, ok := mvuo.mutation.UpdateTime(); ok {
 		_spec.SetField(moduleversion.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := mvuo.mutation.Version(); ok {
-		_spec.SetField(moduleversion.FieldVersion, field.TypeString, value)
-	}
-	if value, ok := mvuo.mutation.Source(); ok {
-		_spec.SetField(moduleversion.FieldSource, field.TypeString, value)
 	}
 	if value, ok := mvuo.mutation.Schema(); ok {
 		_spec.SetField(moduleversion.FieldSchema, field.TypeJSON, value)

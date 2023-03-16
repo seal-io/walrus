@@ -338,6 +338,18 @@ func (u *ApplicationModuleRelationshipUpsert) UpdateUpdateTime() *ApplicationMod
 	return u
 }
 
+// SetVersion sets the "version" field.
+func (u *ApplicationModuleRelationshipUpsert) SetVersion(v string) *ApplicationModuleRelationshipUpsert {
+	u.Set(applicationmodulerelationship.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsert) UpdateVersion() *ApplicationModuleRelationshipUpsert {
+	u.SetExcluded(applicationmodulerelationship.FieldVersion)
+	return u
+}
+
 // SetAttributes sets the "attributes" field.
 func (u *ApplicationModuleRelationshipUpsert) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsert {
 	u.Set(applicationmodulerelationship.FieldAttributes, v)
@@ -375,9 +387,6 @@ func (u *ApplicationModuleRelationshipUpsertOne) UpdateNewValues() *ApplicationM
 		}
 		if _, exists := u.create.mutation.ModuleID(); exists {
 			s.SetIgnore(applicationmodulerelationship.FieldModuleID)
-		}
-		if _, exists := u.create.mutation.Version(); exists {
-			s.SetIgnore(applicationmodulerelationship.FieldVersion)
 		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(applicationmodulerelationship.FieldName)
@@ -424,6 +433,20 @@ func (u *ApplicationModuleRelationshipUpsertOne) SetUpdateTime(v time.Time) *App
 func (u *ApplicationModuleRelationshipUpsertOne) UpdateUpdateTime() *ApplicationModuleRelationshipUpsertOne {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *ApplicationModuleRelationshipUpsertOne) SetVersion(v string) *ApplicationModuleRelationshipUpsertOne {
+	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsertOne) UpdateVersion() *ApplicationModuleRelationshipUpsertOne {
+	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
+		s.UpdateVersion()
 	})
 }
 
@@ -606,9 +629,6 @@ func (u *ApplicationModuleRelationshipUpsertBulk) UpdateNewValues() *Application
 			if _, exists := b.mutation.ModuleID(); exists {
 				s.SetIgnore(applicationmodulerelationship.FieldModuleID)
 			}
-			if _, exists := b.mutation.Version(); exists {
-				s.SetIgnore(applicationmodulerelationship.FieldVersion)
-			}
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(applicationmodulerelationship.FieldName)
 			}
@@ -655,6 +675,20 @@ func (u *ApplicationModuleRelationshipUpsertBulk) SetUpdateTime(v time.Time) *Ap
 func (u *ApplicationModuleRelationshipUpsertBulk) UpdateUpdateTime() *ApplicationModuleRelationshipUpsertBulk {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *ApplicationModuleRelationshipUpsertBulk) SetVersion(v string) *ApplicationModuleRelationshipUpsertBulk {
+	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *ApplicationModuleRelationshipUpsertBulk) UpdateVersion() *ApplicationModuleRelationshipUpsertBulk {
+	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
+		s.UpdateVersion()
 	})
 }
 

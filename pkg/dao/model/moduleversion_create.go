@@ -169,8 +169,18 @@ func (mvc *ModuleVersionCreate) check() error {
 	if _, ok := mvc.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`model: missing required field "ModuleVersion.version"`)}
 	}
+	if v, ok := mvc.mutation.Version(); ok {
+		if err := moduleversion.VersionValidator(v); err != nil {
+			return &ValidationError{Name: "version", err: fmt.Errorf(`model: validator failed for field "ModuleVersion.version": %w`, err)}
+		}
+	}
 	if _, ok := mvc.mutation.Source(); !ok {
 		return &ValidationError{Name: "source", err: errors.New(`model: missing required field "ModuleVersion.source"`)}
+	}
+	if v, ok := mvc.mutation.Source(); ok {
+		if err := moduleversion.SourceValidator(v); err != nil {
+			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "ModuleVersion.source": %w`, err)}
+		}
 	}
 	if _, ok := mvc.mutation.Schema(); !ok {
 		return &ValidationError{Name: "schema", err: errors.New(`model: missing required field "ModuleVersion.schema"`)}
@@ -320,30 +330,6 @@ func (u *ModuleVersionUpsert) UpdateUpdateTime() *ModuleVersionUpsert {
 	return u
 }
 
-// SetVersion sets the "version" field.
-func (u *ModuleVersionUpsert) SetVersion(v string) *ModuleVersionUpsert {
-	u.Set(moduleversion.FieldVersion, v)
-	return u
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleVersionUpsert) UpdateVersion() *ModuleVersionUpsert {
-	u.SetExcluded(moduleversion.FieldVersion)
-	return u
-}
-
-// SetSource sets the "source" field.
-func (u *ModuleVersionUpsert) SetSource(v string) *ModuleVersionUpsert {
-	u.Set(moduleversion.FieldSource, v)
-	return u
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *ModuleVersionUpsert) UpdateSource() *ModuleVersionUpsert {
-	u.SetExcluded(moduleversion.FieldSource)
-	return u
-}
-
 // SetSchema sets the "schema" field.
 func (u *ModuleVersionUpsert) SetSchema(v *types.ModuleSchema) *ModuleVersionUpsert {
 	u.Set(moduleversion.FieldSchema, v)
@@ -378,6 +364,12 @@ func (u *ModuleVersionUpsertOne) UpdateNewValues() *ModuleVersionUpsertOne {
 		}
 		if _, exists := u.create.mutation.ModuleID(); exists {
 			s.SetIgnore(moduleversion.FieldModuleID)
+		}
+		if _, exists := u.create.mutation.Version(); exists {
+			s.SetIgnore(moduleversion.FieldVersion)
+		}
+		if _, exists := u.create.mutation.Source(); exists {
+			s.SetIgnore(moduleversion.FieldSource)
 		}
 	}))
 	return u
@@ -421,34 +413,6 @@ func (u *ModuleVersionUpsertOne) SetUpdateTime(v time.Time) *ModuleVersionUpsert
 func (u *ModuleVersionUpsertOne) UpdateUpdateTime() *ModuleVersionUpsertOne {
 	return u.Update(func(s *ModuleVersionUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetVersion sets the "version" field.
-func (u *ModuleVersionUpsertOne) SetVersion(v string) *ModuleVersionUpsertOne {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.SetVersion(v)
-	})
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleVersionUpsertOne) UpdateVersion() *ModuleVersionUpsertOne {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.UpdateVersion()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *ModuleVersionUpsertOne) SetSource(v string) *ModuleVersionUpsertOne {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *ModuleVersionUpsertOne) UpdateSource() *ModuleVersionUpsertOne {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.UpdateSource()
 	})
 }
 
@@ -651,6 +615,12 @@ func (u *ModuleVersionUpsertBulk) UpdateNewValues() *ModuleVersionUpsertBulk {
 			if _, exists := b.mutation.ModuleID(); exists {
 				s.SetIgnore(moduleversion.FieldModuleID)
 			}
+			if _, exists := b.mutation.Version(); exists {
+				s.SetIgnore(moduleversion.FieldVersion)
+			}
+			if _, exists := b.mutation.Source(); exists {
+				s.SetIgnore(moduleversion.FieldSource)
+			}
 		}
 	}))
 	return u
@@ -694,34 +664,6 @@ func (u *ModuleVersionUpsertBulk) SetUpdateTime(v time.Time) *ModuleVersionUpser
 func (u *ModuleVersionUpsertBulk) UpdateUpdateTime() *ModuleVersionUpsertBulk {
 	return u.Update(func(s *ModuleVersionUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetVersion sets the "version" field.
-func (u *ModuleVersionUpsertBulk) SetVersion(v string) *ModuleVersionUpsertBulk {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.SetVersion(v)
-	})
-}
-
-// UpdateVersion sets the "version" field to the value that was provided on create.
-func (u *ModuleVersionUpsertBulk) UpdateVersion() *ModuleVersionUpsertBulk {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.UpdateVersion()
-	})
-}
-
-// SetSource sets the "source" field.
-func (u *ModuleVersionUpsertBulk) SetSource(v string) *ModuleVersionUpsertBulk {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.SetSource(v)
-	})
-}
-
-// UpdateSource sets the "source" field to the value that was provided on create.
-func (u *ModuleVersionUpsertBulk) UpdateSource() *ModuleVersionUpsertBulk {
-	return u.Update(func(s *ModuleVersionUpsert) {
-		s.UpdateSource()
 	})
 }
 
