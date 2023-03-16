@@ -56,8 +56,9 @@ type Server struct {
 	DataSourceDataEncryptAlg string
 	DataSourceDataEncryptKey []byte
 
-	EnableAuthn   bool
-	CasdoorServer string
+	EnableAuthn         bool
+	AuthnSessionMaxIdle time.Duration
+	CasdoorServer       string
 }
 
 func New() *Server {
@@ -71,6 +72,7 @@ func New() *Server {
 		DataSourceConnMaxIdle: 5,
 		DataSourceConnMaxLife: 10 * time.Minute,
 		EnableAuthn:           true,
+		AuthnSessionMaxIdle:   30 * time.Minute,
 	}
 }
 
@@ -239,6 +241,19 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "Enable authentication",
 			Destination: &r.EnableAuthn,
 			Value:       r.EnableAuthn,
+		},
+		&cli.DurationFlag{
+			Name: "authn-session-max-idle",
+			Usage: "The maximum idling duration for keeping authenticated session, " +
+				"it represents the max-age of authenticated cookie.",
+			Action: func(c *cli.Context, d time.Duration) error {
+				if d < 0 {
+					return errors.New("invalid authn-session-max-idle: negative")
+				}
+				return nil
+			},
+			Destination: &r.AuthnSessionMaxIdle,
+			Value:       r.AuthnSessionMaxIdle,
 		},
 		&cli.StringFlag{
 			Name:        "casdoor-server",

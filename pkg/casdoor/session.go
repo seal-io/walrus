@@ -8,7 +8,11 @@ import (
 
 	"github.com/seal-io/seal/utils/req"
 	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/seal/utils/vars"
 )
+
+// MaxIdleDurationConfig holds the config of the max idle duration.
+var MaxIdleDurationConfig = vars.SetOnce[time.Duration]{}
 
 // GetSession converts external session(seal cookie) to internal session(casdoor cookie).
 func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
@@ -17,14 +21,19 @@ func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 		if sealSessions[i] == nil || sealSessions[i].Name != ExternalSessionCookieKey {
 			continue
 		}
+		var value = sealSessions[i].Value
+		if value == "" {
+			break
+		}
+		// request Cookie header
 		dst = &req.HttpCookie{}
 		dst.SetKey(InternalSessionCookieKey)
-		dst.SetValue(sealSessions[i].Value)
-		dst.SetMaxAge(sealSessions[i].MaxAge)
+		dst.SetValue(value)
 		dst.SetPath("/")
 		dst.SetDomain("")
 		dst.SetSecure(false) // internal access
 		dst.SetHTTPOnly(true)
+		break
 	}
 	return dst
 }
@@ -86,14 +95,23 @@ func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 		if casdoorSessions[i] == nil || string(casdoorSessions[i].Key()) != InternalSessionCookieKey {
 			continue
 		}
+		var value = string(casdoorSessions[i].Value())
+		if value == "" {
+			break
+		}
+		// response Set-Cookie header
 		dst = &http.Cookie{}
 		dst.Name = ExternalSessionCookieKey
-		dst.Value = string(casdoorSessions[i].Value())
-		dst.MaxAge = casdoorSessions[i].MaxAge()
+		dst.Value = value
 		dst.Path = "/"
 		dst.Domain = ""
-		dst.Secure = false // TODO
+		dst.Secure = true
 		dst.HttpOnly = true
+		dst.MaxAge = int(MaxIdleDurationConfig.Get().Round(time.Second) / time.Second)
+		if dst.MaxAge > 0 {
+			dst.Expires = time.Now().Add(time.Duration(dst.MaxAge) * time.Second)
+		}
+		break
 	}
 	return dst
 }

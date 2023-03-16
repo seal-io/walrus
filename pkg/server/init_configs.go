@@ -6,23 +6,37 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/seal-io/seal/pkg/casdoor"
+	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/utils/cryptox"
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// initDataEncryption validates settings.DataEncryptionSentry with data encryption key,
+func (r *Server) initConfigs(ctx context.Context, opts initOptions) error {
+	var err = configureDataEncryption(ctx, opts.ModelClient, r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey)
+	if err != nil {
+		return err
+	}
+
+	// configures casdoor max idle duration.
+	casdoor.MaxIdleDurationConfig.Set(r.AuthnSessionMaxIdle)
+
+	return nil
+}
+
+// configureDataEncryption validates settings.DataEncryptionSentry with data encryption key,
 // and enables encrypting data.
-func (r *Server) initDataEncryption(ctx context.Context, opts initOptions) error {
+func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string, key []byte) error {
 	var enc cryptox.Encryptor
-	if r.DataSourceDataEncryptKey != nil {
+	if key != nil {
 		var err error
-		switch r.DataSourceDataEncryptAlg {
+		switch alg {
 		default:
-			err = fmt.Errorf("unknown data encryptor algorithm: %s", r.DataSourceDataEncryptAlg)
+			err = fmt.Errorf("unknown data encryptor algorithm: %s", alg)
 		case "aesgcm":
-			enc, err = cryptox.AesGcm(r.DataSourceDataEncryptKey)
+			enc, err = cryptox.AesGcm(key)
 		}
 		if err != nil {
 			return fmt.Errorf("error gaining data encryptor: %w", err)
@@ -33,7 +47,7 @@ func (r *Server) initDataEncryption(ctx context.Context, opts initOptions) error
 	}
 
 	var pt = "YOU CAN SEE ME"
-	return settings.DataEncryptionSentry.Cas(ctx, opts.ModelClient, func(ctb64 string) (string, error) {
+	return settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
 		if ctb64 == "" {
 			// first time launching, just encrypt.
 			var ctbs, err = enc.Encrypt(strs.ToBytes(&pt), nil)
