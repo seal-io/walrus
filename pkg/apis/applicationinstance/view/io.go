@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Basic APIs
@@ -88,5 +89,31 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return runtime.Error(http.StatusNotFound, "invalid id: not found")
 	}
 
+	return nil
+}
+
+type AccessEndpointRequest struct {
+	_ struct{} `route:"GET=/access-endpoints"`
+
+	*model.ApplicationInstanceQueryInput `uri:",inline"`
+}
+
+type AccessEndpointResponse struct {
+	Endpoints []kube.ResourceEndpoint `json:"endpoints"`
+}
+
+func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	_, err := modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(r.ID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid id: not found")
+	}
 	return nil
 }
