@@ -315,16 +315,13 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
 		{Name: "config_data", Type: field.TypeJSON},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
-		{Name: "fin_ops_status", Type: field.TypeString, Nullable: true},
-		{Name: "fin_ops_status_message", Type: field.TypeString, Nullable: true},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
 	}
 	// ConnectorsTable holds the schema information for the "connectors" table.
@@ -336,7 +333,7 @@ var (
 			{
 				Name:    "connector_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ConnectorsColumns[7]},
+				Columns: []*schema.Column{ConnectorsColumns[5]},
 			},
 			{
 				Name:    "connector_name",

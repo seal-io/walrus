@@ -22,14 +22,12 @@ const (
 	FieldDescription = "description"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
-	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldConfigVersion holds the string denoting the configversion field in the database.
@@ -38,10 +36,6 @@ const (
 	FieldConfigData = "config_data"
 	// FieldEnableFinOps holds the string denoting the enablefinops field in the database.
 	FieldEnableFinOps = "enable_fin_ops"
-	// FieldFinOpsStatus holds the string denoting the finopsstatus field in the database.
-	FieldFinOpsStatus = "fin_ops_status"
-	// FieldFinOpsStatusMessage holds the string denoting the finopsstatusmessage field in the database.
-	FieldFinOpsStatusMessage = "fin_ops_status_message"
 	// FieldFinOpsCustomPricing holds the string denoting the finopscustompricing field in the database.
 	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
@@ -90,16 +84,13 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldLabels,
-	FieldStatus,
-	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldStatus,
 	FieldType,
 	FieldConfigVersion,
 	FieldConfigData,
 	FieldEnableFinOps,
-	FieldFinOpsStatus,
-	FieldFinOpsStatusMessage,
 	FieldFinOpsCustomPricing,
 }
 

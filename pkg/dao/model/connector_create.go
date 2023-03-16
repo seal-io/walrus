@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ConnectorCreate is the builder for creating a Connector entity.
@@ -57,34 +58,6 @@ func (cc *ConnectorCreate) SetLabels(m map[string]string) *ConnectorCreate {
 	return cc
 }
 
-// SetStatus sets the "status" field.
-func (cc *ConnectorCreate) SetStatus(s string) *ConnectorCreate {
-	cc.mutation.SetStatus(s)
-	return cc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableStatus(s *string) *ConnectorCreate {
-	if s != nil {
-		cc.SetStatus(*s)
-	}
-	return cc
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (cc *ConnectorCreate) SetStatusMessage(s string) *ConnectorCreate {
-	cc.mutation.SetStatusMessage(s)
-	return cc
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableStatusMessage(s *string) *ConnectorCreate {
-	if s != nil {
-		cc.SetStatusMessage(*s)
-	}
-	return cc
-}
-
 // SetCreateTime sets the "createTime" field.
 func (cc *ConnectorCreate) SetCreateTime(t time.Time) *ConnectorCreate {
 	cc.mutation.SetCreateTime(t)
@@ -113,6 +86,20 @@ func (cc *ConnectorCreate) SetNillableUpdateTime(t *time.Time) *ConnectorCreate 
 	return cc
 }
 
+// SetStatus sets the "status" field.
+func (cc *ConnectorCreate) SetStatus(s status.Status) *ConnectorCreate {
+	cc.mutation.SetStatus(s)
+	return cc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableStatus(s *status.Status) *ConnectorCreate {
+	if s != nil {
+		cc.SetStatus(*s)
+	}
+	return cc
+}
+
 // SetType sets the "type" field.
 func (cc *ConnectorCreate) SetType(s string) *ConnectorCreate {
 	cc.mutation.SetType(s)
@@ -134,34 +121,6 @@ func (cc *ConnectorCreate) SetConfigData(m map[string]interface{}) *ConnectorCre
 // SetEnableFinOps sets the "enableFinOps" field.
 func (cc *ConnectorCreate) SetEnableFinOps(b bool) *ConnectorCreate {
 	cc.mutation.SetEnableFinOps(b)
-	return cc
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (cc *ConnectorCreate) SetFinOpsStatus(s string) *ConnectorCreate {
-	cc.mutation.SetFinOpsStatus(s)
-	return cc
-}
-
-// SetNillableFinOpsStatus sets the "finOpsStatus" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableFinOpsStatus(s *string) *ConnectorCreate {
-	if s != nil {
-		cc.SetFinOpsStatus(*s)
-	}
-	return cc
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (cc *ConnectorCreate) SetFinOpsStatusMessage(s string) *ConnectorCreate {
-	cc.mutation.SetFinOpsStatusMessage(s)
-	return cc
-}
-
-// SetNillableFinOpsStatusMessage sets the "finOpsStatusMessage" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableFinOpsStatusMessage(s *string) *ConnectorCreate {
-	if s != nil {
-		cc.SetFinOpsStatusMessage(*s)
-	}
 	return cc
 }
 
@@ -382,14 +341,6 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
 	}
-	if value, ok := cc.mutation.Status(); ok {
-		_spec.SetField(connector.FieldStatus, field.TypeString, value)
-		_node.Status = value
-	}
-	if value, ok := cc.mutation.StatusMessage(); ok {
-		_spec.SetField(connector.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
-	}
 	if value, ok := cc.mutation.CreateTime(); ok {
 		_spec.SetField(connector.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -397,6 +348,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
+	}
+	if value, ok := cc.mutation.Status(); ok {
+		_spec.SetField(connector.FieldStatus, field.TypeJSON, value)
+		_node.Status = value
 	}
 	if value, ok := cc.mutation.GetType(); ok {
 		_spec.SetField(connector.FieldType, field.TypeString, value)
@@ -413,14 +368,6 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.EnableFinOps(); ok {
 		_spec.SetField(connector.FieldEnableFinOps, field.TypeBool, value)
 		_node.EnableFinOps = value
-	}
-	if value, ok := cc.mutation.FinOpsStatus(); ok {
-		_spec.SetField(connector.FieldFinOpsStatus, field.TypeString, value)
-		_node.FinOpsStatus = value
-	}
-	if value, ok := cc.mutation.FinOpsStatusMessage(); ok {
-		_spec.SetField(connector.FieldFinOpsStatusMessage, field.TypeString, value)
-		_node.FinOpsStatusMessage = value
 	}
 	if value, ok := cc.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
@@ -580,8 +527,20 @@ func (u *ConnectorUpsert) UpdateLabels() *ConnectorUpsert {
 	return u
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ConnectorUpsert) SetUpdateTime(v time.Time) *ConnectorUpsert {
+	u.Set(connector.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateUpdateTime() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldUpdateTime)
+	return u
+}
+
 // SetStatus sets the "status" field.
-func (u *ConnectorUpsert) SetStatus(v string) *ConnectorUpsert {
+func (u *ConnectorUpsert) SetStatus(v status.Status) *ConnectorUpsert {
 	u.Set(connector.FieldStatus, v)
 	return u
 }
@@ -595,36 +554,6 @@ func (u *ConnectorUpsert) UpdateStatus() *ConnectorUpsert {
 // ClearStatus clears the value of the "status" field.
 func (u *ConnectorUpsert) ClearStatus() *ConnectorUpsert {
 	u.SetNull(connector.FieldStatus)
-	return u
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ConnectorUpsert) SetStatusMessage(v string) *ConnectorUpsert {
-	u.Set(connector.FieldStatusMessage, v)
-	return u
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateStatusMessage() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldStatusMessage)
-	return u
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ConnectorUpsert) ClearStatusMessage() *ConnectorUpsert {
-	u.SetNull(connector.FieldStatusMessage)
-	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ConnectorUpsert) SetUpdateTime(v time.Time) *ConnectorUpsert {
-	u.Set(connector.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateUpdateTime() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldUpdateTime)
 	return u
 }
 
@@ -661,42 +590,6 @@ func (u *ConnectorUpsert) SetEnableFinOps(v bool) *ConnectorUpsert {
 // UpdateEnableFinOps sets the "enableFinOps" field to the value that was provided on create.
 func (u *ConnectorUpsert) UpdateEnableFinOps() *ConnectorUpsert {
 	u.SetExcluded(connector.FieldEnableFinOps)
-	return u
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsert) SetFinOpsStatus(v string) *ConnectorUpsert {
-	u.Set(connector.FieldFinOpsStatus, v)
-	return u
-}
-
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateFinOpsStatus() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldFinOpsStatus)
-	return u
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsert) ClearFinOpsStatus() *ConnectorUpsert {
-	u.SetNull(connector.FieldFinOpsStatus)
-	return u
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsert) SetFinOpsStatusMessage(v string) *ConnectorUpsert {
-	u.Set(connector.FieldFinOpsStatusMessage, v)
-	return u
-}
-
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateFinOpsStatusMessage() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldFinOpsStatusMessage)
-	return u
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsert) ClearFinOpsStatusMessage() *ConnectorUpsert {
-	u.SetNull(connector.FieldFinOpsStatusMessage)
 	return u
 }
 
@@ -821,8 +714,22 @@ func (u *ConnectorUpsertOne) UpdateLabels() *ConnectorUpsertOne {
 	})
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ConnectorUpsertOne) SetUpdateTime(v time.Time) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateUpdateTime() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
-func (u *ConnectorUpsertOne) SetStatus(v string) *ConnectorUpsertOne {
+func (u *ConnectorUpsertOne) SetStatus(v status.Status) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetStatus(v)
 	})
@@ -839,41 +746,6 @@ func (u *ConnectorUpsertOne) UpdateStatus() *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) ClearStatus() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ConnectorUpsertOne) SetStatusMessage(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateStatusMessage() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ConnectorUpsertOne) ClearStatusMessage() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ConnectorUpsertOne) SetUpdateTime(v time.Time) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateUpdateTime() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -916,48 +788,6 @@ func (u *ConnectorUpsertOne) SetEnableFinOps(v bool) *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) UpdateEnableFinOps() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateEnableFinOps()
-	})
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsertOne) SetFinOpsStatus(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatus(v)
-	})
-}
-
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateFinOpsStatus() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatus()
-	})
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsertOne) ClearFinOpsStatus() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatus()
-	})
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertOne) SetFinOpsStatusMessage(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatusMessage(v)
-	})
-}
-
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateFinOpsStatusMessage() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatusMessage()
-	})
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertOne) ClearFinOpsStatusMessage() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatusMessage()
 	})
 }
 
@@ -1248,8 +1078,22 @@ func (u *ConnectorUpsertBulk) UpdateLabels() *ConnectorUpsertBulk {
 	})
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ConnectorUpsertBulk) SetUpdateTime(v time.Time) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateUpdateTime() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
-func (u *ConnectorUpsertBulk) SetStatus(v string) *ConnectorUpsertBulk {
+func (u *ConnectorUpsertBulk) SetStatus(v status.Status) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetStatus(v)
 	})
@@ -1266,41 +1110,6 @@ func (u *ConnectorUpsertBulk) UpdateStatus() *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) ClearStatus() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ConnectorUpsertBulk) SetStatusMessage(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateStatusMessage() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ConnectorUpsertBulk) ClearStatusMessage() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ConnectorUpsertBulk) SetUpdateTime(v time.Time) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateUpdateTime() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -1343,48 +1152,6 @@ func (u *ConnectorUpsertBulk) SetEnableFinOps(v bool) *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) UpdateEnableFinOps() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateEnableFinOps()
-	})
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (u *ConnectorUpsertBulk) SetFinOpsStatus(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatus(v)
-	})
-}
-
-// UpdateFinOpsStatus sets the "finOpsStatus" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateFinOpsStatus() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatus()
-	})
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (u *ConnectorUpsertBulk) ClearFinOpsStatus() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatus()
-	})
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertBulk) SetFinOpsStatusMessage(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetFinOpsStatusMessage(v)
-	})
-}
-
-// UpdateFinOpsStatusMessage sets the "finOpsStatusMessage" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateFinOpsStatusMessage() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateFinOpsStatusMessage()
-	})
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (u *ConnectorUpsertBulk) ClearFinOpsStatusMessage() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.ClearFinOpsStatusMessage()
 	})
 }
 

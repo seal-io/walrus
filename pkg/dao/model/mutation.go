@@ -33,6 +33,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -8594,16 +8595,13 @@ type ConnectorMutation struct {
 	name                   *string
 	description            *string
 	labels                 *map[string]string
-	status                 *string
-	statusMessage          *string
 	createTime             *time.Time
 	updateTime             *time.Time
+	status                 *status.Status
 	_type                  *string
 	configVersion          *string
 	configData             *map[string]interface{}
 	enableFinOps           *bool
-	finOpsStatus           *string
-	finOpsStatusMessage    *string
 	finOpsCustomPricing    *types.FinOpsCustomPricing
 	clearedFields          map[string]struct{}
 	resources              map[types.ID]struct{}
@@ -8845,104 +8843,6 @@ func (m *ConnectorMutation) ResetLabels() {
 	m.labels = nil
 }
 
-// SetStatus sets the "status" field.
-func (m *ConnectorMutation) SetStatus(s string) {
-	m.status = &s
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *ConnectorMutation) Status() (r string, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldStatus(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ClearStatus clears the value of the "status" field.
-func (m *ConnectorMutation) ClearStatus() {
-	m.status = nil
-	m.clearedFields[connector.FieldStatus] = struct{}{}
-}
-
-// StatusCleared returns if the "status" field was cleared in this mutation.
-func (m *ConnectorMutation) StatusCleared() bool {
-	_, ok := m.clearedFields[connector.FieldStatus]
-	return ok
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *ConnectorMutation) ResetStatus() {
-	m.status = nil
-	delete(m.clearedFields, connector.FieldStatus)
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (m *ConnectorMutation) SetStatusMessage(s string) {
-	m.statusMessage = &s
-}
-
-// StatusMessage returns the value of the "statusMessage" field in the mutation.
-func (m *ConnectorMutation) StatusMessage() (r string, exists bool) {
-	v := m.statusMessage
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatusMessage returns the old "statusMessage" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldStatusMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatusMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatusMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatusMessage: %w", err)
-	}
-	return oldValue.StatusMessage, nil
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (m *ConnectorMutation) ClearStatusMessage() {
-	m.statusMessage = nil
-	m.clearedFields[connector.FieldStatusMessage] = struct{}{}
-}
-
-// StatusMessageCleared returns if the "statusMessage" field was cleared in this mutation.
-func (m *ConnectorMutation) StatusMessageCleared() bool {
-	_, ok := m.clearedFields[connector.FieldStatusMessage]
-	return ok
-}
-
-// ResetStatusMessage resets all changes to the "statusMessage" field.
-func (m *ConnectorMutation) ResetStatusMessage() {
-	m.statusMessage = nil
-	delete(m.clearedFields, connector.FieldStatusMessage)
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *ConnectorMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -9013,6 +8913,55 @@ func (m *ConnectorMutation) OldUpdateTime(ctx context.Context) (v *time.Time, er
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *ConnectorMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ConnectorMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ConnectorMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ConnectorMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[connector.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ConnectorMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[connector.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ConnectorMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, connector.FieldStatus)
 }
 
 // SetType sets the "type" field.
@@ -9157,104 +9106,6 @@ func (m *ConnectorMutation) OldEnableFinOps(ctx context.Context) (v bool, err er
 // ResetEnableFinOps resets all changes to the "enableFinOps" field.
 func (m *ConnectorMutation) ResetEnableFinOps() {
 	m.enableFinOps = nil
-}
-
-// SetFinOpsStatus sets the "finOpsStatus" field.
-func (m *ConnectorMutation) SetFinOpsStatus(s string) {
-	m.finOpsStatus = &s
-}
-
-// FinOpsStatus returns the value of the "finOpsStatus" field in the mutation.
-func (m *ConnectorMutation) FinOpsStatus() (r string, exists bool) {
-	v := m.finOpsStatus
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFinOpsStatus returns the old "finOpsStatus" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldFinOpsStatus(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFinOpsStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFinOpsStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFinOpsStatus: %w", err)
-	}
-	return oldValue.FinOpsStatus, nil
-}
-
-// ClearFinOpsStatus clears the value of the "finOpsStatus" field.
-func (m *ConnectorMutation) ClearFinOpsStatus() {
-	m.finOpsStatus = nil
-	m.clearedFields[connector.FieldFinOpsStatus] = struct{}{}
-}
-
-// FinOpsStatusCleared returns if the "finOpsStatus" field was cleared in this mutation.
-func (m *ConnectorMutation) FinOpsStatusCleared() bool {
-	_, ok := m.clearedFields[connector.FieldFinOpsStatus]
-	return ok
-}
-
-// ResetFinOpsStatus resets all changes to the "finOpsStatus" field.
-func (m *ConnectorMutation) ResetFinOpsStatus() {
-	m.finOpsStatus = nil
-	delete(m.clearedFields, connector.FieldFinOpsStatus)
-}
-
-// SetFinOpsStatusMessage sets the "finOpsStatusMessage" field.
-func (m *ConnectorMutation) SetFinOpsStatusMessage(s string) {
-	m.finOpsStatusMessage = &s
-}
-
-// FinOpsStatusMessage returns the value of the "finOpsStatusMessage" field in the mutation.
-func (m *ConnectorMutation) FinOpsStatusMessage() (r string, exists bool) {
-	v := m.finOpsStatusMessage
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFinOpsStatusMessage returns the old "finOpsStatusMessage" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldFinOpsStatusMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFinOpsStatusMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFinOpsStatusMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFinOpsStatusMessage: %w", err)
-	}
-	return oldValue.FinOpsStatusMessage, nil
-}
-
-// ClearFinOpsStatusMessage clears the value of the "finOpsStatusMessage" field.
-func (m *ConnectorMutation) ClearFinOpsStatusMessage() {
-	m.finOpsStatusMessage = nil
-	m.clearedFields[connector.FieldFinOpsStatusMessage] = struct{}{}
-}
-
-// FinOpsStatusMessageCleared returns if the "finOpsStatusMessage" field was cleared in this mutation.
-func (m *ConnectorMutation) FinOpsStatusMessageCleared() bool {
-	_, ok := m.clearedFields[connector.FieldFinOpsStatusMessage]
-	return ok
-}
-
-// ResetFinOpsStatusMessage resets all changes to the "finOpsStatusMessage" field.
-func (m *ConnectorMutation) ResetFinOpsStatusMessage() {
-	m.finOpsStatusMessage = nil
-	delete(m.clearedFields, connector.FieldFinOpsStatusMessage)
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
@@ -9502,7 +9353,7 @@ func (m *ConnectorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConnectorMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 11)
 	if m.name != nil {
 		fields = append(fields, connector.FieldName)
 	}
@@ -9512,17 +9363,14 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, connector.FieldLabels)
 	}
-	if m.status != nil {
-		fields = append(fields, connector.FieldStatus)
-	}
-	if m.statusMessage != nil {
-		fields = append(fields, connector.FieldStatusMessage)
-	}
 	if m.createTime != nil {
 		fields = append(fields, connector.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, connector.FieldUpdateTime)
+	}
+	if m.status != nil {
+		fields = append(fields, connector.FieldStatus)
 	}
 	if m._type != nil {
 		fields = append(fields, connector.FieldType)
@@ -9535,12 +9383,6 @@ func (m *ConnectorMutation) Fields() []string {
 	}
 	if m.enableFinOps != nil {
 		fields = append(fields, connector.FieldEnableFinOps)
-	}
-	if m.finOpsStatus != nil {
-		fields = append(fields, connector.FieldFinOpsStatus)
-	}
-	if m.finOpsStatusMessage != nil {
-		fields = append(fields, connector.FieldFinOpsStatusMessage)
 	}
 	if m.finOpsCustomPricing != nil {
 		fields = append(fields, connector.FieldFinOpsCustomPricing)
@@ -9559,14 +9401,12 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case connector.FieldLabels:
 		return m.Labels()
-	case connector.FieldStatus:
-		return m.Status()
-	case connector.FieldStatusMessage:
-		return m.StatusMessage()
 	case connector.FieldCreateTime:
 		return m.CreateTime()
 	case connector.FieldUpdateTime:
 		return m.UpdateTime()
+	case connector.FieldStatus:
+		return m.Status()
 	case connector.FieldType:
 		return m.GetType()
 	case connector.FieldConfigVersion:
@@ -9575,10 +9415,6 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.ConfigData()
 	case connector.FieldEnableFinOps:
 		return m.EnableFinOps()
-	case connector.FieldFinOpsStatus:
-		return m.FinOpsStatus()
-	case connector.FieldFinOpsStatusMessage:
-		return m.FinOpsStatusMessage()
 	case connector.FieldFinOpsCustomPricing:
 		return m.FinOpsCustomPricing()
 	}
@@ -9596,14 +9432,12 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDescription(ctx)
 	case connector.FieldLabels:
 		return m.OldLabels(ctx)
-	case connector.FieldStatus:
-		return m.OldStatus(ctx)
-	case connector.FieldStatusMessage:
-		return m.OldStatusMessage(ctx)
 	case connector.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case connector.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case connector.FieldStatus:
+		return m.OldStatus(ctx)
 	case connector.FieldType:
 		return m.OldType(ctx)
 	case connector.FieldConfigVersion:
@@ -9612,10 +9446,6 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldConfigData(ctx)
 	case connector.FieldEnableFinOps:
 		return m.OldEnableFinOps(ctx)
-	case connector.FieldFinOpsStatus:
-		return m.OldFinOpsStatus(ctx)
-	case connector.FieldFinOpsStatusMessage:
-		return m.OldFinOpsStatusMessage(ctx)
 	case connector.FieldFinOpsCustomPricing:
 		return m.OldFinOpsCustomPricing(ctx)
 	}
@@ -9648,20 +9478,6 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLabels(v)
 		return nil
-	case connector.FieldStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case connector.FieldStatusMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatusMessage(v)
-		return nil
 	case connector.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -9675,6 +9491,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case connector.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	case connector.FieldType:
 		v, ok := value.(string)
@@ -9703,20 +9526,6 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnableFinOps(v)
-		return nil
-	case connector.FieldFinOpsStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFinOpsStatus(v)
-		return nil
-	case connector.FieldFinOpsStatusMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFinOpsStatusMessage(v)
 		return nil
 	case connector.FieldFinOpsCustomPricing:
 		v, ok := value.(types.FinOpsCustomPricing)
@@ -9761,15 +9570,6 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldStatus) {
 		fields = append(fields, connector.FieldStatus)
 	}
-	if m.FieldCleared(connector.FieldStatusMessage) {
-		fields = append(fields, connector.FieldStatusMessage)
-	}
-	if m.FieldCleared(connector.FieldFinOpsStatus) {
-		fields = append(fields, connector.FieldFinOpsStatus)
-	}
-	if m.FieldCleared(connector.FieldFinOpsStatusMessage) {
-		fields = append(fields, connector.FieldFinOpsStatusMessage)
-	}
 	if m.FieldCleared(connector.FieldFinOpsCustomPricing) {
 		fields = append(fields, connector.FieldFinOpsCustomPricing)
 	}
@@ -9793,15 +9593,6 @@ func (m *ConnectorMutation) ClearField(name string) error {
 	case connector.FieldStatus:
 		m.ClearStatus()
 		return nil
-	case connector.FieldStatusMessage:
-		m.ClearStatusMessage()
-		return nil
-	case connector.FieldFinOpsStatus:
-		m.ClearFinOpsStatus()
-		return nil
-	case connector.FieldFinOpsStatusMessage:
-		m.ClearFinOpsStatusMessage()
-		return nil
 	case connector.FieldFinOpsCustomPricing:
 		m.ClearFinOpsCustomPricing()
 		return nil
@@ -9822,17 +9613,14 @@ func (m *ConnectorMutation) ResetField(name string) error {
 	case connector.FieldLabels:
 		m.ResetLabels()
 		return nil
-	case connector.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case connector.FieldStatusMessage:
-		m.ResetStatusMessage()
-		return nil
 	case connector.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case connector.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case connector.FieldStatus:
+		m.ResetStatus()
 		return nil
 	case connector.FieldType:
 		m.ResetType()
@@ -9845,12 +9633,6 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldEnableFinOps:
 		m.ResetEnableFinOps()
-		return nil
-	case connector.FieldFinOpsStatus:
-		m.ResetFinOpsStatus()
-		return nil
-	case connector.FieldFinOpsStatusMessage:
-		m.ResetFinOpsStatusMessage()
 		return nil
 	case connector.FieldFinOpsCustomPricing:
 		m.ResetFinOpsCustomPricing()
