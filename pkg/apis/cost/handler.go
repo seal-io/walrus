@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/sqlx"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -253,7 +254,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 }
 
 func (h Handler) clusterCostExistedDays(ctx *gin.Context, ps []*sql.Predicate, offset int) (int, error) {
-	groupBy, err := distributor.DateTruncWithZoneOffsetSQL(types.StepDay, offset)
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(clustercost.FieldStartTime, string(types.StepDay), offset)
 	if err != nil {
 		return 0, err
 	}
@@ -278,7 +279,7 @@ func (h Handler) clusterCostExistedDays(ctx *gin.Context, ps []*sql.Predicate, o
 }
 
 func (h Handler) allocationCostExistedDays(ctx *gin.Context, ps []*sql.Predicate, offset int) (int, error) {
-	groupBy, err := distributor.DateTruncWithZoneOffsetSQL(types.StepDay, offset)
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(types.StepDay), offset)
 	if err != nil {
 		return 0, err
 	}

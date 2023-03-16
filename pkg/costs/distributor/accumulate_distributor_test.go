@@ -9,12 +9,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/costs/collector"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/enttest"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/timex"
 )
 
 const (
@@ -39,7 +39,7 @@ func TestAccumulateDistribute(t *testing.T) {
 	defer client.Close()
 
 	var (
-		startTime = collector.StartTimeOfHour(time.Now())
+		startTime = timex.StartTimeOfHour(time.Now(), time.UTC)
 		endTime   = startTime.Add(5 * time.Hour)
 	)
 	conn, err := testData(ctx, client, startTime, endTime)
@@ -210,7 +210,7 @@ func TestAllocationResourceCosts(t *testing.T) {
 	defer client.Close()
 
 	var (
-		startTime = collector.StartTimeOfHour(time.Now())
+		startTime = timex.StartTimeOfHour(time.Now(), time.UTC)
 		endTime   = startTime.Add(5 * time.Hour)
 	)
 	_, err := testData(ctx, client, startTime, endTime)

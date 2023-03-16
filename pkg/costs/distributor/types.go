@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/seal/utils/timex"
 )
 
 type SharedCost struct {
@@ -25,31 +26,16 @@ type SharedCost struct {
 	Condition      types.SharedCost `json:"condition"`
 }
 
-// DateTruncWithZoneOffsetSQL generate the date trunc sql from step and timezone offset, offset is in seconds east of UTC
-func DateTruncWithZoneOffsetSQL(field types.Step, offset int) (string, error) {
-	if field == "" {
-		return "", fmt.Errorf("invalid step: blank")
-	}
-
-	var timeZone = timeZoneInPosix(offset)
-	switch field {
-	case types.StepDay, types.StepWeek, types.StepMonth, types.StepYear:
-		return fmt.Sprintf(`date_trunc('%s', (start_time AT TIME ZONE '%s'))`, field, timeZone), nil
-	default:
-		return "", fmt.Errorf("invalid step: unsupport %s", field)
-	}
-}
-
 // orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset, offset is in seconds east of UTC
 func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid order by: blank")
 	}
 
-	var timeZone = timeZoneInPosix(offset)
+	var timezone = timex.TimezoneInPosix(offset)
 	switch field {
 	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth, types.GroupByFieldYear:
-		return fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, field, timeZone), nil
+		return fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, field, timezone), nil
 	default:
 		return `SUM(total_cost) DESC`, nil
 	}
@@ -63,7 +49,7 @@ func groupByWithZoneOffsetSQL(field types.GroupByField, offset int) (string, err
 
 	var (
 		groupBy  string
-		timeZone = timeZoneInPosix(offset)
+		timeZone = timex.TimezoneInPosix(offset)
 	)
 	switch {
 	case field.IsLabel():
@@ -128,24 +114,6 @@ func havingSQL(
 		having = sql.Like(col, pattern)
 	}
 	return having, nil
-}
-
-// timeZoneInPosix is in posix timezone string format
-// time zone Asia/Shanghai in posix is UTC-8
-func timeZoneInPosix(offset int) string {
-	timeZone := "UTC"
-	if offset != 0 {
-		utcOffSig := "-"
-		utcOffHrs := offset / 60 / 60
-
-		if utcOffHrs < 0 {
-			utcOffSig = "+"
-			utcOffHrs = 0 - utcOffHrs
-		}
-
-		timeZone = fmt.Sprintf("UTC%s%d", utcOffSig, utcOffHrs)
-	}
-	return timeZone
 }
 
 // FilterToSQLPredicates create sql predicate from filters

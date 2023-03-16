@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformk8s"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/timex"
 )
 
 const (
@@ -208,8 +209,8 @@ func (in *CostSyncTask) timeRange(ctx context.Context, restCfg *rest.Config, con
 		}
 	}
 
-	s := collector.StartTimeOfHour(clusterEarliestTime)
-	e := collector.StartTimeOfHour(time.Now())
+	s := timex.StartTimeOfHour(clusterEarliestTime, time.UTC)
+	e := timex.StartTimeOfHour(time.Now(), time.UTC)
 	startTime = &s
 	endTime = &e
 
