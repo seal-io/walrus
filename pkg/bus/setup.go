@@ -23,7 +23,7 @@ func Setup(ctx context.Context, opts SetupOptions) error {
 		return err
 	}
 
-	if err := connector.AddSubscriber("connector-sync-status", connectors.SyncStatus); err != nil {
+	if err := connector.AddSubscriber("connector-sync-status", connectors.StatusSync(opts.ModelClient).Do); err != nil {
 		return err
 	}
 	if err := connector.AddSubscriber("connector-sync-cost-custom-pricing", connectors.SyncCostCustomPricing); err != nil {
