@@ -19,7 +19,7 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) error {
-	if err := module.AddSubscriber("module-sync-schema", modules.SyncSchema); err != nil {
+	if err := module.AddSubscriber("module-sync-schema", modules.SchemaSync(opts.ModelClient).Do); err != nil {
 		return err
 	}
 

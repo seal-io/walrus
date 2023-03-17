@@ -43,7 +43,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
-	if err = modbus.Notify(ctx, h.modelClient, entity); err != nil {
+	if err = modbus.Notify(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return nil
 	}
 
-	return modbus.Notify(ctx, h.modelClient, entity)
+	return modbus.Notify(ctx, entity)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -170,5 +170,5 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 		return err
 	}
 
-	return modbus.Notify(ctx, h.modelClient, m)
+	return modbus.Notify(ctx, m)
 }
