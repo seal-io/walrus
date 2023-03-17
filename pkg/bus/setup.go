@@ -18,25 +18,33 @@ type SetupOptions struct {
 	ModelClient model.ClientSet
 }
 
-func Setup(ctx context.Context, opts SetupOptions) error {
-	if err := module.AddSubscriber("module-sync-schema", modules.SchemaSync(opts.ModelClient).Do); err != nil {
-		return err
+func Setup(ctx context.Context, opts SetupOptions) (err error) {
+	// application revision
+	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status", platformtf.SyncApplicationRevisionStatus)
+	if err != nil {
+		return
 	}
 
-	if err := connector.AddSubscriber("connector-sync-status", connectors.StatusSync(opts.ModelClient).Do); err != nil {
-		return err
+	// connector
+	err = connector.AddSubscriber("connector-sync-status", connectors.StatusSync(opts.ModelClient).Do)
+	if err != nil {
+		return
 	}
-	if err := connector.AddSubscriber("connector-sync-cost-custom-pricing", connectors.SyncCostCustomPricing); err != nil {
-		return err
-	}
-
-	if err := applicationrevision.AddSubscriber("terraform-sync-application-revision-status", platformtf.SyncApplicationRevisionStatus); err != nil {
-		return err
-	}
-
-	if err := setting.AddSubscriber("cron-sync", cron.Sync); err != nil {
-		return err
+	err = connector.AddSubscriber("connector-sync-cost-custom-pricing", connectors.SyncCostCustomPricing)
+	if err != nil {
+		return
 	}
 
-	return nil
+	// module
+	err = module.AddSubscriber("module-sync-schema", modules.SchemaSync(opts.ModelClient).Do)
+	if err != nil {
+		return
+	}
+
+	// setting
+	err = setting.AddSubscriber("cron-sync", cron.Sync)
+	if err != nil {
+		return
+	}
+	return
 }
