@@ -119,9 +119,6 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 			return
 		}
 	}
-	if au.entity.Edges.Modules == nil {
-		return
-	}
 
 	// get old relationships.
 	oldEntity, err := mc.Applications().Query().
