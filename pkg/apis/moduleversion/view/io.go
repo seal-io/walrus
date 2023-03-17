@@ -28,12 +28,18 @@ type GetResponse = *model.ModuleVersionOutput
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ModuleVersion] `query:",inline"`
 
-	ModuleID string `query:"moduleID"`
+	ModuleID []string `query:"moduleID"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
-	if r.ModuleID == "" {
-		return errors.New("invalid module id: blank")
+	if len(r.ModuleID) == 0 {
+		return errors.New("invalid request: missing module id")
+	}
+
+	for _, id := range r.ModuleID {
+		if id == "" {
+			return errors.New("invalid module id: blank")
+		}
 	}
 	return nil
 }
