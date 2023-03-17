@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/utils/log"
@@ -40,6 +41,9 @@ type CreateOptions struct {
 
 	Connectors    model.Connectors
 	ModuleConfigs []*ModuleConfig
+
+	// Secrets is the  model.Secrets of the deployment.
+	Secrets model.Secrets
 }
 
 // Config handles the configuration of application to terraform config.
@@ -97,12 +101,15 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 	}
 	// load module blocks
 	moduleBlocks := loadModuleBlocks(opts.ModuleConfigs, providerBlocks)
-	providerBlocks = append(providerBlocks, moduleBlocks...)
+	// load variable blocks
+	variableBlocks := loadVariableBlocks(opts.Secrets)
 
+	blocks := make(Blocks, 0, len(providerBlocks)+len(moduleBlocks)+len(variableBlocks))
+	blocks = AppendBlocks(blocks, providerBlocks, moduleBlocks, variableBlocks)
 	c := &Config{
 		file:     hclwrite.NewEmptyFile(),
 		TFBlocks: tfBlocks,
-		Blocks:   providerBlocks,
+		Blocks:   blocks,
 		once:     &sync.Once{},
 	}
 
@@ -272,8 +279,8 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 			continue
 		}
 		name := p.Labels[0]
-
-		providersMap[name] = fmt.Sprintf("${%s.%s}", name, alias)
+		// template "{{xxx}}" will be replaced by xxx, the quote will be removed.
+		providersMap[name] = fmt.Sprintf("{{%s.%s}}", name, alias)
 	}
 	for _, mc := range moduleConfigs {
 		block, err := ToModuleBlock(mc)
@@ -287,4 +294,37 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 	}
 
 	return blocks
+}
+
+func loadVariableBlocks(secrets model.Secrets) Blocks {
+	var (
+		// TODO: support other secret types
+		secretType = "{{string}}"
+		blocks     Blocks
+	)
+
+	for _, s := range secrets {
+		blocks = append(blocks, &Block{
+			Type:   BlockTypeVariable,
+			Labels: []string{s.Name},
+			Attributes: map[string]interface{}{
+				"type":      secretType,
+				"sensitive": true,
+			},
+		})
+	}
+
+	return blocks
+}
+
+// WriteTfVars write the model.Secrets to terraform.tfvars.
+func WriteTfVars(secrets model.Secrets) []byte {
+	f := hclwrite.NewEmptyFile()
+	rootBody := f.Body()
+
+	for _, s := range secrets {
+		rootBody.SetAttributeValue(s.Name, cty.StringVal(string(s.Value)))
+	}
+
+	return f.Bytes()
 }

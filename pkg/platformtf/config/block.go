@@ -171,3 +171,12 @@ func removeRing(root *Block, stack []*Block) {
 		stack = stack[:len(stack)-1]
 	}
 }
+
+// AppendBlocks will append the blocks to the tagert.
+func AppendBlocks(tagert Blocks, appendBlocks ...Blocks) Blocks {
+	for _, b := range appendBlocks {
+		tagert = append(tagert, b...)
+	}
+
+	return tagert
+}

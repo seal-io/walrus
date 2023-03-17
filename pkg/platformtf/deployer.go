@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
+	"regexp"
 
+	"entgo.io/ent/dialect/sql"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
@@ -19,7 +22,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s"
@@ -43,6 +48,7 @@ type CreateSecretsOptions struct {
 	SkipTLSVerify       bool
 	ApplicationRevision *model.ApplicationRevision
 	Connectors          model.Connectors
+	ProjectID           types.ID
 }
 
 // _backendAPI the API path to terraform deploy backend.
@@ -97,13 +103,20 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		}
 	}()
 
+	// get application, we need the project id to fetch available secrets.
+	app, err := d.modelClient.Applications().Get(ctx, ai.ApplicationID)
+	if err != nil {
+		return err
+	}
+
 	// prepare tfConfig for deployment.
 	secretOpts := CreateSecretsOptions{
 		SkipTLSVerify:       applyOpts.SkipTLSVerify,
 		ApplicationRevision: applicationRevision,
 		Connectors:          connectors,
+		ProjectID:           app.ProjectID,
 	}
-	if err = d.createSecrets(ctx, secretOpts); err != nil {
+	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
 	}
 
@@ -172,6 +185,11 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		return revisionbus.Notify(ctx, d.modelClient, applicationRevision)
 	}
 
+	app, err := d.modelClient.Applications().Get(ctx, ai.ApplicationID)
+	if err != nil {
+		return err
+	}
+
 	connectors, err := d.getConnectors(ctx, ai)
 	if err != nil {
 		return err
@@ -182,8 +200,9 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		SkipTLSVerify:       destroyOpts.SkipTLSVerify,
 		ApplicationRevision: applicationRevision,
 		Connectors:          connectors,
+		ProjectID:           app.ProjectID,
 	}
-	err = d.createSecrets(ctx, secretOpts)
+	err = d.createK8sSecrets(ctx, secretOpts)
 	if err != nil {
 		return err
 	}
@@ -207,19 +226,20 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 	return nil
 }
 
-// createSecrets will create the k8s secrets for deployment.
-func (d Deployer) createSecrets(ctx context.Context, opts CreateSecretsOptions) error {
+// createK8sSecrets will create the k8s secrets for deployment.
+func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
 	// secretName terraform tfConfig name
 	secretName := _secretPrefix + string(opts.ApplicationRevision.ID)
 	// prepare tfConfig for deployment
-	tfConfig, err := d.LoadConfig(ctx, opts)
+	tfConfig, tfVars, err := d.LoadConfig(ctx, opts)
 	if err != nil {
 		return err
 	}
 
 	// secretData the data of terraform tfConfig.
 	secretData := map[string][]byte{
-		"main.tf": []byte(tfConfig),
+		"main.tf":          []byte(tfConfig),
+		"terraform.tfvars": []byte(tfVars),
 	}
 	// mount the provider tfConfig to secret.
 	providerData, err := d.GetProviderSecretData(opts.Connectors)
@@ -306,32 +326,35 @@ func (d Deployer) checkRevisionStatus(applicationRevision *model.ApplicationRevi
 	return true, nil
 }
 
-// LoadConfig returns terraform config for deployment.
-func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (string, error) {
-	if opts.ApplicationRevision.InputPlan != "" {
-		return opts.ApplicationRevision.InputPlan, nil
-	}
-
+// LoadConfig returns terraform main.tf and terraform.tfvars for deployment.
+func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (string, string, error) {
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, requiredConnTypes, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
+	// parse module secrets
+	secrets, err := d.parseModuleSecrets(ctx, moduleConfigs, opts)
+	if err != nil {
+		return "", "", err
+	}
+	// terraform.tfvars
+	tfVars := config.WriteTfVars(secrets)
 
 	// prepare address for terraform backend.
 	serverAddress, err := settings.ServeUrl.Value(ctx, d.modelClient)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if serverAddress == "" {
-		return "", fmt.Errorf("server address is empty")
+		return "", "", fmt.Errorf("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress, fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
 	// prepare API token for terraform backend.
 	token, err := settings.PrivilegeApiToken.Value(ctx, d.modelClient)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	configOpts := config.CreateOptions{
@@ -343,36 +366,37 @@ func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (st
 		Connectors:         opts.Connectors,
 		ModuleConfigs:      moduleConfigs,
 		RequiredProviders:  requiredConnTypes,
+		Secrets:            secrets,
 	}
 	conf, err := config.NewConfig(configOpts)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	tfReader, err := conf.Reader()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	tfConfigBytes, err := io.ReadAll(tfReader)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	// save input plan to app revision
 	revision, err := d.modelClient.ApplicationRevisions().UpdateOne(opts.ApplicationRevision).
 		SetInputPlan(string(tfConfigBytes)).
 		Save(ctx)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if err = revisionbus.Notify(ctx, d.modelClient, revision); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return string(tfConfigBytes), nil
+	return string(tfConfigBytes), string(tfVars), nil
 }
 
 // GetProviderSecretData returns provider kubeconfig secret data mount into terraform container.
@@ -435,6 +459,8 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 			return nil, nil, fmt.Errorf("version %s of module %s not found", m.Version, m.ModuleID)
 		}
 
+		// TODO (alex): add module config validation here.
+		// verify module config attributes value type are valid.
 		moduleConfig := &config.ModuleConfig{
 			Name:          m.Name,
 			ModuleVersion: modVer,
@@ -471,6 +497,93 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 		cs = append(cs, rs[i].Edges.Connector)
 	}
 	return cs, nil
+}
+
+// parseModuleSecrets parse module secrets, and return matched model.Secrets.
+func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*config.ModuleConfig, opts CreateSecretsOptions) (model.Secrets, error) {
+	var (
+		moduleSecrets []string
+		secrets       model.Secrets
+		entities      []struct {
+			ID    types.ID `json:"id"`
+			Name  string   `json:"name"`
+			Value string   `json:"value"`
+		}
+	)
+	for _, moduleConfig := range moduleConfigs {
+		moduleSecrets = parseAttributeSecrets(moduleConfig.Attributes, moduleSecrets)
+	}
+	nameIn := make([]interface{}, len(moduleSecrets))
+	for i, name := range moduleSecrets {
+		nameIn[i] = name
+	}
+	// this query is used to distinct the secrets with the same name.
+	//  SELECT
+	//    "id",
+	//    "name",
+	//    "value"
+	//  FROM
+	//    "secrets"
+	//  WHERE
+	//    (
+	//      (
+	//        "project_id" IS NULL
+	//        AND "name" NOT IN (
+	//          SELECT
+	//            "name"
+	//          FROM
+	//            "secrets"
+	//          WHERE
+	//            "project_id" = opts.ProjectID
+	//        )
+	//      )
+	//      OR "project_id" = opts.ProjectID
+	//    )
+	//    AND NAME IN (moduleSecrets)
+	err := d.modelClient.Secrets().Query().
+		Modify(func(s *sql.Selector) {
+			// select secrets without project id or not in project.
+			subQuery := sql.Select(secret.FieldName).
+				From(sql.Table(secret.Table)).
+				Where(sql.EQ(secret.FieldProjectID, opts.ProjectID))
+			s.Select(secret.FieldID, secret.FieldName, secret.FieldValue).
+				Where(
+					sql.And(
+						sql.Or(
+							sql.And(
+								sql.IsNull(secret.FieldProjectID),
+								sql.NotIn(secret.FieldName, subQuery),
+							),
+							sql.EQ(secret.FieldProjectID, opts.ProjectID),
+						),
+						sql.In(secret.FieldName, nameIn...),
+					),
+				)
+		}).
+		Scan(ctx, &secrets)
+	if err != nil {
+		return nil, err
+	}
+	for _, entity := range entities {
+		secrets = append(secrets, &model.Secret{
+			ID:    entity.ID,
+			Name:  entity.Name,
+			Value: crypto.String(entity.Value),
+		})
+	}
+
+	// validate module secret are all exist.
+	foundSecretSet := sets.NewString()
+	for _, s := range secrets {
+		foundSecretSet.Insert(s.Name)
+	}
+	requiredSecretSet := sets.NewString(moduleSecrets...)
+	missingSecretSet := requiredSecretSet.Difference(foundSecretSet)
+	if missingSecretSet.Len() > 0 {
+		return nil, fmt.Errorf("missing secrets: %s", missingSecretSet.List())
+	}
+
+	return secrets, nil
 }
 
 func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) error {
@@ -513,4 +626,43 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 	}
 
 	return err
+}
+
+// parseAttributeSecrets parses attribute secrets ${secret.name} replaces it with ${var.name},
+// and returns secret names.
+func parseAttributeSecrets(attributes map[string]interface{}, secretNames []string) []string {
+	re := regexp.MustCompile(`\${secret\.([a-zA-Z0-9_]+)}`)
+	for key, value := range attributes {
+		switch reflect.TypeOf(value).Kind() {
+		case reflect.Map:
+			if _, ok := value.(map[string]interface{}); !ok {
+				continue
+			}
+
+			secretNames = parseAttributeSecrets(value.(map[string]interface{}), secretNames)
+		case reflect.String:
+			str := value.(string)
+			matches := re.FindAllStringSubmatch(str, -1)
+			var matched []string
+			for _, match := range matches {
+				if len(match) > 1 {
+					matched = append(matched, match[1])
+				}
+			}
+			secretNames = append(secretNames, matched...)
+			attributes[key] = re.ReplaceAllString(str, "${var.${1}}")
+		case reflect.Slice:
+			if _, ok := value.([]interface{}); !ok {
+				continue
+			}
+
+			for _, v := range value.([]interface{}) {
+				if _, ok := v.(map[string]interface{}); !ok {
+					continue
+				}
+				secretNames = parseAttributeSecrets(v.(map[string]interface{}), secretNames)
+			}
+		}
+	}
+	return secretNames
 }
