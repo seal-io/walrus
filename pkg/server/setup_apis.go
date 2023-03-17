@@ -23,6 +23,8 @@ func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
 	var serveOpts = apis.ServeOptions{
 		SetupOptions: apis.SetupOptions{
 			EnableAuthn: r.EnableAuthn,
+			ConnQPS:     r.ConnQPS,
+			ConnBurst:   r.ConnBurst,
 			K8sConfig:   opts.K8sConfig,
 			ModelClient: opts.ModelClient,
 		},
