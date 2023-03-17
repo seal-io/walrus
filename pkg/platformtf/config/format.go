@@ -11,28 +11,35 @@ var (
 		replaceFn func([]byte) []byte
 	}{
 		{
-			// Used for interpolation
-			// Replace all the `"key" = "$${a.b.c}` for `"key" = a.b.c`.
+			// used for interpolation
+			// replace all the `"key" = "$${a.b.c}` for `"key" = a.b.c`.
 			match:   regexp.MustCompile(`"\$\${([^$}{]+)\.([^$}{]+)\.([^$}{]+)}"`),
 			replace: []byte(`$1.$2.$3`),
 		},
 		{
-			// Used for variables
-			// Replace all the `"key" = "$${a.b}` for `"key" = a.b`.
+			// used for variables
+			// replace all the `"key" = "$${a.b}` for `"key" = a.b`.
 			match:   regexp.MustCompile(`"\$\${([^$}{]+)\.([^$}{]+)}"`),
 			replace: []byte(`$1.$2`),
 		},
 		{
-			// replace "providers {" to "providers = {".
-			match:   regexp.MustCompile(`providers\s*{`),
-			replace: []byte("providers = {"),
+			// replace `$${xxx}` with `xxx`.
+			match:   regexp.MustCompile(`\$\${([^}]+)}`),
+			replace: []byte(`${$1}`),
 		},
+		{
+			// replace "{{xxx}}" with xxx. quote will be removed.
+			match:   regexp.MustCompile(`"{{([^}]+)}}"`),
+			replace: []byte(`$1`),
+		},
+		{},
 	}
 )
 
 // Format formats the hcl with the transformations.
 func Format(hcl []byte) []byte {
-	for _, m := range _transformations {
+	for i := 0; i < len(_transformations); i++ {
+		m := _transformations[i]
 		if m.replace != nil {
 			hcl = m.match.ReplaceAll(hcl, m.replace)
 		} else if m.replaceFn != nil {

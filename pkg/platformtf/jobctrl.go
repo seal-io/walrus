@@ -243,12 +243,13 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 	var (
 		command       = []string{"/bin/sh", "-c"}
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
+		varfile       = fmt.Sprintf(" -var-file=%s/terraform.tfvars", _secretMountPath)
 	)
 	switch opts.Type {
 	case _jobTypeApply:
-		deployCommand += _applyCommands
+		deployCommand += _applyCommands + varfile
 	case _jobTypeDestroy:
-		deployCommand += _destroyCommands
+		deployCommand += _destroyCommands + varfile
 	}
 	command = append(command, deployCommand)
 
