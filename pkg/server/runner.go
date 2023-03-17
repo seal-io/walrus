@@ -43,6 +43,8 @@ type Server struct {
 	TlsCertDir         string
 	TlsAutoCertDomains []string
 	BootstrapPassword  string
+	ConnQPS            int
+	ConnBurst          int
 
 	KubeConfig      string
 	KubeConnTimeout time.Duration
@@ -65,6 +67,8 @@ func New() *Server {
 	return &Server{
 		BindAddress:           "0.0.0.0",
 		TlsCertDir:            filepath.FromSlash("/var/run/seal"),
+		ConnQPS:               10,
+		ConnBurst:             20,
 		KubeConnTimeout:       5 * time.Minute,
 		KubeConnQPS:           16,
 		KubeConnBurst:         64,
@@ -159,6 +163,18 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Destination: &r.BootstrapPassword,
 			Value:       r.BootstrapPassword,
 		},
+		&cli.IntFlag{
+			Name:        "conn-qps",
+			Usage:       "The qps(maximum average number per second) when dialing the server.",
+			Destination: &r.ConnQPS,
+			Value:       r.ConnQPS,
+		},
+		&cli.IntFlag{
+			Name:        "conn-burst",
+			Usage:       "The burst(maximum number at the same moment) when dialing the server.",
+			Destination: &r.ConnBurst,
+			Value:       r.ConnBurst,
+		},
 		&cli.StringFlag{
 			Name:        "kubeconfig",
 			Usage:       "The configuration path of the worker kubernetes cluster.",
@@ -173,13 +189,13 @@ func (r *Server) Flags(cmd *cli.Command) {
 		},
 		&cli.Float64Flag{
 			Name:        "kube-conn-qps",
-			Usage:       "The qps when dialing the worker kubernetes cluster.",
+			Usage:       "The qps(maximum average number per second) when dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnQPS,
 			Value:       r.KubeConnQPS,
 		},
 		&cli.IntFlag{
 			Name:        "kube-conn-burst",
-			Usage:       "The burst when dialing the worker kubernetes cluster.",
+			Usage:       "The burst(maximum number at the same moment) when dialing the worker kubernetes cluster.",
 			Destination: &r.KubeConnBurst,
 			Value:       r.KubeConnBurst,
 		},

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/account"
@@ -38,10 +39,14 @@ import (
 )
 
 type SetupOptions struct {
-	TlsCertified bool
-	EnableAuthn  bool
+	// configure from launching.
+	EnableAuthn bool
+	ConnQPS     int
+	ConnBurst   int
+	// derived from configuration.
 	K8sConfig    *rest.Config
 	ModelClient  *model.Client
+	TlsCertified bool
 }
 
 func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, error) {
@@ -49,6 +54,18 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	gin.DefaultErrorWriter = s.logger
 	var apis = gin.New()
 	var auths = auth.Auth(opts.EnableAuthn, opts.ModelClient)
+	var throttler = runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
+	var rectifier = runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
+	var wsCounter = runtime.If(
+		func(g *gin.Context) bool {
+			// validate websocket connection.
+			return websocket.IsWebSocketUpgrade(g.Request)
+		},
+		runtime.PerIP(func() runtime.Handle {
+			// maximum 10 connection per ip.
+			return runtime.RequestCounting(10, 5*time.Second)
+		}),
+	)
 
 	apis.NoMethod(runtime.NoMethod())
 	apis.NoRoute(ui.Index(ctx, opts.ModelClient), runtime.NotFound())
@@ -68,6 +85,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	runtime.MustRouteGet(apis, "/livez", health.Livez())
 
 	var accountApis = apis.Group("/account",
+		rectifier,
 		auths)
 	{
 		var r = accountApis
@@ -78,14 +96,13 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	}
 
 	var resourceApis = apis.Group("/v1",
-		runtime.RequestThrottling(10, 20),
+		throttler,
 		auths)
 	{
 		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
 		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
-		runtime.MustRouteResource(r.Group("", runtime.RequestCounting(10, 5*time.Second)),
-			applicationresource.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r.Group("", rectifier, wsCounter), applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
