@@ -44,7 +44,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
-	err = connbus.Notify(ctx, h.modelClient, entity, false)
+	err = connbus.Notify(ctx, entity, false)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return err
 	}
 
-	return connbus.Notify(ctx, h.modelClient, entity, false)
+	return connbus.Notify(ctx, entity, false)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -155,7 +155,7 @@ func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRe
 		return err
 	}
 
-	return connbus.Notify(ctx, h.modelClient, o, true)
+	return connbus.Notify(ctx, o, true)
 }
 
 func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataRequest) error {
