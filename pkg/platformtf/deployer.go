@@ -454,10 +454,10 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 	return cs, nil
 }
 
-func SyncApplicationRevisionStatus(ctx context.Context, message revisionbus.BusMessage) error {
+func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) error {
 	var (
-		mc       = message.ModelClient
-		revision = message.Refer
+		mc       = bm.TransactionalModelClient
+		revision = bm.Refer
 	)
 
 	// report to application instance.
