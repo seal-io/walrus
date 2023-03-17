@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-version"
@@ -36,55 +37,77 @@ const (
 	defaultModuleVersion = "0.0.0"
 )
 
-// SyncSchema fetches a remote module and updates the module schema in the background.
-func SyncSchema(ctx context.Context, message module.BusMessage) error {
+func SchemaSync(mc model.ClientSet) schemaSyncer {
+	return schemaSyncer{mc: mc}
+}
+
+type schemaSyncer struct {
+	mc model.ClientSet
+}
+
+// Do fetches and updates the schema of the given module,
+// within 5 mins in the background.
+func (s schemaSyncer) Do(_ context.Context, message module.BusMessage) error {
+	var logger = log.WithName("module")
+
 	gopool.Go(func() {
-		if err := syncSchema(ctx, message); err != nil {
-			mod := message.Refer
-			mod.Status = status.ModuleStatusError
-			mod.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
-			update, updateErr := dao.ModuleUpdate(message.ModelClient, mod)
-			if updateErr != nil {
-				log.Errorf("failed to prepare module update: %v", updateErr)
-				return
-			}
-			if updateErr = update.Exec(ctx); updateErr != nil {
-				log.Errorf("failed to update module %s: %v", mod.ID, updateErr)
-			}
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		var m = message.Refer
+
+		logger.Debugf("syncing schema for module %s", m.ID)
+		var err = syncSchema(ctx, s.mc, m)
+		if err == nil {
+			return
+		}
+
+		logger.Warnf("recording syncing module %s schema failed: %v", m.ID, err)
+		m.Status = status.ModuleStatusError
+		m.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
+		update, err := dao.ModuleUpdate(s.mc, m)
+		if err != nil {
+			logger.Errorf("failed to prepare module %s update: %v", m.ID, err)
+			return
+		}
+		err = update.Exec(ctx)
+		if err != nil {
+			logger.Errorf("failed to update module %s: %v", m.ID, err)
 		}
 	})
+
 	return nil
 }
 
-func syncSchema(ctx context.Context, message module.BusMessage) error {
-	mod := message.Refer
-
-	log.Debugf("syncing schema for module %s", message.Refer.ID)
-
-	versions, err := loadTerraformModuleVersions(mod)
+func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error {
+	versions, err := loadTerraformModuleVersions(m)
 	if err != nil {
 		return err
 	}
 
-	return message.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
+	return mc.WithTx(ctx, func(tx *model.Tx) error {
 		// clean up previous module versions if there's any.
-		if _, err := tx.ModuleVersions().Delete().Where(moduleversion.ModuleID(mod.ID)).Exec(ctx); err != nil {
-			return err
-		}
-
-		creates, err := dao.ModuleVersionCreates(tx, versions...)
+		var _, err = tx.ModuleVersions().Delete().
+			Where(moduleversion.ModuleID(m.ID)).
+			Exec(ctx)
 		if err != nil {
 			return err
 		}
 
+		// create new module versions.
+		creates, err := dao.ModuleVersionCreates(tx, versions...)
+		if err != nil {
+			return err
+		}
 		for _, c := range creates {
-			if _, err = c.Save(ctx); err != nil {
+			_, err = c.Save(ctx)
+			if err != nil {
 				return err
 			}
 		}
 
-		mod.Status = status.ModuleStatusReady
-		update, err := dao.ModuleUpdate(message.ModelClient, mod)
+		// state module.
+		m.Status = status.ModuleStatusReady
+		update, err := dao.ModuleUpdate(tx, m)
 		if err != nil {
 			return err
 		}

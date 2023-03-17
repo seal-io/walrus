@@ -66,7 +66,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			return err
 		}
 
-		err = modbus.Notify(ctx, opts.ModelClient, builtin[i])
+		err = modbus.Notify(ctx, builtin[i])
 		if err != nil {
 			return err
 		}

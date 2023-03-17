@@ -9,13 +9,13 @@ import (
 
 // BusMessage wraps the changed model.Module as a bus.Message.
 type BusMessage struct {
-	ModelClient model.ClientSet
-	Refer       *model.Module
+	// Refer holds the updating model.Module item of this calling session.
+	Refer *model.Module
 }
 
 // Notify notifies the changed model.Module.
-func Notify(ctx context.Context, mc model.ClientSet, refer *model.Module) error {
-	return bus.Publish(ctx, BusMessage{ModelClient: mc, Refer: refer})
+func Notify(ctx context.Context, refer *model.Module) error {
+	return bus.Publish(ctx, BusMessage{Refer: refer})
 }
 
 // AddSubscriber add the subscriber to handle the changed notification from model.Module.
