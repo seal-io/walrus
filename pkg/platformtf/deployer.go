@@ -397,7 +397,7 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 			moduleversion.FieldSource,
 			moduleversion.FieldSchema,
 		).
-		Where(predicates...).
+		Where(moduleversion.Or(predicates...)).
 		All(ctx)
 	if err != nil {
 		return nil, nil, err
