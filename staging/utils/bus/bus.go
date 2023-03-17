@@ -19,7 +19,10 @@ type Bus interface {
 type Message interface{}
 
 // Handler defines the handler to process any publishing message,
-// for example, func(context.Context, T) error
+// for example, func(context.Context, T) error.
+// The incoming context.Context comes from the Publish function,
+// if the inside processing is background,
+// do not rely on that context.Context.
 type Handler interface{}
 
 // bus implements the Bus interface.

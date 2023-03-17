@@ -87,12 +87,12 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 	}
 
 	var jobs []job
-	for i := 0; i < len(m.Refer); i++ {
-		if m.Refer[i] == nil {
+	for i := 0; i < len(m.Refers); i++ {
+		if m.Refers[i] == nil {
 			continue
 		}
 
-		var n = m.Refer[i].Name
+		var n = m.Refers[i].Name
 		var c, exist = js[n]
 		if !exist {
 			continue
@@ -103,7 +103,7 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 			continue
 		}
 		// get cron expr of the job from transactional model client.
-		var v, err = s.Value(ctx, m.ModelClient)
+		var v, err = s.Value(ctx, m.TransactionalModelClient)
 		if err != nil {
 			return fmt.Errorf("error gettting job cron expr: %w", err)
 		}
