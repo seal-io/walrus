@@ -29,6 +29,12 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
+var (
+	queryFields = []string{
+		secret.FieldName,
+	}
+)
+
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var entity = req.Model()
 	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
@@ -88,6 +94,9 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(secret.ProjectID(*req.ProjectID))
 	} else {
 		query.Where(secret.ProjectIDIsNil())
+	}
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
 	}
 
 	// get count.

@@ -1,12 +1,14 @@
 package project
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/project/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -127,3 +129,33 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 // Extensional APIs
+
+var (
+	secretQueryFields = []string{
+		secret.FieldName,
+	}
+)
+
+func (h Handler) GetSecrets(ctx *gin.Context, req view.GetSecretsRequest) (view.GetSecretsResponse, error) {
+	var query = h.modelClient.Secrets().Query()
+	if queries, ok := req.Querying(secretQueryFields); ok {
+		query.Where(queries)
+	}
+
+	var entities model.Secrets
+	err := query.
+		Where(secret.Or(
+			secret.ProjectIDIsNil(),
+			secret.ProjectID(req.ID),
+		)).
+		Modify(func(s *sql.Selector) {
+			s.Select(secret.FieldName).
+				Distinct()
+		}).
+		Scan(ctx, &entities)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeSecrets(entities), nil
+}

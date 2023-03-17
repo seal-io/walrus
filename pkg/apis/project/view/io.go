@@ -72,3 +72,17 @@ type CollectionGetRequest struct {
 type CollectionGetResponse = []*model.ProjectOutput
 
 // Extensional APIs
+
+type GetSecretsRequest struct {
+	*model.ProjectQueryInput                    `uri:",inline"`
+	runtime.RequestCollection[predicate.Secret] `query:",inline"`
+}
+
+func (r *GetSecretsRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+	return nil
+}
+
+type GetSecretsResponse = []*model.SecretOutput
