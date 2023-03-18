@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -152,6 +153,24 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 			d.logger.Errorf("add application revision update notify err: %w", err)
 		}
 	}()
+
+	// if no resource exists, skip job and set revision status succeed.
+	exist, err := d.modelClient.ApplicationResources().Query().
+		Where(applicationresource.InstanceID(ai.ID)).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		_, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+			SetStatus(status.ApplicationRevisionStatusSucceeded).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return revisionbus.Notify(ctx, d.modelClient, applicationRevision)
+	}
 
 	connectors, err := d.getConnectors(ctx, ai)
 	if err != nil {
