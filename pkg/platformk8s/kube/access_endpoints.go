@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -64,7 +65,7 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 		ns   = rn[0]
 		name = rn[1]
 	)
-	svc, err := s.clientSet.CoreV1().Services(ns).Get(ctx, name, metav1.GetOptions{})
+	svc, err := s.clientSet.CoreV1().Services(ns).Get(ctx, name, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
@@ -76,16 +77,11 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 	)
 	switch svc.Spec.Type {
 	case apicorev1.ServiceTypeNodePort:
-		nodes, err := s.clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+		accessIP, err := s.nodeIP(ctx, svc)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(nodes.Items) == 0 {
-			return nil, fmt.Errorf("node list is empty")
-		}
-
-		accessIP := nodeIP(nodes.Items)
 		for _, port := range svc.Spec.Ports {
 			nodePort := fmt.Sprint(port.NodePort)
 			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
@@ -93,7 +89,10 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 	case apicorev1.ServiceTypeLoadBalancer:
 		accessIP := serviceLoadBalancerIP(*svc)
 		if accessIP != "" {
-			endpoints = append(endpoints, accessIP)
+			for _, port := range svc.Spec.Ports {
+				targetPort := fmt.Sprint(port.Port)
+				endpoints = append(endpoints, net.JoinHostPort(accessIP, targetPort))
+			}
 		}
 	}
 
@@ -108,7 +107,43 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 	}, nil
 }
 
-func nodeIP(nodes []apicorev1.Node) string {
+func (s *serviceEndpointGetter) nodeIP(ctx context.Context, svc *apicorev1.Service) (string, error) {
+	list, err := s.clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{ResourceVersion: "0"})
+	if err != nil {
+		return "", err
+	}
+
+	if len(list.Items) == 0 {
+		return "", fmt.Errorf("node list is empty")
+	}
+
+	var nodes = list.Items
+	if svc.Spec.ExternalTrafficPolicy == apicorev1.ServiceExternalTrafficPolicyTypeLocal {
+		k8sEndpoints, err := s.clientSet.CoreV1().Endpoints(svc.Namespace).Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
+		if err != nil {
+			return "", err
+		}
+
+		var nameSet = sets.Set[string]{}
+		for _, v := range k8sEndpoints.Subsets {
+			for _, addr := range v.Addresses {
+				nameSet.Insert(*addr.NodeName)
+			}
+		}
+
+		var filtered []apicorev1.Node
+		for _, node := range nodes {
+			if nameSet.Has(node.Name) {
+				filtered = append(filtered, node)
+			}
+		}
+
+		if len(filtered) == 0 {
+			return "", errors.New("node list from k8s endpoints is empty")
+		}
+		nodes = filtered
+	}
+
 	var (
 		externalIP string
 		internalIP string
@@ -125,22 +160,23 @@ func nodeIP(nodes []apicorev1.Node) string {
 			}
 		}
 		if externalIP != "" {
-			return externalIP
+			return externalIP, nil
 		}
 	}
 
-	return internalIP
+	return internalIP, nil
 }
 
 func serviceLoadBalancerIP(svc apicorev1.Service) string {
-	var lbIP string
 	for _, ing := range svc.Status.LoadBalancer.Ingress {
-		lbIP = ing.IP
+		if ing.Hostname != "" {
+			return ing.Hostname
+		}
+		if ing.IP != "" {
+			return ing.IP
+		}
 	}
 
-	if lbIP != "" {
-		return lbIP
-	}
 	return svc.Spec.LoadBalancerIP
 }
 
@@ -179,7 +215,7 @@ func (ig *ingressEndpointGetter) endpoint(ctx context.Context, resourceID string
 		ns   = rn[0]
 		name = rn[1]
 	)
-	ing, err := ig.clientSet.NetworkingV1().Ingresses(ns).Get(ctx, name, metav1.GetOptions{})
+	ing, err := ig.clientSet.NetworkingV1().Ingresses(ns).Get(ctx, name, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}

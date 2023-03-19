@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -176,11 +177,13 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) er
 
 func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (*view.AccessEndpointResponse, error) {
 	serviceType := "kubernetes_service"
+	serviceTypeAlias := "kubernetes_service_v1"
 	ingressType := "kubernetes_ingress"
+	ingressTypeAlias := "kubernetes_ingress_v1"
 	res, err := h.modelClient.ApplicationResources().Query().
 		Where(
 			applicationresource.InstanceID(req.ID),
-			applicationresource.TypeIn(serviceType, ingressType),
+			applicationresource.TypeIn(serviceType, serviceTypeAlias, ingressType, ingressTypeAlias),
 		).
 		Select(
 			applicationresource.FieldConnectorID,
@@ -205,7 +208,7 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 		connMap[v.ID] = v
 	}
 
-	var connResMapping = make(map[*model.Connector]map[string][]string)
+	var connResMapping = make(map[*model.Connector]map[string]sets.Set[string])
 	for _, v := range res {
 		conn := connMap[v.ConnectorID]
 		if conn == nil {
@@ -213,9 +216,12 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 		}
 
 		if _, ok := connResMapping[conn]; !ok {
-			connResMapping[conn] = make(map[string][]string)
+			connResMapping[conn] = make(map[string]sets.Set[string])
 		}
-		connResMapping[conn][v.Type] = append(connResMapping[conn][v.Type], v.Name)
+		if _, ok := connResMapping[conn][v.Type]; !ok {
+			connResMapping[conn][v.Type] = sets.Set[string]{}
+		}
+		connResMapping[conn][v.Type] = connResMapping[conn][v.Type].Insert(v.Name)
 	}
 
 	var endpoints []kube.ResourceEndpoint
@@ -227,14 +233,14 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 
 		for resType, names := range ress {
 			switch resType {
-			case serviceType:
-				eps, err := kube.ServiceEndpointGetter(k8sClient).Endpoints(ctx, names...)
+			case serviceType, serviceTypeAlias:
+				eps, err := kube.ServiceEndpointGetter(k8sClient).Endpoints(ctx, names.UnsortedList()...)
 				if err != nil {
 					return nil, err
 				}
 				endpoints = append(endpoints, eps...)
-			case ingressType:
-				eps, err := kube.IngressEndpointGetter(k8sClient).Endpoints(ctx, names...)
+			case ingressType, ingressTypeAlias:
+				eps, err := kube.IngressEndpointGetter(k8sClient).Endpoints(ctx, names.UnsortedList()...)
 				if err != nil {
 					return nil, err
 				}
