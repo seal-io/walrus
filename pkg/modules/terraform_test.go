@@ -12,6 +12,59 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
+func TestGetVersionedSource(t *testing.T) {
+	testCases := []struct {
+		name    string
+		source  string
+		version string
+		result  string
+	}{
+		{
+			name:    "github with subdirectory",
+			source:  "github.com/foo/bar//module1",
+			version: "0.0.1",
+			result:  "github.com/foo/bar//module1/0.0.1",
+		},
+		{
+			name:    "github root",
+			source:  "github.com/foo/bar",
+			version: "0.0.1",
+			result:  "github.com/foo/bar//0.0.1",
+		},
+		{
+			name:    "github with ref",
+			source:  "github.com/foo/bar//module1?ref=dev",
+			version: "0.0.1",
+			result:  "github.com/foo/bar//module1/0.0.1?ref=dev",
+		},
+		{
+			name:    "generic git",
+			source:  "git::https://github.com/foo/bar.git",
+			version: "0.0.1",
+			result:  "git::https://github.com/foo/bar.git//0.0.1",
+		},
+		{
+			name:    "generic git with subdirectory",
+			source:  "git::https://github.com/foo/bar.git//module1",
+			version: "0.0.1",
+			result:  "git::https://github.com/foo/bar.git//module1/0.0.1",
+		},
+		{
+			name:    "generic git with ref",
+			source:  "git::https://github.com/foo/bar.git//module1?ref=dev",
+			version: "0.0.1",
+			result:  "git::https://github.com/foo/bar.git//module1/0.0.1?ref=dev",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualOutput := getVersionedSource(tc.source, tc.version)
+			assert.Equal(t, tc.result, actualOutput)
+		})
+	}
+}
+
 func TestLoadTerraformSchema(t *testing.T) {
 	testCases := []struct {
 		name           string

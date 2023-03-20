@@ -17,25 +17,25 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		{
 			ID:          "webservice",
 			Description: "A long-running, scalable, containerized service that have a stable network endpoint to receive external network traffic.",
-			Source:      "github.com/gitlawr/modules/webservice",
+			Source:      "github.com/gitlawr/modules//webservice",
 			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_web.svg",
 		},
 		{
 			ID:          "build-image",
 			Description: "Build a container image from source code.",
-			Source:      "github.com/gitlawr/modules/build-image",
+			Source:      "github.com/gitlawr/modules//build-image",
 			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_containerimage.svg",
 		},
 		{
 			ID:          "aws-rds",
 			Description: "An AWS RDS instance.",
-			Source:      "github.com/gitlawr/modules/aws-rds",
+			Source:      "github.com/gitlawr/modules//aws-rds",
 			Icon:        "https://raw.githubusercontent.com/sashee/aws-svg-icons/ddf2928b65d8f18c20c6a792740ec934804e7a25/docs/Architecture-Service-Icons_07302021/Arch_Database/64/Arch_Amazon-RDS_64.svg",
 		},
 		{
 			ID:          "mysql",
 			Description: "A containerized mysql instance.",
-			Source:      "github.com/gitlawr/modules/mysql",
+			Source:      "github.com/gitlawr/modules//mysql",
 			Icon:        "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
 		},
 	}

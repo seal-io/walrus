@@ -129,11 +129,6 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 		return nil, err
 	}
 
-	u, err := url.Parse(m.Source)
-	if err != nil {
-		return nil, err
-	}
-	modulePath := u.Path
 	if len(versions) == 0 {
 		// try to load a module version from the root
 		// This keeps compatible with terraform git source
@@ -142,6 +137,10 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 			return nil, err
 		}
 
+		u, err := url.Parse(m.Source)
+		if err != nil {
+			return nil, err
+		}
 		v := u.Query().Get("ref")
 		if v == "" {
 			v = defaultModuleVersion
@@ -166,10 +165,10 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 		}
 
 		// ModuleVersion.Source is the concatenation of Module.Source and Version
-		u.JoinPath(modulePath, v)
+		versionedSource := getVersionedSource(m.Source, v)
 		mvs = append(mvs, &model.ModuleVersion{
 			ModuleID: m.ID,
-			Source:   u.String(),
+			Source:   versionedSource,
 			Version:  v,
 			Schema:   schema,
 		})
@@ -243,6 +242,31 @@ func getReadme(dir string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func getVersionedSource(source, version string) string {
+	var protocol, base, subdir, query = "", source, "", ""
+
+	if strings.Contains(base, "?") {
+		base, query, _ = strings.Cut(base, "?")
+	}
+	if strings.Contains(base, "://") {
+		protocol, base, _ = strings.Cut(base, "://")
+	}
+	if strings.Contains(base, "//") {
+		base, subdir, _ = strings.Cut(base, "//")
+	}
+	subdir = filepath.Join(subdir, version)
+
+	var result = fmt.Sprintf("%s//%s", base, subdir)
+	if protocol != "" {
+		result = fmt.Sprintf("%s://%s", protocol, result)
+	}
+	if query != "" {
+		result = fmt.Sprintf("%s?%s", result, query)
+	}
+
+	return result
 }
 
 func terraformVariableToModuleVariable(v *tfconfig.Variable) types.ModuleVariable {
