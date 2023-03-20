@@ -72,6 +72,9 @@ type ClientSet interface {
 
 	// Dialect returns the dialect name of the driver.
 	Dialect() string
+
+	// Debug returns the debug mode of the client.
+	Debug() *Client
 }
 
 // AllocationCostClientGetter is an interface that allows getting AllocationCostClient.
