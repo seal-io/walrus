@@ -9,7 +9,10 @@ import (
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/platformtf"
 	"github.com/seal-io/seal/utils/log"
@@ -61,12 +64,13 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 }
 
 var (
-	getFields = []string{
-		applicationrevision.FieldID,
-		applicationrevision.FieldStatus,
+	getFields = applicationrevision.WithoutFields(
 		applicationrevision.FieldStatusMessage,
-		applicationrevision.FieldCreateTime,
-	}
+		applicationrevision.FieldInputPlan,
+		applicationrevision.FieldOutput,
+		applicationrevision.FieldInputVariables,
+		applicationrevision.FieldModules,
+	)
 	sortFields = []string{
 		applicationrevision.FieldCreateTime}
 )
@@ -94,6 +98,18 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
+		WithInstance(func(aiq *model.ApplicationInstanceQuery) {
+			aiq.Select(
+				applicationinstance.FieldID,
+				applicationinstance.FieldName,
+				applicationinstance.FieldApplicationID).
+				WithApplication(func(aq *model.ApplicationQuery) {
+					aq.Select(application.FieldID, application.FieldName)
+				})
+		}).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldID, environment.FieldName)
+		}).
 		Unique(false). // allow returning without sorting keys.
 		All(ctx)
 	if err != nil {
