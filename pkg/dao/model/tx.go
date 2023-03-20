@@ -363,6 +363,11 @@ func (tx *Tx) Tokens() *TokenClient {
 	return tx.Token
 }
 
+// Debug returns the debug value of the driver.
+func (tx *Tx) Debug() *Client {
+	return tx.client.Debug()
+}
+
 // Dialect returns the dialect name of the driver.
 func (tx *Tx) Dialect() string {
 	return tx.driver.Dialect()
