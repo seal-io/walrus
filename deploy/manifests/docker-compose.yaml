@@ -1,0 +1,54 @@
+version: '3.6'
+
+services:
+  casdoor:
+    image: "sealio/casdoor:v1.197.0-seal.3"
+    restart: always
+    privileged: true
+    container_name: casdoor
+    ports:
+      # internal postgres db of casdoor(user/password: casdoor/casdoor),
+      # expose for local debugging.
+      #
+      - "15432:5432"
+
+  postgres:
+    image: "postgres:14.6"
+    restart: always
+    privileged: true
+    container_name: postgres
+    ports:
+      # external postgres db of seal(user/password: root:Root123),
+      # expose for local debugging.
+      #
+      - "25432:5432"
+    environment:
+      # update the '--data-source-address' if change the following envs.
+      #
+      - POSTGRES_PASSWORD=Root123
+      - POSTGRES_USER=root
+      - POSTGRES_DB=seal
+
+  seal:
+    image: "sealio/seal-server:main"
+    entrypoint: "/entrypoint.sh"
+    restart: always
+    # privileged is used for internal k3s.
+    privileged: true
+    container_name: seal
+    environment:
+      # avoid the impact from docker embedded DNS server.
+      #
+      - K3S_RESOLV_CONF=
+    command:
+      - "seal"
+      - "--log-debug"
+      - "--log-verbosity=4"
+      - "--data-source-address=postgres://root:Root123@postgres:5432/seal?sslmode=disable"
+      - "--casdoor-server=http://casdoor:8000"
+    depends_on:
+      - postgres
+      - casdoor
+    ports:
+      - "80:80"
+      - "443:443"
