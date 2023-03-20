@@ -109,7 +109,7 @@ func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector
 		return nil
 	}
 
-	if !status.ConnectorStatusReady.IsTrue(conn) {
+	if !status.ConnectorStatusReady.IsTrue(&conn) {
 		// skip connector isn't ready
 		return nil
 	}
