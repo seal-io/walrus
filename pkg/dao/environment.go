@@ -109,9 +109,6 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 			return
 		}
 	}
-	if eu.entity.Edges.Connectors == nil {
-		return
-	}
 
 	// get old relationships.
 	oldEntity, err := mc.Environments().Query().
