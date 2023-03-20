@@ -633,6 +633,10 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 func parseAttributeSecrets(attributes map[string]interface{}, secretNames []string) []string {
 	re := regexp.MustCompile(`\${secret\.([a-zA-Z0-9_]+)}`)
 	for key, value := range attributes {
+		if value == nil {
+			continue
+		}
+
 		switch reflect.TypeOf(value).Kind() {
 		case reflect.Map:
 			if _, ok := value.(map[string]interface{}); !ok {
