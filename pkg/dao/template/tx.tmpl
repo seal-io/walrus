@@ -29,3 +29,13 @@ func (tx *Tx) Dialect() string {
 }
 
 {{ end }}
+
+{{ define "tx/additional/debug" }}
+
+// Debug returns the debug value of the driver.
+func (tx *Tx) Debug() *Client {
+    return tx.client.Debug()
+}
+
+{{ end }}
+
