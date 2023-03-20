@@ -560,7 +560,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 					),
 				)
 		}).
-		Scan(ctx, &secrets)
+		Scan(ctx, &entities)
 	if err != nil {
 		return nil, err
 	}
