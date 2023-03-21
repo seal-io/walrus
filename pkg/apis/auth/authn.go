@@ -33,7 +33,7 @@ func authn(c *gin.Context, modelClient model.ClientSet) error {
 }
 
 func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) error {
-	if sj, active := cache.LoadTokenSubject(token); sj != nil {
+	if sj, active := cache.LoadTokenSubject(c, token); sj != nil {
 		if !active {
 			// anonymous
 			return nil
@@ -58,12 +58,12 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 	if err != nil {
 		// avoid d-dos
 		log.WithName("auth").Errorf("error verifying user token: %v", err)
-		cache.StoreTokenSubject(token, "", false)
+		cache.StoreTokenSubject(c, token, "", false)
 		return nil
 	}
 	if !r.Active || r.Exp < time.Now().Unix() {
 		// expired
-		cache.StoreTokenSubject(token, "", false)
+		cache.StoreTokenSubject(c, token, "", false)
 		return nil
 	}
 	// cache
@@ -71,13 +71,13 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 	if err != nil {
 		return err
 	}
-	cache.StoreTokenSubject(token, session.ToSubjectKey(groups[len(groups)-1], r.UserName), true)
+	cache.StoreTokenSubject(c, token, session.ToSubjectKey(groups[len(groups)-1], r.UserName), true)
 	session.StoreSubjectAuthnInfo(c, groups, r.UserName)
 	return nil
 }
 
 func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSession *req.HttpCookie) error {
-	if sj, active := cache.LoadSessionSubject(string(internalSession.Value())); sj != nil {
+	if sj, active := cache.LoadSessionSubject(c, string(internalSession.Value())); sj != nil {
 		if !active {
 			// anonymous
 			return nil
@@ -98,7 +98,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 	if err != nil {
 		// avoid d-dos
 		log.WithName("auth").Errorf("error getting user account: %v", err)
-		cache.StoreSessionSubject(string(internalSession.Value()), "", false)
+		cache.StoreSessionSubject(c, string(internalSession.Value()), "", false)
 		return casdoor.InterruptSession(c.Writer, []*req.HttpCookie{internalSession})
 	}
 	// cache
@@ -106,7 +106,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 	if err != nil {
 		return err
 	}
-	cache.StoreSessionSubject(string(internalSession.Value()), session.ToSubjectKey(groups[len(groups)-1], r.Name), true)
+	cache.StoreSessionSubject(c, string(internalSession.Value()), session.ToSubjectKey(groups[len(groups)-1], r.Name), true)
 	session.StoreSubjectAuthnInfo(c, groups, r.Name)
 	return casdoor.HoldSession(c.Writer, []*req.HttpCookie{internalSession})
 }

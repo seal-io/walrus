@@ -18,7 +18,7 @@ import (
 func authz(c *gin.Context, modelClient model.ClientSet) error {
 	var s = session.LoadSubject(c)
 
-	var permission, cached = cache.LoadSubjectPermission(s.Key())
+	var permission, cached = cache.LoadSubjectPermission(c, s.Key())
 	if !cached {
 		permission = &cache.SubjectPermission{}
 		var err error
@@ -44,7 +44,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 			return err
 		}
 		// cache
-		cache.StoreSubjectPermission(s.Key(), *permission)
+		cache.StoreSubjectPermission(c, s.Key(), *permission)
 	}
 
 	// validate

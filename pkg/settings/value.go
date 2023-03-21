@@ -65,7 +65,7 @@ type Value interface {
 }
 
 var (
-	cacher = cache.MustNew(context.Background())
+	cacher = cache.MustNewMemory(context.Background())
 	logger = log.WithName("settings")
 )
 
@@ -81,7 +81,7 @@ func (v value) Name() string {
 
 // Value implements the Value interface.
 func (v value) Value(ctx context.Context, client model.ClientSet) (string, error) {
-	var cachedValue, err = cacher.Get(v.refer.Name)
+	var cachedValue, err = cacher.Get(ctx, v.refer.Name)
 	if err == nil {
 		return string(cachedValue), nil
 	}
@@ -93,7 +93,7 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 		return "", fmt.Errorf("error gettig %s: %w",
 			v.refer.Name, err)
 	}
-	err = cacher.Set(v.refer.Name, []byte(dbValue.Value))
+	err = cacher.Set(ctx, v.refer.Name, []byte(dbValue.Value))
 	if err != nil {
 		logger.Warnf("error caching %s: %v",
 			v.refer.Name, err)
@@ -239,7 +239,7 @@ func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw inte
 	if err != nil {
 		return false, err
 	}
-	err = cacher.Delete(v.refer.Name)
+	err = cacher.Delete(ctx, v.refer.Name)
 	if err != nil {
 		logger.Warnf("error discaching %s: %v",
 			v.refer.Name, err)
@@ -270,7 +270,7 @@ func (v value) Cas(ctx context.Context, client model.ClientSet, op func(oldVal s
 		if err != nil {
 			return err
 		}
-		err = cacher.Set(v.refer.Name, []byte(newVal))
+		err = cacher.Set(ctx, v.refer.Name, []byte(newVal))
 		if err != nil {
 			logger.Warnf("error caching %s: %v",
 				v.refer.Name, err)

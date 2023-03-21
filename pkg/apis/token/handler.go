@@ -113,7 +113,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	}
 
 	// clean cache.
-	cache.CleanTokenSubjects()
+	cache.CleanTokenSubjects(ctx)
 	return nil
 }
 

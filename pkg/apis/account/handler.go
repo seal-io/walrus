@@ -57,7 +57,7 @@ func Logout() runtime.Handle {
 
 		// interrupt session
 		_ = casdoor.InterruptSession(ctx.Writer, []*req.HttpCookie{internalSession})
-		cache.CleanSessionSubject(string(internalSession.Value()))
+		cache.CleanSessionSubject(ctx, string(internalSession.Value()))
 	}
 }
 

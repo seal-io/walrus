@@ -2,7 +2,10 @@ package cache
 
 import (
 	"bytes"
+	"context"
 	"strings"
+
+	"github.com/seal-io/seal/utils/cache"
 )
 
 const (
@@ -13,7 +16,7 @@ const (
 const sessionKeyPrefix = "session:"
 
 // StoreSessionSubject stores the subject via the given session as the given status.
-func StoreSessionSubject(sessionValue, subject string, active bool) {
+func StoreSessionSubject(ctx context.Context, sessionValue, subject string, active bool) {
 	if sessionValue == "" {
 		return
 	}
@@ -21,17 +24,17 @@ func StoreSessionSubject(sessionValue, subject string, active bool) {
 	if active {
 		suffix = activeSuffix
 	}
-	_ = cacher.Set(sessionKeyPrefix+sessionValue, []byte(subject+suffix))
+	_ = cacher.Set(ctx, sessionKeyPrefix+sessionValue, []byte(subject+suffix))
 }
 
 // LoadSessionSubject checks the given session is active,
 // if the session is active, returns the subject,
 // if the session is inactive, returns a none nil subject,
 // if the session is not recorded, returns a nil subject.
-func LoadSessionSubject(sessionValue string) (*string, bool) {
+func LoadSessionSubject(ctx context.Context, sessionValue string) (*string, bool) {
 	sessionValue = strings.TrimSpace(sessionValue)
 	if sessionValue != "" {
-		var bs, _ = cacher.Get(sessionKeyPrefix + sessionValue)
+		var bs, _ = cacher.Get(ctx, sessionKeyPrefix+sessionValue)
 		if len(bs) < 7 {
 			return nil, false
 		}
@@ -48,32 +51,26 @@ func LoadSessionSubject(sessionValue string) (*string, bool) {
 }
 
 // CleanSessionSubject cleans the subject of the given session.
-func CleanSessionSubject(sessionValue string) {
+func CleanSessionSubject(ctx context.Context, sessionValue string) {
 	if sessionValue == "" {
 		return
 	}
-	_ = cacher.Delete(sessionKeyPrefix + sessionValue)
+	_ = cacher.Delete(ctx, sessionKeyPrefix+sessionValue)
 }
 
 // CleanSessionSubjects cleans all subjects about session.
-func CleanSessionSubjects() {
-	var it = cacher.Iterator()
-	for it.SetNext() {
-		var e, err = it.Value()
-		if err != nil {
-			break
-		}
-		var key = e.Key()
-		if strings.HasPrefix(key, sessionKeyPrefix) {
-			_ = cacher.Delete(key)
-		}
-	}
+func CleanSessionSubjects(ctx context.Context) {
+	_ = cacher.Iterate(ctx, cache.HasPrefix(sessionKeyPrefix),
+		func(ctx context.Context, e cache.Entry) (bool, error) {
+			_ = cacher.Delete(ctx, e.Key())
+			return true, nil
+		})
 }
 
 const tokenKeyPrefix = "token:"
 
 // StoreTokenSubject stores the subject via the given token as the given status.
-func StoreTokenSubject(tokenValue, subject string, active bool) {
+func StoreTokenSubject(ctx context.Context, tokenValue, subject string, active bool) {
 	if tokenValue == "" {
 		return
 	}
@@ -81,17 +78,17 @@ func StoreTokenSubject(tokenValue, subject string, active bool) {
 	if active {
 		suffix = activeSuffix
 	}
-	_ = cacher.Set(tokenKeyPrefix+tokenValue, []byte(subject+suffix))
+	_ = cacher.Set(ctx, tokenKeyPrefix+tokenValue, []byte(subject+suffix))
 }
 
 // LoadTokenSubject loads the subject via the given token,
 // if the token is active, returns the subject,
 // if the token is inactive, returns a none nil subject,
 // if the token is not recorded, returns a nil subject.
-func LoadTokenSubject(tokenValue string) (*string, bool) {
+func LoadTokenSubject(ctx context.Context, tokenValue string) (*string, bool) {
 	tokenValue = strings.TrimSpace(tokenValue)
 	if tokenValue != "" {
-		var bs, _ = cacher.Get(tokenKeyPrefix + tokenValue)
+		var bs, _ = cacher.Get(ctx, tokenKeyPrefix+tokenValue)
 		if len(bs) < 7 {
 			return nil, false
 		}
@@ -108,24 +105,18 @@ func LoadTokenSubject(tokenValue string) (*string, bool) {
 }
 
 // CleanTokenSubject cleans the subject of the given token.
-func CleanTokenSubject(tokenValue string) {
+func CleanTokenSubject(ctx context.Context, tokenValue string) {
 	if tokenValue == "" {
 		return
 	}
-	_ = cacher.Delete(tokenKeyPrefix + tokenValue)
+	_ = cacher.Delete(ctx, tokenKeyPrefix+tokenValue)
 }
 
 // CleanTokenSubjects cleans all subjects about token.
-func CleanTokenSubjects() {
-	var it = cacher.Iterator()
-	for it.SetNext() {
-		var e, err = it.Value()
-		if err != nil {
-			break
-		}
-		var key = e.Key()
-		if strings.HasPrefix(key, tokenKeyPrefix) {
-			_ = cacher.Delete(key)
-		}
-	}
+func CleanTokenSubjects(ctx context.Context) {
+	_ = cacher.Iterate(ctx, cache.HasPrefix(tokenKeyPrefix),
+		func(ctx context.Context, e cache.Entry) (bool, error) {
+			_ = cacher.Delete(ctx, e.Key())
+			return true, nil
+		})
 }

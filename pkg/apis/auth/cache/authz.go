@@ -1,9 +1,10 @@
 package cache
 
 import (
-	"strings"
+	"context"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/cache"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -15,24 +16,24 @@ type SubjectPermission struct {
 }
 
 // StoreSubjectPermission stores the subject permission with the given subject.
-func StoreSubjectPermission(subject string, permission SubjectPermission) {
+func StoreSubjectPermission(ctx context.Context, subject string, permission SubjectPermission) {
 	if subject == "" {
 		return
 	}
 	var bs, err = json.Marshal(permission)
 	if err == nil {
-		_ = cacher.Set(subjectPermissionKeyPrefix+subject, bs)
+		_ = cacher.Set(ctx, subjectPermissionKeyPrefix+subject, bs)
 	}
 }
 
 // LoadSubjectPermission loads the subject permission via the given subject,
 // if the subject is cached, returns the SubjectPermission,
 // if the subject is not cached, returns a nil SubjectPermission.
-func LoadSubjectPermission(subject string) (*SubjectPermission, bool) {
+func LoadSubjectPermission(ctx context.Context, subject string) (*SubjectPermission, bool) {
 	if subject == "" {
 		return nil, false
 	}
-	var bs, _ = cacher.Get(subjectPermissionKeyPrefix + subject)
+	var bs, _ = cacher.Get(ctx, subjectPermissionKeyPrefix+subject)
 	if len(bs) > 0 {
 		var permission SubjectPermission
 		var err = json.Unmarshal(bs, &permission)
@@ -44,24 +45,18 @@ func LoadSubjectPermission(subject string) (*SubjectPermission, bool) {
 }
 
 // CleanSubjectPermission cleans the subject permission of the given subject.
-func CleanSubjectPermission(subject string) {
+func CleanSubjectPermission(ctx context.Context, subject string) {
 	if subject == "" {
 		return
 	}
-	_ = cacher.Delete(subjectPermissionKeyPrefix + subject)
+	_ = cacher.Delete(ctx, subjectPermissionKeyPrefix+subject)
 }
 
 // CleanSubjectPermissions cleans all subject permissions.
-func CleanSubjectPermissions() {
-	var it = cacher.Iterator()
-	for it.SetNext() {
-		var e, err = it.Value()
-		if err != nil {
-			break
-		}
-		var key = e.Key()
-		if strings.HasPrefix(key, subjectPermissionKeyPrefix) {
-			_ = cacher.Delete(key)
-		}
-	}
+func CleanSubjectPermissions(ctx context.Context) {
+	_ = cacher.Iterate(ctx, cache.HasPrefix(subjectPermissionKeyPrefix),
+		func(ctx context.Context, e cache.Entry) (bool, error) {
+			_ = cacher.Delete(ctx, e.Key())
+			return true, nil
+		})
 }

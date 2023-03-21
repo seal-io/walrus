@@ -2,8 +2,13 @@ package cache
 
 import (
 	"context"
+	"time"
 
 	"github.com/seal-io/seal/utils/cache"
 )
 
-var cacher = cache.MustNew(context.Background())
+// cacher keeps authn using process cache.
+var cacher = cache.MustNewMemoryWithConfig(context.Background(),
+	cache.MemoryConfig{
+		EntryMaxAge: 5 * time.Minute,
+	})
