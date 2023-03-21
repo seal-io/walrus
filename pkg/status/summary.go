@@ -1,6 +1,8 @@
 package status
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -46,8 +48,22 @@ type Summarizer struct {
 	// Unknown == error
 	errorUnknownTransitioningTrue map[status.ConditionType]string
 
-	// condition types in sequence
+	// condition types in sequence.
 	conditionTypes []status.ConditionType
+
+	// reasons mapping keep the error identifier for condition type,
+	// for example:
+	// conditionType 'Processing', reason 'ReplicaSetUpdatedReason' and 'NewReplicaSetAvailable' both have True status,
+	// could use reason to mark ReplicaSetUpdatedReason is in transitioning.
+
+	// errorReasons keep programmatic identifier for error.
+	errorReasons map[status.ConditionType]sets.Set[string]
+
+	// transitioningReasons keep programmatic identifier for transitioning.
+	transitioningReasons map[status.ConditionType]sets.Set[string]
+
+	// readyReasons keep programmatic identifier for ready.
+	readyReasons map[status.ConditionType]sets.Set[string]
 }
 
 // AddErrorFalseTransitioningUnknown add condition which treat condition status
@@ -63,7 +79,7 @@ func (s *Summarizer) AddErrorFalseTransitioningUnknown(conditionType status.Cond
 	s.errorFalseTransitioningUnknown[conditionType] = inTransitioningDisplay
 }
 
-// AddErrorFalseTransitioningTrue add condition which treat condition status
+// AddErrorFalseTransitioningTrue add condition which treat condition status.
 // False == error
 // Unknown == success
 // True == transitioning
@@ -76,7 +92,7 @@ func (s *Summarizer) AddErrorFalseTransitioningTrue(conditionType status.Conditi
 	s.errorFalseTransitioningTrue[conditionType] = inTransitioningDisplay
 }
 
-// AddErrorTrueTransitioningUnknown add condition which treat condition status
+// AddErrorTrueTransitioningUnknown add condition which treat condition status.
 // False == success
 // Unknown == transitioning
 // True == error
@@ -89,7 +105,7 @@ func (s *Summarizer) AddErrorTrueTransitioningUnknown(conditionType status.Condi
 	s.errorTrueTransitioningUnknown[conditionType] = inTransitioningDisplay
 }
 
-// AddErrorTrueTransitioningFalse add condition which treat condition status
+// AddErrorTrueTransitioningFalse add condition which treat condition status.
 // False == transitioning
 // Unknown == success
 // True == error
@@ -102,7 +118,7 @@ func (s *Summarizer) AddErrorTrueTransitioningFalse(conditionType status.Conditi
 	s.errorTrueTransitioningFalse[conditionType] = inTransitioningDisplay
 }
 
-// AddErrorUnknownTransitioningFalse add condition which treat condition status
+// AddErrorUnknownTransitioningFalse add condition which treat condition status.
 // False == transitioning
 // Unknown == error
 // True == success
@@ -115,7 +131,7 @@ func (s *Summarizer) AddErrorUnknownTransitioningFalse(conditionType status.Cond
 	s.errorUnknownTransitioningFalse[conditionType] = inTransitioningDisplay
 }
 
-// AddErrorUnknownTransitioningTrue add condition which treat condition status
+// AddErrorUnknownTransitioningTrue add condition which treat condition status.
 // False == success
 // Unknown == error
 // True == transitioning
@@ -128,29 +144,68 @@ func (s *Summarizer) AddErrorUnknownTransitioningTrue(conditionType status.Condi
 	s.errorUnknownTransitioningTrue[conditionType] = inTransitioningDisplay
 }
 
-// SetSummarize summarize conditions in the status and set summary to status
-func (s *Summarizer) SetSummarize(st *status.Status) {
-	// reset
-	st.Summary.Error = false
-	st.Summary.Transitioning = false
-	st.Summary.Status = ""
-	st.Summary.StatusMessage = ""
+func (s *Summarizer) AddErrorReason(conditionType status.ConditionType, reason ...string) {
+	if s.errorReasons == nil {
+		s.errorReasons = make(map[status.ConditionType]sets.Set[string])
+	}
 
-	summarizers := []func(st *status.Status){
+	if _, ok := s.errorReasons[conditionType]; !ok {
+		s.errorReasons[conditionType] = sets.Set[string]{}
+	}
+
+	s.errorReasons[conditionType].Insert(reason...)
+}
+
+// AddTransitionReason add reason for specific condition type.
+func (s *Summarizer) AddTransitionReason(conditionType status.ConditionType, reason ...string) {
+	if s.transitioningReasons == nil {
+		s.transitioningReasons = make(map[status.ConditionType]sets.Set[string])
+	}
+
+	if _, ok := s.transitioningReasons[conditionType]; !ok {
+		s.transitioningReasons[conditionType] = sets.Set[string]{}
+	}
+	s.transitioningReasons[conditionType].Insert(reason...)
+}
+
+func (s *Summarizer) AddReadyReason(conditionType status.ConditionType, reason ...string) {
+	if s.readyReasons == nil {
+		s.readyReasons = make(map[status.ConditionType]sets.Set[string])
+	}
+
+	if _, ok := s.readyReasons[conditionType]; !ok {
+		s.readyReasons[conditionType] = sets.Set[string]{}
+	}
+	s.readyReasons[conditionType].Insert(reason...)
+}
+
+// Summarize summarize conditions from status.
+func (s *Summarizer) Summarize(st *status.Status) *status.Summary {
+	// init
+	summary := &status.Summary{
+		Error:                false,
+		Transitioning:        false,
+		SummaryStatus:        "",
+		SummaryStatusMessage: "",
+	}
+
+	summarizers := []func(st *status.Status, summary *status.Summary){
 		s.summarizeErrors,
 		s.summarizeTransitioning,
+		s.summarizeReason,
 	}
 
 	for _, summarizer := range summarizers {
-		summarizer(st)
+		summarizer(st, summary)
 	}
 
-	if st.Status == "" {
-		st.Status = string(s.defaultType)
+	if summary.SummaryStatus == "" {
+		summary.SummaryStatus = string(s.defaultType)
 	}
+	return summary
 }
 
-func (s *Summarizer) summarizeErrors(st *status.Status) {
+func (s *Summarizer) summarizeErrors(st *status.Status, summary *status.Summary) {
 	for _, v := range s.conditionTypes {
 		c := getCondition(st.Conditions, v)
 		if c == nil {
@@ -162,36 +217,36 @@ func (s *Summarizer) summarizeErrors(st *status.Status) {
 			_, ok1 := s.errorFalseTransitioningUnknown[c.Type]
 			_, ok2 := s.errorFalseTransitioningTrue[c.Type]
 			if ok1 || ok2 {
-				st.Status = string(c.Type)
-				st.Error = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = string(c.Type)
+				summary.Error = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 		case status.ConditionStatusTrue:
 			_, ok1 := s.errorTrueTransitioningUnknown[c.Type]
 			_, ok2 := s.errorTrueTransitioningFalse[c.Type]
 			if ok1 || ok2 {
-				st.Status = string(c.Type)
-				st.Error = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = string(c.Type)
+				summary.Error = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 		case status.ConditionStatusUnknown:
 			_, ok1 := s.errorUnknownTransitioningTrue[c.Type]
 			_, ok2 := s.errorUnknownTransitioningFalse[c.Type]
 			if ok1 || ok2 {
-				st.Status = string(c.Type)
-				st.Error = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = string(c.Type)
+				summary.Error = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 		}
 	}
 }
 
-func (s *Summarizer) summarizeTransitioning(st *status.Status) {
+func (s *Summarizer) summarizeTransitioning(st *status.Status, summary *status.Summary) {
 	// already set
-	if st.Error {
+	if summary.Error {
 		return
 	}
 
@@ -203,46 +258,93 @@ func (s *Summarizer) summarizeTransitioning(st *status.Status) {
 		switch c.Status {
 		case status.ConditionStatusFalse:
 			if tras, ok := s.errorUnknownTransitioningFalse[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 
 			if tras, ok := s.errorTrueTransitioningFalse[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 		case status.ConditionStatusTrue:
 			if tras, ok := s.errorUnknownTransitioningTrue[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 
 			if tras, ok := s.errorFalseTransitioningTrue[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 		case status.ConditionStatusUnknown:
 			if tras, ok := s.errorTrueTransitioningUnknown[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
 
 			if tras, ok := s.errorFalseTransitioningUnknown[c.Type]; ok {
-				st.Status = tras
-				st.Transitioning = true
-				st.StatusMessage = c.Message
+				summary.SummaryStatus = tras
+				summary.Transitioning = true
+				summary.SummaryStatusMessage = c.Message
 				return
 			}
+		}
+	}
+}
+
+func (s *Summarizer) summarizeReason(st *status.Status, summary *status.Summary) {
+	// already set
+	if summary.Error {
+		return
+	}
+
+	// error reason
+	for condType, v := range s.errorReasons {
+		c := getCondition(st.Conditions, condType)
+		if c == nil {
+			continue
+		}
+		if v.Has(c.Reason) {
+			summary.Error = true
+			return
+		}
+	}
+
+	// transition reason
+	for condType, v := range s.transitioningReasons {
+		c := getCondition(st.Conditions, condType)
+		if c == nil {
+			continue
+		}
+		if v.Has(c.Reason) {
+			summary.Transitioning = true
+			return
+		}
+	}
+
+	// ready reason
+	for condType, v := range s.readyReasons {
+		c := getCondition(st.Conditions, condType)
+		if c == nil {
+			continue
+		}
+		if v.Has(c.Reason) {
+			// reset to the default
+			summary.SummaryStatus = string(s.defaultType)
+			summary.SummaryStatusMessage = ""
+			summary.Error = false
+			summary.Transitioning = false
+			return
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // Type indicates the type of Operator,
@@ -24,7 +25,7 @@ type Operator interface {
 
 	// GetStatus gets status of the given resource,
 	// must returns "Unknown" if raises error.
-	GetStatus(context.Context, *model.ApplicationResource) (string, error)
+	GetStatus(context.Context, *model.ApplicationResource) (*status.Status, error)
 
 	// Log gets logs from the given key.
 	Log(context.Context, string, LogOptions) error

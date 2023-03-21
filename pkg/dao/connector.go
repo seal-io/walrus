@@ -36,9 +36,9 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 			// set init status
 			status.ConnectorStatusProvisioned.Unknown(r, "Provisioning connector")
 			status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")
-			r.Status.Status = status.ConnectorStatusProvisionedTransitioning
-			r.Status.StatusMessage = status.ConnectorStatusProvisionedTransitioning
-			r.Status.Transitioning = true
+			r.Status.SummaryStatus = status.ConnectorStatusProvisionedTransitioning
+			r.Status.SummaryStatusMessage = status.ConnectorStatusProvisionedTransitioning
+			r.Status.Summary.Transitioning = true
 
 			// set default custom pricing
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
@@ -66,7 +66,7 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 		SetDescription(input.Description).
 		SetEnableFinOps(input.EnableFinOps)
 
-	if input.Status.ConditionChanged() {
+	if input.Status.Changed() {
 		c.SetStatus(input.Status)
 	}
 

@@ -67,10 +67,10 @@ func Example_summary() {
 		ApplicationInstanceStatusDeployed.False(obj, err.Error())
 	}
 
-	// 6. summarize will set the summary status to obj
-	ExampleSummarize.SetSummarize(&obj.Status)
+	// 6. summarize the status for obj
+	summary := ExampleSummarize.Summarize(&obj.Status)
 
 	// 7. the summary status should include error
-	fmt.Println(obj.Status.Status, obj.Status.Error, obj.Status.StatusMessage)
+	fmt.Println(summary.SummaryStatus, summary.Error, summary.SummaryStatusMessage)
 	// Output: Deployed true example error
 }

@@ -15,6 +15,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/platformk8s/kubestatus"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 type (
@@ -52,6 +55,39 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 	}
 
 	return hr, nil
+}
+
+func GetReleaseStatus(ctx context.Context, res *model.ApplicationResource, opts GetReleaseOptions) (*status.Status, error) {
+	var hr, err = GetRelease(ctx, res, opts)
+	if err != nil {
+		return nil, fmt.Errorf("error getting helm release %s, %w", res.Name, err)
+	}
+	if hr.Info == nil {
+		return &kubestatus.GeneralStatusReadyTransitioning, nil
+	}
+
+	var isErr, isTransitioning bool
+	switch hr.Info.Status {
+	case release.StatusFailed:
+		isErr = true
+	case release.StatusUnknown,
+		release.StatusUninstalling,
+		release.StatusPendingInstall,
+		release.StatusPendingUpgrade,
+		release.StatusPendingRollback:
+		isTransitioning = true
+	default:
+		// release.StatusDeployed,
+		// release.StatusUninstalled,
+		// release.StatusSuperseded
+	}
+	return &status.Status{
+		Summary: status.Summary{
+			SummaryStatus: strs.Camelize(string(hr.Info.Status)),
+			Error:         isErr,
+			Transitioning: isTransitioning,
+		},
+	}, nil
 }
 
 // IncompleteRestClientGetter doesn't completely implement the genericclioptions.RESTClientGetter below k8s.io/cli-runtime/pkg,

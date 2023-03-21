@@ -152,12 +152,12 @@ func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector)
 	return nil
 }
 
-// UpdateStatus set summary and update the connector with locked
+// UpdateStatus set summary and update the connector with locked.
 func UpdateStatus(ctx context.Context, client model.ClientSet, conn *model.Connector) error {
-	if !conn.Status.ConditionChanged() {
+	conn.Status.SetSummary(StatusSummarizer.Summarize(&conn.Status))
+	if !conn.Status.Changed() {
 		return nil
 	}
-	StatusSummarizer.SetSummarize(&conn.Status)
 	return client.WithTx(ctx, func(tx *model.Tx) error {
 		_, err := client.Connectors().Query().
 			Where(connector.ID(conn.ID)).
