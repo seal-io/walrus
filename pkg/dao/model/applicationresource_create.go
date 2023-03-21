@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -28,34 +29,6 @@ type ApplicationResourceCreate struct {
 	mutation *ApplicationResourceMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
-}
-
-// SetStatus sets the "status" field.
-func (arc *ApplicationResourceCreate) SetStatus(s string) *ApplicationResourceCreate {
-	arc.mutation.SetStatus(s)
-	return arc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (arc *ApplicationResourceCreate) SetNillableStatus(s *string) *ApplicationResourceCreate {
-	if s != nil {
-		arc.SetStatus(*s)
-	}
-	return arc
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (arc *ApplicationResourceCreate) SetStatusMessage(s string) *ApplicationResourceCreate {
-	arc.mutation.SetStatusMessage(s)
-	return arc
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (arc *ApplicationResourceCreate) SetNillableStatusMessage(s *string) *ApplicationResourceCreate {
-	if s != nil {
-		arc.SetStatusMessage(*s)
-	}
-	return arc
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -125,6 +98,20 @@ func (arc *ApplicationResourceCreate) SetName(s string) *ApplicationResourceCrea
 // SetDeployerType sets the "deployerType" field.
 func (arc *ApplicationResourceCreate) SetDeployerType(s string) *ApplicationResourceCreate {
 	arc.mutation.SetDeployerType(s)
+	return arc
+}
+
+// SetStatus sets the "status" field.
+func (arc *ApplicationResourceCreate) SetStatus(trs types.ApplicationResourceStatus) *ApplicationResourceCreate {
+	arc.mutation.SetStatus(trs)
+	return arc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (arc *ApplicationResourceCreate) SetNillableStatus(trs *types.ApplicationResourceStatus) *ApplicationResourceCreate {
+	if trs != nil {
+		arc.SetStatus(*trs)
+	}
 	return arc
 }
 
@@ -305,14 +292,6 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := arc.mutation.Status(); ok {
-		_spec.SetField(applicationresource.FieldStatus, field.TypeString, value)
-		_node.Status = value
-	}
-	if value, ok := arc.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationresource.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
-	}
 	if value, ok := arc.mutation.CreateTime(); ok {
 		_spec.SetField(applicationresource.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -340,6 +319,10 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 	if value, ok := arc.mutation.DeployerType(); ok {
 		_spec.SetField(applicationresource.FieldDeployerType, field.TypeString, value)
 		_node.DeployerType = value
+	}
+	if value, ok := arc.mutation.Status(); ok {
+		_spec.SetField(applicationresource.FieldStatus, field.TypeJSON, value)
+		_node.Status = value
 	}
 	if nodes := arc.mutation.InstanceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -390,7 +373,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 // of the `INSERT` statement. For example:
 //
 //	client.ApplicationResource.Create().
-//		SetStatus(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -399,7 +382,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationResourceUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (arc *ApplicationResourceCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationResourceUpsertOne {
@@ -435,8 +418,20 @@ type (
 	}
 )
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ApplicationResourceUpsert) SetUpdateTime(v time.Time) *ApplicationResourceUpsert {
+	u.Set(applicationresource.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ApplicationResourceUpsert) UpdateUpdateTime() *ApplicationResourceUpsert {
+	u.SetExcluded(applicationresource.FieldUpdateTime)
+	return u
+}
+
 // SetStatus sets the "status" field.
-func (u *ApplicationResourceUpsert) SetStatus(v string) *ApplicationResourceUpsert {
+func (u *ApplicationResourceUpsert) SetStatus(v types.ApplicationResourceStatus) *ApplicationResourceUpsert {
 	u.Set(applicationresource.FieldStatus, v)
 	return u
 }
@@ -450,36 +445,6 @@ func (u *ApplicationResourceUpsert) UpdateStatus() *ApplicationResourceUpsert {
 // ClearStatus clears the value of the "status" field.
 func (u *ApplicationResourceUpsert) ClearStatus() *ApplicationResourceUpsert {
 	u.SetNull(applicationresource.FieldStatus)
-	return u
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationResourceUpsert) SetStatusMessage(v string) *ApplicationResourceUpsert {
-	u.Set(applicationresource.FieldStatusMessage, v)
-	return u
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationResourceUpsert) UpdateStatusMessage() *ApplicationResourceUpsert {
-	u.SetExcluded(applicationresource.FieldStatusMessage)
-	return u
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationResourceUpsert) ClearStatusMessage() *ApplicationResourceUpsert {
-	u.SetNull(applicationresource.FieldStatusMessage)
-	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationResourceUpsert) SetUpdateTime(v time.Time) *ApplicationResourceUpsert {
-	u.Set(applicationresource.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationResourceUpsert) UpdateUpdateTime() *ApplicationResourceUpsert {
-	u.SetExcluded(applicationresource.FieldUpdateTime)
 	return u
 }
 
@@ -555,8 +520,22 @@ func (u *ApplicationResourceUpsertOne) Update(set func(*ApplicationResourceUpser
 	return u
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ApplicationResourceUpsertOne) SetUpdateTime(v time.Time) *ApplicationResourceUpsertOne {
+	return u.Update(func(s *ApplicationResourceUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ApplicationResourceUpsertOne) UpdateUpdateTime() *ApplicationResourceUpsertOne {
+	return u.Update(func(s *ApplicationResourceUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
-func (u *ApplicationResourceUpsertOne) SetStatus(v string) *ApplicationResourceUpsertOne {
+func (u *ApplicationResourceUpsertOne) SetStatus(v types.ApplicationResourceStatus) *ApplicationResourceUpsertOne {
 	return u.Update(func(s *ApplicationResourceUpsert) {
 		s.SetStatus(v)
 	})
@@ -573,41 +552,6 @@ func (u *ApplicationResourceUpsertOne) UpdateStatus() *ApplicationResourceUpsert
 func (u *ApplicationResourceUpsertOne) ClearStatus() *ApplicationResourceUpsertOne {
 	return u.Update(func(s *ApplicationResourceUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationResourceUpsertOne) SetStatusMessage(v string) *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertOne) UpdateStatusMessage() *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationResourceUpsertOne) ClearStatusMessage() *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationResourceUpsertOne) SetUpdateTime(v time.Time) *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertOne) UpdateUpdateTime() *ApplicationResourceUpsertOne {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -743,7 +687,7 @@ func (arcb *ApplicationResourceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationResourceUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (arcb *ApplicationResourceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationResourceUpsertBulk {
@@ -846,8 +790,22 @@ func (u *ApplicationResourceUpsertBulk) Update(set func(*ApplicationResourceUpse
 	return u
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *ApplicationResourceUpsertBulk) SetUpdateTime(v time.Time) *ApplicationResourceUpsertBulk {
+	return u.Update(func(s *ApplicationResourceUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *ApplicationResourceUpsertBulk) UpdateUpdateTime() *ApplicationResourceUpsertBulk {
+	return u.Update(func(s *ApplicationResourceUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
-func (u *ApplicationResourceUpsertBulk) SetStatus(v string) *ApplicationResourceUpsertBulk {
+func (u *ApplicationResourceUpsertBulk) SetStatus(v types.ApplicationResourceStatus) *ApplicationResourceUpsertBulk {
 	return u.Update(func(s *ApplicationResourceUpsert) {
 		s.SetStatus(v)
 	})
@@ -864,41 +822,6 @@ func (u *ApplicationResourceUpsertBulk) UpdateStatus() *ApplicationResourceUpser
 func (u *ApplicationResourceUpsertBulk) ClearStatus() *ApplicationResourceUpsertBulk {
 	return u.Update(func(s *ApplicationResourceUpsert) {
 		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationResourceUpsertBulk) SetStatusMessage(v string) *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertBulk) UpdateStatusMessage() *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationResourceUpsertBulk) ClearStatusMessage() *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *ApplicationResourceUpsertBulk) SetUpdateTime(v time.Time) *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *ApplicationResourceUpsertBulk) UpdateUpdateTime() *ApplicationResourceUpsertBulk {
-	return u.Update(func(s *ApplicationResourceUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

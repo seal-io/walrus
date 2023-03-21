@@ -192,8 +192,6 @@ var (
 	// ApplicationResourcesColumns holds the columns for the "application_resources" table.
 	ApplicationResourcesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "module", Type: field.TypeString},
@@ -201,6 +199,7 @@ var (
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "deployer_type", Type: field.TypeString},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "instance_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -212,13 +211,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_resources_application_instances_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				Columns:    []*schema.Column{ApplicationResourcesColumns[9]},
 				RefColumns: []*schema.Column{ApplicationInstancesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_resources_connectors_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[11]},
+				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -227,12 +226,12 @@ var (
 			{
 				Name:    "applicationresource_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationResourcesColumns[4]},
+				Columns: []*schema.Column{ApplicationResourcesColumns[2]},
 			},
 			{
 				Name:    "applicationresource_instance_id_connector_id_module_mode_type_name",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationResourcesColumns[10], ApplicationResourcesColumns[11], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6], ApplicationResourcesColumns[7], ApplicationResourcesColumns[8]},
+				Columns: []*schema.Column{ApplicationResourcesColumns[9], ApplicationResourcesColumns[10], ApplicationResourcesColumns[3], ApplicationResourcesColumns[4], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6]},
 			},
 		},
 	}

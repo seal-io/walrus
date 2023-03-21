@@ -16,10 +16,6 @@ const (
 	Label = "application_resource"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
-	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -38,6 +34,8 @@ const (
 	FieldName = "name"
 	// FieldDeployerType holds the string denoting the deployertype field in the database.
 	FieldDeployerType = "deployer_type"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// EdgeInstance holds the string denoting the instance edge name in mutations.
 	EdgeInstance = "instance"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
@@ -63,8 +61,6 @@ const (
 // Columns holds all SQL columns for applicationresource fields.
 var Columns = []string{
 	FieldID,
-	FieldStatus,
-	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldInstanceID,
@@ -74,6 +70,7 @@ var Columns = []string{
 	FieldType,
 	FieldName,
 	FieldDeployerType,
+	FieldStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
