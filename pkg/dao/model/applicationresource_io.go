@@ -8,6 +8,7 @@ package model
 import (
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -26,10 +27,6 @@ func (in ApplicationResourceQueryInput) Model() *ApplicationResource {
 
 // ApplicationResourceCreateInput is the input for the ApplicationResource creation.
 type ApplicationResourceCreateInput struct {
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Name of the module that generates the resource.
 	Module string `json:"module"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
@@ -40,6 +37,8 @@ type ApplicationResourceCreateInput struct {
 	Name string `json:"name"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType"`
+	// Status of the resource.
+	Status types.ApplicationResourceStatus `json:"status,omitempty"`
 	// Application instance to which the resource belongs.
 	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Connector to which the resource deploys.
@@ -49,13 +48,12 @@ type ApplicationResourceCreateInput struct {
 // Model converts the ApplicationResourceCreateInput to ApplicationResource.
 func (in ApplicationResourceCreateInput) Model() *ApplicationResource {
 	var entity = &ApplicationResource{
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		Module:        in.Module,
-		Mode:          in.Mode,
-		Type:          in.Type,
-		Name:          in.Name,
-		DeployerType:  in.DeployerType,
+		Module:       in.Module,
+		Mode:         in.Mode,
+		Type:         in.Type,
+		Name:         in.Name,
+		DeployerType: in.DeployerType,
+		Status:       in.Status,
 	}
 	entity.InstanceID = in.Instance.ID
 	entity.ConnectorID = in.Connector.ID
@@ -67,17 +65,14 @@ type ApplicationResourceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
 	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	Status types.ApplicationResourceStatus `json:"status,omitempty"`
 }
 
 // Model converts the ApplicationResourceUpdateInput to ApplicationResource.
 func (in ApplicationResourceUpdateInput) Model() *ApplicationResource {
 	var entity = &ApplicationResource{
-		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
+		ID:     in.ID,
+		Status: in.Status,
 	}
 	return entity
 }
@@ -86,10 +81,6 @@ func (in ApplicationResourceUpdateInput) Model() *ApplicationResource {
 type ApplicationResourceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -104,6 +95,8 @@ type ApplicationResourceOutput struct {
 	Name string `json:"name,omitempty"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
+	// Status of the resource.
+	Status types.ApplicationResourceStatus `json:"status,omitempty"`
 	// Application instance to which the resource belongs.
 	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Connector to which the resource deploys.
@@ -116,18 +109,17 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		return nil
 	}
 	var entity = &ApplicationResourceOutput{
-		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		CreateTime:    in.CreateTime,
-		UpdateTime:    in.UpdateTime,
-		Module:        in.Module,
-		Mode:          in.Mode,
-		Type:          in.Type,
-		Name:          in.Name,
-		DeployerType:  in.DeployerType,
-		Instance:      ExposeApplicationInstance(in.Edges.Instance),
-		Connector:     ExposeConnector(in.Edges.Connector),
+		ID:           in.ID,
+		CreateTime:   in.CreateTime,
+		UpdateTime:   in.UpdateTime,
+		Module:       in.Module,
+		Mode:         in.Mode,
+		Type:         in.Type,
+		Name:         in.Name,
+		DeployerType: in.DeployerType,
+		Status:       in.Status,
+		Instance:     ExposeApplicationInstance(in.Edges.Instance),
+		Connector:    ExposeConnector(in.Edges.Connector),
 	}
 	if entity.Instance == nil {
 		entity.Instance = &ApplicationInstanceOutput{}

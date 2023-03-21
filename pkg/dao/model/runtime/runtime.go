@@ -222,16 +222,16 @@ func init() {
 	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
 	applicationresourceMixinHooks0 := applicationresourceMixin[0].Hooks()
 	applicationresource.Hooks[0] = applicationresourceMixinHooks0[0]
-	applicationresourceMixinFields2 := applicationresourceMixin[2].Fields()
-	_ = applicationresourceMixinFields2
+	applicationresourceMixinFields1 := applicationresourceMixin[1].Fields()
+	_ = applicationresourceMixinFields1
 	applicationresourceFields := schema.ApplicationResource{}.Fields()
 	_ = applicationresourceFields
 	// applicationresourceDescCreateTime is the schema descriptor for createTime field.
-	applicationresourceDescCreateTime := applicationresourceMixinFields2[0].Descriptor()
+	applicationresourceDescCreateTime := applicationresourceMixinFields1[0].Descriptor()
 	// applicationresource.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationresource.DefaultCreateTime = applicationresourceDescCreateTime.Default.(func() time.Time)
 	// applicationresourceDescUpdateTime is the schema descriptor for updateTime field.
-	applicationresourceDescUpdateTime := applicationresourceMixinFields2[1].Descriptor()
+	applicationresourceDescUpdateTime := applicationresourceMixinFields1[1].Descriptor()
 	// applicationresource.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.

@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // ApplicationResourceUpdate is the builder for updating ApplicationResource entities.
@@ -34,16 +35,22 @@ func (aru *ApplicationResourceUpdate) Where(ps ...predicate.ApplicationResource)
 	return aru
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (aru *ApplicationResourceUpdate) SetUpdateTime(t time.Time) *ApplicationResourceUpdate {
+	aru.mutation.SetUpdateTime(t)
+	return aru
+}
+
 // SetStatus sets the "status" field.
-func (aru *ApplicationResourceUpdate) SetStatus(s string) *ApplicationResourceUpdate {
-	aru.mutation.SetStatus(s)
+func (aru *ApplicationResourceUpdate) SetStatus(trs types.ApplicationResourceStatus) *ApplicationResourceUpdate {
+	aru.mutation.SetStatus(trs)
 	return aru
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (aru *ApplicationResourceUpdate) SetNillableStatus(s *string) *ApplicationResourceUpdate {
-	if s != nil {
-		aru.SetStatus(*s)
+func (aru *ApplicationResourceUpdate) SetNillableStatus(trs *types.ApplicationResourceStatus) *ApplicationResourceUpdate {
+	if trs != nil {
+		aru.SetStatus(*trs)
 	}
 	return aru
 }
@@ -51,32 +58,6 @@ func (aru *ApplicationResourceUpdate) SetNillableStatus(s *string) *ApplicationR
 // ClearStatus clears the value of the "status" field.
 func (aru *ApplicationResourceUpdate) ClearStatus() *ApplicationResourceUpdate {
 	aru.mutation.ClearStatus()
-	return aru
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (aru *ApplicationResourceUpdate) SetStatusMessage(s string) *ApplicationResourceUpdate {
-	aru.mutation.SetStatusMessage(s)
-	return aru
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (aru *ApplicationResourceUpdate) SetNillableStatusMessage(s *string) *ApplicationResourceUpdate {
-	if s != nil {
-		aru.SetStatusMessage(*s)
-	}
-	return aru
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (aru *ApplicationResourceUpdate) ClearStatusMessage() *ApplicationResourceUpdate {
-	aru.mutation.ClearStatusMessage()
-	return aru
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (aru *ApplicationResourceUpdate) SetUpdateTime(t time.Time) *ApplicationResourceUpdate {
-	aru.mutation.SetUpdateTime(t)
 	return aru
 }
 
@@ -156,20 +137,14 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 			}
 		}
 	}
-	if value, ok := aru.mutation.Status(); ok {
-		_spec.SetField(applicationresource.FieldStatus, field.TypeString, value)
-	}
-	if aru.mutation.StatusCleared() {
-		_spec.ClearField(applicationresource.FieldStatus, field.TypeString)
-	}
-	if value, ok := aru.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationresource.FieldStatusMessage, field.TypeString, value)
-	}
-	if aru.mutation.StatusMessageCleared() {
-		_spec.ClearField(applicationresource.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := aru.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := aru.mutation.Status(); ok {
+		_spec.SetField(applicationresource.FieldStatus, field.TypeJSON, value)
+	}
+	if aru.mutation.StatusCleared() {
+		_spec.ClearField(applicationresource.FieldStatus, field.TypeJSON)
 	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aru.schemaConfig)
@@ -195,16 +170,22 @@ type ApplicationResourceUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (aruo *ApplicationResourceUpdateOne) SetUpdateTime(t time.Time) *ApplicationResourceUpdateOne {
+	aruo.mutation.SetUpdateTime(t)
+	return aruo
+}
+
 // SetStatus sets the "status" field.
-func (aruo *ApplicationResourceUpdateOne) SetStatus(s string) *ApplicationResourceUpdateOne {
-	aruo.mutation.SetStatus(s)
+func (aruo *ApplicationResourceUpdateOne) SetStatus(trs types.ApplicationResourceStatus) *ApplicationResourceUpdateOne {
+	aruo.mutation.SetStatus(trs)
 	return aruo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (aruo *ApplicationResourceUpdateOne) SetNillableStatus(s *string) *ApplicationResourceUpdateOne {
-	if s != nil {
-		aruo.SetStatus(*s)
+func (aruo *ApplicationResourceUpdateOne) SetNillableStatus(trs *types.ApplicationResourceStatus) *ApplicationResourceUpdateOne {
+	if trs != nil {
+		aruo.SetStatus(*trs)
 	}
 	return aruo
 }
@@ -212,32 +193,6 @@ func (aruo *ApplicationResourceUpdateOne) SetNillableStatus(s *string) *Applicat
 // ClearStatus clears the value of the "status" field.
 func (aruo *ApplicationResourceUpdateOne) ClearStatus() *ApplicationResourceUpdateOne {
 	aruo.mutation.ClearStatus()
-	return aruo
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (aruo *ApplicationResourceUpdateOne) SetStatusMessage(s string) *ApplicationResourceUpdateOne {
-	aruo.mutation.SetStatusMessage(s)
-	return aruo
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (aruo *ApplicationResourceUpdateOne) SetNillableStatusMessage(s *string) *ApplicationResourceUpdateOne {
-	if s != nil {
-		aruo.SetStatusMessage(*s)
-	}
-	return aruo
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (aruo *ApplicationResourceUpdateOne) ClearStatusMessage() *ApplicationResourceUpdateOne {
-	aruo.mutation.ClearStatusMessage()
-	return aruo
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (aruo *ApplicationResourceUpdateOne) SetUpdateTime(t time.Time) *ApplicationResourceUpdateOne {
-	aruo.mutation.SetUpdateTime(t)
 	return aruo
 }
 
@@ -347,20 +302,14 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			}
 		}
 	}
-	if value, ok := aruo.mutation.Status(); ok {
-		_spec.SetField(applicationresource.FieldStatus, field.TypeString, value)
-	}
-	if aruo.mutation.StatusCleared() {
-		_spec.ClearField(applicationresource.FieldStatus, field.TypeString)
-	}
-	if value, ok := aruo.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationresource.FieldStatusMessage, field.TypeString, value)
-	}
-	if aruo.mutation.StatusMessageCleared() {
-		_spec.ClearField(applicationresource.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := aruo.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationresource.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := aruo.mutation.Status(); ok {
+		_spec.SetField(applicationresource.FieldStatus, field.TypeJSON, value)
+	}
+	if aruo.mutation.StatusCleared() {
+		_spec.ClearField(applicationresource.FieldStatus, field.TypeJSON)
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aruo.schemaConfig)

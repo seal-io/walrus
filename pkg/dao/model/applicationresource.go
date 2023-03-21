@@ -6,6 +6,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -23,10 +25,6 @@ type ApplicationResource struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -45,6 +43,8 @@ type ApplicationResource struct {
 	Name string `json:"name,omitempty"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
+	// Status of the resource.
+	Status types.ApplicationResourceStatus `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
 	Edges ApplicationResourceEdges `json:"edges,omitempty"`
@@ -92,9 +92,11 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case applicationresource.FieldStatus:
+			values[i] = new([]byte)
 		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID:
 			values[i] = new(oid.ID)
-		case applicationresource.FieldStatus, applicationresource.FieldStatusMessage, applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
+		case applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case applicationresource.FieldCreateTime, applicationresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -118,18 +120,6 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
-			}
-		case applicationresource.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				ar.Status = value.String
-			}
-		case applicationresource.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
-			} else if value.Valid {
-				ar.StatusMessage = value.String
 			}
 		case applicationresource.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -187,6 +177,14 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.DeployerType = value.String
 			}
+		case applicationresource.FieldStatus:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ar.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
+			}
 		}
 	}
 	return nil
@@ -225,12 +223,6 @@ func (ar *ApplicationResource) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationResource(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ar.ID))
-	builder.WriteString("status=")
-	builder.WriteString(ar.Status)
-	builder.WriteString(", ")
-	builder.WriteString("statusMessage=")
-	builder.WriteString(ar.StatusMessage)
-	builder.WriteString(", ")
 	if v := ar.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -261,6 +253,9 @@ func (ar *ApplicationResource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deployerType=")
 	builder.WriteString(ar.DeployerType)
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", ar.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

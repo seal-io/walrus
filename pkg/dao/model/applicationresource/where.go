@@ -61,16 +61,6 @@ func IDLTE(id oid.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldLTE(FieldID, id))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusMessage applies equality check predicate on the "statusMessage" field. It's identical to StatusMessageEQ.
-func StatusMessage(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldStatusMessage, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldCreateTime, v))
@@ -114,156 +104,6 @@ func Name(v string) predicate.ApplicationResource {
 // DeployerType applies equality check predicate on the "deployerType" field. It's identical to DeployerTypeEQ.
 func DeployerType(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldDeployerType, v))
-}
-
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGT(FieldStatus, v))
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGTE(FieldStatus, v))
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLT(FieldStatus, v))
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLTE(FieldStatus, v))
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldContains(FieldStatus, v))
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldStatus, v))
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldStatus, v))
-}
-
-// StatusIsNil applies the IsNil predicate on the "status" field.
-func StatusIsNil() predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldIsNull(FieldStatus))
-}
-
-// StatusNotNil applies the NotNil predicate on the "status" field.
-func StatusNotNil() predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNotNull(FieldStatus))
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEqualFold(FieldStatus, v))
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldContainsFold(FieldStatus, v))
-}
-
-// StatusMessageEQ applies the EQ predicate on the "statusMessage" field.
-func StatusMessageEQ(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageNEQ applies the NEQ predicate on the "statusMessage" field.
-func StatusMessageNEQ(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNEQ(FieldStatusMessage, v))
-}
-
-// StatusMessageIn applies the In predicate on the "statusMessage" field.
-func StatusMessageIn(vs ...string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageNotIn applies the NotIn predicate on the "statusMessage" field.
-func StatusMessageNotIn(vs ...string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNotIn(FieldStatusMessage, vs...))
-}
-
-// StatusMessageGT applies the GT predicate on the "statusMessage" field.
-func StatusMessageGT(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGT(FieldStatusMessage, v))
-}
-
-// StatusMessageGTE applies the GTE predicate on the "statusMessage" field.
-func StatusMessageGTE(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldGTE(FieldStatusMessage, v))
-}
-
-// StatusMessageLT applies the LT predicate on the "statusMessage" field.
-func StatusMessageLT(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLT(FieldStatusMessage, v))
-}
-
-// StatusMessageLTE applies the LTE predicate on the "statusMessage" field.
-func StatusMessageLTE(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldLTE(FieldStatusMessage, v))
-}
-
-// StatusMessageContains applies the Contains predicate on the "statusMessage" field.
-func StatusMessageContains(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldContains(FieldStatusMessage, v))
-}
-
-// StatusMessageHasPrefix applies the HasPrefix predicate on the "statusMessage" field.
-func StatusMessageHasPrefix(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldStatusMessage, v))
-}
-
-// StatusMessageHasSuffix applies the HasSuffix predicate on the "statusMessage" field.
-func StatusMessageHasSuffix(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldStatusMessage, v))
-}
-
-// StatusMessageIsNil applies the IsNil predicate on the "statusMessage" field.
-func StatusMessageIsNil() predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldIsNull(FieldStatusMessage))
-}
-
-// StatusMessageNotNil applies the NotNil predicate on the "statusMessage" field.
-func StatusMessageNotNil() predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldNotNull(FieldStatusMessage))
-}
-
-// StatusMessageEqualFold applies the EqualFold predicate on the "statusMessage" field.
-func StatusMessageEqualFold(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldEqualFold(FieldStatusMessage, v))
-}
-
-// StatusMessageContainsFold applies the ContainsFold predicate on the "statusMessage" field.
-func StatusMessageContainsFold(v string) predicate.ApplicationResource {
-	return predicate.ApplicationResource(sql.FieldContainsFold(FieldStatusMessage, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -809,6 +649,16 @@ func DeployerTypeEqualFold(v string) predicate.ApplicationResource {
 // DeployerTypeContainsFold applies the ContainsFold predicate on the "deployerType" field.
 func DeployerTypeContainsFold(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldDeployerType, v))
+}
+
+// StatusIsNil applies the IsNil predicate on the "status" field.
+func StatusIsNil() predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIsNull(FieldStatus))
+}
+
+// StatusNotNil applies the NotNil predicate on the "status" field.
+func StatusNotNil() predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotNull(FieldStatus))
 }
 
 // HasInstance applies the HasEdge predicate on the "instance" edge.

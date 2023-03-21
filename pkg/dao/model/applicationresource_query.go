@@ -347,12 +347,12 @@ func (arq *ApplicationResourceQuery) WithConnector(opts ...func(*ConnectorQuery)
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ApplicationResource.Query().
-//		GroupBy(applicationresource.FieldStatus).
+//		GroupBy(applicationresource.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (arq *ApplicationResourceQuery) GroupBy(field string, fields ...string) *ApplicationResourceGroupBy {
@@ -370,11 +370,11 @@ func (arq *ApplicationResourceQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty"`
 //	}
 //
 //	client.ApplicationResource.Query().
-//		Select(applicationresource.FieldStatus).
+//		Select(applicationresource.FieldCreateTime).
 //		Scan(ctx, &v)
 func (arq *ApplicationResourceQuery) Select(fields ...string) *ApplicationResourceSelect {
 	arq.ctx.Fields = append(arq.ctx.Fields, fields...)
