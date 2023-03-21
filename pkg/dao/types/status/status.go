@@ -1,7 +1,15 @@
 package status
 
 import (
+	"reflect"
+	"sort"
 	"time"
+)
+
+const (
+	GeneralStatusReady              ConditionType = "Ready"
+	GeneralStatusReadyTransitioning string        = "Provisioning" // transitioning status of Ready
+	GeneralStatusError              string        = "Error"        // error status of Ready
 )
 
 const (
@@ -36,20 +44,72 @@ const (
 	ApplicationRevisionStatusFailed    = "Failed"
 )
 
-// Status wrap the summary of conditions and condition details
+// Status wrap the summary of conditions and condition details.
 type Status struct {
 	Summary    `json:",inline"`
 	Conditions []Condition `json:"conditions,omitempty"`
 
-	// used for
+	// used for check whether status changed.
 	conditionChanged bool
+	summaryChanged   bool
 }
 
-func (s Status) ConditionChanged() bool {
-	return s.conditionChanged
+func (s *Status) Changed() bool {
+	return s.conditionChanged || s.summaryChanged
 }
 
-// Condition is the condition details
+func (s *Status) SetConditions(conds []Condition) {
+	// sort conditions
+	sortConditions := func(conds []Condition) {
+		sort.Slice(conds, func(i, j int) bool {
+			return conds[i].Type < conds[j].Type
+		})
+	}
+	sortConditions(s.Conditions)
+	sortConditions(conds)
+
+	// unchanged
+	if reflect.DeepEqual(s.Conditions, conds) {
+		s.conditionChanged = false
+	}
+
+	// change
+	s.Conditions = conds
+	s.conditionChanged = true
+}
+
+func (s *Status) SetSummary(summary *Summary) {
+	// unchanged
+	if reflect.DeepEqual(s.Summary, *summary) {
+		s.summaryChanged = false
+	}
+
+	// changed
+	s.summaryChanged = true
+	s.Summary = *summary
+}
+
+func (s Status) Equal(newStatue Status) bool {
+	if !reflect.DeepEqual(s.Summary, newStatue.Summary) {
+		return false
+	}
+
+	if len(s.Conditions) != len(newStatue.Conditions) {
+		return false
+	}
+
+	sortConditions := func(conds []Condition) {
+		sort.Slice(conds, func(i, j int) bool {
+			return conds[i].Type < conds[j].Type
+		})
+	}
+
+	sortConditions(s.Conditions)
+	sortConditions(newStatue.Conditions)
+	return reflect.DeepEqual(s.Conditions, newStatue.Conditions)
+}
+
+// Condition is the condition details.
 type Condition struct {
 	// type of condition in CamelCase.
 	Type ConditionType `json:"type,omitempty"`
@@ -59,12 +119,14 @@ type Condition struct {
 	LastUpdateTime time.Time `json:"lastUpdateTime,omitempty"`
 	// message is a human-readable message indicating details about the status.
 	Message string `json:"message,omitempty"`
+	// reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	Reason string `json:"reason"`
 }
 
-// Summary is the summary of conditions
+// Summary is the summary of conditions.
 type Summary struct {
-	Status        string `json:"status,omitempty"`
-	StatusMessage string `json:"statusMessage,omitempty"`
-	Error         bool   `json:"error,omitempty"`
-	Transitioning bool   `json:"transitioning,omitempty"`
+	SummaryStatus        string `json:"summaryStatus,omitempty"`
+	SummaryStatusMessage string `json:"summaryStatusMessage,omitempty"`
+	Error                bool   `json:"error,omitempty"`
+	Transitioning        bool   `json:"transitioning,omitempty"`
 }

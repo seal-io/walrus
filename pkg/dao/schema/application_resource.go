@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -17,7 +18,6 @@ type ApplicationResource struct {
 func (ApplicationResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
-		mixin.Status{},
 		mixin.Time{},
 	}
 }
@@ -65,6 +65,9 @@ func (ApplicationResource) Fields() []ent.Field {
 			Comment("Type of deployer.").
 			NotEmpty().
 			Immutable(),
+		field.JSON("status", types.ApplicationResourceStatus{}).
+			Comment("Status of the resource.").
+			Optional(),
 	}
 }
 
