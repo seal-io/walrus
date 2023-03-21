@@ -25,6 +25,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/ogen-go/ogen v0.58.0
 	github.com/opencost/opencost v1.100.1
+	github.com/redis/go-redis/v9 v9.0.2
 	github.com/sashabaranov/go-openai v1.5.4
 	github.com/seal-io/seal/utils v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
@@ -106,12 +107,13 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/containerd/containerd v1.6.15 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.8.0 // indirect
 	github.com/docker/cli v20.10.21+incompatible // indirect
