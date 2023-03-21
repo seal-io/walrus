@@ -3,6 +3,7 @@ package platformtf
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -10,7 +11,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
+	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,6 +22,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/platformk8s"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -35,8 +40,8 @@ const (
 
 	// _applicationRevisionIDLabel pod template label key for application revision id.
 	_applicationRevisionIDLabel = "seal.io/application-revision-id"
-	// _jobPrefix the prefix of job name.
-	_jobPrefix = "tf-job-%s-%s"
+	// _jobNameFormat the format of job name.
+	_jobNameFormat = "tf-job-%s-%s"
 	// _secretPrefix the prefix of secret name.
 	_secretPrefix = "tf-secret-"
 	// _secretMountPath the path to mount the secret.
@@ -196,7 +201,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 60
-		name                          = fmt.Sprintf(_jobPrefix, opts.Type, opts.ApplicationRevisionID)
+		name                          = getJobName(opts.ApplicationRevisionID, opts.Type)
 		configName                    = _secretPrefix + opts.ApplicationRevisionID
 	)
 	podTemplate := getPodTemplate(opts.ApplicationRevisionID, configName, opts)
@@ -292,4 +297,52 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 			},
 		},
 	}
+}
+
+func getJobName(applicationRevisionID string, jobType string) string {
+	return fmt.Sprintf(_jobNameFormat, jobType, applicationRevisionID)
+}
+
+// StreamJobLogs streams the logs of a job.
+func StreamJobLogs(ctx context.Context, cli *coreclient.CoreV1Client, revisionID types.ID, out io.Writer) error {
+	var (
+		jobName       = getJobName(revisionID.String(), _jobTypeApply)
+		labelSelector = "job-name=" + jobName
+	)
+
+	podList, err := cli.Pods(types.SealSystemNamespace).
+		List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
+	if err != nil {
+		return err
+	}
+	if len(podList.Items) == 0 {
+		return nil
+	}
+
+	var jobPod = podList.Items[0]
+	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
+		pod, getErr := cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{ResourceVersion: "0"})
+		if getErr != nil {
+			return false, getErr
+		}
+		return kube.IsPodReady(pod), nil
+	})
+	if err != nil {
+		return err
+	}
+	var states = kube.GetContainerStates(&jobPod)
+	if len(states) == 0 {
+		return nil
+	}
+
+	var (
+		containerName, containerType = states[0].Name, states[0].Type
+		follow                       = kube.IsContainerRunning(&jobPod, kube.Container{Type: containerType, Name: containerName})
+		podLogOpts                   = &corev1.PodLogOptions{
+			Container: containerName,
+			Follow:    follow,
+		}
+	)
+
+	return platformk8s.GetPodLogs(ctx, cli, types.SealSystemNamespace, jobPod.Name, out, podLogOpts)
 }
