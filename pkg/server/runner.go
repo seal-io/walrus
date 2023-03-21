@@ -211,8 +211,8 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "data-source-address",
 			Usage: "The addresses for connecting data source, e.g. " +
-				"Postgres(postgres://[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]), " +
-				"MySQL(mysql://[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]), " +
+				"Postgres(postgres://[user[:pass]@][protocol]host[:port]/dbname[?param1=value1&...&paramN=valueN]), " +
+				"MySQL(mysql://[user[:pass]@][protocol]host[:port]/dbname[?param1=value1&...&paramN=valueN]), " +
 				"SQLite3(file:dbpath[?param1=value1&...&paramN=valueN]).",
 			Destination: &r.DataSourceAddress,
 			Value:       r.DataSourceAddress,
@@ -264,7 +264,8 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "cache-source-address",
 			Usage: "The addresses for connecting cache source, e.g. " +
-				"Redis(redis://[username[:password]@][(address)]/dbname[?param1=value1&...&paramN=valueN]).",
+				"Redis(redis://[user[:pass]@]host[:port][/dbname][?param1=value1&...&paramN=valueN]), " +
+				"Redis Cluster(rediss://[user[:pass]@]host[:port]?addr=host2[:port2]&addr=host3[:port3][&param1=value1&...&paramN=valueN])",
 			Destination: &r.CacheSourceAddress,
 			Value:       r.CacheSourceAddress,
 		},
@@ -444,6 +445,7 @@ func (r *Server) Run(c context.Context) error {
 	var initOpts = initOptions{
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
+		CacheDriver: cdsDrv,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -488,6 +490,7 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 }
 
 func (r *Server) setDataSourceDriver(drv *sql.DB) {
+	drv.SetConnMaxIdleTime(-1)
 	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
 	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
 	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)

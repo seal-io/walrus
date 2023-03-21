@@ -6,12 +6,14 @@ import (
 
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/seal/pkg/cds"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
 type initOptions struct {
 	K8sConfig   *rest.Config
 	ModelClient *model.Client
+	CacheDriver cds.Driver
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {

@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/seal-io/seal/pkg/caches"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/utils/cache"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -64,10 +64,7 @@ type Value interface {
 	Cas(context.Context, model.ClientSet, func(oldVal string) (newVal string, err error)) error
 }
 
-var (
-	cacher = cache.MustNewMemory(context.Background())
-	logger = log.WithName("settings")
-)
+var logger = log.WithName("settings")
 
 // value holds the entity implemented the Value interface.
 type value struct {
@@ -81,7 +78,7 @@ func (v value) Name() string {
 
 // Value implements the Value interface.
 func (v value) Value(ctx context.Context, client model.ClientSet) (string, error) {
-	var cachedValue, err = cacher.Get(ctx, v.refer.Name)
+	var cachedValue, err = caches.Get(ctx, v.refer.Name)
 	if err == nil {
 		return string(cachedValue), nil
 	}
@@ -93,7 +90,7 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 		return "", fmt.Errorf("error gettig %s: %w",
 			v.refer.Name, err)
 	}
-	err = cacher.Set(ctx, v.refer.Name, []byte(dbValue.Value))
+	err = caches.Set(ctx, v.refer.Name, []byte(dbValue.Value))
 	if err != nil {
 		logger.Warnf("error caching %s: %v",
 			v.refer.Name, err)
@@ -239,7 +236,7 @@ func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw inte
 	if err != nil {
 		return false, err
 	}
-	err = cacher.Delete(ctx, v.refer.Name)
+	err = caches.Delete(ctx, v.refer.Name)
 	if err != nil {
 		logger.Warnf("error discaching %s: %v",
 			v.refer.Name, err)
@@ -270,7 +267,7 @@ func (v value) Cas(ctx context.Context, client model.ClientSet, op func(oldVal s
 		if err != nil {
 			return err
 		}
-		err = cacher.Set(ctx, v.refer.Name, []byte(newVal))
+		err = caches.Set(ctx, v.refer.Name, []byte(newVal))
 		if err != nil {
 			logger.Warnf("error caching %s: %v",
 				v.refer.Name, err)
