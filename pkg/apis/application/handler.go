@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
@@ -178,7 +179,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 // Extensional APIs
 
-func (h Handler) RouteDeploy(ctx *gin.Context, req view.RouteDeployRequest) error {
+func (h Handler) RouteDeploy(ctx *gin.Context, req view.RouteDeployRequest) (view.RouteDeployResponse, error) {
 	var entity = req.Model()
 
 	// get deployer.
@@ -189,7 +190,7 @@ func (h Handler) RouteDeploy(ctx *gin.Context, req view.RouteDeployRequest) erro
 	}
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// create/update instance, mark status to deploying.
@@ -216,12 +217,26 @@ func (h Handler) RouteDeploy(ctx *gin.Context, req view.RouteDeployRequest) erro
 		}).
 		ID(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
-	return dp.Apply(ctx, entity, applyOpts)
+	err = dp.Apply(ctx, entity, applyOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	applicationRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(applicationrevision.FieldID, applicationrevision.FieldCreateTime).
+		Where(applicationrevision.InstanceID(entity.ID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplicationRevision(applicationRevision), nil
 }

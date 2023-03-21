@@ -162,4 +162,4 @@ func (r *RouteDeployRequest) Model() *model.ApplicationInstance {
 	return entity
 }
 
-type RouteDeployResponse = *model.ApplicationInstanceOutput
+type RouteDeployResponse = *model.ApplicationRevisionOutput

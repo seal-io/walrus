@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,15 +49,27 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 	if opts.Tail {
 		stmOpts.TailLines = pointer.Int64(10)
 	}
-	stm, err := cli.Pods(ns).
-		GetLogs(pn, stmOpts).
+
+	return GetPodLogs(ctx, cli, ns, pn, opts.Out, stmOpts)
+}
+
+// GetPodLogs get the logs of a pod.
+func GetPodLogs(
+	ctx context.Context,
+	cli *coreclient.CoreV1Client,
+	namespace string,
+	name string,
+	w io.Writer,
+	opts *core.PodLogOptions,
+) error {
+	stm, err := cli.Pods(namespace).
+		GetLogs(name, opts).
 		Stream(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create log stream: %w", err)
 	}
 	defer func() { _ = stm.Close() }()
 	var r = bufio.NewReader(stm)
-	var w = opts.Out
 	for {
 		var bs []byte
 		bs, err = r.ReadBytes('\n')

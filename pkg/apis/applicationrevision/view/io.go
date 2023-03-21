@@ -69,3 +69,15 @@ type UpdateTerraformStatesRequest struct {
 	GetRequest      `uri:",inline"`
 	json.RawMessage `json:",inline"`
 }
+
+type StreamLogRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *StreamLogRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}

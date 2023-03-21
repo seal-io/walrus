@@ -92,6 +92,8 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 	return nil
 }
 
+type RouteUpgradeResponse = *model.ApplicationRevisionOutput
+
 type AccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
 

@@ -2,11 +2,15 @@ package applicationrevision
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -14,18 +18,21 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/topic/platformtf"
+	"github.com/seal-io/seal/pkg/platformtf"
+	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
 	"github.com/seal-io/seal/utils/log"
 )
 
-func Handle(mc model.ClientSet) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config) Handler {
 	return Handler{
 		modelClient: mc,
+		kubeConfig:  kc,
 	}
 }
 
 type Handler struct {
 	modelClient model.ClientSet
+	kubeConfig  *rest.Config
 }
 
 func (h Handler) Kind() string {
@@ -174,8 +181,17 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		return err
 	}
 
-	return platformtf.Notify(ctx, platformtf.Name, platformtf.TopicMessage{
+	return tftopic.Notify(ctx, tftopic.Name, tftopic.TopicMessage{
 		ModelClient:         h.modelClient,
 		ApplicationRevision: entity,
 	})
+}
+
+func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest) error {
+	var cli, err = coreclient.NewForConfig(h.kubeConfig)
+	if err != nil {
+		return fmt.Errorf("error creating kubernetes client: %w", err)
+	}
+
+	return platformtf.StreamJobLogs(ctx, cli, req.ID, ctx)
 }
