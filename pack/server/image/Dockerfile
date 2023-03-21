@@ -66,6 +66,19 @@ RUN set -eux; \
       gosu postgres echo "host  all  all   0.0.0.0/0     scram-sha-256" >> /etc/postgresql/main/pg_hba.conf && \
     gosu postgres /etc/init.d/postgresql stop
 
+# get redis
+VOLUME /var/lib/redis
+RUN set -eux; \
+	groupadd -r redis --gid=998; \
+	useradd -r -g redis --uid=998 --home-dir=/var/lib/redis --shell=/bin/bash redis; \
+	mkdir -p /var/lib/redis; \
+	chown -R redis:redis /var/lib/redis
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends \
+      redis \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
 # get k3s
 ENV K3S_IMAGE_DIR=/var/lib/seal/k3s/agent/images \
     K3S_MANIFEST_DIR=/var/lib/seal/k3s/server/manifests \

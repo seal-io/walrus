@@ -23,6 +23,7 @@ import (
 	klogv2 "k8s.io/klog/v2"
 
 	"github.com/seal-io/seal/pkg/casdoor"
+	"github.com/seal-io/seal/pkg/cds"
 	"github.com/seal-io/seal/pkg/dao/model"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // default = ent
 	"github.com/seal-io/seal/pkg/k8s"
@@ -58,6 +59,11 @@ type Server struct {
 	DataSourceDataEncryptAlg string
 	DataSourceDataEncryptKey []byte
 
+	CacheSourceAddress     string
+	CacheSourceConnMaxOpen int
+	CacheSourceConnMaxIdle int
+	CacheSourceMaxLife     time.Duration
+
 	EnableAuthn         bool
 	AuthnSessionMaxIdle time.Duration
 	CasdoorServer       string
@@ -65,18 +71,21 @@ type Server struct {
 
 func New() *Server {
 	return &Server{
-		BindAddress:           "0.0.0.0",
-		TlsCertDir:            filepath.FromSlash("/var/run/seal"),
-		ConnQPS:               10,
-		ConnBurst:             20,
-		KubeConnTimeout:       5 * time.Minute,
-		KubeConnQPS:           16,
-		KubeConnBurst:         64,
-		DataSourceConnMaxOpen: 15,
-		DataSourceConnMaxIdle: 5,
-		DataSourceConnMaxLife: 10 * time.Minute,
-		EnableAuthn:           true,
-		AuthnSessionMaxIdle:   30 * time.Minute,
+		BindAddress:            "0.0.0.0",
+		TlsCertDir:             filepath.FromSlash("/var/run/seal"),
+		ConnQPS:                10,
+		ConnBurst:              20,
+		KubeConnTimeout:        5 * time.Minute,
+		KubeConnQPS:            16,
+		KubeConnBurst:          64,
+		DataSourceConnMaxOpen:  15,
+		DataSourceConnMaxIdle:  5,
+		DataSourceConnMaxLife:  10 * time.Minute,
+		CacheSourceConnMaxOpen: 10,
+		CacheSourceConnMaxIdle: 5,
+		CacheSourceMaxLife:     1 * time.Hour,
+		EnableAuthn:            true,
+		AuthnSessionMaxIdle:    30 * time.Minute,
 	}
 }
 
@@ -252,6 +261,31 @@ func (r *Server) Flags(cmd *cli.Command) {
 				return nil
 			},
 		},
+		&cli.StringFlag{
+			Name: "cache-source-address",
+			Usage: "The addresses for connecting cache source, e.g. " +
+				"Redis(redis://[username[:password]@][(address)]/dbname[?param1=value1&...&paramN=valueN]).",
+			Destination: &r.CacheSourceAddress,
+			Value:       r.CacheSourceAddress,
+		},
+		&cli.IntFlag{
+			Name:        "cache-source-conn-max-open",
+			Usage:       "The maximum opening connections for connecting cache source.",
+			Destination: &r.CacheSourceConnMaxOpen,
+			Value:       r.CacheSourceConnMaxOpen,
+		},
+		&cli.IntFlag{
+			Name:        "cache-source-conn-max-idle",
+			Usage:       "The maximum idling connections for connecting cache source.",
+			Destination: &r.CacheSourceConnMaxIdle,
+			Value:       r.CacheSourceConnMaxIdle,
+		},
+		&cli.DurationFlag{
+			Name:        "cache-source-conn-max-life",
+			Usage:       "The maximum lifetime for connecting cache source.",
+			Destination: &r.CacheSourceMaxLife,
+			Value:       r.CacheSourceMaxLife,
+		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
 			Usage:       "Enable authentication",
@@ -323,11 +357,11 @@ func (r *Server) Run(c context.Context) error {
 			return fmt.Errorf("error getting embedded kubernetes config: %w", err)
 		}
 	}
+	r.setKubernetesConfig(k8sCfg)
 	// wait kubernetes to be ready.
 	if err = k8s.Wait(ctx, k8sCfg); err != nil {
 		return fmt.Errorf("error waiting kubernetes cluster ready: %w", err)
 	}
-	r.setKubernetesConfig(k8sCfg)
 
 	// load database driver.
 	rdsDrvDialect, rdsDrv, err := rds.LoadDriver(r.DataSourceAddress)
@@ -348,11 +382,36 @@ func (r *Server) Run(c context.Context) error {
 			return fmt.Errorf("error getting embedded database driver: %w", err)
 		}
 	}
+	r.setDataSourceDriver(rdsDrv)
 	// wait database to be ready.
 	if err = rds.Wait(ctx, rdsDrv); err != nil {
 		return fmt.Errorf("error waiting database ready: %w", err)
 	}
-	r.setDataSourceDriver(rdsDrv)
+
+	// load cache driver.
+	cdsDrvDialect, cdsDrv, err := cds.LoadDriver(r.CacheSourceAddress)
+	if err != nil {
+		// if not found, launch embedded cache
+		var e cds.Embedded
+		g.Go(func() error {
+			log.Info("running embedded cache")
+			var err = e.Run(ctx)
+			if err != nil {
+				log.Errorf("error running embedded cache: %v", err)
+			}
+			return err
+		})
+		// and get embedded cache driver.
+		r.CacheSourceAddress, cdsDrvDialect, cdsDrv, err = e.GetDriver(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting embedded cache driver: %w", err)
+		}
+	}
+	r.setCacheSourceDriver(cdsDrv)
+	// wait cache to be ready.
+	if err = cds.Wait(ctx, cdsDrv); err != nil {
+		return fmt.Errorf("error waiting cache ready: %w", err)
+	}
 
 	if r.EnableAuthn {
 		// enable authentication.
@@ -380,7 +439,7 @@ func (r *Server) Run(c context.Context) error {
 	}
 
 	// initialize some resources.
-	log.Info("initializing")
+	log.Infof("initializing with %s database, %s cache", rdsDrvDialect, cdsDrvDialect)
 	var modelClient = getModelClient(rdsDrvDialect, rdsDrv)
 	var initOpts = initOptions{
 		K8sConfig:   k8sCfg,
@@ -429,6 +488,13 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 }
 
 func (r *Server) setDataSourceDriver(drv *sql.DB) {
+	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
+	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
+	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)
+}
+
+func (r *Server) setCacheSourceDriver(drv cds.Driver) {
+	drv.SetConnMaxIdleTime(-1)
 	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
 	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
 	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)
