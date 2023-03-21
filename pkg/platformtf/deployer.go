@@ -505,9 +505,9 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		moduleSecrets []string
 		secrets       model.Secrets
 		entities      []struct {
-			ID    types.ID `json:"id"`
-			Name  string   `json:"name"`
-			Value string   `json:"value"`
+			ID    types.ID      `json:"id"`
+			Name  string        `json:"name"`
+			Value crypto.String `json:"value"`
 		}
 	)
 	for _, moduleConfig := range moduleConfigs {
