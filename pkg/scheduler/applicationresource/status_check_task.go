@@ -101,7 +101,7 @@ func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, l
 			if err != nil {
 				berr = multierr.Append(berr, err)
 			}
-			if st == entities[i].Status {
+			if entities[i].Status.Equal(*st) {
 				// do not update if the status is same as previous.
 				continue
 			}
@@ -109,7 +109,7 @@ func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, l
 			// TODO(thxCode): dig out the detail of status,
 			//   update to the status message.
 			err = in.modelClient.ApplicationResources().UpdateOne(entities[i]).
-				SetStatus(st).
+				SetStatus(*st).
 				Exec(ctx)
 			if err != nil {
 				if model.IsNotFound(err) {
