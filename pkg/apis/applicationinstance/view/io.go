@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 
+	"k8s.io/utils/pointer"
+
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -59,6 +61,8 @@ type CreateResponse = *model.ApplicationInstanceOutput
 
 type DeleteRequest struct {
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
+
+	Force *bool `query:"force,default=true"`
 }
 
 func (r *DeleteRequest) Validate() error {
@@ -66,6 +70,10 @@ func (r *DeleteRequest) Validate() error {
 		return errors.New("invalid id: blank")
 	}
 
+	if r.Force == nil {
+		// by default, clean deployed native resources too.
+		r.Force = pointer.Bool(true)
+	}
 	return nil
 }
 

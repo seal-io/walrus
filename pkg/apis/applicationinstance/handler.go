@@ -93,6 +93,12 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		return err
 	}
 
+	if req.Force != nil && !*req.Force {
+		// do not clean deployed native resources.
+		return h.modelClient.ApplicationInstances().DeleteOne(entity).
+			Exec(ctx)
+	}
+
 	// mark status to deleting.
 	entity, err = h.modelClient.ApplicationInstances().UpdateOne(entity).
 		SetStatus(status.ApplicationInstanceStatusDeleting).
