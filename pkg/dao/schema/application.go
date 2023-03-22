@@ -58,7 +58,7 @@ func (Application) Edges() []ent.Edge {
 		edge.To("instances", ApplicationInstance.Type).
 			Comment("Application instances that belong to this application.").
 			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
+				OnDelete: entsql.Restrict,
 			}),
 		// applications *-* modules.
 		edge.To("modules", Module.Type).
