@@ -230,7 +230,10 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 	}
-	ps = append(ps, distributor.FilterToSQLPredicates(cond.Filters)...)
+
+	if filterPs := distributor.FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, distributor.FilterToSQLPredicates(cond.Filters))
+	}
 
 	_, offset := req.StartTime.Zone()
 	days, err := h.allocationCostExistedDays(ctx, ps, offset)

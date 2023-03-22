@@ -117,7 +117,7 @@ func havingSQL(
 }
 
 // FilterToSQLPredicates create sql predicate from filters
-func FilterToSQLPredicates(filters types.AllocationCostFilters) []*sql.Predicate {
+func FilterToSQLPredicates(filters types.AllocationCostFilters) *sql.Predicate {
 	var or []*sql.Predicate
 	for _, cond := range filters {
 		var and []*sql.Predicate
@@ -131,7 +131,11 @@ func FilterToSQLPredicates(filters types.AllocationCostFilters) []*sql.Predicate
 			or = append(or, sql.And(and...))
 		}
 	}
-	return or
+
+	if len(or) == 0 {
+		return nil
+	}
+	return sql.Or(or...)
 }
 
 func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
