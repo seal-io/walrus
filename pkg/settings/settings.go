@@ -53,6 +53,9 @@ var (
 	// ResourceStatusCheckCronExpr indicates the cron expression of state application resource,
 	// default cron expression means stating every 1 minute.
 	ResourceStatusCheckCronExpr = newValue("ResourceStatusCheckCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
+	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to application resource linked kubernetes resource,
+	// default cron expression means stating every 2 minute.
+	ResourceLabelApplyCronExpr = newValue("ResourceLabelApplyCronExpr", editable, initializeFrom("0 */2 * ? * *"), modifyWith(notBlank, cronExpression))
 )
 
 // setting property list.

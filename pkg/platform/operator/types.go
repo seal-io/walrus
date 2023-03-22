@@ -36,6 +36,9 @@ type Operator interface {
 
 	// Exec executes commands to the given key.
 	Exec(context.Context, string, ExecOptions) error
+
+	// Label apply labels to the resource.
+	Label(context.Context, *model.ApplicationResource, map[string]string) error
 }
 
 // Keys holds key for next query,

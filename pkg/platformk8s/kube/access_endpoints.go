@@ -17,31 +17,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-const (
-	TFServiceType      = "kubernetes_service"
-	TFServiceTypeAlias = "kubernetes_service_v1"
-	TFIngressType      = "kubernetes_ingress"
-	TFIngressTypeAlias = "kubernetes_ingress_v1"
-)
-
-// GetEndpointResourceTypes indicate terraform resource types which will generate endpoints.
-func GetEndpointResourceTypes() []string {
-	return []string{
-		TFServiceType,
-		TFServiceTypeAlias,
-		TFIngressType,
-		TFIngressTypeAlias,
-	}
-}
-
 // GetEndpoints current support service and ingress, may support other resource types which include different endpoint types.
 func GetEndpoints(ctx context.Context, clientSet *kubernetes.Clientset, resourceType, resourceID string) (
 	eps []types.ApplicationResourceEndpoint, err error,
 ) {
 	switch resourceType {
-	case TFServiceType, TFServiceTypeAlias:
+	case "kubernetes_service", "kubernetes_service_v1":
 		eps, err = ServiceEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
-	case TFIngressType, TFIngressTypeAlias:
+	case "kubernetes_ingress", "kubernetes_ingress_v1":
 		eps, err = IngressEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
 	}
 	return eps, err

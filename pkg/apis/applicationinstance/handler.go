@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
+	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
 )
 
@@ -213,7 +213,7 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 		Where(
 			applicationresource.InstanceID(req.ID),
 			applicationresource.TypeIn(
-				kube.GetEndpointResourceTypes()...,
+				intercept.TFEndpointsTypes...,
 			),
 		).
 		Select(
