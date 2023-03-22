@@ -8,11 +8,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
-const (
-	ProviderK8s  = "kubernetes"
-	ProviderHelm = "helm"
-)
-
 // _providersToValidate if the required providers contains any
 // of the _providersToValidates, it must be contained of the
 // generated Blocks labels.
@@ -20,11 +15,6 @@ var _providersToValidate []string
 
 // _providerConvertors mutate the connector to provider block.
 var _providerConvertors = make(map[string]Convertor, 0)
-
-type ProviderConvertOptions struct {
-	SecretMountPath string
-	ConnSeparator   string
-}
 
 func init() {
 	convertors := []Convertor{

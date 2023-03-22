@@ -180,3 +180,13 @@ func AppendBlocks(tagert Blocks, appendBlocks ...Blocks) Blocks {
 
 	return tagert
 }
+
+// CountLen returns the length of the blocks.
+func CountLen(blocks ...Blocks) int {
+	var count int
+	for _, b := range blocks {
+		count += len(b)
+	}
+
+	return count
+}
