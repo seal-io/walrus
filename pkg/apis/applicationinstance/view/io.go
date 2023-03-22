@@ -11,7 +11,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Basic APIs
@@ -100,10 +99,6 @@ type AccessEndpointRequest struct {
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
 }
 
-type AccessEndpointResponse struct {
-	Endpoints []kube.ResourceEndpoint `json:"endpoints"`
-}
-
 func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
 	var modelClient = input.(model.ClientSet)
 
@@ -118,4 +113,19 @@ func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) err
 		return runtime.Error(http.StatusNotFound, "invalid id: not found")
 	}
 	return nil
+}
+
+type AccessEndpointResponse struct {
+	Endpoints []ResourceEndpoint `json:"endpoints"`
+}
+
+type ResourceEndpoint struct {
+	// ResourceID is the namespaced name.
+	ResourceID string `json:"resourceID,omitempty"`
+	// ResourceKind be Ingress or Service.
+	ResourceKind string `json:"resourceKind,omitempty"`
+	// ResourceSubKind is the sub kind for endpoint, like nodePort, loadBalance.
+	ResourceSubKind string `json:"resourceSubKind,omitempty"`
+	// Endpoints is access endpoints.
+	Endpoints []string `json:"endpoints,omitempty"`
 }

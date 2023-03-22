@@ -175,6 +175,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jszwec/csvutil v1.2.1 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/kubecost/events v0.0.6 // indirect
@@ -201,6 +202,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
+	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
