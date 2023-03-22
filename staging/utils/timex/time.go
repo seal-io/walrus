@@ -64,42 +64,67 @@ func StartOfYear(t time.Time, loc *time.Location) time.Time {
 	return carbon.FromStdTime(t).SetLocation(loc).StartOfYear().ToStdTime()
 }
 
-// GetTimeUnitSeries group by timeUnit (day, week, month, quarter, year) with time range,
-// return the time unit series.
-func GetTimeUnitSeries(start, end time.Time, timeUnit string, loc *time.Location) ([]time.Time, error) {
+// GetTimeSeries group by step (day, week, month, quarter, year) with time range,
+// return the time series.
+func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]time.Time, error) {
 	var timeSeries []time.Time
-	switch timeUnit {
+	switch step {
 	case Day:
 		start = StartOfDay(start, loc)
-		end = StartOfDay(end, loc)
+		startTimeOfEnd := StartOfDay(end, loc)
+		if !startTimeOfEnd.Equal(end) {
+			end = startTimeOfEnd
+		} else {
+			end = startTimeOfEnd.AddDate(0, 0, -1)
+		}
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfDay(start, loc))
 			start = start.AddDate(0, 0, 1)
 		}
 	case Week:
 		start = StartOfWeek(start, loc)
-		end = StartOfWeek(end, loc)
+		startTimeOfEnd := StartOfWeek(end, loc)
+		if !startTimeOfEnd.Equal(end) {
+			end = startTimeOfEnd
+		} else {
+			end = startTimeOfEnd.AddDate(0, 0, -7)
+		}
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfWeek(start, loc))
 			start = start.AddDate(0, 0, 7)
 		}
 	case Month:
 		start = StartOfMonth(start, loc)
-		end = StartOfMonth(end, loc)
+		startTimeOfEnd := StartOfMonth(end, loc)
+		if !startTimeOfEnd.Equal(end) {
+			end = startTimeOfEnd
+		} else {
+			end = startTimeOfEnd.AddDate(0, -1, 0)
+		}
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfMonth(start, loc))
 			start = start.AddDate(0, 1, 0)
 		}
 	case Quarter:
 		start = StartOfQuarter(start, loc)
-		end = StartOfQuarter(end, loc)
+		startTimeOfEnd := StartOfQuarter(end, loc)
+		if !startTimeOfEnd.Equal(end) {
+			end = startTimeOfEnd
+		} else {
+			end = startTimeOfEnd.AddDate(0, -3, 0)
+		}
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfQuarter(start, loc))
 			start = start.AddDate(0, 3, 0)
 		}
 	case Year:
 		start = StartOfYear(start, loc)
-		end = StartOfYear(end, loc)
+		startTimeOfEnd := StartOfYear(end, loc)
+		if !startTimeOfEnd.Equal(end) {
+			end = startTimeOfEnd
+		} else {
+			end = startTimeOfEnd.AddDate(-1, 0, 0)
+		}
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfYear(start, loc))
 			start = start.AddDate(1, 0, 0)
