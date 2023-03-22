@@ -60,7 +60,8 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 func GetReleaseStatus(ctx context.Context, res *model.ApplicationResource, opts GetReleaseOptions) (*status.Status, error) {
 	var hr, err = GetRelease(ctx, res, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting helm release %s, %w", res.Name, err)
+		err = fmt.Errorf("error getting helm release %s, %w", res.Name, err)
+		return kubestatus.StatusError(err.Error()), err
 	}
 	if hr.Info == nil {
 		return &kubestatus.GeneralStatusReadyTransitioning, nil
