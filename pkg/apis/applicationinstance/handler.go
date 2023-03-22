@@ -117,19 +117,6 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 // Batch APIs
 
-func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
-	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
-		for i := range req {
-			err = tx.ApplicationInstances().DeleteOne(req[i].Model()).
-				Exec(ctx)
-			if err != nil {
-				return err
-			}
-		}
-		return
-	})
-}
-
 var (
 	queryFields = []string{
 		applicationinstance.FieldName,
