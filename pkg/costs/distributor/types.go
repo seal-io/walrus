@@ -166,7 +166,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 	case types.OperatorIn:
 		pred = sql.In(fieldName, toArgs(cond.Values)...)
 	case types.OperatorNotIn:
-		pred = sql.NotIn(fieldName, toArgs(cond.Values))
+		pred = sql.NotIn(fieldName, toArgs(cond.Values)...)
 	}
 
 	return pred
