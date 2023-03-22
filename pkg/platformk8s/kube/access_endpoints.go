@@ -13,24 +13,41 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-type ResourceEndpoint struct {
-	// ResourceID is the namespaced name
-	ResourceID string `json:"resourceID,omitempty"`
-	// ResourceKind be Ingress or Service
-	ResourceKind string `json:"resourceKind,omitempty"`
-	// ResourceSubKind is the sub kind for endpoint, like nodePort, loadBalance
-	ResourceSubKind string `json:"resourceSubKind,omitempty"`
-	// Endpoints is access endpoints
-	Endpoints []string `json:"endpoints,omitempty"`
+const (
+	TFServiceType      = "kubernetes_service"
+	TFServiceTypeAlias = "kubernetes_service_v1"
+	TFIngressType      = "kubernetes_ingress"
+	TFIngressTypeAlias = "kubernetes_ingress_v1"
+)
+
+// GetEndpointResourceTypes indicate terraform resource types which will generate endpoints.
+func GetEndpointResourceTypes() []string {
+	return []string{
+		TFServiceType,
+		TFServiceTypeAlias,
+		TFIngressType,
+		TFIngressTypeAlias,
+	}
 }
 
-type EndpointGetter interface {
-	Endpoints(ctx context.Context, resourceID ...string) ([]ResourceEndpoint, error)
+// GetEndpoints current support service and ingress, may support other resource types which include different endpoint types.
+func GetEndpoints(ctx context.Context, clientSet *kubernetes.Clientset, resourceType, resourceID string) (
+	eps []types.ApplicationResourceEndpoint, err error,
+) {
+	switch resourceType {
+	case TFServiceType, TFServiceTypeAlias:
+		eps, err = ServiceEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
+	case TFIngressType, TFIngressTypeAlias:
+		eps, err = IngressEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
+	}
+	return eps, err
 }
 
-func ServiceEndpointGetter(clientSet *kubernetes.Clientset) EndpointGetter {
+func ServiceEndpointGetter(clientSet *kubernetes.Clientset) *serviceEndpointGetter {
 	return &serviceEndpointGetter{
 		clientSet: clientSet,
 	}
@@ -40,22 +57,7 @@ type serviceEndpointGetter struct {
 	clientSet *kubernetes.Clientset
 }
 
-func (s *serviceEndpointGetter) Endpoints(ctx context.Context, resourceIDs ...string) ([]ResourceEndpoint, error) {
-	var eps []ResourceEndpoint
-	for _, v := range resourceIDs {
-		ep, err := s.endpoint(ctx, v)
-		if err != nil {
-			return nil, err
-		}
-
-		if ep != nil {
-			eps = append(eps, *ep)
-		}
-	}
-	return eps, nil
-}
-
-func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string) (*ResourceEndpoint, error) {
+func (s *serviceEndpointGetter) GetEndpoints(ctx context.Context, resourceID string) ([]types.ApplicationResourceEndpoint, error) {
 	var rn = strings.SplitN(resourceID, "/", 2)
 	if len(rn) != 2 {
 		return nil, fmt.Errorf("invalid service namespaced name: %s", rn)
@@ -71,7 +73,6 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 	}
 
 	var (
-		resourceKind    = "Service"
 		resourceSubKind = string(svc.Spec.Type)
 		endpoints       []string
 	)
@@ -99,11 +100,12 @@ func (s *serviceEndpointGetter) endpoint(ctx context.Context, resourceID string)
 	if len(endpoints) == 0 {
 		return nil, nil
 	}
-	return &ResourceEndpoint{
-		ResourceID:      resourceID,
-		ResourceKind:    resourceKind,
-		ResourceSubKind: resourceSubKind,
-		Endpoints:       endpoints,
+
+	return []types.ApplicationResourceEndpoint{
+		{
+			EndpointType: resourceSubKind,
+			Endpoints:    endpoints,
+		},
 	}, nil
 }
 
@@ -149,7 +151,7 @@ func (s *serviceEndpointGetter) nodeIP(ctx context.Context, svc *apicorev1.Servi
 		internalIP string
 	)
 
-	// prefer external ip
+	// prefer external ip.
 	for _, node := range nodes {
 		for _, ip := range node.Status.Addresses {
 			if ip.Type == "ExternalIP" && ip.Address != "" {
@@ -180,7 +182,7 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 	return svc.Spec.LoadBalancerIP
 }
 
-func IngressEndpointGetter(clientSet *kubernetes.Clientset) EndpointGetter {
+func IngressEndpointGetter(clientSet *kubernetes.Clientset) *ingressEndpointGetter {
 	return &ingressEndpointGetter{
 		clientSet: clientSet,
 	}
@@ -190,22 +192,7 @@ type ingressEndpointGetter struct {
 	clientSet *kubernetes.Clientset
 }
 
-func (ig *ingressEndpointGetter) Endpoints(ctx context.Context, resourceIDs ...string) ([]ResourceEndpoint, error) {
-	var eps []ResourceEndpoint
-	for _, v := range resourceIDs {
-		ep, err := ig.endpoint(ctx, v)
-		if err != nil {
-			return nil, err
-		}
-
-		if ep != nil {
-			eps = append(eps, *ep)
-		}
-	}
-	return eps, nil
-}
-
-func (ig *ingressEndpointGetter) endpoint(ctx context.Context, resourceID string) (*ResourceEndpoint, error) {
+func (ig *ingressEndpointGetter) GetEndpoints(ctx context.Context, resourceID string) ([]types.ApplicationResourceEndpoint, error) {
 	var rn = strings.SplitN(resourceID, "/", 2)
 	if len(rn) != 2 {
 		return nil, fmt.Errorf("invalid ingress namespaced name: %s", rn)
@@ -219,15 +206,10 @@ func (ig *ingressEndpointGetter) endpoint(ctx context.Context, resourceID string
 	if err != nil {
 		return nil, err
 	}
-
-	endpoints := ingressEndpoints(*ing)
-	if len(endpoints) == 0 {
-		return nil, nil
-	}
-	return &ResourceEndpoint{
-		ResourceID:   resourceID,
-		ResourceKind: "Ingress",
-		Endpoints:    endpoints,
+	return []types.ApplicationResourceEndpoint{
+		{
+			Endpoints: ingressEndpoints(*ing),
+		},
 	}, nil
 }
 

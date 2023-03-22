@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
@@ -101,15 +102,23 @@ func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, l
 			if err != nil {
 				berr = multierr.Append(berr, err)
 			}
-			if entities[i].Status.Equal(*st) {
+			// get endpoints of the application resource.
+			eps, err := op.GetEndpoints(ctx, entities[i])
+			if err != nil {
+				berr = multierr.Append(berr, err)
+			}
+			// new application resource status.
+			newStatus := types.ApplicationResourceStatus{
+				Status:            *st,
+				ResourceEndpoints: eps,
+			}
+			if entities[i].Status.Equal(newStatus) {
 				// do not update if the status is same as previous.
 				continue
 			}
-			// update status of the application resource.
-			// TODO(thxCode): dig out the detail of status,
-			//   update to the status message.
+
 			err = in.modelClient.ApplicationResources().UpdateOne(entities[i]).
-				SetStatus(*st).
+				SetStatus(newStatus).
 				Exec(ctx)
 			if err != nil {
 				if model.IsNotFound(err) {
