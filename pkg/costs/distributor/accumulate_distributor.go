@@ -66,9 +66,8 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	or := FilterToSQLPredicates(cond.Filters)
-	if len(or) != 0 {
-		ps = append(ps, or...)
+	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, filterPs)
 	}
 
 	var havingPs *sql.Predicate
@@ -187,20 +186,19 @@ func (r *accumulateDistributor) sharedAllocationCost(ctx context.Context, startT
 		return 0, nil
 	}
 
-	var filters = []*sql.Predicate{
+	var ps = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	var or = FilterToSQLPredicates(cond.Filters)
-	if len(or) != 0 {
-		filters = append(filters, or...)
+	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, filterPs)
 	}
 
 	cost, err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
-				sql.And(filters...),
+				sql.And(ps...),
 			).SelectExpr(
 				sql.ExprFunc(func(b *sql.Builder) {
 					b.WriteString(fmt.Sprintf(`COALESCE(SUM(%s),0)`, allocationcost.FieldTotalCost))

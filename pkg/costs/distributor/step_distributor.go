@@ -86,9 +86,8 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		}
 	)
 
-	or := FilterToSQLPredicates(cond.Filters)
-	if len(or) != 0 {
-		ps = append(ps, or...)
+	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, filterPs)
 	}
 
 	var havingPs *sql.Predicate
@@ -212,21 +211,20 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 		return nil, nil
 	}
 
-	var filters = []*sql.Predicate{
+	var ps = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
 
-	var or = FilterToSQLPredicates(cond.Filters)
-	if len(or) != 0 {
-		filters = append(filters, or...)
+	if filterPs := FilterToSQLPredicates(cond.Filters); filterPs != nil {
+		ps = append(ps, filterPs)
 	}
 
 	var costs []SharedCost
 	err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
-				sql.And(filters...),
+				sql.And(ps...),
 			).SelectExpr(
 				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "allocationCost")(s)),
