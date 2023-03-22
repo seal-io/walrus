@@ -8,7 +8,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
@@ -40,6 +39,45 @@ func (h Handler) Validating() any {
 }
 
 // Basic APIs
+
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+	var entity = req.Model()
+
+	// get deployer.
+	var createOpts = deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	dp, err := platform.GetDeployer(ctx, createOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	// create instance, mark status to deploying.
+	entity, err = h.modelClient.ApplicationInstances().Create().
+		SetApplicationID(entity.ApplicationID).
+		SetEnvironmentID(entity.EnvironmentID).
+		SetName(entity.Name).
+		SetVariables(entity.Variables).
+		SetStatus(status.ApplicationInstanceStatusDeploying).
+		SetStatusMessage("").
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// apply instance.
+	var applyOpts = deployer.ApplyOptions{
+		SkipTLSVerify: !h.tlsCertified,
+	}
+	err = dp.Apply(ctx, entity, applyOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplicationInstance(entity), nil
+}
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	var entity = req.Model()
@@ -139,7 +177,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 // Extensional APIs
 
-func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (view.RouteUpgradeResponse, error) {
+func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) error {
 	var entity = req.Model()
 
 	// get deployer.
@@ -150,7 +188,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (v
 	}
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// update instance, mark status to deploying.
@@ -160,28 +198,14 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (v
 		SetStatusMessage("").
 		Save(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
-	err = dp.Apply(ctx, entity, applyOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	applicationRevision, err := h.modelClient.ApplicationRevisions().Query().
-		Select(applicationrevision.FieldID, applicationrevision.FieldCreateTime).
-		Where(applicationrevision.InstanceID(entity.ID)).
-		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		First(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.ExposeApplicationRevision(applicationRevision), nil
+	return dp.Apply(ctx, entity, applyOpts)
 }
 
 func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (*view.AccessEndpointResponse, error) {

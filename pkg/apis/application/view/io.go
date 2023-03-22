@@ -7,8 +7,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -119,47 +117,3 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 type CollectionGetResponse = []*model.ApplicationOutput
 
 // Extensional APIs
-
-type RouteDeployRequest struct {
-	_ struct{} `route:"POST=/deploy"`
-
-	*model.ApplicationQueryInput          `uri:",inline"`
-	*model.ApplicationInstanceCreateInput `json:",inline"`
-}
-
-func (r *RouteDeployRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-	if !r.Environment.ID.Valid(0) {
-		return errors.New("invalid environment id: blank")
-	}
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
-	}
-
-	_, err := modelClient.Applications().Query().
-		Where(application.ID(r.ID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
-	}
-	_, err = modelClient.Environments().Query().
-		Where(environment.ID(r.Environment.ID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid environment id: not found")
-	}
-
-	return nil
-}
-
-func (r *RouteDeployRequest) Model() *model.ApplicationInstance {
-	var entity = r.ApplicationInstanceCreateInput.Model()
-	entity.ApplicationID = r.ID
-	return entity
-}
-
-type RouteDeployResponse = *model.ApplicationRevisionOutput

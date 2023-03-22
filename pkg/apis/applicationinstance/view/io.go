@@ -9,11 +9,53 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
+
+type CreateRequest struct {
+	*model.ApplicationInstanceCreateInput `json:",inline"`
+}
+
+func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.Application.ID.Valid(0) {
+		return errors.New("invalid application id: blank")
+	}
+	if !r.Environment.ID.Valid(0) {
+		return errors.New("invalid environment id: blank")
+	}
+	if r.Name == "" {
+		return errors.New("invalid name: blank")
+	}
+
+	_, err := modelClient.Applications().Query().
+		Where(application.ID(r.Application.ID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid application id: not found")
+	}
+	_, err = modelClient.Environments().Query().
+		Where(environment.ID(r.Environment.ID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Error(http.StatusNotFound, "invalid environment id: not found")
+	}
+	count, _ := modelClient.EnvironmentConnectorRelationships().Query().
+		Where(environmentconnectorrelationship.EnvironmentID(r.Environment.ID)).
+		Count(ctx)
+	if count == 0 {
+		return runtime.Error(http.StatusNotFound, "invalid environment: no connectors")
+	}
+	return nil
+}
+
+type CreateResponse = *model.ApplicationInstanceOutput
 
 type DeleteRequest struct {
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
@@ -90,8 +132,6 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 
 	return nil
 }
-
-type RouteUpgradeResponse = *model.ApplicationRevisionOutput
 
 type AccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
