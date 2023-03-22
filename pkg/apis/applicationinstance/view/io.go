@@ -79,20 +79,6 @@ func (r *DeleteRequest) Validate() error {
 
 // Batch APIs
 
-type CollectionDeleteRequest []*model.ApplicationInstanceQueryInput
-
-func (r CollectionDeleteRequest) Validate() error {
-	if len(r) == 0 {
-		return errors.New("invalid input: empty")
-	}
-	for _, i := range r {
-		if !i.ID.Valid(0) {
-			return errors.New("invalid id: blank")
-		}
-	}
-	return nil
-}
-
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationInstance] `query:",inline"`
 
