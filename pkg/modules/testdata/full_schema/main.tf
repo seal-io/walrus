@@ -21,7 +21,7 @@ resource "null_resource" "test" {}
 # @options ["F1","F2","F3"]
 #   @group        "Test Group"
 variable "foo" {
-  type = string
+  type    = string
   default = "foo"
 }
 
@@ -34,22 +34,52 @@ variable "foo" {
 // 	@show_if	"foo=F1"
 // some other comments
 variable "bar" {
-  type = string
+  type    = string
   default = "bar"
 }
 
 variable "thee" {
-  type = string
+  type    = string
   default = "thee"
 }
 
+// subgroup1_1 is another test variable using sub group
+// @label "Subgroup1_1 Label"
+// some comments
+// @group "Test Subgroup/Subgroup 1"
+// some other comments
+variable "subgroup1_1" {
+  type    = string
+  default = "subgroup1_1"
+}
+
+// subgroup1_2 is another test variable using sub group
+// @label "Subgroup1_2 Label"
+// some comments
+// @group "Test Subgroup/Subgroup 1"
+// some other comments
+variable "subgroup1_2" {
+  type    = string
+  default = "subgroup1_2"
+}
+
+// subgroup2_1 is another test variable using sub group
+// @label "Subgroup2_1 Label"
+// some comments
+// @group "Test Subgroup/Subgroup 2"
+// some other comments
+variable "subgroup2_1" {
+  type    = string
+  default = "subgroup2_1"
+}
+
 output "first" {
-  value = null_resource.test.id
+  value       = null_resource.test.id
   description = "The first output."
 }
 
 output "second" {
-  value = "some value"
+  value       = "some value"
   description = "The second output."
-  sensitive = true
+  sensitive   = true
 }

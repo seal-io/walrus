@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -197,53 +198,6 @@ func getVersionsFromRoot(root string) ([]string, error) {
 	return versions, nil
 }
 
-func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
-	mod, diags := tfconfig.LoadModule(path)
-	if diags.HasErrors() {
-		return nil, diags.Err()
-	}
-
-	readme, err := getReadme(path)
-	if err != nil {
-		return nil, err
-	}
-
-	moduleSchema := &types.ModuleSchema{
-		Readme: readme,
-	}
-
-	for _, v := range mod.Variables {
-		moduleSchema.Variables = append(moduleSchema.Variables, terraformVariableToModuleVariable(v))
-	}
-
-	for _, v := range mod.Outputs {
-		moduleSchema.Outputs = append(moduleSchema.Outputs, types.ModuleOutput{
-			Name:        v.Name,
-			Description: v.Description,
-			Sensitive:   v.Sensitive,
-		})
-	}
-
-	for name := range mod.RequiredProviders {
-		moduleSchema.RequiredConnectorTypes = append(moduleSchema.RequiredConnectorTypes, name)
-	}
-
-	return moduleSchema, nil
-}
-
-func getReadme(dir string) (string, error) {
-	path := filepath.Join(dir, "README.md")
-	if files.Exists(path) {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return "", err
-		}
-		return string(content), nil
-	}
-
-	return "", nil
-}
-
 func getVersionedSource(source, version string) string {
 	var protocol, base, subdir, query = "", source, "", ""
 
@@ -267,6 +221,86 @@ func getVersionedSource(source, version string) string {
 	}
 
 	return result
+}
+
+func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
+	mod, diags := tfconfig.LoadModule(path)
+	if diags.HasErrors() {
+		return nil, diags.Err()
+	}
+
+	readme, err := getReadme(path)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleSchema := &types.ModuleSchema{
+		Readme: readme,
+	}
+
+	for _, v := range sortVariables(mod.Variables) {
+		moduleSchema.Variables = append(moduleSchema.Variables, terraformVariableToModuleVariable(v))
+	}
+
+	for _, v := range sortOutput(mod.Outputs) {
+		moduleSchema.Outputs = append(moduleSchema.Outputs, types.ModuleOutput{
+			Name:        v.Name,
+			Description: v.Description,
+			Sensitive:   v.Sensitive,
+		})
+	}
+
+	for name := range mod.RequiredProviders {
+		moduleSchema.RequiredConnectorTypes = append(moduleSchema.RequiredConnectorTypes, name)
+	}
+	sort.Strings(moduleSchema.RequiredConnectorTypes)
+
+	return moduleSchema, nil
+}
+
+func getReadme(dir string) (string, error) {
+	path := filepath.Join(dir, "README.md")
+	if files.Exists(path) {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return "", err
+		}
+		return string(content), nil
+	}
+
+	return "", nil
+}
+
+func sortVariables(m map[string]*tfconfig.Variable) (s []*tfconfig.Variable) {
+	s = make([]*tfconfig.Variable, 0, len(m))
+	for k := range m {
+		s = append(s, m[k])
+	}
+	sort.SliceStable(s, func(i, j int) bool {
+		return judgeSourcePos(&s[i].Pos, &s[j].Pos)
+	})
+	return
+}
+
+func sortOutput(m map[string]*tfconfig.Output) (s []*tfconfig.Output) {
+	s = make([]*tfconfig.Output, 0, len(m))
+	for k := range m {
+		s = append(s, m[k])
+	}
+	sort.SliceStable(s, func(i, j int) bool {
+		return judgeSourcePos(&s[i].Pos, &s[j].Pos)
+	})
+	return
+}
+
+func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
+	switch {
+	case i.Filename < j.Filename:
+		return false
+	case i.Filename > j.Filename:
+		return true
+	}
+	return i.Line < j.Line
 }
 
 func terraformVariableToModuleVariable(v *tfconfig.Variable) types.ModuleVariable {

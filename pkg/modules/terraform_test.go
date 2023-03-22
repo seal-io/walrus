@@ -3,7 +3,6 @@ package modules
 import (
 	"os"
 	"path/filepath"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -137,6 +136,14 @@ func TestLoadTerraformSchema(t *testing.T) {
 				},
 				Variables: []types.ModuleVariable{
 					{
+						Name:    "foo",
+						Type:    "string",
+						Default: "foo",
+						Label:   "Foo Label",
+						Options: []string{"F1", "F2", "F3"},
+						Group:   "Test Group",
+					},
+					{
 						Name:    "bar",
 						Type:    "string",
 						Default: "bar",
@@ -146,17 +153,30 @@ func TestLoadTerraformSchema(t *testing.T) {
 						ShowIf:  "foo=F1",
 					},
 					{
-						Name:    "foo",
-						Type:    "string",
-						Default: "foo",
-						Label:   "Foo Label",
-						Options: []string{"F1", "F2", "F3"},
-						Group:   "Test Group",
-					},
-					{
 						Name:    "thee",
 						Type:    "string",
 						Default: "thee",
+					},
+					{
+						Name:    "subgroup1_1",
+						Type:    "string",
+						Default: "subgroup1_1",
+						Label:   "Subgroup1_1 Label",
+						Group:   "Test Subgroup/Subgroup 1",
+					},
+					{
+						Name:    "subgroup1_2",
+						Type:    "string",
+						Default: "subgroup1_2",
+						Label:   "Subgroup1_2 Label",
+						Group:   "Test Subgroup/Subgroup 1",
+					},
+					{
+						Name:    "subgroup2_1",
+						Type:    "string",
+						Default: "subgroup2_1",
+						Label:   "Subgroup2_1 Label",
+						Group:   "Test Subgroup/Subgroup 2",
 					},
 				},
 			},
@@ -178,7 +198,6 @@ func TestLoadTerraformSchema(t *testing.T) {
 				return
 			}
 
-			sortSchema(actualOutput)
 			assert.Equal(t, tc.expectedOutput, actualOutput)
 		})
 	}
@@ -246,22 +265,8 @@ func TestLoadTerraformModuleVersions(t *testing.T) {
 				assert.Equal(t, actualV.ModuleID, v.ModuleID)
 				assert.Equal(t, actualV.Version, v.Version)
 
-				sortSchema(actualV.Schema)
 				assert.Equal(t, actualV.Schema, v.Schema)
 			}
 		})
 	}
-}
-
-// sort to avoid random-order results
-func sortSchema(s *types.ModuleSchema) {
-	sort.Slice(s.Outputs, func(i, j int) bool {
-		return s.Outputs[i].Name < s.Outputs[j].Name
-	})
-	sort.Slice(s.RequiredConnectorTypes, func(i, j int) bool {
-		return s.RequiredConnectorTypes[i] < s.RequiredConnectorTypes[j]
-	})
-	sort.Slice(s.Variables, func(i, j int) bool {
-		return s.Variables[i].Name < s.Variables[j].Name
-	})
 }
