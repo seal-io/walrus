@@ -250,7 +250,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// create deployment secret
-	if err = CreateSecret(ctx, d.clientSet, secretName, terraformData); err != nil {
+	if err = CreateSecret(ctx, d.clientSet, secretName, secretData); err != nil {
 		return err
 	}
 
