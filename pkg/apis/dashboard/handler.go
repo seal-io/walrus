@@ -152,7 +152,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 	// days
 	_, offset := req.StartTime.Zone()
 	loc := req.StartTime.Location()
-	timeSeries, err := timex.GetTimeUnitSeries(req.StartTime, req.EndTime, req.Step, loc)
+	timeSeries, err := timex.GetTimeSeries(req.StartTime, req.EndTime, req.Step, loc)
 	if err != nil {
 		return nil, err
 	}
