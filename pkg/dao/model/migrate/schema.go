@@ -130,7 +130,7 @@ var (
 				Symbol:     "application_instances_applications_instances",
 				Columns:    []*schema.Column{ApplicationInstancesColumns[7]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "application_instances_environments_instances",
