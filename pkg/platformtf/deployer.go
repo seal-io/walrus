@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"reflect"
 	"regexp"
 
@@ -228,20 +227,20 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 
 // createK8sSecrets will create the k8s secrets for deployment.
 func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
+	var secretData = make(map[string][]byte)
 	// secretName terraform tfConfig name
 	secretName := _secretPrefix + string(opts.ApplicationRevision.ID)
-	// prepare tfConfig for deployment
-	tfConfig, tfVars, err := d.LoadConfig(ctx, opts)
+
+	// prepare terraform config files bytes for deployment.
+	terraformData, err := d.LoadConfigsBytes(ctx, opts)
 	if err != nil {
 		return err
 	}
-
-	// secretData the data of terraform tfConfig.
-	secretData := map[string][]byte{
-		"main.tf":          []byte(tfConfig),
-		"terraform.tfvars": []byte(tfVars),
+	for k, v := range terraformData {
+		secretData[k] = v
 	}
-	// mount the provider tfConfig to secret.
+
+	// mount the provider configs(e.g. kubeconfig) to secret.
 	providerData, err := d.GetProviderSecretData(opts.Connectors)
 	if err != nil {
 		return err
@@ -251,7 +250,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// create deployment secret
-	if err = CreateSecret(ctx, d.clientSet, secretName, secretData); err != nil {
+	if err = CreateSecret(ctx, d.clientSet, secretName, terraformData); err != nil {
 		return err
 	}
 
@@ -326,77 +325,85 @@ func (d Deployer) checkRevisionStatus(applicationRevision *model.ApplicationRevi
 	return true, nil
 }
 
-// LoadConfig returns terraform main.tf and terraform.tfvars for deployment.
-func (d Deployer) LoadConfig(ctx context.Context, opts CreateSecretsOptions) (string, string, error) {
+// LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
+func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, requiredConnTypes, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	// parse module secrets
 	secrets, err := d.parseModuleSecrets(ctx, moduleConfigs, opts)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-	// terraform.tfvars
-	tfVars := config.WriteTfVars(secrets)
 
 	// prepare address for terraform backend.
 	serverAddress, err := settings.ServeUrl.Value(ctx, d.modelClient)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	if serverAddress == "" {
-		return "", "", fmt.Errorf("server address is empty")
+		return nil, fmt.Errorf("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress, fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
 	// prepare API token for terraform backend.
 	token, err := settings.PrivilegeApiToken.Value(ctx, d.modelClient)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	configOpts := config.CreateOptions{
-		SecretMountPath:    _secretMountPath,
-		ConnectorSeparator: connectorSeparator,
-		Address:            address,
-		Token:              token,
-		SkipTLSVerify:      opts.SkipTLSVerify,
-		Connectors:         opts.Connectors,
-		ModuleConfigs:      moduleConfigs,
-		RequiredProviders:  requiredConnTypes,
-		Secrets:            secrets,
+	// prepare terraform config files to be mounted to secret.
+	var (
+		secretOptionMaps map[string]config.CreateOptions
+		mainConfigOpts   = config.CreateOptions{
+			TerraformOptions: &config.TerraformOptions{
+				Token:         token,
+				Address:       address,
+				SkipTLSVerify: opts.SkipTLSVerify,
+			},
+			ProviderOptions: &config.ProviderOptions{
+				RequiredProviders:  requiredConnTypes,
+				Connectors:         opts.Connectors,
+				SecretMonthPath:    _secretMountPath,
+				ConnectorSeparator: connectorSeparator,
+			},
+			ModuleOptions: &config.ModuleOptions{
+				ModuleConfigs: moduleConfigs,
+			},
+			VariableOptions: &config.VariableOptions{
+				Variables: opts.ApplicationRevision.InputVariables,
+				Secrets:   secrets,
+			},
+		}
+		varsConfigOpts = getVarConfigOptions(secrets)
+	)
+	secretOptionMaps = map[string]config.CreateOptions{
+		config.FileMain: mainConfigOpts,
+		config.FileVars: varsConfigOpts,
 	}
-	conf, err := config.NewConfig(configOpts)
-	if err != nil {
-		return "", "", err
-	}
-	tfReader, err := conf.Reader()
-	if err != nil {
-		return "", "", err
-	}
-	tfConfigBytes, err := io.ReadAll(tfReader)
-	if err != nil {
-		return "", "", err
+	var secretMaps = make(map[string][]byte, 0)
+	for k, v := range secretOptionMaps {
+		secretMaps[k], err = config.CreateConfigToBytes(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if err != nil {
-		return "", "", err
-	}
 	// save input plan to app revision
 	revision, err := d.modelClient.ApplicationRevisions().UpdateOne(opts.ApplicationRevision).
-		SetInputPlan(string(tfConfigBytes)).
+		SetInputPlan(string(secretMaps[config.FileMain])).
 		Save(ctx)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	if err = revisionbus.Notify(ctx, d.modelClient, revision); err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	return string(tfConfigBytes), string(tfVars), nil
+	return secretMaps, nil
 }
 
 // GetProviderSecretData returns provider kubeconfig secret data mount into terraform container.
@@ -669,4 +676,16 @@ func parseAttributeSecrets(attributes map[string]interface{}, secretNames []stri
 		}
 	}
 	return secretNames
+}
+
+func getVarConfigOptions(secrets model.Secrets) config.CreateOptions {
+	varsConfigOpts := config.CreateOptions{
+		Attributes: map[string]interface{}{},
+	}
+
+	for _, v := range secrets {
+		varsConfigOpts.Attributes[v.Name] = v.Value
+	}
+
+	return varsConfigOpts
 }

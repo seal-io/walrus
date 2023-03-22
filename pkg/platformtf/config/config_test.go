@@ -1,128 +1,78 @@
 package config
 
 import (
-	"io"
-	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestConfig_Print(t *testing.T) {
-	blocks := Blocks{
-		{
-			Type: "resource",
-			Labels: []string{
-				"aws_instance",
-				"test",
-			},
-			Attributes: map[string]interface{}{
-				"ami": "ami-0c55b159cbfafe1f0",
-				"env": map[string]interface{}{
-					"test": "test",
-				},
-				"null": nil,
-			},
-		},
-		{
-			Type: "provider",
-			Labels: []string{
-				"aws",
-			},
-			Attributes: map[string]interface{}{
-				"region": "us-east-1",
-			},
-		},
-		{
-			Type: "module",
-			Labels: []string{
-				"mysql",
-			},
-			Attributes: map[string]interface{}{
-				"providers": map[string]interface{}{
-					"kubernetes": "${kubernetes.us-east-1}",
-				},
-				"source": "github.com/terraform-aws-modules/terraform-aws-rds",
-			},
-		},
-		{
-			Type: "data",
-			Labels: []string{
-				"aws_ami",
-				"test",
-			},
-			Attributes: map[string]interface{}{
-				"owners": []string{"amazon"},
-			},
-		},
-	}
-
-	tfBlocks := Blocks{
-		{
-			Type: "backend",
-			Labels: []string{
-				"s3",
-			},
-			Attributes: map[string]interface{}{
-				"bucket": "terraform-state",
-			},
-		},
-	}
-
+func TestCreateConfigToBytes(t *testing.T) {
 	testCases := []struct {
-		config   *Config
-		expected string
+		name     string
+		option   CreateOptions
+		expected []byte
 	}{
 		{
-			config: &Config{
-				Blocks:   blocks,
-				TFBlocks: tfBlocks,
-				once:     &sync.Once{},
+			name:     "test create config to bytes with empty option",
+			option:   CreateOptions{},
+			expected: nil,
+		},
+		{
+			name: "test create config to bytes with attributes",
+			option: CreateOptions{
+				Attributes: map[string]interface{}{
+					"var1":    "ami-0c55b159cbfafe1f0",
+					"secret1": "password",
+				},
 			},
-			expected: `terraform {
-  backend "s3" {
-    bucket = "terraform-state"
+			expected: []byte(`secret1 = "password"
+var1    = "ami-0c55b159cbfafe1f0"
+`),
+		},
+		{
+			name: "test create config to bytes with attributes and child blocks",
+			option: CreateOptions{
+				TerraformOptions: &TerraformOptions{
+					Token:         "token",
+					Address:       "https://localhost:8080",
+					SkipTLSVerify: true,
+				},
+				VariableOptions: &VariableOptions{
+					Variables: map[string]interface{}{
+						"var1": "value1",
+						"var2": "value2",
+					},
+				},
+			},
+			expected: []byte(`terraform {
+  backend "http" {
+    address                = "https://localhost:8080"
+    password               = "token"
+    skip_cert_verification = true
+    update_method          = "PUT"
+    username               = "seal"
   }
 }
 
-resource "aws_instance" "test" {
-  ami = "ami-0c55b159cbfafe1f0"
-  env = {
-    test = "test"
-  }
-  null = null
+variable "var1" {
+  type = string
 }
 
-provider "aws" {
-  region = "us-east-1"
+variable "var2" {
+  type = string
 }
 
-module "mysql" {
-  providers = {
-    kubernetes = kubernetes.us-east-1
-  }
-  source = "github.com/terraform-aws-modules/terraform-aws-rds"
-}
-
-data "aws_ami" "test" {
-  owners = ["amazon"]
-}
-
-`,
+`),
 		},
 	}
 
-	for _, tc := range testCases {
-		cReader, err := tc.config.Reader()
+	for _, tt := range testCases {
+		got, err := CreateConfigToBytes(tt.option)
 		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+			assert.Errorf(t, err, "unexpected error: %v", err)
 		}
-
-		actual, err := io.ReadAll(cReader)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-
-		if string(actual) != tc.expected {
-			t.Errorf("expected %#v, got %#v", tc.expected, string(actual))
+		if !assert.Equal(t, string(tt.expected), string(got)) {
+			assert.Errorf(t, err, "name: %s", tt.name)
 		}
 	}
 }

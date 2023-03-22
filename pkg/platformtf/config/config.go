@@ -7,52 +7,23 @@ import (
 	"sync"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/zclconf/go-cty/cty"
 
-	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/utils/log"
 )
 
-// ModuleConfig is a struct with model.Module and its variables.
-type ModuleConfig struct {
-	// Name is the name of the app module relationship.
-	Name          string
-	ModuleVersion *model.ModuleVersion
-	// Attributes is the attributes of the module.
-	Attributes map[string]interface{}
-}
-
-// CreateOptions represents the CreateOptions of the Config.
-type CreateOptions struct {
-	// SecretMountPath is the mount path of the secret in the terraform config.
-	SecretMountPath string
-	// ConnectorSeparator is the separator of the terraform provider alias name and id.
-	ConnectorSeparator string
-	// RequiredProviders is the required providers of the terraform config.
-	// e.g. ["kubernetes", "helm"]
-	RequiredProviders []string
-
-	// Address is the backend address of the terraform config.
-	Address string
-	// Token is the backend token to authenticate with the Seal Server of the terraform config.
-	Token string
-	// SkipTLSVerify is the backend cert verification of the terraform config.
-	SkipTLSVerify bool
-
-	Connectors    model.Connectors
-	ModuleConfigs []*ModuleConfig
-
-	// Secrets is the  model.Secrets of the deployment.
-	Secrets model.Secrets
-}
-
 // Config handles the configuration of application to terraform config.
 type Config struct {
-	once *sync.Once
 	// file is the hclwrite.File of the Config.
 	file *hclwrite.File
 
-	// TerraformBlocks terraform blocks like backend, required_providers, etc.
+	// Attributes is the attributes of the Config.
+	// e.g.
+	// attr1 = "xxx"
+	// attr2 = 1
+	// attr3 = true
+	Attributes map[string]interface{}
+
+	// Blocks blocks like terraform, provider, module, etc.
 	/**
 	  terraform {
 	  	backend "http" {
@@ -60,10 +31,6 @@ type Config struct {
 	  	}
 	  	xxx
 	  }
-	*/
-	TFBlocks Blocks
-	// Blocks other blocks like provider, module, etc.
-	/**
 	  provider "aws" {
 	  	region = "us-east-1"
 	  }
@@ -87,33 +54,34 @@ const (
 // NewConfig returns a new Config.
 func NewConfig(opts CreateOptions) (*Config, error) {
 	// terraform block
-	// load backend block
-	backendBlock := loadBackendBlock(opts.Address, opts.Token, opts.SkipTLSVerify)
-	tfBlocks := Blocks{
-		backendBlock,
+	var (
+		err        error
+		attributes map[string]interface{}
+	)
+
+	if opts.Attributes != nil {
+		attributes = opts.Attributes
+	} else {
+		attributes = make(map[string]interface{})
 	}
 
-	// other blocks like provider, module, etc.
-	// load provider blocks
-	providerBlocks, err := loadProviderBlocks(opts)
+	blocks, err := loadBlocks(opts)
 	if err != nil {
 		return nil, err
 	}
-	// load module blocks
-	moduleBlocks := loadModuleBlocks(opts.ModuleConfigs, providerBlocks)
-	// load variable blocks
-	variableBlocks := loadVariableBlocks(opts.Secrets)
 
-	blocks := make(Blocks, 0, len(providerBlocks)+len(moduleBlocks)+len(variableBlocks))
-	blocks = AppendBlocks(blocks, providerBlocks, moduleBlocks, variableBlocks)
 	c := &Config{
-		file:     hclwrite.NewEmptyFile(),
-		TFBlocks: tfBlocks,
-		Blocks:   blocks,
-		once:     &sync.Once{},
+		file:       hclwrite.NewEmptyFile(),
+		Attributes: attributes,
+		Blocks:     blocks,
 	}
 
 	if err = c.validate(); err != nil {
+		return nil, err
+	}
+
+	// init the config.
+	if err = c.initAttributes(); err != nil {
 		return nil, err
 	}
 	if err = c.initBlocks(); err != nil {
@@ -124,12 +92,6 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	for _, block := range c.TFBlocks {
-		if block.Type == "" {
-			return fmt.Errorf("invalid block type: %s", block.Type)
-		}
-	}
-
 	for _, block := range c.Blocks {
 		if block.Type == "" {
 			return fmt.Errorf("invalid block type: %s", block.Type)
@@ -158,30 +120,8 @@ func (c *Config) AddBlocks(blocks Blocks) error {
 	return nil
 }
 
-// appendTerraformBlocks prints terraform blocks of the configuration. e.g. backend, required_providers, etc.
-func (c *Config) appendTerraformBlocks() error {
-	// terraform block
-	tfBlock := hclwrite.NewBlock(BlockTypeTerraform, nil)
-	tfBody := tfBlock.Body()
-
-	for i := 0; i < len(c.TFBlocks); i++ {
-		childBlock, err := c.TFBlocks[i].ToHCLBlock()
-		if err != nil {
-			return err
-		}
-		tfBody.AppendBlock(childBlock)
-		if i != len(c.TFBlocks)-1 {
-			tfBody.AppendNewline()
-		}
-	}
-
-	c.file.Body().AppendBlock(tfBlock)
-	c.file.Body().AppendNewline()
-	return nil
-}
-
-// appendBlocks prints other blocks of the configuration. e.g. provider, module, etc.
-func (c *Config) appendBlocks() error {
+// initBlocks initializes the Blocks of the configuration.
+func (c *Config) initBlocks() error {
 	for i := 0; i < len(c.Blocks); i++ {
 		childBlock, err := c.Blocks[i].ToHCLBlock()
 		if err != nil {
@@ -194,31 +134,30 @@ func (c *Config) appendBlocks() error {
 	return nil
 }
 
-func (c *Config) initBlocks() (err error) {
-	c.once.Do(
-		func() {
-			if c.file == nil {
-				c.file = hclwrite.NewEmptyFile()
-			}
+// initAttributes initializes the attributes of the configuration.
+func (c *Config) initAttributes() error {
+	if len(c.Attributes) == 0 {
+		return nil
+	}
 
-			// terraform block
-			if err = c.appendTerraformBlocks(); err != nil {
-				return
-			}
+	attributes, err := convertToCtyWithJson(c.Attributes)
+	if err != nil {
+		return err
+	}
+	attrKeys := sortValueKeys(attributes)
+	if len(attrKeys) == 0 {
+		return nil
+	}
+	attrMap := attributes.AsValueMap()
+	for _, attr := range attrKeys {
+		c.file.Body().SetAttributeValue(attr, attrMap[attr])
+	}
 
-			// other blocks
-			if err = c.appendBlocks(); err != nil {
-				return
-			}
-		})
-	return
+	return nil
 }
 
 // WriteTo writes the config to the writer.
 func (c *Config) WriteTo(w io.Writer) (int64, error) {
-	if err := c.initBlocks(); err != nil {
-		return 0, err
-	}
 
 	// format the file
 	formatted := hclwrite.Format(Format(c.file.Bytes()))
@@ -236,28 +175,77 @@ func (c *Config) Reader() (io.Reader, error) {
 	return bytes.NewReader(buf.Bytes()), nil
 }
 
-func loadBackendBlock(address, token string, skipTLSVerify bool) *Block {
-	return &Block{
-		Type:   BlockTypeBackend,
-		Labels: []string{"http"},
-		Attributes: map[string]interface{}{
-			"address": address,
-			// since the seal server using bearer token and
-			// terraform backend only support basic auth.
-			// we use the token as the password, and let the username be default.
-			"username":               _defaultUsername,
-			"password":               token,
-			"skip_cert_verification": skipTLSVerify,
-			// use PUT method to update the state
-			"update_method": _updateMethod,
-		},
+// Bytes returns the bytes of the config.
+func (c *Config) Bytes() ([]byte, error) {
+	return hclwrite.Format(Format(c.file.Bytes())), nil
+}
+
+// loadBlocks loads the blocks of the configuration.
+func loadBlocks(opts CreateOptions) (blocks Blocks, err error) {
+	var (
+		tfBlocks       Blocks
+		providerBlocks Blocks
+		moduleBlocks   Blocks
+		variableBlocks Blocks
+	)
+	// load terraform block
+	if opts.TerraformOptions != nil {
+		tfBlocks = Blocks{loadTerraformBlock(opts.TerraformOptions)}
 	}
+	// other blocks like provider, module, etc.
+	// load provider blocks
+	if opts.ProviderOptions != nil {
+		providerBlocks, err = loadProviderBlocks(opts.ProviderOptions)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// load module blocks
+	if opts.ModuleOptions != nil {
+		moduleBlocks = loadModuleBlocks(opts.ModuleOptions.ModuleConfigs, providerBlocks)
+	}
+	// load variable blocks
+	if opts.VariableOptions != nil {
+		variableBlocks = loadVariableBlocks(opts.VariableOptions)
+	}
+
+	blocks = make(Blocks, 0, CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks))
+	blocks = AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks)
+
+	return
+}
+
+// loadTerraformBlock loads the terraform block.
+func loadTerraformBlock(opts *TerraformOptions) *Block {
+	var (
+		terraformBlock = &Block{
+			Type: BlockTypeTerraform,
+		}
+		backendBlock = &Block{
+			Type:   BlockTypeBackend,
+			Labels: []string{"http"},
+			Attributes: map[string]interface{}{
+				"address": opts.Address,
+				// since the seal server using bearer token and
+				// terraform backend only support basic auth.
+				// we use the token as the password, and let the username be default.
+				"username":               _defaultUsername,
+				"password":               opts.Token,
+				"skip_cert_verification": opts.SkipTLSVerify,
+				// use PUT method to update the state
+				"update_method": _updateMethod,
+			},
+		}
+	)
+	terraformBlock.AppendBlock(backendBlock)
+
+	return terraformBlock
 }
 
 // loadProviderBlocks returns config providers to get terraform provider config block.
-func loadProviderBlocks(opts CreateOptions) (Blocks, error) {
+func loadProviderBlocks(opts *ProviderOptions) (Blocks, error) {
 	return ToProviderBlocks(opts.RequiredProviders, opts.Connectors, ProviderConvertOptions{
-		SecretMountPath: opts.SecretMountPath,
+		SecretMountPath: opts.SecretMonthPath,
 		ConnSeparator:   opts.ConnectorSeparator,
 	})
 }
@@ -296,20 +284,38 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 	return blocks
 }
 
-func loadVariableBlocks(secrets model.Secrets) Blocks {
+// loadVariableBlocks returns config variables to get terraform variable config block.
+func loadVariableBlocks(opts *VariableOptions) Blocks {
 	var (
-		// TODO: support other secret types
-		secretType = "{{string}}"
-		blocks     Blocks
+		// TODO: support other types for secrets and variables
+		variableType = "{{string}}"
+		blocks       Blocks
 	)
 
-	for _, s := range secrets {
+	// secret variables.
+	for _, s := range opts.Secrets {
 		blocks = append(blocks, &Block{
 			Type:   BlockTypeVariable,
 			Labels: []string{s.Name},
 			Attributes: map[string]interface{}{
-				"type":      secretType,
+				"type":      variableType,
 				"sensitive": true,
+			},
+		})
+	}
+
+	// application variables.
+	for k, v := range opts.Variables {
+		if _, ok := v.(string); !ok {
+			log.WithName("platformtf").WithName("config").Warnf("application variable %s is not string type, skip", k)
+			continue
+		}
+
+		blocks = append(blocks, &Block{
+			Type:   BlockTypeVariable,
+			Labels: []string{k},
+			Attributes: map[string]interface{}{
+				"type": variableType,
 			},
 		})
 	}
@@ -317,14 +323,11 @@ func loadVariableBlocks(secrets model.Secrets) Blocks {
 	return blocks
 }
 
-// WriteTfVars write the model.Secrets to terraform.tfvars.
-func WriteTfVars(secrets model.Secrets) []byte {
-	f := hclwrite.NewEmptyFile()
-	rootBody := f.Body()
-
-	for _, s := range secrets {
-		rootBody.SetAttributeValue(s.Name, cty.StringVal(string(s.Value)))
+func CreateConfigToBytes(opts CreateOptions) ([]byte, error) {
+	conf, err := NewConfig(opts)
+	if err != nil {
+		return nil, err
 	}
 
-	return f.Bytes()
+	return conf.Bytes()
 }
