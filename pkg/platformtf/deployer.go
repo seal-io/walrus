@@ -377,7 +377,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				Secrets:   secrets,
 			},
 		}
-		varsConfigOpts = getVarConfigOptions(secrets)
+		varsConfigOpts = getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables)
 	)
 	secretOptionMaps = map[string]config.CreateOptions{
 		config.FileMain: mainConfigOpts,
@@ -678,13 +678,17 @@ func parseAttributeSecrets(attributes map[string]interface{}, secretNames []stri
 	return secretNames
 }
 
-func getVarConfigOptions(secrets model.Secrets) config.CreateOptions {
+func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]interface{}{},
 	}
 
 	for _, v := range secrets {
 		varsConfigOpts.Attributes[v.Name] = v.Value
+	}
+
+	for k, v := range variables {
+		varsConfigOpts.Attributes[k] = v
 	}
 
 	return varsConfigOpts
