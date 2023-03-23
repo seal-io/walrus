@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	authzSubjectPoliciesKey = "authz_subject_policies"
 )
 
-func StoreSubjectAuthzInfo(c *gin.Context, roles schema.SubjectRoles, policies schema.RolePolicies) {
+func StoreSubjectAuthzInfo(c *gin.Context, roles types.SubjectRoles, policies types.RolePolicies) {
 	c.Set(authzSubjectRolesKey, roles)
 	c.Set(authzSubjectPoliciesKey, policies)
 }
@@ -55,10 +55,10 @@ func LoadSubject(c *gin.Context) (s Subject) {
 	s.Group = c.GetString(authnSubjectGroupKey)
 	s.Name = c.GetString(authnSubjectNameKey)
 	if v, exist := c.Get(authzSubjectRolesKey); exist {
-		s.Roles = v.(schema.SubjectRoles)
+		s.Roles = v.(types.SubjectRoles)
 	}
 	if v, exist := c.Get(authzSubjectPoliciesKey); exist {
-		s.Policies = v.(schema.RolePolicies)
+		s.Policies = v.(types.RolePolicies)
 	}
 	return
 }
@@ -74,8 +74,8 @@ func LoadSubjectCurrentOperation(c *gin.Context) (o Operation) {
 type Subject struct {
 	Group    string
 	Name     string
-	Roles    schema.SubjectRoles
-	Policies schema.RolePolicies
+	Roles    types.SubjectRoles
+	Policies types.RolePolicies
 }
 
 // IsAnonymous return true if this subject has not been authenticated.
@@ -102,7 +102,7 @@ func (s Subject) Enforce(c *gin.Context, resource string) bool {
 	return false
 }
 
-func enforce(rp *schema.RolePolicy, action, resource, id, url string) (allow bool) {
+func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool) {
 	// check actions
 	switch len(rp.Actions) {
 	case 0:
@@ -188,7 +188,7 @@ func (s Subject) Give(resource string) (p Permission) {
 	return
 }
 
-func getPermission(rp *schema.RolePolicy, resource string) (pk operator, pv Operation) {
+func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Operation) {
 	// check resources
 	switch len(rp.Resources) {
 	case 0:

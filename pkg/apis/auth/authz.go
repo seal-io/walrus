@@ -13,7 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func authz(c *gin.Context, modelClient model.ClientSet) error {
@@ -23,7 +23,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 	if !cached {
 		permission = &cache.SubjectPermission{}
 		var err error
-		var roles = schema.SubjectRoles{
+		var roles = types.SubjectRoles{
 			{
 				Domain: "system",
 				Name:   "anonymity",
@@ -34,7 +34,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 			if err != nil {
 				return err
 			}
-			roles = append(roles, schema.SubjectRole{
+			roles = append(roles, types.SubjectRole{
 				Domain: "system",
 				Name:   "user",
 			})
@@ -53,7 +53,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 	return nil
 }
 
-func getRoles(ctx context.Context, modelClient model.ClientSet, group, name string) (schema.SubjectRoles, error) {
+func getRoles(ctx context.Context, modelClient model.ClientSet, group, name string) (types.SubjectRoles, error) {
 	var s, err = modelClient.Subjects().Query().
 		Where(subject.And(
 			subject.Kind("user"),
@@ -68,7 +68,7 @@ func getRoles(ctx context.Context, modelClient model.ClientSet, group, name stri
 	return s.Roles, nil
 }
 
-func getPolicies(ctx context.Context, modelClient model.ClientSet, roles schema.SubjectRoles) (schema.RolePolicies, error) {
+func getPolicies(ctx context.Context, modelClient model.ClientSet, roles types.SubjectRoles) (types.RolePolicies, error) {
 	var predicates []predicate.Role
 	for i := 0; i < len(roles); i++ {
 		predicates = append(predicates,
@@ -85,7 +85,7 @@ func getPolicies(ctx context.Context, modelClient model.ClientSet, roles schema.
 		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to get policies: %w", err)
 	}
 
-	var policies schema.RolePolicies
+	var policies types.RolePolicies
 	for i := 0; i < len(entities); i++ {
 		policies = append(policies, entities[i].Policies...)
 	}

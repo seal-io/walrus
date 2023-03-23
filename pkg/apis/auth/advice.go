@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // WithResourceRoleGenerator wraps the given gin.IRoutes
@@ -46,8 +46,8 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			Domain:      resourcePath,
 			Name:        "admin",
 			Description: resourcePath + "/admin",
-			Policies: schema.RolePolicies{
-				schema.RolePolicyResourceAdminFor(resource),
+			Policies: types.RolePolicies{
+				types.RolePolicyResourceAdminFor(resource),
 			},
 			Builtin: true,
 		},
@@ -56,8 +56,8 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			Domain:      resourcePath,
 			Name:        "edit",
 			Description: resourcePath + "/edit",
-			Policies: schema.RolePolicies{
-				schema.RolePolicyResourceEditFor(resource),
+			Policies: types.RolePolicies{
+				types.RolePolicyResourceEditFor(resource),
 			},
 			Builtin: true,
 		},
@@ -66,8 +66,8 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			Domain:      resourcePath,
 			Name:        "view",
 			Description: resourcePath + "/view",
-			Policies: schema.RolePolicies{
-				schema.RolePolicyResourceViewFor(resource),
+			Policies: types.RolePolicies{
+				types.RolePolicyResourceViewFor(resource),
 			},
 			Builtin: true,
 		},

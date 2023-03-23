@@ -10,18 +10,17 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // Basic APIs
 
 type CreateRequest struct {
-	Group       string              `json:"group"`
-	Name        string              `json:"name"`
-	Description string              `json:"description,omitempty"`
-	Roles       schema.SubjectRoles `json:"roles,omitempty"`
-	Password    string              `json:"password"`
+	Group       string             `json:"group"`
+	Name        string             `json:"name"`
+	Description string             `json:"description,omitempty"`
+	Roles       types.SubjectRoles `json:"roles,omitempty"`
+	Password    string             `json:"password"`
 
 	Paths []string `json:"-"`
 }
@@ -107,10 +106,10 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type UpdateRequest struct {
-	ID          types.ID            `uri:"id"`
-	Description string              `json:"description,omitempty"`
-	Roles       schema.SubjectRoles `json:"roles,omitempty"`
-	Password    string              `json:"password,omitempty"`
+	ID          types.ID           `uri:"id"`
+	Description string             `json:"description,omitempty"`
+	Roles       types.SubjectRoles `json:"roles,omitempty"`
+	Password    string             `json:"password,omitempty"`
 
 	Name string `json:"-"`
 }
@@ -194,9 +193,9 @@ type CollectionGetResponse = []*model.SubjectOutput
 type RouteMountRequest struct {
 	_ struct{} `route:"POST=/mount"`
 
-	ID    types.ID            `uri:"id"`
-	Group string              `json:"group"`
-	Roles schema.SubjectRoles `json:"roles,omitempty"`
+	ID    types.ID           `uri:"id"`
+	Group string             `json:"group"`
+	Roles types.SubjectRoles `json:"roles,omitempty"`
 
 	Name  string   `json:"-"`
 	Paths []string `json:"-"`

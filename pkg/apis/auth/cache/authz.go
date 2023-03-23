@@ -3,15 +3,15 @@ package cache
 import (
 	"strings"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/json"
 )
 
 const subjectPermissionKeyPrefix = "subject_permission:"
 
 type SubjectPermission struct {
-	Roles    schema.SubjectRoles `json:"roles"`
-	Policies schema.RolePolicies `json:"policies"`
+	Roles    types.SubjectRoles `json:"roles"`
+	Policies types.RolePolicies `json:"policies"`
 }
 
 // StoreSubjectPermission stores the subject permission with the given subject.
