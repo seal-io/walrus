@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -34,7 +34,7 @@ type Role struct {
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
-	Policies schema.RolePolicies `json:"policies,omitempty"`
+	Policies types.RolePolicies `json:"policies,omitempty"`
 	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicate whether the subject is session level, decide when creating.

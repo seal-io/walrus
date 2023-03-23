@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // SubjectUpdate is the builder for updating Subject entities.
@@ -105,14 +105,14 @@ func (su *SubjectUpdate) SetNillableLoginTo(b *bool) *SubjectUpdate {
 }
 
 // SetRoles sets the "roles" field.
-func (su *SubjectUpdate) SetRoles(sr schema.SubjectRoles) *SubjectUpdate {
-	su.mutation.SetRoles(sr)
+func (su *SubjectUpdate) SetRoles(tr types.SubjectRoles) *SubjectUpdate {
+	su.mutation.SetRoles(tr)
 	return su
 }
 
-// AppendRoles appends sr to the "roles" field.
-func (su *SubjectUpdate) AppendRoles(sr schema.SubjectRoles) *SubjectUpdate {
-	su.mutation.AppendRoles(sr)
+// AppendRoles appends tr to the "roles" field.
+func (su *SubjectUpdate) AppendRoles(tr types.SubjectRoles) *SubjectUpdate {
+	su.mutation.AppendRoles(tr)
 	return su
 }
 
@@ -334,14 +334,14 @@ func (suo *SubjectUpdateOne) SetNillableLoginTo(b *bool) *SubjectUpdateOne {
 }
 
 // SetRoles sets the "roles" field.
-func (suo *SubjectUpdateOne) SetRoles(sr schema.SubjectRoles) *SubjectUpdateOne {
-	suo.mutation.SetRoles(sr)
+func (suo *SubjectUpdateOne) SetRoles(tr types.SubjectRoles) *SubjectUpdateOne {
+	suo.mutation.SetRoles(tr)
 	return suo
 }
 
-// AppendRoles appends sr to the "roles" field.
-func (suo *SubjectUpdateOne) AppendRoles(sr schema.SubjectRoles) *SubjectUpdateOne {
-	suo.mutation.AppendRoles(sr)
+// AppendRoles appends tr to the "roles" field.
+func (suo *SubjectUpdateOne) AppendRoles(tr types.SubjectRoles) *SubjectUpdateOne {
+	suo.mutation.AppendRoles(tr)
 	return suo
 }
 

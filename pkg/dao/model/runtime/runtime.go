@@ -596,7 +596,7 @@ func init() {
 	// roleDescPolicies is the schema descriptor for policies field.
 	roleDescPolicies := roleFields[3].Descriptor()
 	// role.DefaultPolicies holds the default value on creation for the policies field.
-	role.DefaultPolicies = roleDescPolicies.Default.(schema.RolePolicies)
+	role.DefaultPolicies = roleDescPolicies.Default.(types.RolePolicies)
 	// roleDescBuiltin is the schema descriptor for builtin field.
 	roleDescBuiltin := roleFields[4].Descriptor()
 	// role.DefaultBuiltin holds the default value on creation for the builtin field.
@@ -703,7 +703,7 @@ func init() {
 	// subjectDescRoles is the schema descriptor for roles field.
 	subjectDescRoles := subjectFields[6].Descriptor()
 	// subject.DefaultRoles holds the default value on creation for the roles field.
-	subject.DefaultRoles = subjectDescRoles.Default.(schema.SubjectRoles)
+	subject.DefaultRoles = subjectDescRoles.Default.(types.SubjectRoles)
 	// subjectDescPaths is the schema descriptor for paths field.
 	subjectDescPaths := subjectFields[7].Descriptor()
 	// subject.DefaultPaths holds the default value on creation for the paths field.

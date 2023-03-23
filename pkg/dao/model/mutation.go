@@ -32,7 +32,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -13886,8 +13885,8 @@ type RoleMutation struct {
 	domain         *string
 	name           *string
 	description    *string
-	policies       *schema.RolePolicies
-	appendpolicies schema.RolePolicies
+	policies       *types.RolePolicies
+	appendpolicies types.RolePolicies
 	builtin        *bool
 	session        *bool
 	clearedFields  map[string]struct{}
@@ -14194,13 +14193,13 @@ func (m *RoleMutation) ResetDescription() {
 }
 
 // SetPolicies sets the "policies" field.
-func (m *RoleMutation) SetPolicies(sp schema.RolePolicies) {
-	m.policies = &sp
+func (m *RoleMutation) SetPolicies(tp types.RolePolicies) {
+	m.policies = &tp
 	m.appendpolicies = nil
 }
 
 // Policies returns the value of the "policies" field in the mutation.
-func (m *RoleMutation) Policies() (r schema.RolePolicies, exists bool) {
+func (m *RoleMutation) Policies() (r types.RolePolicies, exists bool) {
 	v := m.policies
 	if v == nil {
 		return
@@ -14211,7 +14210,7 @@ func (m *RoleMutation) Policies() (r schema.RolePolicies, exists bool) {
 // OldPolicies returns the old "policies" field's value of the Role entity.
 // If the Role object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleMutation) OldPolicies(ctx context.Context) (v schema.RolePolicies, err error) {
+func (m *RoleMutation) OldPolicies(ctx context.Context) (v types.RolePolicies, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPolicies is only allowed on UpdateOne operations")
 	}
@@ -14225,13 +14224,13 @@ func (m *RoleMutation) OldPolicies(ctx context.Context) (v schema.RolePolicies, 
 	return oldValue.Policies, nil
 }
 
-// AppendPolicies adds sp to the "policies" field.
-func (m *RoleMutation) AppendPolicies(sp schema.RolePolicies) {
-	m.appendpolicies = append(m.appendpolicies, sp...)
+// AppendPolicies adds tp to the "policies" field.
+func (m *RoleMutation) AppendPolicies(tp types.RolePolicies) {
+	m.appendpolicies = append(m.appendpolicies, tp...)
 }
 
 // AppendedPolicies returns the list of values that were appended to the "policies" field in this mutation.
-func (m *RoleMutation) AppendedPolicies() (schema.RolePolicies, bool) {
+func (m *RoleMutation) AppendedPolicies() (types.RolePolicies, bool) {
 	if len(m.appendpolicies) == 0 {
 		return nil, false
 	}
@@ -14469,7 +14468,7 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case role.FieldPolicies:
-		v, ok := value.(schema.RolePolicies)
+		v, ok := value.(types.RolePolicies)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -15916,8 +15915,8 @@ type SubjectMutation struct {
 	description   *string
 	mountTo       *bool
 	loginTo       *bool
-	roles         *schema.SubjectRoles
-	appendroles   schema.SubjectRoles
+	roles         *types.SubjectRoles
+	appendroles   types.SubjectRoles
 	paths         *[]string
 	appendpaths   []string
 	builtin       *bool
@@ -16333,13 +16332,13 @@ func (m *SubjectMutation) ResetLoginTo() {
 }
 
 // SetRoles sets the "roles" field.
-func (m *SubjectMutation) SetRoles(sr schema.SubjectRoles) {
-	m.roles = &sr
+func (m *SubjectMutation) SetRoles(tr types.SubjectRoles) {
+	m.roles = &tr
 	m.appendroles = nil
 }
 
 // Roles returns the value of the "roles" field in the mutation.
-func (m *SubjectMutation) Roles() (r schema.SubjectRoles, exists bool) {
+func (m *SubjectMutation) Roles() (r types.SubjectRoles, exists bool) {
 	v := m.roles
 	if v == nil {
 		return
@@ -16350,7 +16349,7 @@ func (m *SubjectMutation) Roles() (r schema.SubjectRoles, exists bool) {
 // OldRoles returns the old "roles" field's value of the Subject entity.
 // If the Subject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SubjectMutation) OldRoles(ctx context.Context) (v schema.SubjectRoles, err error) {
+func (m *SubjectMutation) OldRoles(ctx context.Context) (v types.SubjectRoles, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRoles is only allowed on UpdateOne operations")
 	}
@@ -16364,13 +16363,13 @@ func (m *SubjectMutation) OldRoles(ctx context.Context) (v schema.SubjectRoles, 
 	return oldValue.Roles, nil
 }
 
-// AppendRoles adds sr to the "roles" field.
-func (m *SubjectMutation) AppendRoles(sr schema.SubjectRoles) {
-	m.appendroles = append(m.appendroles, sr...)
+// AppendRoles adds tr to the "roles" field.
+func (m *SubjectMutation) AppendRoles(tr types.SubjectRoles) {
+	m.appendroles = append(m.appendroles, tr...)
 }
 
 // AppendedRoles returns the list of values that were appended to the "roles" field in this mutation.
-func (m *SubjectMutation) AppendedRoles() (schema.SubjectRoles, bool) {
+func (m *SubjectMutation) AppendedRoles() (types.SubjectRoles, bool) {
 	if len(m.appendroles) == 0 {
 		return nil, false
 	}
@@ -16665,7 +16664,7 @@ func (m *SubjectMutation) SetField(name string, value ent.Value) error {
 		m.SetLoginTo(v)
 		return nil
 	case subject.FieldRoles:
-		v, ok := value.(schema.SubjectRoles)
+		v, ok := value.(types.SubjectRoles)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

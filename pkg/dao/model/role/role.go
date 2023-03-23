@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -79,7 +79,7 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultPolicies holds the default value on creation for the "policies" field.
-	DefaultPolicies schema.RolePolicies
+	DefaultPolicies types.RolePolicies
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.
 	DefaultBuiltin bool
 	// DefaultSession holds the default value on creation for the "session" field.

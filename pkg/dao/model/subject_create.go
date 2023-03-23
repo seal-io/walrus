@@ -17,7 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -134,8 +134,8 @@ func (sc *SubjectCreate) SetNillableLoginTo(b *bool) *SubjectCreate {
 }
 
 // SetRoles sets the "roles" field.
-func (sc *SubjectCreate) SetRoles(sr schema.SubjectRoles) *SubjectCreate {
-	sc.mutation.SetRoles(sr)
+func (sc *SubjectCreate) SetRoles(tr types.SubjectRoles) *SubjectCreate {
+	sc.mutation.SetRoles(tr)
 	return sc
 }
 
@@ -484,7 +484,7 @@ func (u *SubjectUpsert) UpdateLoginTo() *SubjectUpsert {
 }
 
 // SetRoles sets the "roles" field.
-func (u *SubjectUpsert) SetRoles(v schema.SubjectRoles) *SubjectUpsert {
+func (u *SubjectUpsert) SetRoles(v types.SubjectRoles) *SubjectUpsert {
 	u.Set(subject.FieldRoles, v)
 	return u
 }
@@ -654,7 +654,7 @@ func (u *SubjectUpsertOne) UpdateLoginTo() *SubjectUpsertOne {
 }
 
 // SetRoles sets the "roles" field.
-func (u *SubjectUpsertOne) SetRoles(v schema.SubjectRoles) *SubjectUpsertOne {
+func (u *SubjectUpsertOne) SetRoles(v types.SubjectRoles) *SubjectUpsertOne {
 	return u.Update(func(s *SubjectUpsert) {
 		s.SetRoles(v)
 	})
@@ -993,7 +993,7 @@ func (u *SubjectUpsertBulk) UpdateLoginTo() *SubjectUpsertBulk {
 }
 
 // SetRoles sets the "roles" field.
-func (u *SubjectUpsertBulk) SetRoles(v schema.SubjectRoles) *SubjectUpsertBulk {
+func (u *SubjectUpsertBulk) SetRoles(v types.SubjectRoles) *SubjectUpsertBulk {
 	return u.Update(func(s *SubjectUpsert) {
 		s.SetRoles(v)
 	})
