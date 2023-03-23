@@ -77,6 +77,20 @@ func (r *DeleteRequest) Validate() error {
 	return nil
 }
 
+type GetRequest struct {
+	*model.ApplicationInstanceQueryInput `uri:",inline"`
+}
+
+func (r *GetRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}
+
+type GetResponse = *model.ApplicationInstanceOutput
+
 // Batch APIs
 
 type CollectionGetRequest struct {
