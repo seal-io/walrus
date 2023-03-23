@@ -8,7 +8,7 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -40,7 +40,7 @@ type SubjectCreateInput struct {
 	// Indicate whether the user login to the group.
 	LoginTo *bool `json:"loginTo,omitempty"`
 	// The role list of the subject.
-	Roles schema.SubjectRoles `json:"roles,omitempty"`
+	Roles types.SubjectRoles `json:"roles,omitempty"`
 	// The path of the subject from the root group to itself.
 	Paths []string `json:"paths,omitempty"`
 	// Indicate whether the subject is builtin.
@@ -76,7 +76,7 @@ type SubjectUpdateInput struct {
 	// Indicate whether the user login to the group.
 	LoginTo *bool `json:"loginTo,omitempty"`
 	// The role list of the subject.
-	Roles schema.SubjectRoles `json:"roles,omitempty"`
+	Roles types.SubjectRoles `json:"roles,omitempty"`
 	// The path of the subject from the root group to itself.
 	Paths []string `json:"paths,omitempty"`
 	// Indicate whether the subject is builtin.
@@ -119,7 +119,7 @@ type SubjectOutput struct {
 	// Indicate whether the user login to the group.
 	LoginTo *bool `json:"loginTo,omitempty"`
 	// The role list of the subject.
-	Roles schema.SubjectRoles `json:"roles,omitempty"`
+	Roles types.SubjectRoles `json:"roles,omitempty"`
 	// The path of the subject from the root group to itself.
 	Paths []string `json:"paths,omitempty"`
 	// Indicate whether the subject is builtin.

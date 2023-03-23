@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -63,14 +63,14 @@ func (ru *RoleUpdate) ClearDescription() *RoleUpdate {
 }
 
 // SetPolicies sets the "policies" field.
-func (ru *RoleUpdate) SetPolicies(sp schema.RolePolicies) *RoleUpdate {
-	ru.mutation.SetPolicies(sp)
+func (ru *RoleUpdate) SetPolicies(tp types.RolePolicies) *RoleUpdate {
+	ru.mutation.SetPolicies(tp)
 	return ru
 }
 
-// AppendPolicies appends sp to the "policies" field.
-func (ru *RoleUpdate) AppendPolicies(sp schema.RolePolicies) *RoleUpdate {
-	ru.mutation.AppendPolicies(sp)
+// AppendPolicies appends tp to the "policies" field.
+func (ru *RoleUpdate) AppendPolicies(tp types.RolePolicies) *RoleUpdate {
+	ru.mutation.AppendPolicies(tp)
 	return ru
 }
 
@@ -204,14 +204,14 @@ func (ruo *RoleUpdateOne) ClearDescription() *RoleUpdateOne {
 }
 
 // SetPolicies sets the "policies" field.
-func (ruo *RoleUpdateOne) SetPolicies(sp schema.RolePolicies) *RoleUpdateOne {
-	ruo.mutation.SetPolicies(sp)
+func (ruo *RoleUpdateOne) SetPolicies(tp types.RolePolicies) *RoleUpdateOne {
+	ruo.mutation.SetPolicies(tp)
 	return ruo
 }
 
-// AppendPolicies appends sp to the "policies" field.
-func (ruo *RoleUpdateOne) AppendPolicies(sp schema.RolePolicies) *RoleUpdateOne {
-	ruo.mutation.AppendPolicies(sp)
+// AppendPolicies appends tp to the "policies" field.
+func (ruo *RoleUpdateOne) AppendPolicies(tp types.RolePolicies) *RoleUpdateOne {
+	ruo.mutation.AppendPolicies(tp)
 	return ruo
 }
 

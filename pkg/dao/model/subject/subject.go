@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -94,7 +94,7 @@ var (
 	// DefaultLoginTo holds the default value on creation for the "loginTo" field.
 	DefaultLoginTo bool
 	// DefaultRoles holds the default value on creation for the "roles" field.
-	DefaultRoles schema.SubjectRoles
+	DefaultRoles types.SubjectRoles
 	// DefaultPaths holds the default value on creation for the "paths" field.
 	DefaultPaths []string
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.

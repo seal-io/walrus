@@ -17,7 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -92,8 +92,8 @@ func (rc *RoleCreate) SetNillableDescription(s *string) *RoleCreate {
 }
 
 // SetPolicies sets the "policies" field.
-func (rc *RoleCreate) SetPolicies(sp schema.RolePolicies) *RoleCreate {
-	rc.mutation.SetPolicies(sp)
+func (rc *RoleCreate) SetPolicies(tp types.RolePolicies) *RoleCreate {
+	rc.mutation.SetPolicies(tp)
 	return rc
 }
 
@@ -381,7 +381,7 @@ func (u *RoleUpsert) ClearDescription() *RoleUpsert {
 }
 
 // SetPolicies sets the "policies" field.
-func (u *RoleUpsert) SetPolicies(v schema.RolePolicies) *RoleUpsert {
+func (u *RoleUpsert) SetPolicies(v types.RolePolicies) *RoleUpsert {
 	u.Set(role.FieldPolicies, v)
 	return u
 }
@@ -491,7 +491,7 @@ func (u *RoleUpsertOne) ClearDescription() *RoleUpsertOne {
 }
 
 // SetPolicies sets the "policies" field.
-func (u *RoleUpsertOne) SetPolicies(v schema.RolePolicies) *RoleUpsertOne {
+func (u *RoleUpsertOne) SetPolicies(v types.RolePolicies) *RoleUpsertOne {
 	return u.Update(func(s *RoleUpsert) {
 		s.SetPolicies(v)
 	})
@@ -766,7 +766,7 @@ func (u *RoleUpsertBulk) ClearDescription() *RoleUpsertBulk {
 }
 
 // SetPolicies sets the "policies" field.
-func (u *RoleUpsertBulk) SetPolicies(v schema.RolePolicies) *RoleUpsertBulk {
+func (u *RoleUpsertBulk) SetPolicies(v types.RolePolicies) *RoleUpsertBulk {
 	return u.Update(func(s *RoleUpsert) {
 		s.SetPolicies(v)
 	})

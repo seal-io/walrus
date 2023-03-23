@@ -8,7 +8,7 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -34,7 +34,7 @@ type RoleCreateInput struct {
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
-	Policies schema.RolePolicies `json:"policies,omitempty"`
+	Policies types.RolePolicies `json:"policies,omitempty"`
 	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicate whether the subject is session level, decide when creating.
@@ -61,7 +61,7 @@ type RoleUpdateInput struct {
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
-	Policies schema.RolePolicies `json:"policies,omitempty"`
+	Policies types.RolePolicies `json:"policies,omitempty"`
 }
 
 // Model converts the RoleUpdateInput to Role.
@@ -89,7 +89,7 @@ type RoleOutput struct {
 	// The detail of the role.
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
-	Policies schema.RolePolicies `json:"policies,omitempty"`
+	Policies types.RolePolicies `json:"policies,omitempty"`
 	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicate whether the subject is session level, decide when creating.
