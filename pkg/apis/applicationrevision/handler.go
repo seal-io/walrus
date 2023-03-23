@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
 	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
@@ -104,19 +105,26 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
-	entities, err := query.
-		WithInstance(func(aiq *model.ApplicationInstanceQuery) {
+
+	if req.InstanceID == "" {
+		query.WithInstance(func(aiq *model.ApplicationInstanceQuery) {
 			aiq.Select(
 				applicationinstance.FieldID,
 				applicationinstance.FieldName,
-				applicationinstance.FieldApplicationID).
-				WithApplication(func(aq *model.ApplicationQuery) {
-					aq.Select(application.FieldID, application.FieldName)
-				})
-		}).
-		WithEnvironment(func(eq *model.EnvironmentQuery) {
-			eq.Select(environment.FieldID, environment.FieldName)
-		}).
+				applicationinstance.FieldApplicationID,
+			).WithApplication(func(aq *model.ApplicationQuery) {
+				aq.Select(
+					application.FieldID,
+					application.FieldName,
+					application.FieldProjectID).
+					WithProject(func(pq *model.ProjectQuery) {
+						pq.Select(project.FieldID, project.FieldName)
+					})
+			})
+		})
+	}
+	entities, err := query.WithEnvironment(
+		func(eq *model.EnvironmentQuery) { eq.Select(environment.FieldID, environment.FieldName) }).
 		Unique(false). // allow returning without sorting keys.
 		All(ctx)
 	if err != nil {
