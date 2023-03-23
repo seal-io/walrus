@@ -11,12 +11,14 @@ import (
 )
 
 const (
-	authnSubjectGroupKey = "authn_subject_group"
-	authnSubjectNameKey  = "authn_subject_name"
+	authnSubjectGroupsKey = "authn_subject_groups"
+	authnSubjectGroupKey  = "authn_subject_group"
+	authnSubjectNameKey   = "authn_subject_name"
 )
 
-func StoreSubjectAuthnInfo(c *gin.Context, group, name string) {
-	c.Set(authnSubjectGroupKey, group)
+func StoreSubjectAuthnInfo(c *gin.Context, groups []string, name string) {
+	c.Set(authnSubjectGroupsKey, groups)
+	c.Set(authnSubjectGroupKey, groups[len(groups)-1])
 	c.Set(authnSubjectNameKey, name)
 }
 
@@ -52,6 +54,7 @@ func ToSubjectKey(group, name string) string {
 
 // LoadSubject loads the subject from the given gin.Context.
 func LoadSubject(c *gin.Context) (s Subject) {
+	s.Groups = c.GetStringSlice(authnSubjectGroupsKey)
 	s.Group = c.GetString(authnSubjectGroupKey)
 	s.Name = c.GetString(authnSubjectNameKey)
 	if v, exist := c.Get(authzSubjectRolesKey); exist {
@@ -72,9 +75,16 @@ func LoadSubjectCurrentOperation(c *gin.Context) (o Operation) {
 }
 
 type Subject struct {
-	Group    string
-	Name     string
-	Roles    types.SubjectRoles
+	// Groups indicates all superior groups which the subject belong to,
+	// includes the groups from root to the login group.
+	Groups []string
+	// Group indicates the group which the subject login.
+	Group string
+	// Name indicates the name of the subject.
+	Name string
+	// Roles indicates the roles of the subject.
+	Roles types.SubjectRoles
+	// Policies indicates the policies of the subject.
 	Policies types.RolePolicies
 }
 

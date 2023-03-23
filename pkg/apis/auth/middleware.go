@@ -42,7 +42,7 @@ func noAuth(c *gin.Context, _ model.ClientSet) error {
 		types.RolePolicyResourceAdminFor("*"),
 	}
 
-	session.StoreSubjectAuthnInfo(c, "default", "admin")
+	session.StoreSubjectAuthnInfo(c, []string{"default"}, "admin")
 	session.StoreSubjectAuthzInfo(c, roles, policies)
 	return nil
 }

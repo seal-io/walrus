@@ -43,7 +43,11 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 		if err != nil {
 			return runtime.ErrorfP(http.StatusInternalServerError, "failed to parse subject key: %w", err)
 		}
-		session.StoreSubjectAuthnInfo(c, g, n)
+		groups, err := getGroups(c, modelClient, g, n)
+		if err != nil {
+			return err
+		}
+		session.StoreSubjectAuthnInfo(c, groups, n)
 		return nil
 	}
 
@@ -64,12 +68,12 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 		return nil
 	}
 	// cache
-	loginGroup, err := getLoginGroup(c, modelClient, r.UserName)
+	groups, err := getGroups(c, modelClient, "", r.UserName)
 	if err != nil {
 		return err
 	}
-	cache.StoreTokenSubject(token, session.ToSubjectKey(loginGroup, r.UserName), true)
-	session.StoreSubjectAuthnInfo(c, loginGroup, r.UserName)
+	cache.StoreTokenSubject(token, session.ToSubjectKey(groups[len(groups)-1], r.UserName), true)
+	session.StoreSubjectAuthnInfo(c, groups, r.UserName)
 	return nil
 }
 
@@ -83,7 +87,11 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 		if err != nil {
 			return runtime.ErrorfP(http.StatusInternalServerError, "failed to parse subject key: %w", err)
 		}
-		session.StoreSubjectAuthnInfo(c, g, n)
+		groups, err := getGroups(c, modelClient, g, n)
+		if err != nil {
+			return err
+		}
+		session.StoreSubjectAuthnInfo(c, groups, n)
 		return nil
 	}
 
@@ -95,39 +103,47 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 		return casdoor.InterruptSession(c.Writer, []*req.HttpCookie{internalSession})
 	}
 	// cache
-	loginGroup, err := getLoginGroup(c, modelClient, r.Name)
+	groups, err := getGroups(c, modelClient, "", r.Name)
 	if err != nil {
 		return err
 	}
-	cache.StoreSessionSubject(string(internalSession.Value()), session.ToSubjectKey(loginGroup, r.Name), true)
-	session.StoreSubjectAuthnInfo(c, loginGroup, r.Name)
+	cache.StoreSessionSubject(string(internalSession.Value()), session.ToSubjectKey(groups[len(groups)-1], r.Name), true)
+	session.StoreSubjectAuthnInfo(c, groups, r.Name)
 	return casdoor.HoldSession(c.Writer, []*req.HttpCookie{internalSession})
 }
 
-func getLoginGroup(ctx context.Context, modelClient model.ClientSet, name string) (string, error) {
-	var users, err = modelClient.Subjects().Query().
-		Where(
-			subject.Kind("user"),
-			subject.Name(name),
-			subject.Or(
-				subject.LoginTo(true),
-				subject.MountTo(false),
-			),
-		).
-		Select(subject.FieldGroup, subject.FieldLoginTo, subject.FieldMountTo).
+// getGroups returns the groups with the given user,
+// if not group is blank, retries the proper groups.
+func getGroups(ctx context.Context, modelClient model.ClientSet, group string, user string) ([]string, error) {
+	var query = modelClient.Subjects().Query().
+		Where(subject.Kind("user"), subject.Name(user))
+	if group == "" {
+		// get specified login group(loginTo=true) or default login group(mountTo=false)
+		query.Where(subject.Or(subject.LoginTo(true), subject.MountTo(false)))
+	} else {
+		// specified group.
+		query.Where(subject.Group(group))
+	}
+
+	var users, err = query.
+		Select(
+			subject.FieldLoginTo,
+			subject.FieldMountTo,
+			subject.FieldPaths).
 		All(ctx)
 	if err != nil {
-		return "", runtime.ErrorfP(http.StatusInternalServerError, "failed to get user: %w", err)
+		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to get user: %w", err)
 	}
-	var loginGroup string
+
+	var groups []string
 	for i := 0; i < len(users); i++ {
 		var u = users[i]
 		if *u.LoginTo {
-			loginGroup = u.Group
-			break
-		} else if !*u.MountTo {
-			loginGroup = u.Group
+			return u.Paths[:len(u.Paths)-1], nil
+		}
+		if !*u.MountTo {
+			groups = u.Paths[:len(u.Paths)-1]
 		}
 	}
-	return loginGroup, nil
+	return groups, nil
 }
