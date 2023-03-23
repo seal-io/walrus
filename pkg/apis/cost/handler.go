@@ -244,7 +244,6 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 	summary := &view.SummaryQueriedCostResponse{}
 	for _, v := range items {
 		summary.TotalCost += v.TotalCost
-		summary.TotalCost += v.TotalCost
 		summary.SharedCost += v.SharedCost
 		summary.CpuCost += v.CpuCost
 		summary.GpuCost += v.GpuCost
