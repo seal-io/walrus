@@ -115,6 +115,20 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	return dp.Destroy(ctx, entity, destroyOpts)
 }
 
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	var entity, err = h.modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(req.ID)).
+		WithEnvironment(func(eq *model.EnvironmentQuery) {
+			eq.Select(environment.FieldName)
+		}).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplicationInstance(entity), nil
+}
+
 // Batch APIs
 
 var (
