@@ -1,14 +1,11 @@
 package view
 
 import (
-	"context"
 	"errors"
-	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -96,20 +93,18 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Application] `query:",inline"`
 
-	ProjectID types.ID `query:"projectID"`
+	ProjectIDs []types.ID `query:"projectID"`
 }
 
-func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
-	if !r.ProjectID.Valid(0) {
-		return errors.New("invalid project id: blank")
+func (r *CollectionGetRequest) Validate() error {
+	if len(r.ProjectIDs) == 0 {
+		return errors.New("invalid input: missing project id")
 	}
-	_, err := modelClient.Projects().Query().
-		Where(project.ID(r.ProjectID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid project id: not found")
+
+	for i := range r.ProjectIDs {
+		if !r.ProjectIDs[i].Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
 	}
 	return nil
 }
