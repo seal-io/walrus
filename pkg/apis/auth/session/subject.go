@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/slice"
 )
 
 const (
@@ -119,7 +120,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 		return
 	case 1:
 		if rp.Actions[0] == "*" {
-			if hasAny(rp.ActionExcludes, action) {
+			if slice.ContainsAny[string](rp.ActionExcludes, action) {
 				// excluded action
 				return
 			}
@@ -128,7 +129,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 			return
 		}
 	default:
-		if !hasAny(rp.Actions, action) {
+		if !slice.ContainsAny[string](rp.Actions, action) {
 			// unexpected action
 			return
 		}
@@ -137,14 +138,14 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 	// check resources
 	switch len(rp.Resources) {
 	default:
-		if !hasAny(rp.Resources, resource) {
+		if !slice.ContainsAny[string](rp.Resources, resource) {
 			// unexpected resource
 			return
 		}
 		return true
 	case 1:
 		if rp.Resources[0] == "*" {
-			if hasAny(rp.ResourceExcludes, resource) {
+			if slice.ContainsAny[string](rp.ResourceExcludes, resource) {
 				// excluded resource
 				return
 			}
@@ -156,13 +157,13 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 		// check resource ids
 		switch len(rp.ObjectIDs) {
 		default:
-			if !hasAny(rp.ObjectIDs, id) {
+			if !slice.ContainsAny[string](rp.ObjectIDs, id) {
 				// unexpected resource id
 				return
 			}
 		case 1:
 			if rp.ObjectIDs[0] == "*" {
-				if hasAny(rp.ObjectIDExcludes, id) {
+				if slice.ContainsAny[string](rp.ObjectIDExcludes, id) {
 					// excluded resource id
 					return
 				}
@@ -177,7 +178,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 	}
 
 	// check none resource urls
-	return hasAny(rp.Paths, url)
+	return slice.ContainsAny[string](rp.Paths, url)
 }
 
 // Give returns Permission of the given resource.
@@ -205,7 +206,7 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 		return
 	case 1:
 		if rp.Resources[0] == "*" {
-			if hasAny(rp.ResourceExcludes, resource) {
+			if slice.ContainsAny[string](rp.ResourceExcludes, resource) {
 				// excluded resource
 				return
 			}
@@ -214,7 +215,7 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 			return
 		}
 	default:
-		if !hasAny(rp.Resources, resource) {
+		if !slice.ContainsAny[string](rp.Resources, resource) {
 			// unexpected resource
 			return
 		}
@@ -262,13 +263,4 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 	// check scope
 	pv.scope = rp.Scope
 	return
-}
-
-func hasAny(ss []string, s string) bool {
-	for i := 0; i < len(ss); i++ {
-		if ss[i] == s {
-			return true
-		}
-	}
-	return false
 }
