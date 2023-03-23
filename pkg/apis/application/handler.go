@@ -121,7 +121,7 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Applications().Query().
-		Where(application.ProjectID(req.ProjectID))
+		Where(application.ProjectIDIn(req.ProjectIDs...))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
