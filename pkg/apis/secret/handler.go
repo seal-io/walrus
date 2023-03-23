@@ -90,9 +90,11 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Secrets().Query()
-	if req.ProjectID != nil {
-		query.Where(secret.ProjectID(*req.ProjectID))
+	if len(req.ProjectIDs) != 0 {
+		// project scope
+		query.Where(secret.ProjectIDIn(req.ProjectIDs...))
 	} else {
+		// global scope
 		query.Where(secret.ProjectIDIsNil())
 	}
 	if queries, ok := req.Querying(queryFields); ok {
