@@ -2,6 +2,7 @@ package applicationinstance
 
 import (
 	"github.com/gin-gonic/gin"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationinstance/view"
@@ -14,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
@@ -237,8 +239,17 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 		return nil, nil
 	}
 
-	var endpoints []view.ResourceEndpoint
+	var (
+		endpoints []view.ResourceEndpoint
+		existed   = sets.Set[string]{}
+	)
 	for _, v := range res {
+		key := strs.Join(v.Type, v.Name, v.ConnectorID.String())
+		if existed.Has(key) {
+			continue
+		}
+		existed.Insert(key)
+
 		for _, eps := range v.Status.ResourceEndpoints {
 			endpoints = append(endpoints, view.ResourceEndpoint{
 				ResourceID:      v.Name,
