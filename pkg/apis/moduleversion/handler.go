@@ -49,8 +49,7 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.ModuleVersions().Query().
-		Where(moduleversion.ModuleIDIn(req.ModuleID...))
-
+		Where(moduleversion.ModuleIDIn(req.ModuleIDs...))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
