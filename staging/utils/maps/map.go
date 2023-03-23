@@ -50,3 +50,16 @@ func CopyMap(m map[string]interface{}) map[string]interface{} {
 
 	return cp
 }
+
+// GetString gets a string value by key from a map of type map[string]interface{}.
+func GetString(m map[string]interface{}, key string) string {
+	var v, exist = m[key]
+	if !exist {
+		return ""
+	}
+	var vs, ok = v.(string)
+	if !ok {
+		return ""
+	}
+	return vs
+}

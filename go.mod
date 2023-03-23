@@ -2,6 +2,7 @@ module github.com/seal-io/seal
 
 replace (
 	entgo.io/ent => github.com/seal-io/ent v0.11.9-0.20230228043124-62a102f628c9
+	github.com/drone/go-scm => github.com/seal-io/go-scm v0.0.0-20230201081210-4a7d56fb4bcd
 	github.com/seal-io/seal/utils => ./staging/utils
 )
 
@@ -10,6 +11,7 @@ go 1.19
 require (
 	entgo.io/ent v0.11.8
 	github.com/distribution/distribution v2.8.1+incompatible
+	github.com/drone/go-scm v1.29.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-logr/logr v1.2.3
