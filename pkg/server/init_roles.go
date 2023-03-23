@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
@@ -19,16 +19,16 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 			Domain:      "system",
 			Name:        "anonymity",
 			Description: "system/anonymity",
-			Policies: schema.RolePolicies{
+			Policies: types.RolePolicies{
 				{
-					Actions: schema.RolePolicyFields(http.MethodPost),
-					Paths:   schema.RolePolicyFields("/account/login"),
+					Actions: types.RolePolicyFields(http.MethodPost),
+					Paths:   types.RolePolicyFields("/account/login"),
 				},
 				{
-					Actions:   schema.RolePolicyFields(http.MethodGet),
-					Scope:     schema.RolePolicyResourceScopeGlobal,
-					Resources: schema.RolePolicyFields("settings"),
-					ObjectIDs: schema.RolePolicyFields("FirstLogin"),
+					Actions:   types.RolePolicyFields(http.MethodGet),
+					Resources: types.RolePolicyFields("settings"),
+					ObjectIDs: types.RolePolicyFields("FirstLogin"),
+					Scope:     types.RolePolicyResourceScopeGlobal,
 				},
 			},
 			Builtin: true,
@@ -40,25 +40,25 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 			Domain:      "system",
 			Name:        "user",
 			Description: "system/user",
-			Policies: schema.RolePolicies{
+			Policies: types.RolePolicies{
 				{
-					Actions:          schema.RolePolicyFields("*"),
-					Scope:            schema.RolePolicyResourceScopeInherit,
-					Resources:        schema.RolePolicyFields("*"),
-					ResourceExcludes: schema.RolePolicyFields("groups", "users", "roles", "settings", "tokens"),
+					Actions:          types.RolePolicyFields("*"),
+					Resources:        types.RolePolicyFields("*"),
+					ResourceExcludes: types.RolePolicyFields("groups", "users", "roles", "settings", "tokens"),
+					Scope:            types.RolePolicyResourceScopeInherit,
 				},
 				{
-					Actions:   schema.RolePolicyFields("*"),
-					Scope:     schema.RolePolicyResourceScopePrivate,
-					Resources: schema.RolePolicyFields("tokens"),
+					Actions:   types.RolePolicyFields("*"),
+					Resources: types.RolePolicyFields("tokens"),
+					Scope:     types.RolePolicyResourceScopePrivate,
 				},
 				{
-					Actions: schema.RolePolicyFields("*"),
-					Paths:   schema.RolePolicyFields("/account/info"),
+					Actions: types.RolePolicyFields("*"),
+					Paths:   types.RolePolicyFields("/account/info"),
 				},
 				{
-					Actions: schema.RolePolicyFields(http.MethodPost),
-					Paths:   schema.RolePolicyFields("/account/logout"),
+					Actions: types.RolePolicyFields(http.MethodPost),
+					Paths:   types.RolePolicyFields("/account/logout"),
 				},
 			},
 			Builtin: true,
@@ -70,8 +70,13 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 			Domain:      "system",
 			Name:        "admin",
 			Description: "system/admin",
-			Policies: schema.RolePolicies{
-				schema.RolePolicyResourceAdminFor("*"),
+			Policies: types.RolePolicies{
+				{
+					Actions:          types.RolePolicyFields("*"),
+					Resources:        types.RolePolicyFields("*"),
+					ResourceExcludes: types.RolePolicyFields("tokens"),
+					Scope:            types.RolePolicyResourceScopeGlobal,
+				},
 			},
 			Builtin: true,
 		},

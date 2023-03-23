@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
@@ -33,7 +33,7 @@ func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 			Description: "default/admin",
 			MountTo:     pointer.Bool(false),
 			LoginTo:     pointer.Bool(true),
-			Roles: schema.SubjectRoles{
+			Roles: types.SubjectRoles{
 				{Domain: "system", Name: "admin"},
 			},
 			Paths: []string{"default", "admin"},

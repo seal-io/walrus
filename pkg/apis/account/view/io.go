@@ -3,7 +3,7 @@ package view
 import (
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 type UpdateInfoRequest struct {
@@ -39,11 +39,11 @@ func (r *UpdateInfoRequest) Validate() error {
 }
 
 type GetInfoResponse struct {
-	Name       string              `json:"name"`
-	Roles      schema.SubjectRoles `json:"roles"`
-	Policies   schema.RolePolicies `json:"policies"`
-	Groups     []GetInfoGroup      `json:"groups"`
-	LoginGroup string              `json:"loginGroup"`
+	Name       string             `json:"name"`
+	Roles      types.SubjectRoles `json:"roles"`
+	Policies   types.RolePolicies `json:"policies"`
+	Groups     []GetInfoGroup     `json:"groups"`
+	LoginGroup string             `json:"loginGroup"`
 }
 
 type GetInfoGroup struct {

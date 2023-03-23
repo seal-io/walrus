@@ -6,7 +6,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/schema"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate, error) {
@@ -72,7 +72,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
 		} else {
-			c.SetPolicies(schema.DefaultRolePolicies())
+			c.SetPolicies(types.DefaultRolePolicies())
 		}
 		rrs[i] = c
 	}
