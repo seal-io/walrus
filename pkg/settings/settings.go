@@ -39,6 +39,9 @@ var (
 	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), modifyWith(notBlank, containerImageReference))
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
+	// OpenAiApiToken keeps the openAI API token for generating module completions.
+	// TODO protect the stored token.
+	OpenAiApiToken = newValue("openAiApiToken", editable, nil, nil)
 )
 
 // the built-in settings for server cron jobs.

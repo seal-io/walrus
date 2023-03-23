@@ -23,6 +23,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/ogen-go/ogen v0.58.0
 	github.com/opencost/opencost v1.100.1
+	github.com/sashabaranov/go-openai v1.5.4
 	github.com/seal-io/seal/utils v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/sony/sonyflake v1.1.0
