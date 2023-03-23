@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/drone/go-scm/scm"
+
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -26,6 +29,11 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	var entity = r.Model()
+
+	if !connectors.IsOperator(entity) {
+		return nil
+	}
+
 	op, err := platform.GetOperator(ctx, operator.CreateOptions{
 		Connector: *entity,
 	})
@@ -138,3 +146,22 @@ func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id 
 	}
 	return nil
 }
+
+type GetRepositoriesRequest struct {
+	_ struct{} `route:"GET=/repositories"`
+
+	runtime.RequestCollection[predicate.Connector] `query:",inline"`
+	ID                                             types.ID `uri:"id"`
+}
+
+type GetRepositoriesResponse = []*scm.Repository
+
+type GetBranchesRequest struct {
+	_ struct{} `route:"GET=/repository-branches"`
+
+	runtime.RequestCollection[predicate.Connector] `query:",inline"`
+	ID                                             types.ID `uri:"id"`
+	Repository                                     string   `query:"repository"`
+}
+
+type GetBranchesResponse = []*scm.Reference
