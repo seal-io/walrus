@@ -75,6 +75,21 @@ END`, types.UnallocatedLabel, types.UnallocatedLabel, types.UnallocatedLabel)
 	return groupBy, nil
 }
 
+// wrappedCondition update step base on the groupBy
+func wrappedCondition(cond types.QueryCondition) types.QueryCondition {
+	switch cond.GroupBy {
+	case types.GroupByFieldDay:
+		cond.Step = types.StepDay
+	case types.GroupByFieldWeek:
+		cond.Step = types.StepWeek
+	case types.GroupByFieldMonth:
+		cond.Step = types.StepMonth
+	case types.GroupByFieldYear:
+		cond.Step = types.StepMonth
+	}
+	return cond
+}
+
 // havingSQL generate the having sql with group by and query keyword
 func havingSQL(
 	ctx context.Context,
