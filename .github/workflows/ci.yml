@@ -9,7 +9,7 @@ env:
   VERSION: "${{ github.ref_name }}"
   BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   PARALLELIZE: "false"
-  GO_VERSION: "1.19.5"
+  GO_VERSION: "1.19.7"
 
 defaults:
   run:
@@ -175,9 +175,9 @@ jobs:
             SERVE_UI_INDEX=${{ startsWith(github.ref, 'refs/tags/') && 'file:///var/lib/seal/ui' || 'https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html' }}
       - name: Setup Cosign
         if: ${{ github.event_name != 'pull_request' }}
-        uses: sigstore/cosign-installer@v2.8.1
+        uses: sigstore/cosign-installer@v3.0.1
         with:
-          cosign-release: v1.13.1
+          cosign-release: v2.0.0
       - name: Prove
         if: ${{ github.event_name != 'pull_request' }}
         run: |
@@ -194,12 +194,12 @@ jobs:
           ./slsa-generator generate --predicate="${predicate_name}"
           cosign attest --predicate="${predicate_name}" \
             --type slsaprovenance \
-            --force \
+            --yes \
             "${UNTRUSTED_IMAGE}@${UNTRUSTED_DIGEST}"
         env:
           COSIGN_EXPERIMENTAL: "1"
           SLSA_GITHUB_GENERATOR: "slsa-generator-container-linux-amd64"
-          SLSA_GITHUB_GENERATOR_VERSION: "v1.4.0"
+          SLSA_GITHUB_GENERATOR_VERSION: "v1.5.0"
           GITHUB_CONTEXT: "${{ toJSON(github) }}"
           UNTRUSTED_IMAGE: "${{ env.REPO }}/${{ matrix.target }}-${{ matrix.task }}"
           UNTRUSTED_DIGEST: "${{ steps.package.outputs.digest }}"
