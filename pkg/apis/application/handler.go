@@ -1,6 +1,7 @@
 package application
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
@@ -142,23 +143,38 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if orders, ok := req.Sorting(sortFields, model.Desc(application.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
+	// get application with instances and environments
 	entities, err := query.
 		// allow returning without sorting keys.
 		Unique(false).
 		// must extract application instances.
 		WithInstances(func(iq *model.ApplicationInstanceQuery) {
-			iq.Order(model.Asc(applicationinstance.FieldCreateTime)).
-				// earlier 5 instances.
-				Limit(5).
+			iq.Select(
+				applicationinstance.FieldApplicationID,
+				applicationinstance.FieldID,
+				applicationinstance.FieldName,
+				applicationinstance.FieldStatus).
+				Where(func(s *sql.Selector) {
+					// sq generate instance with row number.
+					var sq = s.Clone().
+						AppendSelectExprAs(
+							sql.RowNumber().
+								PartitionBy(applicationinstance.FieldApplicationID).
+								OrderBy(sql.Desc(applicationinstance.FieldCreateTime)),
+							"row_number",
+						).
+						Where(s.P()).
+						From(s.Table()).
+						As(applicationinstance.Table)
+
+					// query latest 5 instances.
+					s.Where(sql.LTE(s.C("row_number"), 5)).
+						From(sq)
+				}).
 				Select(
-					applicationinstance.FieldApplicationID,
-					applicationinstance.FieldID,
-					applicationinstance.FieldName,
-					applicationinstance.FieldStatus).
-				// allow returning without sorting keys.
-				Unique(false).
-				// must extract environment.
-				Select(applicationinstance.FieldEnvironmentID).
+					applicationinstance.FieldEnvironmentID, // must extract environment.
+				).
 				WithEnvironment(func(eq *model.EnvironmentQuery) {
 					eq.Select(environment.FieldName)
 				})
