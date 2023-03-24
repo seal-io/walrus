@@ -7181,14 +7181,6 @@ type ClusterCostMutation struct {
 	addtotalCost      *float64
 	currency          *int
 	addcurrency       *int
-	cpuCost           *float64
-	addcpuCost        *float64
-	gpuCost           *float64
-	addgpuCost        *float64
-	ramCost           *float64
-	addramCost        *float64
-	storageCost       *float64
-	addstorageCost    *float64
 	allocationCost    *float64
 	addallocationCost *float64
 	idleCost          *float64
@@ -7627,230 +7619,6 @@ func (m *ClusterCostMutation) ResetCurrency() {
 	delete(m.clearedFields, clustercost.FieldCurrency)
 }
 
-// SetCpuCost sets the "cpuCost" field.
-func (m *ClusterCostMutation) SetCpuCost(f float64) {
-	m.cpuCost = &f
-	m.addcpuCost = nil
-}
-
-// CpuCost returns the value of the "cpuCost" field in the mutation.
-func (m *ClusterCostMutation) CpuCost() (r float64, exists bool) {
-	v := m.cpuCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCpuCost returns the old "cpuCost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldCpuCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCpuCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCpuCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCpuCost: %w", err)
-	}
-	return oldValue.CpuCost, nil
-}
-
-// AddCpuCost adds f to the "cpuCost" field.
-func (m *ClusterCostMutation) AddCpuCost(f float64) {
-	if m.addcpuCost != nil {
-		*m.addcpuCost += f
-	} else {
-		m.addcpuCost = &f
-	}
-}
-
-// AddedCpuCost returns the value that was added to the "cpuCost" field in this mutation.
-func (m *ClusterCostMutation) AddedCpuCost() (r float64, exists bool) {
-	v := m.addcpuCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCpuCost resets all changes to the "cpuCost" field.
-func (m *ClusterCostMutation) ResetCpuCost() {
-	m.cpuCost = nil
-	m.addcpuCost = nil
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (m *ClusterCostMutation) SetGpuCost(f float64) {
-	m.gpuCost = &f
-	m.addgpuCost = nil
-}
-
-// GpuCost returns the value of the "gpuCost" field in the mutation.
-func (m *ClusterCostMutation) GpuCost() (r float64, exists bool) {
-	v := m.gpuCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGpuCost returns the old "gpuCost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldGpuCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGpuCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGpuCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGpuCost: %w", err)
-	}
-	return oldValue.GpuCost, nil
-}
-
-// AddGpuCost adds f to the "gpuCost" field.
-func (m *ClusterCostMutation) AddGpuCost(f float64) {
-	if m.addgpuCost != nil {
-		*m.addgpuCost += f
-	} else {
-		m.addgpuCost = &f
-	}
-}
-
-// AddedGpuCost returns the value that was added to the "gpuCost" field in this mutation.
-func (m *ClusterCostMutation) AddedGpuCost() (r float64, exists bool) {
-	v := m.addgpuCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGpuCost resets all changes to the "gpuCost" field.
-func (m *ClusterCostMutation) ResetGpuCost() {
-	m.gpuCost = nil
-	m.addgpuCost = nil
-}
-
-// SetRamCost sets the "ramCost" field.
-func (m *ClusterCostMutation) SetRamCost(f float64) {
-	m.ramCost = &f
-	m.addramCost = nil
-}
-
-// RamCost returns the value of the "ramCost" field in the mutation.
-func (m *ClusterCostMutation) RamCost() (r float64, exists bool) {
-	v := m.ramCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRamCost returns the old "ramCost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldRamCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRamCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRamCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRamCost: %w", err)
-	}
-	return oldValue.RamCost, nil
-}
-
-// AddRamCost adds f to the "ramCost" field.
-func (m *ClusterCostMutation) AddRamCost(f float64) {
-	if m.addramCost != nil {
-		*m.addramCost += f
-	} else {
-		m.addramCost = &f
-	}
-}
-
-// AddedRamCost returns the value that was added to the "ramCost" field in this mutation.
-func (m *ClusterCostMutation) AddedRamCost() (r float64, exists bool) {
-	v := m.addramCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRamCost resets all changes to the "ramCost" field.
-func (m *ClusterCostMutation) ResetRamCost() {
-	m.ramCost = nil
-	m.addramCost = nil
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (m *ClusterCostMutation) SetStorageCost(f float64) {
-	m.storageCost = &f
-	m.addstorageCost = nil
-}
-
-// StorageCost returns the value of the "storageCost" field in the mutation.
-func (m *ClusterCostMutation) StorageCost() (r float64, exists bool) {
-	v := m.storageCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStorageCost returns the old "storageCost" field's value of the ClusterCost entity.
-// If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldStorageCost(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStorageCost is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStorageCost requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStorageCost: %w", err)
-	}
-	return oldValue.StorageCost, nil
-}
-
-// AddStorageCost adds f to the "storageCost" field.
-func (m *ClusterCostMutation) AddStorageCost(f float64) {
-	if m.addstorageCost != nil {
-		*m.addstorageCost += f
-	} else {
-		m.addstorageCost = &f
-	}
-}
-
-// AddedStorageCost returns the value that was added to the "storageCost" field in this mutation.
-func (m *ClusterCostMutation) AddedStorageCost() (r float64, exists bool) {
-	v := m.addstorageCost
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStorageCost resets all changes to the "storageCost" field.
-func (m *ClusterCostMutation) ResetStorageCost() {
-	m.storageCost = nil
-	m.addstorageCost = nil
-}
-
 // SetAllocationCost sets the "allocationCost" field.
 func (m *ClusterCostMutation) SetAllocationCost(f float64) {
 	m.allocationCost = &f
@@ -8079,7 +7847,7 @@ func (m *ClusterCostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClusterCostMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 10)
 	if m.startTime != nil {
 		fields = append(fields, clustercost.FieldStartTime)
 	}
@@ -8100,18 +7868,6 @@ func (m *ClusterCostMutation) Fields() []string {
 	}
 	if m.currency != nil {
 		fields = append(fields, clustercost.FieldCurrency)
-	}
-	if m.cpuCost != nil {
-		fields = append(fields, clustercost.FieldCpuCost)
-	}
-	if m.gpuCost != nil {
-		fields = append(fields, clustercost.FieldGpuCost)
-	}
-	if m.ramCost != nil {
-		fields = append(fields, clustercost.FieldRamCost)
-	}
-	if m.storageCost != nil {
-		fields = append(fields, clustercost.FieldStorageCost)
 	}
 	if m.allocationCost != nil {
 		fields = append(fields, clustercost.FieldAllocationCost)
@@ -8144,14 +7900,6 @@ func (m *ClusterCostMutation) Field(name string) (ent.Value, bool) {
 		return m.TotalCost()
 	case clustercost.FieldCurrency:
 		return m.Currency()
-	case clustercost.FieldCpuCost:
-		return m.CpuCost()
-	case clustercost.FieldGpuCost:
-		return m.GpuCost()
-	case clustercost.FieldRamCost:
-		return m.RamCost()
-	case clustercost.FieldStorageCost:
-		return m.StorageCost()
 	case clustercost.FieldAllocationCost:
 		return m.AllocationCost()
 	case clustercost.FieldIdleCost:
@@ -8181,14 +7929,6 @@ func (m *ClusterCostMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldTotalCost(ctx)
 	case clustercost.FieldCurrency:
 		return m.OldCurrency(ctx)
-	case clustercost.FieldCpuCost:
-		return m.OldCpuCost(ctx)
-	case clustercost.FieldGpuCost:
-		return m.OldGpuCost(ctx)
-	case clustercost.FieldRamCost:
-		return m.OldRamCost(ctx)
-	case clustercost.FieldStorageCost:
-		return m.OldStorageCost(ctx)
 	case clustercost.FieldAllocationCost:
 		return m.OldAllocationCost(ctx)
 	case clustercost.FieldIdleCost:
@@ -8253,34 +7993,6 @@ func (m *ClusterCostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCurrency(v)
 		return nil
-	case clustercost.FieldCpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCpuCost(v)
-		return nil
-	case clustercost.FieldGpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGpuCost(v)
-		return nil
-	case clustercost.FieldRamCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRamCost(v)
-		return nil
-	case clustercost.FieldStorageCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStorageCost(v)
-		return nil
 	case clustercost.FieldAllocationCost:
 		v, ok := value.(float64)
 		if !ok {
@@ -8319,18 +8031,6 @@ func (m *ClusterCostMutation) AddedFields() []string {
 	if m.addcurrency != nil {
 		fields = append(fields, clustercost.FieldCurrency)
 	}
-	if m.addcpuCost != nil {
-		fields = append(fields, clustercost.FieldCpuCost)
-	}
-	if m.addgpuCost != nil {
-		fields = append(fields, clustercost.FieldGpuCost)
-	}
-	if m.addramCost != nil {
-		fields = append(fields, clustercost.FieldRamCost)
-	}
-	if m.addstorageCost != nil {
-		fields = append(fields, clustercost.FieldStorageCost)
-	}
 	if m.addallocationCost != nil {
 		fields = append(fields, clustercost.FieldAllocationCost)
 	}
@@ -8354,14 +8054,6 @@ func (m *ClusterCostMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTotalCost()
 	case clustercost.FieldCurrency:
 		return m.AddedCurrency()
-	case clustercost.FieldCpuCost:
-		return m.AddedCpuCost()
-	case clustercost.FieldGpuCost:
-		return m.AddedGpuCost()
-	case clustercost.FieldRamCost:
-		return m.AddedRamCost()
-	case clustercost.FieldStorageCost:
-		return m.AddedStorageCost()
 	case clustercost.FieldAllocationCost:
 		return m.AddedAllocationCost()
 	case clustercost.FieldIdleCost:
@@ -8397,34 +8089,6 @@ func (m *ClusterCostMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCurrency(v)
-		return nil
-	case clustercost.FieldCpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCpuCost(v)
-		return nil
-	case clustercost.FieldGpuCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGpuCost(v)
-		return nil
-	case clustercost.FieldRamCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRamCost(v)
-		return nil
-	case clustercost.FieldStorageCost:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStorageCost(v)
 		return nil
 	case clustercost.FieldAllocationCost:
 		v, ok := value.(float64)
@@ -8503,18 +8167,6 @@ func (m *ClusterCostMutation) ResetField(name string) error {
 		return nil
 	case clustercost.FieldCurrency:
 		m.ResetCurrency()
-		return nil
-	case clustercost.FieldCpuCost:
-		m.ResetCpuCost()
-		return nil
-	case clustercost.FieldGpuCost:
-		m.ResetGpuCost()
-		return nil
-	case clustercost.FieldRamCost:
-		m.ResetRamCost()
-		return nil
-	case clustercost.FieldStorageCost:
-		m.ResetStorageCost()
 		return nil
 	case clustercost.FieldAllocationCost:
 		m.ResetAllocationCost()

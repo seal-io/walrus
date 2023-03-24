@@ -34,14 +34,6 @@ type ClusterCostCreateInput struct {
 	TotalCost float64 `json:"totalCost,omitempty"`
 	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost.
-	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost.
-	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost.
-	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost.
-	StorageCost float64 `json:"storageCost,omitempty"`
 	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
 	// Idle cost for current cost.
@@ -61,10 +53,6 @@ func (in ClusterCostCreateInput) Model() *ClusterCost {
 		ClusterName:    in.ClusterName,
 		TotalCost:      in.TotalCost,
 		Currency:       in.Currency,
-		CpuCost:        in.CpuCost,
-		GpuCost:        in.GpuCost,
-		RamCost:        in.RamCost,
-		StorageCost:    in.StorageCost,
 		AllocationCost: in.AllocationCost,
 		IdleCost:       in.IdleCost,
 		ManagementCost: in.ManagementCost,
@@ -81,14 +69,6 @@ type ClusterCostUpdateInput struct {
 	TotalCost float64 `json:"totalCost,omitempty"`
 	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost.
-	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost.
-	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost.
-	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost.
-	StorageCost float64 `json:"storageCost,omitempty"`
 	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
 	// Idle cost for current cost.
@@ -103,10 +83,6 @@ func (in ClusterCostUpdateInput) Model() *ClusterCost {
 		ID:             in.ID,
 		TotalCost:      in.TotalCost,
 		Currency:       in.Currency,
-		CpuCost:        in.CpuCost,
-		GpuCost:        in.GpuCost,
-		RamCost:        in.RamCost,
-		StorageCost:    in.StorageCost,
 		AllocationCost: in.AllocationCost,
 		IdleCost:       in.IdleCost,
 		ManagementCost: in.ManagementCost,
@@ -130,14 +106,6 @@ type ClusterCostOutput struct {
 	TotalCost float64 `json:"totalCost,omitempty"`
 	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost.
-	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost.
-	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost.
-	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost.
-	StorageCost float64 `json:"storageCost,omitempty"`
 	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
 	// Idle cost for current cost.
@@ -161,10 +129,6 @@ func ExposeClusterCost(in *ClusterCost) *ClusterCostOutput {
 		ClusterName:    in.ClusterName,
 		TotalCost:      in.TotalCost,
 		Currency:       in.Currency,
-		CpuCost:        in.CpuCost,
-		GpuCost:        in.GpuCost,
-		RamCost:        in.RamCost,
-		StorageCost:    in.StorageCost,
 		AllocationCost: in.AllocationCost,
 		IdleCost:       in.IdleCost,
 		ManagementCost: in.ManagementCost,

@@ -24,14 +24,6 @@ const (
 	FieldTotalCost = "total_cost"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
-	// FieldCpuCost holds the string denoting the cpucost field in the database.
-	FieldCpuCost = "cpu_cost"
-	// FieldGpuCost holds the string denoting the gpucost field in the database.
-	FieldGpuCost = "gpu_cost"
-	// FieldRamCost holds the string denoting the ramcost field in the database.
-	FieldRamCost = "ram_cost"
-	// FieldStorageCost holds the string denoting the storagecost field in the database.
-	FieldStorageCost = "storage_cost"
 	// FieldAllocationCost holds the string denoting the allocationcost field in the database.
 	FieldAllocationCost = "allocation_cost"
 	// FieldIdleCost holds the string denoting the idlecost field in the database.
@@ -61,10 +53,6 @@ var Columns = []string{
 	FieldClusterName,
 	FieldTotalCost,
 	FieldCurrency,
-	FieldCpuCost,
-	FieldGpuCost,
-	FieldRamCost,
-	FieldStorageCost,
 	FieldAllocationCost,
 	FieldIdleCost,
 	FieldManagementCost,
@@ -89,22 +77,6 @@ var (
 	DefaultTotalCost float64
 	// TotalCostValidator is a validator for the "totalCost" field. It is called by the builders before save.
 	TotalCostValidator func(float64) error
-	// DefaultCpuCost holds the default value on creation for the "cpuCost" field.
-	DefaultCpuCost float64
-	// CpuCostValidator is a validator for the "cpuCost" field. It is called by the builders before save.
-	CpuCostValidator func(float64) error
-	// DefaultGpuCost holds the default value on creation for the "gpuCost" field.
-	DefaultGpuCost float64
-	// GpuCostValidator is a validator for the "gpuCost" field. It is called by the builders before save.
-	GpuCostValidator func(float64) error
-	// DefaultRamCost holds the default value on creation for the "ramCost" field.
-	DefaultRamCost float64
-	// RamCostValidator is a validator for the "ramCost" field. It is called by the builders before save.
-	RamCostValidator func(float64) error
-	// DefaultStorageCost holds the default value on creation for the "storageCost" field.
-	DefaultStorageCost float64
-	// StorageCostValidator is a validator for the "storageCost" field. It is called by the builders before save.
-	StorageCostValidator func(float64) error
 	// DefaultAllocationCost holds the default value on creation for the "allocationCost" field.
 	DefaultAllocationCost float64
 	// AllocationCostValidator is a validator for the "allocationCost" field. It is called by the builders before save.
