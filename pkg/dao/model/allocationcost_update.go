@@ -186,6 +186,27 @@ func (acu *AllocationCostUpdate) AddPvBytes(f float64) *AllocationCostUpdate {
 	return acu
 }
 
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (acu *AllocationCostUpdate) SetLoadBalancerCost(f float64) *AllocationCostUpdate {
+	acu.mutation.ResetLoadBalancerCost()
+	acu.mutation.SetLoadBalancerCost(f)
+	return acu
+}
+
+// SetNillableLoadBalancerCost sets the "loadBalancerCost" field if the given value is not nil.
+func (acu *AllocationCostUpdate) SetNillableLoadBalancerCost(f *float64) *AllocationCostUpdate {
+	if f != nil {
+		acu.SetLoadBalancerCost(*f)
+	}
+	return acu
+}
+
+// AddLoadBalancerCost adds f to the "loadBalancerCost" field.
+func (acu *AllocationCostUpdate) AddLoadBalancerCost(f float64) *AllocationCostUpdate {
+	acu.mutation.AddLoadBalancerCost(f)
+	return acu
+}
+
 // SetCpuCoreUsageAverage sets the "cpuCoreUsageAverage" field.
 func (acu *AllocationCostUpdate) SetCpuCoreUsageAverage(f float64) *AllocationCostUpdate {
 	acu.mutation.ResetCpuCoreUsageAverage()
@@ -334,6 +355,11 @@ func (acu *AllocationCostUpdate) check() error {
 			return &ValidationError{Name: "pvBytes", err: fmt.Errorf(`model: validator failed for field "AllocationCost.pvBytes": %w`, err)}
 		}
 	}
+	if v, ok := acu.mutation.LoadBalancerCost(); ok {
+		if err := allocationcost.LoadBalancerCostValidator(v); err != nil {
+			return &ValidationError{Name: "loadBalancerCost", err: fmt.Errorf(`model: validator failed for field "AllocationCost.loadBalancerCost": %w`, err)}
+		}
+	}
 	if v, ok := acu.mutation.CpuCoreUsageAverage(); ok {
 		if err := allocationcost.CpuCoreUsageAverageValidator(v); err != nil {
 			return &ValidationError{Name: "cpuCoreUsageAverage", err: fmt.Errorf(`model: validator failed for field "AllocationCost.cpuCoreUsageAverage": %w`, err)}
@@ -443,6 +469,12 @@ func (acu *AllocationCostUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if value, ok := acu.mutation.AddedPvBytes(); ok {
 		_spec.AddField(allocationcost.FieldPvBytes, field.TypeFloat64, value)
+	}
+	if value, ok := acu.mutation.LoadBalancerCost(); ok {
+		_spec.SetField(allocationcost.FieldLoadBalancerCost, field.TypeFloat64, value)
+	}
+	if value, ok := acu.mutation.AddedLoadBalancerCost(); ok {
+		_spec.AddField(allocationcost.FieldLoadBalancerCost, field.TypeFloat64, value)
 	}
 	if value, ok := acu.mutation.CpuCoreUsageAverage(); ok {
 		_spec.SetField(allocationcost.FieldCpuCoreUsageAverage, field.TypeFloat64, value)
@@ -645,6 +677,27 @@ func (acuo *AllocationCostUpdateOne) AddPvBytes(f float64) *AllocationCostUpdate
 	return acuo
 }
 
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (acuo *AllocationCostUpdateOne) SetLoadBalancerCost(f float64) *AllocationCostUpdateOne {
+	acuo.mutation.ResetLoadBalancerCost()
+	acuo.mutation.SetLoadBalancerCost(f)
+	return acuo
+}
+
+// SetNillableLoadBalancerCost sets the "loadBalancerCost" field if the given value is not nil.
+func (acuo *AllocationCostUpdateOne) SetNillableLoadBalancerCost(f *float64) *AllocationCostUpdateOne {
+	if f != nil {
+		acuo.SetLoadBalancerCost(*f)
+	}
+	return acuo
+}
+
+// AddLoadBalancerCost adds f to the "loadBalancerCost" field.
+func (acuo *AllocationCostUpdateOne) AddLoadBalancerCost(f float64) *AllocationCostUpdateOne {
+	acuo.mutation.AddLoadBalancerCost(f)
+	return acuo
+}
+
 // SetCpuCoreUsageAverage sets the "cpuCoreUsageAverage" field.
 func (acuo *AllocationCostUpdateOne) SetCpuCoreUsageAverage(f float64) *AllocationCostUpdateOne {
 	acuo.mutation.ResetCpuCoreUsageAverage()
@@ -806,6 +859,11 @@ func (acuo *AllocationCostUpdateOne) check() error {
 			return &ValidationError{Name: "pvBytes", err: fmt.Errorf(`model: validator failed for field "AllocationCost.pvBytes": %w`, err)}
 		}
 	}
+	if v, ok := acuo.mutation.LoadBalancerCost(); ok {
+		if err := allocationcost.LoadBalancerCostValidator(v); err != nil {
+			return &ValidationError{Name: "loadBalancerCost", err: fmt.Errorf(`model: validator failed for field "AllocationCost.loadBalancerCost": %w`, err)}
+		}
+	}
 	if v, ok := acuo.mutation.CpuCoreUsageAverage(); ok {
 		if err := allocationcost.CpuCoreUsageAverageValidator(v); err != nil {
 			return &ValidationError{Name: "cpuCoreUsageAverage", err: fmt.Errorf(`model: validator failed for field "AllocationCost.cpuCoreUsageAverage": %w`, err)}
@@ -932,6 +990,12 @@ func (acuo *AllocationCostUpdateOne) sqlSave(ctx context.Context) (_node *Alloca
 	}
 	if value, ok := acuo.mutation.AddedPvBytes(); ok {
 		_spec.AddField(allocationcost.FieldPvBytes, field.TypeFloat64, value)
+	}
+	if value, ok := acuo.mutation.LoadBalancerCost(); ok {
+		_spec.SetField(allocationcost.FieldLoadBalancerCost, field.TypeFloat64, value)
+	}
+	if value, ok := acuo.mutation.AddedLoadBalancerCost(); ok {
+		_spec.AddField(allocationcost.FieldLoadBalancerCost, field.TypeFloat64, value)
 	}
 	if value, ok := acuo.mutation.CpuCoreUsageAverage(); ok {
 		_spec.SetField(allocationcost.FieldCpuCoreUsageAverage, field.TypeFloat64, value)

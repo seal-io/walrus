@@ -64,6 +64,8 @@ const (
 	FieldPvCost = "pv_cost"
 	// FieldPvBytes holds the string denoting the pvbytes field in the database.
 	FieldPvBytes = "pv_bytes"
+	// FieldLoadBalancerCost holds the string denoting the loadbalancercost field in the database.
+	FieldLoadBalancerCost = "load_balancer_cost"
 	// FieldCpuCoreUsageAverage holds the string denoting the cpucoreusageaverage field in the database.
 	FieldCpuCoreUsageAverage = "cpu_core_usage_average"
 	// FieldCpuCoreUsageMax holds the string denoting the cpucoreusagemax field in the database.
@@ -113,6 +115,7 @@ var Columns = []string{
 	FieldRamByteRequest,
 	FieldPvCost,
 	FieldPvBytes,
+	FieldLoadBalancerCost,
 	FieldCpuCoreUsageAverage,
 	FieldCpuCoreUsageMax,
 	FieldRamByteUsageAverage,
@@ -172,6 +175,10 @@ var (
 	DefaultPvBytes float64
 	// PvBytesValidator is a validator for the "pvBytes" field. It is called by the builders before save.
 	PvBytesValidator func(float64) error
+	// DefaultLoadBalancerCost holds the default value on creation for the "loadBalancerCost" field.
+	DefaultLoadBalancerCost float64
+	// LoadBalancerCostValidator is a validator for the "loadBalancerCost" field. It is called by the builders before save.
+	LoadBalancerCostValidator func(float64) error
 	// DefaultCpuCoreUsageAverage holds the default value on creation for the "cpuCoreUsageAverage" field.
 	DefaultCpuCoreUsageAverage float64
 	// CpuCoreUsageAverageValidator is a validator for the "cpuCoreUsageAverage" field. It is called by the builders before save.

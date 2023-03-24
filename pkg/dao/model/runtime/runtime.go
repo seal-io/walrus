@@ -104,26 +104,32 @@ func init() {
 	allocationcost.DefaultPvBytes = allocationcostDescPvBytes.Default.(float64)
 	// allocationcost.PvBytesValidator is a validator for the "pvBytes" field. It is called by the builders before save.
 	allocationcost.PvBytesValidator = allocationcostDescPvBytes.Validators[0].(func(float64) error)
+	// allocationcostDescLoadBalancerCost is the schema descriptor for loadBalancerCost field.
+	allocationcostDescLoadBalancerCost := allocationcostFields[25].Descriptor()
+	// allocationcost.DefaultLoadBalancerCost holds the default value on creation for the loadBalancerCost field.
+	allocationcost.DefaultLoadBalancerCost = allocationcostDescLoadBalancerCost.Default.(float64)
+	// allocationcost.LoadBalancerCostValidator is a validator for the "loadBalancerCost" field. It is called by the builders before save.
+	allocationcost.LoadBalancerCostValidator = allocationcostDescLoadBalancerCost.Validators[0].(func(float64) error)
 	// allocationcostDescCpuCoreUsageAverage is the schema descriptor for cpuCoreUsageAverage field.
-	allocationcostDescCpuCoreUsageAverage := allocationcostFields[25].Descriptor()
+	allocationcostDescCpuCoreUsageAverage := allocationcostFields[26].Descriptor()
 	// allocationcost.DefaultCpuCoreUsageAverage holds the default value on creation for the cpuCoreUsageAverage field.
 	allocationcost.DefaultCpuCoreUsageAverage = allocationcostDescCpuCoreUsageAverage.Default.(float64)
 	// allocationcost.CpuCoreUsageAverageValidator is a validator for the "cpuCoreUsageAverage" field. It is called by the builders before save.
 	allocationcost.CpuCoreUsageAverageValidator = allocationcostDescCpuCoreUsageAverage.Validators[0].(func(float64) error)
 	// allocationcostDescCpuCoreUsageMax is the schema descriptor for cpuCoreUsageMax field.
-	allocationcostDescCpuCoreUsageMax := allocationcostFields[26].Descriptor()
+	allocationcostDescCpuCoreUsageMax := allocationcostFields[27].Descriptor()
 	// allocationcost.DefaultCpuCoreUsageMax holds the default value on creation for the cpuCoreUsageMax field.
 	allocationcost.DefaultCpuCoreUsageMax = allocationcostDescCpuCoreUsageMax.Default.(float64)
 	// allocationcost.CpuCoreUsageMaxValidator is a validator for the "cpuCoreUsageMax" field. It is called by the builders before save.
 	allocationcost.CpuCoreUsageMaxValidator = allocationcostDescCpuCoreUsageMax.Validators[0].(func(float64) error)
 	// allocationcostDescRamByteUsageAverage is the schema descriptor for ramByteUsageAverage field.
-	allocationcostDescRamByteUsageAverage := allocationcostFields[27].Descriptor()
+	allocationcostDescRamByteUsageAverage := allocationcostFields[28].Descriptor()
 	// allocationcost.DefaultRamByteUsageAverage holds the default value on creation for the ramByteUsageAverage field.
 	allocationcost.DefaultRamByteUsageAverage = allocationcostDescRamByteUsageAverage.Default.(float64)
 	// allocationcost.RamByteUsageAverageValidator is a validator for the "ramByteUsageAverage" field. It is called by the builders before save.
 	allocationcost.RamByteUsageAverageValidator = allocationcostDescRamByteUsageAverage.Validators[0].(func(float64) error)
 	// allocationcostDescRamByteUsageMax is the schema descriptor for ramByteUsageMax field.
-	allocationcostDescRamByteUsageMax := allocationcostFields[28].Descriptor()
+	allocationcostDescRamByteUsageMax := allocationcostFields[29].Descriptor()
 	// allocationcost.DefaultRamByteUsageMax holds the default value on creation for the ramByteUsageMax field.
 	allocationcost.DefaultRamByteUsageMax = allocationcostDescRamByteUsageMax.Default.(float64)
 	// allocationcost.RamByteUsageMaxValidator is a validator for the "ramByteUsageMax" field. It is called by the builders before save.

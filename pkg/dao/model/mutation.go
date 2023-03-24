@@ -112,6 +112,8 @@ type AllocationCostMutation struct {
 	addpvCost              *float64
 	pvBytes                *float64
 	addpvBytes             *float64
+	loadBalancerCost       *float64
+	addloadBalancerCost    *float64
 	cpuCoreUsageAverage    *float64
 	addcpuCoreUsageAverage *float64
 	cpuCoreUsageMax        *float64
@@ -1451,6 +1453,62 @@ func (m *AllocationCostMutation) ResetPvBytes() {
 	m.addpvBytes = nil
 }
 
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (m *AllocationCostMutation) SetLoadBalancerCost(f float64) {
+	m.loadBalancerCost = &f
+	m.addloadBalancerCost = nil
+}
+
+// LoadBalancerCost returns the value of the "loadBalancerCost" field in the mutation.
+func (m *AllocationCostMutation) LoadBalancerCost() (r float64, exists bool) {
+	v := m.loadBalancerCost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLoadBalancerCost returns the old "loadBalancerCost" field's value of the AllocationCost entity.
+// If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AllocationCostMutation) OldLoadBalancerCost(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLoadBalancerCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLoadBalancerCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLoadBalancerCost: %w", err)
+	}
+	return oldValue.LoadBalancerCost, nil
+}
+
+// AddLoadBalancerCost adds f to the "loadBalancerCost" field.
+func (m *AllocationCostMutation) AddLoadBalancerCost(f float64) {
+	if m.addloadBalancerCost != nil {
+		*m.addloadBalancerCost += f
+	} else {
+		m.addloadBalancerCost = &f
+	}
+}
+
+// AddedLoadBalancerCost returns the value that was added to the "loadBalancerCost" field in this mutation.
+func (m *AllocationCostMutation) AddedLoadBalancerCost() (r float64, exists bool) {
+	v := m.addloadBalancerCost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLoadBalancerCost resets all changes to the "loadBalancerCost" field.
+func (m *AllocationCostMutation) ResetLoadBalancerCost() {
+	m.loadBalancerCost = nil
+	m.addloadBalancerCost = nil
+}
+
 // SetCpuCoreUsageAverage sets the "cpuCoreUsageAverage" field.
 func (m *AllocationCostMutation) SetCpuCoreUsageAverage(f float64) {
 	m.cpuCoreUsageAverage = &f
@@ -1735,7 +1793,7 @@ func (m *AllocationCostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AllocationCostMutation) Fields() []string {
-	fields := make([]string, 0, 29)
+	fields := make([]string, 0, 30)
 	if m.startTime != nil {
 		fields = append(fields, allocationcost.FieldStartTime)
 	}
@@ -1811,6 +1869,9 @@ func (m *AllocationCostMutation) Fields() []string {
 	if m.pvBytes != nil {
 		fields = append(fields, allocationcost.FieldPvBytes)
 	}
+	if m.loadBalancerCost != nil {
+		fields = append(fields, allocationcost.FieldLoadBalancerCost)
+	}
 	if m.cpuCoreUsageAverage != nil {
 		fields = append(fields, allocationcost.FieldCpuCoreUsageAverage)
 	}
@@ -1881,6 +1942,8 @@ func (m *AllocationCostMutation) Field(name string) (ent.Value, bool) {
 		return m.PvCost()
 	case allocationcost.FieldPvBytes:
 		return m.PvBytes()
+	case allocationcost.FieldLoadBalancerCost:
+		return m.LoadBalancerCost()
 	case allocationcost.FieldCpuCoreUsageAverage:
 		return m.CpuCoreUsageAverage()
 	case allocationcost.FieldCpuCoreUsageMax:
@@ -1948,6 +2011,8 @@ func (m *AllocationCostMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldPvCost(ctx)
 	case allocationcost.FieldPvBytes:
 		return m.OldPvBytes(ctx)
+	case allocationcost.FieldLoadBalancerCost:
+		return m.OldLoadBalancerCost(ctx)
 	case allocationcost.FieldCpuCoreUsageAverage:
 		return m.OldCpuCoreUsageAverage(ctx)
 	case allocationcost.FieldCpuCoreUsageMax:
@@ -2140,6 +2205,13 @@ func (m *AllocationCostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPvBytes(v)
 		return nil
+	case allocationcost.FieldLoadBalancerCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLoadBalancerCost(v)
+		return nil
 	case allocationcost.FieldCpuCoreUsageAverage:
 		v, ok := value.(float64)
 		if !ok {
@@ -2209,6 +2281,9 @@ func (m *AllocationCostMutation) AddedFields() []string {
 	if m.addpvBytes != nil {
 		fields = append(fields, allocationcost.FieldPvBytes)
 	}
+	if m.addloadBalancerCost != nil {
+		fields = append(fields, allocationcost.FieldLoadBalancerCost)
+	}
 	if m.addcpuCoreUsageAverage != nil {
 		fields = append(fields, allocationcost.FieldCpuCoreUsageAverage)
 	}
@@ -2251,6 +2326,8 @@ func (m *AllocationCostMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPvCost()
 	case allocationcost.FieldPvBytes:
 		return m.AddedPvBytes()
+	case allocationcost.FieldLoadBalancerCost:
+		return m.AddedLoadBalancerCost()
 	case allocationcost.FieldCpuCoreUsageAverage:
 		return m.AddedCpuCoreUsageAverage()
 	case allocationcost.FieldCpuCoreUsageMax:
@@ -2344,6 +2421,13 @@ func (m *AllocationCostMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPvBytes(v)
+		return nil
+	case allocationcost.FieldLoadBalancerCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLoadBalancerCost(v)
 		return nil
 	case allocationcost.FieldCpuCoreUsageAverage:
 		v, ok := value.(float64)
@@ -2525,6 +2609,9 @@ func (m *AllocationCostMutation) ResetField(name string) error {
 		return nil
 	case allocationcost.FieldPvBytes:
 		m.ResetPvBytes()
+		return nil
+	case allocationcost.FieldLoadBalancerCost:
+		m.ResetLoadBalancerCost()
 		return nil
 	case allocationcost.FieldCpuCoreUsageAverage:
 		m.ResetCpuCoreUsageAverage()

@@ -39,6 +39,7 @@ var (
 		{Name: "ram_byte_request", Type: field.TypeFloat64, Default: 0},
 		{Name: "pv_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "pv_bytes", Type: field.TypeFloat64, Default: 0},
+		{Name: "load_balancer_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "cpu_core_usage_average", Type: field.TypeFloat64, Default: 0},
 		{Name: "cpu_core_usage_max", Type: field.TypeFloat64, Default: 0},
 		{Name: "ram_byte_usage_average", Type: field.TypeFloat64, Default: 0},
@@ -53,7 +54,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "allocation_costs_connectors_allocationCosts",
-				Columns:    []*schema.Column{AllocationCostsColumns[29]},
+				Columns:    []*schema.Column{AllocationCostsColumns[30]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -62,12 +63,12 @@ var (
 			{
 				Name:    "allocationcost_start_time_end_time_connector_id",
 				Unique:  false,
-				Columns: []*schema.Column{AllocationCostsColumns[1], AllocationCostsColumns[2], AllocationCostsColumns[29]},
+				Columns: []*schema.Column{AllocationCostsColumns[1], AllocationCostsColumns[2], AllocationCostsColumns[30]},
 			},
 			{
 				Name:    "allocationcost_start_time_end_time_connector_id_fingerprint",
 				Unique:  true,
-				Columns: []*schema.Column{AllocationCostsColumns[1], AllocationCostsColumns[2], AllocationCostsColumns[29], AllocationCostsColumns[5]},
+				Columns: []*schema.Column{AllocationCostsColumns[1], AllocationCostsColumns[2], AllocationCostsColumns[30], AllocationCostsColumns[5]},
 			},
 		},
 	}
