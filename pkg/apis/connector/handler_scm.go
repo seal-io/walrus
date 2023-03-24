@@ -3,14 +3,13 @@ package connector
 import (
 	"net/http"
 
-	"github.com/seal-io/seal/pkg/connectors"
-
-	goscm "github.com/drone/go-scm/scm"
+	"github.com/drone/go-scm/scm"
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/scm"
+	"github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/vcs"
 )
 
 // Extensional APIs for SCM connectors
@@ -21,16 +20,16 @@ func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositories
 		return nil, err
 	}
 
-	if !connectors.IsSCM(conn) {
-		return nil, runtime.Errorf(http.StatusBadRequest, "given connector of type %q is not a supported SCM driver", conn.Type)
+	if !connectors.IsVCS(conn) {
+		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported version control driver", conn.Type)
 	}
 
-	client, err := scm.NewClient(conn)
+	client, err := vcs.NewClient(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	var listOptions = goscm.ListOptions{
+	var listOptions = scm.ListOptions{
 		IncludePrivate: true,
 		Page:           req.Page,
 		Size:           req.PerPage,
@@ -52,16 +51,16 @@ func (h Handler) RouteGetRepositoryBranches(ctx *gin.Context, req view.GetBranch
 		return nil, err
 	}
 
-	if !connectors.IsSCM(conn) {
+	if !connectors.IsVCS(conn) {
 		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported SCM driver", conn.Type)
 	}
 
-	client, err := scm.NewClient(conn)
+	client, err := vcs.NewClient(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	var listOptions = goscm.ListOptions{
+	var listOptions = scm.ListOptions{
 		IncludePrivate: true,
 		Page:           req.Page,
 		Size:           req.PerPage,
