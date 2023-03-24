@@ -124,6 +124,10 @@ func (AllocationCost) Fields() []ent.Field {
 			Comment("PV bytes for current cost linked.").
 			Default(0).
 			Min(0),
+		field.Float("loadBalancerCost").
+			Comment("LoadBalancer cost for current cost linked.").
+			Default(0).
+			Min(0),
 		// usage
 		field.Float("cpuCoreUsageAverage").
 			Comment("CPU core average usage.").
