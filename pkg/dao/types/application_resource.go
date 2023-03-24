@@ -9,6 +9,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
+const (
+	ApplicationResourceModeManaged = "managed"
+	ApplicationResourceModeMode    = "mode"
+)
+
 type ApplicationResourceEndpoint struct {
 	// EndpointType is the extra info for application resource type, like nodePort, loadBalance.
 	EndpointType string `json:"endpointType,omitempty"`
