@@ -26,13 +26,14 @@ type (
 	}
 
 	Cost struct {
-		Currency   int     `json:"currency,omitempty"`
-		TotalCost  float64 `json:"totalCost,omitempty"`
-		SharedCost float64 `json:"sharedCost,omitempty"`
-		CpuCost    float64 `json:"cpuCost,omitempty"`
-		GpuCost    float64 `json:"gpuCost,omitempty"`
-		RamCost    float64 `json:"ramCost,omitempty"`
-		PvCost     float64 `json:"pvCost,omitempty"`
+		Currency         int     `json:"currency,omitempty"`
+		TotalCost        float64 `json:"totalCost,omitempty"`
+		SharedCost       float64 `json:"sharedCost,omitempty"`
+		CpuCost          float64 `json:"cpuCost,omitempty"`
+		GpuCost          float64 `json:"gpuCost,omitempty"`
+		RamCost          float64 `json:"ramCost,omitempty"`
+		PvCost           float64 `json:"pvCost,omitempty"`
+		LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
 	}
 )
 

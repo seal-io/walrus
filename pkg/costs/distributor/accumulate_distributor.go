@@ -120,6 +120,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 				sql.Expr(model.As(model.Sum(allocationcost.FieldGpuCost), "gpuCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldRamCost), "ramCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldPvCost), "pvCost")(s)),
+				sql.Expr(model.As(model.Sum(allocationcost.FieldLoadBalancerCost), "loadBalancerCost")(s)),
 			).GroupBy(
 				groupBy,
 			).OrderExpr(
