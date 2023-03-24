@@ -74,6 +74,8 @@ type AllocationCost struct {
 	PvCost float64 `json:"pvCost,omitempty"`
 	// PV bytes for current cost linked.
 	PvBytes float64 `json:"pvBytes,omitempty"`
+	// LoadBalancer cost for current cost linked.
+	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
 	// CPU core average usage.
 	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
 	// CPU core max usage.
@@ -118,7 +120,7 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case allocationcost.FieldConnectorID:
 			values[i] = new(oid.ID)
-		case allocationcost.FieldMinutes, allocationcost.FieldTotalCost, allocationcost.FieldCpuCost, allocationcost.FieldCpuCoreRequest, allocationcost.FieldGpuCost, allocationcost.FieldGpuCount, allocationcost.FieldRamCost, allocationcost.FieldRamByteRequest, allocationcost.FieldPvCost, allocationcost.FieldPvBytes, allocationcost.FieldCpuCoreUsageAverage, allocationcost.FieldCpuCoreUsageMax, allocationcost.FieldRamByteUsageAverage, allocationcost.FieldRamByteUsageMax:
+		case allocationcost.FieldMinutes, allocationcost.FieldTotalCost, allocationcost.FieldCpuCost, allocationcost.FieldCpuCoreRequest, allocationcost.FieldGpuCost, allocationcost.FieldGpuCount, allocationcost.FieldRamCost, allocationcost.FieldRamByteRequest, allocationcost.FieldPvCost, allocationcost.FieldPvBytes, allocationcost.FieldLoadBalancerCost, allocationcost.FieldCpuCoreUsageAverage, allocationcost.FieldCpuCoreUsageMax, allocationcost.FieldRamByteUsageAverage, allocationcost.FieldRamByteUsageMax:
 			values[i] = new(sql.NullFloat64)
 		case allocationcost.FieldID, allocationcost.FieldCurrency:
 			values[i] = new(sql.NullInt64)
@@ -301,6 +303,12 @@ func (ac *AllocationCost) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ac.PvBytes = value.Float64
 			}
+		case allocationcost.FieldLoadBalancerCost:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field loadBalancerCost", values[i])
+			} else if value.Valid {
+				ac.LoadBalancerCost = value.Float64
+			}
 		case allocationcost.FieldCpuCoreUsageAverage:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field cpuCoreUsageAverage", values[i])
@@ -432,6 +440,9 @@ func (ac *AllocationCost) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("pvBytes=")
 	builder.WriteString(fmt.Sprintf("%v", ac.PvBytes))
+	builder.WriteString(", ")
+	builder.WriteString("loadBalancerCost=")
+	builder.WriteString(fmt.Sprintf("%v", ac.LoadBalancerCost))
 	builder.WriteString(", ")
 	builder.WriteString("cpuCoreUsageAverage=")
 	builder.WriteString(fmt.Sprintf("%v", ac.CpuCoreUsageAverage))

@@ -74,6 +74,8 @@ type AllocationCostCreateInput struct {
 	PvCost float64 `json:"pvCost,omitempty"`
 	// PV bytes for current cost linked.
 	PvBytes float64 `json:"pvBytes,omitempty"`
+	// LoadBalancer cost for current cost linked.
+	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
 	// CPU core average usage.
 	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
 	// CPU core max usage.
@@ -113,6 +115,7 @@ func (in AllocationCostCreateInput) Model() *AllocationCost {
 		RamByteRequest:      in.RamByteRequest,
 		PvCost:              in.PvCost,
 		PvBytes:             in.PvBytes,
+		LoadBalancerCost:    in.LoadBalancerCost,
 		CpuCoreUsageAverage: in.CpuCoreUsageAverage,
 		CpuCoreUsageMax:     in.CpuCoreUsageMax,
 		RamByteUsageAverage: in.RamByteUsageAverage,
@@ -140,6 +143,8 @@ type AllocationCostUpdateInput struct {
 	PvCost float64 `json:"pvCost,omitempty"`
 	// PV bytes for current cost linked.
 	PvBytes float64 `json:"pvBytes,omitempty"`
+	// LoadBalancer cost for current cost linked.
+	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
 	// CPU core average usage.
 	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
 	// CPU core max usage.
@@ -161,6 +166,7 @@ func (in AllocationCostUpdateInput) Model() *AllocationCost {
 		RamCost:             in.RamCost,
 		PvCost:              in.PvCost,
 		PvBytes:             in.PvBytes,
+		LoadBalancerCost:    in.LoadBalancerCost,
 		CpuCoreUsageAverage: in.CpuCoreUsageAverage,
 		CpuCoreUsageMax:     in.CpuCoreUsageMax,
 		RamByteUsageAverage: in.RamByteUsageAverage,
@@ -221,6 +227,8 @@ type AllocationCostOutput struct {
 	PvCost float64 `json:"pvCost,omitempty"`
 	// PV bytes for current cost linked.
 	PvBytes float64 `json:"pvBytes,omitempty"`
+	// LoadBalancer cost for current cost linked.
+	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
 	// CPU core average usage.
 	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
 	// CPU core max usage.
@@ -264,6 +272,7 @@ func ExposeAllocationCost(in *AllocationCost) *AllocationCostOutput {
 		RamByteRequest:      in.RamByteRequest,
 		PvCost:              in.PvCost,
 		PvBytes:             in.PvBytes,
+		LoadBalancerCost:    in.LoadBalancerCost,
 		CpuCoreUsageAverage: in.CpuCoreUsageAverage,
 		CpuCoreUsageMax:     in.CpuCoreUsageMax,
 		RamByteUsageAverage: in.RamByteUsageAverage,

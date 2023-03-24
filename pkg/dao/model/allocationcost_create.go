@@ -315,6 +315,20 @@ func (acc *AllocationCostCreate) SetNillablePvBytes(f *float64) *AllocationCostC
 	return acc
 }
 
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (acc *AllocationCostCreate) SetLoadBalancerCost(f float64) *AllocationCostCreate {
+	acc.mutation.SetLoadBalancerCost(f)
+	return acc
+}
+
+// SetNillableLoadBalancerCost sets the "loadBalancerCost" field if the given value is not nil.
+func (acc *AllocationCostCreate) SetNillableLoadBalancerCost(f *float64) *AllocationCostCreate {
+	if f != nil {
+		acc.SetLoadBalancerCost(*f)
+	}
+	return acc
+}
+
 // SetCpuCoreUsageAverage sets the "cpuCoreUsageAverage" field.
 func (acc *AllocationCostCreate) SetCpuCoreUsageAverage(f float64) *AllocationCostCreate {
 	acc.mutation.SetCpuCoreUsageAverage(f)
@@ -455,6 +469,10 @@ func (acc *AllocationCostCreate) defaults() {
 		v := allocationcost.DefaultPvBytes
 		acc.mutation.SetPvBytes(v)
 	}
+	if _, ok := acc.mutation.LoadBalancerCost(); !ok {
+		v := allocationcost.DefaultLoadBalancerCost
+		acc.mutation.SetLoadBalancerCost(v)
+	}
 	if _, ok := acc.mutation.CpuCoreUsageAverage(); !ok {
 		v := allocationcost.DefaultCpuCoreUsageAverage
 		acc.mutation.SetCpuCoreUsageAverage(v)
@@ -574,6 +592,14 @@ func (acc *AllocationCostCreate) check() error {
 	if v, ok := acc.mutation.PvBytes(); ok {
 		if err := allocationcost.PvBytesValidator(v); err != nil {
 			return &ValidationError{Name: "pvBytes", err: fmt.Errorf(`model: validator failed for field "AllocationCost.pvBytes": %w`, err)}
+		}
+	}
+	if _, ok := acc.mutation.LoadBalancerCost(); !ok {
+		return &ValidationError{Name: "loadBalancerCost", err: errors.New(`model: missing required field "AllocationCost.loadBalancerCost"`)}
+	}
+	if v, ok := acc.mutation.LoadBalancerCost(); ok {
+		if err := allocationcost.LoadBalancerCostValidator(v); err != nil {
+			return &ValidationError{Name: "loadBalancerCost", err: fmt.Errorf(`model: validator failed for field "AllocationCost.loadBalancerCost": %w`, err)}
 		}
 	}
 	if _, ok := acc.mutation.CpuCoreUsageAverage(); !ok {
@@ -734,6 +760,10 @@ func (acc *AllocationCostCreate) createSpec() (*AllocationCost, *sqlgraph.Create
 	if value, ok := acc.mutation.PvBytes(); ok {
 		_spec.SetField(allocationcost.FieldPvBytes, field.TypeFloat64, value)
 		_node.PvBytes = value
+	}
+	if value, ok := acc.mutation.LoadBalancerCost(); ok {
+		_spec.SetField(allocationcost.FieldLoadBalancerCost, field.TypeFloat64, value)
+		_node.LoadBalancerCost = value
 	}
 	if value, ok := acc.mutation.CpuCoreUsageAverage(); ok {
 		_spec.SetField(allocationcost.FieldCpuCoreUsageAverage, field.TypeFloat64, value)
@@ -953,6 +983,24 @@ func (u *AllocationCostUpsert) UpdatePvBytes() *AllocationCostUpsert {
 // AddPvBytes adds v to the "pvBytes" field.
 func (u *AllocationCostUpsert) AddPvBytes(v float64) *AllocationCostUpsert {
 	u.Add(allocationcost.FieldPvBytes, v)
+	return u
+}
+
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (u *AllocationCostUpsert) SetLoadBalancerCost(v float64) *AllocationCostUpsert {
+	u.Set(allocationcost.FieldLoadBalancerCost, v)
+	return u
+}
+
+// UpdateLoadBalancerCost sets the "loadBalancerCost" field to the value that was provided on create.
+func (u *AllocationCostUpsert) UpdateLoadBalancerCost() *AllocationCostUpsert {
+	u.SetExcluded(allocationcost.FieldLoadBalancerCost)
+	return u
+}
+
+// AddLoadBalancerCost adds v to the "loadBalancerCost" field.
+func (u *AllocationCostUpsert) AddLoadBalancerCost(v float64) *AllocationCostUpsert {
+	u.Add(allocationcost.FieldLoadBalancerCost, v)
 	return u
 }
 
@@ -1275,6 +1323,27 @@ func (u *AllocationCostUpsertOne) AddPvBytes(v float64) *AllocationCostUpsertOne
 func (u *AllocationCostUpsertOne) UpdatePvBytes() *AllocationCostUpsertOne {
 	return u.Update(func(s *AllocationCostUpsert) {
 		s.UpdatePvBytes()
+	})
+}
+
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (u *AllocationCostUpsertOne) SetLoadBalancerCost(v float64) *AllocationCostUpsertOne {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.SetLoadBalancerCost(v)
+	})
+}
+
+// AddLoadBalancerCost adds v to the "loadBalancerCost" field.
+func (u *AllocationCostUpsertOne) AddLoadBalancerCost(v float64) *AllocationCostUpsertOne {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.AddLoadBalancerCost(v)
+	})
+}
+
+// UpdateLoadBalancerCost sets the "loadBalancerCost" field to the value that was provided on create.
+func (u *AllocationCostUpsertOne) UpdateLoadBalancerCost() *AllocationCostUpsertOne {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.UpdateLoadBalancerCost()
 	})
 }
 
@@ -1771,6 +1840,27 @@ func (u *AllocationCostUpsertBulk) AddPvBytes(v float64) *AllocationCostUpsertBu
 func (u *AllocationCostUpsertBulk) UpdatePvBytes() *AllocationCostUpsertBulk {
 	return u.Update(func(s *AllocationCostUpsert) {
 		s.UpdatePvBytes()
+	})
+}
+
+// SetLoadBalancerCost sets the "loadBalancerCost" field.
+func (u *AllocationCostUpsertBulk) SetLoadBalancerCost(v float64) *AllocationCostUpsertBulk {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.SetLoadBalancerCost(v)
+	})
+}
+
+// AddLoadBalancerCost adds v to the "loadBalancerCost" field.
+func (u *AllocationCostUpsertBulk) AddLoadBalancerCost(v float64) *AllocationCostUpsertBulk {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.AddLoadBalancerCost(v)
+	})
+}
+
+// UpdateLoadBalancerCost sets the "loadBalancerCost" field to the value that was provided on create.
+func (u *AllocationCostUpsertBulk) UpdateLoadBalancerCost() *AllocationCostUpsertBulk {
+	return u.Update(func(s *AllocationCostUpsert) {
+		s.UpdateLoadBalancerCost()
 	})
 }
 

@@ -176,6 +176,11 @@ func PvBytes(v float64) predicate.AllocationCost {
 	return predicate.AllocationCost(sql.FieldEQ(FieldPvBytes, v))
 }
 
+// LoadBalancerCost applies equality check predicate on the "loadBalancerCost" field. It's identical to LoadBalancerCostEQ.
+func LoadBalancerCost(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldEQ(FieldLoadBalancerCost, v))
+}
+
 // CpuCoreUsageAverage applies equality check predicate on the "cpuCoreUsageAverage" field. It's identical to CpuCoreUsageAverageEQ.
 func CpuCoreUsageAverage(v float64) predicate.AllocationCost {
 	return predicate.AllocationCost(sql.FieldEQ(FieldCpuCoreUsageAverage, v))
@@ -1449,6 +1454,46 @@ func PvBytesLT(v float64) predicate.AllocationCost {
 // PvBytesLTE applies the LTE predicate on the "pvBytes" field.
 func PvBytesLTE(v float64) predicate.AllocationCost {
 	return predicate.AllocationCost(sql.FieldLTE(FieldPvBytes, v))
+}
+
+// LoadBalancerCostEQ applies the EQ predicate on the "loadBalancerCost" field.
+func LoadBalancerCostEQ(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldEQ(FieldLoadBalancerCost, v))
+}
+
+// LoadBalancerCostNEQ applies the NEQ predicate on the "loadBalancerCost" field.
+func LoadBalancerCostNEQ(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldNEQ(FieldLoadBalancerCost, v))
+}
+
+// LoadBalancerCostIn applies the In predicate on the "loadBalancerCost" field.
+func LoadBalancerCostIn(vs ...float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldIn(FieldLoadBalancerCost, vs...))
+}
+
+// LoadBalancerCostNotIn applies the NotIn predicate on the "loadBalancerCost" field.
+func LoadBalancerCostNotIn(vs ...float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldNotIn(FieldLoadBalancerCost, vs...))
+}
+
+// LoadBalancerCostGT applies the GT predicate on the "loadBalancerCost" field.
+func LoadBalancerCostGT(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldGT(FieldLoadBalancerCost, v))
+}
+
+// LoadBalancerCostGTE applies the GTE predicate on the "loadBalancerCost" field.
+func LoadBalancerCostGTE(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldGTE(FieldLoadBalancerCost, v))
+}
+
+// LoadBalancerCostLT applies the LT predicate on the "loadBalancerCost" field.
+func LoadBalancerCostLT(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldLT(FieldLoadBalancerCost, v))
+}
+
+// LoadBalancerCostLTE applies the LTE predicate on the "loadBalancerCost" field.
+func LoadBalancerCostLTE(v float64) predicate.AllocationCost {
+	return predicate.AllocationCost(sql.FieldLTE(FieldLoadBalancerCost, v))
 }
 
 // CpuCoreUsageAverageEQ applies the EQ predicate on the "cpuCoreUsageAverage" field.
