@@ -8534,6 +8534,7 @@ type ConnectorMutation struct {
 	configData             *crypto.Map[string, interface{}]
 	enableFinOps           *bool
 	finOpsCustomPricing    *types.FinOpsCustomPricing
+	category               *string
 	clearedFields          map[string]struct{}
 	resources              map[oid.ID]struct{}
 	removedresources       map[oid.ID]struct{}
@@ -9088,6 +9089,42 @@ func (m *ConnectorMutation) ResetFinOpsCustomPricing() {
 	delete(m.clearedFields, connector.FieldFinOpsCustomPricing)
 }
 
+// SetCategory sets the "category" field.
+func (m *ConnectorMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *ConnectorMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldCategory(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *ConnectorMutation) ResetCategory() {
+	m.category = nil
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by ids.
 func (m *ConnectorMutation) AddResourceIDs(ids ...oid.ID) {
 	if m.resources == nil {
@@ -9284,7 +9321,7 @@ func (m *ConnectorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConnectorMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.name != nil {
 		fields = append(fields, connector.FieldName)
 	}
@@ -9318,6 +9355,9 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.finOpsCustomPricing != nil {
 		fields = append(fields, connector.FieldFinOpsCustomPricing)
 	}
+	if m.category != nil {
+		fields = append(fields, connector.FieldCategory)
+	}
 	return fields
 }
 
@@ -9348,6 +9388,8 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.EnableFinOps()
 	case connector.FieldFinOpsCustomPricing:
 		return m.FinOpsCustomPricing()
+	case connector.FieldCategory:
+		return m.Category()
 	}
 	return nil, false
 }
@@ -9379,6 +9421,8 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldEnableFinOps(ctx)
 	case connector.FieldFinOpsCustomPricing:
 		return m.OldFinOpsCustomPricing(ctx)
+	case connector.FieldCategory:
+		return m.OldCategory(ctx)
 	}
 	return nil, fmt.Errorf("unknown Connector field %s", name)
 }
@@ -9464,6 +9508,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFinOpsCustomPricing(v)
+		return nil
+	case connector.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)
@@ -9567,6 +9618,9 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldFinOpsCustomPricing:
 		m.ResetFinOpsCustomPricing()
+		return nil
+	case connector.FieldCategory:
+		m.ResetCategory()
 		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)

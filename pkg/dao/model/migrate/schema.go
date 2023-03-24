@@ -323,6 +323,7 @@ var (
 		{Name: "config_data", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
+		{Name: "category", Type: field.TypeString},
 	}
 	// ConnectorsTable holds the schema information for the "connectors" table.
 	ConnectorsTable = &schema.Table{

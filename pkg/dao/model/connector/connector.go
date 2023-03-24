@@ -40,6 +40,8 @@ const (
 	FieldEnableFinOps = "enable_fin_ops"
 	// FieldFinOpsCustomPricing holds the string denoting the finopscustompricing field in the database.
 	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
 	EdgeEnvironments = "environments"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -94,6 +96,7 @@ var Columns = []string{
 	FieldConfigData,
 	FieldEnableFinOps,
 	FieldFinOpsCustomPricing,
+	FieldCategory,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -129,6 +132,8 @@ var (
 	ConfigVersionValidator func(string) error
 	// DefaultConfigData holds the default value on creation for the "configData" field.
 	DefaultConfigData crypto.Map[string, interface{}]
+	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	CategoryValidator func(string) error
 )
 
 // WithoutFields returns the fields ignored the given list.

@@ -47,6 +47,8 @@ type ConnectorCreateInput struct {
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	// Category of the connector.
+	Category string `json:"category"`
 }
 
 // Model converts the ConnectorCreateInput to Connector.
@@ -61,6 +63,7 @@ func (in ConnectorCreateInput) Model() *Connector {
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
+		Category:            in.Category,
 	}
 	return entity
 }
@@ -85,6 +88,8 @@ type ConnectorUpdateInput struct {
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	// Category of the connector.
+	Category string `json:"category,omitempty"`
 }
 
 // Model converts the ConnectorUpdateInput to Connector.
@@ -99,6 +104,7 @@ func (in ConnectorUpdateInput) Model() *Connector {
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
+		Category:            in.Category,
 	}
 	return entity
 }
@@ -127,6 +133,8 @@ type ConnectorOutput struct {
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	// Category of the connector.
+	Category string `json:"category,omitempty"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationshipOutput `json:"environments,omitempty"`
 	// Resources that belong to the application.
@@ -154,6 +162,7 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		ConfigVersion:       in.ConfigVersion,
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
+		Category:            in.Category,
 		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
 		Resources:           ExposeApplicationResources(in.Edges.Resources),
 		ClusterCosts:        ExposeClusterCosts(in.Edges.ClusterCosts),

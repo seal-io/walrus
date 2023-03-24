@@ -396,6 +396,10 @@ func init() {
 	connectorDescConfigData := connectorFields[2].Descriptor()
 	// connector.DefaultConfigData holds the default value on creation for the configData field.
 	connector.DefaultConfigData = connectorDescConfigData.Default.(crypto.Map[string, interface{}])
+	// connectorDescCategory is the schema descriptor for category field.
+	connectorDescCategory := connectorFields[5].Descriptor()
+	// connector.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	connector.CategoryValidator = connectorDescCategory.Validators[0].(func(string) error)
 	environmentMixin := schema.Environment{}.Mixin()
 	environmentMixinHooks0 := environmentMixin[0].Hooks()
 	environment.Hooks[0] = environmentMixinHooks0[0]
