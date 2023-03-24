@@ -3,8 +3,8 @@ package connectors
 import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/platformk8s"
-	"github.com/seal-io/seal/pkg/scm/driver/github"
-	"github.com/seal-io/seal/pkg/scm/driver/gitlab"
+	"github.com/seal-io/seal/pkg/vcs/driver/github"
+	"github.com/seal-io/seal/pkg/vcs/driver/gitlab"
 )
 
 // TODO check by category

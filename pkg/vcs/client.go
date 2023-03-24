@@ -1,4 +1,4 @@
-package scm
+package vcs
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/scm/driver/github"
-	"github.com/seal-io/seal/pkg/scm/driver/gitlab"
+	"github.com/seal-io/seal/pkg/vcs/driver/github"
+	"github.com/seal-io/seal/pkg/vcs/driver/gitlab"
 )
 
 func NewClient(conn *model.Connector) (*scm.Client, error) {
