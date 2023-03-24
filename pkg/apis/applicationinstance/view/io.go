@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -42,13 +43,19 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return runtime.Error(http.StatusNotFound, "invalid application id: not found")
 	}
+	count, _ := modelClient.ApplicationModuleRelationships().Query().
+		Where(applicationmodulerelationship.ApplicationID(r.Application.ID)).
+		Count(ctx)
+	if count == 0 {
+		return runtime.Error(http.StatusNotFound, "invalid application: no modules")
+	}
 	_, err = modelClient.Environments().Query().
 		Where(environment.ID(r.Environment.ID)).
 		OnlyID(ctx)
 	if err != nil {
 		return runtime.Error(http.StatusNotFound, "invalid environment id: not found")
 	}
-	count, _ := modelClient.EnvironmentConnectorRelationships().Query().
+	count, _ = modelClient.EnvironmentConnectorRelationships().Query().
 		Where(environmentconnectorrelationship.EnvironmentID(r.Environment.ID)).
 		Count(ctx)
 	if count == 0 {
