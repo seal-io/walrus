@@ -11,6 +11,32 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
+func TestGetModuleNameByPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "versioned module path",
+			input:    "modules/foo/0.0.1",
+			expected: "foo",
+		},
+		{
+			name:     "non-versioned module path",
+			input:    "modules/foo",
+			expected: "foo",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualOutput := GetModuleNameByPath(tc.input)
+			assert.Equal(t, tc.expected, actualOutput)
+		})
+	}
+}
+
 func TestGetVersionedSource(t *testing.T) {
 	testCases := []struct {
 		name    string

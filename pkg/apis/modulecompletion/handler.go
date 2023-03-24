@@ -3,10 +3,19 @@ package modulecompletion
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"path/filepath"
 
+	goscm "github.com/drone/go-scm/scm"
 	"github.com/gin-gonic/gin"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
+
+	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/modules"
+	"github.com/seal-io/seal/pkg/scm"
+	"github.com/seal-io/seal/utils/strs"
 
 	"github.com/seal-io/seal/pkg/apis/modulecompletion/view"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -147,4 +156,73 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 	}
 
 	return resp.Choices[0].Message.Content, nil
+}
+
+func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequest) (*view.CreatePrResponse, error) {
+	moduleName := modules.GetModuleNameByPath(req.Path)
+	moduleFiles, err := modules.GetTerraformModuleFiles(moduleName, req.Content)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := h.modelClient.Connectors().Get(ctx, req.ConnectorID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !connectors.IsSCM(conn) {
+		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported SCM driver", conn.Type)
+	}
+
+	client, err := scm.NewClient(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, _, err := client.Git.FindBranch(ctx, req.Repository, req.Branch)
+	if err != nil {
+		return nil, err
+	}
+
+	var commitInput = &goscm.CommitInput{
+		Message: "Module generated from Seal",
+		Base:    ref.Sha,
+	}
+
+	for name, content := range moduleFiles {
+		commitInput.Blobs = append(commitInput.Blobs, goscm.Blob{
+			Path:    filepath.Join(req.Path, name),
+			Mode:    "100644",
+			Content: content,
+		})
+	}
+
+	commit, _, err := client.Git.CreateCommit(ctx, req.Repository, commitInput)
+	if err != nil {
+		return nil, err
+	}
+
+	stagingBranch := fmt.Sprintf("seal/module-" + strs.String(5))
+	var refInput = &goscm.ReferenceInput{
+		Name: stagingBranch,
+		Sha:  commit.Sha,
+	}
+	_, err = client.Git.CreateBranch(ctx, req.Repository, refInput)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO more informative PR body. e.g., let chatGPT generate it.
+	var prInput = &goscm.PullRequestInput{
+		Title:  fmt.Sprintf("Add module %s", moduleName),
+		Body:   "This is a module proposed from Seal.",
+		Source: stagingBranch,
+		Target: req.Branch,
+	}
+	pr, _, err := client.PullRequests.Create(ctx, req.Repository, prInput)
+	if err != nil {
+		return nil, err
+	}
+	return &view.CreatePrResponse{
+		Link: pr.Link,
+	}, nil
 }
