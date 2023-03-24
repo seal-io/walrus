@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/url"
@@ -36,7 +37,51 @@ const (
 	attributeShowIf  = "show_if"
 
 	defaultModuleVersion = "0.0.0"
+
+	fileNameMainTf = "main.tf"
+	fileNameReadme = "README.md"
 )
+
+// GetTerraformModuleFiles parse a full tf configuration to a map using filename as the key.
+func GetTerraformModuleFiles(name, content string) (map[string]string, error) {
+	modDir := files.TempDir("seal-module*")
+	if err := os.WriteFile(filepath.Join(modDir, fileNameMainTf), []byte(content), 0600); err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(modDir)
+
+	mod, diags := tfconfig.LoadModule(modDir)
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("failed to parse given terraform module: %w", diags.Err())
+	}
+
+	// Replace the tmp path by name. It will be rendered in the readme title.
+	mod.Path = name
+
+	buf := &bytes.Buffer{}
+	if err := tfconfig.RenderMarkdown(buf, mod); err != nil {
+		return nil, fmt.Errorf("failed to render module readme: %w", err)
+	}
+
+	var files = make(map[string]string)
+
+	// TODO split the configuration to variables.tf, outputs.tf, etc.
+	files[fileNameMainTf] = content
+	files[fileNameReadme] = buf.String()
+
+	return files, nil
+}
+
+func GetModuleNameByPath(path string) string {
+	lastPart := filepath.Base(path)
+	if _, err := version.NewVersion(lastPart); err != nil {
+		return lastPart
+	}
+
+	// lastPart is a version, get the
+	nonVersionPath := strings.TrimSuffix(path, lastPart)
+	return filepath.Base(nonVersionPath)
+}
 
 func SchemaSync(mc model.ClientSet) schemaSyncer {
 	return schemaSyncer{mc: mc}
