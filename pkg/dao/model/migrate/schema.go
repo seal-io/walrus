@@ -275,10 +275,6 @@ var (
 		{Name: "cluster_name", Type: field.TypeString},
 		{Name: "total_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "currency", Type: field.TypeInt, Nullable: true},
-		{Name: "cpu_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "gpu_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "ram_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "storage_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "allocation_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "idle_cost", Type: field.TypeFloat64, Default: 0},
 		{Name: "management_cost", Type: field.TypeFloat64, Default: 0},
@@ -292,7 +288,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "cluster_costs_connectors_clusterCosts",
-				Columns:    []*schema.Column{ClusterCostsColumns[14]},
+				Columns:    []*schema.Column{ClusterCostsColumns[10]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -301,7 +297,7 @@ var (
 			{
 				Name:    "clustercost_start_time_end_time_connector_id",
 				Unique:  true,
-				Columns: []*schema.Column{ClusterCostsColumns[1], ClusterCostsColumns[2], ClusterCostsColumns[14]},
+				Columns: []*schema.Column{ClusterCostsColumns[1], ClusterCostsColumns[2], ClusterCostsColumns[10]},
 			},
 		},
 	}

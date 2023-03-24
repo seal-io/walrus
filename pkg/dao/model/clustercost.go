@@ -36,14 +36,6 @@ type ClusterCost struct {
 	TotalCost float64 `json:"totalCost,omitempty"`
 	// Cost currency.
 	Currency int `json:"currency,omitempty"`
-	// CPU cost for current cost.
-	CpuCost float64 `json:"cpuCost,omitempty"`
-	// GPU cost for current cost.
-	GpuCost float64 `json:"gpuCost,omitempty"`
-	// Ram cost for current cost.
-	RamCost float64 `json:"ramCost,omitempty"`
-	// Storage cost for current cost.
-	StorageCost float64 `json:"storageCost,omitempty"`
 	// Allocation cost for current cost.
 	AllocationCost float64 `json:"allocationCost,omitempty"`
 	// Idle cost for current cost.
@@ -84,7 +76,7 @@ func (*ClusterCost) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case clustercost.FieldConnectorID:
 			values[i] = new(oid.ID)
-		case clustercost.FieldMinutes, clustercost.FieldTotalCost, clustercost.FieldCpuCost, clustercost.FieldGpuCost, clustercost.FieldRamCost, clustercost.FieldStorageCost, clustercost.FieldAllocationCost, clustercost.FieldIdleCost, clustercost.FieldManagementCost:
+		case clustercost.FieldMinutes, clustercost.FieldTotalCost, clustercost.FieldAllocationCost, clustercost.FieldIdleCost, clustercost.FieldManagementCost:
 			values[i] = new(sql.NullFloat64)
 		case clustercost.FieldID, clustercost.FieldCurrency:
 			values[i] = new(sql.NullInt64)
@@ -154,30 +146,6 @@ func (cc *ClusterCost) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
 			} else if value.Valid {
 				cc.Currency = int(value.Int64)
-			}
-		case clustercost.FieldCpuCost:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field cpuCost", values[i])
-			} else if value.Valid {
-				cc.CpuCost = value.Float64
-			}
-		case clustercost.FieldGpuCost:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field gpuCost", values[i])
-			} else if value.Valid {
-				cc.GpuCost = value.Float64
-			}
-		case clustercost.FieldRamCost:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field ramCost", values[i])
-			} else if value.Valid {
-				cc.RamCost = value.Float64
-			}
-		case clustercost.FieldStorageCost:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field storageCost", values[i])
-			} else if value.Valid {
-				cc.StorageCost = value.Float64
 			}
 		case clustercost.FieldAllocationCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -250,18 +218,6 @@ func (cc *ClusterCost) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(fmt.Sprintf("%v", cc.Currency))
-	builder.WriteString(", ")
-	builder.WriteString("cpuCost=")
-	builder.WriteString(fmt.Sprintf("%v", cc.CpuCost))
-	builder.WriteString(", ")
-	builder.WriteString("gpuCost=")
-	builder.WriteString(fmt.Sprintf("%v", cc.GpuCost))
-	builder.WriteString(", ")
-	builder.WriteString("ramCost=")
-	builder.WriteString(fmt.Sprintf("%v", cc.RamCost))
-	builder.WriteString(", ")
-	builder.WriteString("storageCost=")
-	builder.WriteString(fmt.Sprintf("%v", cc.StorageCost))
 	builder.WriteString(", ")
 	builder.WriteString("allocationCost=")
 	builder.WriteString(fmt.Sprintf("%v", cc.AllocationCost))

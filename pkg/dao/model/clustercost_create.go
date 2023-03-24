@@ -86,62 +86,6 @@ func (ccc *ClusterCostCreate) SetNillableCurrency(i *int) *ClusterCostCreate {
 	return ccc
 }
 
-// SetCpuCost sets the "cpuCost" field.
-func (ccc *ClusterCostCreate) SetCpuCost(f float64) *ClusterCostCreate {
-	ccc.mutation.SetCpuCost(f)
-	return ccc
-}
-
-// SetNillableCpuCost sets the "cpuCost" field if the given value is not nil.
-func (ccc *ClusterCostCreate) SetNillableCpuCost(f *float64) *ClusterCostCreate {
-	if f != nil {
-		ccc.SetCpuCost(*f)
-	}
-	return ccc
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (ccc *ClusterCostCreate) SetGpuCost(f float64) *ClusterCostCreate {
-	ccc.mutation.SetGpuCost(f)
-	return ccc
-}
-
-// SetNillableGpuCost sets the "gpuCost" field if the given value is not nil.
-func (ccc *ClusterCostCreate) SetNillableGpuCost(f *float64) *ClusterCostCreate {
-	if f != nil {
-		ccc.SetGpuCost(*f)
-	}
-	return ccc
-}
-
-// SetRamCost sets the "ramCost" field.
-func (ccc *ClusterCostCreate) SetRamCost(f float64) *ClusterCostCreate {
-	ccc.mutation.SetRamCost(f)
-	return ccc
-}
-
-// SetNillableRamCost sets the "ramCost" field if the given value is not nil.
-func (ccc *ClusterCostCreate) SetNillableRamCost(f *float64) *ClusterCostCreate {
-	if f != nil {
-		ccc.SetRamCost(*f)
-	}
-	return ccc
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (ccc *ClusterCostCreate) SetStorageCost(f float64) *ClusterCostCreate {
-	ccc.mutation.SetStorageCost(f)
-	return ccc
-}
-
-// SetNillableStorageCost sets the "storageCost" field if the given value is not nil.
-func (ccc *ClusterCostCreate) SetNillableStorageCost(f *float64) *ClusterCostCreate {
-	if f != nil {
-		ccc.SetStorageCost(*f)
-	}
-	return ccc
-}
-
 // SetAllocationCost sets the "allocationCost" field.
 func (ccc *ClusterCostCreate) SetAllocationCost(f float64) *ClusterCostCreate {
 	ccc.mutation.SetAllocationCost(f)
@@ -228,22 +172,6 @@ func (ccc *ClusterCostCreate) defaults() {
 		v := clustercost.DefaultTotalCost
 		ccc.mutation.SetTotalCost(v)
 	}
-	if _, ok := ccc.mutation.CpuCost(); !ok {
-		v := clustercost.DefaultCpuCost
-		ccc.mutation.SetCpuCost(v)
-	}
-	if _, ok := ccc.mutation.GpuCost(); !ok {
-		v := clustercost.DefaultGpuCost
-		ccc.mutation.SetGpuCost(v)
-	}
-	if _, ok := ccc.mutation.RamCost(); !ok {
-		v := clustercost.DefaultRamCost
-		ccc.mutation.SetRamCost(v)
-	}
-	if _, ok := ccc.mutation.StorageCost(); !ok {
-		v := clustercost.DefaultStorageCost
-		ccc.mutation.SetStorageCost(v)
-	}
 	if _, ok := ccc.mutation.AllocationCost(); !ok {
 		v := clustercost.DefaultAllocationCost
 		ccc.mutation.SetAllocationCost(v)
@@ -291,38 +219,6 @@ func (ccc *ClusterCostCreate) check() error {
 	if v, ok := ccc.mutation.TotalCost(); ok {
 		if err := clustercost.TotalCostValidator(v); err != nil {
 			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.totalCost": %w`, err)}
-		}
-	}
-	if _, ok := ccc.mutation.CpuCost(); !ok {
-		return &ValidationError{Name: "cpuCost", err: errors.New(`model: missing required field "ClusterCost.cpuCost"`)}
-	}
-	if v, ok := ccc.mutation.CpuCost(); ok {
-		if err := clustercost.CpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.cpuCost": %w`, err)}
-		}
-	}
-	if _, ok := ccc.mutation.GpuCost(); !ok {
-		return &ValidationError{Name: "gpuCost", err: errors.New(`model: missing required field "ClusterCost.gpuCost"`)}
-	}
-	if v, ok := ccc.mutation.GpuCost(); ok {
-		if err := clustercost.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.gpuCost": %w`, err)}
-		}
-	}
-	if _, ok := ccc.mutation.RamCost(); !ok {
-		return &ValidationError{Name: "ramCost", err: errors.New(`model: missing required field "ClusterCost.ramCost"`)}
-	}
-	if v, ok := ccc.mutation.RamCost(); ok {
-		if err := clustercost.RamCostValidator(v); err != nil {
-			return &ValidationError{Name: "ramCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.ramCost": %w`, err)}
-		}
-	}
-	if _, ok := ccc.mutation.StorageCost(); !ok {
-		return &ValidationError{Name: "storageCost", err: errors.New(`model: missing required field "ClusterCost.storageCost"`)}
-	}
-	if v, ok := ccc.mutation.StorageCost(); ok {
-		if err := clustercost.StorageCostValidator(v); err != nil {
-			return &ValidationError{Name: "storageCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.storageCost": %w`, err)}
 		}
 	}
 	if _, ok := ccc.mutation.AllocationCost(); !ok {
@@ -403,22 +299,6 @@ func (ccc *ClusterCostCreate) createSpec() (*ClusterCost, *sqlgraph.CreateSpec) 
 	if value, ok := ccc.mutation.Currency(); ok {
 		_spec.SetField(clustercost.FieldCurrency, field.TypeInt, value)
 		_node.Currency = value
-	}
-	if value, ok := ccc.mutation.CpuCost(); ok {
-		_spec.SetField(clustercost.FieldCpuCost, field.TypeFloat64, value)
-		_node.CpuCost = value
-	}
-	if value, ok := ccc.mutation.GpuCost(); ok {
-		_spec.SetField(clustercost.FieldGpuCost, field.TypeFloat64, value)
-		_node.GpuCost = value
-	}
-	if value, ok := ccc.mutation.RamCost(); ok {
-		_spec.SetField(clustercost.FieldRamCost, field.TypeFloat64, value)
-		_node.RamCost = value
-	}
-	if value, ok := ccc.mutation.StorageCost(); ok {
-		_spec.SetField(clustercost.FieldStorageCost, field.TypeFloat64, value)
-		_node.StorageCost = value
 	}
 	if value, ok := ccc.mutation.AllocationCost(); ok {
 		_spec.SetField(clustercost.FieldAllocationCost, field.TypeFloat64, value)
@@ -544,78 +424,6 @@ func (u *ClusterCostUpsert) AddCurrency(v int) *ClusterCostUpsert {
 // ClearCurrency clears the value of the "currency" field.
 func (u *ClusterCostUpsert) ClearCurrency() *ClusterCostUpsert {
 	u.SetNull(clustercost.FieldCurrency)
-	return u
-}
-
-// SetCpuCost sets the "cpuCost" field.
-func (u *ClusterCostUpsert) SetCpuCost(v float64) *ClusterCostUpsert {
-	u.Set(clustercost.FieldCpuCost, v)
-	return u
-}
-
-// UpdateCpuCost sets the "cpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsert) UpdateCpuCost() *ClusterCostUpsert {
-	u.SetExcluded(clustercost.FieldCpuCost)
-	return u
-}
-
-// AddCpuCost adds v to the "cpuCost" field.
-func (u *ClusterCostUpsert) AddCpuCost(v float64) *ClusterCostUpsert {
-	u.Add(clustercost.FieldCpuCost, v)
-	return u
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (u *ClusterCostUpsert) SetGpuCost(v float64) *ClusterCostUpsert {
-	u.Set(clustercost.FieldGpuCost, v)
-	return u
-}
-
-// UpdateGpuCost sets the "gpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsert) UpdateGpuCost() *ClusterCostUpsert {
-	u.SetExcluded(clustercost.FieldGpuCost)
-	return u
-}
-
-// AddGpuCost adds v to the "gpuCost" field.
-func (u *ClusterCostUpsert) AddGpuCost(v float64) *ClusterCostUpsert {
-	u.Add(clustercost.FieldGpuCost, v)
-	return u
-}
-
-// SetRamCost sets the "ramCost" field.
-func (u *ClusterCostUpsert) SetRamCost(v float64) *ClusterCostUpsert {
-	u.Set(clustercost.FieldRamCost, v)
-	return u
-}
-
-// UpdateRamCost sets the "ramCost" field to the value that was provided on create.
-func (u *ClusterCostUpsert) UpdateRamCost() *ClusterCostUpsert {
-	u.SetExcluded(clustercost.FieldRamCost)
-	return u
-}
-
-// AddRamCost adds v to the "ramCost" field.
-func (u *ClusterCostUpsert) AddRamCost(v float64) *ClusterCostUpsert {
-	u.Add(clustercost.FieldRamCost, v)
-	return u
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (u *ClusterCostUpsert) SetStorageCost(v float64) *ClusterCostUpsert {
-	u.Set(clustercost.FieldStorageCost, v)
-	return u
-}
-
-// UpdateStorageCost sets the "storageCost" field to the value that was provided on create.
-func (u *ClusterCostUpsert) UpdateStorageCost() *ClusterCostUpsert {
-	u.SetExcluded(clustercost.FieldStorageCost)
-	return u
-}
-
-// AddStorageCost adds v to the "storageCost" field.
-func (u *ClusterCostUpsert) AddStorageCost(v float64) *ClusterCostUpsert {
-	u.Add(clustercost.FieldStorageCost, v)
 	return u
 }
 
@@ -776,90 +584,6 @@ func (u *ClusterCostUpsertOne) UpdateCurrency() *ClusterCostUpsertOne {
 func (u *ClusterCostUpsertOne) ClearCurrency() *ClusterCostUpsertOne {
 	return u.Update(func(s *ClusterCostUpsert) {
 		s.ClearCurrency()
-	})
-}
-
-// SetCpuCost sets the "cpuCost" field.
-func (u *ClusterCostUpsertOne) SetCpuCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetCpuCost(v)
-	})
-}
-
-// AddCpuCost adds v to the "cpuCost" field.
-func (u *ClusterCostUpsertOne) AddCpuCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddCpuCost(v)
-	})
-}
-
-// UpdateCpuCost sets the "cpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertOne) UpdateCpuCost() *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateCpuCost()
-	})
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (u *ClusterCostUpsertOne) SetGpuCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetGpuCost(v)
-	})
-}
-
-// AddGpuCost adds v to the "gpuCost" field.
-func (u *ClusterCostUpsertOne) AddGpuCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddGpuCost(v)
-	})
-}
-
-// UpdateGpuCost sets the "gpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertOne) UpdateGpuCost() *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateGpuCost()
-	})
-}
-
-// SetRamCost sets the "ramCost" field.
-func (u *ClusterCostUpsertOne) SetRamCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetRamCost(v)
-	})
-}
-
-// AddRamCost adds v to the "ramCost" field.
-func (u *ClusterCostUpsertOne) AddRamCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddRamCost(v)
-	})
-}
-
-// UpdateRamCost sets the "ramCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertOne) UpdateRamCost() *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateRamCost()
-	})
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (u *ClusterCostUpsertOne) SetStorageCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetStorageCost(v)
-	})
-}
-
-// AddStorageCost adds v to the "storageCost" field.
-func (u *ClusterCostUpsertOne) AddStorageCost(v float64) *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddStorageCost(v)
-	})
-}
-
-// UpdateStorageCost sets the "storageCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertOne) UpdateStorageCost() *ClusterCostUpsertOne {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateStorageCost()
 	})
 }
 
@@ -1191,90 +915,6 @@ func (u *ClusterCostUpsertBulk) UpdateCurrency() *ClusterCostUpsertBulk {
 func (u *ClusterCostUpsertBulk) ClearCurrency() *ClusterCostUpsertBulk {
 	return u.Update(func(s *ClusterCostUpsert) {
 		s.ClearCurrency()
-	})
-}
-
-// SetCpuCost sets the "cpuCost" field.
-func (u *ClusterCostUpsertBulk) SetCpuCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetCpuCost(v)
-	})
-}
-
-// AddCpuCost adds v to the "cpuCost" field.
-func (u *ClusterCostUpsertBulk) AddCpuCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddCpuCost(v)
-	})
-}
-
-// UpdateCpuCost sets the "cpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertBulk) UpdateCpuCost() *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateCpuCost()
-	})
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (u *ClusterCostUpsertBulk) SetGpuCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetGpuCost(v)
-	})
-}
-
-// AddGpuCost adds v to the "gpuCost" field.
-func (u *ClusterCostUpsertBulk) AddGpuCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddGpuCost(v)
-	})
-}
-
-// UpdateGpuCost sets the "gpuCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertBulk) UpdateGpuCost() *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateGpuCost()
-	})
-}
-
-// SetRamCost sets the "ramCost" field.
-func (u *ClusterCostUpsertBulk) SetRamCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetRamCost(v)
-	})
-}
-
-// AddRamCost adds v to the "ramCost" field.
-func (u *ClusterCostUpsertBulk) AddRamCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddRamCost(v)
-	})
-}
-
-// UpdateRamCost sets the "ramCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertBulk) UpdateRamCost() *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateRamCost()
-	})
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (u *ClusterCostUpsertBulk) SetStorageCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.SetStorageCost(v)
-	})
-}
-
-// AddStorageCost adds v to the "storageCost" field.
-func (u *ClusterCostUpsertBulk) AddStorageCost(v float64) *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.AddStorageCost(v)
-	})
-}
-
-// UpdateStorageCost sets the "storageCost" field to the value that was provided on create.
-func (u *ClusterCostUpsertBulk) UpdateStorageCost() *ClusterCostUpsertBulk {
-	return u.Update(func(s *ClusterCostUpsert) {
-		s.UpdateStorageCost()
 	})
 }
 

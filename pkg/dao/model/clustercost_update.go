@@ -81,90 +81,6 @@ func (ccu *ClusterCostUpdate) ClearCurrency() *ClusterCostUpdate {
 	return ccu
 }
 
-// SetCpuCost sets the "cpuCost" field.
-func (ccu *ClusterCostUpdate) SetCpuCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.ResetCpuCost()
-	ccu.mutation.SetCpuCost(f)
-	return ccu
-}
-
-// SetNillableCpuCost sets the "cpuCost" field if the given value is not nil.
-func (ccu *ClusterCostUpdate) SetNillableCpuCost(f *float64) *ClusterCostUpdate {
-	if f != nil {
-		ccu.SetCpuCost(*f)
-	}
-	return ccu
-}
-
-// AddCpuCost adds f to the "cpuCost" field.
-func (ccu *ClusterCostUpdate) AddCpuCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.AddCpuCost(f)
-	return ccu
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (ccu *ClusterCostUpdate) SetGpuCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.ResetGpuCost()
-	ccu.mutation.SetGpuCost(f)
-	return ccu
-}
-
-// SetNillableGpuCost sets the "gpuCost" field if the given value is not nil.
-func (ccu *ClusterCostUpdate) SetNillableGpuCost(f *float64) *ClusterCostUpdate {
-	if f != nil {
-		ccu.SetGpuCost(*f)
-	}
-	return ccu
-}
-
-// AddGpuCost adds f to the "gpuCost" field.
-func (ccu *ClusterCostUpdate) AddGpuCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.AddGpuCost(f)
-	return ccu
-}
-
-// SetRamCost sets the "ramCost" field.
-func (ccu *ClusterCostUpdate) SetRamCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.ResetRamCost()
-	ccu.mutation.SetRamCost(f)
-	return ccu
-}
-
-// SetNillableRamCost sets the "ramCost" field if the given value is not nil.
-func (ccu *ClusterCostUpdate) SetNillableRamCost(f *float64) *ClusterCostUpdate {
-	if f != nil {
-		ccu.SetRamCost(*f)
-	}
-	return ccu
-}
-
-// AddRamCost adds f to the "ramCost" field.
-func (ccu *ClusterCostUpdate) AddRamCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.AddRamCost(f)
-	return ccu
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (ccu *ClusterCostUpdate) SetStorageCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.ResetStorageCost()
-	ccu.mutation.SetStorageCost(f)
-	return ccu
-}
-
-// SetNillableStorageCost sets the "storageCost" field if the given value is not nil.
-func (ccu *ClusterCostUpdate) SetNillableStorageCost(f *float64) *ClusterCostUpdate {
-	if f != nil {
-		ccu.SetStorageCost(*f)
-	}
-	return ccu
-}
-
-// AddStorageCost adds f to the "storageCost" field.
-func (ccu *ClusterCostUpdate) AddStorageCost(f float64) *ClusterCostUpdate {
-	ccu.mutation.AddStorageCost(f)
-	return ccu
-}
-
 // SetAllocationCost sets the "allocationCost" field.
 func (ccu *ClusterCostUpdate) SetAllocationCost(f float64) *ClusterCostUpdate {
 	ccu.mutation.ResetAllocationCost()
@@ -267,26 +183,6 @@ func (ccu *ClusterCostUpdate) check() error {
 			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.totalCost": %w`, err)}
 		}
 	}
-	if v, ok := ccu.mutation.CpuCost(); ok {
-		if err := clustercost.CpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.cpuCost": %w`, err)}
-		}
-	}
-	if v, ok := ccu.mutation.GpuCost(); ok {
-		if err := clustercost.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.gpuCost": %w`, err)}
-		}
-	}
-	if v, ok := ccu.mutation.RamCost(); ok {
-		if err := clustercost.RamCostValidator(v); err != nil {
-			return &ValidationError{Name: "ramCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.ramCost": %w`, err)}
-		}
-	}
-	if v, ok := ccu.mutation.StorageCost(); ok {
-		if err := clustercost.StorageCostValidator(v); err != nil {
-			return &ValidationError{Name: "storageCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.storageCost": %w`, err)}
-		}
-	}
 	if v, ok := ccu.mutation.AllocationCost(); ok {
 		if err := clustercost.AllocationCostValidator(v); err != nil {
 			return &ValidationError{Name: "allocationCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.allocationCost": %w`, err)}
@@ -340,30 +236,6 @@ func (ccu *ClusterCostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ccu.mutation.CurrencyCleared() {
 		_spec.ClearField(clustercost.FieldCurrency, field.TypeInt)
-	}
-	if value, ok := ccu.mutation.CpuCost(); ok {
-		_spec.SetField(clustercost.FieldCpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.AddedCpuCost(); ok {
-		_spec.AddField(clustercost.FieldCpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.GpuCost(); ok {
-		_spec.SetField(clustercost.FieldGpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.AddedGpuCost(); ok {
-		_spec.AddField(clustercost.FieldGpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.RamCost(); ok {
-		_spec.SetField(clustercost.FieldRamCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.AddedRamCost(); ok {
-		_spec.AddField(clustercost.FieldRamCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.StorageCost(); ok {
-		_spec.SetField(clustercost.FieldStorageCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccu.mutation.AddedStorageCost(); ok {
-		_spec.AddField(clustercost.FieldStorageCost, field.TypeFloat64, value)
 	}
 	if value, ok := ccu.mutation.AllocationCost(); ok {
 		_spec.SetField(clustercost.FieldAllocationCost, field.TypeFloat64, value)
@@ -452,90 +324,6 @@ func (ccuo *ClusterCostUpdateOne) AddCurrency(i int) *ClusterCostUpdateOne {
 // ClearCurrency clears the value of the "currency" field.
 func (ccuo *ClusterCostUpdateOne) ClearCurrency() *ClusterCostUpdateOne {
 	ccuo.mutation.ClearCurrency()
-	return ccuo
-}
-
-// SetCpuCost sets the "cpuCost" field.
-func (ccuo *ClusterCostUpdateOne) SetCpuCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.ResetCpuCost()
-	ccuo.mutation.SetCpuCost(f)
-	return ccuo
-}
-
-// SetNillableCpuCost sets the "cpuCost" field if the given value is not nil.
-func (ccuo *ClusterCostUpdateOne) SetNillableCpuCost(f *float64) *ClusterCostUpdateOne {
-	if f != nil {
-		ccuo.SetCpuCost(*f)
-	}
-	return ccuo
-}
-
-// AddCpuCost adds f to the "cpuCost" field.
-func (ccuo *ClusterCostUpdateOne) AddCpuCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.AddCpuCost(f)
-	return ccuo
-}
-
-// SetGpuCost sets the "gpuCost" field.
-func (ccuo *ClusterCostUpdateOne) SetGpuCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.ResetGpuCost()
-	ccuo.mutation.SetGpuCost(f)
-	return ccuo
-}
-
-// SetNillableGpuCost sets the "gpuCost" field if the given value is not nil.
-func (ccuo *ClusterCostUpdateOne) SetNillableGpuCost(f *float64) *ClusterCostUpdateOne {
-	if f != nil {
-		ccuo.SetGpuCost(*f)
-	}
-	return ccuo
-}
-
-// AddGpuCost adds f to the "gpuCost" field.
-func (ccuo *ClusterCostUpdateOne) AddGpuCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.AddGpuCost(f)
-	return ccuo
-}
-
-// SetRamCost sets the "ramCost" field.
-func (ccuo *ClusterCostUpdateOne) SetRamCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.ResetRamCost()
-	ccuo.mutation.SetRamCost(f)
-	return ccuo
-}
-
-// SetNillableRamCost sets the "ramCost" field if the given value is not nil.
-func (ccuo *ClusterCostUpdateOne) SetNillableRamCost(f *float64) *ClusterCostUpdateOne {
-	if f != nil {
-		ccuo.SetRamCost(*f)
-	}
-	return ccuo
-}
-
-// AddRamCost adds f to the "ramCost" field.
-func (ccuo *ClusterCostUpdateOne) AddRamCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.AddRamCost(f)
-	return ccuo
-}
-
-// SetStorageCost sets the "storageCost" field.
-func (ccuo *ClusterCostUpdateOne) SetStorageCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.ResetStorageCost()
-	ccuo.mutation.SetStorageCost(f)
-	return ccuo
-}
-
-// SetNillableStorageCost sets the "storageCost" field if the given value is not nil.
-func (ccuo *ClusterCostUpdateOne) SetNillableStorageCost(f *float64) *ClusterCostUpdateOne {
-	if f != nil {
-		ccuo.SetStorageCost(*f)
-	}
-	return ccuo
-}
-
-// AddStorageCost adds f to the "storageCost" field.
-func (ccuo *ClusterCostUpdateOne) AddStorageCost(f float64) *ClusterCostUpdateOne {
-	ccuo.mutation.AddStorageCost(f)
 	return ccuo
 }
 
@@ -654,26 +442,6 @@ func (ccuo *ClusterCostUpdateOne) check() error {
 			return &ValidationError{Name: "totalCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.totalCost": %w`, err)}
 		}
 	}
-	if v, ok := ccuo.mutation.CpuCost(); ok {
-		if err := clustercost.CpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "cpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.cpuCost": %w`, err)}
-		}
-	}
-	if v, ok := ccuo.mutation.GpuCost(); ok {
-		if err := clustercost.GpuCostValidator(v); err != nil {
-			return &ValidationError{Name: "gpuCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.gpuCost": %w`, err)}
-		}
-	}
-	if v, ok := ccuo.mutation.RamCost(); ok {
-		if err := clustercost.RamCostValidator(v); err != nil {
-			return &ValidationError{Name: "ramCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.ramCost": %w`, err)}
-		}
-	}
-	if v, ok := ccuo.mutation.StorageCost(); ok {
-		if err := clustercost.StorageCostValidator(v); err != nil {
-			return &ValidationError{Name: "storageCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.storageCost": %w`, err)}
-		}
-	}
 	if v, ok := ccuo.mutation.AllocationCost(); ok {
 		if err := clustercost.AllocationCostValidator(v); err != nil {
 			return &ValidationError{Name: "allocationCost", err: fmt.Errorf(`model: validator failed for field "ClusterCost.allocationCost": %w`, err)}
@@ -744,30 +512,6 @@ func (ccuo *ClusterCostUpdateOne) sqlSave(ctx context.Context) (_node *ClusterCo
 	}
 	if ccuo.mutation.CurrencyCleared() {
 		_spec.ClearField(clustercost.FieldCurrency, field.TypeInt)
-	}
-	if value, ok := ccuo.mutation.CpuCost(); ok {
-		_spec.SetField(clustercost.FieldCpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.AddedCpuCost(); ok {
-		_spec.AddField(clustercost.FieldCpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.GpuCost(); ok {
-		_spec.SetField(clustercost.FieldGpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.AddedGpuCost(); ok {
-		_spec.AddField(clustercost.FieldGpuCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.RamCost(); ok {
-		_spec.SetField(clustercost.FieldRamCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.AddedRamCost(); ok {
-		_spec.AddField(clustercost.FieldRamCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.StorageCost(); ok {
-		_spec.SetField(clustercost.FieldStorageCost, field.TypeFloat64, value)
-	}
-	if value, ok := ccuo.mutation.AddedStorageCost(); ok {
-		_spec.AddField(clustercost.FieldStorageCost, field.TypeFloat64, value)
 	}
 	if value, ok := ccuo.mutation.AllocationCost(); ok {
 		_spec.SetField(clustercost.FieldAllocationCost, field.TypeFloat64, value)

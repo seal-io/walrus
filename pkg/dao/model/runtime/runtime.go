@@ -321,44 +321,20 @@ func init() {
 	clustercost.DefaultTotalCost = clustercostDescTotalCost.Default.(float64)
 	// clustercost.TotalCostValidator is a validator for the "totalCost" field. It is called by the builders before save.
 	clustercost.TotalCostValidator = clustercostDescTotalCost.Validators[0].(func(float64) error)
-	// clustercostDescCpuCost is the schema descriptor for cpuCost field.
-	clustercostDescCpuCost := clustercostFields[7].Descriptor()
-	// clustercost.DefaultCpuCost holds the default value on creation for the cpuCost field.
-	clustercost.DefaultCpuCost = clustercostDescCpuCost.Default.(float64)
-	// clustercost.CpuCostValidator is a validator for the "cpuCost" field. It is called by the builders before save.
-	clustercost.CpuCostValidator = clustercostDescCpuCost.Validators[0].(func(float64) error)
-	// clustercostDescGpuCost is the schema descriptor for gpuCost field.
-	clustercostDescGpuCost := clustercostFields[8].Descriptor()
-	// clustercost.DefaultGpuCost holds the default value on creation for the gpuCost field.
-	clustercost.DefaultGpuCost = clustercostDescGpuCost.Default.(float64)
-	// clustercost.GpuCostValidator is a validator for the "gpuCost" field. It is called by the builders before save.
-	clustercost.GpuCostValidator = clustercostDescGpuCost.Validators[0].(func(float64) error)
-	// clustercostDescRamCost is the schema descriptor for ramCost field.
-	clustercostDescRamCost := clustercostFields[9].Descriptor()
-	// clustercost.DefaultRamCost holds the default value on creation for the ramCost field.
-	clustercost.DefaultRamCost = clustercostDescRamCost.Default.(float64)
-	// clustercost.RamCostValidator is a validator for the "ramCost" field. It is called by the builders before save.
-	clustercost.RamCostValidator = clustercostDescRamCost.Validators[0].(func(float64) error)
-	// clustercostDescStorageCost is the schema descriptor for storageCost field.
-	clustercostDescStorageCost := clustercostFields[10].Descriptor()
-	// clustercost.DefaultStorageCost holds the default value on creation for the storageCost field.
-	clustercost.DefaultStorageCost = clustercostDescStorageCost.Default.(float64)
-	// clustercost.StorageCostValidator is a validator for the "storageCost" field. It is called by the builders before save.
-	clustercost.StorageCostValidator = clustercostDescStorageCost.Validators[0].(func(float64) error)
 	// clustercostDescAllocationCost is the schema descriptor for allocationCost field.
-	clustercostDescAllocationCost := clustercostFields[11].Descriptor()
+	clustercostDescAllocationCost := clustercostFields[7].Descriptor()
 	// clustercost.DefaultAllocationCost holds the default value on creation for the allocationCost field.
 	clustercost.DefaultAllocationCost = clustercostDescAllocationCost.Default.(float64)
 	// clustercost.AllocationCostValidator is a validator for the "allocationCost" field. It is called by the builders before save.
 	clustercost.AllocationCostValidator = clustercostDescAllocationCost.Validators[0].(func(float64) error)
 	// clustercostDescIdleCost is the schema descriptor for idleCost field.
-	clustercostDescIdleCost := clustercostFields[12].Descriptor()
+	clustercostDescIdleCost := clustercostFields[8].Descriptor()
 	// clustercost.DefaultIdleCost holds the default value on creation for the idleCost field.
 	clustercost.DefaultIdleCost = clustercostDescIdleCost.Default.(float64)
 	// clustercost.IdleCostValidator is a validator for the "idleCost" field. It is called by the builders before save.
 	clustercost.IdleCostValidator = clustercostDescIdleCost.Validators[0].(func(float64) error)
 	// clustercostDescManagementCost is the schema descriptor for managementCost field.
-	clustercostDescManagementCost := clustercostFields[13].Descriptor()
+	clustercostDescManagementCost := clustercostFields[9].Descriptor()
 	// clustercost.DefaultManagementCost holds the default value on creation for the managementCost field.
 	clustercost.DefaultManagementCost = clustercostDescManagementCost.Default.(float64)
 	// clustercost.ManagementCostValidator is a validator for the "managementCost" field. It is called by the builders before save.
