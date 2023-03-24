@@ -50,6 +50,9 @@ func (Connector) Fields() []ent.Field {
 		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
 			Comment("Custom pricing user defined.").
 			Optional(),
+		field.String("category").
+			Comment("Category of the connector.").
+			NotEmpty(),
 	}
 }
 
