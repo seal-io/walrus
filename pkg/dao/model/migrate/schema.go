@@ -228,11 +228,6 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{ApplicationResourcesColumns[2]},
 			},
-			{
-				Name:    "applicationresource_instance_id_connector_id_module_mode_type_name",
-				Unique:  true,
-				Columns: []*schema.Column{ApplicationResourcesColumns[9], ApplicationResourcesColumns[10], ApplicationResourcesColumns[3], ApplicationResourcesColumns[4], ApplicationResourcesColumns[5], ApplicationResourcesColumns[6]},
-			},
 		},
 	}
 	// ApplicationRevisionsColumns holds the columns for the "application_revisions" table.
