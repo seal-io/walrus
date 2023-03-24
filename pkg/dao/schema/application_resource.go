@@ -4,7 +4,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -19,13 +18,6 @@ func (ApplicationResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.Time{},
-	}
-}
-
-func (ApplicationResource) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("instanceID", "connectorID", "module", "mode", "type", "name").
-			Unique(),
 	}
 }
 
