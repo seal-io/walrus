@@ -2,6 +2,12 @@ package types
 
 const ConnectorTypeK8s string = "Kubernetes"
 
+const (
+	ConnectorCategoryKubernetes     string = "Kubernetes"
+	ConnectorCategoryCustom         string = "Custom"
+	ConnectorCategoryVersionControl string = "VersionControl"
+)
+
 // FinOpsCustomPricing used to config opencost
 type FinOpsCustomPricing struct {
 	// CPU describing cost per core-month of CPU.

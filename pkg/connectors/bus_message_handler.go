@@ -7,6 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
@@ -27,6 +28,10 @@ func (s statusSyncer) Do(ctx context.Context, message connector.BusMessage) erro
 
 	var client = s.mc
 	var conn = message.Refer
+	// skip non-k8s connectors.
+	if conn.Category != types.ConnectorCategoryKubernetes {
+		return nil
+	}
 
 	gopool.Go(func() {
 		subCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
