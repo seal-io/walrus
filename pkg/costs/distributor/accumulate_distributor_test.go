@@ -503,6 +503,7 @@ func newTestConn(ctx context.Context, client *model.Client) (*model.Connector, e
 	conn, err := client.Connector.Create().
 		SetName(time.Now().String()).
 		SetType(types.ConnectorTypeK8s).
+		SetCategory(types.ConnectorCategoryKubernetes).
 		SetConfigVersion("test").
 		SetEnableFinOps(true).
 		SetConfigData(map[string]interface{}{

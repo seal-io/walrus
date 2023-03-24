@@ -9,7 +9,6 @@ import (
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -29,23 +28,8 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	var entity = r.Model()
-
-	if !connectors.IsOperator(entity) {
-		return nil
-	}
-
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{
-		Connector: *entity,
-	})
-	if err != nil {
-		return fmt.Errorf("invalid connector config: %w", err)
-	}
-	connected, err := op.IsConnected(ctx)
-	if err != nil {
-		return fmt.Errorf("invalid connector: %w", err)
-	}
-	if !connected {
-		return errors.New("invalid connector: unreachable")
+	if err := validateConnector(ctx, entity); err != nil {
+		return err
 	}
 
 	return nil
@@ -59,10 +43,16 @@ type UpdateRequest struct {
 	*model.ConnectorUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r *UpdateRequest) Validate() error {
+func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
+	var entity = r.Model()
+	if err := validateConnector(ctx, entity); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -97,6 +87,9 @@ func (r CollectionDeleteRequest) Validate() error {
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Connector] `query:",inline"`
+
+	Category string `query:"category"`
+	Type     string `query:"type"`
 }
 
 type CollectionGetResponse = []*model.ConnectorOutput
@@ -165,3 +158,30 @@ type GetBranchesRequest struct {
 }
 
 type GetBranchesResponse = []*scm.Reference
+
+func validateConnector(ctx context.Context, entity *model.Connector) error {
+	switch entity.Category {
+	case types.ConnectorCategoryKubernetes:
+		op, err := platform.GetOperator(ctx, operator.CreateOptions{
+			Connector: *entity,
+		})
+		if err != nil {
+			return fmt.Errorf("invalid connector config: %w", err)
+		}
+		connected, err := op.IsConnected(ctx)
+		if err != nil {
+			return fmt.Errorf("invalid connector: %w", err)
+		}
+		if !connected {
+			return errors.New("invalid connector: unreachable")
+		}
+	case types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
+		if entity.EnableFinOps {
+			return errors.New("invalid connector: finOps not supported")
+		}
+	default:
+		return errors.New("invalid connector category")
+	}
+
+	return nil
+}
