@@ -65,6 +65,9 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	if err != nil {
 		return nil, err
 	}
+
+	sanitize(model.Settings{entity})
+
 	return model.ExposeSetting(entity), nil
 }
 
@@ -136,7 +139,18 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		return nil, 0, err
 	}
 
+	sanitize(entities)
+
 	return model.ExposeSettings(entities), cnt, nil
+}
+
+// FIXME This is a temporary way to protect openai API token. Refactor when setting value encryption is ready.
+func sanitize(ss model.Settings) {
+	for _, s := range ss {
+		if s.Name == settings.OpenAiApiToken.Name() {
+			s.Value = ""
+		}
+	}
 }
 
 // Extensional APIs
