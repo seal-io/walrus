@@ -137,6 +137,12 @@ func (cu *ConnectorUpdate) ClearFinOpsCustomPricing() *ConnectorUpdate {
 	return cu
 }
 
+// SetCategory sets the "category" field.
+func (cu *ConnectorUpdate) SetCategory(s string) *ConnectorUpdate {
+	cu.mutation.SetCategory(s)
+	return cu
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
 func (cu *ConnectorUpdate) AddResourceIDs(ids ...oid.ID) *ConnectorUpdate {
 	cu.mutation.AddResourceIDs(ids...)
@@ -304,6 +310,11 @@ func (cu *ConnectorUpdate) check() error {
 			return &ValidationError{Name: "configVersion", err: fmt.Errorf(`model: validator failed for field "Connector.configVersion": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.Category(); ok {
+		if err := connector.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -360,6 +371,9 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.FinOpsCustomPricingCleared() {
 		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
+	}
+	if value, ok := cu.mutation.Category(); ok {
+		_spec.SetField(connector.FieldCategory, field.TypeString, value)
 	}
 	if cu.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -652,6 +666,12 @@ func (cuo *ConnectorUpdateOne) ClearFinOpsCustomPricing() *ConnectorUpdateOne {
 	return cuo
 }
 
+// SetCategory sets the "category" field.
+func (cuo *ConnectorUpdateOne) SetCategory(s string) *ConnectorUpdateOne {
+	cuo.mutation.SetCategory(s)
+	return cuo
+}
+
 // AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
 func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddResourceIDs(ids...)
@@ -832,6 +852,11 @@ func (cuo *ConnectorUpdateOne) check() error {
 			return &ValidationError{Name: "configVersion", err: fmt.Errorf(`model: validator failed for field "Connector.configVersion": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.Category(); ok {
+		if err := connector.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -905,6 +930,9 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if cuo.mutation.FinOpsCustomPricingCleared() {
 		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
+	}
+	if value, ok := cuo.mutation.Category(); ok {
+		_spec.SetField(connector.FieldCategory, field.TypeString, value)
 	}
 	if cuo.mutation.ResourcesCleared() {
 		edge := &sqlgraph.EdgeSpec{

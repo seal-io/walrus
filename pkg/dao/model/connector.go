@@ -47,6 +47,8 @@ type Connector struct {
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	// Category of the connector.
+	Category string `json:"category,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
 	Edges ConnectorEdges `json:"edges,omitempty"`
@@ -116,7 +118,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 			values[i] = new(oid.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
-		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion:
+		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion, connector.FieldCategory:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -215,6 +217,12 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field finOpsCustomPricing: %w", err)
 				}
 			}
+		case connector.FieldCategory:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field category", values[i])
+			} else if value.Valid {
+				c.Category = value.String
+			}
 		}
 	}
 	return nil
@@ -298,6 +306,9 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("finOpsCustomPricing=")
 	builder.WriteString(fmt.Sprintf("%v", c.FinOpsCustomPricing))
+	builder.WriteString(", ")
+	builder.WriteString("category=")
+	builder.WriteString(c.Category)
 	builder.WriteByte(')')
 	return builder.String()
 }

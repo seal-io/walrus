@@ -140,6 +140,12 @@ func (cc *ConnectorCreate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCust
 	return cc
 }
 
+// SetCategory sets the "category" field.
+func (cc *ConnectorCreate) SetCategory(s string) *ConnectorCreate {
+	cc.mutation.SetCategory(s)
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *ConnectorCreate) SetID(o oid.ID) *ConnectorCreate {
 	cc.mutation.SetID(o)
@@ -294,6 +300,14 @@ func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.EnableFinOps(); !ok {
 		return &ValidationError{Name: "enableFinOps", err: errors.New(`model: missing required field "Connector.enableFinOps"`)}
 	}
+	if _, ok := cc.mutation.Category(); !ok {
+		return &ValidationError{Name: "category", err: errors.New(`model: missing required field "Connector.category"`)}
+	}
+	if v, ok := cc.mutation.Category(); ok {
+		if err := connector.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -374,6 +388,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
 		_node.FinOpsCustomPricing = value
+	}
+	if value, ok := cc.mutation.Category(); ok {
+		_spec.SetField(connector.FieldCategory, field.TypeString, value)
+		_node.Category = value
 	}
 	if nodes := cc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -613,6 +631,18 @@ func (u *ConnectorUpsert) ClearFinOpsCustomPricing() *ConnectorUpsert {
 	return u
 }
 
+// SetCategory sets the "category" field.
+func (u *ConnectorUpsert) SetCategory(v string) *ConnectorUpsert {
+	u.Set(connector.FieldCategory, v)
+	return u
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateCategory() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldCategory)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -811,6 +841,20 @@ func (u *ConnectorUpsertOne) UpdateFinOpsCustomPricing() *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) ClearFinOpsCustomPricing() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsCustomPricing()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *ConnectorUpsertOne) SetCategory(v string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateCategory() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateCategory()
 	})
 }
 
@@ -1175,6 +1219,20 @@ func (u *ConnectorUpsertBulk) UpdateFinOpsCustomPricing() *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) ClearFinOpsCustomPricing() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsCustomPricing()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *ConnectorUpsertBulk) SetCategory(v string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateCategory() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateCategory()
 	})
 }
 
