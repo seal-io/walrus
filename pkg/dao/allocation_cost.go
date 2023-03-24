@@ -57,7 +57,8 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 			SetCurrency(r.Currency).
 			SetCpuCost(r.CpuCost).
 			SetGpuCost(r.GpuCost).
-			SetRamCost(r.RamCost)
+			SetRamCost(r.RamCost).
+			SetLoadBalancerCost(r.LoadBalancerCost)
 
 		rrs[i] = c
 	}

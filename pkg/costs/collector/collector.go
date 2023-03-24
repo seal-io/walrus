@@ -79,7 +79,7 @@ func (c *Collector) K8sCosts(startTime, endTime *time.Time, step time.Duration) 
 		return nil, nil, err
 	}
 
-	c.applyIdleCost(cc, ac)
+	c.applyExtraCostInfo(cc, ac)
 	return cc, ac, nil
 }
 
@@ -139,6 +139,7 @@ func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step 
 				RamByteRequest:      v.RAMBytesRequestAverage,
 				PvCost:              ka.PVTotalCost(),
 				PvBytes:             ka.PVBytes(),
+				LoadBalancerCost:    v.LoadBalancerCost,
 				CpuCoreUsageAverage: v.CPUCoreUsageAverage,
 				RamByteUsageAverage: v.RAMBytesUsageAverage,
 			}
@@ -235,19 +236,24 @@ func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*mod
 	}, nil
 }
 
-func (c *Collector) applyIdleCost(ccs []*model.ClusterCost, acs []*model.AllocationCost) {
-	var allocationCosts = make(map[string]float64)
-
+func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.AllocationCost) {
+	var allocationCosts = make(map[string]*model.AllocationCost)
 	for _, v := range acs {
 		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
-		allocationCosts[key] += v.TotalCost
+		if _, ok := allocationCosts[key]; !ok {
+			allocationCosts[key] = &model.AllocationCost{}
+		}
+		allocationCosts[key].LoadBalancerCost += v.LoadBalancerCost
+		allocationCosts[key].TotalCost += v.TotalCost
 	}
 
 	for i, v := range ccs {
 		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
 		if ac, ok := allocationCosts[key]; ok {
-			ccs[i].AllocationCost = ac
-			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ac
+			// can't get load balancer cost from cluster cost, so add it from allocation cost
+			ccs[i].TotalCost += ac.LoadBalancerCost
+			ccs[i].AllocationCost = ac.TotalCost
+			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ccs[i].AllocationCost
 			if idleCost > 0 {
 				ccs[i].IdleCost = idleCost
 			}

@@ -141,6 +141,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 				sql.Expr(model.As(model.Sum(allocationcost.FieldGpuCost), "gpuCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldRamCost), "ramCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldPvCost), "pvCost")(s)),
+				sql.Expr(model.As(model.Sum(allocationcost.FieldLoadBalancerCost), "loadBalancerCost")(s)),
 			).GroupBy(
 				groupBys...,
 			).OrderExpr(
