@@ -47,22 +47,6 @@ func (ClusterCost) Fields() []ent.Field {
 		field.Int("currency").
 			Comment("Cost currency.").
 			Optional(),
-		field.Float("cpuCost").
-			Comment("CPU cost for current cost.").
-			Default(0).
-			Min(0),
-		field.Float("gpuCost").
-			Comment("GPU cost for current cost.").
-			Default(0).
-			Min(0),
-		field.Float("ramCost").
-			Comment("Ram cost for current cost.").
-			Default(0).
-			Min(0),
-		field.Float("storageCost").
-			Comment("Storage cost for current cost.").
-			Default(0).
-			Min(0),
 		field.Float("allocationCost").
 			Comment("Allocation cost for current cost.").
 			Default(0).
