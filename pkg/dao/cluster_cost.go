@@ -28,10 +28,6 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 			SetTotalCost(r.TotalCost).
 			SetCurrency(r.Currency).
 			// optional.
-			SetCpuCost(r.CpuCost).
-			SetGpuCost(r.GpuCost).
-			SetRamCost(r.RamCost).
-			SetStorageCost(r.StorageCost).
 			SetManagementCost(r.ManagementCost).
 			SetIdleCost(r.IdleCost).
 			SetAllocationCost(r.AllocationCost)

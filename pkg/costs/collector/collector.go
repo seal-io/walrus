@@ -230,9 +230,6 @@ func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*mod
 		Minutes:     window,
 		ClusterName: c.clusterName,
 		TotalCost:   clusterCost.TotalCumulative,
-		CpuCost:     clusterCost.CPUCumulative,
-		RamCost:     clusterCost.RAMCumulative,
-		StorageCost: clusterCost.StorageCumulative,
 	}, nil
 }
 
