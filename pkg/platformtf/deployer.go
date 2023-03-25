@@ -28,6 +28,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s"
 	"github.com/seal-io/seal/pkg/platformtf/config"
+	"github.com/seal-io/seal/pkg/platformtf/util"
 	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -355,9 +356,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// prepare terraform config files to be mounted to secret.
-	var (
-		secretOptionMaps map[string]config.CreateOptions
-		mainConfigOpts   = config.CreateOptions{
+	var secretOptionMaps = map[string]config.CreateOptions{
+		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
 				Token:         token,
 				Address:       address,
@@ -376,12 +376,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				Variables: opts.ApplicationRevision.InputVariables,
 				Secrets:   secrets,
 			},
-		}
-		varsConfigOpts = getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables)
-	)
-	secretOptionMaps = map[string]config.CreateOptions{
-		config.FileMain: mainConfigOpts,
-		config.FileVars: varsConfigOpts,
+		},
+		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
 	}
 	var secretMaps = make(map[string][]byte, 0)
 	for k, v := range secretOptionMaps {
@@ -419,7 +415,7 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 		}
 
 		// NB(alex) the secret file name must be config + connector id to match with terraform provider in config convert.
-		secretFileName := config.GetSecretK8sConfigName(c.ID.String())
+		secretFileName := util.GetSecretK8sConfigName(c.ID.String())
 		secretData[secretFileName] = []byte(s)
 	}
 	return secretData, nil

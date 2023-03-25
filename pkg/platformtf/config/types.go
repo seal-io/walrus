@@ -5,34 +5,6 @@ import (
 )
 
 const (
-	// BlockTypeTerraform represents the terraform block.
-	BlockTypeTerraform = "terraform"
-	// BlockTypeBackend represents the backend block inside terraform block.
-	BlockTypeBackend = "backend"
-	// BlockTypeRequiredProviders represents the required_providers block inside terraform block.
-	BlockTypeRequiredProviders = "required_providers"
-
-	// BlockTypeProvider represents the provider block.
-	BlockTypeProvider = "provider"
-	// BlockTypeModule represents the module block.
-	BlockTypeModule = "module"
-	// BlockTypeVariable represents the variable block.
-	BlockTypeVariable = "variable"
-	// BlockTypeOutput represents the output block.
-	BlockTypeOutput = "output"
-	// BlockTypeResource represents the resource block.
-	BlockTypeResource = "resource"
-
-	// BlockTypeK8s represents the kubernetes block.
-	BlockTypeK8s = "kubernetes"
-)
-
-const (
-	ProviderK8s  = "kubernetes"
-	ProviderHelm = "helm"
-)
-
-const (
 	FileMain = "main.tf"
 	FileVars = "terraform.tfvars"
 )
@@ -92,8 +64,3 @@ type (
 		Variables map[string]interface{}
 	}
 )
-
-type ProviderConvertOptions struct {
-	SecretMountPath string
-	ConnSeparator   string
-}
