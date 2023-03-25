@@ -1,6 +1,7 @@
 package convertor
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -13,6 +14,7 @@ import (
 type K8sConvertorOptions struct {
 	ConfigPath    string
 	ConnSeparator string
+	GetSecretName func(string) string
 }
 
 // K8sConvertor mutate the types.ConnectorTypeK8s connector to ProviderK8s provider block.
@@ -37,16 +39,16 @@ func (m K8sConvertor) ToBlocks(connectors model.Connectors, opts Options) (block
 func (m K8sConvertor) ToBlock(connector *model.Connector, opts Options) (*block.Block, error) {
 	k8sOpts, ok := opts.(K8sConvertorOptions)
 	if !ok {
-		return nil, fmt.Errorf("invalid k8s options")
+		return nil, errors.New("invalid k8s options")
 	}
 
 	if connector.Type != types.ConnectorTypeK8s {
-		return nil, fmt.Errorf("connector type is not k8s")
+		return nil, fmt.Errorf("connector type is not k8s, connector: %s", connector.ID)
 	}
 
 	var (
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
-		configPath = k8sOpts.ConfigPath + "/" + util.GetSecretK8sConfigName(connector.ID.String())
+		configPath = k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
 		alias      = k8sOpts.ConnSeparator + connector.ID.String()
 		attributes = map[string]interface{}{
 			"config_path": configPath,

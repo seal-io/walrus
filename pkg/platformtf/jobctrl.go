@@ -201,7 +201,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 60
-		name                          = getJobName(opts.ApplicationRevisionID, opts.Type)
+		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ApplicationRevisionID)
 		configName                    = _secretPrefix + opts.ApplicationRevisionID
 	)
 	podTemplate := getPodTemplate(opts.ApplicationRevisionID, configName, opts)
@@ -299,14 +299,15 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 	}
 }
 
-func getJobName(applicationRevisionID string, jobType string) string {
+// getK8sJobName returns the kubernetes job name for the given application revision id.
+func getK8sJobName(format, jobType, applicationRevisionID string) string {
 	return fmt.Sprintf(_jobNameFormat, jobType, applicationRevisionID)
 }
 
 // StreamJobLogs streams the logs of a job.
 func StreamJobLogs(ctx context.Context, cli *coreclient.CoreV1Client, revisionID types.ID, out io.Writer) error {
 	var (
-		jobName       = getJobName(revisionID.String(), _jobTypeApply)
+		jobName       = getK8sJobName(_jobNameFormat, _jobTypeApply, revisionID.String())
 		labelSelector = "job-name=" + jobName
 	)
 

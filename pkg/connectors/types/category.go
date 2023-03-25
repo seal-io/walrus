@@ -1,4 +1,4 @@
-package connectors
+package types
 
 import (
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -13,4 +13,8 @@ func IsVCS(conn *model.Connector) bool {
 // IsOperator checks if the given connector is a known operator.
 func IsOperator(conn *model.Connector) bool {
 	return conn.Type == types.ConnectorCategoryKubernetes
+}
+
+func IsCustom(conn *model.Connector) bool {
+	return conn.Type == types.ConnectorCategoryCustom
 }

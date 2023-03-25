@@ -415,7 +415,7 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 		}
 
 		// NB(alex) the secret file name must be config + connector id to match with terraform provider in config convert.
-		secretFileName := util.GetSecretK8sConfigName(c.ID.String())
+		secretFileName := util.GetK8sSecretName(c.ID.String())
 		secretData[secretFileName] = []byte(s)
 	}
 	return secretData, nil

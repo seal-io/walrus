@@ -13,7 +13,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/modulecompletion/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/connectors/types"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/modules"
 	"github.com/seal-io/seal/pkg/settings"
@@ -168,7 +168,7 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 		return nil, err
 	}
 
-	if !connectors.IsVCS(conn) {
+	if !types.IsVCS(conn) {
 		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported version control driver", conn.Type)
 	}
 
