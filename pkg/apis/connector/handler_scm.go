@@ -8,7 +8,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/connectors/types"
 	"github.com/seal-io/seal/pkg/vcs"
 )
 
@@ -20,7 +20,7 @@ func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositories
 		return nil, err
 	}
 
-	if !connectors.IsVCS(conn) {
+	if !types.IsVCS(conn) {
 		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported version control driver", conn.Type)
 	}
 
@@ -51,7 +51,7 @@ func (h Handler) RouteGetRepositoryBranches(ctx *gin.Context, req view.GetBranch
 		return nil, err
 	}
 
-	if !connectors.IsVCS(conn) {
+	if !types.IsVCS(conn) {
 		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported SCM driver", conn.Type)
 	}
 
