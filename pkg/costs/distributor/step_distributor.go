@@ -12,7 +12,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/sqlx"
 )
@@ -32,23 +31,23 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 		return nil, 0, err
 	}
 
-	workloadCosts, err := r.totalAllocationCost(ctx, startTime, endTime, cond.Step)
+	totalAllocationCosts := r.totalAllocationCosts(allocationCosts)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	for i, item := range allocationCosts {
 		var (
-			bucket   = item.StartTime.Format(time.RFC3339)
-			shares   = sharedCosts[bucket]
-			workload = workloadCosts[bucket]
+			bucket              = item.StartTime.Format(time.RFC3339)
+			shares              = sharedCosts[bucket]
+			totalAllocationCost = totalAllocationCosts[bucket]
 		)
 
 		if item.ItemName == "" {
 			allocationCosts[i].ItemName = types.UnallocatedLabel
 		}
 
-		applySharedCost(totalCount, &allocationCosts[i].Cost, shares, workload.TotalCost)
+		applySharedCost(totalCount, &allocationCosts[i].Cost, shares, totalAllocationCost)
 	}
 
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
@@ -337,41 +336,13 @@ func (r *stepDistributor) sharedManagementCost(ctx context.Context, startTime, e
 	return bucket, nil
 }
 
-func (r *stepDistributor) totalAllocationCost(ctx context.Context, startTime, endTime time.Time, step types.Step) (map[string]view.Resource, error) {
-	var (
-		costs  []view.Resource
-		timePs = []predicate.AllocationCost{
-			allocationcost.StartTimeGTE(startTime),
-			allocationcost.EndTimeLTE(endTime),
-		}
-	)
-
-	_, offset := startTime.Zone()
-	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(step), offset)
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.client.AllocationCosts().Query().
-		Where(timePs...).
-		Modify(func(s *sql.Selector) {
-			s.SelectExpr(
-				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "totalCost")(s)),
-			).GroupBy(dateTrunc)
-		}).
-		Scan(ctx, &costs)
-
-	if err != nil {
-		return nil, fmt.Errorf("error query total allocation cost: %w", err)
-	}
-
-	bucket := make(map[string]view.Resource)
+func (r *stepDistributor) totalAllocationCosts(costs []view.Resource) map[string]float64 {
+	bucket := make(map[string]float64)
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
-		bucket[key] = v
+		bucket[key] += v.TotalCost
 	}
-	return bucket, nil
+	return bucket
 }
 
 func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []view.Resource, groupBy types.GroupByField) error {
@@ -404,10 +375,10 @@ func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []v
 	return nil
 }
 
-func applySharedCost(count int, allocationCost *view.Cost, shares []*SharedCost, workloadCost float64) {
+func applySharedCost(count int, allocationCost *view.Cost, shares []*SharedCost, totalAllocationCost float64) {
 	var coefficients float64
-	if allocationCost.TotalCost != 0 && workloadCost != 0 {
-		coefficients = allocationCost.TotalCost / workloadCost
+	if allocationCost.TotalCost != 0 && totalAllocationCost != 0 {
+		coefficients = allocationCost.TotalCost / totalAllocationCost
 	}
 	for _, v := range shares {
 		var shared float64

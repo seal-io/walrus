@@ -29,7 +29,7 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 		return nil, 0, err
 	}
 
-	workloadCosts, err := r.totalAllocationCost(ctx, startTime, endTime)
+	totalAllocationCosts := r.totalAllocationCosts(allocationCosts)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -39,7 +39,7 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 		if item.ItemName == "" {
 			item.ItemName = types.UnallocatedLabel
 		}
-		applySharedCost(totalCount, &item.Cost, sharedCosts, workloadCosts)
+		applySharedCost(totalCount, &item.Cost, sharedCosts, totalAllocationCosts)
 	}
 
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
@@ -284,26 +284,10 @@ func (r *accumulateDistributor) sharedManagementCost(ctx context.Context, startT
 
 }
 
-func (r *accumulateDistributor) totalAllocationCost(ctx context.Context, startTime, endTime time.Time) (float64, error) {
-	var ps = []*sql.Predicate{
-		sql.GTE(allocationcost.FieldStartTime, startTime),
-		sql.LTE(allocationcost.FieldEndTime, endTime),
+func (r *accumulateDistributor) totalAllocationCosts(cost []view.Resource) float64 {
+	var total float64
+	for _, v := range cost {
+		total += v.TotalCost
 	}
-	acCost, err := r.client.AllocationCosts().Query().
-		Modify(func(s *sql.Selector) {
-			s.Where(
-				sql.And(ps...),
-			).SelectExpr(
-				sql.ExprFunc(func(b *sql.Builder) {
-					b.WriteString(fmt.Sprintf(`COALESCE(SUM(%s),0)`, allocationcost.FieldTotalCost))
-				}),
-			)
-		}).
-		Float64(ctx)
-
-	if err != nil {
-		return 0, fmt.Errorf("error query total allocation cost: %w", err)
-	}
-
-	return acCost, nil
+	return total
 }
