@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 
+	"github.com/seal-io/seal/pkg/platformtf/block"
+	"github.com/seal-io/seal/pkg/platformtf/convertor"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -40,7 +42,7 @@ type Config struct {
 	  	region = "us-east-1"
 	  }
 	*/
-	Blocks Blocks
+	Blocks block.Blocks
 }
 
 const (
@@ -92,9 +94,9 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	for _, block := range c.Blocks {
-		if block.Type == "" {
-			return fmt.Errorf("invalid block type: %s", block.Type)
+	for _, b := range c.Blocks {
+		if b.Type == "" {
+			return fmt.Errorf("invalid b type: %s", b.Type)
 		}
 	}
 
@@ -102,14 +104,14 @@ func (c *Config) validate() error {
 }
 
 // AddBlocks adds a block to the configuration.
-func (c *Config) AddBlocks(blocks Blocks) error {
+func (c *Config) AddBlocks(blocks block.Blocks) error {
 	var mu sync.Mutex
 	mu.Lock()
 	defer mu.Unlock()
 
 	c.Blocks = append(c.Blocks, blocks...)
-	for _, block := range blocks {
-		tBlock, err := block.ToHCLBlock()
+	for _, b := range blocks {
+		tBlock, err := b.ToHCLBlock()
 		if err != nil {
 			return err
 		}
@@ -140,11 +142,11 @@ func (c *Config) initAttributes() error {
 		return nil
 	}
 
-	attributes, err := convertToCtyWithJson(c.Attributes)
+	attributes, err := block.ConvertToCtyWithJson(c.Attributes)
 	if err != nil {
 		return err
 	}
-	attrKeys := sortValueKeys(attributes)
+	attrKeys := block.SortValueKeys(attributes)
 	if len(attrKeys) == 0 {
 		return nil
 	}
@@ -181,16 +183,16 @@ func (c *Config) Bytes() ([]byte, error) {
 }
 
 // loadBlocks loads the blocks of the configuration.
-func loadBlocks(opts CreateOptions) (blocks Blocks, err error) {
+func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 	var (
-		tfBlocks       Blocks
-		providerBlocks Blocks
-		moduleBlocks   Blocks
-		variableBlocks Blocks
+		tfBlocks       block.Blocks
+		providerBlocks block.Blocks
+		moduleBlocks   block.Blocks
+		variableBlocks block.Blocks
 	)
 	// load terraform block
 	if opts.TerraformOptions != nil {
-		tfBlocks = Blocks{loadTerraformBlock(opts.TerraformOptions)}
+		tfBlocks = block.Blocks{loadTerraformBlock(opts.TerraformOptions)}
 	}
 	// other blocks like provider, module, etc.
 	// load provider blocks
@@ -209,20 +211,20 @@ func loadBlocks(opts CreateOptions) (blocks Blocks, err error) {
 		variableBlocks = loadVariableBlocks(opts.VariableOptions)
 	}
 
-	blocks = make(Blocks, 0, CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks))
-	blocks = AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks)
+	blocks = make(block.Blocks, 0, block.CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks))
+	blocks = block.AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks)
 
 	return
 }
 
 // loadTerraformBlock loads the terraform block.
-func loadTerraformBlock(opts *TerraformOptions) *Block {
+func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 	var (
-		terraformBlock = &Block{
-			Type: BlockTypeTerraform,
+		terraformBlock = &block.Block{
+			Type: block.TypeTerraform,
 		}
-		backendBlock = &Block{
-			Type:   BlockTypeBackend,
+		backendBlock = &block.Block{
+			Type:   block.TypeBackend,
 			Labels: []string{"http"},
 			Attributes: map[string]interface{}{
 				"address": opts.Address,
@@ -243,17 +245,18 @@ func loadTerraformBlock(opts *TerraformOptions) *Block {
 }
 
 // loadProviderBlocks returns config providers to get terraform provider config block.
-func loadProviderBlocks(opts *ProviderOptions) (Blocks, error) {
-	return ToProviderBlocks(opts.RequiredProviders, opts.Connectors, ProviderConvertOptions{
+func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
+	return convertor.ToProvidersBlocks(opts.RequiredProviders, opts.Connectors, convertor.ConvertOptions{
 		SecretMountPath: opts.SecretMonthPath,
 		ConnSeparator:   opts.ConnectorSeparator,
 	})
 }
 
 // loadModuleBlocks returns config modules to get terraform module config block.
-func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
+func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) block.Blocks {
 	var (
-		blocks       Blocks
+		logger       = log.WithName("platformtf").WithName("config")
+		blocks       block.Blocks
 		providersMap = make(map[string]interface{})
 	)
 
@@ -271,31 +274,31 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers Blocks) Blocks {
 		providersMap[name] = fmt.Sprintf("{{%s.%s}}", name, alias)
 	}
 	for _, mc := range moduleConfigs {
-		block, err := ToModuleBlock(mc)
+		mb, err := ToModuleBlock(mc)
 		if err != nil {
-			log.WithName("platformtf").WithName("config").Warnf("get module block failed, %w", mc)
+			logger.Warnf("get module mb failed, %w", mc)
 			continue
 		}
 		// inject providers alias to the module
-		block.Attributes["providers"] = providersMap
-		blocks = append(blocks, block)
+		mb.Attributes["providers"] = providersMap
+		blocks = append(blocks, mb)
 	}
 
 	return blocks
 }
 
 // loadVariableBlocks returns config variables to get terraform variable config block.
-func loadVariableBlocks(opts *VariableOptions) Blocks {
+func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 	var (
 		// TODO: support other types for secrets and variables
 		variableType = "{{string}}"
-		blocks       Blocks
+		blocks       block.Blocks
 	)
 
 	// secret variables.
 	for _, s := range opts.Secrets {
-		blocks = append(blocks, &Block{
-			Type:   BlockTypeVariable,
+		blocks = append(blocks, &block.Block{
+			Type:   block.TypeVariable,
 			Labels: []string{s.Name},
 			Attributes: map[string]interface{}{
 				"type":      variableType,
@@ -311,8 +314,8 @@ func loadVariableBlocks(opts *VariableOptions) Blocks {
 			continue
 		}
 
-		blocks = append(blocks, &Block{
-			Type:   BlockTypeVariable,
+		blocks = append(blocks, &block.Block{
+			Type:   block.TypeVariable,
 			Labels: []string{k},
 			Attributes: map[string]interface{}{
 				"type": variableType,
@@ -321,6 +324,27 @@ func loadVariableBlocks(opts *VariableOptions) Blocks {
 	}
 
 	return blocks
+}
+
+// ToModuleBlock returns module block for the given module and variables.
+func ToModuleBlock(mc *ModuleConfig) (*block.Block, error) {
+	var b block.Block
+	if mc == nil || mc.ModuleVersion == nil {
+		return nil, fmt.Errorf("invalid module config: blank")
+	}
+
+	if mc.Attributes == nil {
+		mc.Attributes = make(map[string]interface{}, 0)
+	}
+
+	mc.Attributes["source"] = mc.ModuleVersion.Source
+	b = block.Block{
+		Type:       block.TypeModule,
+		Labels:     []string{mc.Name},
+		Attributes: mc.Attributes,
+	}
+
+	return &b, nil
 }
 
 func CreateConfigToBytes(opts CreateOptions) ([]byte, error) {

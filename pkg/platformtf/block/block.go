@@ -1,4 +1,4 @@
-package config
+package block
 
 import (
 	"encoding/json"
@@ -8,6 +8,29 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+)
+
+const (
+	// TypeTerraform represents the terraform block.
+	TypeTerraform = "terraform"
+	// TypeBackend represents the backend block inside terraform block.
+	TypeBackend = "backend"
+	// TypeRequiredProviders represents the required_providers block inside terraform block.
+	TypeRequiredProviders = "required_providers"
+
+	// TypeProvider represents the provider block.
+	TypeProvider = "provider"
+	// TypeModule represents the module block.
+	TypeModule = "module"
+	// TypeVariable represents the variable block.
+	TypeVariable = "variable"
+	// TypeOutput represents the output block.
+	TypeOutput = "output"
+	// TypeResource represents the resource block.
+	TypeResource = "resource"
+
+	// TypeK8s represents the kubernetes block.
+	TypeK8s = "kubernetes"
 )
 
 type (
@@ -111,11 +134,11 @@ func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
 			block.Body().AppendNewline()
 		}
 	}
-	attributes, err := convertToCtyWithJson(b.Attributes)
+	attributes, err := ConvertToCtyWithJson(b.Attributes)
 	if err != nil {
 		return nil, err
 	}
-	attrKeys := sortValueKeys(attributes)
+	attrKeys := SortValueKeys(attributes)
 	if len(attrKeys) == 0 {
 		return block, nil
 	}
@@ -128,8 +151,30 @@ func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
 	return b.hclBlock, nil
 }
 
-// sortValueKeys will return a sorted list of the keys the val has.
-func sortValueKeys(val cty.Value) []string {
+func (bs *Blocks) Remove(block *Block) {
+	for i, v := range *bs {
+		if v == block {
+			*bs = append((*bs)[:i], (*bs)[i+1:]...)
+			return
+		}
+	}
+}
+
+func (bs *Blocks) GetProviderNames() ([]string, error) {
+	names := make([]string, 0)
+	for _, b := range *bs {
+		if b.Type == TypeProvider {
+			if len(b.Labels) == 0 {
+				return nil, fmt.Errorf("provider block should have a label")
+			}
+			names = append(names, b.Labels[0])
+		}
+	}
+	return names, nil
+}
+
+// SortValueKeys will return a sorted list of the keys the val has.
+func SortValueKeys(val cty.Value) []string {
 	if !val.CanIterateElements() {
 		return nil
 	}
@@ -143,9 +188,9 @@ func sortValueKeys(val cty.Value) []string {
 	return keys
 }
 
-// convertToCtyWithJson Converts arbitrary go types that are json serializable to a cty Value
+// ConvertToCtyWithJson Converts arbitrary go types that are json serializable to a cty Value
 // by using json as an intermediary representation.
-func convertToCtyWithJson(val interface{}) (cty.Value, error) {
+func ConvertToCtyWithJson(val interface{}) (cty.Value, error) {
 	jsonBytes, err := json.Marshal(val)
 	if err != nil {
 		return cty.NilVal, fmt.Errorf("failed to marshal value to json: %w", err)
@@ -172,13 +217,13 @@ func removeRing(root *Block, stack []*Block) {
 	}
 }
 
-// AppendBlocks will append the blocks to the tagert.
-func AppendBlocks(tagert Blocks, appendBlocks ...Blocks) Blocks {
+// AppendBlocks will append the blocks to the target.
+func AppendBlocks(target Blocks, appendBlocks ...Blocks) Blocks {
 	for _, b := range appendBlocks {
-		tagert = append(tagert, b...)
+		target = append(target, b...)
 	}
 
-	return tagert
+	return target
 }
 
 // CountLen returns the length of the blocks.
