@@ -5,6 +5,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationinstance/view"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
@@ -14,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/utils/log"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
@@ -55,14 +57,12 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	}
 
 	// create instance, mark status to deploying.
-	entity, err = h.modelClient.ApplicationInstances().Create().
-		SetApplicationID(entity.ApplicationID).
-		SetEnvironmentID(entity.EnvironmentID).
-		SetName(entity.Name).
-		SetVariables(entity.Variables).
-		SetStatus(status.ApplicationInstanceStatusDeploying).
-		SetStatusMessage("").
-		Save(ctx)
+	entity.Status = status.ApplicationInstanceStatusDeploying
+	creates, err := dao.ApplicationInstanceCreates(h.modelClient, entity)
+	if err != nil {
+		return nil, err
+	}
+	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +73,16 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	}
 	err = dp.Apply(ctx, entity, applyOpts)
 	if err != nil {
+		// NB(thxCode): a better approach is to use transaction,
+		// however, building the application deployment process is a time-consuming task,
+		// to prevent long-time transaction, we use a deletion to achieve this.
+		// usually, the probability of this delete operation failing is very low.
+		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
+			Exec(ctx)
+		if derr != nil {
+			log.WithName("application-instances").
+				Errorf("error deleting: %v", derr)
+		}
 		return nil, err
 	}
 

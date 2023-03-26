@@ -12,6 +12,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
@@ -262,67 +263,57 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 // if not running, then apply the latest revision.
 // if running, then wait for the latest revision to be applied.
 func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.ApplicationInstance) (*model.ApplicationRevision, error) {
+	var entity = &model.ApplicationRevision{
+		DeployerType:   DeployerType,
+		InstanceID:     ai.ID,
+		EnvironmentID:  ai.EnvironmentID,
+		InputVariables: ai.Variables,
+		Status:         status.ApplicationRevisionStatusRunning,
+	}
+
 	// output of the previous revision should be inherited to the new one
 	// when creating a new revision.
-	var prevOutput string
-	applicationRevision, err := d.modelClient.ApplicationRevisions().Query().
+	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Where(applicationrevision.InstanceID(ai.ID)).
+		Where(applicationrevision.Or(
+			applicationrevision.InstanceID(ai.ID),
+			applicationrevision.DeployerType(DeployerType))).
+		Select(applicationrevision.FieldOutput, applicationrevision.FieldStatus).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
-	ok, err := d.checkRevisionStatus(applicationRevision)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, errors.New("application deployment is running")
-	}
-	if applicationRevision != nil {
-		prevOutput = applicationRevision.Output
+	if prevEntity != nil {
+		if prevEntity.Status == status.ApplicationRevisionStatusRunning {
+			return nil, errors.New("application deployment is running")
+		}
+		// inherit the output of previous revision.
+		entity.Output = prevEntity.Output
 	}
 
-	// create new revision with modules.
-	var modules []types.ApplicationModule
+	// get modules for new revision.
 	amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
 		Where(applicationmodulerelationship.ApplicationID(ai.ApplicationID)).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for _, amr := range amrs {
-		modules = append(modules, types.ApplicationModule{
-			ModuleID:   amr.ModuleID,
-			Version:    amr.Version,
-			Name:       amr.Name,
-			Attributes: amr.Attributes,
-		})
+	entity.Modules = make([]types.ApplicationModule, len(amrs))
+	for i := range amrs {
+		entity.Modules[i] = types.ApplicationModule{
+			ModuleID:   amrs[i].ModuleID,
+			Version:    amrs[i].Version,
+			Name:       amrs[i].Name,
+			Attributes: amrs[i].Attributes,
+		}
 	}
 
-	newRevision, err := d.modelClient.ApplicationRevisions().Create().
-		SetInstanceID(ai.ID).
-		SetEnvironmentID(ai.EnvironmentID).
-		SetModules(modules).
-		SetInputVariables(ai.Variables).
-		SetInputPlan("").
-		SetOutput(prevOutput).
-		SetStatus(status.ApplicationRevisionStatusRunning).
-		SetDeployerType(DeployerType).
-		Save(ctx)
+	// create revision, mark status to running.
+	creates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
-
-	return newRevision, nil
-}
-
-// checkRevisionStatus check the revision status.
-func (d Deployer) checkRevisionStatus(applicationRevision *model.ApplicationRevision) (bool, error) {
-	if applicationRevision != nil && applicationRevision.Status == status.ApplicationRevisionStatusRunning {
-		return false, fmt.Errorf("the deployment is running, please wait for it to be applied")
-	}
-	return true, nil
+	return creates[0].Save(ctx)
 }
 
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
