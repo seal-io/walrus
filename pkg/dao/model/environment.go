@@ -21,17 +21,17 @@ import (
 type Environment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Name of the resource.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges EnvironmentEdges `json:"edges,omitempty"`
@@ -40,11 +40,11 @@ type Environment struct {
 // EnvironmentEdges holds the relations/edges for other nodes in the graph.
 type EnvironmentEdges struct {
 	// Connectors holds the value of the connectors edge.
-	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty"`
+	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty" sql:"connectors"`
 	// Application instances that belong to the environment.
-	Instances []*ApplicationInstance `json:"instances,omitempty"`
+	Instances []*ApplicationInstance `json:"instances,omitempty" sql:"instances"`
 	// Application revisions that belong to the environment.
-	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
+	Revisions []*ApplicationRevision `json:"revisions,omitempty" sql:"revisions"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool

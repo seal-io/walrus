@@ -308,7 +308,7 @@ func (ccq *ClusterCostQuery) WithConnector(opts ...func(*ConnectorQuery)) *Clust
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime,omitempty"`
+//		StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -331,7 +331,7 @@ func (ccq *ClusterCostQuery) GroupBy(field string, fields ...string) *ClusterCos
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime,omitempty"`
+//		StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 //	}
 //
 //	client.ClusterCost.Query().

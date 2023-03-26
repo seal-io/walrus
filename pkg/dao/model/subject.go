@@ -22,29 +22,29 @@ import (
 type Subject struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The kind of the subject.
-	Kind string `json:"kind,omitempty"`
+	Kind string `json:"kind,omitempty" sql:"kind"`
 	// The group of the subject.
-	Group string `json:"group,omitempty"`
+	Group string `json:"group,omitempty" sql:"group"`
 	// The name of the subject.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// The detail of the subject.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// Indicate whether the user mount to the group.
-	MountTo *bool `json:"mountTo,omitempty"`
+	MountTo *bool `json:"mountTo,omitempty" sql:"mountTo"`
 	// Indicate whether the user login to the group.
-	LoginTo *bool `json:"loginTo,omitempty"`
+	LoginTo *bool `json:"loginTo,omitempty" sql:"loginTo"`
 	// The role list of the subject.
-	Roles types.SubjectRoles `json:"roles,omitempty"`
+	Roles types.SubjectRoles `json:"roles,omitempty" sql:"roles"`
 	// The path of the subject from the root group to itself.
-	Paths []string `json:"paths,omitempty"`
+	Paths []string `json:"paths,omitempty" sql:"paths"`
 	// Indicate whether the subject is builtin.
-	Builtin bool `json:"builtin,omitempty"`
+	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

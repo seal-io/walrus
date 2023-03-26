@@ -21,17 +21,17 @@ import (
 type Project struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Name of the resource.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges ProjectEdges `json:"edges,omitempty"`
@@ -40,9 +40,9 @@ type Project struct {
 // ProjectEdges holds the relations/edges for other nodes in the graph.
 type ProjectEdges struct {
 	// Applications that belong to the project.
-	Applications []*Application `json:"applications,omitempty"`
+	Applications []*Application `json:"applications,omitempty" sql:"applications"`
 	// Secrets that belong to the project.
-	Secrets []*Secret `json:"secrets,omitempty"`
+	Secrets []*Secret `json:"secrets,omitempty" sql:"secrets"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

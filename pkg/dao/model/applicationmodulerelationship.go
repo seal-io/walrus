@@ -23,19 +23,19 @@ import (
 type ApplicationModuleRelationship struct {
 	config `json:"-"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the application to which the relationship connects.
 	ApplicationID oid.ID `json:"applicationID"`
 	// ID of the module to which the relationship connects.
 	ModuleID string `json:"moduleID"`
 	// Version of the module to which the relationship connects.
-	Version string `json:"version,omitempty"`
+	Version string `json:"version,omitempty" sql:"version"`
 	// Name of the module customized to the application.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Attributes to configure the module.
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Attributes map[string]interface{} `json:"attributes,omitempty" sql:"attributes"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationModuleRelationshipQuery when eager-loading is set.
 	Edges ApplicationModuleRelationshipEdges `json:"edges,omitempty"`
@@ -44,9 +44,9 @@ type ApplicationModuleRelationship struct {
 // ApplicationModuleRelationshipEdges holds the relations/edges for other nodes in the graph.
 type ApplicationModuleRelationshipEdges struct {
 	// Applications that connect to the relationship.
-	Application *Application `json:"application,omitempty"`
+	Application *Application `json:"application,omitempty" sql:"application"`
 	// Modules that connect to the relationship.
-	Module *Module `json:"module,omitempty"`
+	Module *Module `json:"module,omitempty" sql:"module"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

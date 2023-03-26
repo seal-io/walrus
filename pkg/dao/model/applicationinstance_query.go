@@ -426,7 +426,7 @@ func (aiq *ApplicationInstanceQuery) WithResources(opts ...func(*ApplicationReso
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -449,7 +449,7 @@ func (aiq *ApplicationInstanceQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //	}
 //
 //	client.ApplicationInstance.Query().

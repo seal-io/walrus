@@ -347,7 +347,7 @@ func (mq *ModuleQuery) WithVersions(opts ...func(*ModuleVersionQuery)) *ModuleQu
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -370,7 +370,7 @@ func (mq *ModuleQuery) GroupBy(field string, fields ...string) *ModuleGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //	}
 //
 //	client.Module.Query().

@@ -21,23 +21,23 @@ type Module struct {
 	config `json:"-"`
 	// ID of the ent.
 	// It is also the name of the module.
-	ID string `json:"id,omitempty"`
+	ID string `json:"id,omitempty" sql:"id"`
 	// Status of the resource.
-	Status string `json:"status,omitempty"`
+	Status string `json:"status,omitempty" sql:"status"`
 	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Description of the module.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// A URL to an SVG or PNG image to be used as an icon.
-	Icon string `json:"icon,omitempty"`
+	Icon string `json:"icon,omitempty" sql:"icon"`
 	// Labels of the module.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Source of the module.
-	Source string `json:"source,omitempty"`
+	Source string `json:"source,omitempty" sql:"source"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleQuery when eager-loading is set.
 	Edges ModuleEdges `json:"edges,omitempty"`
@@ -46,9 +46,9 @@ type Module struct {
 // ModuleEdges holds the relations/edges for other nodes in the graph.
 type ModuleEdges struct {
 	// Applications holds the value of the applications edge.
-	Applications []*ApplicationModuleRelationship `json:"applications,omitempty"`
+	Applications []*ApplicationModuleRelationship `json:"applications,omitempty" sql:"applications"`
 	// versions of the module.
-	Versions []*ModuleVersion `json:"versions,omitempty"`
+	Versions []*ModuleVersion `json:"versions,omitempty" sql:"versions"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

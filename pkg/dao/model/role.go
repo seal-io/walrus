@@ -22,23 +22,23 @@ import (
 type Role struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The domain of the role.
-	Domain string `json:"domain,omitempty"`
+	Domain string `json:"domain,omitempty" sql:"domain"`
 	// The name of the role.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// The detail of the role.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// The policy list of the role.
-	Policies types.RolePolicies `json:"policies,omitempty"`
+	Policies types.RolePolicies `json:"policies,omitempty" sql:"policies"`
 	// Indicate whether the subject is builtin, decide when creating.
-	Builtin bool `json:"builtin,omitempty"`
+	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Indicate whether the subject is session level, decide when creating.
-	Session bool `json:"session,omitempty"`
+	Session bool `json:"session,omitempty" sql:"session"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

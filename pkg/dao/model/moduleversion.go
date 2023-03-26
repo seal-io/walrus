@@ -23,19 +23,19 @@ import (
 type ModuleVersion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the module.
-	ModuleID string `json:"moduleID,omitempty"`
+	ModuleID string `json:"moduleID,omitempty" sql:"moduleID"`
 	// Module version.
-	Version string `json:"version,omitempty"`
+	Version string `json:"version,omitempty" sql:"version"`
 	// Module version source.
-	Source string `json:"source,omitempty"`
+	Source string `json:"source,omitempty" sql:"source"`
 	// Schema of the module.
-	Schema *types.ModuleSchema `json:"schema,omitempty"`
+	Schema *types.ModuleSchema `json:"schema,omitempty" sql:"schema"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleVersionQuery when eager-loading is set.
 	Edges ModuleVersionEdges `json:"edges,omitempty"`
@@ -44,7 +44,7 @@ type ModuleVersion struct {
 // ModuleVersionEdges holds the relations/edges for other nodes in the graph.
 type ModuleVersionEdges struct {
 	// Module holds the value of the module edge.
-	Module *Module `json:"module,omitempty"`
+	Module *Module `json:"module,omitempty" sql:"module"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool

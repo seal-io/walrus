@@ -269,7 +269,7 @@ func (sq *SettingQuery) Clone() *SettingQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -292,7 +292,7 @@ func (sq *SettingQuery) GroupBy(field string, fields ...string) *SettingGroupBy 
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.Setting.Query().

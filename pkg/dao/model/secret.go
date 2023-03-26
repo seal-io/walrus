@@ -22,17 +22,17 @@ import (
 type Secret struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to which the secret belongs, empty means sharing for all projects.
-	ProjectID oid.ID `json:"projectID,omitempty"`
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// The name of secret.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// The value of secret, store in string.
-	Value crypto.String `json:"-"`
+	Value crypto.String `json:"-" sql:"value"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SecretQuery when eager-loading is set.
 	Edges SecretEdges `json:"edges,omitempty"`
@@ -41,7 +41,7 @@ type Secret struct {
 // SecretEdges holds the relations/edges for other nodes in the graph.
 type SecretEdges struct {
 	// Project to which this secret belongs.
-	Project *Project `json:"project,omitempty"`
+	Project *Project `json:"project,omitempty" sql:"project"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool

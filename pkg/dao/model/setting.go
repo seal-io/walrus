@@ -20,21 +20,21 @@ import (
 type Setting struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The name of system setting.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// The value of system setting, store in string.
-	Value string `json:"value,omitempty"`
+	Value string `json:"value,omitempty" sql:"value"`
 	// Indicate the system setting should be hidden or not, default is visible.
-	Hidden *bool `json:"hidden,omitempty"`
+	Hidden *bool `json:"hidden,omitempty" sql:"hidden"`
 	// Indicate the system setting should be edited or not, default is readonly.
-	Editable *bool `json:"editable,omitempty"`
+	Editable *bool `json:"editable,omitempty" sql:"editable"`
 	// Indicate the system setting should be exposed or not, default is exposed.
-	Private *bool `json:"private,omitempty"`
+	Private *bool `json:"private,omitempty" sql:"private"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

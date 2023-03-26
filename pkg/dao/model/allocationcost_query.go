@@ -308,7 +308,7 @@ func (acq *AllocationCostQuery) WithConnector(opts ...func(*ConnectorQuery)) *Al
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime,omitempty"`
+//		StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -331,7 +331,7 @@ func (acq *AllocationCostQuery) GroupBy(field string, fields ...string) *Allocat
 // Example:
 //
 //	var v []struct {
-//		StartTime time.Time `json:"startTime,omitempty"`
+//		StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 //	}
 //
 //	client.AllocationCost.Query().

@@ -23,67 +23,67 @@ import (
 type AllocationCost struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int `json:"id,omitempty" sql:"id"`
 	// Usage start time for current cost.
-	StartTime time.Time `json:"startTime,omitempty"`
+	StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 	// Usage end time for current cost.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitempty" sql:"endTime"`
 	// Usage minutes from start time to end time.
-	Minutes float64 `json:"minutes,omitempty"`
+	Minutes float64 `json:"minutes,omitempty" sql:"minutes"`
 	// ID of the connector.
-	ConnectorID oid.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// Resource name for current cost, could be __unmounted__.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// String generated from resource properties, used to identify this cost.
-	Fingerprint string `json:"fingerprint,omitempty"`
+	Fingerprint string `json:"fingerprint,omitempty" sql:"fingerprint"`
 	// Cluster name for current cost.
-	ClusterName string `json:"clusterName,omitempty"`
+	ClusterName string `json:"clusterName,omitempty" sql:"clusterName"`
 	// Namespace for current cost.
-	Namespace string `json:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty" sql:"namespace"`
 	// Node for current cost.
-	Node string `json:"node,omitempty"`
+	Node string `json:"node,omitempty" sql:"node"`
 	// Controller name for the cost linked resource.
-	Controller string `json:"controller,omitempty"`
+	Controller string `json:"controller,omitempty" sql:"controller"`
 	// Controller kind for the cost linked resource, deployment, statefulSet etc.
-	ControllerKind string `json:"controllerKind,omitempty"`
+	ControllerKind string `json:"controllerKind,omitempty" sql:"controllerKind"`
 	// Pod name for current cost.
-	Pod string `json:"pod,omitempty"`
+	Pod string `json:"pod,omitempty" sql:"pod"`
 	// Container name for current cost.
-	Container string `json:"container,omitempty"`
+	Container string `json:"container,omitempty" sql:"container"`
 	// PV list for current cost linked.
-	Pvs map[string]types.PVCost `json:"pvs,omitempty"`
+	Pvs map[string]types.PVCost `json:"pvs,omitempty" sql:"pvs"`
 	// Labels for the cost linked resource.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Cost number.
-	TotalCost float64 `json:"totalCost,omitempty"`
+	TotalCost float64 `json:"totalCost,omitempty" sql:"totalCost"`
 	// Cost currency.
-	Currency int `json:"currency,omitempty"`
+	Currency int `json:"currency,omitempty" sql:"currency"`
 	// Cpu cost for current cost.
-	CpuCost float64 `json:"cpuCost,omitempty"`
+	CpuCost float64 `json:"cpuCost,omitempty" sql:"cpuCost"`
 	// Cpu core requested.
-	CpuCoreRequest float64 `json:"cpuCoreRequest,omitempty"`
+	CpuCoreRequest float64 `json:"cpuCoreRequest,omitempty" sql:"cpuCoreRequest"`
 	// GPU cost for current cost.
-	GpuCost float64 `json:"gpuCost,omitempty"`
+	GpuCost float64 `json:"gpuCost,omitempty" sql:"gpuCost"`
 	// GPU core count.
-	GpuCount float64 `json:"gpuCount,omitempty"`
+	GpuCount float64 `json:"gpuCount,omitempty" sql:"gpuCount"`
 	// Ram cost for current cost.
-	RamCost float64 `json:"ramCost,omitempty"`
+	RamCost float64 `json:"ramCost,omitempty" sql:"ramCost"`
 	// Ram requested in byte.
-	RamByteRequest float64 `json:"ramByteRequest,omitempty"`
+	RamByteRequest float64 `json:"ramByteRequest,omitempty" sql:"ramByteRequest"`
 	// PV cost for current cost linked.
-	PvCost float64 `json:"pvCost,omitempty"`
+	PvCost float64 `json:"pvCost,omitempty" sql:"pvCost"`
 	// PV bytes for current cost linked.
-	PvBytes float64 `json:"pvBytes,omitempty"`
+	PvBytes float64 `json:"pvBytes,omitempty" sql:"pvBytes"`
 	// LoadBalancer cost for current cost linked.
-	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
+	LoadBalancerCost float64 `json:"loadBalancerCost,omitempty" sql:"loadBalancerCost"`
 	// CPU core average usage.
-	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty"`
+	CpuCoreUsageAverage float64 `json:"cpuCoreUsageAverage,omitempty" sql:"cpuCoreUsageAverage"`
 	// CPU core max usage.
-	CpuCoreUsageMax float64 `json:"cpuCoreUsageMax,omitempty"`
+	CpuCoreUsageMax float64 `json:"cpuCoreUsageMax,omitempty" sql:"cpuCoreUsageMax"`
 	// Ram average usage in byte.
-	RamByteUsageAverage float64 `json:"ramByteUsageAverage,omitempty"`
+	RamByteUsageAverage float64 `json:"ramByteUsageAverage,omitempty" sql:"ramByteUsageAverage"`
 	// Ram max usage in byte.
-	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty"`
+	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty" sql:"ramByteUsageMax"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AllocationCostQuery when eager-loading is set.
 	Edges AllocationCostEdges `json:"edges"`
@@ -92,7 +92,7 @@ type AllocationCost struct {
 // AllocationCostEdges holds the relations/edges for other nodes in the graph.
 type AllocationCostEdges struct {
 	// Connector current cost linked.
-	Connector *Connector `json:"connector,omitempty"`
+	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool

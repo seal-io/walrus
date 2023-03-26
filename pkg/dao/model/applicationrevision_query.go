@@ -347,7 +347,7 @@ func (arq *ApplicationRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQu
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -370,7 +370,7 @@ func (arq *ApplicationRevisionQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty"`
+//		Status string `json:"status,omitempty" sql:"status"`
 //	}
 //
 //	client.ApplicationRevision.Query().

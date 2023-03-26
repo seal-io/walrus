@@ -387,7 +387,7 @@ func (eq *EnvironmentQuery) WithRevisions(opts ...func(*ApplicationRevisionQuery
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -410,7 +410,7 @@ func (eq *EnvironmentQuery) GroupBy(field string, fields ...string) *Environment
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Environment.Query().

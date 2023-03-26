@@ -269,7 +269,7 @@ func (sq *SubjectQuery) Clone() *SubjectQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -292,7 +292,7 @@ func (sq *SubjectQuery) GroupBy(field string, fields ...string) *SubjectGroupBy 
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.Subject.Query().
