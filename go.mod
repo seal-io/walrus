@@ -1,7 +1,7 @@
 module github.com/seal-io/seal
 
 replace (
-	entgo.io/ent => github.com/seal-io/ent v0.11.9-0.20230228043124-62a102f628c9
+	entgo.io/ent => github.com/seal-io/ent v0.11.9-0.20230326144435-e3e7ef3fc4fe
 	github.com/drone/go-scm => github.com/seal-io/go-scm v0.0.0-20230324055818-b35f74bd9b42
 	github.com/seal-io/seal/utils => ./staging/utils
 )
