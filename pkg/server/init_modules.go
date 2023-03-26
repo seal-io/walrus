@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-
-	"entgo.io/ent/dialect/sql"
+	"database/sql"
+	"errors"
 
 	modbus "github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
@@ -44,24 +44,16 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		return err
 	}
 	for i := range creates {
-		_, err = opts.ModelClient.Modules().Get(ctx, builtin[i].ID)
-		if err != nil && !model.IsNotFound(err) {
-			return err
-		} else if err == nil {
-			continue
-		}
+		// do nothing if the module has been created.
 		err = creates[i].
-			OnConflict(
-				sql.ConflictColumns(
-					module.FieldID,
-				),
-			).
-			Update(func(upsert *model.ModuleUpsert) {
-				upsert.UpdateDescription()
-				upsert.UpdateSource()
-			}).
+			OnConflictColumns(module.FieldID).
+			DoNothing().
 			Exec(ctx)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// no rows error is reasonable for nothing updating.
+				continue
+			}
 			return err
 		}
 
