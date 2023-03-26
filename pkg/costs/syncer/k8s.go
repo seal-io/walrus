@@ -2,6 +2,8 @@ package syncer
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -124,7 +126,7 @@ func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*m
 		).
 		DoNothing().
 		Exec(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("error batch create cluster costs: %w", err)
 	}
 	return nil
@@ -145,7 +147,7 @@ func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs [
 		).
 		DoNothing().
 		Exec(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("error batch create allocation costs: %w", err)
 	}
 	return nil

@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	stdsql "database/sql"
 	"errors"
 
 	"entgo.io/ent/dialect/sql"
@@ -144,7 +145,7 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 			)).
 			DoNothing().
 			Exec(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
 			return
 		}
 	}
