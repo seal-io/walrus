@@ -426,7 +426,7 @@ func (cq *ConnectorQuery) WithAllocationCosts(opts ...func(*AllocationCostQuery)
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -449,7 +449,7 @@ func (cq *ConnectorQuery) GroupBy(field string, fields ...string) *ConnectorGrou
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Connector.Query().

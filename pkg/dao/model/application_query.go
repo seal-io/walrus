@@ -387,7 +387,7 @@ func (aq *ApplicationQuery) WithModules(opts ...func(*ApplicationModuleRelations
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -410,7 +410,7 @@ func (aq *ApplicationQuery) GroupBy(field string, fields ...string) *Application
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Application.Query().

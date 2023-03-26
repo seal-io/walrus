@@ -308,7 +308,7 @@ func (sq *SecretQuery) WithProject(opts ...func(*ProjectQuery)) *SecretQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -331,7 +331,7 @@ func (sq *SecretQuery) GroupBy(field string, fields ...string) *SecretGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.Secret.Query().

@@ -24,29 +24,29 @@ import (
 type ApplicationRevision struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Status of the resource.
-	Status string `json:"status,omitempty"`
+	Status string `json:"status,omitempty" sql:"status"`
 	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the application instance to which the revision belongs.
-	InstanceID oid.ID `json:"instanceID,omitempty"`
+	InstanceID oid.ID `json:"instanceID,omitempty" sql:"instanceID"`
 	// ID of the environment to which the application deploys.
-	EnvironmentID oid.ID `json:"environmentID,omitempty"`
+	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Application modules.
-	Modules []types.ApplicationModule `json:"modules,omitempty"`
+	Modules []types.ApplicationModule `json:"modules,omitempty" sql:"modules"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"-"`
+	InputVariables map[string]interface{} `json:"-" sql:"inputVariables"`
 	// Input plan of the revision.
-	InputPlan string `json:"-"`
+	InputPlan string `json:"-" sql:"inputPlan"`
 	// Output of the revision.
-	Output string `json:"-"`
+	Output string `json:"-" sql:"output"`
 	// Type of deployer.
-	DeployerType string `json:"deployerType,omitempty"`
+	DeployerType string `json:"deployerType,omitempty" sql:"deployerType"`
 	// Duration in seconds of the revision deploying.
-	Duration int `json:"duration,omitempty"`
+	Duration int `json:"duration,omitempty" sql:"duration"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
 	Edges ApplicationRevisionEdges `json:"edges,omitempty"`
@@ -55,9 +55,9 @@ type ApplicationRevision struct {
 // ApplicationRevisionEdges holds the relations/edges for other nodes in the graph.
 type ApplicationRevisionEdges struct {
 	// Application instance to which the revision belongs.
-	Instance *ApplicationInstance `json:"instance,omitempty"`
+	Instance *ApplicationInstance `json:"instance,omitempty" sql:"instance"`
 	// Environment to which the revision deploys.
-	Environment *Environment `json:"environment,omitempty"`
+	Environment *Environment `json:"environment,omitempty" sql:"environment"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

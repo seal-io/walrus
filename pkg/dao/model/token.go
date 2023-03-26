@@ -20,19 +20,19 @@ import (
 type Token struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The token name of casdoor.
-	CasdoorTokenName string `json:"-"`
+	CasdoorTokenName string `json:"-" sql:"casdoorTokenName"`
 	// The token owner of casdoor.
-	CasdoorTokenOwner string `json:"-"`
+	CasdoorTokenOwner string `json:"-" sql:"casdoorTokenOwner"`
 	// The name of token.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Expiration in seconds.
-	Expiration *int `json:"expiration,omitempty"`
+	Expiration *int `json:"expiration,omitempty" sql:"expiration"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

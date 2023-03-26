@@ -24,27 +24,27 @@ import (
 type ApplicationResource struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the application instance to which the resource belongs.
-	InstanceID oid.ID `json:"instanceID,omitempty"`
+	InstanceID oid.ID `json:"instanceID,omitempty" sql:"instanceID"`
 	// ID of the connector to which the resource deploys.
-	ConnectorID oid.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// Name of the module that generates the resource.
-	Module string `json:"module,omitempty"`
+	Module string `json:"module,omitempty" sql:"module"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
-	Mode string `json:"mode,omitempty"`
+	Mode string `json:"mode,omitempty" sql:"mode"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty" sql:"type"`
 	// Name of the generated resource, it is the real identifier of the resource, which provides by deployer.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Type of deployer.
-	DeployerType string `json:"deployerType,omitempty"`
+	DeployerType string `json:"deployerType,omitempty" sql:"deployerType"`
 	// Status of the resource.
-	Status types.ApplicationResourceStatus `json:"status,omitempty"`
+	Status types.ApplicationResourceStatus `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationResourceQuery when eager-loading is set.
 	Edges ApplicationResourceEdges `json:"edges,omitempty"`
@@ -53,9 +53,9 @@ type ApplicationResource struct {
 // ApplicationResourceEdges holds the relations/edges for other nodes in the graph.
 type ApplicationResourceEdges struct {
 	// Application instance to which the resource belongs.
-	Instance *ApplicationInstance `json:"instance,omitempty"`
+	Instance *ApplicationInstance `json:"instance,omitempty" sql:"instance"`
 	// Connector to which the resource deploys.
-	Connector *Connector `json:"connector,omitempty"`
+	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

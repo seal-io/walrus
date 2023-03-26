@@ -24,31 +24,31 @@ import (
 type Connector struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Name of the resource.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Status of the object.
-	Status status.Status `json:"status,omitempty"`
+	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Type of the connector.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty" sql:"type"`
 	// Connector config version.
-	ConfigVersion string `json:"configVersion,omitempty"`
+	ConfigVersion string `json:"configVersion,omitempty" sql:"configVersion"`
 	// Connector config data.
-	ConfigData crypto.Map[string, interface{}] `json:"-"`
+	ConfigData crypto.Map[string, interface{}] `json:"-" sql:"configData"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
-	EnableFinOps bool `json:"enableFinOps,omitempty"`
+	EnableFinOps bool `json:"enableFinOps,omitempty" sql:"enableFinOps"`
 	// Custom pricing user defined.
-	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty" sql:"finOpsCustomPricing"`
 	// Category of the connector.
-	Category string `json:"category,omitempty"`
+	Category string `json:"category,omitempty" sql:"category"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
 	Edges ConnectorEdges `json:"edges,omitempty"`
@@ -57,13 +57,13 @@ type Connector struct {
 // ConnectorEdges holds the relations/edges for other nodes in the graph.
 type ConnectorEdges struct {
 	// Environments holds the value of the environments edge.
-	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty"`
+	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty" sql:"environments"`
 	// Resources that belong to the application.
-	Resources []*ApplicationResource `json:"resources,omitempty"`
+	Resources []*ApplicationResource `json:"resources,omitempty" sql:"resources"`
 	// Cluster costs that linked to the connection
-	ClusterCosts []*ClusterCost `json:"clusterCosts,omitempty"`
+	ClusterCosts []*ClusterCost `json:"clusterCosts,omitempty" sql:"clusterCosts"`
 	// Cluster allocation resource costs that linked to the connection.
-	AllocationCosts []*AllocationCost `json:"allocationCosts,omitempty"`
+	AllocationCosts []*AllocationCost `json:"allocationCosts,omitempty" sql:"allocationCosts"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool

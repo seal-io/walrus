@@ -23,23 +23,23 @@ import (
 type ApplicationInstance struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Status of the resource.
-	Status string `json:"status,omitempty"`
+	Status string `json:"status,omitempty" sql:"status"`
 	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
+	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the application to which the instance belongs.
-	ApplicationID oid.ID `json:"applicationID,omitempty"`
+	ApplicationID oid.ID `json:"applicationID,omitempty" sql:"applicationID"`
 	// ID of the environment to which the instance deploys.
-	EnvironmentID oid.ID `json:"environmentID,omitempty"`
+	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Name of the instance.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Variables of the instance.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	Variables map[string]interface{} `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationInstanceQuery when eager-loading is set.
 	Edges ApplicationInstanceEdges `json:"edges,omitempty"`
@@ -48,13 +48,13 @@ type ApplicationInstance struct {
 // ApplicationInstanceEdges holds the relations/edges for other nodes in the graph.
 type ApplicationInstanceEdges struct {
 	// Application to which the instance belongs.
-	Application *Application `json:"application,omitempty"`
+	Application *Application `json:"application,omitempty" sql:"application"`
 	// Environment to which the instance belongs.
-	Environment *Environment `json:"environment,omitempty"`
+	Environment *Environment `json:"environment,omitempty" sql:"environment"`
 	// Application revisions that belong to this instance.
-	Revisions []*ApplicationRevision `json:"revisions,omitempty"`
+	Revisions []*ApplicationRevision `json:"revisions,omitempty" sql:"revisions"`
 	// Application resources that belong to the instance.
-	Resources []*ApplicationResource `json:"resources,omitempty"`
+	Resources []*ApplicationResource `json:"resources,omitempty" sql:"resources"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool

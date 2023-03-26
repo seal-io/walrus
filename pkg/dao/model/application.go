@@ -23,21 +23,21 @@ import (
 type Application struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Name of the resource.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to which the application belongs.
-	ProjectID oid.ID `json:"projectID,omitempty"`
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Variables definition of the application, the variables of instance derived by this definition
-	Variables []types.ApplicationVariable `json:"variables,omitempty"`
+	Variables []types.ApplicationVariable `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges ApplicationEdges `json:"edges,omitempty"`
@@ -46,11 +46,11 @@ type Application struct {
 // ApplicationEdges holds the relations/edges for other nodes in the graph.
 type ApplicationEdges struct {
 	// Project to which this application belongs.
-	Project *Project `json:"project,omitempty"`
+	Project *Project `json:"project,omitempty" sql:"project"`
 	// Application instances that belong to this application.
-	Instances []*ApplicationInstance `json:"instances,omitempty"`
+	Instances []*ApplicationInstance `json:"instances,omitempty" sql:"instances"`
 	// Modules holds the value of the modules edge.
-	Modules []*ApplicationModuleRelationship `json:"modules,omitempty"`
+	Modules []*ApplicationModuleRelationship `json:"modules,omitempty" sql:"modules"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool

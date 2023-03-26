@@ -21,27 +21,27 @@ import (
 type ClusterCost struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int `json:"id,omitempty" sql:"id"`
 	// Usage start time for current cost.
-	StartTime time.Time `json:"startTime,omitempty"`
+	StartTime time.Time `json:"startTime,omitempty" sql:"startTime"`
 	// Usage end time for current cost.
-	EndTime time.Time `json:"endTime,omitempty"`
+	EndTime time.Time `json:"endTime,omitempty" sql:"endTime"`
 	// Usage minutes from start time to end time.
-	Minutes float64 `json:"minutes,omitempty"`
+	Minutes float64 `json:"minutes,omitempty" sql:"minutes"`
 	// ID of the connector.
-	ConnectorID oid.ID `json:"connectorID,omitempty"`
+	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// Cluster name for current cost.
-	ClusterName string `json:"clusterName,omitempty"`
+	ClusterName string `json:"clusterName,omitempty" sql:"clusterName"`
 	// Cost number.
-	TotalCost float64 `json:"totalCost,omitempty"`
+	TotalCost float64 `json:"totalCost,omitempty" sql:"totalCost"`
 	// Cost currency.
-	Currency int `json:"currency,omitempty"`
+	Currency int `json:"currency,omitempty" sql:"currency"`
 	// Allocation cost for current cost.
-	AllocationCost float64 `json:"allocationCost,omitempty"`
+	AllocationCost float64 `json:"allocationCost,omitempty" sql:"allocationCost"`
 	// Idle cost for current cost.
-	IdleCost float64 `json:"idleCost,omitempty"`
+	IdleCost float64 `json:"idleCost,omitempty" sql:"idleCost"`
 	// Storage cost for current cost.
-	ManagementCost float64 `json:"managementCost,omitempty"`
+	ManagementCost float64 `json:"managementCost,omitempty" sql:"managementCost"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ClusterCostQuery when eager-loading is set.
 	Edges ClusterCostEdges `json:"edges"`
@@ -50,7 +50,7 @@ type ClusterCost struct {
 // ClusterCostEdges holds the relations/edges for other nodes in the graph.
 type ClusterCostEdges struct {
 	// Connector current cost linked.
-	Connector *Connector `json:"connector,omitempty"`
+	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool

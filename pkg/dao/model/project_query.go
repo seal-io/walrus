@@ -348,7 +348,7 @@ func (pq *ProjectQuery) WithSecrets(opts ...func(*SecretQuery)) *ProjectQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -371,7 +371,7 @@ func (pq *ProjectQuery) GroupBy(field string, fields ...string) *ProjectGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Project.Query().

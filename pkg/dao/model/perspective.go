@@ -22,21 +22,21 @@ import (
 type Perspective struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty"`
+	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Name for current perspective.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" sql:"name"`
 	// Start time for current perspective.
-	StartTime string `json:"startTime,omitempty"`
+	StartTime string `json:"startTime,omitempty" sql:"startTime"`
 	// End time for current perspective.
-	EndTime string `json:"endTime,omitempty"`
+	EndTime string `json:"endTime,omitempty" sql:"endTime"`
 	// Is builtin Perspective.
-	Builtin bool `json:"builtin,omitempty"`
+	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Indicated the perspective included allocation queries, record the used query condition.
-	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
+	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty" sql:"allocationQueries"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

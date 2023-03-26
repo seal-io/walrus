@@ -22,7 +22,7 @@ import (
 type EnvironmentConnectorRelationship struct {
 	config `json:"-"`
 	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the environment to which the relationship connects.
 	EnvironmentID oid.ID `json:"environmentID"`
 	// ID of the connector to which the relationship connects.
@@ -35,9 +35,9 @@ type EnvironmentConnectorRelationship struct {
 // EnvironmentConnectorRelationshipEdges holds the relations/edges for other nodes in the graph.
 type EnvironmentConnectorRelationshipEdges struct {
 	// Environments that connect to the relationship.
-	Environment *Environment `json:"environment,omitempty"`
+	Environment *Environment `json:"environment,omitempty" sql:"environment"`
 	// Connectors that connect to the relationship.
-	Connector *Connector `json:"connector,omitempty"`
+	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
