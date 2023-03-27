@@ -48,9 +48,6 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return err
 	}
-	if *r.Value == settingEntity.Value {
-		return errors.New("invalid input: nothing update")
-	}
 	r.Name = settingEntity.Name
 
 	return nil
