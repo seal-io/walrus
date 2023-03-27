@@ -3,7 +3,6 @@ package view
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -39,10 +38,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid group: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting group: %w", err)
+		return runtime.Errorw(err, "failed to get group")
 	}
 	r.Paths = group.Paths
 	r.Paths = append(r.Paths, r.Name)
@@ -78,7 +74,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get group")
 	}
 	r.ID = groupEntity.ID
 	r.Name = groupEntity.Name
@@ -115,7 +111,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get group")
 	}
 	r.ID = groupEntity.ID
 	r.Name = groupEntity.Name

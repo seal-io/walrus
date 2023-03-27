@@ -1,13 +1,12 @@
 package user
 
 import (
-	"net/http"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/utils/pointer"
 
-	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/user/view"
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao"
@@ -68,7 +67,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 		err = casdoor.CreateUser(ctx, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinApp, casdoor.BuiltinOrg, req.Name, req.Password)
 		if err != nil {
-			return runtime.ErrorfP(http.StatusInternalServerError, "failed to create user to casdoor: %w", err)
+			return fmt.Errorf("failed to create user to casdoor: %w", err)
 		}
 		return nil
 	})
@@ -99,7 +98,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 				casdoor.BuiltinOrg, req.Name)
 			if err != nil {
 				if !strings.HasSuffix(err.Error(), "not found") {
-					return runtime.ErrorfP(http.StatusBadRequest, "failed to delete user from casdoor: %w", err)
+					return fmt.Errorf("failed to delete user from casdoor: %w", err)
 				}
 			}
 			return nil
@@ -147,7 +146,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		err = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinOrg, req.Name, "", req.Password)
 		if err != nil {
-			return runtime.ErrorfP(http.StatusBadRequest, "failed to update user password to casdoor: %w", err)
+			return fmt.Errorf("failed to update user password to casdoor: %w", err)
 		}
 		return nil
 	})

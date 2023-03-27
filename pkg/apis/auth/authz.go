@@ -2,13 +2,12 @@ package auth
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/auth/cache"
 	"github.com/seal-io/seal/pkg/apis/auth/session"
-	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -63,7 +62,7 @@ func getRoles(ctx context.Context, modelClient model.ClientSet, group, name stri
 		Select(subject.FieldRoles).
 		Only(ctx)
 	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to get roles: %w", err)
+		return nil, fmt.Errorf("failed to get roles: %w", err)
 	}
 	return s.Roles, nil
 }
@@ -82,7 +81,7 @@ func getPolicies(ctx context.Context, modelClient model.ClientSet, roles types.S
 		Select(role.FieldPolicies).
 		All(ctx)
 	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to get policies: %w", err)
+		return nil, fmt.Errorf("failed to get policies: %w", err)
 	}
 
 	var policies types.RolePolicies

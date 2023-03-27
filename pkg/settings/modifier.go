@@ -25,7 +25,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 		for i := range validates {
 			var ok, err = validates[i](ctx, name, oldValue, newValue)
 			if err != nil {
-				return runtime.Errorf(http.StatusBadRequest, "invalid setting %s: %w", name, err)
+				return runtime.Errorf(http.StatusBadRequest, "invalid setting %q: %w", name, err)
 			}
 			if !ok {
 				return nil

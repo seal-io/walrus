@@ -2,7 +2,6 @@ package cost
 
 import (
 	"fmt"
-	"net/http"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -47,7 +46,7 @@ func (h Handler) Validating() any {
 func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.AllocationCostRequest) (*runtime.ResponseCollection, error) {
 	items, count, err := h.distributor.Distribute(ctx, req.StartTime, req.EndTime, req.QueryCondition)
 	if err != nil {
-		return nil, runtime.Errorf(http.StatusInternalServerError, "error query allocation cost: %w", err)
+		return nil, runtime.Errorw(err, "error query allocation cost")
 	}
 
 	resp := runtime.GetResponseCollection(ctx, items, count)
@@ -222,7 +221,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 
 	items, count, err := h.distributor.Distribute(ctx, req.StartTime, req.EndTime, cond)
 	if err != nil {
-		return nil, runtime.Errorf(http.StatusInternalServerError, "error query allocation cost: %w", err)
+		return nil, runtime.Errorw(err, "error query allocation cost")
 	}
 
 	// days

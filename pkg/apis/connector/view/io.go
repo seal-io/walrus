@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/drone/go-scm/scm"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform"
@@ -147,13 +147,16 @@ func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error
 }
 
 func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
-	conn, err := modelClient.Connectors().Get(ctx, id)
+	conn, err := modelClient.Connectors().Query().
+		Select(connector.FieldType).
+		Where(connector.ID(id)).
+		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get connector")
 	}
 
 	if conn.Type != types.ConnectorTypeK8s {
-		return runtime.Errorf(http.StatusBadRequest, "invalid type: not support")
+		return errors.New("invalid type: not support")
 	}
 	return nil
 }

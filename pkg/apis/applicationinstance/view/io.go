@@ -41,7 +41,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		Where(application.ID(r.Application.ID)).
 		OnlyID(ctx)
 	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid application id: not found")
+		return runtime.Errorw(err, "failed to get application")
 	}
 	count, _ := modelClient.ApplicationModuleRelationships().Query().
 		Where(applicationmodulerelationship.ApplicationID(r.Application.ID)).
@@ -53,7 +53,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		Where(environment.ID(r.Environment.ID)).
 		OnlyID(ctx)
 	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid environment id: not found")
+		return runtime.Errorw(err, "failed to get environment")
 	}
 	count, _ = modelClient.EnvironmentConnectorRelationships().Query().
 		Where(environmentconnectorrelationship.EnvironmentID(r.Environment.ID)).
@@ -116,7 +116,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		Where(application.ID(r.ApplicationID)).
 		OnlyID(ctx)
 	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid application id: not found")
+		return runtime.Errorw(err, "failed to get application")
 	}
 	return nil
 }
@@ -142,7 +142,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		Where(applicationinstance.ID(r.ID)).
 		OnlyID(ctx)
 	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
+		return runtime.Errorw(err, "failed to get application instance")
 	}
 
 	return nil
@@ -165,7 +165,7 @@ func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) err
 		Where(applicationinstance.ID(r.ID)).
 		OnlyID(ctx)
 	if err != nil {
-		return runtime.Error(http.StatusNotFound, "invalid id: not found")
+		return runtime.Errorw(err, "failed to get application instance")
 	}
 	return nil
 }

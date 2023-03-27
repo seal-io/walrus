@@ -3,7 +3,6 @@ package view
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -50,7 +49,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 			Where(applicationinstance.ID(r.InstanceID)).
 			OnlyID(ctx)
 		if err != nil {
-			return runtime.Error(http.StatusNotFound, "invalid instance id: not found")
+			return runtime.Errorw(err, "failed to get application instance")
 		}
 	}
 

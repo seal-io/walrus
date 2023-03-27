@@ -1,14 +1,13 @@
 package group
 
 import (
-	"net/http"
+	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/group/view"
-	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -65,7 +64,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		Select(subject.FieldID, subject.FieldKind, subject.FieldName, subject.FieldMountTo).
 		All(ctx)
 	if err != nil {
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get subresource of group: %w", err)
+		return fmt.Errorf("failed to get subresource of group: %w", err)
 	}
 
 	var inputs = [][]predicate.Subject{

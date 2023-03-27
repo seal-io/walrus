@@ -2,14 +2,13 @@ package auth
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/auth/cache"
 	"github.com/seal-io/seal/pkg/apis/auth/session"
-	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/req"
 
@@ -41,7 +40,7 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 		}
 		var g, n, err = session.ParseSubjectKey(*sj)
 		if err != nil {
-			return runtime.ErrorfP(http.StatusInternalServerError, "failed to parse subject key: %w", err)
+			return fmt.Errorf("failed to parse subject key: %w", err)
 		}
 		groups, err := getGroups(c, modelClient, g, n)
 		if err != nil {
@@ -53,7 +52,7 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 
 	var cred casdoor.ApplicationCredential
 	if err := settings.CasdoorCred.ValueJSONUnmarshal(c, modelClient, &cred); err != nil {
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to unmarshal casdoor secret: %w", err)
+		return fmt.Errorf("failed to unmarshal casdoor secret: %w", err)
 	}
 	var r, err = casdoor.IntrospectToken(c, cred.ClientID, cred.ClientSecret, token)
 	if err != nil {
@@ -85,7 +84,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 		}
 		var g, n, err = session.ParseSubjectKey(*sj)
 		if err != nil {
-			return runtime.ErrorfP(http.StatusInternalServerError, "failed to parse subject key: %w", err)
+			return fmt.Errorf("failed to parse subject key: %w", err)
 		}
 		groups, err := getGroups(c, modelClient, g, n)
 		if err != nil {
@@ -132,7 +131,7 @@ func getGroups(ctx context.Context, modelClient model.ClientSet, group string, u
 			subject.FieldPaths).
 		All(ctx)
 	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusInternalServerError, "failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
 	var groups []string

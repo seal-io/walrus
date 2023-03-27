@@ -51,10 +51,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid group: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting group: %w", err)
+		return runtime.Errorw(err, "failed to get group")
 	}
 	r.Paths = group.Paths
 	r.Paths = append(r.Paths, r.Name)
@@ -93,7 +90,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo, subject.FieldLoginTo).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get user")
 	}
 	r.Name = userEntity.Name
 	r.Group = userEntity.Group
@@ -136,7 +133,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get user")
 	}
 	r.ID = userEntity.ID
 	r.Name = userEntity.Name
@@ -233,7 +230,7 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get user")
 	}
 	if *userEntity.MountTo {
 		return runtime.Error(http.StatusBadRequest, "invalid user: already mounting")
@@ -249,10 +246,7 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 		).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid group: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting group: %w", err)
+		return runtime.Errorw(err, "failed to get group")
 	}
 	r.Paths = groupEntity.Paths
 	r.Paths = append(r.Paths, r.Name)

@@ -1,7 +1,7 @@
 package token
 
 import (
-	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 
@@ -44,7 +44,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 	// create token value from casdoor.
 	t, err := casdoor.CreateToken(ctx, cred.ClientID, cred.ClientSecret, s.Name, req.Expiration)
 	if err != nil {
-		return nil, runtime.ErrorfP(http.StatusBadRequest, "failed to create token to casdoor: %w", err)
+		return nil, fmt.Errorf("failed to create token to casdoor: %w", err)
 	}
 	entity.CasdoorTokenName, entity.CasdoorTokenOwner = t.Name, t.Owner
 
@@ -87,10 +87,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		Select(token.FieldCasdoorTokenOwner, token.FieldCasdoorTokenName).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid token: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting token: %w", err)
+		return runtime.Errorw(err, "failed to get token")
 	}
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		var _, err = tx.Tokens().Delete().
@@ -107,7 +104,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		}
 		err = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret, entity.CasdoorTokenOwner, entity.CasdoorTokenName)
 		if err != nil {
-			return runtime.ErrorfP(http.StatusBadRequest, "failed to delete token from casdoor: %w", err)
+			return fmt.Errorf("failed to delete token from casdoor: %w", err)
 		}
 		return nil
 	})
