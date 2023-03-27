@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
-	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
+	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -189,9 +189,15 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		return err
 	}
 
-	return tftopic.Notify(ctx, tftopic.Name, tftopic.TopicMessage{
-		ModelClient:         h.modelClient,
-		ApplicationRevision: entity,
+	var parser platformtf.Parser
+	applicationResources, err := parser.ParseAppRevision(entity)
+	if err != nil {
+		return err
+	}
+	return resourcetopic.Notify(ctx, resourcetopic.Name, resourcetopic.TopicMessage{
+		ModelClient:          h.modelClient,
+		ApplicationResources: applicationResources,
+		InstanceID:           entity.InstanceID,
 	})
 }
 

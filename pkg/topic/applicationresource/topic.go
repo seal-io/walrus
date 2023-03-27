@@ -1,9 +1,10 @@
-package platformtf
+package applicationresource
 
 import (
 	"context"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
@@ -12,8 +13,9 @@ import (
 const Name topic.Topic = "Terraform"
 
 type TopicMessage struct {
-	ModelClient         model.ClientSet
-	ApplicationRevision *model.ApplicationRevision
+	ModelClient          model.ClientSet
+	ApplicationResources model.ApplicationResources
+	InstanceID           types.ID
 }
 
 func Notify(ctx context.Context, name topic.Topic, message TopicMessage) error {

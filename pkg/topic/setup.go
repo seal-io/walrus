@@ -3,9 +3,9 @@ package topic
 import (
 	"context"
 
+	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/platformtf"
-	tftopic "github.com/seal-io/seal/pkg/topic/platformtf"
+	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 )
 
 type SetupOptions struct {
@@ -13,7 +13,7 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) error {
-	if err := tftopic.AddSubscriber(ctx, tftopic.Name, platformtf.UpdateResource); err != nil {
+	if err := resourcetopic.AddSubscriber(ctx, resourcetopic.Name, applicationresources.Update); err != nil {
 		return err
 	}
 
