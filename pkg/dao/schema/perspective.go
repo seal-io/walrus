@@ -33,8 +33,7 @@ func (Perspective) Fields() []ent.Field {
 		field.String("name").
 			Comment("Name for current perspective.").
 			Unique().
-			NotEmpty().
-			Immutable(),
+			NotEmpty(),
 		field.String("startTime").
 			Comment("Start time for current perspective.").
 			NotEmpty(),
