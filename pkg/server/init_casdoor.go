@@ -75,10 +75,10 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 
 	// record the application credential.
 	err = opts.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
-		if err = settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
+		if _, err = settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
 			return err
 		}
-		if err = settings.PrivilegeApiToken.Set(ctx, tx, token.AccessToken); err != nil {
+		if _, err = settings.PrivilegeApiToken.Set(ctx, tx, token.AccessToken); err != nil {
 			return err
 		}
 		return nil
