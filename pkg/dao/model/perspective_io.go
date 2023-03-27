@@ -55,6 +55,8 @@ func (in PerspectiveCreateInput) Model() *Perspective {
 type PerspectiveUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
+	// Name for current perspective.
+	Name string `json:"name,omitempty"`
 	// Start time for current perspective.
 	StartTime string `json:"startTime,omitempty"`
 	// End time for current perspective.
@@ -69,6 +71,7 @@ type PerspectiveUpdateInput struct {
 func (in PerspectiveUpdateInput) Model() *Perspective {
 	var entity = &Perspective{
 		ID:                in.ID,
+		Name:              in.Name,
 		StartTime:         in.StartTime,
 		EndTime:           in.EndTime,
 		Builtin:           in.Builtin,
