@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -21,7 +22,7 @@ type stepDistributor struct {
 }
 
 func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	allocationCosts, totalCount, queriedCount, err := r.AllocationCosts(ctx, startTime, endTime, cond)
+	allocationCosts, queriedCount, err := r.AllocationCosts(ctx, startTime, endTime, cond)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -36,18 +37,19 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 		return nil, 0, err
 	}
 
+	var itemNameSet = sets.Set[string]{}
 	for i, item := range allocationCosts {
+		if item.ItemName == "" {
+			allocationCosts[i].ItemName = types.UnallocatedLabel
+		}
 		var (
 			bucket              = item.StartTime.Format(time.RFC3339)
 			shares              = sharedCosts[bucket]
 			totalAllocationCost = totalAllocationCosts[bucket]
 		)
 
-		if item.ItemName == "" {
-			allocationCosts[i].ItemName = types.UnallocatedLabel
-		}
-
-		applySharedCost(totalCount, &allocationCosts[i].Cost, shares, totalAllocationCost)
+		itemNameSet.Insert(allocationCosts[i].ItemName)
+		applySharedCost(itemNameSet.Len(), &allocationCosts[i].Cost, shares, totalAllocationCost)
 	}
 
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
@@ -56,22 +58,22 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 	return allocationCosts, queriedCount, nil
 }
 
-func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, int, error) {
+func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
 	// condition
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, err
 	}
 
 	groupBy, err := groupByWithZoneOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, err
 	}
 
 	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(cond.Step), offset)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, err
 	}
 
 	var (
@@ -93,7 +95,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 	if cond.Query != "" {
 		havingPs, err = havingSQL(ctx, r.client, cond.GroupBy, groupBy, cond.Query)
 		if err != nil {
-			return nil, 0, 0, err
+			return nil, 0, err
 		}
 	}
 
@@ -102,16 +104,6 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		GroupBy(groupBys...).
 		From(sql.Table(allocationcost.Table)).
 		As("subQuery")
-
-	// total count
-	totalCount, err := r.client.AllocationCosts().Query().
-		Modify(func(s *sql.Selector) {
-			s.Count().From(countSubQuery)
-		}).
-		Int(ctx)
-	if err != nil {
-		return nil, 0, 0, err
-	}
 
 	// queried count
 	queriedCount, err := r.client.AllocationCosts().Query().
@@ -124,7 +116,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		}).
 		Int(ctx)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, err
 	}
 
 	// query
@@ -164,10 +156,10 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 
 	var items []view.Resource
 	if err = query.Scan(ctx, &items); err != nil {
-		return nil, 0, 0, fmt.Errorf("error query allocation cost: %w", err)
+		return nil, 0, fmt.Errorf("error query allocation cost: %w", err)
 	}
 
-	return items, totalCount, queriedCount, nil
+	return items, queriedCount, nil
 }
 
 func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime time.Time, conds types.ShareCosts, step types.Step) (map[string][]*SharedCost, error) {
