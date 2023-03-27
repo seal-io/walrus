@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -33,13 +34,13 @@ func Login() runtime.ErrorHandle {
 		var internalSessions, err = casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 			input.Username, input.Password)
 		if err != nil {
-			return runtime.Errorw(http.StatusUnauthorized, err)
+			return runtime.Error(http.StatusUnauthorized, err)
 		}
 
 		// hold session
 		err = casdoor.HoldSession(ctx.Writer, internalSessions)
 		if err != nil {
-			return runtime.Error(http.StatusInternalServerError, "failed to login")
+			return fmt.Errorf("failed to login: %w", err)
 		}
 		return nil
 	}
@@ -80,10 +81,10 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 
 	var r view.UpdateInfoRequest
 	if err := ctx.ShouldBindJSON(&r); err != nil {
-		return runtime.Errorw(http.StatusBadRequest, err)
+		return runtime.Error(http.StatusBadRequest, err)
 	}
 	if err := r.Validate(); err != nil {
-		return runtime.Errorw(http.StatusBadRequest, err)
+		return runtime.Error(http.StatusBadRequest, err)
 	}
 
 	if r.LoginGroup != nil {
@@ -141,7 +142,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 				return runtime.Error(http.StatusNotFound,
 					"not found user")
 			}
-			return runtime.Errorw(http.StatusBadRequest, err)
+			return runtime.Error(http.StatusBadRequest, err)
 		}
 		// update setting to indicate the initialized password has been changed.
 		if settings.FirstLogin.ShouldValueBool(ctx, modelClient) {

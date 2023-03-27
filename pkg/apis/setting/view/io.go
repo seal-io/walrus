@@ -46,7 +46,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Select(setting.FieldName, setting.FieldValue).
 		Only(ctx)
 	if err != nil {
-		return err
+		return runtime.Errorw(err, "failed to get setting")
 	}
 	r.Name = settingEntity.Name
 

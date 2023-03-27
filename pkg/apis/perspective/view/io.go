@@ -3,7 +3,6 @@ package view
 import (
 	"context"
 	"errors"
-	"net/http"
 	"reflect"
 	"strings"
 	"time"
@@ -60,10 +59,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		Where(perspective.ID(r.ID)).
 		Only(ctx)
 	if err != nil {
-		if model.IsNotFound(err) {
-			return runtime.Error(http.StatusBadRequest, "invalid perspective: not found")
-		}
-		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting perspective: %w", err)
+		return runtime.Errorw(err, "failed to get perspective")
 	}
 
 	if r.Name == existed.Name &&
