@@ -435,7 +435,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				var err = errInterface.(error)
 				var ge = c.Error(err)
 				if !isGinError(err) {
-					_ = ge.SetType(gin.ErrorTypePublic)
+					_ = ge.SetType(gin.ErrorTypePrivate)
 				}
 				return
 			}
