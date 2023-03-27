@@ -23,7 +23,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s"
@@ -507,11 +506,6 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 	var (
 		moduleSecrets []string
 		secrets       model.Secrets
-		entities      []struct {
-			ID    types.ID      `json:"id"`
-			Name  string        `json:"name"`
-			Value crypto.String `json:"value"`
-		}
 	)
 	for _, moduleConfig := range moduleConfigs {
 		moduleSecrets = parseAttributeSecrets(moduleConfig.Attributes, moduleSecrets)
@@ -563,16 +557,9 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 					),
 				)
 		}).
-		Scan(ctx, &entities)
+		Scan(ctx, &secrets)
 	if err != nil {
 		return nil, err
-	}
-	for _, entity := range entities {
-		secrets = append(secrets, &model.Secret{
-			ID:    entity.ID,
-			Name:  entity.Name,
-			Value: crypto.String(entity.Value),
-		})
 	}
 
 	// validate module secret are all exist.
