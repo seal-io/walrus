@@ -175,7 +175,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		return err
 	}
 	if !exist {
-		_, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
+		applicationRevision, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
 			SetStatus(status.ApplicationRevisionStatusSucceeded).
 			Save(ctx)
 		if err != nil {
