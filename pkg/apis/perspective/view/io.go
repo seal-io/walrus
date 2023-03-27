@@ -66,9 +66,10 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return runtime.ErrorfP(http.StatusInternalServerError, "failed to get requesting perspective: %w", err)
 	}
 
-	if reflect.DeepEqual(r.AllocationQueries, existed.AllocationQueries) &&
+	if r.Name == existed.Name &&
 		r.StartTime == existed.StartTime &&
-		r.EndTime == existed.EndTime {
+		r.EndTime == existed.EndTime &&
+		reflect.DeepEqual(r.AllocationQueries, existed.AllocationQueries) {
 		return errors.New("invalid input: nothing update")
 	}
 
