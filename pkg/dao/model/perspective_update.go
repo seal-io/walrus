@@ -42,6 +42,12 @@ func (pu *PerspectiveUpdate) SetUpdateTime(t time.Time) *PerspectiveUpdate {
 	return pu
 }
 
+// SetName sets the "name" field.
+func (pu *PerspectiveUpdate) SetName(s string) *PerspectiveUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
 // SetStartTime sets the "startTime" field.
 func (pu *PerspectiveUpdate) SetStartTime(s string) *PerspectiveUpdate {
 	pu.mutation.SetStartTime(s)
@@ -129,6 +135,11 @@ func (pu *PerspectiveUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (pu *PerspectiveUpdate) check() error {
+	if v, ok := pu.mutation.Name(); ok {
+		if err := perspective.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Perspective.name": %w`, err)}
+		}
+	}
 	if v, ok := pu.mutation.StartTime(); ok {
 		if err := perspective.StartTimeValidator(v); err != nil {
 			return &ValidationError{Name: "startTime", err: fmt.Errorf(`model: validator failed for field "Perspective.startTime": %w`, err)}
@@ -162,6 +173,9 @@ func (pu *PerspectiveUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.UpdateTime(); ok {
 		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := pu.mutation.Name(); ok {
+		_spec.SetField(perspective.FieldName, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.StartTime(); ok {
 		_spec.SetField(perspective.FieldStartTime, field.TypeString, value)
@@ -207,6 +221,12 @@ type PerspectiveUpdateOne struct {
 // SetUpdateTime sets the "updateTime" field.
 func (puo *PerspectiveUpdateOne) SetUpdateTime(t time.Time) *PerspectiveUpdateOne {
 	puo.mutation.SetUpdateTime(t)
+	return puo
+}
+
+// SetName sets the "name" field.
+func (puo *PerspectiveUpdateOne) SetName(s string) *PerspectiveUpdateOne {
+	puo.mutation.SetName(s)
 	return puo
 }
 
@@ -310,6 +330,11 @@ func (puo *PerspectiveUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (puo *PerspectiveUpdateOne) check() error {
+	if v, ok := puo.mutation.Name(); ok {
+		if err := perspective.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Perspective.name": %w`, err)}
+		}
+	}
 	if v, ok := puo.mutation.StartTime(); ok {
 		if err := perspective.StartTimeValidator(v); err != nil {
 			return &ValidationError{Name: "startTime", err: fmt.Errorf(`model: validator failed for field "Perspective.startTime": %w`, err)}
@@ -360,6 +385,9 @@ func (puo *PerspectiveUpdateOne) sqlSave(ctx context.Context) (_node *Perspectiv
 	}
 	if value, ok := puo.mutation.UpdateTime(); ok {
 		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := puo.mutation.Name(); ok {
+		_spec.SetField(perspective.FieldName, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.StartTime(); ok {
 		_spec.SetField(perspective.FieldStartTime, field.TypeString, value)

@@ -330,6 +330,18 @@ func (u *PerspectiveUpsert) UpdateUpdateTime() *PerspectiveUpsert {
 	return u
 }
 
+// SetName sets the "name" field.
+func (u *PerspectiveUpsert) SetName(v string) *PerspectiveUpsert {
+	u.Set(perspective.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateName() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldName)
+	return u
+}
+
 // SetStartTime sets the "startTime" field.
 func (u *PerspectiveUpsert) SetStartTime(v string) *PerspectiveUpsert {
 	u.Set(perspective.FieldStartTime, v)
@@ -398,9 +410,6 @@ func (u *PerspectiveUpsertOne) UpdateNewValues() *PerspectiveUpsertOne {
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(perspective.FieldCreateTime)
 		}
-		if _, exists := u.create.mutation.Name(); exists {
-			s.SetIgnore(perspective.FieldName)
-		}
 	}))
 	return u
 }
@@ -443,6 +452,20 @@ func (u *PerspectiveUpsertOne) SetUpdateTime(v time.Time) *PerspectiveUpsertOne 
 func (u *PerspectiveUpsertOne) UpdateUpdateTime() *PerspectiveUpsertOne {
 	return u.Update(func(s *PerspectiveUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PerspectiveUpsertOne) SetName(v string) *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateName() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateName()
 	})
 }
 
@@ -684,9 +707,6 @@ func (u *PerspectiveUpsertBulk) UpdateNewValues() *PerspectiveUpsertBulk {
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(perspective.FieldCreateTime)
 			}
-			if _, exists := b.mutation.Name(); exists {
-				s.SetIgnore(perspective.FieldName)
-			}
 		}
 	}))
 	return u
@@ -730,6 +750,20 @@ func (u *PerspectiveUpsertBulk) SetUpdateTime(v time.Time) *PerspectiveUpsertBul
 func (u *PerspectiveUpsertBulk) UpdateUpdateTime() *PerspectiveUpsertBulk {
 	return u.Update(func(s *PerspectiveUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *PerspectiveUpsertBulk) SetName(v string) *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateName() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateName()
 	})
 }
 
