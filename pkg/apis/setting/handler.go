@@ -34,9 +34,12 @@ func (h Handler) Validating() any {
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	// bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var err = settings.Index(req.Name).Set(ctx, tx, *req.Value)
+		var changed, err = settings.Index(req.Name).Set(ctx, tx, *req.Value)
 		if err != nil {
 			return err
+		}
+		if !changed {
+			return nil
 		}
 		return settingbus.Notify(ctx, tx, model.Settings{
 			&model.Setting{
@@ -76,16 +79,22 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateRequest) error {
 	// bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var list model.Settings
+		var list = make(model.Settings, 0, len(req))
 		for i := range req {
-			var err = settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
+			var changed, err = settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
 			if err != nil {
 				return err
+			}
+			if !changed {
+				continue
 			}
 			list = append(list, &model.Setting{
 				Name:  req[i].Name,
 				Value: *req[i].Value,
 			})
+		}
+		if len(list) == 0 {
+			return nil
 		}
 		return settingbus.Notify(ctx, tx, list)
 	})

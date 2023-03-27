@@ -145,7 +145,8 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 		}
 		// update setting to indicate the initialized password has been changed.
 		if settings.FirstLogin.ShouldValueBool(ctx, modelClient) {
-			return settings.FirstLogin.Set(ctx, modelClient, "false")
+			_, err = settings.FirstLogin.Set(ctx, modelClient, "false")
+			return err
 		}
 	}
 	return nil

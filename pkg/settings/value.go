@@ -56,8 +56,9 @@ type Value interface {
 	// it's good for error-insensitive cases and nice for chain calls.
 	ShouldValueURL(context.Context, model.ClientSet) *url.URL
 
-	// Set configures the value of the setting.
-	Set(context.Context, model.ClientSet, interface{}) error
+	// Set configures the value of the setting,
+	// returns true if accept the new value change.
+	Set(context.Context, model.ClientSet, interface{}) (bool, error)
 
 	// Cas configures the value of setting with CAS operation.
 	Cas(context.Context, model.ClientSet, func(oldVal string) (newVal string, err error)) error
@@ -214,36 +215,36 @@ func (v value) ShouldValueURL(ctx context.Context, client model.ClientSet) *url.
 }
 
 // Set implements the Value interface.
-func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw interface{}) error {
+func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw interface{}) (bool, error) {
 	var oldVal, err = v.Value(ctx, client)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	newVal, ok := newValueRaw.(string)
 	if !ok {
 		b, err := json.Marshal(newValueRaw)
 		if err != nil {
-			return err
+			return false, err
 		}
 		newVal = string(b)
 	}
 
 	if oldVal == newVal {
 		// nothing to do if same as previous.
-		return nil
+		return false, nil
 	}
 
 	err = v.modify(ctx, client, v.refer.Name, oldVal, newVal)
 	if err != nil {
-		return err
+		return false, err
 	}
 	err = cacher.Delete(v.refer.Name)
 	if err != nil {
 		logger.Warnf("error discaching %s: %v",
 			v.refer.Name, err)
 	}
-	return nil
+	return true, nil
 }
 
 // Cas implements the Value interface.
