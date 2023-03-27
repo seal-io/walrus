@@ -275,7 +275,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	// when creating a new revision.
 	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Where(applicationrevision.Or(
+		Where(applicationrevision.And(
 			applicationrevision.InstanceID(ai.ID),
 			applicationrevision.DeployerType(DeployerType))).
 		Select(applicationrevision.FieldOutput, applicationrevision.FieldStatus).
