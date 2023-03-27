@@ -73,7 +73,12 @@ func getHttpError(c *gin.Context) (he httpError) {
 			he.cause = ge.Err
 		}
 		if ge.Type == gin.ErrorTypePrivate {
-			he.cause = nil // mute
+			var we wrapError
+			if !errors.As(he.cause, &we) {
+				he.cause = nil // mute
+			} else {
+				he.cause = we.external
+			}
 		}
 	}
 

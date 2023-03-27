@@ -18,52 +18,88 @@ func Errorc(c int) error {
 	return asGinErr(c, nil, gin.ErrorTypePublic)
 }
 
-// Error wraps an HTTP status code and string message as error,
-// and only outputs the string message to frontend.
-func Error(c int, msg string) error {
-	if msg == "" {
-		return Errorc(c)
+// Error wraps an HTTP status code and string message or error as error.
+func Error(c int, v any) error {
+	if v != nil {
+		switch t := v.(type) {
+		case error:
+			return asGinErr(c, t, gin.ErrorTypePublic)
+		case string:
+			if t != "" {
+				return asGinErr(c, errors.New(t), gin.ErrorTypePublic)
+			}
+		}
 	}
-	return asGinErr(c, errors.New(msg), gin.ErrorTypePublic)
+	return Errorc(c)
 }
 
-// ErrorP wraps an HTTP status code and string message as error,
-// but only logs the string message to backend.
-func ErrorP(c int, msg string) error {
-	if msg == "" {
-		return Errorc(c)
-	}
-	return asGinErr(c, errors.New(msg), gin.ErrorTypePrivate)
-}
-
-// Errorf wraps an HTTP status code, format, and arguments as error,
-// and only outputs the formatted message to frontend.
+// Errorf wraps an HTTP status code, format, and arguments as error.
 func Errorf(c int, format string, a ...any) error {
+	if format == "" {
+		return Errorc(c)
+	}
 	if len(a) == 0 {
 		return asGinErr(c, errors.New(format), gin.ErrorTypePublic)
 	}
 	return asGinErr(c, fmt.Errorf(format, a...), gin.ErrorTypePublic)
 }
 
-// ErrorfP wraps an HTTP status code, format, and arguments as error,
-// but only logs the formatted message to backend.
-func ErrorfP(c int, format string, a ...any) error {
-	if len(a) == 0 {
-		return asGinErr(c, errors.New(format), gin.ErrorTypePrivate)
+// Errorp wraps an HTTP status code and string message as error,
+// but logs the given error internally.
+func Errorp(c int, err error, msg string) error {
+	if msg == "" {
+		return Errorc(c)
 	}
-	return asGinErr(c, fmt.Errorf(format, a...), gin.ErrorTypePrivate)
+	return asGinErr(c, wrapError{internal: err, external: errors.New(msg)}, gin.ErrorTypePrivate)
 }
 
-// Errorw wraps an HTTP status code and the given error as error,
-// and only outputs the formatted message to frontend.
-func Errorw(c int, err error) error {
-	return asGinErr(c, err, gin.ErrorTypePublic)
+// Errorpf wraps an HTTP status code, format, and arguments as error,
+// but logs the given error internally.
+func Errorpf(c int, err error, format string, a ...any) error {
+	if format == "" {
+		return Errorc(c)
+	}
+	if len(a) == 0 {
+		return Errorp(c, err, format)
+	}
+	return asGinErr(c, wrapError{internal: err, external: fmt.Errorf(format, a...)}, gin.ErrorTypePrivate)
 }
 
-// ErrorwP wraps an HTTP status code and the given error as error,
-// but only logs the formatted message to backend.
-func ErrorwP(c int, err error) error {
-	return asGinErr(c, err, gin.ErrorTypePrivate)
+// Errorw is similar to Errorp,
+// it gains the HTTP status code from the given error,
+// and wraps the HTTP status code and string message as error,
+// but logs the given error internally.
+func Errorw(err error, msg string) error {
+	if err == nil {
+		return nil
+	}
+	return &gin.Error{
+		Err: wrapError{
+			internal: err,
+			external: errors.New(msg),
+		},
+		Type: gin.ErrorTypePrivate,
+	}
+}
+
+// Errorwf is similar to Errorpf,
+// it gains the HTTP status code from the given error,
+// and wraps the HTTP status code and format, and arguments as error,
+// but logs the given error internally.
+func Errorwf(err error, format string, a ...any) error {
+	if err == nil {
+		return nil
+	}
+	if len(a) == 0 {
+		return Errorw(err, format)
+	}
+	return &gin.Error{
+		Err: wrapError{
+			internal: err,
+			external: fmt.Errorf(format, a...),
+		},
+		Type: gin.ErrorTypePrivate,
+	}
 }
 
 func asGinErr(c int, err error, typ gin.ErrorType) error {
@@ -130,4 +166,17 @@ func (e httpError) JSON() any {
 
 func (e httpError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.JSON())
+}
+
+type wrapError struct {
+	internal error
+	external error
+}
+
+func (e wrapError) Error() string {
+	return fmt.Sprintf("%v: %v", e.external, e.internal)
+}
+
+func (e wrapError) Unwrap() error {
+	return e.internal
 }
