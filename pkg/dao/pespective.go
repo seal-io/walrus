@@ -46,6 +46,9 @@ func PerspectiveUpdate(mc model.ClientSet, input *model.Perspective) (*model.Per
 	}
 	var c = mc.Perspectives().UpdateOne(input).
 		Where(ps...)
+	if input.Name != "" {
+		c.SetName(input.Name)
+	}
 	if input.StartTime != "" {
 		c.SetStartTime(input.StartTime)
 	}
