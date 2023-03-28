@@ -2,34 +2,40 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
+	"errors"
 
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 )
 
-var defaultProject = &model.Project{
-	Name:        "Default",
-	Description: "Default project",
-}
-
-// initDefaultProject creates a default project.
-func (r *Server) initDefaultProject(ctx context.Context, opts initOptions) error {
-	if count, err := opts.ModelClient.Projects().Query().Count(ctx); err != nil {
-		return err
-	} else if count > 0 {
-		// initialized
-		return nil
+func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
+	var builtin = []*model.Project{
+		// default project
+		{
+			Name:        "Default",
+			Description: "Default project",
+		},
 	}
 
-	var creates, err = dao.ProjectCreates(opts.ModelClient, defaultProject)
+	var creates, err = dao.ProjectCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}
-
-	if _, err = creates[0].Save(ctx); err != nil {
-		return fmt.Errorf("failed to create the default project: %w", err)
+	for i := range creates {
+		// do nothing if the project has been created.
+		err = creates[i].
+			OnConflictColumns(project.FieldName).
+			DoNothing().
+			Exec(ctx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// no rows error is reasonable for nothing updating.
+				continue
+			}
+			return err
+		}
 	}
-
 	return nil
 }

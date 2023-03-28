@@ -38,7 +38,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "roles", init: r.initRoles},
 		initor{name: "subjects", init: r.initSubjects},
 		initor{name: "perspective", init: r.initPerspectives},
-		initor{name: "projects", init: r.initDefaultProject},
+		initor{name: "projects", init: r.initProjects},
 		initor{name: "environments", init: r.initEnvironments},
 		initor{name: "deployer-runtime", init: r.initDeployerRuntime},
 		initor{name: "interceptors", init: r.initInterceptors},
