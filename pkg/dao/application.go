@@ -18,15 +18,16 @@ import (
 // to process the relationship with model.Module.
 // TODO(thxCode): generate this with entc.
 type WrappedApplicationCreate struct {
-	entity   *model.Application
-	delegate *model.ApplicationCreate
+	*model.ApplicationCreate
+
+	entity *model.Application
 }
 
 func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Application, err error) {
-	var mc = ac.delegate.Mutation().Client()
+	var mc = ac.ApplicationCreate.Mutation().Client()
 
 	// save entity.
-	created, err = ac.delegate.Save(ctx)
+	created, err = ac.ApplicationCreate.Save(ctx)
 	if err != nil {
 		return
 	}
@@ -93,8 +94,8 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			c.SetVariables(r.Variables)
 		}
 		rrs[i] = &WrappedApplicationCreate{
-			entity:   input[i],
-			delegate: c,
+			ApplicationCreate: c,
+			entity:            input[i],
 		}
 	}
 	return rrs, nil
@@ -104,17 +105,18 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 // to process the relationship with model.Module.
 // TODO(thxCode): generate this with entc.
 type WrappedApplicationUpdate struct {
+	*model.ApplicationUpdate
+
 	entity           *model.Application
 	entityPredicates []predicate.Application
-	delegate         *model.ApplicationUpdate
 }
 
 func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err error) {
-	var mc = au.delegate.Mutation().Client()
+	var mc = au.ApplicationUpdate.Mutation().Client()
 
-	if len(au.delegate.Mutation().Fields()) != 0 {
+	if len(au.ApplicationUpdate.Mutation().Fields()) != 0 {
 		// update entity.
-		updated, err = au.delegate.Save(ctx)
+		updated, err = au.ApplicationUpdate.Save(ctx)
 		if err != nil {
 			return
 		}
@@ -241,9 +243,9 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			c.SetVariables(r.Variables)
 		}
 		rrs[i] = &WrappedApplicationUpdate{
-			entity:           input[i],
-			entityPredicates: ps,
-			delegate:         c,
+			ApplicationUpdate: c,
+			entity:            input[i],
+			entityPredicates:  ps,
 		}
 	}
 	return rrs, nil
