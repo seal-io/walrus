@@ -2,33 +2,39 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
+	"errors"
 
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 )
 
-var defaultEnvironment = &model.Environment{
-	Name:        "Default",
-	Description: "Default environment",
-}
-
-// initDefaultEnvironment creates a default environment.
-func (r *Server) initDefaultEnvironment(ctx context.Context, opts initOptions) error {
-	if count, err := opts.ModelClient.Environments().Query().Count(ctx); err != nil {
-		return err
-	} else if count > 0 {
-		// initialized
-		return nil
+func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
+	var builtin = []*model.Environment{
+		// default environment
+		{
+			Name:        "Default",
+			Description: "Default environment",
+		},
 	}
 
-	var creates, err = dao.EnvironmentCreates(opts.ModelClient, defaultEnvironment)
+	var creates, err = dao.EnvironmentCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}
-
-	if _, err = creates[0].Save(ctx); err != nil {
-		return fmt.Errorf("failed to create the default environment: %w", err)
+	for i := range creates {
+		err = creates[i].
+			OnConflictColumns(environment.FieldName).
+			DoNothing().
+			Exec(ctx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// no rows error is reasonable for nothing updating.
+				continue
+			}
+			return err
+		}
 	}
 
 	return nil

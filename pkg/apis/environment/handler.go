@@ -34,7 +34,7 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var entity = req.Model()
 	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.EnvironmentCreates(tx, req.Model())
+		var creates, err = dao.EnvironmentCreates(tx, entity)
 		if err != nil {
 			return err
 		}

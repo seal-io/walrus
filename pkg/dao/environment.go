@@ -19,15 +19,16 @@ import (
 // to process the relationship with model.Connector.
 // TODO(thxCode): generate this with entc.
 type WrappedEnvironmentCreate struct {
-	entity   *model.Environment
-	delegate *model.EnvironmentCreate
+	*model.EnvironmentCreate
+
+	entity *model.Environment
 }
 
 func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.Environment, err error) {
-	var mc = ec.delegate.Mutation().Client()
+	var mc = ec.EnvironmentCreate.Mutation().Client()
 
 	// save entity.
-	created, err = ec.delegate.Save(ctx)
+	created, err = ec.EnvironmentCreate.Save(ctx)
 	if err != nil {
 		return
 	}
@@ -84,8 +85,8 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			c.SetLabels(r.Labels)
 		}
 		rrs[i] = &WrappedEnvironmentCreate{
-			entity:   input[i],
-			delegate: c,
+			EnvironmentCreate: c,
+			entity:            input[i],
 		}
 	}
 	return rrs, nil
@@ -95,17 +96,18 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 // to process the relationship with model.Connector.
 // TODO(thxCode): generate this with entc.
 type WrappedEnvironmentUpdate struct {
+	*model.EnvironmentUpdate
+
 	entity           *model.Environment
 	entityPredicates []predicate.Environment
-	delegate         *model.EnvironmentUpdate
 }
 
 func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err error) {
-	var mc = eu.delegate.Mutation().Client()
+	var mc = eu.EnvironmentUpdate.Mutation().Client()
 
-	if len(eu.delegate.Mutation().Fields()) != 0 {
+	if len(eu.EnvironmentUpdate.Mutation().Fields()) != 0 {
 		// update entity.
-		updated, err = eu.delegate.Save(ctx)
+		updated, err = eu.EnvironmentUpdate.Save(ctx)
 		if err != nil {
 			return
 		}
@@ -210,9 +212,9 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			c.SetLabels(r.Labels)
 		}
 		rrs[i] = &WrappedEnvironmentUpdate{
-			entity:           input[i],
-			entityPredicates: ps,
-			delegate:         c,
+			EnvironmentUpdate: c,
+			entity:            input[i],
+			entityPredicates:  ps,
 		}
 	}
 	return rrs, nil
