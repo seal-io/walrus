@@ -161,11 +161,11 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 	moduleName := modules.GetModuleNameByPath(req.Path)
 	moduleFiles, err := modules.GetTerraformModuleFiles(moduleName, req.Content)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting terraform module files: %w", err)
 	}
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ConnectorID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting connector: %w", err)
 	}
 
 	if !types.IsVCS(conn) {
@@ -174,19 +174,19 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 
 	client, err := vcs.NewClient(conn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating version control system client: %w", err)
 	}
 
 	ref, _, err := client.Git.FindBranch(ctx, req.Repository, req.Branch)
 	if err != nil {
-		return nil, err
+		return nil, runtime.Errorpf(http.StatusBadRequest, err, "error indexing branch %s from repository %s",
+			req.Branch, req.Repository)
 	}
 
 	var commitInput = &scm.CommitInput{
 		Message: "Module generated from Seal",
 		Base:    ref.Sha,
 	}
-
 	for name, content := range moduleFiles {
 		commitInput.Blobs = append(commitInput.Blobs, scm.Blob{
 			Path:    filepath.Join(req.Path, name),
@@ -194,10 +194,10 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 			Content: content,
 		})
 	}
-
 	commit, _, err := client.Git.CreateCommit(ctx, req.Repository, commitInput)
 	if err != nil {
-		return nil, err
+		return nil, runtime.Errorwf(err, "error creating new commit for repository %s",
+			req.Repository)
 	}
 
 	stagingBranch := fmt.Sprintf("seal/module-" + strs.String(5))
@@ -207,7 +207,8 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 	}
 	_, err = client.Git.CreateBranch(ctx, req.Repository, refInput)
 	if err != nil {
-		return nil, err
+		return nil, runtime.Errorwf(err, "error creating new branch %s for repository %s",
+			refInput.Name, req.Repository)
 	}
 
 	// TODO more informative PR body. e.g., let chatGPT generate it.
@@ -219,7 +220,8 @@ func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequ
 	}
 	pr, _, err := client.PullRequests.Create(ctx, req.Repository, prInput)
 	if err != nil {
-		return nil, err
+		return nil, runtime.Errorwf(err, "error creating pull request from branch %s for repository %s",
+			prInput.Source, req.Repository)
 	}
 	return &view.CreatePrResponse{
 		Link: pr.Link,
