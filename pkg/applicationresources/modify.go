@@ -3,8 +3,6 @@ package applicationresources
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
@@ -29,18 +27,19 @@ func Update(ctx context.Context, message resourcetopic.TopicMessage) error {
 		if err != nil {
 			return err
 		}
-		oldResourceSet := sets.NewString()
+
+		oldResourceKeys := make(map[string]types.ID)
 		for _, r := range oldResources {
 			uniqueKey := getFingerprint(r)
-			oldResourceSet.Insert(uniqueKey)
+			oldResourceKeys[uniqueKey] = r.ID
 		}
 
 		for _, ar := range message.ApplicationResources {
 			// check if the resource is exists.
 			key := getFingerprint(ar)
-			exists := oldResourceSet.Has(key)
+			oldResourceID, exists := oldResourceKeys[key]
 			if exists {
-				existResourceIDs = append(existResourceIDs, ar.ID)
+				existResourceIDs = append(existResourceIDs, oldResourceID)
 			} else {
 				newResources = append(newResources, ar)
 			}
