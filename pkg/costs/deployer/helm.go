@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	timeout = 3 * time.Minute
+	timeout = 5 * time.Minute
 )
 
 type ChartApp struct {
