@@ -544,7 +544,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		ms.Insert(ht.Method(i).Name)
 	}
 
-	for _, mn := range ms.UnsortedList() {
+	for _, mn := range sets.List[string](ms) {
 		var mr = hr.MethodByName(mn)
 		var mrt = mr.Type()
 
@@ -717,18 +717,19 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 					list[idx].refs = append(list[idx].refs, mr)
 				} else {
 					list[idx].refs[0] = mr
+					list[idx].name = mn // rename to GET handler.
 				}
-			} else {
-				if forStream { // attach to GET handler.
-					rh.refs = []reflect.Value{{}, mr}
-				}
+				continue
+			}
+			if forStream { // attach to GET handler.
+				rh.refs = []reflect.Value{{}, mr}
 			}
 		}
 		index[rh.method+":"+rh.path] = len(list)
 		list = append(list, rh)
 	}
 
-	for _, mn := range ms.UnsortedList() {
+	for _, mn := range sets.List[string](ms) {
 		var mr = hr.MethodByName(mn)
 		var mrt = mr.Type()
 
@@ -810,6 +811,14 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		}
 
 		rh.refs = []reflect.Value{mr}
+		if rh.method == http.MethodGet {
+			var idx, exist = index[rh.method+":"+rh.path]
+			if exist {
+				list[idx].refs[0] = mr
+				list[idx].name = mn // rename to the GET handler.
+				continue
+			}
+		}
 		index[rh.method+":"+rh.path] = len(list)
 		list = append(list, rh)
 	}
