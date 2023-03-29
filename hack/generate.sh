@@ -13,6 +13,8 @@ function generate() {
   local path="$3"
 
   go run -mod=mod "${path}"
+
+  go generate ./...
 }
 
 function dispatch() {
@@ -39,11 +41,22 @@ function dispatch() {
   done
 }
 
+function validate_gotext() {
+    if [[ -n "$(command -v gotext)" ]]; then
+      return 0
+    fi
+
+    seal::log::info "installing gotext"
+    go install golang.org/x/text/cmd/gotext@latest
+}
+
 #
 # main
 #
 
 seal::log::info "+++ GENERATE +++"
+
+validate_gotext
 
 dispatch "seal" "${ROOT_DIR}" "$@"
 

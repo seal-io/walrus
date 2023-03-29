@@ -81,6 +81,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 			"/debug/version"),
 		runtime.Recovering(),
 		runtime.Erroring(),
+		runtime.I18n(),
 	)
 
 	runtime.MustRouteGet(apis, "/livez", health.Livez())

@@ -5,56 +5,42 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/gin-gonic/gin"
 	"github.com/sashabaranov/go-openai"
-	"github.com/sirupsen/logrus"
 
 	"github.com/seal-io/seal/pkg/apis/modulecompletion/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/connectors/types"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/i18n/text"
 	"github.com/seal-io/seal/pkg/modules"
 	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/pkg/vcs"
 	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
 
 var examples = []view.ModuleCompletionPromptExample{
 	{
-		Name:   "Create a Kubernetes deployment",
-		Prompt: "# Create a Kubernetes deployment. Provide common variables.",
+		Name:   text.ExampleKubernetesName,
+		Prompt: text.ExampleKubernetesPrompt,
 	},
 	{
-		Name:   "Create an alibaba cloud virtual machine",
-		Prompt: "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
+		Name:   text.ExampleAlibabaCloudName,
+		Prompt: text.ExampleAlibabaCloudPrompt,
 	},
 	{
-		Name:   "Deploy an ELK stack",
-		Prompt: "# Deploy an ELK stack using helm chart.",
+		Name:   text.ExampleELKName,
+		Prompt: text.ExampleELKPrompt,
 	},
 }
 
 const (
 	gpt35MaxTokens = 4096
-
-	terraformModuleGenerateSystemMessage = "You are translating natural language to a Terraform module." +
-		" Please do not explain, just write terraform code." +
-		" Please do not explain, just write terraform code." +
-		" Please do not explain, just write terraform code."
-
-	terraformModuleExplainSystemMessage = "Please explain the given terraform module."
-
-	terraformModuleCorrectSystemMessage = "Please Check and fix the given terraform module if there's any mistake.\n" +
-		"Output in the following JSON format:\n" +
-		`
-		{
-			"corrected": "The corrected terraform code.",
-			"explanation": "Explanation of the fixes."
-		}
-		`
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -79,22 +65,50 @@ func (h Handler) Validating() any {
 
 // Extensional APIs
 
-func (h Handler) CollectionRouteExamples(_ *gin.Context, _ view.ExampleRequest) (view.ExampleResponse, error) {
-	return examples, nil
+func (h Handler) CollectionRouteExamples(c *gin.Context, _ view.ExampleRequest) (view.ExampleResponse, error) {
+	var translated []view.ModuleCompletionPromptExample
+
+	for _, e := range examples {
+		translated = append(translated, view.ModuleCompletionPromptExample{
+			Name:   runtime.Translate(c, e.Name),
+			Prompt: runtime.Translate(c, e.Prompt),
+		})
+	}
+
+	return translated, nil
 }
 
 func (h Handler) CollectionRouteGenerate(ctx *gin.Context, req view.GenerateRequest) (*view.GenerateResponse, error) {
-	result, err := h.createCompletion(ctx, terraformModuleGenerateSystemMessage, req.Text)
+	prompt := runtime.Translate(ctx, text.TerraformModuleGenerateSystemMessage)
+	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
 	}
+
 	return &view.GenerateResponse{
-		Text: result,
+		Text: trimMarkdownCodeBlock(result),
 	}, nil
 }
 
+// trimMarkdownCodeBlock trims the beginning/ending markdown code block annotations(```)
+// ChatGPT loves to reply codes with those and there's no deterministic way to tell it not to do that.
+func trimMarkdownCodeBlock(s string) string {
+	const (
+		codeAnnotation = "```"
+		newline        = "\n"
+	)
+	if strings.HasPrefix(s, codeAnnotation) && strings.HasSuffix(s, codeAnnotation) {
+		s = strings.TrimPrefix(s, codeAnnotation)
+		s = strings.TrimSuffix(s, codeAnnotation)
+		s = strings.TrimPrefix(s, newline)
+		s = strings.TrimSuffix(s, newline)
+	}
+	return s
+}
+
 func (h Handler) CollectionRouteExplain(ctx *gin.Context, req view.ExplainRequest) (*view.ExplainResponse, error) {
-	result, err := h.createCompletion(ctx, terraformModuleExplainSystemMessage, req.Text)
+	prompt := runtime.Translate(ctx, text.TerraformModuleExplainSystemMessage)
+	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +118,19 @@ func (h Handler) CollectionRouteExplain(ctx *gin.Context, req view.ExplainReques
 }
 
 func (h Handler) CollectionRouteCorrect(ctx *gin.Context, req view.CorrectRequest) (*view.CorrectResponse, error) {
-	result, err := h.createCompletion(ctx, terraformModuleCorrectSystemMessage, req.Text)
+	// gotext cannot handle brackets in messages, see https://github.com/golang/go/issues/27849.
+	// we need to split the text as a workaround.
+	desc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageDesc)
+	correctedDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageCorrectedDesc)
+	explanationDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageExplanationDesc)
+	prompt := fmt.Sprintf(`%s\n{"corrected": "%s", "explanation": "%s"}\n`, desc, correctedDesc, explanationDesc)
+	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
 	}
 	correctResp := &view.CorrectResponse{}
 	if err := json.Unmarshal([]byte(result), correctResp); err != nil {
-		logrus.Debugf("correction output from openAI: %v", result)
+		log.Debugf("correction message is not in the format requested by the prompt. output:\n%v", result)
 		return nil, errors.New("failed to parse correction advice")
 	}
 

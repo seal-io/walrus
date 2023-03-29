@@ -1,0 +1,60 @@
+{
+    "language": "zh",
+    "messages": [
+        {
+            "id": "Create a Kubernetes deployment",
+            "message": "Create a Kubernetes deployment",
+            "translation": "创建一个Kubernetes deployment"
+        },
+        {
+            "id": "# Create a Kubernetes deployment. Provide common variables.",
+            "message": "# Create a Kubernetes deployment. Provide common variables.",
+            "translation": "# 创建一个Kubernetes deployment，提供常用的变量。"
+        },
+        {
+            "id": "Create an alibaba cloud virtual machine",
+            "message": "Create an alibaba cloud virtual machine",
+            "translation": "创建一个阿里云虚拟机"
+        },
+        {
+            "id": "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
+            "message": "# Create a resource group, virtual network, subnet and virtual machine on alibaba cloud.",
+            "translation": "# 在阿里云上创建一个资源组，虚拟网络，子网和虚拟机。"
+        },
+        {
+            "id": "Deploy an ELK stack",
+            "message": "Deploy an ELK stack",
+            "translation": "部署ELK组件"
+        },
+        {
+            "id": "# Deploy an ELK stack using helm chart.",
+            "message": "# Deploy an ELK stack using helm chart.",
+            "translation": "# 使用Helm chart部署ELK组件。"
+        },
+        {
+            "id": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code.",
+            "message": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code.",
+            "translation": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code."
+        },
+        {
+            "id": "Please explain the given terraform module.",
+            "message": "Please explain the given terraform module.",
+            "translation": "请解释提供的Terraform module。"
+        },
+        {
+            "id": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:",
+            "message": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:",
+            "translation": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:"
+        },
+        {
+            "id": "Terraform code that is fixed.",
+            "message": "Terraform code that is fixed.",
+            "translation": "Terraform code that is fixed."
+        },
+        {
+            "id": "Explanation of the fixes.",
+            "message": "Explanation of the fixes.",
+            "translation": "Explanation of the fixes in Chinese."
+        }
+    ]
+}
