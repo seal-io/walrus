@@ -299,7 +299,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 	for _, s := range opts.Secrets {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{s.Name},
+			Labels: []string{opts.Prefix + s.Name},
 			Attributes: map[string]interface{}{
 				"type":      variableType,
 				"sensitive": true,
@@ -316,7 +316,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{k},
+			Labels: []string{opts.Prefix + k},
 			Attributes: map[string]interface{}{
 				"type": variableType,
 			},
