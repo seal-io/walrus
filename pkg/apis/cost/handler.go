@@ -2,6 +2,7 @@ package cost
 
 import (
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -127,11 +128,22 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 
 	// average
 	averageDailyCost := averageDaily(days, totalCost)
+
+	// collected time range
+	timeRange := &view.CollectedTimeRange{}
+	if totalCost != 0 {
+		timeRange, err = h.clusterCostCollectedDataRange(ctx, req.StartTime.Location())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &view.SummaryCostResponse{
-		TotalCost:        totalCost,
-		AverageDailyCost: averageDailyCost,
-		ClusterCount:     len(clusters),
-		ProjectCount:     projectCount,
+		TotalCost:          totalCost,
+		AverageDailyCost:   averageDailyCost,
+		ClusterCount:       len(clusters),
+		ProjectCount:       projectCount,
+		CollectedTimeRange: timeRange,
 	}, nil
 }
 
@@ -170,7 +182,19 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 		return nil, err
 	}
 
+	// collected time range
+	timeRange := &view.CollectedTimeRange{}
+	if s[0].TotalCost != 0 {
+		timeRange, err = h.clusterCostCollectedDataRange(ctx,
+			req.StartTime.Location(),
+			sql.EQ(clustercost.FieldConnectorID, req.ConnectorID))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	summary := s[0]
+	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
 	return &summary, nil
 }
@@ -207,7 +231,19 @@ func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.Su
 		return nil, err
 	}
 
+	// collected time range
+	timeRange := &view.CollectedTimeRange{}
+	if s[0].TotalCost != 0 {
+		timeRange, err = h.allocationCostCollectedDataRange(ctx,
+			req.StartTime.Location(),
+			sqljson.ValueEQ(allocationcost.FieldLabels, req.Project, sqljson.Path(types.LabelSealProject)))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	summary := s[0]
+	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, s[0].TotalCost)
 	return &summary, nil
 }
@@ -240,6 +276,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		return nil, err
 	}
 
+	// summary
 	summary := &view.SummaryQueriedCostResponse{}
 	for _, v := range items {
 		summary.TotalCost += v.TotalCost
@@ -249,6 +286,19 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		summary.RamCost += v.RamCost
 		summary.PvCost += v.PvCost
 	}
+
+	// collected time range
+	timeRange := &view.CollectedTimeRange{}
+	if summary.TotalCost != 0 {
+		timeRange, err = h.allocationCostCollectedDataRange(ctx,
+			req.StartTime.Location(),
+			distributor.FilterToSQLPredicates(cond.Filters))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
 	summary.ConnectorCount = count
 	return summary, nil
@@ -302,6 +352,82 @@ func (h Handler) allocationCostExistedDays(ctx *gin.Context, ps []*sql.Predicate
 	}
 
 	return days, nil
+}
+
+func (h Handler) clusterCostCollectedDataRange(ctx *gin.Context, loc *time.Location, ps ...*sql.Predicate) (*view.CollectedTimeRange, error) {
+	modifier := func(s *sql.Selector) {
+		s.Select(
+			clustercost.FieldStartTime,
+			clustercost.FieldEndTime,
+		)
+
+		if len(ps) != 0 {
+			s.Where(
+				sql.And(ps...),
+			)
+		}
+	}
+
+	// first
+	first, err := h.modelClient.ClusterCosts().Query().
+		Modify(modifier).
+		Order(model.Asc(clustercost.FieldStartTime)).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error get first collected cost data: %w", err)
+	}
+
+	// last
+	last, err := h.modelClient.ClusterCosts().Query().
+		Modify(modifier).
+		Order(model.Desc(clustercost.FieldStartTime)).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error get last collected cost data: %w", err)
+	}
+
+	return &view.CollectedTimeRange{
+		FirstTime: first.StartTime.In(loc),
+		LastTime:  last.EndTime.In(loc),
+	}, nil
+}
+
+func (h Handler) allocationCostCollectedDataRange(ctx *gin.Context, loc *time.Location, ps ...*sql.Predicate) (*view.CollectedTimeRange, error) {
+	modifier := func(s *sql.Selector) {
+		s.Select(
+			clustercost.FieldStartTime,
+			clustercost.FieldEndTime,
+		)
+
+		if len(ps) != 0 {
+			s.Where(
+				sql.And(ps...),
+			)
+		}
+	}
+
+	// first
+	first, err := h.modelClient.AllocationCosts().Query().
+		Modify(modifier).
+		Order(model.Asc(clustercost.FieldStartTime)).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error get first collected cost data: %w", err)
+	}
+
+	// last
+	last, err := h.modelClient.AllocationCosts().Query().
+		Modify(modifier).
+		Order(model.Desc(clustercost.FieldStartTime)).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error get last collected cost data: %w", err)
+	}
+
+	return &view.CollectedTimeRange{
+		FirstTime: first.StartTime.In(loc),
+		LastTime:  last.EndTime.In(loc),
+	}, nil
 }
 
 func averageDaily(days int, total float64) float64 {

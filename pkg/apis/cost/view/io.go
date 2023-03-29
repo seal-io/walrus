@@ -60,6 +60,11 @@ func (r *AllocationCostRequest) Validate() error {
 	return costvalidation.ValidateAllocationQuery(r.QueryCondition)
 }
 
+type CollectedTimeRange struct {
+	FirstTime time.Time `json:"firstTime,omitempty"`
+	LastTime  time.Time `json:"lastTime,omitempty"`
+}
+
 type SummaryCostRequest struct {
 	_ struct{} `route:"POST=/summary-costs"`
 
@@ -72,11 +77,12 @@ func (r *SummaryCostRequest) Validate() error {
 }
 
 type SummaryCostResponse struct {
-	Currency         int     `json:"currency,omitempty"`
-	TotalCost        float64 `json:"totalCost,omitempty"`
-	AverageDailyCost float64 `json:"averageDailyCost,omitempty"`
-	ProjectCount     int     `json:"projectCount,omitempty"`
-	ClusterCount     int     `json:"clusterCount,omitempty"`
+	Currency           int                 `json:"currency,omitempty"`
+	TotalCost          float64             `json:"totalCost,omitempty"`
+	AverageDailyCost   float64             `json:"averageDailyCost,omitempty"`
+	ProjectCount       int                 `json:"projectCount,omitempty"`
+	ClusterCount       int                 `json:"clusterCount,omitempty"`
+	CollectedTimeRange *CollectedTimeRange `json:"collectedTimeRange,omitempty"`
 }
 
 type SummaryClusterCostRequest struct {
@@ -99,12 +105,13 @@ func (r *SummaryClusterCostRequest) Validate() error {
 }
 
 type SummaryClusterCostResponse struct {
-	Currency         int     `json:"currency,omitempty"`
-	TotalCost        float64 `json:"totalCost,omitempty"`
-	AverageDailyCost float64 `json:"averageDailyCost,omitempty"`
-	AllocationCost   float64 `json:"allocationCost,omitempty"`
-	ManagementCost   float64 `json:"managementCost,omitempty"`
-	IdleCost         float64 `json:"idleCost,omitempty"`
+	Currency           int                 `json:"currency,omitempty"`
+	TotalCost          float64             `json:"totalCost,omitempty"`
+	AverageDailyCost   float64             `json:"averageDailyCost,omitempty"`
+	AllocationCost     float64             `json:"allocationCost,omitempty"`
+	ManagementCost     float64             `json:"managementCost,omitempty"`
+	IdleCost           float64             `json:"idleCost,omitempty"`
+	CollectedTimeRange *CollectedTimeRange `json:"collectedTimeRange,omitempty"`
 }
 
 type SummaryProjectCostRequest struct {
@@ -127,9 +134,10 @@ func (r *SummaryProjectCostRequest) Validate() error {
 }
 
 type SummaryCostCommonResponse struct {
-	Currency         int     `json:"currency,omitempty"`
-	TotalCost        float64 `json:"totalCost,omitempty"`
-	AverageDailyCost float64 `json:"averageDailyCost,omitempty"`
+	Currency           int                 `json:"currency,omitempty"`
+	TotalCost          float64             `json:"totalCost,omitempty"`
+	AverageDailyCost   float64             `json:"averageDailyCost,omitempty"`
+	CollectedTimeRange *CollectedTimeRange `json:"collectedTimeRange,omitempty"`
 }
 
 type SummaryQueriedCostRequest struct {
@@ -164,6 +172,7 @@ func (r *SummaryQueriedCostRequest) Validate() error {
 type SummaryQueriedCostResponse struct {
 	Cost `json:",inline"`
 
-	AverageDailyCost float64 `json:"averageDailyCost,omitempty"`
-	ConnectorCount   int     `json:"connectorCount,omitempty"`
+	AverageDailyCost   float64             `json:"averageDailyCost,omitempty"`
+	ConnectorCount     int                 `json:"connectorCount,omitempty"`
+	CollectedTimeRange *CollectedTimeRange `json:"collectedTimeRange,omitempty"`
 }
