@@ -58,6 +58,8 @@ type (
 
 	// VariableOptions is the options to create variables blocks.
 	VariableOptions struct {
+		// Prefix is the prefix of the variable name.
+		Prefix string
 		// Secrets is the  model.Secrets of the deployment.
 		Secrets model.Secrets
 		// Variables is the variables of the deployment.

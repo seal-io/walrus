@@ -55,6 +55,16 @@ type CreateSecretsOptions struct {
 // terraform will get and update deployment states from this API.
 const _backendAPI = "/v1/application-revisions/%s/terraform-states"
 
+// _varPrefix the prefix of the variable name.
+const _varPrefix = "_seal_"
+
+var (
+	// _secretReg the regexp to match the secret variable.
+	_secretReg = regexp.MustCompile(`\${secret\.([a-zA-Z0-9_]+)}`)
+	// _varReg the regexp to match the variable.
+	_varReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_]+)}`)
+)
+
 func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deployer, error) {
 	clientSet, err := kubernetes.NewForConfig(opts.KubeConfig)
 	if err != nil {
@@ -365,6 +375,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 			VariableOptions: &config.VariableOptions{
 				Variables: opts.ApplicationRevision.InputVariables,
 				Secrets:   secrets,
+				Prefix:    _varPrefix,
 			},
 		},
 		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
@@ -499,7 +510,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		secrets       model.Secrets
 	)
 	for _, moduleConfig := range moduleConfigs {
-		moduleSecrets = parseAttributeSecrets(moduleConfig.Attributes, moduleSecrets)
+		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
 	}
 	nameIn := make([]interface{}, len(moduleSecrets))
 	for i, name := range moduleSecrets {
@@ -609,10 +620,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 	return err
 }
 
-// parseAttributeSecrets parses attribute secrets ${secret.name} replaces it with ${var.name},
+// parseAttributeReplace parses attribute secrets ${secret.name} replaces it with ${var._varprefix+name},
 // and returns secret names.
-func parseAttributeSecrets(attributes map[string]interface{}, secretNames []string) []string {
-	re := regexp.MustCompile(`\${secret\.([a-zA-Z0-9_]+)}`)
+func parseAttributeReplace(
+	attributes map[string]interface{},
+	secretNames []string,
+) []string {
 	for key, value := range attributes {
 		if value == nil {
 			continue
@@ -624,10 +637,10 @@ func parseAttributeSecrets(attributes map[string]interface{}, secretNames []stri
 				continue
 			}
 
-			secretNames = parseAttributeSecrets(value.(map[string]interface{}), secretNames)
+			secretNames = parseAttributeReplace(value.(map[string]interface{}), secretNames)
 		case reflect.String:
 			str := value.(string)
-			matches := re.FindAllStringSubmatch(str, -1)
+			matches := _secretReg.FindAllStringSubmatch(str, -1)
 			var matched []string
 			for _, match := range matches {
 				if len(match) > 1 {
@@ -635,7 +648,9 @@ func parseAttributeSecrets(attributes map[string]interface{}, secretNames []stri
 				}
 			}
 			secretNames = append(secretNames, matched...)
-			attributes[key] = re.ReplaceAllString(str, "${var.${1}}")
+			repl := "${var." + _varPrefix + "${1}}"
+			str = _varReg.ReplaceAllString(str, repl)
+			attributes[key] = _secretReg.ReplaceAllString(str, repl)
 		case reflect.Slice:
 			if _, ok := value.([]interface{}); !ok {
 				continue
@@ -645,7 +660,7 @@ func parseAttributeSecrets(attributes map[string]interface{}, secretNames []stri
 				if _, ok := v.(map[string]interface{}); !ok {
 					continue
 				}
-				secretNames = parseAttributeSecrets(v.(map[string]interface{}), secretNames)
+				secretNames = parseAttributeReplace(v.(map[string]interface{}), secretNames)
 			}
 		}
 	}
@@ -658,11 +673,11 @@ func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}
 	}
 
 	for _, v := range secrets {
-		varsConfigOpts.Attributes[v.Name] = v.Value
+		varsConfigOpts.Attributes[_varPrefix+v.Name] = v.Value
 	}
 
 	for k, v := range variables {
-		varsConfigOpts.Attributes[k] = v
+		varsConfigOpts.Attributes[_varPrefix+k] = v
 	}
 
 	return varsConfigOpts
