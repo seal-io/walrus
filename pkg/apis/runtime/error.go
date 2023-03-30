@@ -126,6 +126,7 @@ func isGinError(err error) bool {
 type httpError struct {
 	code  int
 	cause error
+	brief string
 }
 
 func (e httpError) Error() string {
@@ -143,6 +144,9 @@ func (e httpError) Error() string {
 		}
 		sb.WriteString(": ")
 		sb.WriteString(e.cause.Error())
+	} else if e.brief != "" {
+		sb.WriteString(": ")
+		sb.WriteString(e.brief)
 	}
 	return sb.String()
 }
@@ -160,6 +164,8 @@ func (e httpError) JSON() any {
 			}
 		}
 		jsonData["message"] = e.cause.Error()
+	} else if e.brief != "" {
+		jsonData["message"] = e.brief
 	}
 	return jsonData
 }
