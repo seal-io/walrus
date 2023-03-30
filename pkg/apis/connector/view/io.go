@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/vcs"
 )
 
 // Basic APIs
@@ -196,12 +197,23 @@ func validateConnector(ctx context.Context, entity *model.Connector) error {
 		if !connected {
 			return errors.New("invalid connector: unreachable")
 		}
-	case types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
-		if entity.EnableFinOps {
-			return errors.New("invalid connector: finOps not supported")
+	case types.ConnectorCategoryVersionControl:
+		vcsClient, err := vcs.NewClient(entity)
+		if err != nil {
+			return fmt.Errorf("invalid connector config: %w", err)
 		}
+
+		_, _, err = vcsClient.Users.Find(ctx)
+		if err != nil {
+			return fmt.Errorf("invalid connector: %w", err)
+		}
+
 	default:
 		return errors.New("invalid connector category")
+	}
+
+	if entity.Category != types.ConnectorCategoryKubernetes && entity.EnableFinOps {
+		return errors.New("invalid connector: finOps not supported")
 	}
 
 	return nil
