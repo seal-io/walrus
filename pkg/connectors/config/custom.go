@@ -38,7 +38,7 @@ import (
 type CustomConfig struct {
 	// Attributes is the custom connector attribute
 	// e.g. access_key, secret_key, etc.
-	Attributes map[string]interface{} `json:"attribute"`
+	Attributes map[string]interface{} `json:"attributes"`
 
 	// TODO add block support, some custom connector may need Dependencies(blocks)
 	// Dependencies is the dependencies of the custom connector.
@@ -49,7 +49,7 @@ type CustomConfig struct {
 type Dependency struct {
 	Type       string                 `json:"type"`
 	Label      []string               `json:"label"`
-	Attributes map[string]interface{} `json:"attribute"`
+	Attributes map[string]interface{} `json:"attributes"`
 
 	Children []Dependency `json:"children"`
 }

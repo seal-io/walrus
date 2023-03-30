@@ -249,6 +249,7 @@ func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
 	return convertor.ToProvidersBlocks(opts.RequiredProviders, opts.Connectors, convertor.ConvertOptions{
 		SecretMountPath: opts.SecretMonthPath,
 		ConnSeparator:   opts.ConnectorSeparator,
+		Providers:       opts.RequiredProviders,
 	})
 }
 
