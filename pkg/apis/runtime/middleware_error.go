@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/gin-gonic/gin"
@@ -49,27 +50,7 @@ func getHttpError(c *gin.Context) (he httpError) {
 		he.code = http.StatusInternalServerError
 	} else {
 		if !errors.As(ge.Err, &he) {
-			var cause = errors.Unwrap(ge.Err)
-			if cause == nil {
-				cause = ge.Err
-			}
-			var code = http.StatusInternalServerError
-			if ge.Type == gin.ErrorTypeBind {
-				code = http.StatusBadRequest
-			}
-			switch {
-			case isBadRequestError(cause):
-				code = http.StatusBadRequest
-			case isNotFoundError(cause):
-				code = http.StatusNotFound
-			case isConflictError(cause):
-				code = http.StatusConflict
-			case isUnprocessableEntityError(cause):
-				code = http.StatusUnprocessableEntity
-			case isInternalServerError(cause):
-				code = http.StatusInternalServerError
-			}
-			he.code = code
+			he.code, he.brief = diagnoseError(ge)
 			he.cause = ge.Err
 		}
 		if ge.Type == gin.ErrorTypePrivate {
@@ -90,22 +71,111 @@ func getHttpError(c *gin.Context) (he httpError) {
 	return
 }
 
-func isBadRequestError(err error) bool {
-	return model.IsValidationError(err)
+func diagnoseError(ge *gin.Error) (int, string) {
+	var c = http.StatusInternalServerError
+	if ge.Type == gin.ErrorTypeBind {
+		c = http.StatusBadRequest
+	}
+
+	var b strings.Builder
+	if ge.Meta != nil {
+		var m, ok = ge.Meta.(RouteResourceHandleErrorMetadata)
+		if ok {
+			b.WriteString(m.String())
+		}
+	}
+
+	var err = ge.Err
+	if ue := errors.Unwrap(err); ue != nil {
+		err = ue
+	}
+	for i := range diagnosis {
+		var s = diagnosis[i].probe(err)
+		if s == "" {
+			continue
+		}
+		c = diagnosis[i].code
+		if b.Len() != 0 {
+			b.WriteString(": ")
+		}
+		b.WriteString(s)
+		break
+	}
+	return c, b.String()
 }
 
-func isNotFoundError(err error) bool {
-	return model.IsNotFound(err) || model.IsNotSingular(err)
+var diagnosis = []struct {
+	code  int
+	probe func(error) string
+}{
+	{
+		code:  http.StatusBadRequest,
+		probe: isBadRequestError,
+	},
+	{
+		code:  http.StatusNotFound,
+		probe: isNotFoundError,
+	},
+	{
+		code:  http.StatusConflict,
+		probe: isConflictError,
+	},
+	{
+		code:  http.StatusUnprocessableEntity,
+		probe: isUnprocessableEntityError,
+	},
+	{
+		code:  http.StatusInternalServerError,
+		probe: isInternalServerError,
+	},
 }
 
-func isConflictError(err error) bool {
-	return model.IsConstraintError(err) || sqlgraph.IsConstraintError(err)
+func isBadRequestError(err error) string {
+	if model.IsValidationError(err) {
+		return "datasource: violates validity detecting"
+	}
+	if strings.Contains(err.Error(), "sql: converting argument") {
+		return "datasource: invalid field parsing"
+	}
+	return ""
 }
 
-func isUnprocessableEntityError(err error) bool {
-	return model.IsNotLoaded(err) || errors.Is(err, sql.ErrNoRows)
+func isNotFoundError(err error) string {
+	switch {
+	case model.IsNotFound(err):
+		return "datasource: not found"
+	case model.IsNotSingular(err):
+		return "datasource: found more than one"
+	}
+	return ""
 }
 
-func isInternalServerError(err error) bool {
-	return errors.Is(err, sql.ErrConnDone) || errors.Is(err, sql.ErrTxDone)
+func isConflictError(err error) string {
+	switch {
+	case sqlgraph.IsUniqueConstraintError(err):
+		return "datasource: duplicated"
+	case sqlgraph.IsForeignKeyConstraintError(err):
+		return "datasource: be depended on other resources"
+	}
+	return ""
+}
+
+func isUnprocessableEntityError(err error) string {
+	switch {
+	case model.IsNotLoaded(err):
+		return "datasource: no dependencies"
+	case errors.Is(err, sql.ErrNoRows):
+		return "datasource: no changed"
+	}
+	return ""
+}
+
+func isInternalServerError(err error) string {
+	switch {
+	case errors.Is(err, sql.ErrConnDone):
+		return "datasource: closed"
+	case errors.Is(err, sql.ErrTxDone):
+		return "datasource: transaction closed"
+	}
+	return ""
 }

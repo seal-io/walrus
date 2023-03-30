@@ -205,6 +205,48 @@ func MustRouteResource(r gin.IRoutes, h Resource) {
 	}
 }
 
+// RouteResourceHandleErrorMetadata is the metadata of the RouteResource handler,
+// which is used for clarifying the error happening where.
+type RouteResourceHandleErrorMetadata struct {
+	Resource string
+	Name     string
+}
+
+// String implements the fmt.Stringer,
+// outputs example as below.
+// e.g.
+//
+//	Resource:   applicationInstances
+//	Name:       Get
+//	            CollectionGet
+//	            RouteUpgradeInstance
+//	            StreamLog
+//	Output:     failed to get application instance
+//	            failed to get application instances
+//	            failed to upgrade instance
+//	            failed to stream log application instance
+func (m RouteResourceHandleErrorMetadata) String() string {
+	var sb strings.Builder
+	sb.WriteString("failed to ")
+
+	var n = m.Name
+	var cn = strings.TrimPrefix(n, "Collection")
+	n, isPlural := cn, cn != n
+	var rn = strings.TrimPrefix(n, "Route")
+	n, isCustomized := rn, rn != n
+	sb.WriteString(strings.ReplaceAll(strs.Dasherize(n), "-", " "))
+	if !isCustomized {
+		var r = m.Resource
+		if !isPlural {
+			r = strs.Singularize(r)
+		}
+		sb.WriteString(" ")
+		sb.WriteString(strings.ReplaceAll(strs.Dasherize(r), "-", " "))
+	}
+
+	return sb.String()
+}
+
 // RouteResource reflects the function descriptors of the given handler,
 // and registers as router if satisfy the below rules.
 //
@@ -310,6 +352,10 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 		}
 
 		// construct virtual handler.
+		var vhm = RouteResourceHandleErrorMetadata{
+			Resource: resource,
+			Name:     rh.name,
+		}
 		var vh = func(c *gin.Context) {
 			// auth request.
 			var s = session.LoadSubject(c)
@@ -393,7 +439,8 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			if rv, ok := ri.Interface().(Validator); ok {
 				if err := rv.Validate(); err != nil {
 					_ = c.Error(err).
-						SetType(gin.ErrorTypeBind)
+						SetType(gin.ErrorTypeBind).
+						SetMeta(vhm)
 					return
 				}
 			}
@@ -402,7 +449,8 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				if ok {
 					if err := rv.ValidateWith(c, hv.Validating()); err != nil {
 						_ = c.Error(err).
-							SetType(gin.ErrorTypeBind)
+							SetType(gin.ErrorTypeBind).
+							SetMeta(vhm)
 						return
 					}
 				}
@@ -435,7 +483,8 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				var err = errInterface.(error)
 				var ge = c.Error(err)
 				if !isGinError(err) {
-					_ = ge.SetType(gin.ErrorTypePrivate)
+					_ = ge.SetType(gin.ErrorTypePrivate).
+						SetMeta(vhm)
 				}
 				return
 			}
