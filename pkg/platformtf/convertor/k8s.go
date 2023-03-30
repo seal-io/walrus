@@ -2,7 +2,6 @@ package convertor
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -17,39 +16,41 @@ type K8sConvertorOptions struct {
 	GetSecretName func(string) string
 }
 
-// K8sConvertor mutate the types.ConnectorTypeK8s connector to ProviderK8s provider block.
-type K8sConvertor struct{}
+// K8sConvertor mutate the types.ConnectorTypeK8s connector to Kubernetes provider block.
+type K8sConvertor string
 
-func (m K8sConvertor) ProviderType() string {
-	return ProviderK8s
-}
-
-func (m K8sConvertor) ConnectorType() string {
-	return types.ConnectorTypeK8s
-}
-
-func (m K8sConvertor) GetConnectors(connectors model.Connectors) model.Connectors {
-	return getConnectorsWithType(m.ConnectorType(), connectors)
+func (m K8sConvertor) IsSupported(connector *model.Connector) bool {
+	return connector.Type == types.ConnectorTypeK8s
 }
 
 func (m K8sConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
-	return connectorsToBlocks(connectors, m.ToBlock, opts)
-}
+	var blocks block.Blocks
+	for _, c := range connectors {
+		if !m.IsSupported(c) {
+			continue
+		}
 
-func (m K8sConvertor) ToBlock(connector *model.Connector, opts Options) (*block.Block, error) {
-	k8sOpts, ok := opts.(K8sConvertorOptions)
-	if !ok {
-		return nil, errors.New("invalid k8s options")
+		b, err := m.toBlock(c, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, b)
 	}
 
-	if connector.Type != types.ConnectorTypeK8s {
-		return nil, fmt.Errorf("connector type is not k8s, connector: %s", connector.ID)
+	return blocks, nil
+}
+
+func (m K8sConvertor) toBlock(connector *model.Connector, opts interface{}) (*block.Block, error) {
+	convertOpts, ok := opts.(K8sConvertorOptions)
+	if !ok {
+		return nil, errors.New("invalid options type")
 	}
 
 	var (
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
-		configPath = k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
-		alias      = k8sOpts.ConnSeparator + connector.ID.String()
+		configPath = convertOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
+		alias      = convertOpts.ConnSeparator + connector.ID.String()
 		attributes = map[string]interface{}{
 			"config_path": configPath,
 			"alias":       alias,
@@ -65,6 +66,6 @@ func (m K8sConvertor) ToBlock(connector *model.Connector, opts Options) (*block.
 		Type:       block.TypeProvider,
 		Attributes: attributes,
 		// convert the connector type to provider type.
-		Labels: []string{ProviderK8s},
+		Labels: []string{string(m)},
 	}, nil
 }

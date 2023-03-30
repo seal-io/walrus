@@ -11,22 +11,32 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf/util"
 )
 
-// HelmConvertor mutate the types.ConnectorTypeK8s connector to ProviderHelm provider block.
-type HelmConvertor struct{}
+// HelmConvertor mutate the types.ConnectorTypeK8s connector to TypeHelm provider block.
+type HelmConvertor string
 
-func (m HelmConvertor) ProviderType() string {
-	return ProviderHelm
+func (m HelmConvertor) IsSupported(connector *model.Connector) bool {
+	return connector.Type == types.ConnectorTypeK8s
 }
 
-func (m HelmConvertor) ConnectorType() string {
-	return types.ConnectorTypeK8s
+func (m HelmConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
+	var blocks block.Blocks
+	for _, c := range connectors {
+		if !m.IsSupported(c) {
+			continue
+		}
+
+		b, err := m.toBlock(c, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		blocks = append(blocks, b)
+	}
+
+	return blocks, nil
 }
 
-func (m HelmConvertor) GetConnectors(conns model.Connectors) model.Connectors {
-	return getConnectorsWithType(m.ConnectorType(), conns)
-}
-
-func (m HelmConvertor) ToBlock(connector *model.Connector, opts Options) (*block.Block, error) {
+func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block.Block, error) {
 	k8sOpts, ok := opts.(K8sConvertorOptions)
 	if !ok {
 		return nil, errors.New("invalid k8s options")
@@ -63,7 +73,7 @@ func (m HelmConvertor) ToBlock(connector *model.Connector, opts Options) (*block
 			Type:       block.TypeProvider,
 			Attributes: attributes,
 			// convert the connector type to provider type.
-			Labels: []string{ProviderHelm},
+			Labels: []string{string(m)},
 		}
 		k8sBlock = &block.Block{
 			Type: block.TypeK8s,
@@ -75,20 +85,4 @@ func (m HelmConvertor) ToBlock(connector *model.Connector, opts Options) (*block
 	helmBlock.AppendBlock(k8sBlock)
 
 	return helmBlock, nil
-}
-
-func (m HelmConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
-	return connectorsToBlocks(connectors, m.ToBlock, opts)
-}
-
-// getConnectorsWithType returns the connectors for the given connector type.
-func getConnectorsWithType(connectorType string, connectors model.Connectors) model.Connectors {
-	var matchedConnectors model.Connectors
-	for _, c := range connectors {
-		if c.Type == connectorType {
-			matchedConnectors = append(matchedConnectors, c)
-		}
-	}
-
-	return matchedConnectors
 }
