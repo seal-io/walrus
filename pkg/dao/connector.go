@@ -48,7 +48,9 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
-		if r.Category == types.ConnectorCategoryCustom {
+
+		switch r.Category {
+		case types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
 			StatusSummarizer := pkgstatus.NewSummarizer(status.GeneralStatusReady)
 			r.Status = status.Status{}
 			r.Status.SetSummary(StatusSummarizer.Summarize(&r.Status))
@@ -69,7 +71,7 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	if input.Category == types.ConnectorCategoryCustom && input.EnableFinOps {
+	if input.Category != types.ConnectorCategoryKubernetes && input.EnableFinOps {
 		return nil, errors.New("invalid connector: finOps not supported")
 	}
 
