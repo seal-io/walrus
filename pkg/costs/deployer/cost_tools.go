@@ -21,6 +21,8 @@ import (
 const (
 	NamePrometheus             = "seal-prometheus"
 	NameOpencost               = "seal-opencost"
+	NameKubeStateMetrics       = "seal-prometheus-kube-state-metrics"
+	NamePrometheusServer       = "seal-prometheus-server"
 	ConfigMapNameOpencost      = "seal-opencost"
 	pathOpencostRefreshPricing = "/refreshPricing"
 )
@@ -75,38 +77,44 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 		return err
 	}
 
-	_, kubeconfig, err := platformk8s.LoadApiConfig(*conn)
-	if err != nil {
-		return err
-	}
-
 	appv1Client, err := appv1.NewForConfig(restCfg)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	dep, err := appv1Client.Deployments(types.SealSystemNamespace).Get(ctx, NameOpencost, metav1.GetOptions{})
-	if err != nil {
-		return fmt.Errorf("error get tool %s:%s, %w", types.SealSystemNamespace, NameOpencost, err)
+	isDeploymentReady := func(namespace, name string) error {
+		dep, err := appv1Client.Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			return fmt.Errorf("error get tool %s:%s, %w", namespace, name, err)
+		}
+
+		if dep.Status.ReadyReplicas != *dep.Spec.Replicas {
+			return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details", namespace, name, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
+		}
+		return nil
 	}
 
-	if dep.Status.ReadyReplicas != *dep.Spec.Replicas {
-		return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details", types.SealSystemNamespace, NameOpencost, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
-	}
-
-	helm, err := NewHelm(types.SealSystemNamespace, kubeconfig)
-	if err != nil {
-		return fmt.Errorf("error create helm client: %w", err)
-	}
-	defer helm.Clean()
-
-	release, err := helm.GetRelease(NamePrometheus)
-	if err != nil {
-		return fmt.Errorf("error get helm release: %w", err)
-	}
-
-	if isFailed(release) {
-		return fmt.Errorf("release %s:%s status is failed, check helm release details", types.SealSystemNamespace, NamePrometheus)
+	for _, v := range []struct {
+		namespace string
+		name      string
+	}{
+		{
+			namespace: types.SealSystemNamespace,
+			name:      NameOpencost,
+		},
+		{
+			namespace: types.SealSystemNamespace,
+			name:      NameKubeStateMetrics,
+		},
+		{
+			namespace: types.SealSystemNamespace,
+			name:      NamePrometheusServer,
+		},
+	} {
+		err := isDeploymentReady(v.namespace, v.name)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
