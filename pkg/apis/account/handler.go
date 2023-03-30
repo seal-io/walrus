@@ -1,7 +1,6 @@
 package account
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -40,7 +39,7 @@ func Login() runtime.ErrorHandle {
 		// hold session
 		err = casdoor.HoldSession(ctx.Writer, internalSessions)
 		if err != nil {
-			return fmt.Errorf("failed to login: %w", err)
+			return runtime.Errorw(err, "failed to login")
 		}
 		return nil
 	}
@@ -67,12 +66,18 @@ func Info(mc model.ClientSet) runtime.ErrorHandle {
 		switch ctx.Request.Method {
 		default:
 			ctx.AbortWithStatus(http.StatusMethodNotAllowed)
-			return nil
 		case http.MethodPost:
-			return updateInfo(ctx, mc)
+			var err = updateInfo(ctx, mc)
+			if err != nil {
+				return runtime.Errorw(err, "failed to update info")
+			}
 		case http.MethodGet:
-			return getInfo(ctx, mc)
+			var err = getInfo(ctx, mc)
+			if err != nil {
+				return runtime.Errorw(err, "failed to get info")
+			}
 		}
+		return nil
 	}
 }
 

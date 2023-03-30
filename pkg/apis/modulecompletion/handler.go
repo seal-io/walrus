@@ -122,9 +122,8 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 	if err != nil {
 		return "", err
 	}
-
 	if apiToken == "" {
-		return "", errors.New("openAI API token is not configured in settings")
+		return "", runtime.Error(http.StatusBadRequest, "invalid input: OpenAI API token is not configured")
 	}
 
 	client := openai.NewClient(apiToken)
