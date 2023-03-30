@@ -488,6 +488,7 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 				connector.FieldID,
 				connector.FieldName,
 				connector.FieldType,
+				connector.FieldCategory,
 				connector.FieldConfigVersion,
 				connector.FieldConfigData)
 		}).

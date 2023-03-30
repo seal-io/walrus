@@ -16,5 +16,5 @@ func IsOperator(conn *model.Connector) bool {
 }
 
 func IsCustom(conn *model.Connector) bool {
-	return conn.Type == types.ConnectorCategoryCustom
+	return conn.Category == types.ConnectorCategoryCustom
 }
