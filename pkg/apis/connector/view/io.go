@@ -207,6 +207,7 @@ func validateConnector(ctx context.Context, entity *model.Connector) error {
 		if err != nil {
 			return fmt.Errorf("invalid connector: %w", err)
 		}
+	case types.ConnectorCategoryCustom:
 
 	default:
 		return errors.New("invalid connector category")
