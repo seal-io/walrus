@@ -1,21 +1,27 @@
 package applicationinstance
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationinstance/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
@@ -126,8 +132,12 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	return h.getEntityOutput(ctx, req.ID)
+}
+
+func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.ApplicationInstanceOutput, error) {
 	var entity, err = h.modelClient.ApplicationInstances().Query().
-		Where(applicationinstance.ID(req.ID)).
+		Where(applicationinstance.ID(id)).
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
 			eq.Select(environment.FieldName)
 		}).
@@ -137,6 +147,55 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	}
 
 	return model.ExposeApplicationInstance(entity), nil
+}
+
+func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
+	if err != nil {
+		return err
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		for _, id := range dm.Data {
+			if id != req.ID {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entityOutput, err := h.getEntityOutput(ctx, id)
+				if err != nil {
+					return err
+				}
+				streamData = view.StreamResponse{
+					Type:       dm.Type,
+					Collection: []*model.ApplicationInstanceOutput{entityOutput},
+				}
+			case datamessage.EventDelete:
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+				}
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Batch APIs
@@ -190,6 +249,64 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	return model.ExposeApplicationInstances(entities), cnt, nil
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
+	if err != nil {
+		return err
+	}
+
+	var query = h.modelClient.ApplicationInstances().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			entities, err := query.Clone().
+				// allow returning without sorting keys.
+				Unique(false).
+				// must extract environment.
+				Select(applicationinstance.FieldEnvironmentID).
+				Where(applicationinstance.IDIn(dm.Data...)).
+				WithEnvironment(func(eq *model.EnvironmentQuery) {
+					eq.Select(environment.FieldName)
+				}).
+				All(ctx)
+
+			if err != nil {
+				return err
+			}
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				Collection: model.ExposeApplicationInstances(entities),
+			}
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs

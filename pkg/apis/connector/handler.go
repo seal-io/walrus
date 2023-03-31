@@ -4,12 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	connbus "github.com/seal-io/seal/pkg/bus/connector"
 	pkgconn "github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -78,6 +81,54 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	}
 
 	return model.ExposeConnector(entity), nil
+}
+
+func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.Connector)
+	if err != nil {
+		return err
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		for _, id := range dm.Data {
+			if id != req.ID {
+				continue
+			}
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entity, err := h.modelClient.Connectors().Get(ctx, id)
+				if err != nil {
+					return err
+				}
+				streamData = view.StreamResponse{
+					Type:       dm.Type,
+					Collection: []*model.ConnectorOutput{model.ExposeConnector(entity)},
+				}
+			case datamessage.EventDelete:
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+				}
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Batch APIs
@@ -149,6 +200,58 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	return model.ExposeConnectors(entities), cnt, nil
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.Connector)
+	if err != nil {
+		return err
+	}
+
+	query := h.modelClient.Connectors().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			connectors, err := query.Clone().
+				Where(connector.IDIn(dm.Data...)).
+				Unique(false).
+				All(ctx)
+
+			if err != nil {
+				return err
+			}
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				Collection: model.ExposeConnectors(connectors),
+			}
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs

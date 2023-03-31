@@ -1,17 +1,23 @@
 package application
 
 import (
+	"context"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/application/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
@@ -71,8 +77,12 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	return h.getApplicationOutput(ctx, req.ID)
+}
+
+func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.ApplicationOutput, error) {
 	var entity, err = h.modelClient.Applications().Query().
-		Where(application.ID(req.ID)).
+		Where(application.ID(id)).
 		// must extract modules.
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Order(model.Asc(applicationmodulerelationship.FieldCreateTime)).
@@ -91,6 +101,55 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	}
 
 	return model.ExposeApplication(entity), nil
+}
+
+func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.Application)
+	if err != nil {
+		return err
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+		var streamData view.StreamResponse
+		for _, id := range dm.Data {
+			if id != req.ID {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entity, err := h.getApplicationOutput(ctx, id)
+				if err != nil {
+					return err
+				}
+				streamData = view.StreamResponse{
+					Type:       dm.Type,
+					IDs:        dm.Data,
+					Collection: []*model.ApplicationOutput{entity},
+				}
+			case datamessage.EventDelete:
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+				}
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Batch APIs
@@ -143,9 +202,17 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if orders, ok := req.Sorting(sortFields, model.Desc(application.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+	entities, err := h.getCollectionQuery(query).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
 
+	return model.ExposeApplications(entities), cnt, nil
+}
+
+func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.ApplicationQuery {
 	// get application with instances and environments
-	entities, err := query.
+	return query.
 		// allow returning without sorting keys.
 		Unique(false).
 		// must extract application instances.
@@ -178,13 +245,58 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 				WithEnvironment(func(eq *model.EnvironmentQuery) {
 					eq.Select(environment.FieldName)
 				})
-		}).
-		All(ctx)
+		})
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.Application)
 	if err != nil {
-		return nil, 0, err
+		return err
 	}
 
-	return model.ExposeApplications(entities), cnt, nil
+	var query = h.modelClient.Applications().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			entities, err := h.getCollectionQuery(query.Clone()).
+				Where(application.IDIn(dm.Data...)).
+				All(ctx)
+			if err != nil {
+				return err
+			}
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				IDs:        dm.Data,
+				Collection: model.ExposeApplications(entities),
+			}
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs
