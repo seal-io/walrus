@@ -39,3 +39,13 @@ func (tx *Tx) Debug() *Client {
 
 {{ end }}
 
+
+{{ define "tx/additional/use" }}
+// Use adds the mutation hooks to all the entity clients.
+func (tx *Tx) Use(hooks ...Hook) {
+    {{- range $n := $.Nodes }}
+    tx.{{ $n.Name }}.Use(hooks...)
+    {{- end }}
+}
+
+{{ end }}

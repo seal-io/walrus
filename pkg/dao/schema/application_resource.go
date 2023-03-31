@@ -1,10 +1,14 @@
 package schema
 
 import (
+	"context"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -81,5 +85,22 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+	}
+}
+
+func (ApplicationResource) Interceptors() []ent.Interceptor {
+	// filters out none "managed" mode resources.
+	var filter = func(n model.Querier) model.Querier {
+		return model.QuerierFunc(func(ctx context.Context, query model.Query) (model.Value, error) {
+			var t, ok = query.(*model.ApplicationResourceQuery)
+			if ok {
+				t.Where(applicationresource.Mode(types.ApplicationResourceModeManaged))
+			}
+			return n.Query(ctx, query)
+		})
+	}
+
+	return []ent.Interceptor{
+		model.InterceptFunc(filter),
 	}
 }
