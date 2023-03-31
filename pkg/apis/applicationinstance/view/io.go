@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 )
 
 // Basic APIs
@@ -98,6 +99,30 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ApplicationInstanceOutput
 
+type StreamResponse struct {
+	Type       datamessage.EventType              `json:"type"`
+	IDs        []types.ID                         `json:"ids"`
+	Collection []*model.ApplicationInstanceOutput `json:"collection"`
+}
+
+type StreamRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+	var modelClient = input.(model.ClientSet)
+	exist, err := modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(r.ID)).
+		Exist(ctx)
+	if err != nil || !exist {
+		return runtime.Errorw(err, "invalid id: not found")
+	}
+	return nil
+}
+
 // Batch APIs
 
 type CollectionGetRequest struct {
@@ -122,6 +147,10 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 }
 
 type CollectionGetResponse = []*model.ApplicationInstanceOutput
+
+type CollectionStreamRequest struct {
+	runtime.RequestExtracting `query:",inline"`
+}
 
 // Extensional APIs
 

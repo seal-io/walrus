@@ -7,7 +7,9 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -25,6 +27,32 @@ func (r *GetRequest) Validate() error {
 }
 
 type GetResponse = *model.ApplicationRevisionOutput
+
+type StreamResponse struct {
+	Type       datamessage.EventType              `json:"type"`
+	IDs        []types.ID                         `json:"ids"`
+	Collection []*model.ApplicationRevisionOutput `json:"collection"`
+}
+
+type StreamRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	var modelClient = input.(model.ClientSet)
+	exist, err := modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.ID(r.ID)).
+		Exist(ctx)
+	if err != nil || !exist {
+		return runtime.Errorw(err, "invalid id: not found")
+	}
+
+	return nil
+}
 
 // Batch APIs
 
@@ -57,6 +85,10 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 }
 
 type CollectionGetResponse = []*model.ApplicationRevisionOutput
+
+type CollectionStreamRequest struct {
+	runtime.RequestExtracting `query:",inline"`
+}
 
 // Extensional APIs
 

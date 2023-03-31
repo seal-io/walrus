@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/pkg/vcs"
 )
 
@@ -88,6 +89,32 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ConnectorOutput
 
+type StreamResponse struct {
+	Type       datamessage.EventType    `json:"type"`
+	IDs        []types.ID               `json:"ids"`
+	Collection []*model.ConnectorOutput `json:"collection"`
+}
+type StreamRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	var modelClient = input.(model.ClientSet)
+	exist, err := modelClient.Connectors().
+		Query().
+		Where(connector.IDEQ(r.ID)).
+		Exist(ctx)
+	if err != nil || !exist {
+		return runtime.Errorw(err, "invalid id: not found")
+	}
+
+	return nil
+}
+
 // Batch APIs
 
 type CollectionDeleteRequest []*model.ConnectorQueryInput
@@ -112,6 +139,10 @@ type CollectionGetRequest struct {
 }
 
 type CollectionGetResponse = []*model.ConnectorOutput
+
+type CollectionStreamRequest struct {
+	runtime.RequestExtracting `query:",inline"`
+}
 
 // Extensional APIs
 

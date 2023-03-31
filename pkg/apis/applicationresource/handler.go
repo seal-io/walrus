@@ -1,6 +1,7 @@
 package applicationresource
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -35,6 +38,64 @@ func (h Handler) Validating() any {
 }
 
 // Basic APIs
+
+func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationResource)
+	if err != nil {
+		return err
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		for _, id := range dm.Data {
+			if id != req.ID {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entity, err := h.modelClient.ApplicationResources().Get(ctx, id)
+				if err != nil && !model.IsNotFound(err) {
+					return err
+				}
+				keys, err := getKeys(ctx, entity)
+				if err != nil {
+					return err
+				}
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					Collection: []view.ApplicationResource{
+						{
+							ApplicationResourceOutput: model.ExposeApplicationResource(entity),
+							Keys:                      keys,
+						},
+					},
+				}
+			case datamessage.EventDelete:
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+				}
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
+}
 
 // Batch APIs
 
@@ -75,9 +136,16 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
-	entities, err := query.
-		// allow returning without sorting keys.
-		Unique(false).
+	resp, err := h.getCollectionResponse(ctx, query, req.WithoutKeys)
+	if err != nil {
+		return nil, 0, err
+	}
+	return resp, cnt, nil
+}
+
+func (h Handler) getCollectionResponse(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) ([]view.ApplicationResource, error) {
+	// allow returning without sorting keys.
+	entities, err := query.Unique(false).
 		// must extract connector.
 		Select(applicationresource.FieldConnectorID).
 		WithConnector(func(cq *model.ConnectorQuery) {
@@ -89,48 +157,83 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		}).
 		All(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var resp = make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
 		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
-
-		if !req.WithoutKeys {
-			// fetch operable keys.
-			var op operator.Operator
-			op, err = platform.GetOperator(ctx,
-				operator.CreateOptions{Connector: *entities[i].Edges.Connector})
+		if !withoutKeys {
+			resp[i].Keys, err = getKeys(ctx, entities[i])
 			if err != nil {
-				return nil, 0, err
-			}
-			resp[i].Keys, err = op.GetKeys(ctx, entities[i])
-			if err != nil {
-				return nil, 0, err
+				return nil, err
 			}
 		}
 	}
-	return resp, cnt, nil
+
+	return resp, nil
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationResource)
+	if err != nil {
+		return err
+	}
+
+	var query = h.modelClient.ApplicationResources().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var (
+			event topic.Event
+			resp  view.CollectionGetResponse
+		)
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			resp, err = h.getCollectionResponse(ctx, query.Clone().Where(
+				applicationresource.IDIn(dm.Data...),
+			), false)
+			if err != nil && !model.IsNotFound(err) {
+				return err
+			}
+
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				IDs:        dm.Data,
+				Collection: resp,
+			}
+
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs
 
 func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
-	var res = req.Entity
-
-	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
-	if err != nil {
-		return nil, err
-	}
-	ok, err := op.IsConnected(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("cannot connect %s", res.Edges.Connector.Name)
-	}
-
-	return op.GetKeys(ctx, res)
+	return getKeys(ctx, req.Entity)
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest) error {
@@ -192,4 +295,19 @@ func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecReques
 		return err
 	}
 	return nil
+}
+
+func getKeys(ctx context.Context, r *model.ApplicationResource) (*operator.Keys, error) {
+	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *r.Edges.Connector})
+	if err != nil {
+		return nil, err
+	}
+	ok, err := op.IsConnected(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("cannot connect %s", r.Edges.Connector.Name)
+	}
+	return op.GetKeys(ctx, r)
 }

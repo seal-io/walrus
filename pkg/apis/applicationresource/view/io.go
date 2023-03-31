@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 )
 
 // ApplicationResourceQuery loads model.ApplicationResource with the request ID in validating.
@@ -48,6 +49,32 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 	return nil
 }
 
+type StreamResponse struct {
+	Type       datamessage.EventType `json:"type"`
+	IDs        []types.ID            `json:"ids"`
+	Collection []ApplicationResource `json:"collection"`
+}
+
+type StreamRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	var modelClient = input.(model.ClientSet)
+	exist, err := modelClient.ApplicationResources().Query().
+		Where(applicationresource.ID(r.ID)).
+		Exist(ctx)
+	if err != nil || !exist {
+		return runtime.Errorw(err, "invalid id: not found")
+	}
+
+	return nil
+}
+
 // Basic APIs
 
 // Batch APIs
@@ -81,6 +108,10 @@ type ApplicationResource struct {
 }
 
 type CollectionGetResponse = []ApplicationResource
+
+type CollectionStreamRequest struct {
+	runtime.RequestExtracting `query:",inline"`
+}
 
 // Extensional APIs
 

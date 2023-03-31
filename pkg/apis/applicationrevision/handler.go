@@ -21,7 +21,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
 	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config) Handler {
@@ -54,6 +56,64 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	}
 
 	return model.ExposeApplicationRevision(entity), nil
+}
+
+func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	if err != nil {
+		return err
+	}
+	query := h.modelClient.ApplicationRevisions().Query()
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		for _, id := range dm.Data {
+			if id != req.ID {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate, datamessage.EventUpdate:
+				entity, err := query.Clone().
+					Where(applicationrevision.ID(id)).
+					WithEnvironment(func(q *model.EnvironmentQuery) {
+						q.Select(environment.FieldID, environment.FieldName)
+					}).
+					Only(ctx)
+				if err != nil {
+					return err
+				}
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+					Collection: []*model.ApplicationRevisionOutput{
+						model.ExposeApplicationRevision(entity),
+					},
+				}
+			case datamessage.EventDelete:
+				streamData = view.StreamResponse{
+					Type: dm.Type,
+					IDs:  dm.Data,
+				}
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Batch APIs
@@ -132,6 +192,62 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	return model.ExposeApplicationRevisions(entities), cnt, nil
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	if err != nil {
+		return err
+	}
+
+	query := h.modelClient.ApplicationRevisions().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	defer func() { t.Unsubscribe() }()
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			revisions, err := query.Clone().
+				Where(applicationrevision.IDIn(dm.Data...)).
+				WithEnvironment(func(eq *model.EnvironmentQuery) {
+					eq.Select(environment.FieldID, environment.FieldName)
+				}).
+				Unique(false).
+				All(ctx)
+
+			if err != nil && !model.IsNotFound(err) {
+				return err
+			}
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				IDs:        dm.Data,
+				Collection: model.ExposeApplicationRevisions(revisions),
+			}
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs
