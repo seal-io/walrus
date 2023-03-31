@@ -228,6 +228,8 @@ func init() {
 	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
 	applicationresourceMixinHooks0 := applicationresourceMixin[0].Hooks()
 	applicationresource.Hooks[0] = applicationresourceMixinHooks0[0]
+	applicationresourceInters := schema.ApplicationResource{}.Interceptors()
+	applicationresource.Interceptors[0] = applicationresourceInters[0]
 	applicationresourceMixinFields1 := applicationresourceMixin[1].Fields()
 	_ = applicationresourceMixinFields1
 	applicationresourceFields := schema.ApplicationResource{}.Fields()

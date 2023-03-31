@@ -397,6 +397,29 @@ func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any)
 	return q.QueryContext(ctx, query, args...)
 }
 
+// Use adds the mutation hooks to all the entity clients.
+func (tx *Tx) Use(hooks ...Hook) {
+	tx.AllocationCost.Use(hooks...)
+	tx.Application.Use(hooks...)
+	tx.ApplicationInstance.Use(hooks...)
+	tx.ApplicationModuleRelationship.Use(hooks...)
+	tx.ApplicationResource.Use(hooks...)
+	tx.ApplicationRevision.Use(hooks...)
+	tx.ClusterCost.Use(hooks...)
+	tx.Connector.Use(hooks...)
+	tx.Environment.Use(hooks...)
+	tx.EnvironmentConnectorRelationship.Use(hooks...)
+	tx.Module.Use(hooks...)
+	tx.ModuleVersion.Use(hooks...)
+	tx.Perspective.Use(hooks...)
+	tx.Project.Use(hooks...)
+	tx.Role.Use(hooks...)
+	tx.Secret.Use(hooks...)
+	tx.Setting.Use(hooks...)
+	tx.Subject.Use(hooks...)
+	tx.Token.Use(hooks...)
+}
+
 // WithTx gives a new transactional client in the callback function,
 // if already in a transaction, this will keep in the same transaction.
 func (tx *Tx) WithTx(ctx context.Context, callback func(tx *Tx) error) error {

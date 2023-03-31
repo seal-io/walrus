@@ -75,6 +75,9 @@ type ClientSet interface {
 
 	// Debug returns the debug mode of the client.
 	Debug() *Client
+
+	// Use adds the mutation hooks to all the entity clients.
+	Use(...Hook)
 }
 
 // AllocationCostClientGetter is an interface that allows getting AllocationCostClient.
