@@ -30,6 +30,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 	var inits = []initor{
 		{name: "settings", init: r.initSettings},
 		{name: "configs", init: r.initConfigs},
+		{name: "dispatches", init: r.initDispatches},
 		{name: "backgroundTasks", init: r.initBackgroundTasks},
 		{name: "subscribers", init: r.initSubscribers},
 	}
