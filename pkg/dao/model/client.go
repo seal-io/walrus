@@ -1205,7 +1205,8 @@ func (c *ApplicationResourceClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *ApplicationResourceClient) Interceptors() []Interceptor {
-	return c.inters.ApplicationResource
+	inters := c.inters.ApplicationResource
+	return append(inters[:len(inters):len(inters)], applicationresource.Interceptors[:]...)
 }
 
 func (c *ApplicationResourceClient) mutate(ctx context.Context, m *ApplicationResourceMutation) (Value, error) {
