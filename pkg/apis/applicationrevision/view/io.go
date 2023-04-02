@@ -88,6 +88,26 @@ type CollectionGetResponse = []*model.ApplicationRevisionOutput
 
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
+
+	InstanceID types.ID `query:"instanceID,omitempty"`
+}
+
+func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if r.InstanceID != "" {
+		if !r.InstanceID.IsNaive() {
+			return errors.New("invalid instance id")
+		}
+		_, err := modelClient.ApplicationInstances().Query().
+			Where(applicationinstance.ID(r.InstanceID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get application instance")
+		}
+	}
+
+	return nil
 }
 
 // Extensional APIs

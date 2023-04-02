@@ -134,8 +134,20 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Connector] `query:",inline"`
 
-	Category string `query:"category"`
-	Type     string `query:"type"`
+	Category string `query:"category,omitempty"`
+	Type     string `query:"type,omitempty"`
+}
+
+func (r *CollectionGetRequest) Validate() error {
+	if r.Category != "" {
+		switch r.Category {
+		case types.ConnectorCategoryKubernetes, types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
+		default:
+			return fmt.Errorf("invalid category: %s", r.Category)
+		}
+	}
+
+	return nil
 }
 
 type CollectionGetResponse = []*model.ConnectorOutput
