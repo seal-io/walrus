@@ -150,6 +150,23 @@ type CollectionGetResponse = []*model.ApplicationInstanceOutput
 
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
+
+	ApplicationID types.ID `query:"applicationID,omitempty"`
+}
+
+func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ApplicationID.Valid(0) {
+		return errors.New("invalid application id: blank")
+	}
+	_, err := modelClient.Applications().Query().
+		Where(application.ID(r.ApplicationID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get application")
+	}
+	return nil
 }
 
 // Extensional APIs

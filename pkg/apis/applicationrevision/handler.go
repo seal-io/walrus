@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf"
 	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
@@ -63,7 +64,8 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 	if err != nil {
 		return err
 	}
-	query := h.modelClient.ApplicationRevisions().Query()
+	query := h.modelClient.ApplicationRevisions().Query().
+		Select(getFields...)
 
 	defer func() { t.Unsubscribe() }()
 	for {
@@ -108,8 +110,11 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 				}
 			}
 		}
-
-		err = ctx.SendJSON(streamData)
+		bs, err := json.Marshal(streamData)
+		if err != nil {
+			return err
+		}
+		err = ctx.SendMsg(bs)
 		if err != nil {
 			return err
 		}
@@ -201,6 +206,9 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 	}
 
 	query := h.modelClient.ApplicationRevisions().Query()
+	if req.InstanceID != "" {
+		query.Where(applicationrevision.InstanceID(req.InstanceID))
+	}
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
@@ -243,7 +251,14 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 			}
 		}
 
-		err = ctx.SendJSON(streamData)
+		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
+			continue
+		}
+		bs, err := json.Marshal(streamData)
+		if err != nil {
+			return err
+		}
+		err = ctx.SendMsg(bs)
 		if err != nil {
 			return err
 		}

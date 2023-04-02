@@ -11,7 +11,8 @@ import (
 )
 
 type Mutation interface {
-	IDs(ctx context.Context) ([]types.ID, error)
+	ID() (types.ID, bool)
+	IDs(context.Context) ([]types.ID, error)
 	Tx() (*model.Tx, error)
 }
 
@@ -42,6 +43,12 @@ func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
 				value, err := next.Mutate(ctx, m)
 				if err != nil {
 					return nil, err
+				}
+				if m.Op() == ent.OpCreate {
+					id, ok := hm.ID()
+					if ok {
+						ids = []types.ID{id}
+					}
 				}
 
 				// action after mutate.
