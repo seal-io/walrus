@@ -22,7 +22,6 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf"
 	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
@@ -110,11 +109,7 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 				}
 			}
 		}
-		bs, err := json.Marshal(streamData)
-		if err != nil {
-			return err
-		}
-		err = ctx.SendMsg(bs)
+		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
 		}
@@ -250,15 +245,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 				IDs:  dm.Data,
 			}
 		}
-
-		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
-			continue
-		}
-		bs, err := json.Marshal(streamData)
-		if err != nil {
-			return err
-		}
-		err = ctx.SendMsg(bs)
+		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
 		}

@@ -328,7 +328,11 @@ func (r RequestStream) SendMsg(data []byte) error {
 
 // SendJSON marshals the given object as JSON and sends to client.
 func (r RequestStream) SendJSON(i any) error {
-	return json.NewEncoder(r).Encode(i)
+	bs, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+	return r.SendMsg(bs)
 }
 
 // RecvMsg receives message from client.
@@ -338,7 +342,12 @@ func (r RequestStream) RecvMsg() ([]byte, error) {
 
 // RecvJSON receives JSON message from client and unmarshals into the given object.
 func (r RequestStream) RecvJSON(i any) error {
-	return json.NewDecoder(r).Decode(i)
+	bs, err := r.RecvMsg()
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(bs, i)
 }
 
 // Write implements io.Writer.
