@@ -44,9 +44,9 @@
             "fuzzy": true
         },
         {
-            "id": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code.",
-            "message": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code.",
-            "translation": "You are translating natural language to a Terraform module. Please do not explain, just write terraform code. Please do not explain, just write terraform code. Please do not explain, just write terraform code.",
+            "id": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
+            "message": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
+            "translation": "You are translating natural language to a Terraform module. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code. Please do not explain, just write pure terraform HCL code.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
@@ -58,16 +58,16 @@
             "fuzzy": true
         },
         {
-            "id": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:",
-            "message": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:",
-            "translation": "Please Check and fix the given terraform module if there's any mistake.\nStrictly output a valid JSON in the following format:",
+            "id": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
+            "message": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
+            "translation": "Please Check and fix the given terraform module if there's any mistake.\nStrictly respond a valid JSON in the following format:",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
-            "id": "Terraform code that is fixed.",
-            "message": "Terraform code that is fixed.",
-            "translation": "Terraform code that is fixed.",
+            "id": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
+            "message": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
+            "translation": "Terraform code that is fixed. Please do not explain, just write terraform HCL code.",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
