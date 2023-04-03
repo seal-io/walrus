@@ -181,7 +181,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 
 	var query = h.modelClient.ApplicationResources().Query()
 	if req.InstanceID != "" {
-		query.Where(applicationresource.ConnectorID(req.InstanceID))
+		query.Where(applicationresource.InstanceID(req.InstanceID))
 	}
 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
@@ -212,13 +212,11 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 			if err != nil && !model.IsNotFound(err) {
 				return err
 			}
-
 			streamData = view.StreamResponse{
 				Type:       dm.Type,
 				IDs:        dm.Data,
 				Collection: resp,
 			}
-
 		case datamessage.EventDelete:
 			streamData = view.StreamResponse{
 				Type: dm.Type,
