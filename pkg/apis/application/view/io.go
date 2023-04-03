@@ -146,10 +146,6 @@ type CollectionStreamRequest struct {
 }
 
 func (r *CollectionStreamRequest) Validate() error {
-	if len(r.ProjectIDs) == 0 {
-		return errors.New("invalid input: missing project id")
-	}
-
 	for i := range r.ProjectIDs {
 		if !r.ProjectIDs[i].Valid(0) {
 			return errors.New("invalid project id: blank")

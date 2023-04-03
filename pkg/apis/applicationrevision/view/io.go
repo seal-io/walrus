@@ -93,17 +93,18 @@ type CollectionStreamRequest struct {
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
-
 	if r.InstanceID != "" {
-		if !r.InstanceID.IsNaive() {
-			return errors.New("invalid instance id")
-		}
-		_, err := modelClient.ApplicationInstances().Query().
-			Where(applicationinstance.ID(r.InstanceID)).
-			OnlyID(ctx)
-		if err != nil {
-			return runtime.Errorw(err, "failed to get application instance")
+		var modelClient = input.(model.ClientSet)
+		if r.InstanceID != "" {
+			if !r.InstanceID.IsNaive() {
+				return errors.New("invalid instance id")
+			}
+			_, err := modelClient.ApplicationInstances().Query().
+				Where(applicationinstance.ID(r.InstanceID)).
+				OnlyID(ctx)
+			if err != nil {
+				return runtime.Errorw(err, "failed to get application instance")
+			}
 		}
 	}
 
