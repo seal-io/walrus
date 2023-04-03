@@ -123,7 +123,7 @@ func (h Handler) CollectionRouteCorrect(ctx *gin.Context, req view.CorrectReques
 	desc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageDesc)
 	correctedDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageCorrectedDesc)
 	explanationDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageExplanationDesc)
-	prompt := fmt.Sprintf(`%s\n{"corrected": "%s", "explanation": "%s"}\n`, desc, correctedDesc, explanationDesc)
+	prompt := fmt.Sprintf(`%s\n{\n"corrected": "%s", "explanation": "%s"\n}\n`, desc, correctedDesc, explanationDesc)
 	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err

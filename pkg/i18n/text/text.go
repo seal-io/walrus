@@ -14,14 +14,14 @@ const (
 	ExampleELKPrompt = "# Deploy an ELK stack using helm chart."
 
 	TerraformModuleGenerateSystemMessage = "You are translating natural language to a Terraform module." +
-		" Please do not explain, just write terraform code." +
-		" Please do not explain, just write terraform code." +
-		" Please do not explain, just write terraform code."
+		" Please do not explain, just write pure terraform HCL code." +
+		" Please do not explain, just write pure terraform HCL code." +
+		" Please do not explain, just write pure terraform HCL code."
 
 	TerraformModuleExplainSystemMessage = "Please explain the given terraform module."
 
 	TerraformModuleCorrectSystemMessageDesc = "Please Check and fix the given terraform module if there's any mistake.\n" +
-		"Strictly output a valid JSON in the following format:"
-	TerraformModuleCorrectSystemMessageCorrectedDesc   = "Terraform code that is fixed."
+		"Strictly respond a valid JSON in the following format:"
+	TerraformModuleCorrectSystemMessageCorrectedDesc   = "Terraform code that is fixed. Please do not explain, just write terraform HCL code."
 	TerraformModuleCorrectSystemMessageExplanationDesc = "Explanation of the fixes."
 )
