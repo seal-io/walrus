@@ -130,7 +130,7 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 	averageDailyCost := averageDaily(days, totalCost)
 
 	// collected time range
-	timeRange := &view.CollectedTimeRange{}
+	var timeRange *view.CollectedTimeRange
 	if totalCost != 0 {
 		timeRange, err = h.clusterCostCollectedDataRange(ctx, req.StartTime.Location())
 		if err != nil {
@@ -183,7 +183,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 	}
 
 	// collected time range
-	timeRange := &view.CollectedTimeRange{}
+	var timeRange *view.CollectedTimeRange
 	if s[0].TotalCost != 0 {
 		timeRange, err = h.clusterCostCollectedDataRange(ctx,
 			req.StartTime.Location(),
@@ -232,7 +232,7 @@ func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.Su
 	}
 
 	// collected time range
-	timeRange := &view.CollectedTimeRange{}
+	var timeRange *view.CollectedTimeRange
 	if s[0].TotalCost != 0 {
 		timeRange, err = h.allocationCostCollectedDataRange(ctx,
 			req.StartTime.Location(),
@@ -288,7 +288,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 	}
 
 	// collected time range
-	timeRange := &view.CollectedTimeRange{}
+	var timeRange *view.CollectedTimeRange
 	if summary.TotalCost != 0 {
 		timeRange, err = h.allocationCostCollectedDataRange(ctx,
 			req.StartTime.Location(),
