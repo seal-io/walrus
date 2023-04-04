@@ -176,11 +176,11 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 	return resp.Choices[0].Message.Content, nil
 }
 
-func (h Handler) CollectionRouteCreatePR(ctx *gin.Context, req view.CreatePrRequest) (*view.CreatePrResponse, error) {
+func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequest) (*view.CreatePrResponse, error) {
 	moduleName := modules.GetModuleNameByPath(req.Path)
 	moduleFiles, err := modules.GetTerraformModuleFiles(moduleName, req.Content)
 	if err != nil {
-		return nil, fmt.Errorf("error getting terraform module files: %w", err)
+		return nil, runtime.Error(http.StatusBadRequest, err)
 	}
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ConnectorID)
 	if err != nil {
