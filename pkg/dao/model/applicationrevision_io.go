@@ -43,6 +43,8 @@ type ApplicationRevisionCreateInput struct {
 	DeployerType string `json:"deployerType,omitempty"`
 	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	// Application instance to which the revision belongs.
 	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Environment to which the revision deploys.
@@ -52,14 +54,15 @@ type ApplicationRevisionCreateInput struct {
 // Model converts the ApplicationRevisionCreateInput to ApplicationRevision.
 func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 	var entity = &ApplicationRevision{
-		Status:         in.Status,
-		StatusMessage:  in.StatusMessage,
-		Modules:        in.Modules,
-		InputVariables: in.InputVariables,
-		InputPlan:      in.InputPlan,
-		Output:         in.Output,
-		DeployerType:   in.DeployerType,
-		Duration:       in.Duration,
+		Status:                    in.Status,
+		StatusMessage:             in.StatusMessage,
+		Modules:                   in.Modules,
+		InputVariables:            in.InputVariables,
+		InputPlan:                 in.InputPlan,
+		Output:                    in.Output,
+		DeployerType:              in.DeployerType,
+		Duration:                  in.Duration,
+		PreviousRequiredProviders: in.PreviousRequiredProviders,
 	}
 	entity.InstanceID = in.Instance.ID
 	entity.EnvironmentID = in.Environment.ID
@@ -86,20 +89,23 @@ type ApplicationRevisionUpdateInput struct {
 	DeployerType string `json:"deployerType,omitempty"`
 	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 }
 
 // Model converts the ApplicationRevisionUpdateInput to ApplicationRevision.
 func (in ApplicationRevisionUpdateInput) Model() *ApplicationRevision {
 	var entity = &ApplicationRevision{
-		ID:             in.ID,
-		Status:         in.Status,
-		StatusMessage:  in.StatusMessage,
-		Modules:        in.Modules,
-		InputVariables: in.InputVariables,
-		InputPlan:      in.InputPlan,
-		Output:         in.Output,
-		DeployerType:   in.DeployerType,
-		Duration:       in.Duration,
+		ID:                        in.ID,
+		Status:                    in.Status,
+		StatusMessage:             in.StatusMessage,
+		Modules:                   in.Modules,
+		InputVariables:            in.InputVariables,
+		InputPlan:                 in.InputPlan,
+		Output:                    in.Output,
+		DeployerType:              in.DeployerType,
+		Duration:                  in.Duration,
+		PreviousRequiredProviders: in.PreviousRequiredProviders,
 	}
 	return entity
 }
@@ -120,6 +126,8 @@ type ApplicationRevisionOutput struct {
 	DeployerType string `json:"deployerType,omitempty"`
 	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	// Application instance to which the revision belongs.
 	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Environment to which the revision deploys.
@@ -132,15 +140,16 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 		return nil
 	}
 	var entity = &ApplicationRevisionOutput{
-		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		CreateTime:    in.CreateTime,
-		Modules:       in.Modules,
-		DeployerType:  in.DeployerType,
-		Duration:      in.Duration,
-		Instance:      ExposeApplicationInstance(in.Edges.Instance),
-		Environment:   ExposeEnvironment(in.Edges.Environment),
+		ID:                        in.ID,
+		Status:                    in.Status,
+		StatusMessage:             in.StatusMessage,
+		CreateTime:                in.CreateTime,
+		Modules:                   in.Modules,
+		DeployerType:              in.DeployerType,
+		Duration:                  in.Duration,
+		PreviousRequiredProviders: in.PreviousRequiredProviders,
+		Instance:                  ExposeApplicationInstance(in.Edges.Instance),
+		Environment:               ExposeEnvironment(in.Edges.Environment),
 	}
 	if entity.Instance == nil {
 		entity.Instance = &ApplicationInstanceOutput{}

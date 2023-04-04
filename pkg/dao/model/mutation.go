@@ -6106,28 +6106,30 @@ func (m *ApplicationResourceMutation) ResetEdge(name string) error {
 // ApplicationRevisionMutation represents an operation that mutates the ApplicationRevision nodes in the graph.
 type ApplicationRevisionMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *oid.ID
-	status             *string
-	statusMessage      *string
-	createTime         *time.Time
-	modules            *[]types.ApplicationModule
-	appendmodules      []types.ApplicationModule
-	inputVariables     *map[string]interface{}
-	inputPlan          *string
-	output             *string
-	deployerType       *string
-	duration           *int
-	addduration        *int
-	clearedFields      map[string]struct{}
-	instance           *oid.ID
-	clearedinstance    bool
-	environment        *oid.ID
-	clearedenvironment bool
-	done               bool
-	oldValue           func(context.Context) (*ApplicationRevision, error)
-	predicates         []predicate.ApplicationRevision
+	op                              Op
+	typ                             string
+	id                              *oid.ID
+	status                          *string
+	statusMessage                   *string
+	createTime                      *time.Time
+	modules                         *[]types.ApplicationModule
+	appendmodules                   []types.ApplicationModule
+	inputVariables                  *map[string]interface{}
+	inputPlan                       *string
+	output                          *string
+	deployerType                    *string
+	duration                        *int
+	addduration                     *int
+	previousRequiredProviders       *[]types.ProviderRequirement
+	appendpreviousRequiredProviders []types.ProviderRequirement
+	clearedFields                   map[string]struct{}
+	instance                        *oid.ID
+	clearedinstance                 bool
+	environment                     *oid.ID
+	clearedenvironment              bool
+	done                            bool
+	oldValue                        func(context.Context) (*ApplicationRevision, error)
+	predicates                      []predicate.ApplicationRevision
 }
 
 var _ ent.Mutation = (*ApplicationRevisionMutation)(nil)
@@ -6691,6 +6693,57 @@ func (m *ApplicationRevisionMutation) ResetDuration() {
 	m.addduration = nil
 }
 
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (m *ApplicationRevisionMutation) SetPreviousRequiredProviders(tr []types.ProviderRequirement) {
+	m.previousRequiredProviders = &tr
+	m.appendpreviousRequiredProviders = nil
+}
+
+// PreviousRequiredProviders returns the value of the "previousRequiredProviders" field in the mutation.
+func (m *ApplicationRevisionMutation) PreviousRequiredProviders() (r []types.ProviderRequirement, exists bool) {
+	v := m.previousRequiredProviders
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviousRequiredProviders returns the old "previousRequiredProviders" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldPreviousRequiredProviders(ctx context.Context) (v []types.ProviderRequirement, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviousRequiredProviders is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviousRequiredProviders requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviousRequiredProviders: %w", err)
+	}
+	return oldValue.PreviousRequiredProviders, nil
+}
+
+// AppendPreviousRequiredProviders adds tr to the "previousRequiredProviders" field.
+func (m *ApplicationRevisionMutation) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) {
+	m.appendpreviousRequiredProviders = append(m.appendpreviousRequiredProviders, tr...)
+}
+
+// AppendedPreviousRequiredProviders returns the list of values that were appended to the "previousRequiredProviders" field in this mutation.
+func (m *ApplicationRevisionMutation) AppendedPreviousRequiredProviders() ([]types.ProviderRequirement, bool) {
+	if len(m.appendpreviousRequiredProviders) == 0 {
+		return nil, false
+	}
+	return m.appendpreviousRequiredProviders, true
+}
+
+// ResetPreviousRequiredProviders resets all changes to the "previousRequiredProviders" field.
+func (m *ApplicationRevisionMutation) ResetPreviousRequiredProviders() {
+	m.previousRequiredProviders = nil
+	m.appendpreviousRequiredProviders = nil
+}
+
 // ClearInstance clears the "instance" edge to the ApplicationInstance entity.
 func (m *ApplicationRevisionMutation) ClearInstance() {
 	m.clearedinstance = true
@@ -6777,7 +6830,7 @@ func (m *ApplicationRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.status != nil {
 		fields = append(fields, applicationrevision.FieldStatus)
 	}
@@ -6811,6 +6864,9 @@ func (m *ApplicationRevisionMutation) Fields() []string {
 	if m.duration != nil {
 		fields = append(fields, applicationrevision.FieldDuration)
 	}
+	if m.previousRequiredProviders != nil {
+		fields = append(fields, applicationrevision.FieldPreviousRequiredProviders)
+	}
 	return fields
 }
 
@@ -6841,6 +6897,8 @@ func (m *ApplicationRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.DeployerType()
 	case applicationrevision.FieldDuration:
 		return m.Duration()
+	case applicationrevision.FieldPreviousRequiredProviders:
+		return m.PreviousRequiredProviders()
 	}
 	return nil, false
 }
@@ -6872,6 +6930,8 @@ func (m *ApplicationRevisionMutation) OldField(ctx context.Context, name string)
 		return m.OldDeployerType(ctx)
 	case applicationrevision.FieldDuration:
 		return m.OldDuration(ctx)
+	case applicationrevision.FieldPreviousRequiredProviders:
+		return m.OldPreviousRequiredProviders(ctx)
 	}
 	return nil, fmt.Errorf("unknown ApplicationRevision field %s", name)
 }
@@ -6957,6 +7017,13 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDuration(v)
+		return nil
+	case applicationrevision.FieldPreviousRequiredProviders:
+		v, ok := value.([]types.ProviderRequirement)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviousRequiredProviders(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)
@@ -7069,6 +7136,9 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 		return nil
 	case applicationrevision.FieldDuration:
 		m.ResetDuration()
+		return nil
+	case applicationrevision.FieldPreviousRequiredProviders:
+		m.ResetPreviousRequiredProviders()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)

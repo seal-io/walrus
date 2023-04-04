@@ -47,6 +47,8 @@ type ApplicationRevision struct {
 	DeployerType string `json:"deployerType,omitempty" sql:"deployerType"`
 	// Duration in seconds of the revision deploying.
 	Duration int `json:"duration,omitempty" sql:"duration"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty" sql:"previousRequiredProviders"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
 	Edges ApplicationRevisionEdges `json:"edges,omitempty"`
@@ -94,7 +96,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationrevision.FieldModules, applicationrevision.FieldInputVariables:
+		case applicationrevision.FieldModules, applicationrevision.FieldInputVariables, applicationrevision.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
 		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(oid.ID)
@@ -196,6 +198,14 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				ar.Duration = int(value.Int64)
 			}
+		case applicationrevision.FieldPreviousRequiredProviders:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field previousRequiredProviders", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ar.PreviousRequiredProviders); err != nil {
+					return fmt.Errorf("unmarshal field previousRequiredProviders: %w", err)
+				}
+			}
 		}
 	}
 	return nil
@@ -265,6 +275,9 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("duration=")
 	builder.WriteString(fmt.Sprintf("%v", ar.Duration))
+	builder.WriteString(", ")
+	builder.WriteString("previousRequiredProviders=")
+	builder.WriteString(fmt.Sprintf("%v", ar.PreviousRequiredProviders))
 	builder.WriteByte(')')
 	return builder.String()
 }

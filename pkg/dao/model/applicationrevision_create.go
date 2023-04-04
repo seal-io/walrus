@@ -137,6 +137,12 @@ func (arc *ApplicationRevisionCreate) SetNillableDuration(i *int) *ApplicationRe
 	return arc
 }
 
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (arc *ApplicationRevisionCreate) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ApplicationRevisionCreate {
+	arc.mutation.SetPreviousRequiredProviders(tr)
+	return arc
+}
+
 // SetID sets the "id" field.
 func (arc *ApplicationRevisionCreate) SetID(o oid.ID) *ApplicationRevisionCreate {
 	arc.mutation.SetID(o)
@@ -213,6 +219,10 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultDuration
 		arc.mutation.SetDuration(v)
 	}
+	if _, ok := arc.mutation.PreviousRequiredProviders(); !ok {
+		v := applicationrevision.DefaultPreviousRequiredProviders
+		arc.mutation.SetPreviousRequiredProviders(v)
+	}
 	return nil
 }
 
@@ -254,6 +264,9 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.Duration(); !ok {
 		return &ValidationError{Name: "duration", err: errors.New(`model: missing required field "ApplicationRevision.duration"`)}
+	}
+	if _, ok := arc.mutation.PreviousRequiredProviders(); !ok {
+		return &ValidationError{Name: "previousRequiredProviders", err: errors.New(`model: missing required field "ApplicationRevision.previousRequiredProviders"`)}
 	}
 	if _, ok := arc.mutation.InstanceID(); !ok {
 		return &ValidationError{Name: "instance", err: errors.New(`model: missing required edge "ApplicationRevision.instance"`)}
@@ -333,6 +346,10 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.Duration(); ok {
 		_spec.SetField(applicationrevision.FieldDuration, field.TypeInt, value)
 		_node.Duration = value
+	}
+	if value, ok := arc.mutation.PreviousRequiredProviders(); ok {
+		_spec.SetField(applicationrevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
+		_node.PreviousRequiredProviders = value
 	}
 	if nodes := arc.mutation.InstanceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -542,6 +559,18 @@ func (u *ApplicationRevisionUpsert) AddDuration(v int) *ApplicationRevisionUpser
 	return u
 }
 
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (u *ApplicationRevisionUpsert) SetPreviousRequiredProviders(v []types.ProviderRequirement) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldPreviousRequiredProviders, v)
+	return u
+}
+
+// UpdatePreviousRequiredProviders sets the "previousRequiredProviders" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdatePreviousRequiredProviders() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldPreviousRequiredProviders)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -729,6 +758,20 @@ func (u *ApplicationRevisionUpsertOne) AddDuration(v int) *ApplicationRevisionUp
 func (u *ApplicationRevisionUpsertOne) UpdateDuration() *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateDuration()
+	})
+}
+
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (u *ApplicationRevisionUpsertOne) SetPreviousRequiredProviders(v []types.ProviderRequirement) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetPreviousRequiredProviders(v)
+	})
+}
+
+// UpdatePreviousRequiredProviders sets the "previousRequiredProviders" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdatePreviousRequiredProviders() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdatePreviousRequiredProviders()
 	})
 }
 
@@ -1082,6 +1125,20 @@ func (u *ApplicationRevisionUpsertBulk) AddDuration(v int) *ApplicationRevisionU
 func (u *ApplicationRevisionUpsertBulk) UpdateDuration() *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateDuration()
+	})
+}
+
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (u *ApplicationRevisionUpsertBulk) SetPreviousRequiredProviders(v []types.ProviderRequirement) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetPreviousRequiredProviders(v)
+	})
+}
+
+// UpdatePreviousRequiredProviders sets the "previousRequiredProviders" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdatePreviousRequiredProviders() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdatePreviousRequiredProviders()
 	})
 }
 
