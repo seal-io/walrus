@@ -51,6 +51,9 @@ func (ApplicationRevision) Fields() []ent.Field {
 		field.Int("duration").
 			Comment("Duration in seconds of the revision deploying.").
 			Default(0),
+		field.JSON("previousRequiredProviders", []types.ProviderRequirement{}).
+			Comment("Previous provider requirement of the revision.").
+			Default([]types.ProviderRequirement{}),
 	}
 }
 

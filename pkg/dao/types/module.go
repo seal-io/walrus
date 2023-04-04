@@ -1,10 +1,18 @@
 package types
 
+import "github.com/hashicorp/terraform-config-inspect/tfconfig"
+
+type ProviderRequirement struct {
+	*tfconfig.ProviderRequirement
+
+	Name string `json:"name"`
+}
+
 type ModuleSchema struct {
-	Readme                 string
-	Variables              []ModuleVariable
-	Outputs                []ModuleOutput
-	RequiredConnectorTypes []string
+	Readme            string
+	Variables         []ModuleVariable
+	Outputs           []ModuleOutput
+	RequiredProviders []ProviderRequirement
 }
 
 type ModuleVariable struct {
