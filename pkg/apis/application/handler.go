@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/topic"
@@ -253,7 +254,10 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 		return err
 	}
 
-	var query = h.modelClient.Applications().Query()
+	var query = h.modelClient.Applications().Query().
+		WithProject(func(q *model.ProjectQuery) {
+			q.Select(project.FieldID)
+		})
 	if len(req.ProjectIDs) != 0 {
 		query.Where(application.ProjectIDIn(req.ProjectIDs...))
 	}
