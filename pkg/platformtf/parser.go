@@ -1,6 +1,7 @@
 package platformtf
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // connectorSeparator is used to separate the connector id and the instance name.
@@ -87,17 +89,36 @@ func ParseInstanceModuleName(str string) (string, error) {
 		return "", fmt.Errorf("invalid module format: %s", str)
 	}
 
-	var name string
-	for _, t := range traversal {
-		switch tt := t.(type) {
+	var names []string
+	for len(traversal) > 0 {
+		var next string
+		switch tt := traversal[0].(type) {
+		case hcl.TraverseRoot:
+			next = tt.Name
 		case hcl.TraverseAttr:
-			name = tt.Name
-		default:
+			next = tt.Name
+		}
+		traversal = traversal[1:]
+		if next != "module" {
 			continue
 		}
+
+		if len(traversal) == 0 {
+			return "", errors.New("prefix module. must be followed by a module name")
+		}
+
+		var moduleName string
+		switch tt := traversal[0].(type) {
+		case hcl.TraverseAttr:
+			moduleName = tt.Name
+		default:
+			return "", errors.New("prefix module. must be followed by a module name")
+		}
+		traversal = traversal[1:]
+		names = append(names, moduleName)
 	}
 
-	return name, nil
+	return strs.Join("/", names...), nil
 }
 
 // ParseInstanceProviderConnector get the provider connector from the provider instance string.
