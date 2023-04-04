@@ -40,6 +40,8 @@ const (
 	FieldDeployerType = "deployer_type"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
+	// FieldPreviousRequiredProviders holds the string denoting the previousrequiredproviders field in the database.
+	FieldPreviousRequiredProviders = "previous_required_providers"
 	// EdgeInstance holds the string denoting the instance edge name in mutations.
 	EdgeInstance = "instance"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldOutput,
 	FieldDeployerType,
 	FieldDuration,
+	FieldPreviousRequiredProviders,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -109,6 +112,8 @@ var (
 	DefaultDeployerType string
 	// DefaultDuration holds the default value on creation for the "duration" field.
 	DefaultDuration int
+	// DefaultPreviousRequiredProviders holds the default value on creation for the "previousRequiredProviders" field.
+	DefaultPreviousRequiredProviders []types.ProviderRequirement
 )
 
 // WithoutFields returns the fields ignored the given list.

@@ -140,6 +140,18 @@ func (aru *ApplicationRevisionUpdate) AddDuration(i int) *ApplicationRevisionUpd
 	return aru
 }
 
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (aru *ApplicationRevisionUpdate) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ApplicationRevisionUpdate {
+	aru.mutation.SetPreviousRequiredProviders(tr)
+	return aru
+}
+
+// AppendPreviousRequiredProviders appends tr to the "previousRequiredProviders" field.
+func (aru *ApplicationRevisionUpdate) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ApplicationRevisionUpdate {
+	aru.mutation.AppendPreviousRequiredProviders(tr)
+	return aru
+}
+
 // Mutation returns the ApplicationRevisionMutation object of the builder.
 func (aru *ApplicationRevisionUpdate) Mutation() *ApplicationRevisionMutation {
 	return aru.mutation
@@ -238,6 +250,14 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 	}
 	if value, ok := aru.mutation.AddedDuration(); ok {
 		_spec.AddField(applicationrevision.FieldDuration, field.TypeInt, value)
+	}
+	if value, ok := aru.mutation.PreviousRequiredProviders(); ok {
+		_spec.SetField(applicationrevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
+	}
+	if value, ok := aru.mutation.AppendedPreviousRequiredProviders(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, applicationrevision.FieldPreviousRequiredProviders, value)
+		})
 	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationRevision
 	ctx = internal.NewSchemaConfigContext(ctx, aru.schemaConfig)
@@ -365,6 +385,18 @@ func (aruo *ApplicationRevisionUpdateOne) SetNillableDuration(i *int) *Applicati
 // AddDuration adds i to the "duration" field.
 func (aruo *ApplicationRevisionUpdateOne) AddDuration(i int) *ApplicationRevisionUpdateOne {
 	aruo.mutation.AddDuration(i)
+	return aruo
+}
+
+// SetPreviousRequiredProviders sets the "previousRequiredProviders" field.
+func (aruo *ApplicationRevisionUpdateOne) SetPreviousRequiredProviders(tr []types.ProviderRequirement) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetPreviousRequiredProviders(tr)
+	return aruo
+}
+
+// AppendPreviousRequiredProviders appends tr to the "previousRequiredProviders" field.
+func (aruo *ApplicationRevisionUpdateOne) AppendPreviousRequiredProviders(tr []types.ProviderRequirement) *ApplicationRevisionUpdateOne {
+	aruo.mutation.AppendPreviousRequiredProviders(tr)
 	return aruo
 }
 
@@ -496,6 +528,14 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if value, ok := aruo.mutation.AddedDuration(); ok {
 		_spec.AddField(applicationrevision.FieldDuration, field.TypeInt, value)
+	}
+	if value, ok := aruo.mutation.PreviousRequiredProviders(); ok {
+		_spec.SetField(applicationrevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
+	}
+	if value, ok := aruo.mutation.AppendedPreviousRequiredProviders(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, applicationrevision.FieldPreviousRequiredProviders, value)
+		})
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationRevision
 	ctx = internal.NewSchemaConfigContext(ctx, aruo.schemaConfig)
