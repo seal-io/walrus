@@ -171,9 +171,7 @@ var (
 	queryFields = []string{
 		application.FieldName,
 	}
-	getFields = application.WithoutFields(
-		application.FieldProjectID,
-		application.FieldUpdateTime)
+	getFields  = application.WithoutFields(application.FieldUpdateTime)
 	sortFields = []string{
 		application.FieldName,
 		application.FieldCreateTime}
