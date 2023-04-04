@@ -1,7 +1,7 @@
 package platformtf
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,11 +23,11 @@ func TestParseInstanceModuleName(t *testing.T) {
 		},
 		{
 			input:          "module.instance.nested",
-			expectedOutput: "nested",
+			expectedOutput: "instance",
 		},
 		{
-			input:          "module.instance.nested.attribute",
-			expectedOutput: "attribute",
+			input:          "module.instance.module.attribute",
+			expectedOutput: "instance/attribute",
 		},
 		{
 			input:          "module.instance[0]",
@@ -35,7 +35,15 @@ func TestParseInstanceModuleName(t *testing.T) {
 		},
 		{
 			input: "invalid format",
-			err:   fmt.Errorf("invalid module format: invalid format"),
+			err:   errors.New("invalid module format: invalid format"),
+		},
+		{
+			input:          "module.hello[0].module.service",
+			expectedOutput: "hello/service",
+		},
+		{
+			input: "module.hello[0].module[0].service",
+			err:   errors.New("prefix module. must be followed by a module name"),
 		},
 	}
 
