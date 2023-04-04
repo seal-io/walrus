@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	TypeDefault    = "default"
 	TypeKubernetes = "kubernetes"
 	TypeHelm       = "helm"
+	TypeKubectl    = "kubectl"
 	// Add more convertor type.
 )
 
@@ -29,6 +29,8 @@ func LoadConvertor(provider string) Convertor {
 		return K8sConvertor(provider)
 	case TypeHelm:
 		return HelmConvertor(provider)
+	case TypeKubectl:
+		return KubectlConvertor(provider)
 	default:
 		return DefaultConvertor(provider)
 	}
@@ -70,7 +72,7 @@ func ToProvidersBlocks(providers []string, connectors model.Connectors, opts Con
 func ToProviderBlocks(provider string, connectors model.Connectors, opts ConvertOptions) (block.Blocks, error) {
 	var toBlockOpts Options
 	switch provider {
-	case TypeKubernetes, TypeHelm:
+	case TypeKubernetes, TypeHelm, TypeKubectl:
 		toBlockOpts = K8sConvertorOptions{
 			ConfigPath:    opts.SecretMountPath,
 			ConnSeparator: opts.ConnSeparator,
