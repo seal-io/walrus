@@ -619,6 +619,10 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
+	if entity == nil {
+		return prevRequiredProviders, nil
+	}
+
 	for _, m := range entity.Modules {
 		predicates = append(predicates, moduleversion.And(
 			moduleversion.ModuleID(m.ModuleID),
