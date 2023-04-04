@@ -36,6 +36,8 @@ type ModuleVariable struct {
 	Options []string
 	// Show the variable if the condition is true. For example, ShowIf: foo=bar.
 	ShowIf string
+	// Hidden indicate the field should be hidden or not, default is visible.
+	Hidden bool
 }
 
 type ModuleOutput struct {

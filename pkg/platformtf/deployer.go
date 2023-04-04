@@ -15,6 +15,7 @@ import (
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
@@ -23,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -50,6 +52,10 @@ type CreateSecretsOptions struct {
 	ApplicationRevision *model.ApplicationRevision
 	Connectors          model.Connectors
 	ProjectID           types.ID
+	// metadata
+	ProjectName             string
+	ApplicationName         string
+	ApplicationInstanceName string
 }
 
 // _backendAPI the API path to terraform deploy backend.
@@ -115,7 +121,17 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 	}()
 
 	// get application, we need the project id to fetch available secrets.
-	app, err := d.modelClient.Applications().Get(ctx, ai.ApplicationID)
+	app, err := d.modelClient.Applications().Query().
+		Where(
+			application.ID(ai.ApplicationID),
+		).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(
+				project.FieldID,
+				project.FieldName,
+			)
+		}).
+		Only(ctx)
 	if err != nil {
 		return err
 	}
@@ -126,6 +142,10 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		ApplicationRevision: applicationRevision,
 		Connectors:          connectors,
 		ProjectID:           app.ProjectID,
+		// metadata
+		ProjectName:             app.Edges.Project.Name,
+		ApplicationName:         app.Name,
+		ApplicationInstanceName: ai.Name,
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
@@ -196,7 +216,17 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		return revisionbus.Notify(ctx, d.modelClient, applicationRevision)
 	}
 
-	app, err := d.modelClient.Applications().Get(ctx, ai.ApplicationID)
+	app, err := d.modelClient.Applications().Query().
+		Where(
+			application.ID(ai.ApplicationID),
+		).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(
+				project.FieldID,
+				project.FieldName,
+			)
+		}).
+		Only(ctx)
 	if err != nil {
 		return err
 	}
@@ -212,6 +242,10 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		ApplicationRevision: applicationRevision,
 		Connectors:          connectors,
 		ProjectID:           app.ProjectID,
+		// metadata
+		ProjectName:             app.Edges.Project.Name,
+		ApplicationName:         app.Name,
+		ApplicationInstanceName: ai.Name,
 	}
 	err = d.createK8sSecrets(ctx, secretOpts)
 	if err != nil {
@@ -337,7 +371,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	var logger = log.WithName("platformtf")
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
-	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
+	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -447,13 +481,14 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 }
 
 // GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
-func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
+func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOptions) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
 		moduleConfigs     []*config.ModuleConfig
 		requiredProviders = make([]types.ProviderRequirement, 0)
 		// module id -> module source
 		moduleVersionMap = make(map[string]*model.ModuleVersion, 0)
 		predicates       = make([]predicate.ModuleVersion, 0)
+		ar               = opts.ApplicationRevision
 	)
 
 	for _, m := range ar.Modules {
@@ -489,10 +524,11 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 
 		// TODO (alex): add module config validation here.
 		// verify module config attributes value type are valid.
+		attrs := getAttributes(m.Attributes, m.Name, opts)
 		moduleConfig := &config.ModuleConfig{
 			Name:          m.Name,
 			ModuleVersion: modVer,
-			Attributes:    m.Attributes,
+			Attributes:    attrs,
 		}
 		moduleConfigs = append(moduleConfigs, moduleConfig)
 
@@ -751,4 +787,20 @@ func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}
 	}
 
 	return varsConfigOpts
+}
+
+func getAttributes(attrs map[string]interface{}, moduleName string, ops CreateSecretsOptions) map[string]interface{} {
+	for k := range attrs {
+		switch k {
+		case SealMetadataProjectName:
+			attrs[k] = ops.ProjectName
+		case SealMetadataApplicationName:
+			attrs[k] = ops.ApplicationName
+		case SealMetadataApplicationInstanceName:
+			attrs[k] = ops.ApplicationInstanceName
+		case SealMetadataModuleName:
+			attrs[k] = moduleName
+		}
+	}
+	return attrs
 }
