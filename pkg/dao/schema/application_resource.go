@@ -94,7 +94,11 @@ func (ApplicationResource) Interceptors() []ent.Interceptor {
 		return model.QuerierFunc(func(ctx context.Context, query model.Query) (model.Value, error) {
 			var t, ok = query.(*model.ApplicationResourceQuery)
 			if ok {
-				t.Where(applicationresource.Mode(types.ApplicationResourceModeManaged))
+				// TODO: temporary store these resource but hidden while show the resource
+				t.Where(applicationresource.And(
+					applicationresource.Mode(types.ApplicationResourceModeManaged),
+					applicationresource.TypeNEQ("kubectl_manifest"),
+				))
 			}
 			return n.Query(ctx, query)
 		})

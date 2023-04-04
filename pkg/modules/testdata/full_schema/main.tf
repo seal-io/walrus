@@ -73,6 +73,16 @@ variable "subgroup2_1" {
   default = "subgroup2_1"
 }
 
+// subgroup2_1_hidden is another test variable using sub group and should be hidden
+// @hidden
+// some comments
+// @group "Test Subgroup/Subgroup 2"
+// some other comments
+variable "subgroup2_1_hidden" {
+  type    = string
+  default = ""
+}
+
 output "first" {
   value       = null_resource.test.id
   description = "The first output."

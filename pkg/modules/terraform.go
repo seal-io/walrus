@@ -35,6 +35,7 @@ const (
 	attributeGroup   = "group"
 	attributeOptions = "options"
 	attributeShowIf  = "show_if"
+	attributeHidden  = "hidden"
 
 	defaultModuleVersion = "0.0.0"
 
@@ -402,6 +403,11 @@ func setTerraformVariableExtensions(variable *types.ModuleVariable, comments []s
 	for _, comment := range comments {
 		if strings.HasPrefix(comment, atSign) {
 			splits := regexp.MustCompile(`\s+`).Split(comment[1:], 2)
+			if len(splits) == 1 && splits[0] == attributeHidden {
+				variable.Hidden = true
+				continue
+			}
+
 			if len(splits) < 2 {
 				continue
 			}
