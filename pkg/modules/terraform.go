@@ -294,11 +294,7 @@ func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
 			Sensitive:   v.Sensitive,
 		})
 	}
-
-	for name := range mod.RequiredProviders {
-		moduleSchema.RequiredConnectorTypes = append(moduleSchema.RequiredConnectorTypes, name)
-	}
-	sort.Strings(moduleSchema.RequiredConnectorTypes)
+	moduleSchema.RequiredProviders = getRequiredProviders(mod.RequiredProviders)
 
 	return moduleSchema, nil
 }
@@ -334,6 +330,22 @@ func sortOutput(m map[string]*tfconfig.Output) (s []*tfconfig.Output) {
 	}
 	sort.SliceStable(s, func(i, j int) bool {
 		return judgeSourcePos(&s[i].Pos, &s[j].Pos)
+	})
+	return
+}
+
+func getRequiredProviders(m map[string]*tfconfig.ProviderRequirement) (s []types.ProviderRequirement) {
+	if len(m) == 0 {
+		return
+	}
+	for k, v := range m {
+		s = append(s, types.ProviderRequirement{
+			Name:                k,
+			ProviderRequirement: v,
+		})
+	}
+	sort.SliceStable(s, func(i, j int) bool {
+		return s[i].Name < s[j].Name
 	})
 	return
 }

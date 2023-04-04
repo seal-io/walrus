@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf/block"
 	"github.com/seal-io/seal/pkg/platformtf/convertor"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // Config handles the configuration of application to terraform config.
@@ -220,25 +221,51 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 // loadTerraformBlock loads the terraform block.
 func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 	var (
+		logger         = log.WithName("platformtf")
 		terraformBlock = &block.Block{
 			Type: block.TypeTerraform,
 		}
-		backendBlock = &block.Block{
-			Type:   block.TypeBackend,
-			Labels: []string{"http"},
-			Attributes: map[string]interface{}{
-				"address": opts.Address,
-				// since the seal server using bearer token and
-				// terraform backend only support basic auth.
-				// we use the token as the password, and let the username be default.
-				"username":               _defaultUsername,
-				"password":               opts.Token,
-				"skip_cert_verification": opts.SkipTLSVerify,
-				// use PUT method to update the state
-				"update_method": _updateMethod,
-			},
-		}
 	)
+
+	if opts.ProviderRequirements != nil {
+		requiredProviders := &block.Block{
+			Type:       block.TypeRequiredProviders,
+			Attributes: map[string]interface{}{},
+		}
+		for provider, requirement := range opts.ProviderRequirements {
+			if _, ok := requiredProviders.Attributes[provider]; ok {
+				logger.Warnf("provider already exists, skip", "provider", provider)
+				continue
+			}
+			pr := make(map[string]interface{})
+			if requirement != nil {
+				if requirement != nil && len(requirement.VersionConstraints) != 0 {
+					pr["version"] = strs.Join(",", requirement.VersionConstraints...)
+				}
+				if requirement != nil && requirement.Source != "" {
+					pr["source"] = requirement.Source
+				}
+			}
+			requiredProviders.Attributes[provider] = pr
+		}
+		terraformBlock.AppendBlock(requiredProviders)
+	}
+	backendBlock := &block.Block{
+		Type:   block.TypeBackend,
+		Labels: []string{"http"},
+		Attributes: map[string]interface{}{
+			"address": opts.Address,
+			// since the seal server using bearer token and
+			// terraform backend only support basic auth.
+			// we use the token as the password, and let the username be default.
+			"username":               _defaultUsername,
+			"password":               opts.Token,
+			"skip_cert_verification": opts.SkipTLSVerify,
+			// use PUT method to update the state
+			"update_method": _updateMethod,
+		},
+	}
+
 	terraformBlock.AppendBlock(backendBlock)
 
 	return terraformBlock
@@ -246,10 +273,10 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 
 // loadProviderBlocks returns config providers to get terraform provider config block.
 func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
-	return convertor.ToProvidersBlocks(opts.RequiredProviders, opts.Connectors, convertor.ConvertOptions{
+	return convertor.ToProvidersBlocks(opts.RequiredProviderNames, opts.Connectors, convertor.ConvertOptions{
 		SecretMountPath: opts.SecretMonthPath,
 		ConnSeparator:   opts.ConnectorSeparator,
-		Providers:       opts.RequiredProviders,
+		Providers:       opts.RequiredProviderNames,
 	})
 }
 

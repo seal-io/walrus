@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -147,8 +148,22 @@ func TestLoadTerraformSchema(t *testing.T) {
 			name:  "Full schema",
 			input: "testdata/full_schema",
 			expectedOutput: &types.ModuleSchema{
-				Readme:                 "# test readme",
-				RequiredConnectorTypes: []string{"mycloud", "null"},
+				Readme: "# test readme",
+				RequiredProviders: []types.ProviderRequirement{
+					{
+						Name: "mycloud",
+						ProviderRequirement: &tfconfig.ProviderRequirement{
+							Source:             "mycorp/mycloud",
+							VersionConstraints: []string{"~> 1.0"},
+						},
+					},
+					{
+						Name: "null",
+						ProviderRequirement: &tfconfig.ProviderRequirement{
+							Source: "hashicorp/null",
+						},
+					},
+				},
 				Outputs: []types.ModuleOutput{
 					{
 						Name:        "first",

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -36,6 +38,9 @@ type (
 		Address string
 		// SkipTLSVerify is the backend cert verification of the terraform config.
 		SkipTLSVerify bool
+
+		// ProviderRequirements is the required providers of the terraform config.
+		ProviderRequirements map[string]*tfconfig.ProviderRequirement
 	}
 
 	// ProviderOptions is the options to create provider blocks.
@@ -44,10 +49,10 @@ type (
 		SecretMonthPath string
 		// ConnectorSeparator is the separator of the terraform provider alias name and id.
 		ConnectorSeparator string
-		// RequiredProviders is the required providers of the terraform config.
+		// RequiredProviderNames is the required providers of the terraform config.
 		// e.g. ["kubernetes", "helm"]
-		RequiredProviders []string
-		Connectors        model.Connectors
+		RequiredProviderNames []string
+		Connectors            model.Connectors
 	}
 
 	// ModuleOptions is the options to create module blocks.

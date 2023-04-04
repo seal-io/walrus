@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
@@ -299,6 +300,11 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 		}
 		// inherit the output of previous revision.
 		entity.Output = prevEntity.Output
+		// inherit the required providers of previous succeeded revision.
+		entity.PreviousRequiredProviders, err = d.getPreviousRequiredProviders(ctx, ai.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// get modules for new revision.
@@ -328,12 +334,25 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
 func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
+	var logger = log.WithName("platformtf")
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
-	moduleConfigs, requiredConnTypes, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
+	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts.ApplicationRevision)
 	if err != nil {
 		return nil, err
 	}
+	// merge current and previous required providers.
+	providerRequirements = append(providerRequirements, opts.ApplicationRevision.PreviousRequiredProviders...)
+
+	requiredProviders := make(map[string]*tfconfig.ProviderRequirement, 0)
+	for _, p := range providerRequirements {
+		if _, ok := requiredProviders[p.Name]; !ok {
+			requiredProviders[p.Name] = p.ProviderRequirement
+		} else {
+			logger.Warnf("duplicate provider requirement: %s", p.Name)
+		}
+	}
+
 	// parse module secrets
 	secrets, err := d.parseModuleSecrets(ctx, moduleConfigs, opts)
 	if err != nil {
@@ -356,18 +375,23 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// prepare terraform config files to be mounted to secret.
+	var requiredProviderNames = sets.NewString()
+	for _, p := range providerRequirements {
+		requiredProviderNames = requiredProviderNames.Insert(p.Name)
+	}
 	var secretOptionMaps = map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
-				Token:         token,
-				Address:       address,
-				SkipTLSVerify: opts.SkipTLSVerify,
+				Token:                token,
+				Address:              address,
+				SkipTLSVerify:        opts.SkipTLSVerify,
+				ProviderRequirements: requiredProviders,
 			},
 			ProviderOptions: &config.ProviderOptions{
-				RequiredProviders:  requiredConnTypes,
-				Connectors:         opts.Connectors,
-				SecretMonthPath:    _secretMountPath,
-				ConnectorSeparator: connectorSeparator,
+				RequiredProviderNames: requiredProviderNames.List(),
+				Connectors:            opts.Connectors,
+				SecretMonthPath:       _secretMountPath,
+				ConnectorSeparator:    connectorSeparator,
 			},
 			ModuleOptions: &config.ModuleOptions{
 				ModuleConfigs: moduleConfigs,
@@ -423,10 +447,10 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 }
 
 // GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
-func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, []string, error) {
+func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRevision) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
-		requiredConnectorSet = sets.NewString()
-		moduleConfigs        []*config.ModuleConfig
+		moduleConfigs     []*config.ModuleConfig
+		requiredProviders = make([]types.ProviderRequirement, 0)
 		// module id -> module source
 		moduleVersionMap = make(map[string]*model.ModuleVersion, 0)
 		predicates       = make([]predicate.ModuleVersion, 0)
@@ -473,11 +497,11 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, ar *model.ApplicationRev
 		moduleConfigs = append(moduleConfigs, moduleConfig)
 
 		if modVer.Schema != nil {
-			requiredConnectorSet.Insert(modVer.Schema.RequiredConnectorTypes...)
+			requiredProviders = append(requiredProviders, modVer.Schema.RequiredProviders...)
 		}
 	}
 
-	return moduleConfigs, requiredConnectorSet.List(), err
+	return moduleConfigs, requiredProviders, err
 }
 
 func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstance) (model.Connectors, error) {
@@ -577,6 +601,47 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 	}
 
 	return secrets, nil
+}
+
+// getPreviousRequiredProviders get previous succeed revision required providers.
+// NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
+func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID types.ID) ([]types.ProviderRequirement, error) {
+	var (
+		prevRequiredProviders = make([]types.ProviderRequirement, 0)
+		predicates            []predicate.ModuleVersion
+	)
+
+	var entity, err = d.modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.InstanceID(instanceID)).
+		Where(applicationrevision.Status(status.ApplicationRevisionStatusSucceeded)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return nil, err
+	}
+	for _, m := range entity.Modules {
+		predicates = append(predicates, moduleversion.And(
+			moduleversion.ModuleID(m.ModuleID),
+			moduleversion.Version(m.Version)))
+	}
+
+	if len(predicates) != 0 {
+		mvs, err := d.modelClient.ModuleVersions().Query().
+			Where(moduleversion.And(predicates...)).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, mv := range mvs {
+			if mv.Schema == nil {
+				continue
+			}
+			prevRequiredProviders = append(prevRequiredProviders, mv.Schema.RequiredProviders...)
+		}
+	}
+
+	return prevRequiredProviders, nil
 }
 
 func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) error {

@@ -39,6 +39,9 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 		if r.Duration != 0 {
 			c.SetDuration(r.Duration)
 		}
+		if len(r.PreviousRequiredProviders) != 0 {
+			c.SetPreviousRequiredProviders(r.PreviousRequiredProviders)
+		}
 
 		rrs[i] = c
 	}
