@@ -92,6 +92,10 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
+	if err := publishApplicationUpdate(ctx, entity); err != nil {
+		return nil, err
+	}
+
 	return model.ExposeApplicationInstance(entity), nil
 }
 
@@ -121,6 +125,10 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		SetStatusMessage("").
 		Save(ctx)
 	if err != nil {
+		return err
+	}
+
+	if err := publishApplicationUpdate(ctx, entity); err != nil {
 		return err
 	}
 
@@ -339,6 +347,10 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) er
 		return err
 	}
 
+	if err := publishApplicationUpdate(ctx, entity); err != nil {
+		return err
+	}
+
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
@@ -382,4 +394,8 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 	return &view.AccessEndpointResponse{
 		Endpoints: endpoints,
 	}, nil
+}
+
+func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInstance) error {
+	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{entity.ApplicationID})
 }

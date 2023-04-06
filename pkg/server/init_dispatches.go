@@ -6,7 +6,6 @@ import (
 	"entgo.io/ent"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 )
@@ -15,13 +14,6 @@ type Mutation interface {
 	ID() (types.ID, bool)
 	IDs(context.Context) ([]types.ID, error)
 	Tx() (*model.Tx, error)
-}
-
-type PublishOptions struct {
-	MutationType string
-	IDs          []types.ID
-	Op           model.Op
-	Client       model.ClientSet
 }
 
 func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
@@ -58,12 +50,6 @@ func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
 						ids = []types.ID{id}
 					}
 				}
-				publishOpts := PublishOptions{
-					MutationType: m.Type(),
-					IDs:          ids,
-					Op:           m.Op(),
-					Client:       opts.ModelClient,
-				}
 
 				// action after mutate.
 				tx, _ := hm.Tx()
@@ -73,11 +59,11 @@ func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
 							if err = next.Commit(ctx, tx); err != nil {
 								return err
 							}
-							return publish(ctx, publishOpts)
+							return datamessage.Publish(ctx, m.Type(), m.Op(), ids)
 						})
 					})
 				} else {
-					if err = publish(ctx, publishOpts); err != nil {
+					if err = datamessage.Publish(ctx, m.Type(), m.Op(), ids); err != nil {
 						return nil, err
 					}
 				}
@@ -88,37 +74,4 @@ func (r *Server) initDispatches(ctx context.Context, opts initOptions) error {
 	)
 
 	return nil
-}
-
-func publish(ctx context.Context, opts PublishOptions) error {
-	// publish application change event when application instance changed.
-	if opts.MutationType == string(datamessage.ApplicationInstance) {
-		applicationIDs, err := getInstancesApplicationIDs(ctx, opts)
-		if err != nil {
-			return err
-		}
-		err = datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, applicationIDs)
-		if err != nil {
-			return err
-		}
-	}
-
-	return datamessage.Publish(ctx, opts.MutationType, opts.Op, opts.IDs)
-}
-
-func getInstancesApplicationIDs(ctx context.Context, opts PublishOptions) ([]types.ID, error) {
-	instances, err := opts.Client.ApplicationInstances().Query().
-		Select(applicationinstance.FieldApplicationID).
-		Where(applicationinstance.IDIn(opts.IDs...)).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	applicationIDs := make([]types.ID, 0, len(instances))
-	for _, instance := range instances {
-		applicationIDs = append(applicationIDs, instance.ApplicationID)
-	}
-
-	return applicationIDs, nil
 }

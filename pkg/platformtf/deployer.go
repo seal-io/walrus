@@ -33,6 +33,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf/config"
 	"github.com/seal-io/seal/pkg/platformtf/util"
 	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -695,7 +696,8 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 		Where(applicationinstance.ID(revision.InstanceID)).
 		Select(
 			applicationinstance.FieldID,
-			applicationinstance.FieldStatus).
+			applicationinstance.FieldStatus,
+			applicationinstance.FieldApplicationID).
 		Only(ctx)
 	if err != nil {
 		return err
@@ -722,8 +724,11 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 			SetStatusMessage(revision.StatusMessage).
 			Exec(ctx)
 	}
+	if err != nil {
+		return err
+	}
 
-	return err
+	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{appInstance.ApplicationID})
 }
 
 // parseAttributeReplace parses attribute secrets ${secret.name} replaces it with ${var._varprefix+name},
