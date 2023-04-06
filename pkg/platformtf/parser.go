@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -59,7 +60,12 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 		for _, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
 			if err != nil {
-				return nil, err
+				logger.Errorf("parse instance id failed: %w, instance: %v", err, is)
+				continue
+			}
+			if instanceID == "" {
+				logger.Errorf("instance id is empty, instance: %v", is)
+				continue
 			}
 
 			applicationResource := &model.ApplicationResource{
@@ -146,7 +152,18 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 
 		for key, value := range val.AsValueMap() {
 			if key == "id" {
-				return value.AsString(), nil
+				if value.IsNull() {
+					return "", nil
+				}
+
+				switch value.Type() {
+				case cty.String:
+					return value.AsString(), nil
+				case cty.Number:
+					return value.AsBigFloat().String(), nil
+				default:
+					return "", fmt.Errorf("unsupported type for id: %s, value: %s", value, value.Type().FriendlyName())
+				}
 			}
 		}
 	}
