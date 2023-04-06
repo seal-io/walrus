@@ -308,7 +308,17 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			continue
 		}
 		// inject providers alias to the module
-		mb.Attributes["providers"] = providersMap
+		if mc.ModuleVersion.Schema != nil {
+			moduleProviders := map[string]interface{}{}
+			for _, p := range mc.ModuleVersion.Schema.RequiredProviders {
+				if _, ok := providersMap[p.Name]; !ok {
+					logger.Warnf("provider not found, skip provider: %s", p.Name)
+					continue
+				}
+				moduleProviders[p.Name] = providersMap[p.Name]
+			}
+			mb.Attributes["providers"] = moduleProviders
+		}
 		blocks = append(blocks, mb)
 	}
 
