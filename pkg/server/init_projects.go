@@ -14,7 +14,7 @@ func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
 	var builtin = []*model.Project{
 		// default project
 		{
-			Name:        "Default",
+			Name:        "default",
 			Description: "Default project",
 		},
 	}

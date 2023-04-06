@@ -2,10 +2,12 @@ package view
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs
@@ -15,8 +17,8 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) Validate() error {
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 	return nil
 }
@@ -32,6 +34,9 @@ type UpdateRequest struct {
 func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
+	}
+	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 	return nil
 }
