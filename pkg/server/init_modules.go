@@ -20,9 +20,9 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_web.svg",
 		},
 		{
-			ID:          "build-image",
+			ID:          "build-container-image",
 			Description: "Build a container image from source code.",
-			Source:      "github.com/seal-io/modules//build-image",
+			Source:      "github.com/seal-io/modules//build-container-image",
 			Icon:        "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_containerimage.svg",
 		},
 		{
