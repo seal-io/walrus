@@ -14,7 +14,7 @@ func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
 	var builtin = []*model.Environment{
 		// default environment
 		{
-			Name:        "Default",
+			Name:        "default",
 			Description: "Default environment",
 		},
 	}

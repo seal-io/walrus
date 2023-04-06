@@ -3,6 +3,7 @@ package view
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -10,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs
@@ -22,16 +24,16 @@ func (r *CreateRequest) Validate() error {
 	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
 	}
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 	if len(r.Modules) != 0 {
 		for i := 0; i < len(r.Modules); i++ {
 			if r.Modules[i].Module.ID == "" {
 				return errors.New("invalid module id: blank")
 			}
-			if r.Modules[i].Name == "" {
-				return errors.New("invalid module name: blank")
+			if err := validation.IsDNSSubdomainName(r.Modules[i].Name); err != nil {
+				return fmt.Errorf("invalid module name: %w", err)
 			}
 		}
 	}
@@ -50,13 +52,16 @@ func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
+	}
 	if len(r.Modules) != 0 {
 		for i := 0; i < len(r.Modules); i++ {
 			if r.Modules[i].Module.ID == "" {
 				return errors.New("invalid module id: blank")
 			}
-			if r.Modules[i].Name == "" {
-				return errors.New("invalid module name: blank")
+			if err := validation.IsDNSSubdomainName(r.Modules[i].Name); err != nil {
+				return fmt.Errorf("invalid module name: %w", err)
 			}
 		}
 	}

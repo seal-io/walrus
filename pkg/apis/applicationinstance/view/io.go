@@ -3,6 +3,7 @@ package view
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"k8s.io/utils/pointer"
@@ -17,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs
@@ -34,8 +36,8 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.Environment.ID.Valid(0) {
 		return errors.New("invalid environment id: blank")
 	}
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	_, err := modelClient.Applications().Query().
