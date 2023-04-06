@@ -34,7 +34,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		{
 			ID:          "mysql",
 			Description: "A containerized mysql instance.",
-			Source:      "github.com/seal-io/modules//mysql?ref=063c14c6774b359349a0910535b4d60fcd40b810",
+			Source:      "github.com/seal-io/modules//mysql",
 			Icon:        "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
 		},
 	}
