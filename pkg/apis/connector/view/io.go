@@ -67,12 +67,12 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Type == "" {
 		return errors.New("invalid type: blank")
 	}
-
-	var entity = r.Model()
-	if err := validateConnector(ctx, entity); err != nil {
-		return err
+	if r.ConfigData != nil {
+		var entity = r.Model()
+		if err := validateConnector(ctx, entity); err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
