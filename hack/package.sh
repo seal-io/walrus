@@ -13,14 +13,14 @@ PACKAGE_TMP_DIR="${PACKAGE_DIR}/tmp"
 mkdir -p "${PACKAGE_TMP_DIR}"
 
 function download_ui() {
-  local default_tag="v0.3.2"
+  local default_tag="v0.1.0"
   local path="${1}"
   local tag="${2}"
 
   mkdir -p "${PACKAGE_TMP_DIR}/ui"
 
   mkdir -p "${path}"
-  if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/releases/${tag}.tar.gz" 2>/dev/null |
+  if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.accelerate.myqcloud.com/releases/${tag}.tar.gz" 2>/dev/null |
     tar -xzf - --directory "${PACKAGE_TMP_DIR}/ui" 2>/dev/null; then
 
     if [[ "${tag:-}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
@@ -28,7 +28,7 @@ function download_ui() {
     fi
 
     seal::log::warn "failed to download '${tag}' ui archive, fallback to '${default_tag}' ui archive"
-    if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/releases/${default_tag}.tar.gz" |
+    if ! curl --retry 3 --retry-all-errors --retry-delay 3 -sSfL "https://seal-ui-1303613262.cos.accelerate.myqcloud.com/releases/${default_tag}.tar.gz" |
       tar -xzf - --directory "${PACKAGE_TMP_DIR}/ui" 2>/dev/null; then
       seal::log::fatal "failed to download '${default_tag}' ui archive"
     fi
@@ -48,6 +48,7 @@ function setup_image_package_context() {
   local target="$1"
   local task="$2"
   local path="$3"
+  local tag="$(seal::image::tag)"
 
   local context="${PACKAGE_DIR}/${target}/${task}"
   # create targeted dist
@@ -63,7 +64,7 @@ function setup_image_package_context() {
   seal)
     case "${task}" in
     server)
-      download_ui "${context}/image/var/lib/seal/ui" "v0.3.2"
+      download_ui "${context}/image/var/lib/seal/ui" "${tag}"
       ;;
     esac
     ;;
