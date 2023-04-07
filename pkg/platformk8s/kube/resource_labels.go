@@ -100,7 +100,7 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 		metav1.PatchOptions{},
 	)
 	if err != nil {
-		return fmt.Errorf("error patch labels to %s %s/%s", gvr.Resource, ns, name)
+		return fmt.Errorf("error patch labels to %s %s/%s: %w", gvr.Resource, ns, name, err)
 	}
 	return nil
 }
