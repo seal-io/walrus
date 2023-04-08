@@ -33,7 +33,7 @@ function download_ui() {
       seal::log::fatal "failed to download '${default_tag}' ui archive"
     fi
   fi
-  cp -a "${PACKAGE_TMP_DIR}/ui/dist/" "${path}"
+  cp -a "${PACKAGE_TMP_DIR}/ui/dist/." "${path}"
 
   rm -rf "${PACKAGE_TMP_DIR}/ui"
 }
