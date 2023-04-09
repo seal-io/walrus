@@ -794,6 +794,16 @@ func (aiq *ApplicationInstanceQuery) Modify(modifiers ...func(s *sql.Selector)) 
 	return aiq.Select()
 }
 
+// WhereP appends storage-level predicates to the ApplicationInstanceQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (aiq *ApplicationInstanceQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ApplicationInstance, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ApplicationInstance(ps[i]))
+	}
+	aiq.predicates = append(aiq.predicates, wps...)
+}
+
 // ApplicationInstanceGroupBy is the group-by builder for ApplicationInstance entities.
 type ApplicationInstanceGroupBy struct {
 	selector

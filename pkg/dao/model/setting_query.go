@@ -491,6 +491,16 @@ func (sq *SettingQuery) Modify(modifiers ...func(s *sql.Selector)) *SettingSelec
 	return sq.Select()
 }
 
+// WhereP appends storage-level predicates to the SettingQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (sq *SettingQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Setting, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Setting(ps[i]))
+	}
+	sq.predicates = append(sq.predicates, wps...)
+}
+
 // SettingGroupBy is the group-by builder for Setting entities.
 type SettingGroupBy struct {
 	selector

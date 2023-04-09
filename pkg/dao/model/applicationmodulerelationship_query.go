@@ -567,6 +567,16 @@ func (amrq *ApplicationModuleRelationshipQuery) Modify(modifiers ...func(s *sql.
 	return amrq.Select()
 }
 
+// WhereP appends storage-level predicates to the ApplicationModuleRelationshipQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (amrq *ApplicationModuleRelationshipQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ApplicationModuleRelationship, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ApplicationModuleRelationship(ps[i]))
+	}
+	amrq.predicates = append(amrq.predicates, wps...)
+}
+
 // ApplicationModuleRelationshipGroupBy is the group-by builder for ApplicationModuleRelationship entities.
 type ApplicationModuleRelationshipGroupBy struct {
 	selector

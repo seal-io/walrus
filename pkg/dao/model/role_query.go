@@ -491,6 +491,16 @@ func (rq *RoleQuery) Modify(modifiers ...func(s *sql.Selector)) *RoleSelect {
 	return rq.Select()
 }
 
+// WhereP appends storage-level predicates to the RoleQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (rq *RoleQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Role, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Role(ps[i]))
+	}
+	rq.predicates = append(rq.predicates, wps...)
+}
+
 // RoleGroupBy is the group-by builder for Role entities.
 type RoleGroupBy struct {
 	selector

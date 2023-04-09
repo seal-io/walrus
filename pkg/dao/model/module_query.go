@@ -645,6 +645,16 @@ func (mq *ModuleQuery) Modify(modifiers ...func(s *sql.Selector)) *ModuleSelect 
 	return mq.Select()
 }
 
+// WhereP appends storage-level predicates to the ModuleQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (mq *ModuleQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Module, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Module(ps[i]))
+	}
+	mq.predicates = append(mq.predicates, wps...)
+}
+
 // ModuleGroupBy is the group-by builder for Module entities.
 type ModuleGroupBy struct {
 	selector

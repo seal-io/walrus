@@ -645,6 +645,16 @@ func (arq *ApplicationRevisionQuery) Modify(modifiers ...func(s *sql.Selector)) 
 	return arq.Select()
 }
 
+// WhereP appends storage-level predicates to the ApplicationRevisionQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (arq *ApplicationRevisionQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ApplicationRevision, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ApplicationRevision(ps[i]))
+	}
+	arq.predicates = append(arq.predicates, wps...)
+}
+
 // ApplicationRevisionGroupBy is the group-by builder for ApplicationRevision entities.
 type ApplicationRevisionGroupBy struct {
 	selector
