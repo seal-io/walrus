@@ -570,6 +570,16 @@ func (mvq *ModuleVersionQuery) Modify(modifiers ...func(s *sql.Selector)) *Modul
 	return mvq.Select()
 }
 
+// WhereP appends storage-level predicates to the ModuleVersionQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (mvq *ModuleVersionQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ModuleVersion, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ModuleVersion(ps[i]))
+	}
+	mvq.predicates = append(mvq.predicates, wps...)
+}
+
 // ModuleVersionGroupBy is the group-by builder for ModuleVersion entities.
 type ModuleVersionGroupBy struct {
 	selector

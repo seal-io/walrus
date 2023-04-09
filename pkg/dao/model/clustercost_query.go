@@ -570,6 +570,16 @@ func (ccq *ClusterCostQuery) Modify(modifiers ...func(s *sql.Selector)) *Cluster
 	return ccq.Select()
 }
 
+// WhereP appends storage-level predicates to the ClusterCostQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (ccq *ClusterCostQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ClusterCost, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ClusterCost(ps[i]))
+	}
+	ccq.predicates = append(ccq.predicates, wps...)
+}
+
 // ClusterCostGroupBy is the group-by builder for ClusterCost entities.
 type ClusterCostGroupBy struct {
 	selector

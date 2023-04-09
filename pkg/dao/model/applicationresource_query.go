@@ -645,6 +645,16 @@ func (arq *ApplicationResourceQuery) Modify(modifiers ...func(s *sql.Selector)) 
 	return arq.Select()
 }
 
+// WhereP appends storage-level predicates to the ApplicationResourceQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (arq *ApplicationResourceQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.ApplicationResource, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.ApplicationResource(ps[i]))
+	}
+	arq.predicates = append(arq.predicates, wps...)
+}
+
 // ApplicationResourceGroupBy is the group-by builder for ApplicationResource entities.
 type ApplicationResourceGroupBy struct {
 	selector

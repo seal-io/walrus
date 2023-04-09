@@ -567,6 +567,16 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) Modify(modifiers ...func(s *s
 	return ecrq.Select()
 }
 
+// WhereP appends storage-level predicates to the EnvironmentConnectorRelationshipQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (ecrq *EnvironmentConnectorRelationshipQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.EnvironmentConnectorRelationship, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.EnvironmentConnectorRelationship(ps[i]))
+	}
+	ecrq.predicates = append(ecrq.predicates, wps...)
+}
+
 // EnvironmentConnectorRelationshipGroupBy is the group-by builder for EnvironmentConnectorRelationship entities.
 type EnvironmentConnectorRelationshipGroupBy struct {
 	selector

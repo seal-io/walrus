@@ -794,6 +794,16 @@ func (cq *ConnectorQuery) Modify(modifiers ...func(s *sql.Selector)) *ConnectorS
 	return cq.Select()
 }
 
+// WhereP appends storage-level predicates to the ConnectorQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (cq *ConnectorQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Connector, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Connector(ps[i]))
+	}
+	cq.predicates = append(cq.predicates, wps...)
+}
+
 // ConnectorGroupBy is the group-by builder for Connector entities.
 type ConnectorGroupBy struct {
 	selector

@@ -491,6 +491,16 @@ func (tq *TokenQuery) Modify(modifiers ...func(s *sql.Selector)) *TokenSelect {
 	return tq.Select()
 }
 
+// WhereP appends storage-level predicates to the TokenQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (tq *TokenQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Token, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Token(ps[i]))
+	}
+	tq.predicates = append(tq.predicates, wps...)
+}
+
 // TokenGroupBy is the group-by builder for Token entities.
 type TokenGroupBy struct {
 	selector

@@ -570,6 +570,16 @@ func (sq *SecretQuery) Modify(modifiers ...func(s *sql.Selector)) *SecretSelect 
 	return sq.Select()
 }
 
+// WhereP appends storage-level predicates to the SecretQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (sq *SecretQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Secret, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Secret(ps[i]))
+	}
+	sq.predicates = append(sq.predicates, wps...)
+}
+
 // SecretGroupBy is the group-by builder for Secret entities.
 type SecretGroupBy struct {
 	selector

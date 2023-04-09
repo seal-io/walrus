@@ -719,6 +719,16 @@ func (aq *ApplicationQuery) Modify(modifiers ...func(s *sql.Selector)) *Applicat
 	return aq.Select()
 }
 
+// WhereP appends storage-level predicates to the ApplicationQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (aq *ApplicationQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Application, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Application(ps[i]))
+	}
+	aq.predicates = append(aq.predicates, wps...)
+}
+
 // ApplicationGroupBy is the group-by builder for Application entities.
 type ApplicationGroupBy struct {
 	selector

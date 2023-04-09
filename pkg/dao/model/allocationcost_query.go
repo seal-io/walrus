@@ -570,6 +570,16 @@ func (acq *AllocationCostQuery) Modify(modifiers ...func(s *sql.Selector)) *Allo
 	return acq.Select()
 }
 
+// WhereP appends storage-level predicates to the AllocationCostQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (acq *AllocationCostQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.AllocationCost, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.AllocationCost(ps[i]))
+	}
+	acq.predicates = append(acq.predicates, wps...)
+}
+
 // AllocationCostGroupBy is the group-by builder for AllocationCost entities.
 type AllocationCostGroupBy struct {
 	selector

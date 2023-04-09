@@ -491,6 +491,16 @@ func (sq *SubjectQuery) Modify(modifiers ...func(s *sql.Selector)) *SubjectSelec
 	return sq.Select()
 }
 
+// WhereP appends storage-level predicates to the SubjectQuery builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (sq *SubjectQuery) WhereP(ps ...func(*sql.Selector)) {
+	var wps = make([]predicate.Subject, 0, len(ps))
+	for i := 0; i < len(ps); i++ {
+		wps = append(wps, predicate.Subject(ps[i]))
+	}
+	sq.predicates = append(sq.predicates, wps...)
+}
+
 // SubjectGroupBy is the group-by builder for Subject entities.
 type SubjectGroupBy struct {
 	selector
