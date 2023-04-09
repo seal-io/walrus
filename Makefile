@@ -40,9 +40,9 @@ help:
 	#           - `PACKAGE_BUILD=false make package` prepare build resource but disable docker build.
 	#           - `DOCKER_USERNAME=... DOCKER_PASSWORD=... PACKAGE_PUSH=true make package` execute docker push after build.
 	#
-	#   * [ci]  `make ci-check`, execute `make deps`, `make test` and `make lint`.
-	#
-	#   * [ci]  `make ci-publish`, execute `make build` and `make package`.
+	#   * [ci]  `make ci`, execute `make deps`, `make lint`, `make test`, `make build` and `make package`.
+	#           - `CI_CHECK=false make ci` only execute `make build` and `make package`.
+	#           - `CI_PUBLISH=false make ci` only execute `make deps`, `make lint` and `make test`.
 	#
 	@echo
 

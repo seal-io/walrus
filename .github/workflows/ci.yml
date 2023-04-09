@@ -9,7 +9,7 @@ env:
   VERSION: "${{ github.ref_name }}"
   BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   PARALLELIZE: "false"
-  GO_VERSION: "1.19.7"
+  GO_VERSION: "1.19.8"
 
 defaults:
   run:
@@ -48,73 +48,49 @@ jobs:
           do_not_skip: '["workflow_dispatch", "push"]'
         continue-on-error: true
 
-  check:
+  build:
     needs:
       - skip
-    if: ${{ needs.skip.outputs.should != 'true' }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     runs-on: ubuntu-22.04
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "${{ env.GO_VERSION }}"
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          # checkout the whole histories for commitsar,
+          # currently commitsar needs full git objects to work correctly.
           fetch-depth: 0
-      - name: Cache
-        uses: actions/cache@v3
-        with:
-          key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
-          path: |
-            ~/.cache/golangci-lint
-            ~/.cache/go-build
-            ~/go/pkg
-            ${{ github.workspace }}/.sbin
-      - name: Check
-        run: make ci-check
-        env:
-          LINT_DIRTY: "true"
-          GITHUB_TOKEN: ${{ github.token }}
-
-  publish_without_package:
-    needs:
-      - skip
-      - check
-    timeout-minutes: 20
-    runs-on: ubuntu-22.04
-    steps:
+          persist-credentials: false
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: "${{ env.GO_VERSION }}"
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Cache
+          cache-dependency-path: |
+            **/go.sum
+      - name: Setup Toolbox
         uses: actions/cache@v3
         with:
-          key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          # restore/save service binaries, e.g. goimports, golangci-lint, commitsar.
+          key: toolbox-${{ runner.os }}
           path: |
-            ~/.cache/go-build
-            ~/go/pkg
-      - name: Publish
-        run: make ci-publish
+            ${{ github.workspace }}/.sbin
+      - name: Build
+        run: make ci
         env:
+          CI_CHECK: "${{ needs.skip.outputs.should != 'true' }}"
+          LINT_DIRTY: "true"
           PACKAGE_BUILD: "false"
       - name: Archive Publish Result
         uses: actions/cache/save@v3
         with:
+          # save package resources, e.g. go build result, downloaded UI, entrypoint script.
+          key: archive-${{ runner.os }}-${{ github.sha }}
           path: |
             ${{ github.workspace }}/.dist/package
-          key: archive-${{ runner.os }}-${{ github.sha }}
 
-  publish_package:
+  publish:
     needs:
-      - publish_without_package
+      - build
     permissions:
       contents: read
       actions: read
@@ -129,6 +105,11 @@ jobs:
           - target: seal
             task: agent
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -142,17 +123,13 @@ jobs:
         with:
           username: ${{ secrets.CI_DOCKERHUB_USERNAME }}
           password: ${{ secrets.CI_DOCKERHUB_PASSWORD }}
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
-          persist-credentials: false
       - name: Unarchive Publish Result
         uses: actions/cache/restore@v3
         with:
+          # restore package resources, e.g. go build result, downloaded UI, entrypoint script.
+          key: archive-${{ runner.os }}-${{ github.sha }}
           path: |
             ${{ github.workspace }}/.dist/package
-          key: archive-${{ runner.os }}-${{ github.sha }}
       - name: Get Metadata
         id: metadata
         uses: docker/metadata-action@v4
