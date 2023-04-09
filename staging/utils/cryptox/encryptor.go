@@ -21,9 +21,19 @@ func Null() Encryptor {
 type nullEncryptor struct{}
 
 func (nullEncryptor) Encrypt(p []byte, _ []byte) ([]byte, error) {
-	return append([]byte(nil), p...), nil
+	if p == nil {
+		return p, nil
+	}
+	var c = make([]byte, len(p))
+	copy(c, p)
+	return c, nil
 }
 
 func (nullEncryptor) Decrypt(p []byte, _ []byte) ([]byte, error) {
-	return append([]byte(nil), p...), nil
+	if p == nil {
+		return p, nil
+	}
+	var c = make([]byte, len(p))
+	copy(c, p)
+	return c, nil
 }
