@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -89,22 +88,23 @@ func (ApplicationResource) Edges() []ent.Edge {
 }
 
 func (ApplicationResource) Interceptors() []ent.Interceptor {
-	// filters out none "managed" mode resources.
-	var filter = func(n model.Querier) model.Querier {
-		return model.QuerierFunc(func(ctx context.Context, query model.Query) (model.Value, error) {
-			var t, ok = query.(*model.ApplicationResourceQuery)
-			if ok {
-				// TODO: temporary store these resource but hidden while show the resource
-				t.Where(applicationresource.And(
-					applicationresource.Mode(types.ApplicationResourceModeManaged),
-					applicationresource.TypeNEQ("kubectl_manifest"),
-				))
-			}
-			return n.Query(ctx, query)
-		})
+	type target interface {
+		WhereP(...func(*sql.Selector))
 	}
 
+	// filters out none "managed" mode and "kubectl_manifest" type resources.
+	var filter = ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
+		var t, ok = query.(target)
+		if ok {
+			t.WhereP(
+				sql.FieldEQ("mode", "managed"),
+				sql.FieldNEQ("type", "kubectl_manifest"),
+			)
+		}
+		return nil
+	})
+
 	return []ent.Interceptor{
-		model.InterceptFunc(filter),
+		filter,
 	}
 }
