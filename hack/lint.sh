@@ -25,7 +25,7 @@ function lint() {
   [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
 
   seal::format::run -w -local "$(head -n 1 "${path}/go.mod" | cut -d " " -f 2 2>&1)" "${path}"
-  seal::lint::run --build-tags="$*" "${path}/..."
+  GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run --build-tags="$*" "${path}/..."
 
   [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
 }

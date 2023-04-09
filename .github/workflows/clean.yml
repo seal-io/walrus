@@ -1,0 +1,49 @@
+name: Clean
+
+permissions:
+  actions: write
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  clean:
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Remove Publish Result
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log("getting cache list...")
+            const cs = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/pull/${{ github.event.pull_request.number }}/merge'
+            });
+            
+            for (const c of cs) {
+              if (!c.key.match(/^archive-.*$/)) {
+                continue
+              }
+              
+              console.log(`cleaning cache ${c.key}...`)
+              await github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: c.id
+              })
+              console.log(`cleaned cache ${c.key}`)
+            }
+        continue-on-error: true
