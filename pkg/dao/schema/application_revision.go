@@ -8,6 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 type ApplicationRevision struct {
@@ -35,9 +36,9 @@ func (ApplicationRevision) Fields() []ent.Field {
 		field.JSON("modules", []types.ApplicationModule{}).
 			Comment("Application modules.").
 			Default([]types.ApplicationModule{}),
-		field.JSON("inputVariables", map[string]interface{}{}).
+		property.ValuesField("inputVariables").
 			Comment("Input variables of the revision.").
-			Default(map[string]interface{}{}).
+			Default(property.Values{}).
 			Sensitive(),
 		field.String("inputPlan").
 			Comment("Input plan of the revision.").

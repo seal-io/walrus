@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 type ApplicationInstance struct {
@@ -44,7 +45,7 @@ func (ApplicationInstance) Fields() []ent.Field {
 			Comment("Name of the instance.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("variables", map[string]interface{}{}).
+		property.ValuesField("variables").
 			Comment("Variables of the instance.").
 			Optional(),
 	}

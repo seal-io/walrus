@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 type ApplicationModuleRelationship struct {
@@ -46,7 +47,7 @@ func (ApplicationModuleRelationship) Fields() []ent.Field {
 			Comment("Name of the module customized to the application.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("attributes", map[string]interface{}{}).
+		property.ValuesField("attributes").
 			Comment("Attributes to configure the module.").
 			Optional(),
 	}
