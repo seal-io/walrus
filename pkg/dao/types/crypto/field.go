@@ -4,6 +4,9 @@ import (
 	"database/sql/driver"
 	"errors"
 
+	"github.com/zclconf/go-cty/cty"
+
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -138,4 +141,120 @@ func (i *Slice[T]) Scan(src any) error {
 		return json.Unmarshal(p, i)
 	}
 	return errors.New("not a valid crypto slice")
+}
+
+// Property wraps the property.Property,
+// and erases the invisible value during output.
+type Property struct {
+	property.Property `json:",inline"`
+
+	// Visible indicates to show the value of this property or not.
+	Visible bool `json:"visible"`
+}
+
+// String implements fmt.Stringer.
+func (i Property) String() string {
+	if !i.Visible {
+		return "<sensitive>"
+	}
+	return string(i.Value)
+}
+
+// MarshalJSON implements json.Marshaler,
+// impacts the response message.
+func (i Property) MarshalJSON() ([]byte, error) {
+	type Alias Property
+	var ia = (Alias)(i)
+	if !i.Visible {
+		ia.Value = nil
+	}
+	return json.Marshal(ia)
+}
+
+// Properties holds the secret Property collection in map,
+// the key of map is the name of Property,
+// stores into byte array.
+type Properties map[string]Property
+
+// Value implements driver.Valuer.
+func (i Properties) Value() (driver.Value, error) {
+	type Alias Property
+	var ia = make(map[string]Alias, len(i))
+	for k := range i {
+		ia[k] = (Alias)(i[k])
+	}
+	var v, err = json.Marshal(ia)
+	if err != nil {
+		return nil, err
+	}
+	var enc = EncryptorConfig.Get()
+	return enc.Encrypt(v, nil)
+}
+
+// Scan implements sql.Scanner.
+func (i *Properties) Scan(src any) error {
+	switch v := src.(type) {
+	case nil:
+		return nil
+	case []byte:
+		var enc = EncryptorConfig.Get()
+		var p, err = enc.Decrypt(v, nil)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(p, i)
+	}
+	return errors.New("not a valid crypto properties")
+}
+
+// Cty returns the type and value of this property.
+func (i Properties) Cty() (cty.Type, cty.Value, error) {
+	var (
+		ot = make(map[string]cty.Type, len(i))
+		ov = make(map[string]cty.Value, len(i))
+	)
+	for x := range i {
+		var t, v, err = i[x].Cty()
+		if err != nil {
+			return cty.NilType, cty.NilVal, err
+		}
+		ot[x] = t
+		ov[x] = v
+	}
+	return cty.Object(ot), cty.ObjectVal(ov), nil
+}
+
+// Values returns a map stores the underlay value.
+func (i Properties) Values() property.Values {
+	var m = make(property.Values, len(i))
+	for x := range i {
+		m[x] = i[x].GetValue()
+	}
+	return m
+}
+
+// TypedValues returns a map stores the typed value.
+func (i Properties) TypedValues() (m map[string]any, err error) {
+	m = make(map[string]any, len(i))
+	for x := range i {
+		var typ = i[x].GetType()
+		switch {
+		case typ == cty.Number:
+			m[x], _, err = i[x].GetNumber()
+		case typ == cty.Bool:
+			m[x], _, err = i[x].GetBool()
+		case typ == cty.String:
+			m[x], _, err = i[x].GetString()
+		case typ.IsListType() || typ.IsTupleType() || typ.IsSetType():
+			m[x], _, err = property.GetSlice[any](i[x])
+		case typ.IsMapType() || typ.IsObjectType():
+			m[x], _, err = property.GetMap[any](i[x])
+		default:
+			m[x], _, err = property.GetAny[any](i[x])
+		}
+		if err != nil {
+			return
+		}
+	}
+	return
 }

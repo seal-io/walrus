@@ -64,3 +64,16 @@ func SliceField[T any](name string) *otherBuilder {
 			Descriptor(),
 	}
 }
+
+// PropertiesField returns a new ent.Field with type Properties.
+func PropertiesField(name string) *otherBuilder {
+	return &otherBuilder{
+		desc: field.Other(name, Properties{}).
+			SchemaType(map[string]string{
+				dialect.MySQL:    "blob",
+				dialect.Postgres: "bytea",
+				dialect.SQLite:   "blob",
+			}).
+			Descriptor(),
+	}
+}
