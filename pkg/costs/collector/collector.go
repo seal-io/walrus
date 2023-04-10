@@ -87,8 +87,8 @@ func (c *Collector) K8sCosts(startTime, endTime *time.Time, step time.Duration) 
 func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step time.Duration) ([]*model.AllocationCost, error) {
 	window := fmt.Sprintf("%d,%d", startTime.Unix(), endTime.Unix())
 	queries := url.Values{
-		// each AllocationSet would be a container.
-		"aggregate": []string{"container"},
+		// each AllocationSet would be a container, use pod, container as aggregate key to prevent containers with same name.
+		"aggregate": []string{"pod,container"},
 		// accumulate sums each AllocationSet in the given range, just returning a single cumulative.
 		"accumulate": []string{"false"},
 		// e.g. "1586822400,1586908800"
