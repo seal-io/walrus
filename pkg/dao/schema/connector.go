@@ -41,10 +41,9 @@ func (Connector) Fields() []ent.Field {
 		field.String("configVersion").
 			Comment("Connector config version.").
 			NotEmpty(),
-		crypto.MapField[string, interface{}]("configData").
+		crypto.PropertiesField("configData").
 			Comment("Connector config data.").
-			Default(crypto.Map[string, interface{}]{}).
-			Sensitive(),
+			Default(crypto.Properties{}),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
 		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).

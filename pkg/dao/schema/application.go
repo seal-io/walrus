@@ -4,12 +4,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
-	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 type Application struct {
@@ -37,7 +36,7 @@ func (Application) Fields() []ent.Field {
 			Comment("ID of the project to which the application belongs.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("variables", []types.ApplicationVariable{}).
+		property.SchemasField("variables").
 			Comment("Variables definition of the application, " +
 				"the variables of instance derived by this definition").
 			Optional(),
