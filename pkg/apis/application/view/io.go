@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -20,7 +22,9 @@ type CreateRequest struct {
 	*model.ApplicationCreateInput `json:",inline"`
 }
 
-func (r *CreateRequest) Validate() error {
+func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
 	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
 	}
@@ -28,12 +32,86 @@ func (r *CreateRequest) Validate() error {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 	if len(r.Modules) != 0 {
-		for i := 0; i < len(r.Modules); i++ {
-			if r.Modules[i].Module.ID == "" {
-				return errors.New("invalid module id: blank")
+		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
+	}
+	return nil
+}
+
+func validateModules(ctx context.Context, modelClient model.ClientSet, inputModules []*model.ApplicationModuleRelationship) error {
+	moduleVersionKey := func(moduleID, version string) string {
+		return fmt.Sprintf("%s/%s", moduleID, version)
+	}
+
+	ps := make([]predicate.ModuleVersion, len(inputModules))
+	for i, m := range inputModules {
+		if inputModules[i].ModuleID == "" {
+			return errors.New("invalid module id: blank")
+		}
+		if err := validation.IsDNSSubdomainName(inputModules[i].Name); err != nil {
+			return fmt.Errorf("invalid module name: %w", err)
+		}
+		ps[i] = moduleversion.And(moduleversion.ModuleID(m.ModuleID), moduleversion.Version(m.Version))
+	}
+
+	moduleVersions, err := modelClient.ModuleVersions().
+		Query().
+		Select(
+			moduleversion.FieldModuleID,
+			moduleversion.FieldVersion,
+			moduleversion.FieldSchema,
+		).
+		Where(moduleversion.Or(ps...)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	var attrs = make(map[string]map[string]types.ModuleVariable)
+	for _, m := range moduleVersions {
+		if m.Schema == nil {
+			continue
+		}
+		key := moduleVersionKey(m.ModuleID, m.Version)
+		if _, ok := attrs[key]; !ok {
+			attrs[key] = make(map[string]types.ModuleVariable)
+		}
+		for _, v := range m.Schema.Variables {
+			attrs[key][v.Name] = v
+		}
+	}
+
+	for _, v := range inputModules {
+		key := moduleVersionKey(v.ModuleID, v.Version)
+		for attrName, attrValue := range v.Attributes {
+			// check attribute existed.
+			schemaVariable, ok := attrs[key][attrName]
+			if !ok {
+				return fmt.Errorf("invalid attribute %s in module %s: not supported", attrName, key)
 			}
-			if err := validation.IsDNSSubdomainName(r.Modules[i].Name); err != nil {
-				return fmt.Errorf("invalid module name: %w", err)
+
+			// check attribute type,
+			// only check primitive types, skip complex types now, since we currently use string to represent the these values.
+			var (
+				valueTypeExpected = true
+				actualValueType   = reflect.TypeOf(attrValue).Kind()
+			)
+			switch schemaVariable.Type {
+			case "string":
+				valueTypeExpected = actualValueType == reflect.String
+			case "bool":
+				valueTypeExpected = actualValueType == reflect.Bool
+			case "number":
+				switch actualValueType {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				case reflect.Float32, reflect.Float64:
+				default:
+					valueTypeExpected = false
+				}
+			}
+
+			if !valueTypeExpected {
+				return fmt.Errorf("unexpected value type for attribute %s in module %s", attrName, key)
 			}
 		}
 	}
@@ -48,7 +126,9 @@ type UpdateRequest struct {
 	*model.ApplicationUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r *UpdateRequest) Validate() error {
+func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -56,14 +136,7 @@ func (r *UpdateRequest) Validate() error {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 	if len(r.Modules) != 0 {
-		for i := 0; i < len(r.Modules); i++ {
-			if r.Modules[i].Module.ID == "" {
-				return errors.New("invalid module id: blank")
-			}
-			if err := validation.IsDNSSubdomainName(r.Modules[i].Name); err != nil {
-				return fmt.Errorf("invalid module name: %w", err)
-			}
-		}
+		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
 	}
 	return nil
 }
