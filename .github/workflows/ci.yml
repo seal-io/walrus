@@ -3,6 +3,7 @@ name: CI
 permissions:
   contents: read
   pull-requests: read
+  actions: read
 
 env:
   REPO: "sealio"
@@ -51,7 +52,7 @@ jobs:
   build:
     needs:
       - skip
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
