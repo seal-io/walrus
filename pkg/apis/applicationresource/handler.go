@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -40,6 +41,10 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.ApplicationResource)
 	if err != nil {
 		return err
@@ -178,6 +183,10 @@ func (h Handler) getCollectionResponse(ctx context.Context, query *model.Applica
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.ApplicationResource)
 	if err != nil {
 		return err

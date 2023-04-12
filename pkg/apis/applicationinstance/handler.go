@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
@@ -158,6 +159,10 @@ func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.Appli
 }
 
 func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
 	if err != nil {
 		return err
@@ -259,6 +264,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+	
 	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
 	if err != nil {
 		return err

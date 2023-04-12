@@ -52,6 +52,10 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 		ctxCancel: upCtxCancel,
 		ws:        ws,
 	}
+	ws.SetCloseHandler(func(code int, text string) error {
+		upCtxCancel()
+		return nil
+	})
 
 	gopool.Go(func() {
 		var ping = func() error {
