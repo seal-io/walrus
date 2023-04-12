@@ -13,10 +13,13 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -75,7 +78,7 @@ type DeleteRequest struct {
 	Force *bool `query:"force,default=true"`
 }
 
-func (r *DeleteRequest) Validate() error {
+func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -84,6 +87,38 @@ func (r *DeleteRequest) Validate() error {
 		// by default, clean deployed native resources too.
 		r.Force = pointer.Bool(true)
 	}
+
+	if *r.Force {
+		modelClient := input.(model.ClientSet)
+		revision, err := modelClient.ApplicationRevisions().Query().
+			Where(applicationrevision.InstanceID(r.ID)).
+			Order(model.Desc(applicationrevision.FieldCreateTime)).
+			First(ctx)
+		if err != nil && !model.IsNotFound(err) {
+			return runtime.Errorw(err, "failed to get application deployment")
+		}
+
+		if revision != nil {
+			switch revision.Status {
+			case status.ApplicationRevisionStatusSucceeded:
+			case status.ApplicationRevisionStatusRunning:
+				return runtime.Error(http.StatusBadRequest, "deployment is running, please wait for it to finish before deleting the instance")
+			case status.ApplicationRevisionStatusFailed:
+				resourceExist, err := modelClient.ApplicationResources().Query().
+					Where(applicationresource.InstanceID(r.ID)).
+					Exist(ctx)
+				if err != nil {
+					return err
+				}
+				if resourceExist {
+					return runtime.Error(http.StatusBadRequest, "latest deployment is not succeeded, please fix the app configuration or rollback the instance before deleting it")
+				}
+			default:
+				return runtime.Error(http.StatusBadRequest, "invalid deployment status")
+			}
+		}
+	}
+
 	return nil
 }
 

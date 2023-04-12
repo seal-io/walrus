@@ -96,7 +96,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		return err
 	}
 
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai)
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, _jobTypeApply)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 // 1. get the latest revision, and checkAppRevision it if it is running.
 // 2. if not running, then destroy resources.
 func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai)
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, _jobTypeDestroy)
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 // get the latest revision, and check it if it is running.
 // if not running, then apply the latest revision.
 // if running, then wait for the latest revision to be applied.
-func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.ApplicationInstance) (*model.ApplicationRevision, error) {
+func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.ApplicationInstance, jobType string) (*model.ApplicationRevision, error) {
 	var entity = &model.ApplicationRevision{
 		DeployerType:   DeployerType,
 		InstanceID:     ai.ID,
@@ -320,11 +320,10 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	// output of the previous revision should be inherited to the new one
 	// when creating a new revision.
 	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
-		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		Where(applicationrevision.And(
 			applicationrevision.InstanceID(ai.ID),
 			applicationrevision.DeployerType(DeployerType))).
-		Select(applicationrevision.FieldOutput, applicationrevision.FieldStatus).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
@@ -357,6 +356,12 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 			Name:       amrs[i].Name,
 			Attributes: amrs[i].Attributes,
 		}
+	}
+
+	if jobType == _jobTypeDestroy &&
+		prevEntity != nil &&
+		prevEntity.Status == status.ApplicationRevisionStatusSucceeded {
+		entity = prevEntity
 	}
 
 	// create revision, mark status to running.
@@ -649,8 +654,10 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 	)
 
 	var entity, err = d.modelClient.ApplicationRevisions().Query().
-		Where(applicationrevision.InstanceID(instanceID)).
-		Where(applicationrevision.Status(status.ApplicationRevisionStatusSucceeded)).
+		Where(
+			applicationrevision.InstanceID(instanceID),
+			applicationrevision.Status(status.ApplicationRevisionStatusSucceeded),
+		).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
@@ -668,7 +675,7 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 
 	if len(predicates) != 0 {
 		mvs, err := d.modelClient.ModuleVersions().Query().
-			Where(moduleversion.And(predicates...)).
+			Where(moduleversion.Or(predicates...)).
 			All(ctx)
 		if err != nil {
 			return nil, err
