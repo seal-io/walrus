@@ -335,10 +335,22 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 		// inherit the output of previous revision.
 		entity.Output = prevEntity.Output
 		// inherit the required providers of previous succeeded revision.
-		entity.PreviousRequiredProviders, err = d.getPreviousRequiredProviders(ctx, ai.ID)
+		previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, ai.ID)
 		if err != nil {
 			return nil, err
 		}
+		stateRequiredProviders, err := ParseStateProviders(entity.Output)
+		if err != nil {
+			return nil, err
+		}
+		stateRequiredProviderSet := sets.New(stateRequiredProviders...)
+		var requiredProviders []types.ProviderRequirement
+		for _, p := range previousRequiredProviders {
+			if stateRequiredProviderSet.Has(p.Name) {
+				requiredProviders = append(requiredProviders, p)
+			}
+		}
+		entity.PreviousRequiredProviders = requiredProviders
 	}
 
 	// get modules for new revision.
@@ -658,10 +670,7 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 	)
 
 	var entity, err = d.modelClient.ApplicationRevisions().Query().
-		Where(
-			applicationrevision.InstanceID(instanceID),
-			applicationrevision.Status(status.ApplicationRevisionStatusSucceeded),
-		).
+		Where(applicationrevision.InstanceID(instanceID)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil && !model.IsNotFound(err) {
@@ -692,6 +701,7 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 			prevRequiredProviders = append(prevRequiredProviders, mv.Schema.RequiredProviders...)
 		}
 	}
+	prevRequiredProviders = append(prevRequiredProviders, entity.PreviousRequiredProviders...)
 
 	return prevRequiredProviders, nil
 }

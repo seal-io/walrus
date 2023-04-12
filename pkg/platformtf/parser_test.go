@@ -73,8 +73,8 @@ func TestParseInstanceProviderConnector(t *testing.T) {
 		{
 
 			input:          "provider.connector--instance",
-			expectedOutput: "instance",
-			expectedError:  false,
+			expectedOutput: "",
+			expectedError:  true,
 		},
 		{
 			input:          "provider.connector",
@@ -136,6 +136,105 @@ func TestParseInstanceID(t *testing.T) {
 			assert.Error(t, actualError)
 		} else {
 			assert.NoError(t, actualError)
+		}
+	}
+}
+
+func TestParseProvidreString(t *testing.T) {
+	testCases := []struct {
+		input          string
+		expectedOutput *AbsProviderConfig
+		expectedError  error
+	}{
+		{
+			input: `provider["registry.terraform.io/hashicorp/kubernetes"].connector--kubernetes`,
+			expectedOutput: &AbsProviderConfig{
+				Provider: Provider{
+					Type:      "kubernetes",
+					Namespace: "hashicorp",
+					Hostname:  "registry.terraform.io",
+				},
+				Alias: "connector--kubernetes",
+			},
+		},
+		{
+			input: `provider["registry.terraform.io/hashicorp/kubernetes"].connector`,
+			expectedOutput: &AbsProviderConfig{
+				Provider: Provider{
+					Type:      "kubernetes",
+					Namespace: "hashicorp",
+					Hostname:  "registry.terraform.io",
+				},
+				Alias: "connector",
+			},
+		},
+		{
+			input: `provider["registry.terraform.io/hashicorp/kubernetes"]`,
+			expectedOutput: &AbsProviderConfig{
+				Provider: Provider{
+					Type:      "kubernetes",
+					Namespace: "hashicorp",
+					Hostname:  "registry.terraform.io",
+				},
+				Alias: "",
+			},
+		},
+		{
+			input: `module.baz.provider["registry.terraform.io/hashicorp/aws"].foo`,
+			expectedOutput: &AbsProviderConfig{
+				Provider: Provider{
+					Type:      "aws",
+					Namespace: "hashicorp",
+					Hostname:  "registry.terraform.io",
+				},
+				Alias: "foo",
+			},
+		},
+		{
+			input:         `module.baz["foo"].provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New("invalid provider configuration address \"module.baz[\"foo\"].provider[\"registry.terraform.io/hashicorp/aws\"]"),
+		},
+		{
+			input:         `module.baz[1].provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New("invalid provider configuration address \"module.baz[1].provider[\"registry.terraform.io/hashicorp/aws\"]"),
+		},
+		{
+			input:         `module.baz[1].module.bar.provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New("invalid provider configuration address \"module.baz[1].module.bar.provider[\"registry.terraform.io/hashicorp/aws\"]"),
+		},
+		{
+			input:         `aws`,
+			expectedError: errors.New("provider address must begin with \"provider.\", followed by a provider type name"),
+		},
+		{
+			input:         `provider.`,
+			expectedError: errors.New("the prefix \"provider.\" must be followed by a provider type name"),
+		},
+		{
+			input:         `aws.foo`,
+			expectedError: errors.New("the prefix \"provider.\" must be followed by a provider type name"),
+		},
+		{
+			input:         `provider.aws.foo.bar`,
+			expectedError: errors.New("provider type name must be followed by a configuration alias name"),
+		},
+		{
+			input:         `provider["aws"]["foo"]`,
+			expectedError: errors.New("provider type name must be followed by a configuration alias name"),
+		},
+		{
+			input:         `provider[0]`,
+			expectedError: errors.New("provider type name must be followed by a configuration alias name"),
+		},
+	}
+
+	for _, tc := range testCases {
+		actualOutput, actualError := ParseAbsProviderString(tc.input)
+		if tc.expectedError != nil {
+			assert.Error(t, tc.expectedError, actualError)
+		} else {
+			assert.NoError(t, actualError)
+			assert.Equal(t, tc.expectedOutput, actualOutput)
 		}
 	}
 }
