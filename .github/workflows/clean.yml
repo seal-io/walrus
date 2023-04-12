@@ -27,25 +27,28 @@ jobs:
       - name: Remove Publish Result
         uses: actions/github-script@v6
         with:
+          # clean up caches created by the pull request itself,
+          # ref to https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#force-deleting-cache-entries,
+          # and https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache.
           script: |
-            console.log("getting cache list...")
+            const ref = 'refs/pull/${{ github.event.pull_request.number }}/merge'
+            
+            console.debug("getting cache list...")
             const cs = await github.rest.actions.getActionsCacheList({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/pull/${{ github.event.pull_request.number }}/merge'
+              ref: ref
             });
+            console.log("got cache list")
             
             for (const c of cs.data.actions_caches) {
-              if (!c.key.match(/^archive-.*$/)) {
-                continue
-              }
-              
-              console.log(`cleaning cache ${c.key}...`)
-              await github.rest.actions.deleteActionsCacheById({
+              console.debug(`cleaning cache "${c.key}"...`)
+              await github.rest.actions.deleteActionsCacheByKey({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                cache_id: c.id
+                ref: ref,
+                key: c.key
               })
-              console.log(`cleaned cache ${c.key}`)
+              console.log(`cleaned cache "${c.key}"`)
             }
         continue-on-error: true
