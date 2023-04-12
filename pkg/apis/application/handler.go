@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -105,6 +106,10 @@ func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.
 }
 
 func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err
@@ -247,6 +252,10 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err

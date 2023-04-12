@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf"
 	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
@@ -59,6 +60,10 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 }
 
 func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
@@ -195,6 +200,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+	gopool.Go(func() {
+		_, _ = ctx.RecvMsg()
+	})
+
 	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err

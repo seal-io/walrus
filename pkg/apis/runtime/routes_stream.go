@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"errors"
+	"net/http"
 	"reflect"
 	"time"
 
@@ -33,6 +34,9 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 		HandshakeTimeout: 5 * time.Second,
 		ReadBufferSize:   4096,
 		WriteBufferSize:  4096,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
 	var ws, err = up.Upgrade(c.Writer, c.Request, nil)
@@ -52,6 +56,10 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 		ctxCancel: upCtxCancel,
 		ws:        ws,
 	}
+	ws.SetCloseHandler(func(code int, text string) error {
+		upCtxCancel()
+		return nil
+	})
 
 	gopool.Go(func() {
 		var ping = func() error {
