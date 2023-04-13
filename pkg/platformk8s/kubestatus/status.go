@@ -145,7 +145,7 @@ func getPod(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Stat
 		st                = &typestatus.Status{}
 	)
 	st.SetConditions(toConditions(statusConds))
-	st.SetSummary(podSummarizer().Summarize(st))
+	st.SetSummary(podStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -185,7 +185,7 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if exist {
 		st.SetConditions(toConditions(statusConditions))
-		st.SetSummary(replicaSetSummarizer().Summarize(st))
+		st.SetSummary(replicaSetStatusPaths.Walk(st))
 		return st, nil
 	}
 
@@ -231,7 +231,7 @@ func getAPIService(ctx context.Context, o *unstructured.Unstructured) (*typestat
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(apiServiceSummarizer().Summarize(st))
+	st.SetSummary(apiServiceStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -257,7 +257,7 @@ func getDeployment(ctx context.Context, o *unstructured.Unstructured, pauseAsRea
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(deploymentSummarizer().Summarize(st))
+	st.SetSummary(deploymentStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -379,7 +379,7 @@ func getJob(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Stat
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(jobSummarizer().Summarize(st))
+	st.SetSummary(jobStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -392,7 +392,7 @@ func getHorizontalPodAutoscaler(ctx context.Context, o *unstructured.Unstructure
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(hpaSummarizer().Summarize(st))
+	st.SetSummary(hpaStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -405,7 +405,7 @@ func getCertificateSigningRequest(ctx context.Context, o *unstructured.Unstructu
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(csrSummarizer().Summarize(st))
+	st.SetSummary(csrStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -431,7 +431,7 @@ func getNetworkPolicy(ctx context.Context, o *unstructured.Unstructured) (*types
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(networkPolicySummarizer().Summarize(st))
+	st.SetSummary(networkPolicyStatusPaths.Walk(st))
 	return st, nil
 }
 
@@ -444,7 +444,7 @@ func getPodDisruptionBudget(ctx context.Context, o *unstructured.Unstructured) (
 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
-	st.SetSummary(pdbSummarizer().Summarize(st))
+	st.SetSummary(pdbStatusPaths.Walk(st))
 	return st, nil
 }
 

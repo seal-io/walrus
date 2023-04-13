@@ -263,7 +263,7 @@ func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRe
 		return err
 	}
 
-	status.ConnectorStatusToolsDeployed.Unknown(o, "")
+	status.ConnectorStatusCostToolsDeployed.Unknown(o, "")
 	if err = pkgconn.UpdateStatus(ctx, h.modelClient, o); err != nil {
 		return err
 	}

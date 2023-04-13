@@ -6,7 +6,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	pkgstatus "github.com/seal-io/seal/pkg/status"
 )
 
 func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.ConnectorCreate, error) {
@@ -32,30 +31,23 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 
 		// optional.
 		c.SetDescription(r.Description)
-		if !r.FinOpsCustomPricing.IsZero() {
-			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
-		} else if r.Type == types.ConnectorTypeK8s {
-			// set init status
-			status.ConnectorStatusProvisioned.Unknown(r, "Provisioning connector")
-			status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")
-			r.Status.SummaryStatus = status.ConnectorStatusProvisionedTransitioning
-			r.Status.SummaryStatusMessage = status.ConnectorStatusProvisionedTransitioning
-			r.Status.Summary.Transitioning = true
-
-			// set default custom pricing
-			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
-		}
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
-
-		switch r.Category {
-		case types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
-			StatusSummarizer := pkgstatus.NewSummarizer(status.GeneralStatusReady)
-			r.Status = status.Status{}
-			r.Status.SetSummary(StatusSummarizer.Summarize(&r.Status))
-			c.SetStatus(r.Status)
+		if !r.FinOpsCustomPricing.IsZero() {
+			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
+		} else if r.Type == types.ConnectorTypeK8s {
+			// set default pricing for Kubernetes connector.
+			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
+		if r.Type == types.ConnectorTypeK8s {
+			status.ConnectorStatusProvisioned.Unknown(r, "Provisioning connector")
+			if r.EnableFinOps {
+				status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")
+			}
+		}
+		r.Status.SetSummary(status.WalkConnector(&r.Status))
+		c.SetStatus(r.Status)
 		rrs[i] = c
 	}
 	return rrs, nil

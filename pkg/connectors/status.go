@@ -42,7 +42,7 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 			},
 		},
 		{
-			status: status.ConnectorStatusToolsDeployed,
+			status: status.ConnectorStatusCostToolsDeployed,
 			check: func(ctx context.Context, m model.Connector) (string, error) {
 				return "", in.checkCostTool(ctx, m)
 			},
@@ -173,7 +173,7 @@ func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector)
 
 // UpdateStatus set summary and update the connector with locked.
 func UpdateStatus(ctx context.Context, client model.ClientSet, conn *model.Connector) error {
-	conn.Status.SetSummary(StatusSummarizer.Summarize(&conn.Status))
+	conn.Status.SetSummary(status.WalkConnector(&conn.Status))
 	if !conn.Status.Changed() {
 		return nil
 	}
