@@ -488,24 +488,23 @@ func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicCli
 	return &GeneralStatusReady, nil
 }
 
-func toConditions(statusConds []interface{}) []typestatus.Condition {
-	var conds []typestatus.Condition
+func toConditions(statusConds []interface{}) (conds []typestatus.Condition) {
 	for i := range statusConds {
 		var condition, ok = statusConds[i].(map[string]interface{})
 		if !ok {
 			continue
 		}
 
-		condType, ok := condition["type"].(string)
+		condType, ok, _ := unstructured.NestedString(condition, "type")
 		if !ok {
 			continue
 		}
-		condTypeStatus, ok := condition["status"].(string)
+		condTypeStatus, ok, _ := unstructured.NestedString(condition, "status")
 		if !ok {
 			continue
 		}
-		msg, _ := condition["message"].(string)
-		reason, _ := condition["reason"].(string)
+		msg, _, _ := unstructured.NestedString(condition, "message")
+		reason, _, _ := unstructured.NestedString(condition, "reason")
 		cond := typestatus.Condition{
 			Type:    typestatus.ConditionType(condType),
 			Status:  typestatus.ConditionStatus(condTypeStatus),
@@ -513,17 +512,15 @@ func toConditions(statusConds []interface{}) []typestatus.Condition {
 			Reason:  reason,
 		}
 
-		ts := condition["lastTransitionTime"]
-		if ts != nil {
-			if lastTransitionTime, ok := ts.(string); ok {
-				lastUpdateTime, err := time.Parse(time.RFC3339, lastTransitionTime)
-				if err == nil {
-					cond.LastUpdateTime = lastUpdateTime
-				}
+		ts, ok, _ := unstructured.NestedString(condition, "lastTransitionTime")
+		if ok {
+			lastUpdateTime, err := time.Parse(time.RFC3339, ts)
+			if err == nil {
+				cond.LastUpdateTime = lastUpdateTime
 			}
 		}
 
 		conds = append(conds, cond)
 	}
-	return conds
+	return
 }
