@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -42,14 +44,19 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 		return fmt.Sprintf("%s/%s", moduleID, version)
 	}
 
+	moduleNames := sets.Set[string]{}
 	ps := make([]predicate.ModuleVersion, len(inputModules))
 	for i, m := range inputModules {
-		if inputModules[i].ModuleID == "" {
+		if m.ModuleID == "" {
 			return errors.New("invalid module id: blank")
 		}
-		if err := validation.IsDNSSubdomainName(inputModules[i].Name); err != nil {
-			return fmt.Errorf("invalid module name: %w", err)
+		if err := validation.IsDNSSubdomainName(m.Name); err != nil {
+			return fmt.Errorf("invalid module name %s: %w", m.Name, err)
 		}
+		if moduleNames.Has(m.Name) {
+			return fmt.Errorf("invalid module name %s: duplicated", m.Name)
+		}
+		moduleNames.Insert(m.Name)
 		ps[i] = moduleversion.And(moduleversion.ModuleID(m.ModuleID), moduleversion.Version(m.Version))
 	}
 
@@ -66,27 +73,45 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 		return err
 	}
 
-	var attrs = make(map[string]map[string]types.ModuleVariable)
+	var schemas = make(map[string]map[string]types.ModuleVariable)
 	for _, m := range moduleVersions {
 		if m.Schema == nil {
 			continue
 		}
 		key := moduleVersionKey(m.ModuleID, m.Version)
-		if _, ok := attrs[key]; !ok {
-			attrs[key] = make(map[string]types.ModuleVariable)
+		if _, ok := schemas[key]; !ok {
+			schemas[key] = make(map[string]types.ModuleVariable)
 		}
 		for _, v := range m.Schema.Variables {
-			attrs[key][v.Name] = v
+			schemas[key][v.Name] = v
 		}
 	}
 
 	for _, v := range inputModules {
-		key := moduleVersionKey(v.ModuleID, v.Version)
-		for attrName, attrValue := range v.Attributes {
-			// check attribute existed.
-			schemaVariable, ok := attrs[key][attrName]
-			if !ok {
-				return fmt.Errorf("invalid attribute %s in module %s: not supported", attrName, key)
+		schemaVariables := schemas[moduleVersionKey(v.ModuleID, v.Version)]
+		// schema doesn't exist
+		if schemaVariables == nil {
+			return fmt.Errorf("invalid module %s: empty schema", v.Name)
+		}
+
+		// check input unsupported attributes
+		for attrName := range v.Attributes {
+			if _, supported := schemaVariables[attrName]; !supported {
+				return fmt.Errorf("found unknown attribute %s in module %s, please refresh module %s to load the latest attributes", attrName, v.Name, v.ModuleID)
+			}
+		}
+
+		// check attributes
+		for _, schemaVariable := range schemaVariables {
+			attrValue, existed := v.Attributes[schemaVariable.Name]
+			// check required attribute existed
+			if schemaVariable.Required && (!existed || attrValue == nil) {
+				return fmt.Errorf("required attribute %s in module %s is empty", schemaVariable.Name, v.Name)
+			}
+
+			// omit it when the value is null
+			if attrValue == nil {
+				continue
 			}
 
 			// check attribute type,
@@ -111,7 +136,7 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 			}
 
 			if !valueTypeExpected {
-				return fmt.Errorf("unexpected value type for attribute %s in module %s", attrName, key)
+				return fmt.Errorf("unexpected value type for attribute %s in module %s", schemaVariable.Name, v.Name)
 			}
 		}
 	}
