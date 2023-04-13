@@ -361,7 +361,11 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	if jobType == _jobTypeDestroy &&
 		prevEntity != nil &&
 		prevEntity.Status == status.ApplicationRevisionStatusSucceeded {
-		entity = prevEntity
+		entity.Modules = prevEntity.Modules
+		entity.InputVariables = prevEntity.InputVariables
+		entity.InputPlan = prevEntity.InputPlan
+		entity.Output = prevEntity.Output
+		entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
 	}
 
 	// create revision, mark status to running.
