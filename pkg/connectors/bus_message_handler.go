@@ -42,7 +42,7 @@ func (s statusSyncer) Do(ctx context.Context, message connector.BusMessage) erro
 			logger.Debugf("ensuring cost tools for connector %s", conn.Name)
 
 			// set transition status
-			status.ConnectorStatusToolsDeployed.Unknown(conn, "Deploying cost tools")
+			status.ConnectorStatusCostToolsDeployed.Unknown(conn, "Deploying cost tools")
 			var err = UpdateStatus(ctx, client, conn)
 			if err != nil {
 				logger.Errorf("error update connector %s status: %v", conn.Name, err)

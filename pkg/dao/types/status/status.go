@@ -13,18 +13,6 @@ const (
 )
 
 const (
-	ConnectorStatusProvisioned   ConditionType = "Provisioned"
-	ConnectorStatusToolsDeployed ConditionType = "Deployed"
-	ConnectorStatusCostSynced    ConditionType = "CostSynced"
-	ConnectorStatusReady         ConditionType = "Ready"
-
-	ConnectorStatusToolsDeployedTransitioning string = "Deploying"    // transitioning status of ConnectorStatusToolsDeployed
-	ConnectorStatusCostSyncedTransitioning    string = "CostSyncing"  // transitioning status of ConnectorFinOpsSyncStatusSynced
-	ConnectorStatusProvisionedTransitioning   string = "Provisioning" // transitioning status of ConnectorStatusProvisioned
-
-)
-
-const (
 	ModuleStatusInitializing = "Initializing"
 	ModuleStatusReady        = "Ready"
 	ModuleStatusError        = "Error"
