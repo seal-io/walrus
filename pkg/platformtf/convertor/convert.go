@@ -77,6 +77,8 @@ func ToProviderBlocks(provider string, connectors model.Connectors, opts Convert
 			ConfigPath:    opts.SecretMountPath,
 			ConnSeparator: opts.ConnSeparator,
 		}
+	default:
+		toBlockOpts = opts
 	}
 
 	return LoadConvertor(provider).ToBlocks(connectors, toBlockOpts)
