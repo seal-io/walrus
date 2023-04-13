@@ -10,6 +10,7 @@ go 1.19
 
 require (
 	entgo.io/ent v0.11.8
+	github.com/davecgh/go-spew v1.1.1
 	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/drone/go-scm v1.29.1
 	github.com/dustin/go-humanize v1.0.1
@@ -111,7 +112,6 @@ require (
 	github.com/containerd/containerd v1.6.15 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.8.0 // indirect
 	github.com/docker/cli v20.10.21+incompatible // indirect
