@@ -50,6 +50,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.2
 )
 
+require github.com/go-co-op/gocron v1.22.0 // indirect
+
 require (
 	ariga.io/atlas v0.10.0 // indirect
 	cloud.google.com/go v0.105.0 // indirect
@@ -130,7 +132,6 @@ require (
 	github.com/getsentry/sentry-go v0.6.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-co-op/gocron v1.18.0 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-faster/jx v0.41.0 // indirect
