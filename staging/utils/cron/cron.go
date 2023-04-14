@@ -110,6 +110,11 @@ type timeoutTask struct {
 
 func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 	var logger = log.WithName("cronjobs")
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf("panic observing of %s task: %v", in.name, r)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
@@ -184,7 +189,6 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 func (in *scheduler) Start(ctx context.Context) error {
 	var s = gocron.NewScheduler(time.Now().Location())
 	s.WaitForScheduleAll()
-	s.SingletonModeAll()
 	s.TagsUnique()
 	s.StartAsync()
 	in.c = ctx
@@ -200,6 +204,12 @@ func (in *scheduler) Stop() error {
 }
 
 var globalScheduler = New()
+
+func init() {
+	gocron.SetPanicHandler(func(name string, r interface{}) {
+		log.WithName("cronjobs").Errorf("panic observing of %s task: %v", name, r)
+	})
+}
 
 // New returns a new Scheduler.
 func New() Scheduler {

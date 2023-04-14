@@ -2,6 +2,8 @@ package cost
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -12,24 +14,36 @@ import (
 )
 
 type CollectTask struct {
-	client model.ClientSet
-	logger log.Logger
+	mu sync.Mutex
+
+	modelClient model.ClientSet
+	logger      log.Logger
 }
 
-func NewCollectTask(client model.ClientSet) (*CollectTask, error) {
+func NewCollectTask(modelClient model.ClientSet) (*CollectTask, error) {
 	return &CollectTask{
-		client: client,
-		logger: log.WithName("task").WithName("cost-collect"),
+		modelClient: modelClient,
+		logger:      log.WithName("task").WithName("cost-collect"),
 	}, nil
 }
 
 func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
-	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	if !in.mu.TryLock() {
+		in.logger.Warn("previous processing is not finished")
+		return nil
+	}
+	var startTs = time.Now()
+	defer func() {
+		in.mu.Unlock()
+		in.logger.Debugf("processed in %v", time.Since(startTs))
+	}()
+
+	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
 
-	syncer := connectors.NewStatusSyncer(in.client)
+	syncer := connectors.NewStatusSyncer(in.modelClient)
 	if err != nil {
 		return err
 	}

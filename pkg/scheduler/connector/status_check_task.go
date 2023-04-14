@@ -3,6 +3,8 @@ package connector
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -13,25 +15,37 @@ import (
 )
 
 type StatusCheckTask struct {
-	client model.ClientSet
-	logger log.Logger
+	mu sync.Mutex
+
+	modelClient model.ClientSet
+	logger      log.Logger
 }
 
-func NewStatusCheckTask(client model.ClientSet) (*StatusCheckTask, error) {
+func NewStatusCheckTask(modelClient model.ClientSet) (*StatusCheckTask, error) {
 	return &StatusCheckTask{
-		client: client,
-		logger: log.WithName("task").WithName("connector").WithName("status-check"),
+		modelClient: modelClient,
+		logger:      log.WithName("task").WithName("connector").WithName("status-check"),
 	}, nil
 }
 
 func (in *StatusCheckTask) Process(ctx context.Context, args ...interface{}) error {
-	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	if !in.mu.TryLock() {
+		in.logger.Warn("previous processing is not finished")
+		return nil
+	}
+	var startTs = time.Now()
+	defer func() {
+		in.mu.Unlock()
+		in.logger.Debugf("processed in %v", time.Since(startTs))
+	}()
+
+	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
 
 	var (
-		syncer = connectors.NewStatusSyncer(in.client)
+		syncer = connectors.NewStatusSyncer(in.modelClient)
 		wg     = gopool.Group()
 	)
 	for i := range conns {
