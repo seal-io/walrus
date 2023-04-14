@@ -10,6 +10,7 @@ go 1.19
 
 require (
 	entgo.io/ent v0.11.8
+	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/drone/go-scm v1.29.1
@@ -81,7 +82,6 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/alitto/pond v1.8.3 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3 // indirect
-	github.com/allegro/bigcache/v3 v3.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect
