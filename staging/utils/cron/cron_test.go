@@ -15,6 +15,10 @@ type testTask struct {
 	outputs []interface{}
 }
 
+func (in *testTask) Name() string {
+	return "test-task"
+}
+
 func (in *testTask) Process(ctx context.Context, args ...interface{}) error {
 	in.Lock()
 	defer in.Unlock()

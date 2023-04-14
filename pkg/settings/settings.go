@@ -46,16 +46,16 @@ var (
 
 // the built-in settings for server cron jobs.
 var (
-	// CostCollectCronExpr indicates the cron expression of collect cost data,
+	// ConnectorCostCollectCronExpr indicates the cron expression of collect cost data,
 	// default cron expression means executing collection per hour,
 	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
-	CostCollectCronExpr = newValue("CostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(notBlank, cronExpression))
-	// ConnectorCheckCronExpr indicates the cron expression of check connector status,
+	ConnectorCostCollectCronExpr = newValue("ConnectorCostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(notBlank, cronExpression))
+	// ConnectorStatusSyncCronExpr indicates the cron expression of sync connector status,
 	// default cron expression means executing check every 5 minutes.
-	ConnectorCheckCronExpr = newValue("ConnectorCheckCronExpr", editable, initializeFrom("0 */5 * ? * *"), modifyWith(notBlank, cronExpression))
-	// ResourceStatusCheckCronExpr indicates the cron expression of state application resource,
+	ConnectorStatusSyncCronExpr = newValue("ConnectorStatusSyncCronExpr", editable, initializeFrom("0 */5 * ? * *"), modifyWith(notBlank, cronExpression))
+	// ResourceStatusSyncCronExpr indicates the cron expression of sync application resource status,
 	// default cron expression means stating every 1 minute.
-	ResourceStatusCheckCronExpr = newValue("ResourceStatusCheckCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
+	ResourceStatusSyncCronExpr = newValue("ResourceStatusSyncCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
 	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to application resource linked kubernetes resource,
 	// default cron expression means stating every 2 minute.
 	ResourceLabelApplyCronExpr = newValue("ResourceLabelApplyCronExpr", editable, initializeFrom("0 */2 * ? * *"), modifyWith(notBlank, cronExpression))

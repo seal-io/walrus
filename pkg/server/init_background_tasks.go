@@ -7,24 +7,22 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	appresskd "github.com/seal-io/seal/pkg/scheduler/applicationresource"
 	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
-	costskd "github.com/seal-io/seal/pkg/scheduler/cost"
-
 	"github.com/seal-io/seal/pkg/settings"
 )
 
-func (r *Server) initBackgroundTasks(ctx context.Context, opts initOptions) error {
+func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error {
 	var cs = cron.JobCreators{
-		settings.CostCollectCronExpr.Name():         buildCostCollectJobCreator(opts.ModelClient),
-		settings.ConnectorCheckCronExpr.Name():      buildConnectorCheckJobCreator(opts.ModelClient),
-		settings.ResourceStatusCheckCronExpr.Name(): buildResourceStatusCheckJobCreator(opts.ModelClient),
-		settings.ResourceLabelApplyCronExpr.Name():  buildResourceLabelApplyJobCreator(opts.ModelClient),
+		settings.ConnectorCostCollectCronExpr.Name(): buildConnectorCostCollectJobCreator(opts.ModelClient),
+		settings.ConnectorStatusSyncCronExpr.Name():  buildConnectorStatusSyncJobCreator(opts.ModelClient),
+		settings.ResourceStatusSyncCronExpr.Name():   buildResourceStatusSyncJobCreator(opts.ModelClient),
+		settings.ResourceLabelApplyCronExpr.Name():   buildResourceLabelApplyJobCreator(opts.ModelClient),
 	}
 	return cron.Register(ctx, opts.ModelClient, cs)
 }
 
-func buildCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildConnectorCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = costskd.NewCostSyncTask(mc)
+		var task, err = connskd.NewCollectTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -32,9 +30,9 @@ func buildCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildConnectorCheckJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildConnectorStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = connskd.NewStatusCheckTask(mc)
+		var task, err = connskd.NewStatusSyncTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -42,9 +40,9 @@ func buildConnectorCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildResourceStatusCheckJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = appresskd.NewResourceStatusCheckTask(mc)
+		var task, err = appresskd.NewStatusSyncTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -54,7 +52,7 @@ func buildResourceStatusCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = appresskd.NewResourceLabelApplyTask(mc)
+		var task, err = appresskd.NewLabelApplyTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -1,4 +1,4 @@
-package cost
+package connector
 
 import (
 	"context"
@@ -13,21 +13,25 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-type CostSyncTask struct {
+type CollectTask struct {
 	mu sync.Mutex
 
-	client model.ClientSet
-	logger log.Logger
+	modelClient model.ClientSet
+	logger      log.Logger
 }
 
-func NewCostSyncTask(client model.ClientSet) (*CostSyncTask, error) {
-	return &CostSyncTask{
-		client: client,
-		logger: log.WithName("schedule-task").WithName("cost-sync"),
-	}, nil
+func NewCollectTask(mc model.ClientSet) (*CollectTask, error) {
+	in := &CollectTask{}
+	in.modelClient = mc
+	in.logger = log.WithName("task").WithName(in.Name())
+	return in, nil
 }
 
-func (in *CostSyncTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *CollectTask) Name() string {
+	return "connector-cost-collect"
+}
+
+func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil
@@ -38,12 +42,12 @@ func (in *CostSyncTask) Process(ctx context.Context, args ...interface{}) error 
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
 
-	syncer := connectors.NewStatusSyncer(in.client)
+	syncer := connectors.NewStatusSyncer(in.modelClient)
 	if err != nil {
 		return err
 	}
