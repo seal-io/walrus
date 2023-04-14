@@ -152,6 +152,7 @@ func (h Handler) getCollectionResponse(ctx context.Context, query *model.Applica
 			cq.Select(
 				connector.FieldName,
 				connector.FieldType,
+				connector.FieldCategory,
 				connector.FieldConfigVersion,
 				connector.FieldConfigData)
 		}).

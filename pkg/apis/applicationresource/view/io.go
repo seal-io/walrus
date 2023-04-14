@@ -38,6 +38,7 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 			cq.Select(
 				connector.FieldName,
 				connector.FieldType,
+				connector.FieldCategory,
 				connector.FieldConfigVersion,
 				connector.FieldConfigData)
 		}).

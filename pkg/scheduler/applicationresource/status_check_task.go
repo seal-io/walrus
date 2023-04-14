@@ -82,6 +82,7 @@ func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, l
 				cq.Select(
 					connector.FieldName,
 					connector.FieldType,
+					connector.FieldCategory,
 					connector.FieldConfigVersion,
 					connector.FieldConfigData)
 			}).
