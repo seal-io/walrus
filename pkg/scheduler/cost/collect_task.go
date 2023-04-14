@@ -11,19 +11,19 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-type CostSyncTask struct {
+type CollectTask struct {
 	client model.ClientSet
 	logger log.Logger
 }
 
-func NewCostSyncTask(client model.ClientSet) (*CostSyncTask, error) {
-	return &CostSyncTask{
+func NewCollectTask(client model.ClientSet) (*CollectTask, error) {
+	return &CollectTask{
 		client: client,
-		logger: log.WithName("schedule-task").WithName("cost-sync"),
+		logger: log.WithName("task").WithName("cost-collect"),
 	}, nil
 }
 
-func (in *CostSyncTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err

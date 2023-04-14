@@ -17,21 +17,21 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-type ResourceStatusCheckTask struct {
+type StatusCheckTask struct {
 	mu sync.Mutex
 
 	modelClient model.ClientSet
 	logger      log.Logger
 }
 
-func NewResourceStatusCheckTask(modelClient model.ClientSet) (*ResourceStatusCheckTask, error) {
-	return &ResourceStatusCheckTask{
+func NewStatusCheckTask(modelClient model.ClientSet) (*StatusCheckTask, error) {
+	return &StatusCheckTask{
 		modelClient: modelClient,
-		logger:      log.WithName("resource").WithName("state"),
+		logger:      log.WithName("task").WithName("application-resource").WithName("status-check"),
 	}, nil
 }
 
-func (in *ResourceStatusCheckTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *StatusCheckTask) Process(ctx context.Context, args ...interface{}) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil
@@ -63,7 +63,7 @@ func (in *ResourceStatusCheckTask) Process(ctx context.Context, args ...interfac
 	return wg.Wait()
 }
 
-func (in *ResourceStatusCheckTask) buildStateTask(ctx context.Context, offset, limit int) func() error {
+func (in *StatusCheckTask) buildStateTask(ctx context.Context, offset, limit int) func() error {
 	return func() (berr error) {
 		var entities, err = in.modelClient.ApplicationResources().Query().
 			Order(model.Desc(applicationresource.FieldCreateTime)).

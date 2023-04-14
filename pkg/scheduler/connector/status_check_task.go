@@ -12,19 +12,19 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-type StatusSyncTask struct {
+type StatusCheckTask struct {
 	client model.ClientSet
 	logger log.Logger
 }
 
-func NewStatusCheckTask(client model.ClientSet) (*StatusSyncTask, error) {
-	return &StatusSyncTask{
+func NewStatusCheckTask(client model.ClientSet) (*StatusCheckTask, error) {
+	return &StatusCheckTask{
 		client: client,
-		logger: log.WithName("schedule-task").WithName("status-sync"),
+		logger: log.WithName("task").WithName("connector").WithName("status-check"),
 	}, nil
 }
 
-func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *StatusCheckTask) Process(ctx context.Context, args ...interface{}) error {
 	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
@@ -36,10 +36,10 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	)
 	for i := range conns {
 		var conn = conns[i]
-		in.logger.Debugf("sync status for connector: %s", conn.Name)
+		in.logger.Debugf("check status for connector: %s", conn.Name)
 		wg.Go(func() error {
 			if err := syncer.SyncStatus(ctx, conn); err != nil {
-				return fmt.Errorf("error sync connector %s: %w", conn.Name, err)
+				return fmt.Errorf("error checking status of connector %s: %w", conn.Name, err)
 			}
 			return nil
 		})

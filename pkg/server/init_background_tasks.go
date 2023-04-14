@@ -24,7 +24,7 @@ func (r *Server) initBackgroundTasks(ctx context.Context, opts initOptions) erro
 
 func buildCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = costskd.NewCostSyncTask(mc)
+		var task, err = costskd.NewCollectTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -44,7 +44,7 @@ func buildConnectorCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceStatusCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = appresskd.NewResourceStatusCheckTask(mc)
+		var task, err = appresskd.NewStatusCheckTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -54,7 +54,7 @@ func buildResourceStatusCheckJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		var task, err = appresskd.NewResourceLabelApplyTask(mc)
+		var task, err = appresskd.NewLabelApplyTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
