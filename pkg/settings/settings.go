@@ -26,7 +26,7 @@ var (
 // the built-in settings for server.
 var (
 	// FirstLogin indicates whether it's the first time to login.
-	FirstLogin = newValue("FirstLogin", hidden, initializeFrom("true"), nil)
+	FirstLogin = newValue("FirstLogin", hidden, initializeFromEnv("true"), nil)
 	// CasdoorCred keeps the AK/SK for accessing Casdoor server.
 	CasdoorCred = newValue("CasdoorCred", private, initializeFromJSON(casdoor.ApplicationCredential{}), modifyWith(once))
 	// PrivilegeApiToken keeps the token for accessing server APIs.
