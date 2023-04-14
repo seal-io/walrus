@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/connectors/config"
-	"github.com/seal-io/seal/pkg/connectors/types"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformtf/block"
 )
 
@@ -13,7 +13,8 @@ import (
 type DefaultConvertor string
 
 func (m DefaultConvertor) IsSupported(connector *model.Connector) bool {
-	return types.IsCustom(connector) && connector.Type == string(m)
+	return connector.Category == types.ConnectorCategoryCustom &&
+		connector.Type == string(m)
 }
 
 func (m DefaultConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
