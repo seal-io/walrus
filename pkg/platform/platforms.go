@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/seal-io/seal/pkg/operatorany"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformk8s"
@@ -33,14 +34,19 @@ func init() {
 }
 
 // GetOperator returns operator.Operator with the given operator.CreateOptions.
-func GetOperator(ctx context.Context, opts operator.CreateOptions) (operator.Operator, error) {
+func GetOperator(ctx context.Context, opts operator.CreateOptions) (op operator.Operator, err error) {
 	var f, exist = opCreators[opts.Connector.Type]
 	if !exist {
-		return nil, fmt.Errorf("unknown operator: %s", opts.Connector.Type)
-	}
-	var op, err = f(ctx, opts)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting %s operator: %w", opts.Connector.Type, err)
+		// try to create an any operator.
+		op, err = operatorany.NewOperator(ctx, opts)
+		if err != nil {
+			return nil, fmt.Errorf("unknown operator: %s", opts.Connector.Type)
+		}
+	} else {
+		op, err = f(ctx, opts)
+		if err != nil {
+			return nil, fmt.Errorf("error connecting %s operator: %w", opts.Connector.Type, err)
+		}
 	}
 	return op, nil
 }
