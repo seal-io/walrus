@@ -182,7 +182,6 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 func (in *scheduler) Start(ctx context.Context) error {
 	var s = gocron.NewScheduler(time.Now().Location())
 	s.WaitForScheduleAll()
-	s.SingletonModeAll()
 	s.TagsUnique()
 	s.StartAsync()
 	in.c = ctx
