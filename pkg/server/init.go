@@ -31,7 +31,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "settings", init: r.initSettings},
 		{name: "configs", init: r.initConfigs},
 		{name: "dispatches", init: r.initDispatches},
-		{name: "backgroundTasks", init: r.initBackgroundTasks},
+		{name: "backgroundJobs", init: r.initBackgroundJobs},
 		{name: "subscribers", init: r.initSubscribers},
 	}
 	inits = append(inits,

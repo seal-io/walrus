@@ -17,15 +17,19 @@ import (
 type StatusSyncTask struct {
 	mu sync.Mutex
 
-	client model.ClientSet
-	logger log.Logger
+	modelClient model.ClientSet
+	logger      log.Logger
 }
 
-func NewStatusCheckTask(client model.ClientSet) (*StatusSyncTask, error) {
-	return &StatusSyncTask{
-		client: client,
-		logger: log.WithName("schedule-task").WithName("status-sync"),
-	}, nil
+func NewStatusSyncTask(mc model.ClientSet) (*StatusSyncTask, error) {
+	in := &StatusSyncTask{}
+	in.modelClient = mc
+	in.logger = log.WithName("task").WithName(in.Name())
+	return in, nil
+}
+
+func (in *StatusSyncTask) Name() string {
+	return "connector-status-sync"
 }
 
 func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) error {
@@ -39,13 +43,13 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.client.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
 
 	var (
-		syncer = connectors.NewStatusSyncer(in.client)
+		syncer = connectors.NewStatusSyncer(in.modelClient)
 		wg     = gopool.Group()
 	)
 	for i := range conns {

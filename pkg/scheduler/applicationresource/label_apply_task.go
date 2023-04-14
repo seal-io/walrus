@@ -11,21 +11,25 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-type ResourceLabelApplyTask struct {
+type LabelApplyTask struct {
 	mu sync.Mutex
 
 	modelClient model.ClientSet
 	logger      log.Logger
 }
 
-func NewResourceLabelApplyTask(modelClient model.ClientSet) (*ResourceLabelApplyTask, error) {
-	return &ResourceLabelApplyTask{
-		modelClient: modelClient,
-		logger:      log.WithName("resource").WithName("label-apply"),
-	}, nil
+func NewLabelApplyTask(mc model.ClientSet) (*LabelApplyTask, error) {
+	in := &LabelApplyTask{}
+	in.modelClient = mc
+	in.logger = log.WithName("task").WithName(in.Name())
+	return in, nil
 }
 
-func (in *ResourceLabelApplyTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *LabelApplyTask) Name() string {
+	return "resource-label-apply"
+}
+
+func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

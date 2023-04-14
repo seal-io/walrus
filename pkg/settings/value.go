@@ -90,7 +90,7 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 		Where(setting.Name(v.refer.Name)).
 		Only(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error gettig %s: %w",
+		return "", fmt.Errorf("error getting %s: %w",
 			v.refer.Name, err)
 	}
 	err = cacher.Set(v.refer.Name, []byte(dbValue.Value))
