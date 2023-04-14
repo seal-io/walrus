@@ -12,7 +12,6 @@ import (
 
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/utils/dynamicert"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
@@ -73,13 +72,6 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		switch opts.TlsMode {
 		default: // TlsModeSelfGenerated
 			var mgr = &dynamicert.Manager{
-				HostFilter: func(candidates ...string) []string {
-					var u = settings.ServeUrl.ShouldValueURL(ctx, opts.ModelClient)
-					if u == nil {
-						return candidates
-					}
-					return []string{u.Hostname()}
-				},
 				Cache: dynamicert.DirCache(opts.TlsCertDir),
 			}
 			ls, h, err = mgr.Handle(ls, handler)
