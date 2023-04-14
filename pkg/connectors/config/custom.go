@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/connectors/types"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 // CustomConfig is the config of a custom connector.
@@ -56,7 +56,7 @@ type Dependency struct {
 
 // LoadCustomConfig loads the custom connector config from the connector.
 func LoadCustomConfig(c *model.Connector) (*CustomConfig, error) {
-	if !types.IsCustom(c) {
+	if c.Category != types.ConnectorCategoryCustom {
 		return nil, fmt.Errorf("connector type is not custom connector: %s", c.ID)
 	}
 
