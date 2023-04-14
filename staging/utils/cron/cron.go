@@ -109,6 +109,8 @@ type timeoutTask struct {
 }
 
 func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
+	var logger = log.WithName("cronjobs")
+
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
 
@@ -124,9 +126,9 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 		}
 	}
 	if err != nil {
-		log.Errorf("error executing %s task: %v", in.name, err)
+		logger.Errorf("error executing %s task: %v", in.name, err)
 	} else {
-		log.Debugf("executed %s task", in.name)
+		logger.Debugf("executed %s task", in.name)
 	}
 
 	// NB(thxCode): always return nil as there is no way to restart the job at present.
