@@ -70,6 +70,7 @@ func ApplyLabels(ctx context.Context, modelClient model.ClientSet, offset, limit
 				cq.Select(
 					connector.FieldName,
 					connector.FieldType,
+					connector.FieldCategory,
 					connector.FieldConfigVersion,
 					connector.FieldConfigData)
 			}).
