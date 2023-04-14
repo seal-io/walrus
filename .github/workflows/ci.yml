@@ -63,12 +63,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Setup Go
+        timeout-minutes: 5
         uses: actions/setup-go@v4
         with:
           go-version: "${{ env.GO_VERSION }}"
           cache-dependency-path: |
             **/go.sum
       - name: Setup Toolbox
+        timeout-minutes: 5
         uses: actions/cache@v3
         with:
           # restore/save service binaries, e.g. goimports, golangci-lint, commitsar.
@@ -125,6 +127,7 @@ jobs:
           username: ${{ secrets.CI_DOCKERHUB_USERNAME }}
           password: ${{ secrets.CI_DOCKERHUB_PASSWORD }}
       - name: Unarchive Publish Result
+        timeout-minutes: 5
         uses: actions/cache/restore@v3
         with:
           # restore package resources, e.g. go build result, downloaded UI, entrypoint script.
