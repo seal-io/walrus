@@ -63,7 +63,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Setup Go
-        timeout-minutes: 5
+        timeout-minutes: 15
         uses: actions/setup-go@v4
         with:
           go-version: "${{ env.GO_VERSION }}"
