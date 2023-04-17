@@ -81,6 +81,11 @@ func ConnectorID(v oid.ID) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldConnectorID, v))
 }
 
+// CompositionID applies equality check predicate on the "compositionID" field. It's identical to CompositionIDEQ.
+func CompositionID(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldCompositionID, v))
+}
+
 // Module applies equality check predicate on the "module" field. It's identical to ModuleEQ.
 func Module(v string) predicate.ApplicationResource {
 	return predicate.ApplicationResource(sql.FieldEQ(FieldModule, v))
@@ -324,6 +329,86 @@ func ConnectorIDEqualFold(v oid.ID) predicate.ApplicationResource {
 func ConnectorIDContainsFold(v oid.ID) predicate.ApplicationResource {
 	vc := string(v)
 	return predicate.ApplicationResource(sql.FieldContainsFold(FieldConnectorID, vc))
+}
+
+// CompositionIDEQ applies the EQ predicate on the "compositionID" field.
+func CompositionIDEQ(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldEQ(FieldCompositionID, v))
+}
+
+// CompositionIDNEQ applies the NEQ predicate on the "compositionID" field.
+func CompositionIDNEQ(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNEQ(FieldCompositionID, v))
+}
+
+// CompositionIDIn applies the In predicate on the "compositionID" field.
+func CompositionIDIn(vs ...oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIn(FieldCompositionID, vs...))
+}
+
+// CompositionIDNotIn applies the NotIn predicate on the "compositionID" field.
+func CompositionIDNotIn(vs ...oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotIn(FieldCompositionID, vs...))
+}
+
+// CompositionIDGT applies the GT predicate on the "compositionID" field.
+func CompositionIDGT(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGT(FieldCompositionID, v))
+}
+
+// CompositionIDGTE applies the GTE predicate on the "compositionID" field.
+func CompositionIDGTE(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldGTE(FieldCompositionID, v))
+}
+
+// CompositionIDLT applies the LT predicate on the "compositionID" field.
+func CompositionIDLT(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLT(FieldCompositionID, v))
+}
+
+// CompositionIDLTE applies the LTE predicate on the "compositionID" field.
+func CompositionIDLTE(v oid.ID) predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldLTE(FieldCompositionID, v))
+}
+
+// CompositionIDContains applies the Contains predicate on the "compositionID" field.
+func CompositionIDContains(v oid.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContains(FieldCompositionID, vc))
+}
+
+// CompositionIDHasPrefix applies the HasPrefix predicate on the "compositionID" field.
+func CompositionIDHasPrefix(v oid.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasPrefix(FieldCompositionID, vc))
+}
+
+// CompositionIDHasSuffix applies the HasSuffix predicate on the "compositionID" field.
+func CompositionIDHasSuffix(v oid.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldHasSuffix(FieldCompositionID, vc))
+}
+
+// CompositionIDIsNil applies the IsNil predicate on the "compositionID" field.
+func CompositionIDIsNil() predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldIsNull(FieldCompositionID))
+}
+
+// CompositionIDNotNil applies the NotNil predicate on the "compositionID" field.
+func CompositionIDNotNil() predicate.ApplicationResource {
+	return predicate.ApplicationResource(sql.FieldNotNull(FieldCompositionID))
+}
+
+// CompositionIDEqualFold applies the EqualFold predicate on the "compositionID" field.
+func CompositionIDEqualFold(v oid.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldEqualFold(FieldCompositionID, vc))
+}
+
+// CompositionIDContainsFold applies the ContainsFold predicate on the "compositionID" field.
+func CompositionIDContainsFold(v oid.ID) predicate.ApplicationResource {
+	vc := string(v)
+	return predicate.ApplicationResource(sql.FieldContainsFold(FieldCompositionID, vc))
 }
 
 // ModuleEQ applies the EQ predicate on the "module" field.
@@ -718,6 +803,72 @@ func HasConnectorWith(preds ...predicate.Connector) predicate.ApplicationResourc
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasComposition applies the HasEdge predicate on the "composition" edge.
+func HasComposition() predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CompositionTable, CompositionColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCompositionWith applies the HasEdge predicate on the "composition" edge with a given conditions (other predicates).
+func HasCompositionWith(preds ...predicate.ApplicationResource) predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CompositionTable, CompositionColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasComponents applies the HasEdge predicate on the "components" edge.
+func HasComponents() predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ComponentsTable, ComponentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasComponentsWith applies the HasEdge predicate on the "components" edge with a given conditions (other predicates).
+func HasComponentsWith(preds ...predicate.ApplicationResource) predicate.ApplicationResource {
+	return predicate.ApplicationResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ComponentsTable, ComponentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

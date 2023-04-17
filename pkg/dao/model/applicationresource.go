@@ -33,6 +33,8 @@ type ApplicationResource struct {
 	InstanceID oid.ID `json:"instanceID,omitempty" sql:"instanceID"`
 	// ID of the connector to which the resource deploys.
 	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
+	// ID of the application resource to which the resource makes up, it presents when mode is discovered.
+	CompositionID oid.ID `json:"compositionID,omitempty" sql:"compositionID"`
 	// Name of the module that generates the resource.
 	Module string `json:"module,omitempty" sql:"module"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
@@ -56,9 +58,13 @@ type ApplicationResourceEdges struct {
 	Instance *ApplicationInstance `json:"instance,omitempty" sql:"instance"`
 	// Connector to which the resource deploys.
 	Connector *Connector `json:"connector,omitempty" sql:"connector"`
+	// Application resource to which the resource makes up.
+	Composition *ApplicationResource `json:"composition,omitempty" sql:"composition"`
+	// Application resources that make up this resource.
+	Components []*ApplicationResource `json:"components,omitempty" sql:"components"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // InstanceOrErr returns the Instance value or an error if the edge
@@ -87,6 +93,28 @@ func (e ApplicationResourceEdges) ConnectorOrErr() (*Connector, error) {
 	return nil, &NotLoadedError{edge: "connector"}
 }
 
+// CompositionOrErr returns the Composition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ApplicationResourceEdges) CompositionOrErr() (*ApplicationResource, error) {
+	if e.loadedTypes[2] {
+		if e.Composition == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: applicationresource.Label}
+		}
+		return e.Composition, nil
+	}
+	return nil, &NotLoadedError{edge: "composition"}
+}
+
+// ComponentsOrErr returns the Components value or an error if the edge
+// was not loaded in eager-loading.
+func (e ApplicationResourceEdges) ComponentsOrErr() ([]*ApplicationResource, error) {
+	if e.loadedTypes[3] {
+		return e.Components, nil
+	}
+	return nil, &NotLoadedError{edge: "components"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -94,7 +122,7 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationresource.FieldStatus:
 			values[i] = new([]byte)
-		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID:
+		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID, applicationresource.FieldCompositionID:
 			values[i] = new(oid.ID)
 		case applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
 			values[i] = new(sql.NullString)
@@ -146,6 +174,12 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				ar.ConnectorID = *value
+			}
+		case applicationresource.FieldCompositionID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field compositionID", values[i])
+			} else if value != nil {
+				ar.CompositionID = *value
 			}
 		case applicationresource.FieldModule:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -200,6 +234,16 @@ func (ar *ApplicationResource) QueryConnector() *ConnectorQuery {
 	return NewApplicationResourceClient(ar.config).QueryConnector(ar)
 }
 
+// QueryComposition queries the "composition" edge of the ApplicationResource entity.
+func (ar *ApplicationResource) QueryComposition() *ApplicationResourceQuery {
+	return NewApplicationResourceClient(ar.config).QueryComposition(ar)
+}
+
+// QueryComponents queries the "components" edge of the ApplicationResource entity.
+func (ar *ApplicationResource) QueryComponents() *ApplicationResourceQuery {
+	return NewApplicationResourceClient(ar.config).QueryComponents(ar)
+}
+
 // Update returns a builder for updating this ApplicationResource.
 // Note that you need to call ApplicationResource.Unwrap() before calling this method if this ApplicationResource
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -238,6 +282,9 @@ func (ar *ApplicationResource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("connectorID=")
 	builder.WriteString(fmt.Sprintf("%v", ar.ConnectorID))
+	builder.WriteString(", ")
+	builder.WriteString("compositionID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.CompositionID))
 	builder.WriteString(", ")
 	builder.WriteString("module=")
 	builder.WriteString(ar.Module)

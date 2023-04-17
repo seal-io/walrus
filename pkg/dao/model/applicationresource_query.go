@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -26,13 +27,15 @@ import (
 // ApplicationResourceQuery is the builder for querying ApplicationResource entities.
 type ApplicationResourceQuery struct {
 	config
-	ctx           *QueryContext
-	order         []OrderFunc
-	inters        []Interceptor
-	predicates    []predicate.ApplicationResource
-	withInstance  *ApplicationInstanceQuery
-	withConnector *ConnectorQuery
-	modifiers     []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []OrderFunc
+	inters          []Interceptor
+	predicates      []predicate.ApplicationResource
+	withInstance    *ApplicationInstanceQuery
+	withConnector   *ConnectorQuery
+	withComposition *ApplicationResourceQuery
+	withComponents  *ApplicationResourceQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -112,6 +115,56 @@ func (arq *ApplicationResourceQuery) QueryConnector() *ConnectorQuery {
 		)
 		schemaConfig := arq.schemaConfig
 		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryComposition chains the current query on the "composition" edge.
+func (arq *ApplicationResourceQuery) QueryComposition() *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: arq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, selector),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.CompositionTable, applicationresource.CompositionColumn),
+		)
+		schemaConfig := arq.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryComponents chains the current query on the "components" edge.
+func (arq *ApplicationResourceQuery) QueryComponents() *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: arq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := arq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, selector),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, applicationresource.ComponentsTable, applicationresource.ComponentsColumn),
+		)
+		schemaConfig := arq.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -306,13 +359,15 @@ func (arq *ApplicationResourceQuery) Clone() *ApplicationResourceQuery {
 		return nil
 	}
 	return &ApplicationResourceQuery{
-		config:        arq.config,
-		ctx:           arq.ctx.Clone(),
-		order:         append([]OrderFunc{}, arq.order...),
-		inters:        append([]Interceptor{}, arq.inters...),
-		predicates:    append([]predicate.ApplicationResource{}, arq.predicates...),
-		withInstance:  arq.withInstance.Clone(),
-		withConnector: arq.withConnector.Clone(),
+		config:          arq.config,
+		ctx:             arq.ctx.Clone(),
+		order:           append([]OrderFunc{}, arq.order...),
+		inters:          append([]Interceptor{}, arq.inters...),
+		predicates:      append([]predicate.ApplicationResource{}, arq.predicates...),
+		withInstance:    arq.withInstance.Clone(),
+		withConnector:   arq.withConnector.Clone(),
+		withComposition: arq.withComposition.Clone(),
+		withComponents:  arq.withComponents.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
@@ -338,6 +393,28 @@ func (arq *ApplicationResourceQuery) WithConnector(opts ...func(*ConnectorQuery)
 		opt(query)
 	}
 	arq.withConnector = query
+	return arq
+}
+
+// WithComposition tells the query-builder to eager-load the nodes that are connected to
+// the "composition" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationResourceQuery) WithComposition(opts ...func(*ApplicationResourceQuery)) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: arq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arq.withComposition = query
+	return arq
+}
+
+// WithComponents tells the query-builder to eager-load the nodes that are connected to
+// the "components" edge. The optional arguments are used to configure the query builder of the edge.
+func (arq *ApplicationResourceQuery) WithComponents(opts ...func(*ApplicationResourceQuery)) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: arq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	arq.withComponents = query
 	return arq
 }
 
@@ -419,9 +496,11 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*ApplicationResource{}
 		_spec       = arq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			arq.withInstance != nil,
 			arq.withConnector != nil,
+			arq.withComposition != nil,
+			arq.withComponents != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -456,6 +535,21 @@ func (arq *ApplicationResourceQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if query := arq.withConnector; query != nil {
 		if err := arq.loadConnector(ctx, query, nodes, nil,
 			func(n *ApplicationResource, e *Connector) { n.Edges.Connector = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := arq.withComposition; query != nil {
+		if err := arq.loadComposition(ctx, query, nodes, nil,
+			func(n *ApplicationResource, e *ApplicationResource) { n.Edges.Composition = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := arq.withComponents; query != nil {
+		if err := arq.loadComponents(ctx, query, nodes,
+			func(n *ApplicationResource) { n.Edges.Components = []*ApplicationResource{} },
+			func(n *ApplicationResource, e *ApplicationResource) {
+				n.Edges.Components = append(n.Edges.Components, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -517,6 +611,62 @@ func (arq *ApplicationResourceQuery) loadConnector(ctx context.Context, query *C
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (arq *ApplicationResourceQuery) loadComposition(ctx context.Context, query *ApplicationResourceQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *ApplicationResource)) error {
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ApplicationResource)
+	for i := range nodes {
+		fk := nodes[i].CompositionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(applicationresource.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "compositionID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (arq *ApplicationResourceQuery) loadComponents(ctx context.Context, query *ApplicationResourceQuery, nodes []*ApplicationResource, init func(*ApplicationResource), assign func(*ApplicationResource, *ApplicationResource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*ApplicationResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
+		s.Where(sql.InValues(applicationresource.ComponentsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CompositionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "compositionID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

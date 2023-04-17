@@ -5168,25 +5168,30 @@ func (m *ApplicationModuleRelationshipMutation) ResetEdge(name string) error {
 // ApplicationResourceMutation represents an operation that mutates the ApplicationResource nodes in the graph.
 type ApplicationResourceMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *oid.ID
-	createTime       *time.Time
-	updateTime       *time.Time
-	module           *string
-	mode             *string
-	_type            *string
-	name             *string
-	deployerType     *string
-	status           *types.ApplicationResourceStatus
-	clearedFields    map[string]struct{}
-	instance         *oid.ID
-	clearedinstance  bool
-	connector        *oid.ID
-	clearedconnector bool
-	done             bool
-	oldValue         func(context.Context) (*ApplicationResource, error)
-	predicates       []predicate.ApplicationResource
+	op                 Op
+	typ                string
+	id                 *oid.ID
+	createTime         *time.Time
+	updateTime         *time.Time
+	module             *string
+	mode               *string
+	_type              *string
+	name               *string
+	deployerType       *string
+	status             *types.ApplicationResourceStatus
+	clearedFields      map[string]struct{}
+	instance           *oid.ID
+	clearedinstance    bool
+	connector          *oid.ID
+	clearedconnector   bool
+	composition        *oid.ID
+	clearedcomposition bool
+	components         map[oid.ID]struct{}
+	removedcomponents  map[oid.ID]struct{}
+	clearedcomponents  bool
+	done               bool
+	oldValue           func(context.Context) (*ApplicationResource, error)
+	predicates         []predicate.ApplicationResource
 }
 
 var _ ent.Mutation = (*ApplicationResourceMutation)(nil)
@@ -5435,6 +5440,55 @@ func (m *ApplicationResourceMutation) OldConnectorID(ctx context.Context) (v oid
 // ResetConnectorID resets all changes to the "connectorID" field.
 func (m *ApplicationResourceMutation) ResetConnectorID() {
 	m.connector = nil
+}
+
+// SetCompositionID sets the "compositionID" field.
+func (m *ApplicationResourceMutation) SetCompositionID(o oid.ID) {
+	m.composition = &o
+}
+
+// CompositionID returns the value of the "compositionID" field in the mutation.
+func (m *ApplicationResourceMutation) CompositionID() (r oid.ID, exists bool) {
+	v := m.composition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompositionID returns the old "compositionID" field's value of the ApplicationResource entity.
+// If the ApplicationResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationResourceMutation) OldCompositionID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompositionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompositionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompositionID: %w", err)
+	}
+	return oldValue.CompositionID, nil
+}
+
+// ClearCompositionID clears the value of the "compositionID" field.
+func (m *ApplicationResourceMutation) ClearCompositionID() {
+	m.composition = nil
+	m.clearedFields[applicationresource.FieldCompositionID] = struct{}{}
+}
+
+// CompositionIDCleared returns if the "compositionID" field was cleared in this mutation.
+func (m *ApplicationResourceMutation) CompositionIDCleared() bool {
+	_, ok := m.clearedFields[applicationresource.FieldCompositionID]
+	return ok
+}
+
+// ResetCompositionID resets all changes to the "compositionID" field.
+func (m *ApplicationResourceMutation) ResetCompositionID() {
+	m.composition = nil
+	delete(m.clearedFields, applicationresource.FieldCompositionID)
 }
 
 // SetModule sets the "module" field.
@@ -5718,6 +5772,86 @@ func (m *ApplicationResourceMutation) ResetConnector() {
 	m.clearedconnector = false
 }
 
+// ClearComposition clears the "composition" edge to the ApplicationResource entity.
+func (m *ApplicationResourceMutation) ClearComposition() {
+	m.clearedcomposition = true
+}
+
+// CompositionCleared reports if the "composition" edge to the ApplicationResource entity was cleared.
+func (m *ApplicationResourceMutation) CompositionCleared() bool {
+	return m.CompositionIDCleared() || m.clearedcomposition
+}
+
+// CompositionIDs returns the "composition" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CompositionID instead. It exists only for internal usage by the builders.
+func (m *ApplicationResourceMutation) CompositionIDs() (ids []oid.ID) {
+	if id := m.composition; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetComposition resets all changes to the "composition" edge.
+func (m *ApplicationResourceMutation) ResetComposition() {
+	m.composition = nil
+	m.clearedcomposition = false
+}
+
+// AddComponentIDs adds the "components" edge to the ApplicationResource entity by ids.
+func (m *ApplicationResourceMutation) AddComponentIDs(ids ...oid.ID) {
+	if m.components == nil {
+		m.components = make(map[oid.ID]struct{})
+	}
+	for i := range ids {
+		m.components[ids[i]] = struct{}{}
+	}
+}
+
+// ClearComponents clears the "components" edge to the ApplicationResource entity.
+func (m *ApplicationResourceMutation) ClearComponents() {
+	m.clearedcomponents = true
+}
+
+// ComponentsCleared reports if the "components" edge to the ApplicationResource entity was cleared.
+func (m *ApplicationResourceMutation) ComponentsCleared() bool {
+	return m.clearedcomponents
+}
+
+// RemoveComponentIDs removes the "components" edge to the ApplicationResource entity by IDs.
+func (m *ApplicationResourceMutation) RemoveComponentIDs(ids ...oid.ID) {
+	if m.removedcomponents == nil {
+		m.removedcomponents = make(map[oid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.components, ids[i])
+		m.removedcomponents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedComponents returns the removed IDs of the "components" edge to the ApplicationResource entity.
+func (m *ApplicationResourceMutation) RemovedComponentsIDs() (ids []oid.ID) {
+	for id := range m.removedcomponents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ComponentsIDs returns the "components" edge IDs in the mutation.
+func (m *ApplicationResourceMutation) ComponentsIDs() (ids []oid.ID) {
+	for id := range m.components {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetComponents resets all changes to the "components" edge.
+func (m *ApplicationResourceMutation) ResetComponents() {
+	m.components = nil
+	m.clearedcomponents = false
+	m.removedcomponents = nil
+}
+
 // Where appends a list predicates to the ApplicationResourceMutation builder.
 func (m *ApplicationResourceMutation) Where(ps ...predicate.ApplicationResource) {
 	m.predicates = append(m.predicates, ps...)
@@ -5752,7 +5886,7 @@ func (m *ApplicationResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationResourceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.createTime != nil {
 		fields = append(fields, applicationresource.FieldCreateTime)
 	}
@@ -5764,6 +5898,9 @@ func (m *ApplicationResourceMutation) Fields() []string {
 	}
 	if m.connector != nil {
 		fields = append(fields, applicationresource.FieldConnectorID)
+	}
+	if m.composition != nil {
+		fields = append(fields, applicationresource.FieldCompositionID)
 	}
 	if m.module != nil {
 		fields = append(fields, applicationresource.FieldModule)
@@ -5799,6 +5936,8 @@ func (m *ApplicationResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.InstanceID()
 	case applicationresource.FieldConnectorID:
 		return m.ConnectorID()
+	case applicationresource.FieldCompositionID:
+		return m.CompositionID()
 	case applicationresource.FieldModule:
 		return m.Module()
 	case applicationresource.FieldMode:
@@ -5828,6 +5967,8 @@ func (m *ApplicationResourceMutation) OldField(ctx context.Context, name string)
 		return m.OldInstanceID(ctx)
 	case applicationresource.FieldConnectorID:
 		return m.OldConnectorID(ctx)
+	case applicationresource.FieldCompositionID:
+		return m.OldCompositionID(ctx)
 	case applicationresource.FieldModule:
 		return m.OldModule(ctx)
 	case applicationresource.FieldMode:
@@ -5876,6 +6017,13 @@ func (m *ApplicationResourceMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetConnectorID(v)
+		return nil
+	case applicationresource.FieldCompositionID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompositionID(v)
 		return nil
 	case applicationresource.FieldModule:
 		v, ok := value.(string)
@@ -5949,6 +6097,9 @@ func (m *ApplicationResourceMutation) AddField(name string, value ent.Value) err
 // mutation.
 func (m *ApplicationResourceMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(applicationresource.FieldCompositionID) {
+		fields = append(fields, applicationresource.FieldCompositionID)
+	}
 	if m.FieldCleared(applicationresource.FieldStatus) {
 		fields = append(fields, applicationresource.FieldStatus)
 	}
@@ -5966,6 +6117,9 @@ func (m *ApplicationResourceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ApplicationResourceMutation) ClearField(name string) error {
 	switch name {
+	case applicationresource.FieldCompositionID:
+		m.ClearCompositionID()
+		return nil
 	case applicationresource.FieldStatus:
 		m.ClearStatus()
 		return nil
@@ -5988,6 +6142,9 @@ func (m *ApplicationResourceMutation) ResetField(name string) error {
 		return nil
 	case applicationresource.FieldConnectorID:
 		m.ResetConnectorID()
+		return nil
+	case applicationresource.FieldCompositionID:
+		m.ResetCompositionID()
 		return nil
 	case applicationresource.FieldModule:
 		m.ResetModule()
@@ -6013,12 +6170,18 @@ func (m *ApplicationResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ApplicationResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.instance != nil {
 		edges = append(edges, applicationresource.EdgeInstance)
 	}
 	if m.connector != nil {
 		edges = append(edges, applicationresource.EdgeConnector)
+	}
+	if m.composition != nil {
+		edges = append(edges, applicationresource.EdgeComposition)
+	}
+	if m.components != nil {
+		edges = append(edges, applicationresource.EdgeComponents)
 	}
 	return edges
 }
@@ -6035,30 +6198,57 @@ func (m *ApplicationResourceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.connector; id != nil {
 			return []ent.Value{*id}
 		}
+	case applicationresource.EdgeComposition:
+		if id := m.composition; id != nil {
+			return []ent.Value{*id}
+		}
+	case applicationresource.EdgeComponents:
+		ids := make([]ent.Value, 0, len(m.components))
+		for id := range m.components {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ApplicationResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
+	if m.removedcomponents != nil {
+		edges = append(edges, applicationresource.EdgeComponents)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ApplicationResourceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case applicationresource.EdgeComponents:
+		ids := make([]ent.Value, 0, len(m.removedcomponents))
+		for id := range m.removedcomponents {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ApplicationResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedinstance {
 		edges = append(edges, applicationresource.EdgeInstance)
 	}
 	if m.clearedconnector {
 		edges = append(edges, applicationresource.EdgeConnector)
+	}
+	if m.clearedcomposition {
+		edges = append(edges, applicationresource.EdgeComposition)
+	}
+	if m.clearedcomponents {
+		edges = append(edges, applicationresource.EdgeComponents)
 	}
 	return edges
 }
@@ -6071,6 +6261,10 @@ func (m *ApplicationResourceMutation) EdgeCleared(name string) bool {
 		return m.clearedinstance
 	case applicationresource.EdgeConnector:
 		return m.clearedconnector
+	case applicationresource.EdgeComposition:
+		return m.clearedcomposition
+	case applicationresource.EdgeComponents:
+		return m.clearedcomponents
 	}
 	return false
 }
@@ -6085,6 +6279,9 @@ func (m *ApplicationResourceMutation) ClearEdge(name string) error {
 	case applicationresource.EdgeConnector:
 		m.ClearConnector()
 		return nil
+	case applicationresource.EdgeComposition:
+		m.ClearComposition()
+		return nil
 	}
 	return fmt.Errorf("unknown ApplicationResource unique edge %s", name)
 }
@@ -6098,6 +6295,12 @@ func (m *ApplicationResourceMutation) ResetEdge(name string) error {
 		return nil
 	case applicationresource.EdgeConnector:
 		m.ResetConnector()
+		return nil
+	case applicationresource.EdgeComposition:
+		m.ResetComposition()
+		return nil
+	case applicationresource.EdgeComponents:
+		m.ResetComponents()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationResource edge %s", name)

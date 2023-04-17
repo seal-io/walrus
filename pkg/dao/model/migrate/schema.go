@@ -202,6 +202,7 @@ var (
 		{Name: "deployer_type", Type: field.TypeString},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "instance_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationResourcesTable holds the schema information for the "application_resources" table.
@@ -217,8 +218,14 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "application_resources_connectors_resources",
+				Symbol:     "application_resources_application_resources_components",
 				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
+				RefColumns: []*schema.Column{ApplicationResourcesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "application_resources_connectors_resources",
+				Columns:    []*schema.Column{ApplicationResourcesColumns[11]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -699,7 +706,8 @@ func init() {
 	ApplicationModuleRelationshipsTable.ForeignKeys[0].RefTable = ApplicationsTable
 	ApplicationModuleRelationshipsTable.ForeignKeys[1].RefTable = ModulesTable
 	ApplicationResourcesTable.ForeignKeys[0].RefTable = ApplicationInstancesTable
-	ApplicationResourcesTable.ForeignKeys[1].RefTable = ConnectorsTable
+	ApplicationResourcesTable.ForeignKeys[1].RefTable = ApplicationResourcesTable
+	ApplicationResourcesTable.ForeignKeys[2].RefTable = ConnectorsTable
 	ApplicationRevisionsTable.ForeignKeys[0].RefTable = ApplicationInstancesTable
 	ApplicationRevisionsTable.ForeignKeys[1].RefTable = EnvironmentsTable
 	ClusterCostsTable.ForeignKeys[0].RefTable = ConnectorsTable

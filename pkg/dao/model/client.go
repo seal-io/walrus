@@ -1197,6 +1197,44 @@ func (c *ApplicationResourceClient) QueryConnector(ar *ApplicationResource) *Con
 	return query
 }
 
+// QueryComposition queries the composition edge of a ApplicationResource.
+func (c *ApplicationResourceClient) QueryComposition(ar *ApplicationResource) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, id),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, applicationresource.CompositionTable, applicationresource.CompositionColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryComponents queries the components edge of a ApplicationResource.
+func (c *ApplicationResourceClient) QueryComponents(ar *ApplicationResource) *ApplicationResourceQuery {
+	query := (&ApplicationResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(applicationresource.Table, applicationresource.FieldID, id),
+			sqlgraph.To(applicationresource.Table, applicationresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, applicationresource.ComponentsTable, applicationresource.ComponentsColumn),
+		)
+		schemaConfig := ar.schemaConfig
+		step.To.Schema = schemaConfig.ApplicationResource
+		step.Edge.Schema = schemaConfig.ApplicationResource
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ApplicationResourceClient) Hooks() []Hook {
 	hooks := c.hooks.ApplicationResource

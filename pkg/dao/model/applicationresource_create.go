@@ -71,6 +71,20 @@ func (arc *ApplicationResourceCreate) SetConnectorID(o oid.ID) *ApplicationResou
 	return arc
 }
 
+// SetCompositionID sets the "compositionID" field.
+func (arc *ApplicationResourceCreate) SetCompositionID(o oid.ID) *ApplicationResourceCreate {
+	arc.mutation.SetCompositionID(o)
+	return arc
+}
+
+// SetNillableCompositionID sets the "compositionID" field if the given value is not nil.
+func (arc *ApplicationResourceCreate) SetNillableCompositionID(o *oid.ID) *ApplicationResourceCreate {
+	if o != nil {
+		arc.SetCompositionID(*o)
+	}
+	return arc
+}
+
 // SetModule sets the "module" field.
 func (arc *ApplicationResourceCreate) SetModule(s string) *ApplicationResourceCreate {
 	arc.mutation.SetModule(s)
@@ -129,6 +143,26 @@ func (arc *ApplicationResourceCreate) SetInstance(a *ApplicationInstance) *Appli
 // SetConnector sets the "connector" edge to the Connector entity.
 func (arc *ApplicationResourceCreate) SetConnector(c *Connector) *ApplicationResourceCreate {
 	return arc.SetConnectorID(c.ID)
+}
+
+// SetComposition sets the "composition" edge to the ApplicationResource entity.
+func (arc *ApplicationResourceCreate) SetComposition(a *ApplicationResource) *ApplicationResourceCreate {
+	return arc.SetCompositionID(a.ID)
+}
+
+// AddComponentIDs adds the "components" edge to the ApplicationResource entity by IDs.
+func (arc *ApplicationResourceCreate) AddComponentIDs(ids ...oid.ID) *ApplicationResourceCreate {
+	arc.mutation.AddComponentIDs(ids...)
+	return arc
+}
+
+// AddComponents adds the "components" edges to the ApplicationResource entity.
+func (arc *ApplicationResourceCreate) AddComponents(a ...*ApplicationResource) *ApplicationResourceCreate {
+	ids := make([]oid.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return arc.AddComponentIDs(ids...)
 }
 
 // Mutation returns the ApplicationResourceMutation object of the builder.
@@ -366,6 +400,47 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 		_node.ConnectorID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := arc.mutation.CompositionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   applicationresource.CompositionTable,
+			Columns: []string{applicationresource.CompositionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CompositionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := arc.mutation.ComponentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = arc.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -473,6 +548,9 @@ func (u *ApplicationResourceUpsertOne) UpdateNewValues() *ApplicationResourceUps
 		}
 		if _, exists := u.create.mutation.ConnectorID(); exists {
 			s.SetIgnore(applicationresource.FieldConnectorID)
+		}
+		if _, exists := u.create.mutation.CompositionID(); exists {
+			s.SetIgnore(applicationresource.FieldCompositionID)
 		}
 		if _, exists := u.create.mutation.Module(); exists {
 			s.SetIgnore(applicationresource.FieldModule)
@@ -742,6 +820,9 @@ func (u *ApplicationResourceUpsertBulk) UpdateNewValues() *ApplicationResourceUp
 			}
 			if _, exists := b.mutation.ConnectorID(); exists {
 				s.SetIgnore(applicationresource.FieldConnectorID)
+			}
+			if _, exists := b.mutation.CompositionID(); exists {
+				s.SetIgnore(applicationresource.FieldCompositionID)
 			}
 			if _, exists := b.mutation.Module(); exists {
 				s.SetIgnore(applicationresource.FieldModule)
