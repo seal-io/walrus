@@ -7,12 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/apis/applicationresource/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -115,7 +118,9 @@ var (
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.ApplicationResources().Query().
-		Where(applicationresource.InstanceID(req.InstanceID))
+		Where(
+			applicationresource.InstanceID(req.InstanceID),
+			applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -136,46 +141,11 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
-	resp, err := h.getCollectionResponse(ctx, query, req.WithoutKeys)
+	resp, err := getCollection(ctx, query, req.WithoutKeys)
 	if err != nil {
 		return nil, 0, err
 	}
 	return resp, cnt, nil
-}
-
-func (h Handler) getCollectionResponse(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) ([]view.ApplicationResource, error) {
-	// allow returning without sorting keys.
-	entities, err := query.Unique(false).
-		// must extract connector.
-		Select(applicationresource.FieldConnectorID).
-		WithConnector(func(cq *model.ConnectorQuery) {
-			cq.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData)
-		}).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, r := range entities {
-		r.Module = parseModuleName(r.Module)
-	}
-
-	var resp = make(view.CollectionGetResponse, len(entities))
-	for i := 0; i < len(entities); i++ {
-		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
-		if !withoutKeys {
-			resp[i].Keys, err = getKeys(ctx, entities[i])
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return resp, nil
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
@@ -211,10 +181,30 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 		var streamData view.StreamResponse
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
-			resp, err = h.getCollectionResponse(ctx, query.Clone().Where(
-				applicationresource.IDIn(dm.Data...),
-			), req.WithoutKeys)
-			if err != nil && !model.IsNotFound(err) {
+			// filter out component ids.
+			entities, err := query.Clone().
+				Where(applicationresource.IDIn(dm.Data...)).
+				Select(
+					applicationresource.FieldID,
+					applicationresource.FieldCompositionID).
+				All(ctx)
+			if err != nil {
+				return err
+			}
+			var ids = sets.Set[oid.ID]{}
+			for i := range entities {
+				if entities[i].CompositionID != "" {
+					// consume composition id.
+					ids.Insert(entities[i].CompositionID)
+					continue
+				}
+				ids.Insert(entities[i].ID)
+			}
+			// get entities by filtered out ids.
+			resp, err = getCollection(ctx,
+				query.Clone().Where(applicationresource.IDIn(ids.UnsortedList()...)),
+				req.WithoutKeys)
+			if err != nil {
 				return err
 			}
 			streamData = view.StreamResponse{
@@ -303,6 +293,46 @@ func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecReques
 		return err
 	}
 	return nil
+}
+
+func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) (view.CollectionGetResponse, error) {
+	// allow returning without sorting keys.
+	entities, err := query.Unique(false).
+		// must extract connector.
+		Select(applicationresource.FieldConnectorID).
+		WithConnector(func(cq *model.ConnectorQuery) {
+			cq.Select(
+				connector.FieldName,
+				connector.FieldType,
+				connector.FieldCategory,
+				connector.FieldConfigVersion,
+				connector.FieldConfigData)
+		}).
+		// must extract components.
+		WithComponents(func(rq *model.ApplicationResourceQuery) {
+			rq.Select(getFields...).
+				Order(model.Desc(applicationresource.FieldCreateTime)).
+				Where(applicationresource.Mode(types.ApplicationResourceModeDiscovered))
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range entities {
+		r.Module = parseModuleName(r.Module)
+	}
+
+	var resp = make(view.CollectionGetResponse, len(entities))
+	for i := 0; i < len(entities); i++ {
+		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
+		if !withoutKeys {
+			resp[i].Keys, err = getKeys(ctx, entities[i])
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return resp, nil
 }
 
 func getKeys(ctx context.Context, r *model.ApplicationResource) (*operator.Keys, error) {

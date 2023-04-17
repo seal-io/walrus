@@ -10,13 +10,17 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/platformk8s/helm"
-	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// parseOperableResourcesOfHelm parses the given `helm_release` model.ApplicationResource to operable resource list.
-func parseOperableResourcesOfHelm(ctx context.Context, op Operator, res *model.ApplicationResource) ([]resource, error) {
+// parseResourcesOfHelm parses the given `helm_release` model.ApplicationResource,
+// and keeps resource item which matches.
+func parseResourcesOfHelm(ctx context.Context, op Operator, res *model.ApplicationResource, match func(schema.GroupVersionKind) bool) ([]resource, error) {
+	if match == nil {
+		return nil, nil
+	}
+
 	var opts = helm.GetReleaseOptions{
 		RESTClientGetter: helm.IncompleteRestClientGetter(*op.RestConfig),
 		Log:              op.Logger.Debugf,
@@ -44,8 +48,7 @@ func parseOperableResourcesOfHelm(ctx context.Context, op Operator, res *model.A
 			op.Logger.Warnf("error decoding helm release resource: %v", err)
 			continue
 		}
-		// only allow operable resource.
-		if !intercept.Operable().AllowGVK(*gvk) {
+		if !match(*gvk) {
 			continue
 		}
 		var gvr, _ = meta.UnsafeGuessKindToResource(*gvk)

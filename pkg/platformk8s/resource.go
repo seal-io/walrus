@@ -33,22 +33,22 @@ type resource struct {
 	Name      string
 }
 
-// parseOperableResources parse the given model.ApplicationResource to operable resource list.
-func parseOperableResources(ctx context.Context, op Operator, res *model.ApplicationResource) ([]resource, error) {
+// parseOperableResources parse the given model.ApplicationResource,
+// and keeps resource item which matches enforcer validation.
+func parseResources(ctx context.Context, op Operator, res *model.ApplicationResource, enforcer intercept.Enforcer) ([]resource, error) {
 	if res.DeployerType != types.DeployerTypeTF {
 		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
 
 	if res.Type == "helm_release" {
-		return parseOperableResourcesOfHelm(ctx, op, res)
+		return parseResourcesOfHelm(ctx, op, res, enforcer.AllowGVK)
 	}
 
 	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
 	if !ok {
 		return nil, nil
 	}
-	// only allow operable resource.
-	if !intercept.Operable().AllowGVR(gvr) {
+	if !enforcer.AllowGVR(gvr) {
 		return nil, nil
 	}
 	var ns, n = kube.ParseNamespacedName(res.Name)

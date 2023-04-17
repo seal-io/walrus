@@ -31,6 +31,9 @@ type Operator interface {
 	// GetEndpoints gets endpoints of the given resource.
 	GetEndpoints(context.Context, *model.ApplicationResource) ([]types.ApplicationResourceEndpoint, error)
 
+	// GetComponents gets components of the given resource.
+	GetComponents(context.Context, *model.ApplicationResource) ([]*model.ApplicationResource, error)
+
 	// Log gets logs from the given key.
 	Log(context.Context, string, LogOptions) error
 

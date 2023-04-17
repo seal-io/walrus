@@ -10,27 +10,27 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// Operable returns Enforcer to detect if the given Kubernetes GVK/GVR is operable enforcer.
-func Operable() Enforcer {
+// Composite returns Enforcer to detect if the given Kubernetes GVK/GVR is composite enforcer.
+func Composite() Enforcer {
 	// singleton pattern.
-	return opEnforcer
+	return compEnforcer
 }
 
-// operableEnforcer implements Enforcer.
-type operableEnforcer struct {
+// compositeEnforcer implements Enforcer.
+type compositeEnforcer struct {
 	gvks sets.Set[schema.GroupVersionKind]
 	gvrs sets.Set[schema.GroupVersionResource]
 }
 
-func (e operableEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
+func (e compositeEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
 	return e.gvks.Has(gvk)
 }
 
-func (e operableEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
+func (e compositeEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
 	return e.gvrs.Has(gvr)
 }
 
-var opEnforcer = operableEnforcer{
+var compEnforcer = compositeEnforcer{
 	gvks: sets.Set[schema.GroupVersionKind]{},
 	gvrs: sets.Set[schema.GroupVersionResource]{},
 }
@@ -38,16 +38,16 @@ var opEnforcer = operableEnforcer{
 func init() {
 	// emit, transfer and record.
 	//
-	// only consider operable types.
+	// only consider composite types.
 	//
 	for _, gvk := range []schema.GroupVersionKind{
-		// select pod directly.
-		corev1.SchemeGroupVersion.WithKind("Pod"),
-
 		// select generated job list by the cronjob label selector,
 		// then select pod list by the job label selector.
 		batchv1.SchemeGroupVersion.WithKind("CronJob"),
 		batchv1beta1.SchemeGroupVersion.WithKind("CronJob"),
+
+		// select related persistent volume by the persistent volume claim.
+		corev1.SchemeGroupVersion.WithKind("PersistentVolumeClaim"),
 
 		// select generated pod list by the following kinds' label selector.
 		appsv1.SchemeGroupVersion.WithKind("DaemonSet"),
@@ -57,8 +57,8 @@ func init() {
 		batchv1.SchemeGroupVersion.WithKind("Job"),
 		corev1.SchemeGroupVersion.WithKind("ReplicationController"),
 	} {
-		opEnforcer.gvks.Insert(gvk)
+		compEnforcer.gvks.Insert(gvk)
 		var gvr, _ = meta.UnsafeGuessKindToResource(gvk)
-		opEnforcer.gvrs.Insert(gvr)
+		compEnforcer.gvrs.Insert(gvr)
 	}
 }

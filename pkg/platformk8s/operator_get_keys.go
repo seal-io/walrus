@@ -18,6 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 )
@@ -80,8 +81,8 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 		return nil, nil
 	}
 
-	// parse resources.
-	var rs, err = parseOperableResources(ctx, op, res)
+	// parse operable resources.
+	var rs, err = parseResources(ctx, op, res, intercept.Operable())
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
