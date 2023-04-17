@@ -43,6 +43,8 @@ type ApplicationResourceCreateInput struct {
 	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Connector to which the resource deploys.
 	Connector ConnectorQueryInput `json:"connector"`
+	// Application resource to which the resource makes up.
+	Composition *ApplicationResourceQueryInput `json:"composition,omitempty"`
 }
 
 // Model converts the ApplicationResourceCreateInput to ApplicationResource.
@@ -57,6 +59,9 @@ func (in ApplicationResourceCreateInput) Model() *ApplicationResource {
 	}
 	entity.InstanceID = in.Instance.ID
 	entity.ConnectorID = in.Connector.ID
+	if in.Composition != nil {
+		entity.CompositionID = in.Composition.ID
+	}
 	return entity
 }
 
@@ -101,6 +106,10 @@ type ApplicationResourceOutput struct {
 	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Connector to which the resource deploys.
 	Connector *ConnectorOutput `json:"connector,omitempty"`
+	// Application resource to which the resource makes up.
+	Composition *ApplicationResourceOutput `json:"composition,omitempty"`
+	// Application resources that make up this resource.
+	Components []*ApplicationResourceOutput `json:"components,omitempty"`
 }
 
 // ExposeApplicationResource converts the ApplicationResource to ApplicationResourceOutput.
@@ -120,6 +129,8 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		Status:       in.Status,
 		Instance:     ExposeApplicationInstance(in.Edges.Instance),
 		Connector:    ExposeConnector(in.Edges.Connector),
+		Composition:  ExposeApplicationResource(in.Edges.Composition),
+		Components:   ExposeApplicationResources(in.Edges.Components),
 	}
 	if entity.Instance == nil {
 		entity.Instance = &ApplicationInstanceOutput{}
@@ -129,6 +140,10 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		entity.Connector = &ConnectorOutput{}
 	}
 	entity.Connector.ID = in.ConnectorID
+	if entity.Composition == nil {
+		entity.Composition = &ApplicationResourceOutput{}
+	}
+	entity.Composition.ID = in.CompositionID
 	return entity
 }
 

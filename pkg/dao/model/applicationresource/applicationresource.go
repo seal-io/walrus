@@ -24,6 +24,8 @@ const (
 	FieldInstanceID = "instance_id"
 	// FieldConnectorID holds the string denoting the connectorid field in the database.
 	FieldConnectorID = "connector_id"
+	// FieldCompositionID holds the string denoting the compositionid field in the database.
+	FieldCompositionID = "composition_id"
 	// FieldModule holds the string denoting the module field in the database.
 	FieldModule = "module"
 	// FieldMode holds the string denoting the mode field in the database.
@@ -40,6 +42,10 @@ const (
 	EdgeInstance = "instance"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
 	EdgeConnector = "connector"
+	// EdgeComposition holds the string denoting the composition edge name in mutations.
+	EdgeComposition = "composition"
+	// EdgeComponents holds the string denoting the components edge name in mutations.
+	EdgeComponents = "components"
 	// Table holds the table name of the applicationresource in the database.
 	Table = "application_resources"
 	// InstanceTable is the table that holds the instance relation/edge.
@@ -56,6 +62,14 @@ const (
 	ConnectorInverseTable = "connectors"
 	// ConnectorColumn is the table column denoting the connector relation/edge.
 	ConnectorColumn = "connector_id"
+	// CompositionTable is the table that holds the composition relation/edge.
+	CompositionTable = "application_resources"
+	// CompositionColumn is the table column denoting the composition relation/edge.
+	CompositionColumn = "composition_id"
+	// ComponentsTable is the table that holds the components relation/edge.
+	ComponentsTable = "application_resources"
+	// ComponentsColumn is the table column denoting the components relation/edge.
+	ComponentsColumn = "composition_id"
 )
 
 // Columns holds all SQL columns for applicationresource fields.
@@ -65,6 +79,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldInstanceID,
 	FieldConnectorID,
+	FieldCompositionID,
 	FieldModule,
 	FieldMode,
 	FieldType,

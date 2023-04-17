@@ -253,23 +253,23 @@ func init() {
 	// applicationresource.ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
 	applicationresource.ConnectorIDValidator = applicationresourceDescConnectorID.Validators[0].(func(string) error)
 	// applicationresourceDescModule is the schema descriptor for module field.
-	applicationresourceDescModule := applicationresourceFields[2].Descriptor()
+	applicationresourceDescModule := applicationresourceFields[3].Descriptor()
 	// applicationresource.ModuleValidator is a validator for the "module" field. It is called by the builders before save.
 	applicationresource.ModuleValidator = applicationresourceDescModule.Validators[0].(func(string) error)
 	// applicationresourceDescMode is the schema descriptor for mode field.
-	applicationresourceDescMode := applicationresourceFields[3].Descriptor()
+	applicationresourceDescMode := applicationresourceFields[4].Descriptor()
 	// applicationresource.ModeValidator is a validator for the "mode" field. It is called by the builders before save.
 	applicationresource.ModeValidator = applicationresourceDescMode.Validators[0].(func(string) error)
 	// applicationresourceDescType is the schema descriptor for type field.
-	applicationresourceDescType := applicationresourceFields[4].Descriptor()
+	applicationresourceDescType := applicationresourceFields[5].Descriptor()
 	// applicationresource.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	applicationresource.TypeValidator = applicationresourceDescType.Validators[0].(func(string) error)
 	// applicationresourceDescName is the schema descriptor for name field.
-	applicationresourceDescName := applicationresourceFields[5].Descriptor()
+	applicationresourceDescName := applicationresourceFields[6].Descriptor()
 	// applicationresource.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	applicationresource.NameValidator = applicationresourceDescName.Validators[0].(func(string) error)
 	// applicationresourceDescDeployerType is the schema descriptor for deployerType field.
-	applicationresourceDescDeployerType := applicationresourceFields[6].Descriptor()
+	applicationresourceDescDeployerType := applicationresourceFields[7].Descriptor()
 	// applicationresource.DeployerTypeValidator is a validator for the "deployerType" field. It is called by the builders before save.
 	applicationresource.DeployerTypeValidator = applicationresourceDescDeployerType.Validators[0].(func(string) error)
 	applicationrevisionMixin := schema.ApplicationRevision{}.Mixin()

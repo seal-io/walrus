@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ApplicationResourceUpdate is the builder for updating ApplicationResource entities.
@@ -61,9 +62,45 @@ func (aru *ApplicationResourceUpdate) ClearStatus() *ApplicationResourceUpdate {
 	return aru
 }
 
+// AddComponentIDs adds the "components" edge to the ApplicationResource entity by IDs.
+func (aru *ApplicationResourceUpdate) AddComponentIDs(ids ...oid.ID) *ApplicationResourceUpdate {
+	aru.mutation.AddComponentIDs(ids...)
+	return aru
+}
+
+// AddComponents adds the "components" edges to the ApplicationResource entity.
+func (aru *ApplicationResourceUpdate) AddComponents(a ...*ApplicationResource) *ApplicationResourceUpdate {
+	ids := make([]oid.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return aru.AddComponentIDs(ids...)
+}
+
 // Mutation returns the ApplicationResourceMutation object of the builder.
 func (aru *ApplicationResourceUpdate) Mutation() *ApplicationResourceMutation {
 	return aru.mutation
+}
+
+// ClearComponents clears all "components" edges to the ApplicationResource entity.
+func (aru *ApplicationResourceUpdate) ClearComponents() *ApplicationResourceUpdate {
+	aru.mutation.ClearComponents()
+	return aru
+}
+
+// RemoveComponentIDs removes the "components" edge to ApplicationResource entities by IDs.
+func (aru *ApplicationResourceUpdate) RemoveComponentIDs(ids ...oid.ID) *ApplicationResourceUpdate {
+	aru.mutation.RemoveComponentIDs(ids...)
+	return aru
+}
+
+// RemoveComponents removes "components" edges to ApplicationResource entities.
+func (aru *ApplicationResourceUpdate) RemoveComponents(a ...*ApplicationResource) *ApplicationResourceUpdate {
+	ids := make([]oid.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return aru.RemoveComponentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -146,6 +183,63 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 	if aru.mutation.StatusCleared() {
 		_spec.ClearField(applicationresource.FieldStatus, field.TypeJSON)
 	}
+	if aru.mutation.ComponentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aru.schemaConfig.ApplicationResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aru.mutation.RemovedComponentsIDs(); len(nodes) > 0 && !aru.mutation.ComponentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aru.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aru.mutation.ComponentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aru.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aru.schemaConfig)
 	_spec.AddModifiers(aru.modifiers...)
@@ -196,9 +290,45 @@ func (aruo *ApplicationResourceUpdateOne) ClearStatus() *ApplicationResourceUpda
 	return aruo
 }
 
+// AddComponentIDs adds the "components" edge to the ApplicationResource entity by IDs.
+func (aruo *ApplicationResourceUpdateOne) AddComponentIDs(ids ...oid.ID) *ApplicationResourceUpdateOne {
+	aruo.mutation.AddComponentIDs(ids...)
+	return aruo
+}
+
+// AddComponents adds the "components" edges to the ApplicationResource entity.
+func (aruo *ApplicationResourceUpdateOne) AddComponents(a ...*ApplicationResource) *ApplicationResourceUpdateOne {
+	ids := make([]oid.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return aruo.AddComponentIDs(ids...)
+}
+
 // Mutation returns the ApplicationResourceMutation object of the builder.
 func (aruo *ApplicationResourceUpdateOne) Mutation() *ApplicationResourceMutation {
 	return aruo.mutation
+}
+
+// ClearComponents clears all "components" edges to the ApplicationResource entity.
+func (aruo *ApplicationResourceUpdateOne) ClearComponents() *ApplicationResourceUpdateOne {
+	aruo.mutation.ClearComponents()
+	return aruo
+}
+
+// RemoveComponentIDs removes the "components" edge to ApplicationResource entities by IDs.
+func (aruo *ApplicationResourceUpdateOne) RemoveComponentIDs(ids ...oid.ID) *ApplicationResourceUpdateOne {
+	aruo.mutation.RemoveComponentIDs(ids...)
+	return aruo
+}
+
+// RemoveComponents removes "components" edges to ApplicationResource entities.
+func (aruo *ApplicationResourceUpdateOne) RemoveComponents(a ...*ApplicationResource) *ApplicationResourceUpdateOne {
+	ids := make([]oid.ID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return aruo.RemoveComponentIDs(ids...)
 }
 
 // Where appends a list predicates to the ApplicationResourceUpdate builder.
@@ -310,6 +440,63 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if aruo.mutation.StatusCleared() {
 		_spec.ClearField(applicationresource.FieldStatus, field.TypeJSON)
+	}
+	if aruo.mutation.ComponentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aruo.schemaConfig.ApplicationResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aruo.mutation.RemovedComponentsIDs(); len(nodes) > 0 && !aruo.mutation.ComponentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aruo.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aruo.mutation.ComponentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   applicationresource.ComponentsTable,
+			Columns: []string{applicationresource.ComponentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: applicationresource.FieldID,
+				},
+			},
+		}
+		edge.Schema = aruo.schemaConfig.ApplicationResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationResource
 	ctx = internal.NewSchemaConfigContext(ctx, aruo.schemaConfig)
