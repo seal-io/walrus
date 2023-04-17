@@ -8,6 +8,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
@@ -17,8 +18,13 @@ func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResou
 		return nil, nil
 	}
 
-	if res.DeployerType != types.DeployerTypeTF {
-		op.Logger.Warn("error resource label: unknown deployer type: " + res.DeployerType)
+	var rs, err = parseResources(ctx, op, res, intercept.Accessible())
+	if err != nil {
+		if !isResourceParsingError(err) {
+			return nil, err
+		}
+		// warn out if got above errors.
+		op.Logger.Warn(err)
 		return nil, nil
 	}
 
@@ -27,5 +33,22 @@ func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResou
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	return kube.GetEndpoints(ctx, client, res.Type, res.Name)
+	var eps []types.ApplicationResourceEndpoint
+	for _, r := range rs {
+		switch r.Resource {
+		case "services":
+			var endpoints, err = kube.GetServiceEndpoints(ctx, client, r.Namespace, r.Name)
+			if err != nil {
+				return nil, err
+			}
+			eps = append(eps, endpoints...)
+		case "ingresses":
+			var endpoints, err = kube.GetIngressEndpoints(ctx, client, r.Namespace, r.Name)
+			if err != nil {
+				return nil, err
+			}
+			eps = append(eps, endpoints...)
+		}
+	}
+	return eps, nil
 }
