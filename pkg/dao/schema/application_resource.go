@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -33,6 +34,11 @@ func (ApplicationResource) Fields() []ent.Field {
 		oid.Field("connectorID").
 			Comment("ID of the connector to which the resource deploys.").
 			NotEmpty().
+			Immutable(),
+		oid.Field("compositionID").
+			Comment("ID of the application resource to which the resource makes up, " +
+				"it presents when mode is discovered.").
+			Optional().
 			Immutable(),
 		field.String("module").
 			Comment("Name of the module that generates the resource.").
@@ -84,6 +90,17 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+		// application resource(!discovered) 1-* application resources(discovered).
+		edge.To("components", ApplicationResource.Type).
+			Comment("Application resources that make up this resource.").
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}).
+			From("composition").
+			Field("compositionID").
+			Comment("Application resource to which the resource makes up.").
+			Unique().
+			Immutable(),
 	}
 }
 
@@ -92,12 +109,12 @@ func (ApplicationResource) Interceptors() []ent.Interceptor {
 		WhereP(...func(*sql.Selector))
 	}
 
-	// filters out none "managed" mode and "kubectl_manifest" type resources.
+	// filters out not "data" mode and "kubectl_manifest" type resources.
 	var filter = ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
 		var t, ok = query.(target)
 		if ok {
 			t.WhereP(
-				sql.FieldEQ("mode", "managed"),
+				sql.FieldNEQ("mode", "data"),
 				sql.FieldNEQ("type", "kubectl_manifest"),
 			)
 		}

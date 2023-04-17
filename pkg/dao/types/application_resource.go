@@ -10,8 +10,17 @@ import (
 )
 
 const (
+	// ApplicationResourceModeManaged indicates the resource created to target platform,
+	// it is writable(update or delete).
 	ApplicationResourceModeManaged = "managed"
-	ApplicationResourceModeMode    = "mode"
+
+	// ApplicationResourceModeData indicates the resource read from target platform,
+	// it is read-only.
+	ApplicationResourceModeData = "data"
+
+	// ApplicationResourceModeDiscovered indicates the resource discovered from target platform,
+	// it inherits its composition's characteristic to be writable or not.
+	ApplicationResourceModeDiscovered = "discovered"
 )
 
 type ApplicationResourceEndpoint struct {
