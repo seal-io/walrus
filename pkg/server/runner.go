@@ -143,7 +143,8 @@ func (r *Server) Flags(cmd *cli.Command) {
 					}
 				}
 				if len(v) != 0 &&
-					(c.String("tls-cert-dir") == "" && c.String("tls-cert-file") == "" || c.String("tls-private-key-file") == "") {
+					(c.String("tls-cert-dir") == "" &&
+						(c.String("tls-cert-file") == "" || c.String("tls-private-key-file") == "")) {
 					return errors.New("--tls-cert-dir: must be filled")
 				}
 				r.TlsAutoCertDomains = v
