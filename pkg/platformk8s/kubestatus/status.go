@@ -40,15 +40,19 @@ func init() {
 
 // StatusError with error message to generate the status error.
 func StatusError(msg string) *typestatus.Status {
-	st := &typestatus.Status{}
-	st.SetSummary(
-		&typestatus.Summary{
+	var s string
+	if msg == "" {
+		s = "Server Error"
+	} else {
+		s = "Server Error: " + msg
+	}
+	return &typestatus.Status{
+		Summary: typestatus.Summary{
 			SummaryStatus:        typestatus.GeneralStatusError,
 			Error:                true,
-			SummaryStatusMessage: fmt.Sprintf("Server Error: %s", msg),
+			SummaryStatusMessage: s,
 		},
-	)
-	return st
+	}
 }
 
 type GetOptions struct {

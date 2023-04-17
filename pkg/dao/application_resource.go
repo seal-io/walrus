@@ -27,6 +27,11 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 			SetMode(r.Mode).
 			SetDeployerType(r.DeployerType)
 
+		// optional.
+		if r.CompositionID.Valid(0) {
+			c.SetCompositionID(r.CompositionID)
+		}
+
 		rrs[i] = c
 	}
 	return rrs, nil

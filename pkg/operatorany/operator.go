@@ -43,7 +43,11 @@ func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResour
 }
 
 func (Operator) GetEndpoints(ctx context.Context, resource *model.ApplicationResource) ([]types.ApplicationResourceEndpoint, error) {
-	return []types.ApplicationResourceEndpoint{}, nil
+	return nil, nil
+}
+
+func (Operator) GetComponents(ctx context.Context, resource *model.ApplicationResource) ([]*model.ApplicationResource, error) {
+	return nil, nil
 }
 
 func (Operator) Log(ctx context.Context, s string, options operator.LogOptions) error {
