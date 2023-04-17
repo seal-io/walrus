@@ -13,7 +13,12 @@ import (
 
 // GetEndpoints implements operator.Operator.
 func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResource) ([]types.ApplicationResourceEndpoint, error) {
-	if res == nil || res.DeployerType != types.DeployerTypeTF {
+	if res == nil {
+		return nil, nil
+	}
+
+	if res.DeployerType != types.DeployerTypeTF {
+		op.Logger.Warn("error resource label: unknown deployer type: " + res.DeployerType)
 		return nil, nil
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	dynamicclient "k8s.io/client-go/dynamic"
 
@@ -16,7 +16,17 @@ import (
 
 // Label implements operator.Operator.
 func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, labels map[string]string) error {
-	if res == nil || res.DeployerType != types.DeployerTypeTF {
+	if res == nil {
+		return nil
+	}
+
+	if res.DeployerType != types.DeployerTypeTF {
+		op.Logger.Warn("error resource label: unknown deployer type: " + res.DeployerType)
+		return nil
+	}
+
+	gvr, ok := intercept.Terraform().GetGVR(res.Type)
+	if !ok {
 		return nil
 	}
 
@@ -25,19 +35,15 @@ func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, la
 		return fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	gvr, ok := intercept.Terraform().GetGVR(res.Type)
-	if !ok {
-		return fmt.Errorf("error get resource %s's gvr", res.ID)
-	}
-
-	ns, name := kube.ParseNamespacedName(res.Name)
-	obj, err := client.Resource(gvr).Namespace(ns).Get(ctx, name, meta.GetOptions{ResourceVersion: "0"})
+	ns, n := kube.ParseNamespacedName(res.Name)
+	obj, err := client.Resource(gvr).Namespace(ns).
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
 	if err != nil {
-		if apierrors.IsNotFound(err) {
-			// skip apply labels while resource isn't existed
-			return nil
+		if !kerrors.IsNotFound(err) {
+			return fmt.Errorf("error getting kubernetes %s %s/%s: %w",
+				gvr.Resource, ns, n, err)
 		}
-		return err
+		return nil
 	}
 	return kube.Label(ctx, client, obj, labels)
 }
