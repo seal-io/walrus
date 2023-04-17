@@ -229,7 +229,6 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.1 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/rancher/dynamiclistener v0.3.5 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
