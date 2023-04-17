@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"strings"
 
 	apicorev1 "k8s.io/api/core/v1"
 	apinetworkingv1 "k8s.io/api/networking/v1"
@@ -17,40 +16,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// GetEndpoints current support service and ingress, may support other resource types which include different endpoint types.
-func GetEndpoints(ctx context.Context, clientSet *kubernetes.Clientset, resourceType, resourceID string) (
-	eps []types.ApplicationResourceEndpoint, err error,
-) {
-	switch resourceType {
-	case "kubernetes_service", "kubernetes_service_v1":
-		eps, err = ServiceEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
-	case "kubernetes_ingress", "kubernetes_ingress_v1":
-		eps, err = IngressEndpointGetter(clientSet).GetEndpoints(ctx, resourceID)
-	}
-	return eps, err
-}
-
-func ServiceEndpointGetter(clientSet *kubernetes.Clientset) *serviceEndpointGetter {
-	return &serviceEndpointGetter{
-		clientSet: clientSet,
-	}
-}
-
-type serviceEndpointGetter struct {
-	clientSet *kubernetes.Clientset
-}
-
-func (s *serviceEndpointGetter) GetEndpoints(ctx context.Context, resourceID string) ([]types.ApplicationResourceEndpoint, error) {
-	var rn = strings.SplitN(resourceID, "/", 2)
-	if len(rn) != 2 {
-		return nil, fmt.Errorf("invalid service namespaced name: %s", rn)
-	}
-
-	var (
-		ns   = rn[0]
-		name = rn[1]
-	)
-	svc, err := s.clientSet.CoreV1().Services(ns).Get(ctx, name, metav1.GetOptions{ResourceVersion: "0"})
+func GetServiceEndpoints(ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string) ([]types.ApplicationResourceEndpoint, error) {
+	svc, err := kubeCli.CoreV1().Services(ns).
+		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
@@ -61,11 +29,10 @@ func (s *serviceEndpointGetter) GetEndpoints(ctx context.Context, resourceID str
 	)
 	switch svc.Spec.Type {
 	case apicorev1.ServiceTypeNodePort:
-		accessIP, err := s.nodeIP(ctx, svc)
+		accessIP, err := nodeIP(ctx, kubeCli, svc)
 		if err != nil {
 			return nil, err
 		}
-
 		for _, port := range svc.Spec.Ports {
 			nodePort := fmt.Sprint(port.NodePort)
 			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
@@ -83,7 +50,6 @@ func (s *serviceEndpointGetter) GetEndpoints(ctx context.Context, resourceID str
 	if len(endpoints) == 0 {
 		return nil, nil
 	}
-
 	return []types.ApplicationResourceEndpoint{
 		{
 			EndpointType: resourceSubKind,
@@ -92,8 +58,9 @@ func (s *serviceEndpointGetter) GetEndpoints(ctx context.Context, resourceID str
 	}, nil
 }
 
-func (s *serviceEndpointGetter) nodeIP(ctx context.Context, svc *apicorev1.Service) (string, error) {
-	list, err := s.clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{ResourceVersion: "0"})
+func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.Service) (string, error) {
+	list, err := kubeCli.CoreV1().Nodes().
+		List(ctx, metav1.ListOptions{ResourceVersion: "0"})
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +71,8 @@ func (s *serviceEndpointGetter) nodeIP(ctx context.Context, svc *apicorev1.Servi
 
 	var nodes = list.Items
 	if svc.Spec.ExternalTrafficPolicy == apicorev1.ServiceExternalTrafficPolicyTypeLocal {
-		k8sEndpoints, err := s.clientSet.CoreV1().Endpoints(svc.Namespace).Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
+		k8sEndpoints, err := kubeCli.CoreV1().Endpoints(svc.Namespace).
+			Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
 		if err != nil {
 			return "", err
 		}
@@ -165,27 +133,9 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 	return svc.Spec.LoadBalancerIP
 }
 
-func IngressEndpointGetter(clientSet *kubernetes.Clientset) *ingressEndpointGetter {
-	return &ingressEndpointGetter{
-		clientSet: clientSet,
-	}
-}
-
-type ingressEndpointGetter struct {
-	clientSet *kubernetes.Clientset
-}
-
-func (ig *ingressEndpointGetter) GetEndpoints(ctx context.Context, resourceID string) ([]types.ApplicationResourceEndpoint, error) {
-	var rn = strings.SplitN(resourceID, "/", 2)
-	if len(rn) != 2 {
-		return nil, fmt.Errorf("invalid ingress namespaced name: %s", rn)
-	}
-
-	var (
-		ns   = rn[0]
-		name = rn[1]
-	)
-	ing, err := ig.clientSet.NetworkingV1().Ingresses(ns).Get(ctx, name, metav1.GetOptions{ResourceVersion: "0"})
+func GetIngressEndpoints(ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string) ([]types.ApplicationResourceEndpoint, error) {
+	ing, err := kubeCli.NetworkingV1().Ingresses(ns).
+		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
