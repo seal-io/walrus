@@ -142,3 +142,15 @@ func (r *StreamLogRequest) Validate() error {
 
 	return nil
 }
+
+type RollbackApplicationRequest struct {
+	*model.ApplicationRevisionQueryInput `uri:",inline"`
+}
+
+func (r *RollbackApplicationRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}
