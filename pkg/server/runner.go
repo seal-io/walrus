@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	stdlog "log"
+	"net"
 	"path/filepath"
 	"strings"
 	"time"
@@ -38,6 +39,7 @@ type Server struct {
 	Logger clis.Logger
 
 	BindAddress        string
+	EnableTls          bool
 	TlsCertFile        string
 	TlsPrivateKeyFile  string
 	TlsCertDir         string
@@ -66,6 +68,7 @@ type Server struct {
 func New() *Server {
 	return &Server{
 		BindAddress:           "0.0.0.0",
+		EnableTls:             true,
 		TlsCertDir:            filepath.FromSlash("/var/run/seal"),
 		ConnQPS:               10,
 		ConnBurst:             20,
@@ -87,6 +90,18 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Usage:       "The IP address on which to listen.",
 			Destination: &r.BindAddress,
 			Value:       r.BindAddress,
+			Action: func(c *cli.Context, s string) error {
+				if s != "" && net.ParseIP(s) == nil {
+					return errors.New("--bind-address: invalid IP address")
+				}
+				return nil
+			},
+		},
+		&cli.BoolFlag{
+			Name:        "enable-tls",
+			Usage:       "Enable HTTPs.",
+			Destination: &r.EnableTls,
+			Value:       r.EnableTls,
 		},
 		&cli.StringFlag{
 			Name: "tls-cert-file",
@@ -132,7 +147,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 		},
 		&cli.StringSliceFlag{
 			Name: "tls-auto-cert-domains",
-			Usage: "The domains to accept ACME HTTP-01 challenge to generate HTTPS x509 certificate and private key, " +
+			Usage: "The domains to accept ACME HTTP-01 or TLS-ALPN-01 challenge to generate HTTPS x509 certificate and private key, " +
 				"and saved to the directory specified by --tls-cert-dir. " +
 				"If --tls-cert-file and --tls-key-file are provided, this flag will be ignored.",
 			Action: func(c *cli.Context, v []string) error {
@@ -255,7 +270,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
-			Usage:       "Enable authentication",
+			Usage:       "Enable authentication.",
 			Destination: &r.EnableAuthn,
 			Value:       r.EnableAuthn,
 		},

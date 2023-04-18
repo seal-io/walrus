@@ -34,6 +34,8 @@ func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
 	default:
 		serveOpts.TlsMode = apis.TlsModeSelfGenerated
 		serveOpts.TlsCertDir = r.TlsCertDir
+	case !r.EnableTls:
+		serveOpts.TlsMode = apis.TlsModeDisabled
 	case r.TlsCertFile != "" && r.TlsPrivateKeyFile != "":
 		serveOpts.TlsMode = apis.TlsModeCustomized
 		serveOpts.TlsCertFile = r.TlsCertFile

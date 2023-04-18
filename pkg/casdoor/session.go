@@ -11,8 +11,13 @@ import (
 	"github.com/seal-io/seal/utils/vars"
 )
 
-// MaxIdleDurationConfig holds the config of the max idle duration.
-var MaxIdleDurationConfig = vars.SetOnce[time.Duration]{}
+var (
+	// MaxIdleDurationConfig holds the config of the max idle duration.
+	MaxIdleDurationConfig = vars.SetOnce[time.Duration]{}
+
+	// SecureConfig holds the config of securing.
+	SecureConfig = vars.SetOnce[bool]{}
+)
 
 // GetSession converts external session(seal cookie) to internal session(casdoor cookie).
 func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
@@ -105,7 +110,7 @@ func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 		dst.Value = value
 		dst.Path = "/"
 		dst.Domain = ""
-		dst.Secure = true
+		dst.Secure = SecureConfig.Get()
 		dst.HttpOnly = true
 		dst.MaxAge = int(MaxIdleDurationConfig.Get().Round(time.Second) / time.Second)
 		if dst.MaxAge > 0 {
