@@ -96,7 +96,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		return err
 	}
 
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, _jobTypeApply)
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, JobTypeApply)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 
 	// create deployment job.
 	jobCreateOpts := JobCreateOptions{
-		Type:                  _jobTypeApply,
+		Type:                  JobTypeApply,
 		ApplicationRevisionID: applicationRevision.ID.String(),
 		Image:                 jobImage,
 	}
@@ -174,7 +174,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 // 1. get the latest revision, and checkAppRevision it if it is running.
 // 2. if not running, then destroy resources.
 func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, _jobTypeDestroy)
+	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, JobTypeDestroy)
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 
 	// create deployment job
 	jobOpts := JobCreateOptions{
-		Type:                  _jobTypeDestroy,
+		Type:                  JobTypeDestroy,
 		ApplicationRevisionID: applicationRevision.ID.String(),
 		Image:                 jobImage,
 	}
@@ -370,7 +370,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 		}
 	}
 
-	if jobType == _jobTypeDestroy &&
+	if jobType == JobTypeDestroy &&
 		prevEntity != nil &&
 		prevEntity.Status == status.ApplicationRevisionStatusSucceeded {
 		entity.Modules = prevEntity.Modules

@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -123,12 +124,20 @@ type UpdateTerraformStatesRequest struct {
 }
 
 type StreamLogRequest struct {
-	ID types.ID `uri:"id"`
+	ID      types.ID `uri:"id"`
+	JobType string   `query:"jobType,omitempty"`
 }
 
 func (r *StreamLogRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
+	}
+
+	if r.JobType == "" {
+		r.JobType = platformtf.JobTypeApply
+	}
+	if r.JobType != platformtf.JobTypeApply && r.JobType != platformtf.JobTypeDestroy {
+		return errors.New("invalid job type")
 	}
 
 	return nil

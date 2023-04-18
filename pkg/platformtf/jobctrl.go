@@ -27,11 +27,30 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
+const (
+	JobTypeApply   = "apply"
+	JobTypeDestroy = "destroy"
+)
+
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
 	Type                  string
 	ApplicationRevisionID string
 	Image                 string
+}
+
+type StreamJobLogsOptions struct {
+	Cli        *coreclient.CoreV1Client
+	RevisionID types.ID
+	JobType    string
+	Out        io.Writer
+}
+
+type JobReconciler struct {
+	Logger      logr.Logger
+	Kubeconfig  *rest.Config
+	KubeClient  client.Client
+	ModelClient *model.Client
 }
 
 const (
@@ -49,25 +68,12 @@ const (
 	// _workdir the working directory of the job.
 	_workdir = "/seal/deployment"
 )
-
-const (
-	_jobTypeApply   = "apply"
-	_jobTypeDestroy = "destroy"
-)
-
 const (
 	// _applyCommands the commands to apply deployment of the application.
 	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
 	// _destroyCommands the commands to destroy deployment of the application.
 	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
 )
-
-type JobReconciler struct {
-	Logger      logr.Logger
-	Kubeconfig  *rest.Config
-	KubeClient  client.Client
-	ModelClient *model.Client
-}
 
 func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	job := &batchv1.Job{}
@@ -251,9 +257,9 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		varfile       = fmt.Sprintf(" -var-file=%s/terraform.tfvars", _secretMountPath)
 	)
 	switch opts.Type {
-	case _jobTypeApply:
+	case JobTypeApply:
 		deployCommand += _applyCommands + varfile
-	case _jobTypeDestroy:
+	case JobTypeDestroy:
 		deployCommand += _destroyCommands + varfile
 	}
 	command = append(command, deployCommand)
@@ -301,17 +307,17 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 
 // getK8sJobName returns the kubernetes job name for the given application revision id.
 func getK8sJobName(format, jobType, applicationRevisionID string) string {
-	return fmt.Sprintf(_jobNameFormat, jobType, applicationRevisionID)
+	return fmt.Sprintf(format, jobType, applicationRevisionID)
 }
 
 // StreamJobLogs streams the logs of a job.
-func StreamJobLogs(ctx context.Context, cli *coreclient.CoreV1Client, revisionID types.ID, out io.Writer) error {
+func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 	var (
-		jobName       = getK8sJobName(_jobNameFormat, _jobTypeApply, revisionID.String())
+		jobName       = getK8sJobName(_jobNameFormat, opts.JobType, opts.RevisionID.String())
 		labelSelector = "job-name=" + jobName
 	)
 
-	podList, err := cli.Pods(types.SealSystemNamespace).
+	podList, err := opts.Cli.Pods(types.SealSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return err
@@ -322,7 +328,7 @@ func StreamJobLogs(ctx context.Context, cli *coreclient.CoreV1Client, revisionID
 
 	var jobPod = podList.Items[0]
 	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
-		pod, getErr := cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{ResourceVersion: "0"})
+		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{ResourceVersion: "0"})
 		if getErr != nil {
 			return false, getErr
 		}
@@ -345,5 +351,5 @@ func StreamJobLogs(ctx context.Context, cli *coreclient.CoreV1Client, revisionID
 		}
 	)
 
-	return platformk8s.GetPodLogs(ctx, cli, types.SealSystemNamespace, jobPod.Name, out, podLogOpts)
+	return platformk8s.GetPodLogs(ctx, opts.Cli, types.SealSystemNamespace, jobPod.Name, opts.Out, podLogOpts)
 }
