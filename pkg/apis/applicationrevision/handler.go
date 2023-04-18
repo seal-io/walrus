@@ -325,5 +325,10 @@ func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest)
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
 
-	return platformtf.StreamJobLogs(ctx, cli, req.ID, ctx)
+	return platformtf.StreamJobLogs(ctx, platformtf.StreamJobLogsOptions{
+		Cli:        cli,
+		RevisionID: req.ID,
+		JobType:    req.JobType,
+		Out:        ctx,
+	})
 }
