@@ -20,8 +20,10 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) error {
 		return err
 	}
 
-	// configures casdoor max idle duration.
+	// configures casdoor cookie max idle duration.
 	casdoor.MaxIdleDurationConfig.Set(r.AuthnSessionMaxIdle)
+	// configures casdoor securing cookie.
+	casdoor.SecureConfig.Set(r.EnableTls)
 
 	return nil
 }
