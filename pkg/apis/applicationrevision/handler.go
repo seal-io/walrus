@@ -332,3 +332,44 @@ func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest)
 		Out:        ctx,
 	})
 }
+
+// CreateRollbackApplications rollback application to a specific revision.
+func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackApplicationRequest) error {
+	// get application revision
+	applicationRevision, err := h.modelClient.ApplicationRevisions().Query().
+		WithInstance(func(q *model.ApplicationInstanceQuery) {
+			q.Select(
+				applicationinstance.FieldID,
+				applicationinstance.FieldApplicationID,
+			)
+		}).
+		Where(applicationrevision.ID(req.ID)).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	var amr = make(model.ApplicationModuleRelationships, len(applicationRevision.Modules))
+	for k, m := range applicationRevision.Modules {
+		amr[k] = &model.ApplicationModuleRelationship{
+			Name:       m.Name,
+			ModuleID:   m.ModuleID,
+			Version:    m.Version,
+			Attributes: m.Attributes,
+		}
+	}
+
+	app, err := h.modelClient.Applications().Query().
+		Where(application.ID(applicationRevision.Edges.Instance.ApplicationID)).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+	app.Edges.Modules = amr
+	// update application.
+	updates, err := dao.ApplicationUpdates(h.modelClient, app)
+	if err != nil {
+		return err
+	}
+	return updates[0].Exec(ctx)
+}
