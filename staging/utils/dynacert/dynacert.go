@@ -1,4 +1,4 @@
-package dynamicert
+package dynacert
 
 import (
 	"context"
@@ -146,22 +146,22 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	if name != "" {
 		// allow localhost hostname.
 		if name != "localhost" && !strings.Contains(strings.Trim(name, "."), ".") {
-			return nil, errors.New("dynamicert: server name component count invalid")
+			return nil, errors.New("dynacert: server name component count invalid")
 		}
 		// validate invalid character.
 		var err error
 		name, err = idna.Lookup.ToASCII(name)
 		if err != nil {
-			return nil, errors.New("dynamicert: server name contains invalid character")
+			return nil, errors.New("dynacert: server name contains invalid character")
 		}
 	} else {
 		var addr = hello.Conn.LocalAddr()
 		if addr == nil {
-			return nil, errors.New("dynamicert: missing local address")
+			return nil, errors.New("dynacert: missing local address")
 		}
 		var tcpAddr, ok = addr.(*net.TCPAddr)
 		if !ok {
-			return nil, errors.New("dynamicert: invalid local address")
+			return nil, errors.New("dynacert: invalid local address")
 		}
 		name = tcpAddr.IP.String()
 	}
@@ -180,17 +180,17 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		return tlsCert, nil
 	}
 	if !errors.Is(err, autocert.ErrCacheMiss) {
-		return nil, fmt.Errorf("dynamicert: error getting cert: %w", err)
+		return nil, fmt.Errorf("dynacert: error getting cert: %w", err)
 	}
 
 	// create certificate to server.
 	err = m.allowHost(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("dynamicert: disallowed host: %s", name)
+		return nil, fmt.Errorf("dynacert: disallowed host: %s", name)
 	}
 	tlsCert, err = m.createCert(ctx, ck)
 	if err != nil {
-		return nil, fmt.Errorf("dynamicert: error creating cert: %w", err)
+		return nil, fmt.Errorf("dynacert: error creating cert: %w", err)
 	}
 	return tlsCert, nil
 }
@@ -227,7 +227,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 		}
 		err = verifyCert(tlsCert.Leaf, ck.server)
 		if err != nil {
-			log.WithName("dynamicert").Warn(err)
+			log.WithName("dynacert").Warn(err)
 			// treat as miss cache,
 			// so the GetCertificate will regenerate.
 			return nil, autocert.ErrCacheMiss
@@ -238,7 +238,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 	if err != nil {
 		return nil, err
 	}
-	log.WithName("dynamicert").Debugf("loaded %q certificate from cache", ck.server)
+	log.WithName("dynacert").Debugf("loaded %q certificate from cache", ck.server)
 	m.state.Store(ck, &certState{tlsCert: tlsCert})
 	return tlsCert, nil
 }
@@ -256,7 +256,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 	}
 	tlsCert, err := decodeTlsCertificate(bs, ck.server)
 	if err != nil {
-		log.WithName("dynamicert").Warnf("error decoding tls certificate: %v", err)
+		log.WithName("dynacert").Warnf("error decoding tls certificate: %v", err)
 		// treat as miss cache,
 		// so the GetCertificate will regenerate.
 		return nil, autocert.ErrCacheMiss
@@ -273,12 +273,12 @@ func (m *Manager) cachePut(ctx context.Context, ck certKey, tlsCert *tls.Certifi
 
 	var bs, err = encodeTlsCertificate(tlsCert)
 	if err != nil {
-		log.WithName("dynamicert").Warnf("error encoding tls certificate: %v", err)
+		log.WithName("dynacert").Warnf("error encoding tls certificate: %v", err)
 		return
 	}
 	err = m.Cache.Put(ctx, ck.String(), bs)
 	if err != nil {
-		log.WithName("dynamicert").Warnf("error caching tls certificate bytes: %v", err)
+		log.WithName("dynacert").Warnf("error caching tls certificate bytes: %v", err)
 	}
 }
 

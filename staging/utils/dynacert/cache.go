@@ -1,4 +1,4 @@
-package dynamicert
+package dynacert
 
 import "golang.org/x/crypto/acme/autocert"
 
