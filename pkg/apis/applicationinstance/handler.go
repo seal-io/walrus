@@ -73,6 +73,13 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
+	defer func() {
+		if err == nil {
+			return
+		}
+		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeployFailed, err.Error())
+	}()
+
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
@@ -127,6 +134,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeleteFailed, err.Error())
+	}()
 
 	if err := publishApplicationUpdate(ctx, entity); err != nil {
 		return err
@@ -347,6 +361,13 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) er
 		return err
 	}
 
+	defer func() {
+		if err == nil {
+			return
+		}
+		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeployFailed, err.Error())
+	}()
+
 	if err := publishApplicationUpdate(ctx, entity); err != nil {
 		return err
 	}
@@ -394,6 +415,26 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 	return &view.AccessEndpointResponse{
 		Endpoints: endpoints,
 	}, nil
+}
+
+func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance, s, m string) error {
+	var logger = log.WithName("application-instance")
+
+	entity.Status = s
+	entity.StatusMessage = m
+	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	err = update.Exec(ctx)
+	if err != nil {
+		logger.Errorf("failed to update status of instance %s: %v", entity.ID, err)
+		return err
+	}
+
+	return nil
 }
 
 func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInstance) error {

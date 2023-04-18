@@ -32,3 +32,19 @@ func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationI
 	}
 	return rrs, nil
 }
+
+func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInstance) (*model.ApplicationInstanceUpdateOne, error) {
+	if input == nil {
+		return nil, errors.New("invalid input: nil entity")
+	}
+
+	if input.ID == "" {
+		return nil, errors.New("invalid input: illegal predicates")
+	}
+
+	var c = mc.ApplicationInstances().UpdateOne(input).
+		SetStatus(input.Status).
+		SetStatusMessage(input.StatusMessage)
+
+	return c, nil
+}
