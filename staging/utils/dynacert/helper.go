@@ -1,4 +1,4 @@
-package dynamicert
+package dynacert
 
 import (
 	"bytes"
@@ -42,7 +42,7 @@ func GenCA() (crypto.Signer, *x509.Certificate, error) {
 		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(), // 10 years
 		SerialNumber:          new(big.Int).SetInt64(now.Unix()),
 		Subject: pkix.Name{
-			CommonName:   "dynamicert-ca@" + strconv.FormatInt(now.Unix(), 10),
+			CommonName:   "dynacert-ca@" + strconv.FormatInt(now.Unix(), 10),
 			Organization: []string{"seal.io"},
 		},
 	}
@@ -55,7 +55,7 @@ func GenCA() (crypto.Signer, *x509.Certificate, error) {
 		return nil, nil, err
 	}
 
-	log.WithName("dynamicert").Debugf("generated CA %q, not before %v, not after %v",
+	log.WithName("dynacert").Debugf("generated CA %q, not before %v, not after %v",
 		x509Cert.Subject, x509Cert.NotBefore, x509Cert.NotAfter)
 	return key, x509Cert, nil
 }
@@ -83,7 +83,7 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 		NotBefore:    caX509Cert.NotBefore,
 		SerialNumber: new(big.Int).SetInt64(now.Unix()),
 		Subject: pkix.Name{
-			CommonName:   "dynamicert@" + strconv.FormatInt(now.Unix(), 10),
+			CommonName:   "dynacert@" + strconv.FormatInt(now.Unix(), 10),
 			Organization: []string{"seal.io"},
 		},
 	}
@@ -96,7 +96,7 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 		return nil, err
 	}
 
-	log.WithName("dynamicert").Debugf("generated server certificate %q signed by CA %q, not before %v, not after %v",
+	log.WithName("dynacert").Debugf("generated server certificate %q signed by CA %q, not before %v, not after %v",
 		x509Cert.Subject, caX509Cert.Subject, x509Cert.NotBefore, x509Cert.NotAfter)
 	return x509Cert, nil
 }

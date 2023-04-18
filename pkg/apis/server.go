@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/seal-io/seal/utils/dynamicert"
+	"github.com/seal-io/seal/utils/dynacert"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -80,8 +80,8 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		}
 		switch opts.TlsMode {
 		default: // TlsModeSelfGenerated
-			var mgr = &dynamicert.Manager{
-				Cache: dynamicert.DirCache(opts.TlsCertDir),
+			var mgr = &dynacert.Manager{
+				Cache: dynacert.DirCache(opts.TlsCertDir),
 			}
 			tlsConfig.GetCertificate = mgr.GetCertificate
 			ls = tls.NewListener(ls, tlsConfig)
