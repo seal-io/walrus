@@ -563,13 +563,7 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 
 		// TODO (alex): add module config validation here.
 		// verify module config attributes value type are valid.
-		attrs := getAttributes(m.Attributes, m.Name, opts)
-		moduleConfig := &config.ModuleConfig{
-			Name:          m.Name,
-			ModuleVersion: modVer,
-			Attributes:    attrs,
-		}
-		moduleConfigs = append(moduleConfigs, moduleConfig)
+		moduleConfigs = append(moduleConfigs, getModuleConfig(m, modVer, opts))
 
 		if modVer.Schema != nil {
 			requiredProviders = append(requiredProviders, modVer.Schema.RequiredProviders...)
@@ -832,18 +826,34 @@ func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}
 	return varsConfigOpts
 }
 
-func getAttributes(attrs map[string]interface{}, moduleName string, ops CreateSecretsOptions) map[string]interface{} {
-	for k := range attrs {
-		switch k {
+func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (mc *config.ModuleConfig) {
+	mc = &config.ModuleConfig{
+		Name:          appMod.Name,
+		ModuleVersion: modVer,
+		Attributes:    appMod.Attributes,
+	}
+
+	if modVer.Schema == nil {
+		return
+	}
+
+	// add seal metadata.
+	for _, v := range modVer.Schema.Variables {
+		var attrValue string
+		switch v.Name {
 		case SealMetadataProjectName:
-			attrs[k] = ops.ProjectName
+			attrValue = ops.ProjectName
 		case SealMetadataApplicationName:
-			attrs[k] = ops.ApplicationName
+			attrValue = ops.ApplicationName
 		case SealMetadataApplicationInstanceName:
-			attrs[k] = ops.ApplicationInstanceName
+			attrValue = ops.ApplicationInstanceName
 		case SealMetadataModuleName:
-			attrs[k] = moduleName
+			attrValue = appMod.Name
+		}
+
+		if attrValue != "" {
+			mc.Attributes[v.Name] = attrValue
 		}
 	}
-	return attrs
+	return
 }
