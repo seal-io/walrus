@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
@@ -191,6 +192,37 @@ func (r *StreamLogRequest) Validate() error {
 	}
 	if r.JobType != platformtf.JobTypeApply && r.JobType != platformtf.JobTypeDestroy {
 		return errors.New("invalid job type")
+	}
+
+	return nil
+}
+
+type RollbackInstanceRequest struct {
+	*model.ApplicationRevisionQueryInput `uri:",inline"`
+}
+
+func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	// check latest revision if running.
+	var modelClient = input.(model.ClientSet)
+	entity, err := modelClient.ApplicationRevisions().Get(ctx, r.ID)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get application revision")
+	}
+
+	latestRevision, err := modelClient.ApplicationRevisions().Query().
+		Select(applicationrevision.FieldStatus).
+		Where(applicationrevision.InstanceID(entity.InstanceID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return runtime.Errorw(err, "failed to get latest revision")
+	}
+	if latestRevision.Status == status.ApplicationRevisionStatusRunning {
+		return errors.New("latest revision is running")
 	}
 
 	return nil

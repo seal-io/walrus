@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
@@ -19,6 +20,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/platform"
+	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformtf"
 	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -26,16 +29,18 @@ import (
 	"github.com/seal-io/seal/utils/topic"
 )
 
-func Handle(mc model.ClientSet, kc *rest.Config) Handler {
+func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
 	return Handler{
-		modelClient: mc,
-		kubeConfig:  kc,
+		modelClient:  mc,
+		kubeConfig:   kc,
+		tlsCertified: tc,
 	}
 }
 
 type Handler struct {
-	modelClient model.ClientSet
-	kubeConfig  *rest.Config
+	modelClient  model.ClientSet
+	kubeConfig   *rest.Config
+	tlsCertified bool
 }
 
 func (h Handler) Kind() string {
@@ -331,6 +336,35 @@ func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest)
 		JobType:    req.JobType,
 		Out:        ctx,
 	})
+}
+
+// CreateRollbackInstances rollback instance to a specific revision.
+func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInstanceRequest) error {
+	applicationRevision, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	applicationInstance, err := h.modelClient.ApplicationInstances().Get(ctx, applicationRevision.InstanceID)
+	if err != nil {
+		return err
+	}
+
+	var createOpts = deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	dp, err := platform.GetDeployer(ctx, createOpts)
+	if err != nil {
+		return err
+	}
+
+	var rollbackOpts = deployer.RollbackOptions{
+		ApplicationRevision: applicationRevision,
+		SkipTLSVerify:       !h.tlsCertified,
+	}
+	return dp.Rollback(ctx, applicationInstance, rollbackOpts)
 }
 
 // CreateRollbackApplications rollback application to a specific revision.
