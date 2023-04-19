@@ -57,7 +57,60 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 
 // Batch APIs
 
-type CollectionDeleteRequest = []*model.ApplicationRevisionQueryInput
+type CollectionDeleteRequest []*model.ApplicationRevisionQueryInput
+
+func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	if len(r) == 0 {
+		return errors.New("invalid ids: blank")
+	}
+
+	var (
+		ids         = make([]types.ID, 0, len(r))
+		modelClient = input.(model.ClientSet)
+	)
+	for _, i := range r {
+		if !i.ID.Valid(0) {
+			return errors.New("invalid ids: blank")
+		}
+		ids = append(ids, i.ID)
+	}
+
+	revisions, err := modelClient.ApplicationRevisions().Query().
+		Select(applicationrevision.FieldID, applicationrevision.FieldInstanceID).
+		Where(applicationrevision.IDIn(ids...)).
+		All(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get application revisions")
+	}
+	if len(revisions) != len(r) {
+		return errors.New("invalid ids: some revisions are not found")
+	}
+
+	instanceID := revisions[0].InstanceID
+	for _, revision := range revisions {
+		if revision.InstanceID != instanceID {
+			return errors.New("invalid ids: revision ids are not in the same instance")
+		}
+	}
+
+	latestRevision, err := modelClient.ApplicationRevisions().Query().
+		Select(applicationrevision.FieldID).
+		Where(applicationrevision.InstanceID(instanceID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get latest revision")
+	}
+
+	for _, revision := range revisions {
+		// prevent deleting the latest revision.
+		if revision.ID == latestRevision.ID {
+			return errors.New("invalid ids: can not delete latest revision")
+		}
+	}
+
+	return nil
+}
 
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
