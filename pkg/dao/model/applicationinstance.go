@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationInstance is the model entity for the ApplicationInstance schema.
@@ -39,7 +39,7 @@ type ApplicationInstance struct {
 	// Name of the instance.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Variables of the instance.
-	Variables map[string]interface{} `json:"variables,omitempty" sql:"variables"`
+	Variables property.Values `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationInstanceQuery when eager-loading is set.
 	Edges ApplicationInstanceEdges `json:"edges,omitempty"`
@@ -109,10 +109,10 @@ func (*ApplicationInstance) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationinstance.FieldVariables:
-			values[i] = new([]byte)
 		case applicationinstance.FieldID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
 			values[i] = new(oid.ID)
+		case applicationinstance.FieldVariables:
+			values[i] = new(property.Values)
 		case applicationinstance.FieldStatus, applicationinstance.FieldStatusMessage, applicationinstance.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationinstance.FieldCreateTime, applicationinstance.FieldUpdateTime:
@@ -183,12 +183,10 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 				ai.Name = value.String
 			}
 		case applicationinstance.FieldVariables:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field variables", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &ai.Variables); err != nil {
-					return fmt.Errorf("unmarshal field variables: %w", err)
-				}
+			} else if value != nil {
+				ai.Variables = *value
 			}
 		}
 	}

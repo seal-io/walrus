@@ -42,7 +42,7 @@ type ConnectorCreateInput struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion"`
 	// Connector config data.
-	ConfigData crypto.Map[string, interface{}] `json:"configData,omitempty"`
+	ConfigData crypto.Properties `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -83,7 +83,7 @@ type ConnectorUpdateInput struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
-	ConfigData crypto.Map[string, interface{}] `json:"configData,omitempty"`
+	ConfigData crypto.Properties `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -129,6 +129,8 @@ type ConnectorOutput struct {
 	Type string `json:"type,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
+	// Connector config data.
+	ConfigData crypto.Properties `json:"configData,omitempty"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
@@ -160,6 +162,7 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		Status:              in.Status,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
+		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Category:            in.Category,

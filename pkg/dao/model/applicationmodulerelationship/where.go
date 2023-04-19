@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
@@ -44,6 +45,11 @@ func Version(v string) predicate.ApplicationModuleRelationship {
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldName, v))
+}
+
+// Attributes applies equality check predicate on the "attributes" field. It's identical to AttributesEQ.
+func Attributes(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldAttributes, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -389,6 +395,46 @@ func NameEqualFold(v string) predicate.ApplicationModuleRelationship {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(sql.FieldContainsFold(FieldName, v))
+}
+
+// AttributesEQ applies the EQ predicate on the "attributes" field.
+func AttributesEQ(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldEQ(FieldAttributes, v))
+}
+
+// AttributesNEQ applies the NEQ predicate on the "attributes" field.
+func AttributesNEQ(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldNEQ(FieldAttributes, v))
+}
+
+// AttributesIn applies the In predicate on the "attributes" field.
+func AttributesIn(vs ...property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldIn(FieldAttributes, vs...))
+}
+
+// AttributesNotIn applies the NotIn predicate on the "attributes" field.
+func AttributesNotIn(vs ...property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldNotIn(FieldAttributes, vs...))
+}
+
+// AttributesGT applies the GT predicate on the "attributes" field.
+func AttributesGT(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldGT(FieldAttributes, v))
+}
+
+// AttributesGTE applies the GTE predicate on the "attributes" field.
+func AttributesGTE(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldGTE(FieldAttributes, v))
+}
+
+// AttributesLT applies the LT predicate on the "attributes" field.
+func AttributesLT(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldLT(FieldAttributes, v))
+}
+
+// AttributesLTE applies the LTE predicate on the "attributes" field.
+func AttributesLTE(v property.Values) predicate.ApplicationModuleRelationship {
+	return predicate.ApplicationModuleRelationship(sql.FieldLTE(FieldAttributes, v))
 }
 
 // AttributesIsNil applies the IsNil predicate on the "attributes" field.

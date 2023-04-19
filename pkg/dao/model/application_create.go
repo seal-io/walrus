@@ -19,8 +19,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationCreate is the builder for creating a Application entity.
@@ -92,8 +92,8 @@ func (ac *ApplicationCreate) SetProjectID(o oid.ID) *ApplicationCreate {
 }
 
 // SetVariables sets the "variables" field.
-func (ac *ApplicationCreate) SetVariables(tv []types.ApplicationVariable) *ApplicationCreate {
-	ac.mutation.SetVariables(tv)
+func (ac *ApplicationCreate) SetVariables(pr property.Schemas) *ApplicationCreate {
+	ac.mutation.SetVariables(pr)
 	return ac
 }
 
@@ -269,7 +269,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_node.UpdateTime = &value
 	}
 	if value, ok := ac.mutation.Variables(); ok {
-		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
+		_spec.SetField(application.FieldVariables, field.TypeOther, value)
 		_node.Variables = value
 	}
 	if nodes := ac.mutation.ProjectIDs(); len(nodes) > 0 {
@@ -420,7 +420,7 @@ func (u *ApplicationUpsert) UpdateUpdateTime() *ApplicationUpsert {
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationUpsert) SetVariables(v []types.ApplicationVariable) *ApplicationUpsert {
+func (u *ApplicationUpsert) SetVariables(v property.Schemas) *ApplicationUpsert {
 	u.Set(application.FieldVariables, v)
 	return u
 }
@@ -555,7 +555,7 @@ func (u *ApplicationUpsertOne) UpdateUpdateTime() *ApplicationUpsertOne {
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationUpsertOne) SetVariables(v []types.ApplicationVariable) *ApplicationUpsertOne {
+func (u *ApplicationUpsertOne) SetVariables(v property.Schemas) *ApplicationUpsertOne {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.SetVariables(v)
 	})
@@ -856,7 +856,7 @@ func (u *ApplicationUpsertBulk) UpdateUpdateTime() *ApplicationUpsertBulk {
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationUpsertBulk) SetVariables(v []types.ApplicationVariable) *ApplicationUpsertBulk {
+func (u *ApplicationUpsertBulk) SetVariables(v property.Schemas) *ApplicationUpsertBulk {
 	return u.Update(func(s *ApplicationUpsert) {
 		s.SetVariables(v)
 	})

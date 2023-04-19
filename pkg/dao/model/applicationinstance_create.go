@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationInstanceCreate is the builder for creating a ApplicationInstance entity.
@@ -107,8 +108,8 @@ func (aic *ApplicationInstanceCreate) SetName(s string) *ApplicationInstanceCrea
 }
 
 // SetVariables sets the "variables" field.
-func (aic *ApplicationInstanceCreate) SetVariables(m map[string]interface{}) *ApplicationInstanceCreate {
-	aic.mutation.SetVariables(m)
+func (aic *ApplicationInstanceCreate) SetVariables(pr property.Values) *ApplicationInstanceCreate {
+	aic.mutation.SetVariables(pr)
 	return aic
 }
 
@@ -308,7 +309,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 		_node.Name = value
 	}
 	if value, ok := aic.mutation.Variables(); ok {
-		_spec.SetField(applicationinstance.FieldVariables, field.TypeJSON, value)
+		_spec.SetField(applicationinstance.FieldVariables, field.TypeOther, value)
 		_node.Variables = value
 	}
 	if nodes := aic.mutation.ApplicationIDs(); len(nodes) > 0 {
@@ -494,7 +495,7 @@ func (u *ApplicationInstanceUpsert) UpdateUpdateTime() *ApplicationInstanceUpser
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationInstanceUpsert) SetVariables(v map[string]interface{}) *ApplicationInstanceUpsert {
+func (u *ApplicationInstanceUpsert) SetVariables(v property.Values) *ApplicationInstanceUpsert {
 	u.Set(applicationinstance.FieldVariables, v)
 	return u
 }
@@ -628,7 +629,7 @@ func (u *ApplicationInstanceUpsertOne) UpdateUpdateTime() *ApplicationInstanceUp
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationInstanceUpsertOne) SetVariables(v map[string]interface{}) *ApplicationInstanceUpsertOne {
+func (u *ApplicationInstanceUpsertOne) SetVariables(v property.Values) *ApplicationInstanceUpsertOne {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
 		s.SetVariables(v)
 	})
@@ -928,7 +929,7 @@ func (u *ApplicationInstanceUpsertBulk) UpdateUpdateTime() *ApplicationInstanceU
 }
 
 // SetVariables sets the "variables" field.
-func (u *ApplicationInstanceUpsertBulk) SetVariables(v map[string]interface{}) *ApplicationInstanceUpsertBulk {
+func (u *ApplicationInstanceUpsertBulk) SetVariables(v property.Values) *ApplicationInstanceUpsertBulk {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
 		s.SetVariables(v)
 	})

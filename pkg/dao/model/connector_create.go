@@ -115,7 +115,7 @@ func (cc *ConnectorCreate) SetConfigVersion(s string) *ConnectorCreate {
 }
 
 // SetConfigData sets the "configData" field.
-func (cc *ConnectorCreate) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorCreate {
+func (cc *ConnectorCreate) SetConfigData(c crypto.Properties) *ConnectorCreate {
 	cc.mutation.SetConfigData(c)
 	return cc
 }
@@ -590,7 +590,7 @@ func (u *ConnectorUpsert) UpdateConfigVersion() *ConnectorUpsert {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsert) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsert {
+func (u *ConnectorUpsert) SetConfigData(v crypto.Properties) *ConnectorUpsert {
 	u.Set(connector.FieldConfigData, v)
 	return u
 }
@@ -796,7 +796,7 @@ func (u *ConnectorUpsertOne) UpdateConfigVersion() *ConnectorUpsertOne {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsertOne) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsertOne {
+func (u *ConnectorUpsertOne) SetConfigData(v crypto.Properties) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetConfigData(v)
 	})
@@ -1174,7 +1174,7 @@ func (u *ConnectorUpsertBulk) UpdateConfigVersion() *ConnectorUpsertBulk {
 }
 
 // SetConfigData sets the "configData" field.
-func (u *ConnectorUpsertBulk) SetConfigData(v crypto.Map[string, interface{}]) *ConnectorUpsertBulk {
+func (u *ConnectorUpsertBulk) SetConfigData(v crypto.Properties) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetConfigData(v)
 	})

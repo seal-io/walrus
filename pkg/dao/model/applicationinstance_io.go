@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationInstanceQueryInput is the input for the ApplicationInstance query.
@@ -33,7 +34,7 @@ type ApplicationInstanceCreateInput struct {
 	// Name of the instance.
 	Name string `json:"name"`
 	// Variables of the instance.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	Variables property.Values `json:"variables,omitempty"`
 	// Application to which the instance belongs.
 	Application ApplicationQueryInput `json:"application"`
 	// Environment to which the instance belongs.
@@ -62,7 +63,7 @@ type ApplicationInstanceUpdateInput struct {
 	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Variables of the instance.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	Variables property.Values `json:"variables,omitempty"`
 }
 
 // Model converts the ApplicationInstanceUpdateInput to ApplicationInstance.
@@ -91,7 +92,7 @@ type ApplicationInstanceOutput struct {
 	// Name of the instance.
 	Name string `json:"name,omitempty"`
 	// Variables of the instance.
-	Variables map[string]interface{} `json:"variables,omitempty"`
+	Variables property.Values `json:"variables,omitempty"`
 	// Application to which the instance belongs.
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Environment to which the instance belongs.

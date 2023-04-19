@@ -131,7 +131,7 @@ var (
 	// ConfigVersionValidator is a validator for the "configVersion" field. It is called by the builders before save.
 	ConfigVersionValidator func(string) error
 	// DefaultConfigData holds the default value on creation for the "configData" field.
-	DefaultConfigData crypto.Map[string, interface{}]
+	DefaultConfigData crypto.Properties
 	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
 	CategoryValidator func(string) error
 )

@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationModuleRelationship is the model entity for the ApplicationModuleRelationship schema.
@@ -35,7 +35,7 @@ type ApplicationModuleRelationship struct {
 	// Name of the module customized to the application.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Attributes to configure the module.
-	Attributes map[string]interface{} `json:"attributes,omitempty" sql:"attributes"`
+	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationModuleRelationshipQuery when eager-loading is set.
 	Edges ApplicationModuleRelationshipEdges `json:"edges,omitempty"`
@@ -83,10 +83,10 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationmodulerelationship.FieldAttributes:
-			values[i] = new([]byte)
 		case applicationmodulerelationship.FieldApplicationID:
 			values[i] = new(oid.ID)
+		case applicationmodulerelationship.FieldAttributes:
+			values[i] = new(property.Values)
 		case applicationmodulerelationship.FieldModuleID, applicationmodulerelationship.FieldVersion, applicationmodulerelationship.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationmodulerelationship.FieldCreateTime, applicationmodulerelationship.FieldUpdateTime:
@@ -145,12 +145,10 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 				amr.Name = value.String
 			}
 		case applicationmodulerelationship.FieldAttributes:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &amr.Attributes); err != nil {
-					return fmt.Errorf("unmarshal field attributes: %w", err)
-				}
+			} else if value != nil {
+				amr.Attributes = *value
 			}
 		}
 	}

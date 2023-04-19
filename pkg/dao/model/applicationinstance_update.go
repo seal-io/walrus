@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationInstanceUpdate is the builder for updating ApplicationInstance entities.
@@ -84,8 +85,8 @@ func (aiu *ApplicationInstanceUpdate) SetUpdateTime(t time.Time) *ApplicationIns
 }
 
 // SetVariables sets the "variables" field.
-func (aiu *ApplicationInstanceUpdate) SetVariables(m map[string]interface{}) *ApplicationInstanceUpdate {
-	aiu.mutation.SetVariables(m)
+func (aiu *ApplicationInstanceUpdate) SetVariables(pr property.Values) *ApplicationInstanceUpdate {
+	aiu.mutation.SetVariables(pr)
 	return aiu
 }
 
@@ -259,10 +260,10 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 		_spec.SetField(applicationinstance.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := aiu.mutation.Variables(); ok {
-		_spec.SetField(applicationinstance.FieldVariables, field.TypeJSON, value)
+		_spec.SetField(applicationinstance.FieldVariables, field.TypeOther, value)
 	}
 	if aiu.mutation.VariablesCleared() {
-		_spec.ClearField(applicationinstance.FieldVariables, field.TypeJSON)
+		_spec.ClearField(applicationinstance.FieldVariables, field.TypeOther)
 	}
 	if aiu.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -449,8 +450,8 @@ func (aiuo *ApplicationInstanceUpdateOne) SetUpdateTime(t time.Time) *Applicatio
 }
 
 // SetVariables sets the "variables" field.
-func (aiuo *ApplicationInstanceUpdateOne) SetVariables(m map[string]interface{}) *ApplicationInstanceUpdateOne {
-	aiuo.mutation.SetVariables(m)
+func (aiuo *ApplicationInstanceUpdateOne) SetVariables(pr property.Values) *ApplicationInstanceUpdateOne {
+	aiuo.mutation.SetVariables(pr)
 	return aiuo
 }
 
@@ -654,10 +655,10 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 		_spec.SetField(applicationinstance.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := aiuo.mutation.Variables(); ok {
-		_spec.SetField(applicationinstance.FieldVariables, field.TypeJSON, value)
+		_spec.SetField(applicationinstance.FieldVariables, field.TypeOther, value)
 	}
 	if aiuo.mutation.VariablesCleared() {
-		_spec.ClearField(applicationinstance.FieldVariables, field.TypeJSON)
+		_spec.ClearField(applicationinstance.FieldVariables, field.TypeOther)
 	}
 	if aiuo.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

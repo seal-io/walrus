@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationRevisionQueryInput is the input for the ApplicationRevision query.
@@ -34,7 +35,7 @@ type ApplicationRevisionCreateInput struct {
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"inputVariables,omitempty"`
+	InputVariables property.Values `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
@@ -80,7 +81,7 @@ type ApplicationRevisionUpdateInput struct {
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"inputVariables,omitempty"`
+	InputVariables property.Values `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.

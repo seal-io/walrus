@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationModuleRelationshipCreate is the builder for creating a ApplicationModuleRelationship entity.
@@ -82,8 +83,8 @@ func (amrc *ApplicationModuleRelationshipCreate) SetName(s string) *ApplicationM
 }
 
 // SetAttributes sets the "attributes" field.
-func (amrc *ApplicationModuleRelationshipCreate) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipCreate {
-	amrc.mutation.SetAttributes(m)
+func (amrc *ApplicationModuleRelationshipCreate) SetAttributes(pr property.Values) *ApplicationModuleRelationshipCreate {
+	amrc.mutation.SetAttributes(pr)
 	return amrc
 }
 
@@ -229,7 +230,7 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 		_node.Name = value
 	}
 	if value, ok := amrc.mutation.Attributes(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
 	}
 	if nodes := amrc.mutation.ApplicationIDs(); len(nodes) > 0 {
@@ -351,7 +352,7 @@ func (u *ApplicationModuleRelationshipUpsert) UpdateVersion() *ApplicationModule
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *ApplicationModuleRelationshipUpsert) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsert {
+func (u *ApplicationModuleRelationshipUpsert) SetAttributes(v property.Values) *ApplicationModuleRelationshipUpsert {
 	u.Set(applicationmodulerelationship.FieldAttributes, v)
 	return u
 }
@@ -451,7 +452,7 @@ func (u *ApplicationModuleRelationshipUpsertOne) UpdateVersion() *ApplicationMod
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *ApplicationModuleRelationshipUpsertOne) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsertOne {
+func (u *ApplicationModuleRelationshipUpsertOne) SetAttributes(v property.Values) *ApplicationModuleRelationshipUpsertOne {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
 		s.SetAttributes(v)
 	})
@@ -693,7 +694,7 @@ func (u *ApplicationModuleRelationshipUpsertBulk) UpdateVersion() *ApplicationMo
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *ApplicationModuleRelationshipUpsertBulk) SetAttributes(v map[string]interface{}) *ApplicationModuleRelationshipUpsertBulk {
+func (u *ApplicationModuleRelationshipUpsertBulk) SetAttributes(v property.Values) *ApplicationModuleRelationshipUpsertBulk {
 	return u.Update(func(s *ApplicationModuleRelationshipUpsert) {
 		s.SetAttributes(v)
 	})
