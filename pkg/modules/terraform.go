@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/gopool"
@@ -285,15 +286,11 @@ func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
 	}
 
 	for _, v := range sortVariables(mod.Variables) {
-		moduleSchema.Variables = append(moduleSchema.Variables, terraformVariableToModuleVariable(v))
+		moduleSchema.Variables = append(moduleSchema.Variables, getVariableSchema(v))
 	}
 
 	for _, v := range sortOutput(mod.Outputs) {
-		moduleSchema.Outputs = append(moduleSchema.Outputs, types.ModuleOutput{
-			Name:        v.Name,
-			Description: v.Description,
-			Sensitive:   v.Sensitive,
-		})
+		moduleSchema.Outputs = append(moduleSchema.Outputs, getOutputSchema(v))
 	}
 	moduleSchema.RequiredProviders = getRequiredProviders(mod.RequiredProviders)
 
@@ -361,14 +358,16 @@ func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
 	return i.Line < j.Line
 }
 
-func terraformVariableToModuleVariable(v *tfconfig.Variable) types.ModuleVariable {
-	variable := types.ModuleVariable{
-		Name:        v.Name,
-		Type:        v.Type,
-		Description: v.Description,
-		Default:     v.Default,
-		Required:    v.Required,
-		Sensitive:   v.Sensitive,
+func getVariableSchema(v *tfconfig.Variable) property.Schema {
+	var variable, err = property.GuessSchema(v.Name, v.Type, v.Default)
+	if err != nil {
+		panic(fmt.Errorf("unresolved variable schema: %w", err))
+	}
+	if v.Required {
+		variable = variable.WithRequired()
+	}
+	if v.Sensitive {
+		variable = variable.WithSensitive()
 	}
 
 	comments, err := loadComments(v.Pos.Filename, v.Pos.Line)
@@ -376,7 +375,8 @@ func terraformVariableToModuleVariable(v *tfconfig.Variable) types.ModuleVariabl
 		log.Warnf("failed to load terraform comments for var %s, error: %v", v.Name, err)
 		return variable
 	}
-	setTerraformVariableExtensions(&variable, comments)
+	extendVariableSchema(&variable, comments)
+
 	return variable
 }
 
@@ -398,7 +398,7 @@ func loadComments(filename string, lineNum int) ([]string, error) {
 	return lines.Read()
 }
 
-func setTerraformVariableExtensions(variable *types.ModuleVariable, comments []string) {
+func extendVariableSchema(variable *property.Schema, comments []string) {
 	const atSign = "@"
 	for _, comment := range comments {
 		if strings.HasPrefix(comment, atSign) {
@@ -432,4 +432,14 @@ func setTerraformVariableExtensions(variable *types.ModuleVariable, comments []s
 			}
 		}
 	}
+}
+
+func getOutputSchema(v *tfconfig.Output) property.Schema {
+	var output = property.AnySchema(v.Name, nil).
+		WithDescription(v.Description)
+	if v.Sensitive {
+		output = output.WithSensitive()
+	}
+
+	return output
 }

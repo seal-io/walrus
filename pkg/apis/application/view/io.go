@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -72,72 +72,26 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 	if err != nil {
 		return err
 	}
-
-	var schemas = make(map[string]map[string]types.ModuleVariable)
+	var moduleSchemas = make(map[string]property.Schemas, len(moduleVersions))
 	for _, m := range moduleVersions {
 		if m.Schema == nil {
 			continue
 		}
-		key := moduleVersionKey(m.ModuleID, m.Version)
-		if _, ok := schemas[key]; !ok {
-			schemas[key] = make(map[string]types.ModuleVariable)
-		}
-		for _, v := range m.Schema.Variables {
-			schemas[key][v.Name] = v
-		}
+		moduleSchemas[moduleVersionKey(m.ModuleID, m.Version)] = m.Schema.Variables
 	}
 
 	for _, v := range inputModules {
-		schemaVariables := schemas[moduleVersionKey(v.ModuleID, v.Version)]
-		// schema doesn't exist
-		if schemaVariables == nil {
+		moduleSchema := moduleSchemas[moduleVersionKey(v.ModuleID, v.Version)]
+		// schema doesn't exist.
+		if moduleSchema == nil {
 			return fmt.Errorf("invalid module %s: empty schema", v.Name)
 		}
-
-		// check input unsupported attributes
-		for attrName := range v.Attributes {
-			if _, supported := schemaVariables[attrName]; !supported {
-				return fmt.Errorf("found unknown attribute %s in module %s, please refresh module %s to load the latest attributes", attrName, v.Name, v.ModuleID)
-			}
-		}
-
-		// check attributes
-		for _, schemaVariable := range schemaVariables {
-			attrValue, existed := v.Attributes[schemaVariable.Name]
-			// check required attribute existed
-			if schemaVariable.Required && (!existed || attrValue == nil) {
-				return fmt.Errorf("required attribute %s in module %s is empty", schemaVariable.Name, v.Name)
-			}
-
-			// omit it when the value is null
-			if attrValue == nil {
-				continue
-			}
-
-			// check attribute type,
-			// only check primitive types, skip complex types now, since we currently use string to represent the these values.
-			var (
-				valueTypeExpected = true
-				actualValueType   = reflect.TypeOf(attrValue).Kind()
-			)
-			switch schemaVariable.Type {
-			case "string":
-				valueTypeExpected = actualValueType == reflect.String
-			case "bool":
-				valueTypeExpected = actualValueType == reflect.Bool
-			case "number":
-				switch actualValueType {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				case reflect.Float32, reflect.Float64:
-				default:
-					valueTypeExpected = false
-				}
-			}
-
-			if !valueTypeExpected {
-				return fmt.Errorf("unexpected value type for attribute %s in module %s", schemaVariable.Name, v.Name)
-			}
+		// verify attributes with attributes schema that defined on versioned module.
+		err = v.Attributes.ValidateWith(moduleSchema)
+		if err != nil {
+			return fmt.Errorf("invalid module %s, "+
+				"please refresh related module %q to load the latest attributes: %w",
+				v.Name, v.ModuleID, err)
 		}
 	}
 	return nil

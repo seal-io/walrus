@@ -43,9 +43,13 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
-	_, err := modelClient.Applications().Query().
+	// verify application if it has no modules.
+	app, err := modelClient.Applications().Query().
+		Select(
+			application.FieldID,
+			application.FieldVariables).
 		Where(application.ID(r.Application.ID)).
-		OnlyID(ctx)
+		Only(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application")
 	}
@@ -55,6 +59,8 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if count == 0 {
 		return runtime.Error(http.StatusNotFound, "invalid application: no modules")
 	}
+
+	// verify environment if it has no connectors.
 	_, err = modelClient.Environments().Query().
 		Where(environment.ID(r.Environment.ID)).
 		OnlyID(ctx)
@@ -67,6 +73,13 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if count == 0 {
 		return runtime.Error(http.StatusNotFound, "invalid environment: no connectors")
 	}
+
+	// verify variables with variables schema that defined on application.
+	err = r.Variables.ValidateWith(app.Variables)
+	if err != nil {
+		return fmt.Errorf("invalid variables: %w", err)
+	}
+
 	return nil
 }
 
@@ -223,11 +236,23 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return errors.New("invalid id: blank")
 	}
 
-	_, err := modelClient.ApplicationInstances().Query().
+	ai, err := modelClient.ApplicationInstances().Query().
+		Select(
+			applicationinstance.FieldID,
+			applicationinstance.FieldApplicationID).
 		Where(applicationinstance.ID(r.ID)).
-		OnlyID(ctx)
+		WithApplication(func(aq *model.ApplicationQuery) {
+			aq.Select(application.FieldVariables)
+		}).
+		Only(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application instance")
+	}
+
+	// verify variables with variables schema that defined on application.
+	err = r.Variables.ValidateWith(ai.Edges.Application.Variables)
+	if err != nil {
+		return fmt.Errorf("invalid variables: %w", err)
 	}
 
 	return nil

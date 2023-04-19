@@ -327,36 +327,27 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 
 // loadVariableBlocks returns config variables to get terraform variable config block.
 func loadVariableBlocks(opts *VariableOptions) block.Blocks {
-	var (
-		// TODO: support other types for secrets and variables
-		variableType = "{{string}}"
-		blocks       block.Blocks
-	)
+	var blocks = make(block.Blocks, 0, len(opts.SecretNames)+len(opts.VariableNameAndTypes))
 
 	// secret variables.
-	for _, s := range opts.Secrets {
+	for i := range opts.SecretNames {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{opts.Prefix + s.Name},
+			Labels: []string{opts.Prefix + opts.SecretNames[i]},
 			Attributes: map[string]interface{}{
-				"type":      variableType,
+				"type":      "{{string}}",
 				"sensitive": true,
 			},
 		})
 	}
 
 	// application variables.
-	for k, v := range opts.Variables {
-		if _, ok := v.(string); !ok {
-			log.WithName("platformtf").WithName("config").Warnf("application variable %s is not string type, skip", k)
-			continue
-		}
-
+	for n, t := range opts.VariableNameAndTypes {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{opts.Prefix + k},
+			Labels: []string{opts.Prefix + n},
 			Attributes: map[string]interface{}{
-				"type": variableType,
+				"type": `{{` + t + `}}`,
 			},
 		})
 	}

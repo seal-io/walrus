@@ -150,8 +150,6 @@ var (
 		connector.FieldName,
 	}
 	getFields = connector.WithoutFields(
-		connector.FieldConfigVersion,
-		connector.FieldConfigData,
 		connector.FieldUpdateTime)
 	sortFields = []string{
 		connector.FieldName,

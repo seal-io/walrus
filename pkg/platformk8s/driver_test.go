@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -36,16 +37,16 @@ users:
 		var _, err = GetConfig(model.Connector{
 			Name:          "test",
 			ConfigVersion: "v1",
-			ConfigData: map[string]interface{}{
-				"kubeconfig_": dummyKubeconfigText,
+			ConfigData: crypto.Properties{
+				"kubeconfig_": crypto.StringProperty(dummyKubeconfigText),
 			},
 		})
 		assert.EqualError(t, err, "error load config from connector test: not found \"kubeconfig\"")
 
 		config, err := GetConfig(model.Connector{
 			ConfigVersion: "v1",
-			ConfigData: map[string]interface{}{
-				"kubeconfig": dummyKubeconfigText,
+			ConfigData: crypto.Properties{
+				"kubeconfig": crypto.StringProperty(dummyKubeconfigText),
 			},
 		})
 		if assert.NoError(t, err, "unexpected error") {
@@ -56,8 +57,8 @@ users:
 
 		apiConfig, _, err := LoadApiConfig(model.Connector{
 			ConfigVersion: "v1",
-			ConfigData: map[string]interface{}{
-				"kubeconfig": dummyKubeconfigText,
+			ConfigData: crypto.Properties{
+				"kubeconfig": crypto.StringProperty(dummyKubeconfigText),
 			},
 		})
 		if assert.NoError(t, err, "unexpected error") {

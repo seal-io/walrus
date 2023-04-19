@@ -7,9 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"github.com/stretchr/testify/assert"
+	"github.com/zclconf/go-cty/cty"
+	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 func TestGetModuleNameByPath(t *testing.T) {
@@ -116,16 +119,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 			name:  "With output",
 			input: "testdata/with_output",
 			expectedOutput: &types.ModuleSchema{
-				Outputs: []types.ModuleOutput{
-					{
-						Name:        "first",
-						Description: "The first output.",
-					},
-					{
-						Name:        "second",
-						Description: "The second output.",
-						Sensitive:   true,
-					},
+				Outputs: property.Schemas{
+					property.AnySchema("first", nil).
+						WithDescription("The first output."),
+					property.AnySchema("second", nil).
+						WithDescription("The second output.").
+						WithSensitive(),
 				},
 			},
 			expectedError: false,
@@ -134,12 +133,8 @@ func TestLoadTerraformSchema(t *testing.T) {
 			name:  "With variable",
 			input: "testdata/with_variable",
 			expectedOutput: &types.ModuleSchema{
-				Variables: []types.ModuleVariable{
-					{
-						Name:    "foo",
-						Type:    "string",
-						Default: "bar",
-					},
+				Variables: property.Schemas{
+					property.StringSchema("foo", pointer.String("bar")),
 				},
 			},
 			expectedError: false,
@@ -164,68 +159,101 @@ func TestLoadTerraformSchema(t *testing.T) {
 						},
 					},
 				},
-				Outputs: []types.ModuleOutput{
-					{
-						Name:        "first",
-						Description: "The first output.",
-					},
-					{
-						Name:        "second",
-						Description: "The second output.",
-						Sensitive:   true,
-					},
+				Outputs: property.Schemas{
+					property.AnySchema("first", nil).
+						WithDescription("The first output."),
+					property.AnySchema("second", nil).
+						WithDescription("The second output.").
+						WithSensitive(),
 				},
-				Variables: []types.ModuleVariable{
-					{
-						Name:    "foo",
-						Type:    "string",
-						Default: "foo",
-						Label:   "Foo Label",
-						Options: []string{"F1", "F2", "F3"},
-						Group:   "Test Group",
-					},
-					{
-						Name:    "bar",
-						Type:    "string",
-						Default: "bar",
-						Label:   "Bar Label",
-						Options: []string{"B1", "B2", "B3"},
-						Group:   "Test Group",
-						ShowIf:  "foo=F1",
-					},
-					{
-						Name:    "thee",
-						Type:    "string",
-						Default: "thee",
-					},
-					{
-						Name:    "subgroup1_1",
-						Type:    "string",
-						Default: "subgroup1_1",
-						Label:   "Subgroup1_1 Label",
-						Group:   "Test Subgroup/Subgroup 1",
-					},
-					{
-						Name:    "subgroup1_2",
-						Type:    "string",
-						Default: "subgroup1_2",
-						Label:   "Subgroup1_2 Label",
-						Group:   "Test Subgroup/Subgroup 1",
-					},
-					{
-						Name:    "subgroup2_1",
-						Type:    "string",
-						Default: "subgroup2_1",
-						Label:   "Subgroup2_1 Label",
-						Group:   "Test Subgroup/Subgroup 2",
-					},
-					{
-						Name:     "subgroup2_1_hidden",
-						Type:     "string",
-						Default:  "",
-						Group:    "Test Subgroup/Subgroup 2",
-						Hidden:   true,
-						Required: false,
+				Variables: property.Schemas{
+					property.StringSchema("foo", pointer.String("foo")).
+						WithGroup("Test Group").
+						WithLabel("Foo Label").
+						WithOptions("F1", "F2", "F3"),
+					property.StringSchema("bar", pointer.String("bar")).
+						WithGroup("Test Group").
+						WithLabel("Bar Label").
+						WithOptions("B1", "B2", "B3").
+						WithShowIf("foo=F1"),
+					property.StringSchema("thee", pointer.String("thee")),
+					property.StringSchema("subgroup1_1", pointer.String("subgroup1_1")).
+						WithGroup("Test Subgroup/Subgroup 1").
+						WithLabel("Subgroup1_1 Label"),
+					property.StringSchema("subgroup1_2", pointer.String("subgroup1_2")).
+						WithGroup("Test Subgroup/Subgroup 1").
+						WithLabel("Subgroup1_2 Label"),
+					property.StringSchema("subgroup2_1", pointer.String("subgroup2_1")).
+						WithGroup("Test Subgroup/Subgroup 2").
+						WithLabel("Subgroup2_1 Label"),
+					property.StringSchema("subgroup2_1_hidden", pointer.String("")).
+						WithGroup("Test Subgroup/Subgroup 2").
+						WithHidden(),
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name:  "Complex variable",
+			input: "testdata/complex_variable",
+			expectedOutput: &types.ModuleSchema{
+				Variables: property.Schemas{
+					property.AnySchema("any", nil).
+						WithRequired(),
+					property.MapSchema("string_map",
+						map[string]string{
+							"a": "a",
+							"b": "1",
+							"c": "true",
+						}),
+					property.SliceSchema("string_slice",
+						[]*string{
+							pointer.String("x"),
+							pointer.String("y"),
+							pointer.String("z"),
+						}),
+					property.ObjectSchema("object",
+						&struct {
+							A string `cty:"a" json:"a"`
+							B int    `cty:"b" json:"b"`
+							C bool   `cty:"c" json:"c"`
+						}{
+							A: "a",
+							B: 1,
+							C: true,
+						}),
+					property.ObjectSchema("object_nested",
+						&struct {
+							A string `cty:"a" json:"a"`
+							B []struct {
+								C bool `cty:"c" json:"c"`
+							} `cty:"b" json:"b"`
+						}{
+							A: "a",
+							B: []struct {
+								C bool `cty:"c" json:"c"`
+							}{
+								{
+									C: true,
+								},
+							},
+						}),
+					property.SliceSchema("list_object",
+						[]struct {
+							A string `cty:"a" json:"a"`
+							B int    `cty:"b" json:"b"`
+							C bool   `cty:"c" json:"c"`
+						}(nil)).
+						WithRequired(),
+					// TODO(thxCode): provide a tuple schema builder?
+					property.Schema{
+						Name: "tuple",
+						Type: cty.Tuple([]cty.Type{
+							cty.String,
+							cty.Bool,
+							cty.Number,
+						}),
+						Required: true,
 					},
 				},
 			},

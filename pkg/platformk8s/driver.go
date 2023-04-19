@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -47,17 +48,16 @@ func LoadApiConfig(conn model.Connector) (apiConfig *api.Config, raw string, err
 	return
 }
 
-func loadRawConfigV1(data map[string]interface{}) (string, error) {
+func loadRawConfigV1(data crypto.Properties) (string, error) {
 	// {
 	//      "kubeconfig": "..."
 	// }
-	var kubeconfig, exist = data["kubeconfig"]
+	var kubeconfigText, exist, err = data["kubeconfig"].GetString()
+	if err != nil {
+		return "", fmt.Errorf(`failed to get "kubeconfig": %w`, err)
+	}
 	if !exist {
 		return "", fmt.Errorf(`not found "kubeconfig"`)
-	}
-	var kubeconfigText, ok = kubeconfig.(string)
-	if !ok {
-		return "", fmt.Errorf(`no plain text "kubeconfig"`)
 	}
 	return kubeconfigText, nil
 }
