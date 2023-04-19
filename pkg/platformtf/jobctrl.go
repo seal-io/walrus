@@ -97,11 +97,8 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 // syncApplicationRevisionStatus sync the application revision status.
 func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) error {
 	var (
-		logger = log.WithName("platformtf").WithName("jobctrl")
-		// isComplete indicates whether the deployment job is complete.
-		isComplete            = false
-		revisionStatusMessage = ""
-		revisionStatus        = status.ApplicationRevisionStatusSucceeded
+		logger         = log.WithName("platformtf").WithName("jobctrl")
+		revisionStatus = status.ApplicationRevisionStatusSucceeded
 	)
 	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
 	if !ok {
@@ -117,23 +114,22 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
+	if job.Status.Succeeded == 0 && job.Status.Failed == 0 {
+		return nil
+	}
+
+	// get job pods logs.
+	revisionStatusMessage, err := r.getJobPodsLogs(ctx, job.Name)
+	if err != nil {
+		return err
+	}
+
 	if job.Status.Succeeded > 0 {
-		isComplete = true
 		logger.Debugf("job is succeeded, job: %s", job.Name)
 	}
 	if job.Status.Failed > 0 {
-		isComplete = true
-		// get job pods logs
-		logs, err := r.getJobPodsLogs(ctx, job.Name)
-		if err != nil {
-			return err
-		}
-		revisionStatusMessage += logs
 		revisionStatus = status.ApplicationRevisionStatusFailed
 		logger.Debugf("job is failed, job: %s", job.Name)
-	}
-	if !isComplete {
-		return nil
 	}
 
 	// report to application revision.
