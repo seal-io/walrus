@@ -6,6 +6,7 @@ import (
 
 	costvalidation "github.com/seal-io/seal/pkg/apis/cost/validation"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -49,7 +50,7 @@ type (
 )
 
 func (r *AllocationCostRequest) Validate() error {
-	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
+	if err := r.validateTimeRange(); err != nil {
 		return err
 	}
 
@@ -58,6 +59,20 @@ func (r *AllocationCostRequest) Validate() error {
 	}
 
 	return costvalidation.ValidateAllocationQuery(r.QueryCondition)
+}
+
+func (r *AllocationCostRequest) validateTimeRange() error {
+	switch {
+	case slice.ContainsAny([]types.GroupByField{types.GroupByFieldDay, types.GroupByFieldWeek}, r.GroupBy):
+		return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
+	case slice.ContainsAny([]types.Step{types.StepDay, types.StepWeek}, r.Step):
+		return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
+	case r.GroupBy == types.GroupByFieldMonth:
+		return validation.TimeRangeWithinDecade(r.StartTime, r.EndTime)
+	case r.Step == types.StepMonth:
+		return validation.TimeRangeWithinDecade(r.StartTime, r.EndTime)
+	}
+	return nil
 }
 
 type CollectedTimeRange struct {
@@ -73,7 +88,7 @@ type SummaryCostRequest struct {
 }
 
 func (r *SummaryCostRequest) Validate() error {
-	return validation.TimeRange(r.StartTime, r.EndTime)
+	return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
 }
 
 type SummaryCostResponse struct {
@@ -94,7 +109,7 @@ type SummaryClusterCostRequest struct {
 }
 
 func (r *SummaryClusterCostRequest) Validate() error {
-	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
+	if err := validation.TimeRangeWithinYear(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
 
@@ -123,7 +138,7 @@ type SummaryProjectCostRequest struct {
 }
 
 func (r *SummaryProjectCostRequest) Validate() error {
-	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
+	if err := validation.TimeRangeWithinYear(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
 
@@ -150,7 +165,7 @@ type SummaryQueriedCostRequest struct {
 }
 
 func (r *SummaryQueriedCostRequest) Validate() error {
-	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
+	if err := validation.TimeRangeWithinDecade(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
 

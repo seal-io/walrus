@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-module/carbon"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -58,6 +59,33 @@ func TimeRange(startTime, endTime time.Time) error {
 
 	if startTime.Location().String() != endTime.Location().String() {
 		return errors.New("invalid time range: start time and end time are in different time zones")
+	}
+	return nil
+}
+
+const (
+	maxDurationPerYear   = time.Hour * 24 * carbon.DaysPerLeapYear
+	maxDurationPerDecade = maxDurationPerYear * carbon.YearsPerDecade
+)
+
+func TimeRangeWithinYear(startTime, endTime time.Time) error {
+	if err := TimeRange(startTime, endTime); err != nil {
+		return err
+	}
+
+	if endTime.Sub(startTime) > maxDurationPerYear {
+		return fmt.Errorf("invalid time range: start time and end time must be within a year")
+	}
+	return nil
+}
+
+func TimeRangeWithinDecade(startTime, endTime time.Time) error {
+	if err := TimeRange(startTime, endTime); err != nil {
+		return err
+	}
+
+	if endTime.Sub(startTime) > maxDurationPerDecade {
+		return fmt.Errorf("invalid time range: start time and end time must be within decade")
 	}
 	return nil
 }
