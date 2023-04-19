@@ -106,7 +106,6 @@ const (
 	GroupByFieldDay   GroupByField = "day"
 	GroupByFieldWeek  GroupByField = "week"
 	GroupByFieldMonth GroupByField = "month"
-	GroupByFieldYear  GroupByField = "year"
 
 	// built-in labels
 	GroupByFieldProject     = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
@@ -136,5 +135,4 @@ const (
 	StepDay   Step = "day"
 	StepWeek  Step = "week"
 	StepMonth Step = "month"
-	StepYear  Step = "year"
 )

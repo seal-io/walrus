@@ -49,7 +49,6 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		types.GroupByFieldDay,
 		types.GroupByFieldWeek,
 		types.GroupByFieldMonth,
-		types.GroupByFieldYear,
 		types.GroupByFieldProject,
 		types.GroupByFieldEnvironment,
 		types.GroupByFieldApplication,
@@ -64,7 +63,6 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 			types.StepDay,
 			types.StepWeek,
 			types.StepMonth,
-			types.StepYear,
 		}, query.Step) {
 			return fmt.Errorf("invalid step: unsupported")
 		}
@@ -74,7 +72,6 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 			types.GroupByFieldDay,
 			types.GroupByFieldWeek,
 			types.GroupByFieldMonth,
-			types.GroupByFieldYear,
 		}, query.GroupBy) {
 			return fmt.Errorf("invalid step: already group by %s", query.GroupBy)
 		}

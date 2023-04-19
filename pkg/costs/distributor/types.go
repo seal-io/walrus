@@ -34,7 +34,7 @@ func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) 
 
 	var timezone = timex.TimezoneInPosix(offset)
 	switch field {
-	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth, types.GroupByFieldYear:
+	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth:
 		return fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, field, timezone), nil
 	default:
 		return `SUM(total_cost) DESC`, nil
@@ -61,8 +61,6 @@ func groupByWithZoneOffsetSQL(field types.GroupByField, offset int) (string, err
 		groupBy = fmt.Sprintf(`date_trunc('week', (start_time AT TIME ZONE '%s'))`, timeZone)
 	case field == types.GroupByFieldMonth:
 		groupBy = fmt.Sprintf(`date_trunc('month', (start_time AT TIME ZONE '%s'))`, timeZone)
-	case field == types.GroupByFieldYear:
-		groupBy = fmt.Sprintf(`date_trunc('year', (start_time AT TIME ZONE '%s'))`, timeZone)
 	case field == types.GroupByFieldWorkload:
 		groupBy = fmt.Sprintf(`CASE WHEN namespace = '' THEN '%s' 
  WHEN controller_kind = '' THEN '%s'
@@ -83,8 +81,6 @@ func wrappedCondition(cond types.QueryCondition) types.QueryCondition {
 	case types.GroupByFieldWeek:
 		cond.Step = types.StepWeek
 	case types.GroupByFieldMonth:
-		cond.Step = types.StepMonth
-	case types.GroupByFieldYear:
 		cond.Step = types.StepMonth
 	}
 	return cond
