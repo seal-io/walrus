@@ -105,7 +105,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r.Group("", rectifier, wsCounter), applicationresource.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig))
+		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, group.Handle(opts.ModelClient))

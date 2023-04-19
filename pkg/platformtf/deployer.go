@@ -59,6 +59,14 @@ type CreateSecretsOptions struct {
 	ApplicationInstanceName string
 }
 
+// CreateJobOptions options for do job action.
+type CreateJobOptions struct {
+	Type                string
+	SkipTLSVerify       bool
+	ApplicationInstance *model.ApplicationInstance
+	ApplicationRevision *model.ApplicationRevision
+}
+
 // _backendAPI the API path to terraform deploy backend.
 // terraform will get and update deployment states from this API.
 const _backendAPI = "/v1/application-revisions/%s/terraform-states"
@@ -91,12 +99,7 @@ func (d Deployer) Type() deployer.Type {
 
 // Apply will apply the application to deploy the application.
 func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) error {
-	connectors, err := d.getConnectors(ctx, ai)
-	if err != nil {
-		return err
-	}
-
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, JobTypeApply)
+	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeApply)
 	if err != nil {
 		return err
 	}
@@ -105,27 +108,128 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		if err == nil {
 			return
 		}
-		var errMsg = err.Error()
 		// report to application revision.
-		entity, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-			SetStatus(status.ApplicationRevisionStatusFailed).
-			SetStatusMessage(errMsg).
-			Save(ctx)
-		if rerr != nil {
-			d.logger.Errorf("failed to update application revision status: %v", rerr)
+		_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+	}()
+
+	return d.CreateK8sJob(ctx, CreateJobOptions{
+		Type:                JobTypeApply,
+		SkipTLSVerify:       applyOpts.SkipTLSVerify,
+		ApplicationInstance: ai,
+		ApplicationRevision: ar,
+	})
+}
+
+// Destroy will destroy the resource of the application.
+// 1. get the latest revision, and checkAppRevision it if it is running.
+// 2. if not running, then destroy resources.
+func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
+	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeDestroy)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err == nil {
 			return
 		}
+		// report to application revision.
+		_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+	}()
 
-		if err = revisionbus.Notify(ctx, d.modelClient, entity); err != nil {
-			d.logger.Errorf("add application revision update notify err: %w", err)
+	// if no resource exists, skip job and set revision status succeed.
+	exist, err := d.modelClient.ApplicationResources().Query().
+		Where(applicationresource.InstanceID(ai.ID)).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		ar, err = d.modelClient.ApplicationRevisions().UpdateOne(ar).
+			SetStatus(status.ApplicationRevisionStatusSucceeded).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return revisionbus.Notify(ctx, d.modelClient, ar)
+	}
+
+	return d.CreateK8sJob(ctx, CreateJobOptions{
+		Type:                JobTypeDestroy,
+		SkipTLSVerify:       destroyOpts.SkipTLSVerify,
+		ApplicationInstance: ai,
+		ApplicationRevision: ar,
+	})
+}
+
+// Rollback instance to a specific revision
+func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) error {
+	if opts.ApplicationRevision == nil || opts.ApplicationRevision.InstanceID != ai.ID {
+		return errors.New("rollback failed: invalid revision")
+	}
+
+	ai.Status = status.ApplicationInstanceStatusDeploying
+	ai, err := d.modelClient.ApplicationInstances().UpdateOne(ai).Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	var (
+		ar     *model.ApplicationRevision
+		entity = &model.ApplicationRevision{
+			InstanceID:                ai.ID,
+			EnvironmentID:             ai.EnvironmentID,
+			Status:                    status.ApplicationRevisionStatusRunning,
+			InputVariables:            opts.ApplicationRevision.InputVariables,
+			Modules:                   opts.ApplicationRevision.Modules,
+			PreviousRequiredProviders: opts.ApplicationRevision.PreviousRequiredProviders,
+			InputPlan:                 opts.ApplicationRevision.InputPlan,
+			DeployerType:              opts.ApplicationRevision.DeployerType,
+		}
+	)
+	revisionCreates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
+	if err != nil {
+		return err
+	}
+	ar, err = revisionCreates[0].Save(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		if ar != nil {
+			// report to application revision.
+			_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+			return
+		}
+		ai.Status = status.ApplicationInstanceStatusDeployFailed
+		ai.StatusMessage = err.Error()
+		updateErr := d.modelClient.ApplicationInstances().UpdateOne(ai).Exec(ctx)
+		if updateErr != nil {
+			d.logger.Errorf("update application instance status failed: %v", updateErr)
 		}
 	}()
 
+	return d.CreateK8sJob(ctx, CreateJobOptions{
+		Type:                JobTypeApply,
+		SkipTLSVerify:       opts.SkipTLSVerify,
+		ApplicationInstance: ai,
+		ApplicationRevision: ar,
+	})
+}
+
+// CreateK8sJob will create a k8s job to deploy、destroy or rollback the application instance.
+func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error {
+	connectors, err := d.getConnectors(ctx, opts.ApplicationInstance)
+	if err != nil {
+		return err
+	}
 	// get application, we need the project id to fetch available secrets.
 	app, err := d.modelClient.Applications().Query().
-		Where(
-			application.ID(ai.ApplicationID),
-		).
+		Where(application.ID(opts.ApplicationInstance.ApplicationID)).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
 				project.FieldID,
@@ -139,14 +243,14 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 
 	// prepare tfConfig for deployment.
 	secretOpts := CreateSecretsOptions{
-		SkipTLSVerify:       applyOpts.SkipTLSVerify,
-		ApplicationRevision: applicationRevision,
+		SkipTLSVerify:       opts.SkipTLSVerify,
+		ApplicationRevision: opts.ApplicationRevision,
 		Connectors:          connectors,
 		ProjectID:           app.ProjectID,
 		// metadata
 		ProjectName:             app.Edges.Project.Name,
 		ApplicationName:         app.Name,
-		ApplicationInstanceName: ai.Name,
+		ApplicationInstanceName: opts.ApplicationInstance.Name,
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
@@ -158,114 +262,27 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 	}
 
 	// create deployment job.
-	jobCreateOpts := JobCreateOptions{
-		Type:                  JobTypeApply,
-		ApplicationRevisionID: applicationRevision.ID.String(),
+	jobOpts := JobCreateOptions{
+		Type:                  opts.Type,
+		ApplicationRevisionID: opts.ApplicationRevision.ID.String(),
 		Image:                 jobImage,
 	}
-	if err = CreateJob(ctx, d.clientSet, jobCreateOpts); err != nil {
-		return err
-	}
-
-	return nil
+	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-// Destroy will destroy the resource of the application.
-// 1. get the latest revision, and checkAppRevision it if it is running.
-// 2. if not running, then destroy resources.
-func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
-	applicationRevision, err := d.CreateApplicationRevision(ctx, ai, JobTypeDestroy)
+func (d Deployer) updateRevision(ctx context.Context, ar *model.ApplicationRevision, s, m string) error {
+	// report to application revision.
+	ar, err := d.modelClient.ApplicationRevisions().UpdateOne(ar).
+		SetStatus(s).
+		SetStatusMessage(m).
+		Save(ctx)
 	if err != nil {
+		d.logger.Error(err)
 		return err
 	}
 
-	defer func() {
-		if err == nil {
-			return
-		}
-		var errMsg = err.Error()
-		// report to application revision.
-		applicationRevision, rerr := d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-			SetStatus(status.ApplicationRevisionStatusFailed).
-			SetStatusMessage(errMsg).
-			Save(ctx)
-		if rerr != nil {
-			d.logger.Errorf("failed to update application revision status: %v", rerr)
-			return
-		}
-
-		if err = revisionbus.Notify(ctx, d.modelClient, applicationRevision); err != nil {
-			d.logger.Errorf("add application revision update notify err: %w", err)
-		}
-	}()
-
-	// if no resource exists, skip job and set revision status succeed.
-	exist, err := d.modelClient.ApplicationResources().Query().
-		Where(applicationresource.InstanceID(ai.ID)).
-		Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if !exist {
-		applicationRevision, err = d.modelClient.ApplicationRevisions().UpdateOne(applicationRevision).
-			SetStatus(status.ApplicationRevisionStatusSucceeded).
-			Save(ctx)
-		if err != nil {
-			return err
-		}
-
-		return revisionbus.Notify(ctx, d.modelClient, applicationRevision)
-	}
-
-	app, err := d.modelClient.Applications().Query().
-		Where(
-			application.ID(ai.ApplicationID),
-		).
-		WithProject(func(pq *model.ProjectQuery) {
-			pq.Select(
-				project.FieldID,
-				project.FieldName,
-			)
-		}).
-		Only(ctx)
-	if err != nil {
-		return err
-	}
-
-	connectors, err := d.getConnectors(ctx, ai)
-	if err != nil {
-		return err
-	}
-
-	// prepare tfConfig for deployment
-	secretOpts := CreateSecretsOptions{
-		SkipTLSVerify:       destroyOpts.SkipTLSVerify,
-		ApplicationRevision: applicationRevision,
-		Connectors:          connectors,
-		ProjectID:           app.ProjectID,
-		// metadata
-		ProjectName:             app.Edges.Project.Name,
-		ApplicationName:         app.Name,
-		ApplicationInstanceName: ai.Name,
-	}
-	err = d.createK8sSecrets(ctx, secretOpts)
-	if err != nil {
-		return err
-	}
-
-	jobImage, err := settings.TerraformDeployerImage.Value(ctx, d.modelClient)
-	if err != nil {
-		return err
-	}
-
-	// create deployment job
-	jobOpts := JobCreateOptions{
-		Type:                  JobTypeDestroy,
-		ApplicationRevisionID: applicationRevision.ID.String(),
-		Image:                 jobImage,
-	}
-	err = CreateJob(ctx, d.clientSet, jobOpts)
-	if err != nil {
+	if err = revisionbus.Notify(ctx, d.modelClient, ar); err != nil {
+		d.logger.Error(err)
 		return err
 	}
 

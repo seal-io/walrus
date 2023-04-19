@@ -21,6 +21,9 @@ type Deployer interface {
 
 	// Destroy cleans all resources of the given application instance.
 	Destroy(context.Context, *model.ApplicationInstance, DestroyOptions) error
+
+	// Rollback application instance with options.
+	Rollback(context.Context, *model.ApplicationInstance, RollbackOptions) error
 }
 
 // ApplyOptions holds the options of Deployer's Apply action.
@@ -31,4 +34,10 @@ type ApplyOptions struct {
 // DestroyOptions holds the options of Deployer's Destroy action.
 type DestroyOptions struct {
 	SkipTLSVerify bool
+}
+
+// RollbackOptions hold the options of Deployer's Rollback action.
+type RollbackOptions struct {
+	ApplicationRevision *model.ApplicationRevision
+	SkipTLSVerify       bool
 }
