@@ -11,7 +11,6 @@ import (
 	"github.com/drone/go-scm/scm/transport"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/maps"
 )
 
 const (
@@ -30,8 +29,11 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 	case "v1":
 	}
 
-	url := maps.GetString(conn.ConfigData, "base_url")
-	if url == "" {
+	url, ok, err := conn.ConfigData["base_url"].GetString()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base url: %w", err)
+	}
+	if url == "" || !ok {
 		client = gitlab.NewDefault()
 	} else {
 		client, err = gitlab.New(url)
@@ -40,8 +42,11 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 		}
 	}
 
-	token := maps.GetString(conn.ConfigData, "token")
-	if token == "" {
+	token, ok, err := conn.ConfigData["token"].GetString()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token: %w", err)
+	}
+	if token == "" || !ok {
 		return nil, errors.New("token not found")
 	}
 	client.Client = &http.Client{

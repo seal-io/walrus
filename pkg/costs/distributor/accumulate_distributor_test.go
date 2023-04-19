@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/enttest"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/timex"
 )
 
@@ -502,8 +503,8 @@ func newTestConn(ctx context.Context, client *model.Client) (*model.Connector, e
 		SetCategory(types.ConnectorCategoryKubernetes).
 		SetConfigVersion("test").
 		SetEnableFinOps(true).
-		SetConfigData(map[string]interface{}{
-			"kubeconfig": "",
+		SetConfigData(crypto.Properties{
+			"kubeconfig": crypto.StringProperty(""),
 		}).
 		Save(ctx)
 	return conn, err

@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformk8s"
@@ -420,6 +421,10 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	if err != nil {
 		return nil, err
 	}
+	variableSchemas, err := d.GetVariableSchemas(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
 	// merge current and previous required providers.
 	providerRequirements = append(providerRequirements, opts.ApplicationRevision.PreviousRequiredProviders...)
 
@@ -458,6 +463,11 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, p := range providerRequirements {
 		requiredProviderNames = requiredProviderNames.Insert(p.Name)
 	}
+	var secretNames = make([]string, 0, len(secrets))
+	for _, s := range secrets {
+		secretNames = append(secretNames, s.Name)
+	}
+	var variableNameAndTypes = opts.ApplicationRevision.InputVariables.StringTypesWith(variableSchemas)
 	var secretOptionMaps = map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
@@ -476,9 +486,9 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				ModuleConfigs: moduleConfigs,
 			},
 			VariableOptions: &config.VariableOptions{
-				Variables: opts.ApplicationRevision.InputVariables,
-				Secrets:   secrets,
-				Prefix:    _varPrefix,
+				VariableNameAndTypes: variableNameAndTypes,
+				SecretNames:          secretNames,
+				Prefix:               _varPrefix,
 			},
 		},
 		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
@@ -528,6 +538,18 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 	return secretData, nil
 }
 
+func (d Deployer) GetVariableSchemas(ctx context.Context, opts CreateSecretsOptions) (property.Schemas, error) {
+	var app, err = d.modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(opts.ApplicationRevision.InstanceID)).
+		QueryApplication().
+		Select(application.FieldVariables).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return app.Variables, nil
+}
+
 // GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
 func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOptions) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
@@ -557,15 +579,15 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 		return nil, nil, err
 	}
 
-	modVerMapKey := func(moduleID, version string) string {
+	moduleVersionKey := func(moduleID, version string) string {
 		return fmt.Sprintf("%s/%s", moduleID, version)
 	}
 
 	for _, m := range moduleVersions {
-		moduleVersionMap[modVerMapKey(m.ModuleID, m.Version)] = m
+		moduleVersionMap[moduleVersionKey(m.ModuleID, m.Version)] = m
 	}
 	for _, m := range ar.Modules {
-		modVer, ok := moduleVersionMap[modVerMapKey(m.ModuleID, m.Version)]
+		modVer, ok := moduleVersionMap[moduleVersionKey(m.ModuleID, m.Version)]
 		if !ok {
 			return nil, nil, fmt.Errorf("version %s of module %s not found", m.Version, m.ModuleID)
 		}
@@ -825,7 +847,7 @@ func parseAttributeReplace(
 	return secretNames
 }
 
-func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}) config.CreateOptions {
+func getVarConfigOptions(secrets model.Secrets, variables property.Values) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]interface{}{},
 	}
@@ -842,10 +864,14 @@ func getVarConfigOptions(secrets model.Secrets, variables map[string]interface{}
 }
 
 func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (mc *config.ModuleConfig) {
+	var attrs = make(map[string]any, len(appMod.Attributes))
+	for k := range appMod.Attributes {
+		attrs[k] = appMod.Attributes[k]
+	}
 	mc = &config.ModuleConfig{
 		Name:          appMod.Name,
 		ModuleVersion: modVer,
-		Attributes:    appMod.Attributes,
+		Attributes:    attrs,
 	}
 
 	if modVer.Schema == nil {

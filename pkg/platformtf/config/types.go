@@ -65,9 +65,9 @@ type (
 	VariableOptions struct {
 		// Prefix is the prefix of the variable name.
 		Prefix string
-		// Secrets is the  model.Secrets of the deployment.
-		Secrets model.Secrets
-		// Variables is the variables of the deployment.
-		Variables map[string]interface{}
+		// SecretNames is the list of the secret name, type is always string.
+		SecretNames []string
+		// VariableNameAndTypes is the map of the variable name and type.
+		VariableNameAndTypes map[string]string
 	}
 )
