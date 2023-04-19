@@ -55,15 +55,21 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create client via cfg: %w", err)
 	}
-	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
+
+	var lastErr error
+	err = wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
-			var err = IsConnected(ctx, cli.RESTClient())
-			if err != nil {
-				log.Warnf("waiting for apiserver to be ready: %v", err)
+			lastErr = IsConnected(ctx, cli.RESTClient())
+			if lastErr != nil {
+				log.Warnf("waiting for apiserver to be ready: %v", lastErr)
 			}
-			return err == nil, ctx.Err()
+			return lastErr == nil, ctx.Err()
 		},
 	)
+	if err != nil && lastErr != nil {
+		err = lastErr // use last error to overwrite context error while existed
+	}
+	return err
 }
 
 func IsConnected(ctx context.Context, r rest.Interface) error {
