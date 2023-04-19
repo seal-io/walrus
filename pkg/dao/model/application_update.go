@@ -13,15 +13,14 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationUpdate is the builder for updating Application entities.
@@ -77,14 +76,8 @@ func (au *ApplicationUpdate) SetUpdateTime(t time.Time) *ApplicationUpdate {
 }
 
 // SetVariables sets the "variables" field.
-func (au *ApplicationUpdate) SetVariables(tv []types.ApplicationVariable) *ApplicationUpdate {
-	au.mutation.SetVariables(tv)
-	return au
-}
-
-// AppendVariables appends tv to the "variables" field.
-func (au *ApplicationUpdate) AppendVariables(tv []types.ApplicationVariable) *ApplicationUpdate {
-	au.mutation.AppendVariables(tv)
+func (au *ApplicationUpdate) SetVariables(pr property.Schemas) *ApplicationUpdate {
+	au.mutation.SetVariables(pr)
 	return au
 }
 
@@ -224,15 +217,10 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := au.mutation.Variables(); ok {
-		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
-	}
-	if value, ok := au.mutation.AppendedVariables(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, application.FieldVariables, value)
-		})
+		_spec.SetField(application.FieldVariables, field.TypeOther, value)
 	}
 	if au.mutation.VariablesCleared() {
-		_spec.ClearField(application.FieldVariables, field.TypeJSON)
+		_spec.ClearField(application.FieldVariables, field.TypeOther)
 	}
 	if au.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -354,14 +342,8 @@ func (auo *ApplicationUpdateOne) SetUpdateTime(t time.Time) *ApplicationUpdateOn
 }
 
 // SetVariables sets the "variables" field.
-func (auo *ApplicationUpdateOne) SetVariables(tv []types.ApplicationVariable) *ApplicationUpdateOne {
-	auo.mutation.SetVariables(tv)
-	return auo
-}
-
-// AppendVariables appends tv to the "variables" field.
-func (auo *ApplicationUpdateOne) AppendVariables(tv []types.ApplicationVariable) *ApplicationUpdateOne {
-	auo.mutation.AppendVariables(tv)
+func (auo *ApplicationUpdateOne) SetVariables(pr property.Schemas) *ApplicationUpdateOne {
+	auo.mutation.SetVariables(pr)
 	return auo
 }
 
@@ -531,15 +513,10 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 		_spec.SetField(application.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := auo.mutation.Variables(); ok {
-		_spec.SetField(application.FieldVariables, field.TypeJSON, value)
-	}
-	if value, ok := auo.mutation.AppendedVariables(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, application.FieldVariables, value)
-		})
+		_spec.SetField(application.FieldVariables, field.TypeOther, value)
 	}
 	if auo.mutation.VariablesCleared() {
-		_spec.ClearField(application.FieldVariables, field.TypeJSON)
+		_spec.ClearField(application.FieldVariables, field.TypeOther)
 	}
 	if auo.mutation.InstancesCleared() {
 		edge := &sqlgraph.EdgeSpec{

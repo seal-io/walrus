@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationModuleRelationshipUpdate is the builder for updating ApplicationModuleRelationship entities.
@@ -47,8 +48,8 @@ func (amru *ApplicationModuleRelationshipUpdate) SetVersion(s string) *Applicati
 }
 
 // SetAttributes sets the "attributes" field.
-func (amru *ApplicationModuleRelationshipUpdate) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipUpdate {
-	amru.mutation.SetAttributes(m)
+func (amru *ApplicationModuleRelationshipUpdate) SetAttributes(pr property.Values) *ApplicationModuleRelationshipUpdate {
+	amru.mutation.SetAttributes(pr)
 	return amru
 }
 
@@ -140,10 +141,10 @@ func (amru *ApplicationModuleRelationshipUpdate) sqlSave(ctx context.Context) (n
 		_spec.SetField(applicationmodulerelationship.FieldVersion, field.TypeString, value)
 	}
 	if value, ok := amru.mutation.Attributes(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeOther, value)
 	}
 	if amru.mutation.AttributesCleared() {
-		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeJSON)
+		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeOther)
 	}
 	_spec.Node.Schema = amru.schemaConfig.ApplicationModuleRelationship
 	ctx = internal.NewSchemaConfigContext(ctx, amru.schemaConfig)
@@ -182,8 +183,8 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) SetVersion(s string) *Appli
 }
 
 // SetAttributes sets the "attributes" field.
-func (amruo *ApplicationModuleRelationshipUpdateOne) SetAttributes(m map[string]interface{}) *ApplicationModuleRelationshipUpdateOne {
-	amruo.mutation.SetAttributes(m)
+func (amruo *ApplicationModuleRelationshipUpdateOne) SetAttributes(pr property.Values) *ApplicationModuleRelationshipUpdateOne {
+	amruo.mutation.SetAttributes(pr)
 	return amruo
 }
 
@@ -312,10 +313,10 @@ func (amruo *ApplicationModuleRelationshipUpdateOne) sqlSave(ctx context.Context
 		_spec.SetField(applicationmodulerelationship.FieldVersion, field.TypeString, value)
 	}
 	if value, ok := amruo.mutation.Attributes(); ok {
-		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeJSON, value)
+		_spec.SetField(applicationmodulerelationship.FieldAttributes, field.TypeOther, value)
 	}
 	if amruo.mutation.AttributesCleared() {
-		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeJSON)
+		_spec.ClearField(applicationmodulerelationship.FieldAttributes, field.TypeOther)
 	}
 	_spec.Node.Schema = amruo.schemaConfig.ApplicationModuleRelationship
 	ctx = internal.NewSchemaConfigContext(ctx, amruo.schemaConfig)

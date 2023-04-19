@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 const (
@@ -107,7 +108,7 @@ var (
 	// DefaultModules holds the default value on creation for the "modules" field.
 	DefaultModules []types.ApplicationModule
 	// DefaultInputVariables holds the default value on creation for the "inputVariables" field.
-	DefaultInputVariables map[string]interface{}
+	DefaultInputVariables property.Values
 	// DefaultDeployerType holds the default value on creation for the "deployerType" field.
 	DefaultDeployerType string
 	// DefaultDuration holds the default value on creation for the "duration" field.

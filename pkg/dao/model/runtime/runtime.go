@@ -30,6 +30,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -298,7 +299,7 @@ func init() {
 	// applicationrevisionDescInputVariables is the schema descriptor for inputVariables field.
 	applicationrevisionDescInputVariables := applicationrevisionFields[3].Descriptor()
 	// applicationrevision.DefaultInputVariables holds the default value on creation for the inputVariables field.
-	applicationrevision.DefaultInputVariables = applicationrevisionDescInputVariables.Default.(map[string]interface{})
+	applicationrevision.DefaultInputVariables = applicationrevisionDescInputVariables.Default.(property.Values)
 	// applicationrevisionDescDeployerType is the schema descriptor for deployerType field.
 	applicationrevisionDescDeployerType := applicationrevisionFields[6].Descriptor()
 	// applicationrevision.DefaultDeployerType holds the default value on creation for the deployerType field.
@@ -383,7 +384,7 @@ func init() {
 	// connectorDescConfigData is the schema descriptor for configData field.
 	connectorDescConfigData := connectorFields[2].Descriptor()
 	// connector.DefaultConfigData holds the default value on creation for the configData field.
-	connector.DefaultConfigData = connectorDescConfigData.Default.(crypto.Map[string, interface{}])
+	connector.DefaultConfigData = connectorDescConfigData.Default.(crypto.Properties)
 	// connectorDescCategory is the schema descriptor for category field.
 	connectorDescCategory := connectorFields[5].Descriptor()
 	// connector.CategoryValidator is a validator for the "category" field. It is called by the builders before save.

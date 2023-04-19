@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationRevisionCreate is the builder for creating a ApplicationRevision entity.
@@ -92,8 +93,8 @@ func (arc *ApplicationRevisionCreate) SetModules(tm []types.ApplicationModule) *
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (arc *ApplicationRevisionCreate) SetInputVariables(m map[string]interface{}) *ApplicationRevisionCreate {
-	arc.mutation.SetInputVariables(m)
+func (arc *ApplicationRevisionCreate) SetInputVariables(pr property.Values) *ApplicationRevisionCreate {
+	arc.mutation.SetInputVariables(pr)
 	return arc
 }
 
@@ -328,7 +329,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 		_node.Modules = value
 	}
 	if value, ok := arc.mutation.InputVariables(); ok {
-		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeJSON, value)
+		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)
 		_node.InputVariables = value
 	}
 	if value, ok := arc.mutation.InputPlan(); ok {
@@ -494,7 +495,7 @@ func (u *ApplicationRevisionUpsert) UpdateModules() *ApplicationRevisionUpsert {
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (u *ApplicationRevisionUpsert) SetInputVariables(v map[string]interface{}) *ApplicationRevisionUpsert {
+func (u *ApplicationRevisionUpsert) SetInputVariables(v property.Values) *ApplicationRevisionUpsert {
 	u.Set(applicationrevision.FieldInputVariables, v)
 	return u
 }
@@ -685,7 +686,7 @@ func (u *ApplicationRevisionUpsertOne) UpdateModules() *ApplicationRevisionUpser
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (u *ApplicationRevisionUpsertOne) SetInputVariables(v map[string]interface{}) *ApplicationRevisionUpsertOne {
+func (u *ApplicationRevisionUpsertOne) SetInputVariables(v property.Values) *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.SetInputVariables(v)
 	})
@@ -1052,7 +1053,7 @@ func (u *ApplicationRevisionUpsertBulk) UpdateModules() *ApplicationRevisionUpse
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (u *ApplicationRevisionUpsertBulk) SetInputVariables(v map[string]interface{}) *ApplicationRevisionUpsertBulk {
+func (u *ApplicationRevisionUpsertBulk) SetInputVariables(v property.Values) *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.SetInputVariables(v)
 	})

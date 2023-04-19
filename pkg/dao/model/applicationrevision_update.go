@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationRevisionUpdate is the builder for updating ApplicationRevision entities.
@@ -88,8 +89,8 @@ func (aru *ApplicationRevisionUpdate) AppendModules(tm []types.ApplicationModule
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (aru *ApplicationRevisionUpdate) SetInputVariables(m map[string]interface{}) *ApplicationRevisionUpdate {
-	aru.mutation.SetInputVariables(m)
+func (aru *ApplicationRevisionUpdate) SetInputVariables(pr property.Values) *ApplicationRevisionUpdate {
+	aru.mutation.SetInputVariables(pr)
 	return aru
 }
 
@@ -234,7 +235,7 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 		})
 	}
 	if value, ok := aru.mutation.InputVariables(); ok {
-		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeJSON, value)
+		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)
 	}
 	if value, ok := aru.mutation.InputPlan(); ok {
 		_spec.SetField(applicationrevision.FieldInputPlan, field.TypeString, value)
@@ -336,8 +337,8 @@ func (aruo *ApplicationRevisionUpdateOne) AppendModules(tm []types.ApplicationMo
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (aruo *ApplicationRevisionUpdateOne) SetInputVariables(m map[string]interface{}) *ApplicationRevisionUpdateOne {
-	aruo.mutation.SetInputVariables(m)
+func (aruo *ApplicationRevisionUpdateOne) SetInputVariables(pr property.Values) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetInputVariables(pr)
 	return aruo
 }
 
@@ -512,7 +513,7 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 		})
 	}
 	if value, ok := aruo.mutation.InputVariables(); ok {
-		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeJSON, value)
+		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)
 	}
 	if value, ok := aruo.mutation.InputPlan(); ok {
 		_spec.SetField(applicationrevision.FieldInputPlan, field.TypeString, value)

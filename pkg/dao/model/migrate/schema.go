@@ -80,7 +80,7 @@ var (
 		{Name: "labels", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "variables", Type: field.TypeJSON, Nullable: true},
+		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ApplicationsTable holds the schema information for the "applications" table.
@@ -117,7 +117,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "variables", Type: field.TypeJSON, Nullable: true},
+		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -159,7 +159,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "version", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "attributes", Type: field.TypeJSON, Nullable: true},
+		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "module_id", Type: field.TypeString},
 	}
@@ -245,7 +245,7 @@ var (
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "modules", Type: field.TypeJSON},
-		{Name: "input_variables", Type: field.TypeJSON},
+		{Name: "input_variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
 		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},

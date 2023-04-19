@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationModuleRelationshipQueryInput is the input for the ApplicationModuleRelationship query.
@@ -37,7 +38,7 @@ type ApplicationModuleRelationshipCreateInput struct {
 	// Name of the module customized to the application.
 	Name string `json:"name"`
 	// Attributes to configure the module.
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Attributes property.Values `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application ApplicationQueryInput `json:"application"`
 	// Modules that connect to the relationship.
@@ -63,7 +64,7 @@ type ApplicationModuleRelationshipUpdateInput struct {
 	// Version of the module to which the relationship connects.
 	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Attributes property.Values `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application ApplicationQueryInput `json:"application,omitempty"`
 	// Modules that connect to the relationship.
@@ -93,7 +94,7 @@ type ApplicationModuleRelationshipOutput struct {
 	// Version of the module to which the relationship connects.
 	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
+	Attributes property.Values `json:"attributes,omitempty"`
 	// Applications that connect to the relationship.
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Modules that connect to the relationship.

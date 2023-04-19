@@ -8,8 +8,8 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ApplicationQueryInput is the input for the Application query.
@@ -34,7 +34,7 @@ type ApplicationCreateInput struct {
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
-	Variables []types.ApplicationVariable `json:"variables,omitempty"`
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Project to which this application belongs.
 	Project ProjectQueryInput `json:"project"`
 	// Modules holds the value of the modules edge.
@@ -70,7 +70,7 @@ type ApplicationUpdateInput struct {
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
-	Variables []types.ApplicationVariable `json:"variables,omitempty"`
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipUpdateInput `json:"modules,omitempty"`
 }
@@ -108,7 +108,7 @@ type ApplicationOutput struct {
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
-	Variables []types.ApplicationVariable `json:"variables,omitempty"`
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Project to which this application belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Application instances that belong to this application.

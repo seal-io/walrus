@@ -35,6 +35,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 
 	"entgo.io/ent"
@@ -2714,8 +2715,7 @@ type ApplicationMutation struct {
 	labels           *map[string]string
 	createTime       *time.Time
 	updateTime       *time.Time
-	variables        *[]types.ApplicationVariable
-	appendvariables  []types.ApplicationVariable
+	variables        *property.Schemas
 	clearedFields    map[string]struct{}
 	project          *oid.ID
 	clearedproject   bool
@@ -3061,13 +3061,12 @@ func (m *ApplicationMutation) ResetProjectID() {
 }
 
 // SetVariables sets the "variables" field.
-func (m *ApplicationMutation) SetVariables(tv []types.ApplicationVariable) {
-	m.variables = &tv
-	m.appendvariables = nil
+func (m *ApplicationMutation) SetVariables(pr property.Schemas) {
+	m.variables = &pr
 }
 
 // Variables returns the value of the "variables" field in the mutation.
-func (m *ApplicationMutation) Variables() (r []types.ApplicationVariable, exists bool) {
+func (m *ApplicationMutation) Variables() (r property.Schemas, exists bool) {
 	v := m.variables
 	if v == nil {
 		return
@@ -3078,7 +3077,7 @@ func (m *ApplicationMutation) Variables() (r []types.ApplicationVariable, exists
 // OldVariables returns the old "variables" field's value of the Application entity.
 // If the Application object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationMutation) OldVariables(ctx context.Context) (v []types.ApplicationVariable, err error) {
+func (m *ApplicationMutation) OldVariables(ctx context.Context) (v property.Schemas, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
 	}
@@ -3092,23 +3091,9 @@ func (m *ApplicationMutation) OldVariables(ctx context.Context) (v []types.Appli
 	return oldValue.Variables, nil
 }
 
-// AppendVariables adds tv to the "variables" field.
-func (m *ApplicationMutation) AppendVariables(tv []types.ApplicationVariable) {
-	m.appendvariables = append(m.appendvariables, tv...)
-}
-
-// AppendedVariables returns the list of values that were appended to the "variables" field in this mutation.
-func (m *ApplicationMutation) AppendedVariables() ([]types.ApplicationVariable, bool) {
-	if len(m.appendvariables) == 0 {
-		return nil, false
-	}
-	return m.appendvariables, true
-}
-
 // ClearVariables clears the value of the "variables" field.
 func (m *ApplicationMutation) ClearVariables() {
 	m.variables = nil
-	m.appendvariables = nil
 	m.clearedFields[application.FieldVariables] = struct{}{}
 }
 
@@ -3121,7 +3106,6 @@ func (m *ApplicationMutation) VariablesCleared() bool {
 // ResetVariables resets all changes to the "variables" field.
 func (m *ApplicationMutation) ResetVariables() {
 	m.variables = nil
-	m.appendvariables = nil
 	delete(m.clearedFields, application.FieldVariables)
 }
 
@@ -3358,7 +3342,7 @@ func (m *ApplicationMutation) SetField(name string, value ent.Value) error {
 		m.SetProjectID(v)
 		return nil
 	case application.FieldVariables:
-		v, ok := value.([]types.ApplicationVariable)
+		v, ok := value.(property.Schemas)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3566,7 +3550,7 @@ type ApplicationInstanceMutation struct {
 	createTime         *time.Time
 	updateTime         *time.Time
 	name               *string
-	variables          *map[string]interface{}
+	variables          *property.Values
 	clearedFields      map[string]struct{}
 	application        *oid.ID
 	clearedapplication bool
@@ -3966,12 +3950,12 @@ func (m *ApplicationInstanceMutation) ResetName() {
 }
 
 // SetVariables sets the "variables" field.
-func (m *ApplicationInstanceMutation) SetVariables(value map[string]interface{}) {
-	m.variables = &value
+func (m *ApplicationInstanceMutation) SetVariables(pr property.Values) {
+	m.variables = &pr
 }
 
 // Variables returns the value of the "variables" field in the mutation.
-func (m *ApplicationInstanceMutation) Variables() (r map[string]interface{}, exists bool) {
+func (m *ApplicationInstanceMutation) Variables() (r property.Values, exists bool) {
 	v := m.variables
 	if v == nil {
 		return
@@ -3982,7 +3966,7 @@ func (m *ApplicationInstanceMutation) Variables() (r map[string]interface{}, exi
 // OldVariables returns the old "variables" field's value of the ApplicationInstance entity.
 // If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationInstanceMutation) OldVariables(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *ApplicationInstanceMutation) OldVariables(ctx context.Context) (v property.Values, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
 	}
@@ -4341,7 +4325,7 @@ func (m *ApplicationInstanceMutation) SetField(name string, value ent.Value) err
 		m.SetName(v)
 		return nil
 	case applicationinstance.FieldVariables:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(property.Values)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4600,7 +4584,7 @@ type ApplicationModuleRelationshipMutation struct {
 	updateTime         *time.Time
 	version            *string
 	name               *string
-	attributes         *map[string]interface{}
+	attributes         *property.Values
 	clearedFields      map[string]struct{}
 	application        *oid.ID
 	clearedapplication bool
@@ -4764,12 +4748,12 @@ func (m *ApplicationModuleRelationshipMutation) ResetName() {
 }
 
 // SetAttributes sets the "attributes" field.
-func (m *ApplicationModuleRelationshipMutation) SetAttributes(value map[string]interface{}) {
-	m.attributes = &value
+func (m *ApplicationModuleRelationshipMutation) SetAttributes(pr property.Values) {
+	m.attributes = &pr
 }
 
 // Attributes returns the value of the "attributes" field in the mutation.
-func (m *ApplicationModuleRelationshipMutation) Attributes() (r map[string]interface{}, exists bool) {
+func (m *ApplicationModuleRelationshipMutation) Attributes() (r property.Values, exists bool) {
 	v := m.attributes
 	if v == nil {
 		return
@@ -4984,7 +4968,7 @@ func (m *ApplicationModuleRelationshipMutation) SetField(name string, value ent.
 		m.SetName(v)
 		return nil
 	case applicationmodulerelationship.FieldAttributes:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(property.Values)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6317,7 +6301,7 @@ type ApplicationRevisionMutation struct {
 	createTime                      *time.Time
 	modules                         *[]types.ApplicationModule
 	appendmodules                   []types.ApplicationModule
-	inputVariables                  *map[string]interface{}
+	inputVariables                  *property.Values
 	inputPlan                       *string
 	output                          *string
 	deployerType                    *string
@@ -6697,12 +6681,12 @@ func (m *ApplicationRevisionMutation) ResetModules() {
 }
 
 // SetInputVariables sets the "inputVariables" field.
-func (m *ApplicationRevisionMutation) SetInputVariables(value map[string]interface{}) {
-	m.inputVariables = &value
+func (m *ApplicationRevisionMutation) SetInputVariables(pr property.Values) {
+	m.inputVariables = &pr
 }
 
 // InputVariables returns the value of the "inputVariables" field in the mutation.
-func (m *ApplicationRevisionMutation) InputVariables() (r map[string]interface{}, exists bool) {
+func (m *ApplicationRevisionMutation) InputVariables() (r property.Values, exists bool) {
 	v := m.inputVariables
 	if v == nil {
 		return
@@ -6713,7 +6697,7 @@ func (m *ApplicationRevisionMutation) InputVariables() (r map[string]interface{}
 // OldInputVariables returns the old "inputVariables" field's value of the ApplicationRevision entity.
 // If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationRevisionMutation) OldInputVariables(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *ApplicationRevisionMutation) OldInputVariables(ctx context.Context) (v property.Values, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldInputVariables is only allowed on UpdateOne operations")
 	}
@@ -7187,7 +7171,7 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 		m.SetModules(v)
 		return nil
 	case applicationrevision.FieldInputVariables:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(property.Values)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -8542,7 +8526,7 @@ type ConnectorMutation struct {
 	status                 *status.Status
 	_type                  *string
 	configVersion          *string
-	configData             *crypto.Map[string, interface{}]
+	configData             *crypto.Properties
 	enableFinOps           *bool
 	finOpsCustomPricing    *types.FinOpsCustomPricing
 	category               *string
@@ -8980,12 +8964,12 @@ func (m *ConnectorMutation) ResetConfigVersion() {
 }
 
 // SetConfigData sets the "configData" field.
-func (m *ConnectorMutation) SetConfigData(c crypto.Map[string, interface{}]) {
+func (m *ConnectorMutation) SetConfigData(c crypto.Properties) {
 	m.configData = &c
 }
 
 // ConfigData returns the value of the "configData" field in the mutation.
-func (m *ConnectorMutation) ConfigData() (r crypto.Map[string, interface{}], exists bool) {
+func (m *ConnectorMutation) ConfigData() (r crypto.Properties, exists bool) {
 	v := m.configData
 	if v == nil {
 		return
@@ -8996,7 +8980,7 @@ func (m *ConnectorMutation) ConfigData() (r crypto.Map[string, interface{}], exi
 // OldConfigData returns the old "configData" field's value of the Connector entity.
 // If the Connector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldConfigData(ctx context.Context) (v crypto.Map[string, interface{}], err error) {
+func (m *ConnectorMutation) OldConfigData(ctx context.Context) (v crypto.Properties, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldConfigData is only allowed on UpdateOne operations")
 	}
@@ -9500,7 +9484,7 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		m.SetConfigVersion(v)
 		return nil
 	case connector.FieldConfigData:
-		v, ok := value.(crypto.Map[string, interface{}])
+		v, ok := value.(crypto.Properties)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

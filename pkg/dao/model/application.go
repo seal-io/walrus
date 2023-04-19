@@ -14,8 +14,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -37,7 +37,7 @@ type Application struct {
 	// ID of the project to which the application belongs.
 	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Variables definition of the application, the variables of instance derived by this definition
-	Variables []types.ApplicationVariable `json:"variables,omitempty" sql:"variables"`
+	Variables property.Schemas `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
 	Edges ApplicationEdges `json:"edges,omitempty"`
@@ -92,10 +92,12 @@ func (*Application) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case application.FieldLabels, application.FieldVariables:
+		case application.FieldLabels:
 			values[i] = new([]byte)
 		case application.FieldID, application.FieldProjectID:
 			values[i] = new(oid.ID)
+		case application.FieldVariables:
+			values[i] = new(property.Schemas)
 		case application.FieldName, application.FieldDescription:
 			values[i] = new(sql.NullString)
 		case application.FieldCreateTime, application.FieldUpdateTime:
@@ -162,12 +164,10 @@ func (a *Application) assignValues(columns []string, values []any) error {
 				a.ProjectID = *value
 			}
 		case application.FieldVariables:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*property.Schemas); !ok {
 				return fmt.Errorf("unexpected type %T for field variables", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &a.Variables); err != nil {
-					return fmt.Errorf("unmarshal field variables: %w", err)
-				}
+			} else if value != nil {
+				a.Variables = *value
 			}
 		}
 	}

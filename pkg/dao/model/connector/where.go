@@ -93,7 +93,7 @@ func ConfigVersion(v string) predicate.Connector {
 }
 
 // ConfigData applies equality check predicate on the "configData" field. It's identical to ConfigDataEQ.
-func ConfigData(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigData(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldConfigData, v))
 }
 
@@ -468,42 +468,42 @@ func ConfigVersionContainsFold(v string) predicate.Connector {
 }
 
 // ConfigDataEQ applies the EQ predicate on the "configData" field.
-func ConfigDataEQ(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataEQ(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldConfigData, v))
 }
 
 // ConfigDataNEQ applies the NEQ predicate on the "configData" field.
-func ConfigDataNEQ(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataNEQ(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldNEQ(FieldConfigData, v))
 }
 
 // ConfigDataIn applies the In predicate on the "configData" field.
-func ConfigDataIn(vs ...crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataIn(vs ...crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldIn(FieldConfigData, vs...))
 }
 
 // ConfigDataNotIn applies the NotIn predicate on the "configData" field.
-func ConfigDataNotIn(vs ...crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataNotIn(vs ...crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldNotIn(FieldConfigData, vs...))
 }
 
 // ConfigDataGT applies the GT predicate on the "configData" field.
-func ConfigDataGT(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataGT(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldGT(FieldConfigData, v))
 }
 
 // ConfigDataGTE applies the GTE predicate on the "configData" field.
-func ConfigDataGTE(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataGTE(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldGTE(FieldConfigData, v))
 }
 
 // ConfigDataLT applies the LT predicate on the "configData" field.
-func ConfigDataLT(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataLT(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldLT(FieldConfigData, v))
 }
 
 // ConfigDataLTE applies the LTE predicate on the "configData" field.
-func ConfigDataLTE(v crypto.Map[string, interface{}]) predicate.Connector {
+func ConfigDataLTE(v crypto.Properties) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldConfigData, v))
 }
 

@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -38,7 +39,7 @@ type ApplicationRevision struct {
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty" sql:"modules"`
 	// Input variables of the revision.
-	InputVariables map[string]interface{} `json:"-" sql:"inputVariables"`
+	InputVariables property.Values `json:"-" sql:"inputVariables"`
 	// Input plan of the revision.
 	InputPlan string `json:"-" sql:"inputPlan"`
 	// Output of the revision.
@@ -96,10 +97,12 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationrevision.FieldModules, applicationrevision.FieldInputVariables, applicationrevision.FieldPreviousRequiredProviders:
+		case applicationrevision.FieldModules, applicationrevision.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
 		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(oid.ID)
+		case applicationrevision.FieldInputVariables:
+			values[i] = new(property.Values)
 		case applicationrevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
 		case applicationrevision.FieldStatus, applicationrevision.FieldStatusMessage, applicationrevision.FieldInputPlan, applicationrevision.FieldOutput, applicationrevision.FieldDeployerType:
@@ -167,12 +170,10 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 				}
 			}
 		case applicationrevision.FieldInputVariables:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*property.Values); !ok {
 				return fmt.Errorf("unexpected type %T for field inputVariables", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &ar.InputVariables); err != nil {
-					return fmt.Errorf("unmarshal field inputVariables: %w", err)
-				}
+			} else if value != nil {
+				ar.InputVariables = *value
 			}
 		case applicationrevision.FieldInputPlan:
 			if value, ok := values[i].(*sql.NullString); !ok {

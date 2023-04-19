@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ID filters vertices based on their ID field.
@@ -84,6 +85,11 @@ func UpdateTime(v time.Time) predicate.Application {
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
 func ProjectID(v oid.ID) predicate.Application {
 	return predicate.Application(sql.FieldEQ(FieldProjectID, v))
+}
+
+// Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
+func Variables(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldEQ(FieldVariables, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -374,6 +380,46 @@ func ProjectIDEqualFold(v oid.ID) predicate.Application {
 func ProjectIDContainsFold(v oid.ID) predicate.Application {
 	vc := string(v)
 	return predicate.Application(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
+// VariablesEQ applies the EQ predicate on the "variables" field.
+func VariablesEQ(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldEQ(FieldVariables, v))
+}
+
+// VariablesNEQ applies the NEQ predicate on the "variables" field.
+func VariablesNEQ(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldNEQ(FieldVariables, v))
+}
+
+// VariablesIn applies the In predicate on the "variables" field.
+func VariablesIn(vs ...property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldIn(FieldVariables, vs...))
+}
+
+// VariablesNotIn applies the NotIn predicate on the "variables" field.
+func VariablesNotIn(vs ...property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldNotIn(FieldVariables, vs...))
+}
+
+// VariablesGT applies the GT predicate on the "variables" field.
+func VariablesGT(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldGT(FieldVariables, v))
+}
+
+// VariablesGTE applies the GTE predicate on the "variables" field.
+func VariablesGTE(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldGTE(FieldVariables, v))
+}
+
+// VariablesLT applies the LT predicate on the "variables" field.
+func VariablesLT(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldLT(FieldVariables, v))
+}
+
+// VariablesLTE applies the LTE predicate on the "variables" field.
+func VariablesLTE(v property.Schemas) predicate.Application {
+	return predicate.Application(sql.FieldLTE(FieldVariables, v))
 }
 
 // VariablesIsNil applies the IsNil predicate on the "variables" field.

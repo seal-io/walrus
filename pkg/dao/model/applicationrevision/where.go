@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ID filters vertices based on their ID field.
@@ -84,6 +85,11 @@ func InstanceID(v oid.ID) predicate.ApplicationRevision {
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
 func EnvironmentID(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
+// InputVariables applies equality check predicate on the "inputVariables" field. It's identical to InputVariablesEQ.
+func InputVariables(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldInputVariables, v))
 }
 
 // InputPlan applies equality check predicate on the "inputPlan" field. It's identical to InputPlanEQ.
@@ -434,6 +440,46 @@ func EnvironmentIDEqualFold(v oid.ID) predicate.ApplicationRevision {
 func EnvironmentIDContainsFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldEnvironmentID, vc))
+}
+
+// InputVariablesEQ applies the EQ predicate on the "inputVariables" field.
+func InputVariablesEQ(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldInputVariables, v))
+}
+
+// InputVariablesNEQ applies the NEQ predicate on the "inputVariables" field.
+func InputVariablesNEQ(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldInputVariables, v))
+}
+
+// InputVariablesIn applies the In predicate on the "inputVariables" field.
+func InputVariablesIn(vs ...property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldInputVariables, vs...))
+}
+
+// InputVariablesNotIn applies the NotIn predicate on the "inputVariables" field.
+func InputVariablesNotIn(vs ...property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldInputVariables, vs...))
+}
+
+// InputVariablesGT applies the GT predicate on the "inputVariables" field.
+func InputVariablesGT(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldInputVariables, v))
+}
+
+// InputVariablesGTE applies the GTE predicate on the "inputVariables" field.
+func InputVariablesGTE(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldInputVariables, v))
+}
+
+// InputVariablesLT applies the LT predicate on the "inputVariables" field.
+func InputVariablesLT(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldInputVariables, v))
+}
+
+// InputVariablesLTE applies the LTE predicate on the "inputVariables" field.
+func InputVariablesLTE(v property.Values) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldInputVariables, v))
 }
 
 // InputPlanEQ applies the EQ predicate on the "inputPlan" field.

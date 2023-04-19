@@ -106,7 +106,7 @@ func (cu *ConnectorUpdate) SetConfigVersion(s string) *ConnectorUpdate {
 }
 
 // SetConfigData sets the "configData" field.
-func (cu *ConnectorUpdate) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorUpdate {
+func (cu *ConnectorUpdate) SetConfigData(c crypto.Properties) *ConnectorUpdate {
 	cu.mutation.SetConfigData(c)
 	return cu
 }
@@ -635,7 +635,7 @@ func (cuo *ConnectorUpdateOne) SetConfigVersion(s string) *ConnectorUpdateOne {
 }
 
 // SetConfigData sets the "configData" field.
-func (cuo *ConnectorUpdateOne) SetConfigData(c crypto.Map[string, interface{}]) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) SetConfigData(c crypto.Properties) *ConnectorUpdateOne {
 	cuo.mutation.SetConfigData(c)
 	return cuo
 }

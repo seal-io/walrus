@@ -42,7 +42,7 @@ type Connector struct {
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty" sql:"configVersion"`
 	// Connector config data.
-	ConfigData crypto.Map[string, interface{}] `json:"-" sql:"configData"`
+	ConfigData crypto.Properties `json:"configData,omitempty" sql:"configData"`
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty" sql:"enableFinOps"`
 	// Custom pricing user defined.
@@ -113,7 +113,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 		case connector.FieldLabels, connector.FieldStatus, connector.FieldFinOpsCustomPricing:
 			values[i] = new([]byte)
 		case connector.FieldConfigData:
-			values[i] = new(crypto.Map[string, interface{}])
+			values[i] = new(crypto.Properties)
 		case connector.FieldID:
 			values[i] = new(oid.ID)
 		case connector.FieldEnableFinOps:
@@ -198,7 +198,7 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				c.ConfigVersion = value.String
 			}
 		case connector.FieldConfigData:
-			if value, ok := values[i].(*crypto.Map[string, interface{}]); !ok {
+			if value, ok := values[i].(*crypto.Properties); !ok {
 				return fmt.Errorf("unexpected type %T for field configData", values[i])
 			} else if value != nil {
 				c.ConfigData = *value
@@ -299,7 +299,8 @@ func (c *Connector) String() string {
 	builder.WriteString("configVersion=")
 	builder.WriteString(c.ConfigVersion)
 	builder.WriteString(", ")
-	builder.WriteString("configData=<sensitive>")
+	builder.WriteString("configData=")
+	builder.WriteString(fmt.Sprintf("%v", c.ConfigData))
 	builder.WriteString(", ")
 	builder.WriteString("enableFinOps=")
 	builder.WriteString(fmt.Sprintf("%v", c.EnableFinOps))
