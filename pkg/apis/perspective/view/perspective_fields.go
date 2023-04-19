@@ -34,7 +34,6 @@ var BuiltInPerspectiveGroupFields = []PerspectiveField{
 	GroupByPerspectiveField("Day", types.GroupByFieldDay),
 	GroupByPerspectiveField("Week", types.GroupByFieldWeek),
 	GroupByPerspectiveField("Month", types.GroupByFieldMonth),
-	GroupByPerspectiveField("Year", types.GroupByFieldYear),
 }
 
 var BuiltInPerspectiveStepFields = []PerspectiveField{
@@ -42,7 +41,6 @@ var BuiltInPerspectiveStepFields = []PerspectiveField{
 	StepPerspectiveField("Daily", types.StepDay),
 	StepPerspectiveField("Weekly", types.StepWeek),
 	StepPerspectiveField("Monthly", types.StepMonth),
-	StepPerspectiveField("Yearly", types.StepYear),
 }
 
 type PerspectiveField struct {
