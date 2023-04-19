@@ -170,7 +170,11 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 	}
 
 	ai.Status = status.ApplicationInstanceStatusDeploying
-	ai, err := d.modelClient.ApplicationInstances().UpdateOne(ai).Save(ctx)
+	update, err := dao.ApplicationInstanceUpdate(d.modelClient, ai)
+	if err != nil {
+		return err
+	}
+	ai, err = update.Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -207,7 +211,12 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 		}
 		ai.Status = status.ApplicationInstanceStatusDeployFailed
 		ai.StatusMessage = err.Error()
-		updateErr := d.modelClient.ApplicationInstances().UpdateOne(ai).Exec(ctx)
+		instanceUpdate, updateErr := dao.ApplicationInstanceUpdate(d.modelClient, ai)
+		if updateErr != nil {
+			d.logger.Error(err)
+			return
+		}
+		updateErr = instanceUpdate.Exec(ctx)
 		if updateErr != nil {
 			d.logger.Errorf("update application instance status failed: %v", updateErr)
 		}
@@ -740,6 +749,7 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 	if err != nil {
 		return err
 	}
+	var instanceUpdate *model.ApplicationInstanceUpdateOne
 	switch revision.Status {
 	case status.ApplicationRevisionStatusSucceeded:
 		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
@@ -747,9 +757,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 			err = mc.ApplicationInstances().DeleteOne(appInstance).
 				Exec(ctx)
 		} else {
-			err = mc.ApplicationInstances().UpdateOne(appInstance).
-				SetStatus(status.ApplicationInstanceStatusDeployed).
-				Exec(ctx)
+			appInstance.Status = status.ApplicationInstanceStatusDeployed
+			instanceUpdate, err = dao.ApplicationInstanceUpdate(mc, appInstance)
+			if err != nil {
+				return err
+			}
+			err = instanceUpdate.Exec(ctx)
 		}
 	case status.ApplicationRevisionStatusFailed:
 		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
@@ -757,10 +770,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 		} else {
 			appInstance.Status = status.ApplicationInstanceStatusDeployFailed
 		}
-		err = mc.ApplicationInstances().UpdateOne(appInstance).
-			SetStatus(appInstance.Status).
-			SetStatusMessage(revision.StatusMessage).
-			Exec(ctx)
+		appInstance.StatusMessage = revision.StatusMessage
+		instanceUpdate, err = dao.ApplicationInstanceUpdate(mc, appInstance)
+		if err != nil {
+			return err
+		}
+		err = instanceUpdate.Exec(ctx)
 	}
 	if err != nil {
 		return err

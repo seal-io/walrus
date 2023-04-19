@@ -132,10 +132,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	// mark status to deleting.
-	entity, err = h.modelClient.ApplicationInstances().UpdateOne(entity).
-		SetStatus(status.ApplicationInstanceStatusDeleting).
-		SetStatusMessage("").
-		Save(ctx)
+	entity.Status = status.ApplicationInstanceStatusDeleting
+	entity.StatusMessage = ""
+	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
+	if err != nil {
+		return err
+	}
+	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -357,11 +360,14 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	}
 
 	// update instance, mark status to deploying.
-	entity, err = h.modelClient.ApplicationInstances().UpdateOne(entity).
-		SetVariables(entity.Variables).
-		SetStatus(status.ApplicationInstanceStatusDeploying).
-		SetStatusMessage("").
-		Save(ctx)
+	entity.Variables = req.Variables
+	entity.Status = status.ApplicationInstanceStatusDeploying
+	entity.StatusMessage = ""
+	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
+	if err != nil {
+		return err
+	}
+	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
 	}
