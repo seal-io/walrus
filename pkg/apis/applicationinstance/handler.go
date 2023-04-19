@@ -48,7 +48,7 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
+func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
 	var entity = req.Model()
 
 	// get deployer.
@@ -106,7 +106,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	return model.ExposeApplicationInstance(entity), nil
 }
 
-func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
+func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	var entity = req.Model()
 
 	// get deployer.
@@ -342,7 +342,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 
 // Extensional APIs
 
-func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) error {
+func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
 	var entity = req.Model()
 
 	// get deployer.
@@ -434,7 +434,7 @@ func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.Applica
 	}
 
 	err = update.Exec(ctx)
-	if err != nil {
+	if err != nil && !model.IsNotFound(err) {
 		logger.Errorf("failed to update status of instance %s: %v", entity.ID, err)
 		return err
 	}
