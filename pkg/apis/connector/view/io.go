@@ -91,8 +91,8 @@ type GetResponse = *model.ConnectorOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType    `json:"type"`
-	IDs        []types.ID               `json:"ids"`
-	Collection []*model.ConnectorOutput `json:"collection"`
+	IDs        []types.ID               `json:"ids,omitempty"`
+	Collection []*model.ConnectorOutput `json:"collection,omitempty"`
 }
 type StreamRequest struct {
 	ID types.ID `uri:"id"`

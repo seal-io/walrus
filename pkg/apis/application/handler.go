@@ -135,7 +135,6 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 				}
 				streamData = view.StreamResponse{
 					Type:       dm.Type,
-					IDs:        dm.Data,
 					Collection: []*model.ApplicationOutput{entity},
 				}
 			case datamessage.EventDelete:
@@ -286,7 +285,6 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 			}
 			streamData = view.StreamResponse{
 				Type:       dm.Type,
-				IDs:        dm.Data,
 				Collection: model.ExposeApplications(entities),
 			}
 		case datamessage.EventDelete:

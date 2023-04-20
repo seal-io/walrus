@@ -52,8 +52,8 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 
 type StreamResponse struct {
 	Type       datamessage.EventType `json:"type"`
-	IDs        []types.ID            `json:"ids"`
-	Collection []ApplicationResource `json:"collection"`
+	IDs        []types.ID            `json:"ids,omitempty"`
+	Collection []ApplicationResource `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {

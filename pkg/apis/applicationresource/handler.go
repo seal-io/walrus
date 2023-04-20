@@ -187,7 +187,6 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 			}
 			streamData = view.StreamResponse{
 				Type:       dm.Type,
-				IDs:        dm.Data,
 				Collection: resp,
 			}
 		case datamessage.EventDelete:

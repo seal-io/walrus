@@ -138,8 +138,8 @@ type GetResponse = *model.ApplicationInstanceOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType              `json:"type"`
-	IDs        []types.ID                         `json:"ids"`
-	Collection []*model.ApplicationInstanceOutput `json:"collection"`
+	IDs        []types.ID                         `json:"ids,omitempty"`
+	Collection []*model.ApplicationInstanceOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {

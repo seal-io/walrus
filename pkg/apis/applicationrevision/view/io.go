@@ -32,8 +32,8 @@ type GetResponse = *model.ApplicationRevisionOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType              `json:"type"`
-	IDs        []types.ID                         `json:"ids"`
-	Collection []*model.ApplicationRevisionOutput `json:"collection"`
+	IDs        []types.ID                         `json:"ids,omitempty"`
+	Collection []*model.ApplicationRevisionOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
