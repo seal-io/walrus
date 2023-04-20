@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationInstance) ([]*model.ApplicationInstanceCreate, error) {
@@ -25,7 +26,7 @@ func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationI
 
 		// optional.
 		c.SetStatus(r.Status)
-		c.SetStatusMessage(r.StatusMessage)
+		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
 		c.SetVariables(r.Variables)
 
 		rrs[i] = c
@@ -43,8 +44,11 @@ func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInsta
 	}
 
 	var c = mc.ApplicationInstances().UpdateOne(input).
-		SetStatus(input.Status).
-		SetStatusMessage(input.StatusMessage)
+		SetStatusMessage(strs.NormalizeSpecialChars(input.StatusMessage)).
+		SetVariables(input.Variables)
+	if input.Status != "" {
+		c.SetStatus(input.Status)
+	}
 
 	return c, nil
 }

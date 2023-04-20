@@ -204,6 +204,10 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 
 // ParseStateProviders parse terraform state and get providers.
 func ParseStateProviders(s string) ([]string, error) {
+	if s == "" {
+		return nil, nil
+	}
+
 	var providers = sets.NewString()
 	var revisionState state
 	if err := json.Unmarshal([]byte(s), &revisionState); err != nil {
