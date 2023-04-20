@@ -1,0 +1,17 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{ define "io/additional/applicationresource" }}
+
+{{- if eq $.Name "ApplicationResource" }}
+    // MarshalJSON implements the json.Marshaler interface.
+	func (in {{ $.Name }}Output) MarshalJSON() ([]byte, error) {
+	    if in.Module != "" {
+			// show application module name only.
+			in.Module = strings.Split(in.Module, "/")[0]
+        }
+		type Alias {{ $.Name }}Output
+		return json.Marshal((*Alias)(&in))
+    }
+{{- end }}
+
+{{ end }}

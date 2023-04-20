@@ -132,6 +132,11 @@ type {{ $.Name }}Output struct {
 	{{- end }}
 }
 
+
+{{/* generate io additional function */}}
+{{ template "io/additional" $ }}
+
+
 // Expose{{ $.Name }} converts the {{ $.Name }} to {{ $.Name }}Output.
 func Expose{{ $.Name }}(in *{{ $.Name }}) *{{ $.Name }}Output {
 	if in == nil {
@@ -179,4 +184,13 @@ func Expose{{ plural $.Name }}(in []*{{ $.Name }}) []*{{ $.Name }}Output {
 	return out
 }
 
+{{ end }}
+
+{{/* A template for adding additional methods or helpers for the generated io model. */}}
+{{ define "io/additional" }}
+	{{- with $tmpls := matchTemplate "io/additional/*"  }}
+		{{- range $tmpl := $tmpls }}
+			{{- xtemplate $tmpl $ }}
+		{{- end }}
+	{{- end }}
 {{ end }}
