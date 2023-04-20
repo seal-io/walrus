@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/apis/applicationresource/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -15,7 +14,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -181,28 +179,8 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 		var streamData view.StreamResponse
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
-			// filter out component ids.
-			entities, err := query.Clone().
-				Where(applicationresource.IDIn(dm.Data...)).
-				Select(
-					applicationresource.FieldID,
-					applicationresource.FieldCompositionID).
-				All(ctx)
-			if err != nil {
-				return err
-			}
-			var ids = sets.Set[oid.ID]{}
-			for i := range entities {
-				if entities[i].CompositionID != "" {
-					// consume composition id.
-					ids.Insert(entities[i].CompositionID)
-					continue
-				}
-				ids.Insert(entities[i].ID)
-			}
-			// get entities by filtered out ids.
 			resp, err = getCollection(ctx,
-				query.Clone().Where(applicationresource.IDIn(ids.UnsortedList()...)),
+				query.Clone().Where(applicationresource.IDIn(dm.Data...)),
 				req.WithoutKeys)
 			if err != nil {
 				return err
