@@ -6,6 +6,8 @@
 package model
 
 import (
+	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -110,6 +112,16 @@ type ApplicationResourceOutput struct {
 	Composition *ApplicationResourceOutput `json:"composition,omitempty"`
 	// Application resources that make up this resource.
 	Components []*ApplicationResourceOutput `json:"components,omitempty"`
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (in ApplicationResourceOutput) MarshalJSON() ([]byte, error) {
+	if in.Module != "" {
+		// show application module name only.
+		in.Module = strings.Split(in.Module, "/")[0]
+	}
+	type Alias ApplicationResourceOutput
+	return json.Marshal((*Alias)(&in))
 }
 
 // ExposeApplicationResource converts the ApplicationResource to ApplicationResourceOutput.

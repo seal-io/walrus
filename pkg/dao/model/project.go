@@ -6,7 +6,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/utils/json"
 )
 
 // Project is the model entity for the Project schema.

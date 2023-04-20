@@ -6,7 +6,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/utils/json"
 )
 
 // ApplicationModuleRelationship is the model entity for the ApplicationModuleRelationship schema.
