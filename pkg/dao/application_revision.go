@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationRevision) ([]*model.ApplicationRevisionCreate, error) {
@@ -26,7 +27,7 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 
 		// optional.
 		c.SetStatus(r.Status)
-		c.SetStatusMessage(r.StatusMessage)
+		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
 		if r.Modules != nil {
 			c.SetModules(r.Modules)
 		}
@@ -46,4 +47,31 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 		rrs[i] = c
 	}
 	return rrs, nil
+}
+
+func ApplicationRevisionUpdate(mc model.ClientSet, input *model.ApplicationRevision) (*model.ApplicationRevisionUpdateOne, error) {
+	if input == nil {
+		return nil, errors.New("invalid input: nil entity")
+	}
+
+	if input.ID == "" {
+		return nil, errors.New("invalid input: illegal predicates")
+	}
+
+	var c = mc.ApplicationRevisions().UpdateOne(input).
+		SetStatusMessage(strs.NormalizeSpecialChars(input.StatusMessage))
+	if input.Status != "" {
+		c.SetStatus(input.Status)
+	}
+	if input.InputPlan != "" {
+		c.SetInputPlan(input.InputPlan)
+	}
+	if input.Output != "" {
+		c.SetOutput(input.Output)
+	}
+	if input.Duration != 0 {
+		c.SetDuration(input.Duration)
+	}
+
+	return c, nil
 }

@@ -361,7 +361,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 			return nil, err
 		}
 		stateRequiredProviderSet := sets.New(stateRequiredProviders...)
-		var requiredProviders []types.ProviderRequirement
+		var requiredProviders = make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
 		for _, p := range previousRequiredProviders {
 			if stateRequiredProviderSet.Has(p.Name) {
 				requiredProviders = append(requiredProviders, p)
