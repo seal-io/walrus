@@ -54,8 +54,7 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.ApplicationRevisions().
-		Get(ctx, req.ID)
+	var entity, err = h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -274,35 +273,47 @@ func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformState
 }
 
 // UpdateTerraformStates update the terraform states of the application revision deployment.
-func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) error {
-	var entity, err = h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
-		SetOutput(string(req.RawMessage)).
-		Save(ctx)
+func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) (err error) {
+	var logger = log.WithName("platformtf").WithName("state")
+
+	entity, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	entity.Output = string(req.RawMessage)
+	update, err := dao.ApplicationRevisionUpdate(h.modelClient, entity)
+	if err != nil {
+		return err
+	}
+	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if err != nil {
-			statusMessage := entity.StatusMessage + err.Error()
+		if err == nil {
+			return
+		}
 
-			// timeout context
-			updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
+		// timeout context
+		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-			updateRevision, updateErr := h.modelClient.ApplicationRevisions().UpdateOne(req.Model()).
-				SetStatus(status.ApplicationRevisionStatusFailed).
-				SetStatusMessage(statusMessage).
-				Save(updateCtx)
+		entity.Status = status.ApplicationRevisionStatusFailed
+		entity.StatusMessage = err.Error()
+		revisionUpdate, updateErr := dao.ApplicationRevisionUpdate(h.modelClient, entity)
+		if updateErr != nil {
+			logger.Error(updateErr)
+			return
+		}
+		updateRevision, updateErr := revisionUpdate.Save(updateCtx)
+		if updateErr != nil {
+			logger.Errorf("update application revision status failed: %v", err)
+			return
+		}
 
-			if updateErr != nil {
-				log.Errorf("update application revision status failed: %v", updateErr)
-				return
-			}
-
-			if err = revisionbus.Notify(ctx, h.modelClient, updateRevision); err != nil {
-				log.Errorf("add application revision update notify err: %w", err)
-			}
+		if nerr := revisionbus.Notify(ctx, h.modelClient, updateRevision); nerr != nil {
+			logger.Errorf("notify application revision failed: %v", nerr)
 		}
 	}()
 
