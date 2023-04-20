@@ -70,7 +70,6 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 				if err != nil && !model.IsNotFound(err) {
 					return err
 				}
-				entity.Module = parseModuleName(entity.Module)
 				keys, err := getKeys(ctx, entity)
 				if err != nil {
 					return err
@@ -295,9 +294,6 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 	if err != nil {
 		return nil, err
 	}
-	for _, r := range entities {
-		r.Module = parseModuleName(r.Module)
-	}
 
 	var resp = make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
@@ -325,9 +321,4 @@ func getKeys(ctx context.Context, r *model.ApplicationResource) (*operator.Keys,
 		return nil, fmt.Errorf("cannot connect %s", r.Edges.Connector.Name)
 	}
 	return op.GetKeys(ctx, r)
-}
-
-// parseMoudleName parse moudle name only show application module name in UI.
-func parseModuleName(moduleName string) string {
-	return strings.Split(moduleName, "/")[0]
 }

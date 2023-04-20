@@ -121,7 +121,11 @@ func configTemplate() {
 		Name:   "io",
 		Format: pkgf("%s_io.go"),
 		ExtendPatterns: []string{
-			"io", // donot treat as external templates.
+			// combine the go templates that matches the following patterns together,
+			// render and output to the file path formatted by `pkgf`.
+			"io",
+			"io/additional",
+			"io/additional/*",
 		},
 	})
 }
