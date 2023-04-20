@@ -85,10 +85,9 @@ func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	if err = r.syncApplicationRevisionStatus(ctx, job); err != nil {
-		// ignores error, since they can't be fixed by an immediate requeue.
-		var ignore = model.IsNotFound(err)
-		return ctrl.Result{Requeue: !ignore}, err
+	err = r.syncApplicationRevisionStatus(ctx, job)
+	if err != nil && !model.IsNotFound(err) {
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
