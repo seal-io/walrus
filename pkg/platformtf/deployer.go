@@ -98,7 +98,7 @@ func (d Deployer) Type() deployer.Type {
 }
 
 // Apply will apply the application to deploy the application.
-func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) error {
+func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) (err error) {
 	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeApply)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 			return
 		}
 		// report to application revision.
-		_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+		_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 	}()
 
 	return d.CreateK8sJob(ctx, CreateJobOptions{
@@ -123,7 +123,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 // Destroy will destroy the resource of the application.
 // 1. get the latest revision, and checkAppRevision it if it is running.
 // 2. if not running, then destroy resources.
-func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) error {
+func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) (err error) {
 	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeDestroy)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 			return
 		}
 		// report to application revision.
-		_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+		_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 	}()
 
 	// if no resource exists, skip job and set revision status succeed.
@@ -145,14 +145,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		return err
 	}
 	if !exist {
-		ar, err = d.modelClient.ApplicationRevisions().UpdateOne(ar).
-			SetStatus(status.ApplicationRevisionStatusSucceeded).
-			Save(ctx)
-		if err != nil {
-			return err
-		}
-
-		return revisionbus.Notify(ctx, d.modelClient, ar)
+		return d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusSucceeded, ar.StatusMessage)
 	}
 
 	return d.CreateK8sJob(ctx, CreateJobOptions{
@@ -164,7 +157,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 }
 
 // Rollback instance to a specific revision
-func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) error {
+func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) (err error) {
 	if opts.ApplicationRevision == nil || opts.ApplicationRevision.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")
 	}
@@ -206,7 +199,7 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 		}
 		if ar != nil {
 			// report to application revision.
-			_ = d.updateRevision(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
+			_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 			return
 		}
 		ai.Status = status.ApplicationInstanceStatusDeployFailed
@@ -279,12 +272,16 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
-func (d Deployer) updateRevision(ctx context.Context, ar *model.ApplicationRevision, s, m string) error {
+func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ApplicationRevision, s, m string) error {
 	// report to application revision.
-	ar, err := d.modelClient.ApplicationRevisions().UpdateOne(ar).
-		SetStatus(s).
-		SetStatusMessage(m).
-		Save(ctx)
+	ar.Status = s
+	ar.StatusMessage = m
+	update, err := dao.ApplicationRevisionUpdate(d.modelClient, ar)
+	if err != nil {
+		return err
+	}
+
+	ar, err = update.Save(ctx)
 	if err != nil {
 		d.logger.Error(err)
 		return err
@@ -495,9 +492,12 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// save input plan to app revision
-	revision, err := d.modelClient.ApplicationRevisions().UpdateOne(opts.ApplicationRevision).
-		SetInputPlan(string(secretMaps[config.FileMain])).
-		Save(ctx)
+	opts.ApplicationRevision.InputPlan = string(secretMaps[config.FileMain])
+	update, err := dao.ApplicationRevisionUpdate(d.modelClient, opts.ApplicationRevision)
+	if err != nil {
+		return nil, err
+	}
+	revision, err := update.Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -732,7 +732,7 @@ func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID t
 	return prevRequiredProviders, nil
 }
 
-func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) error {
+func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
 	var (
 		mc       = bm.TransactionalModelClient
 		revision = bm.Refer
