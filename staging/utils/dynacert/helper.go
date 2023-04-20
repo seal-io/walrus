@@ -96,8 +96,8 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 		return nil, err
 	}
 
-	log.WithName("dynacert").Debugf("generated server certificate %q signed by CA %q, not before %v, not after %v",
-		x509Cert.Subject, caX509Cert.Subject, x509Cert.NotBefore, x509Cert.NotAfter)
+	log.WithName("dynacert").Debugf("generated server %v certificate %q signed by CA %q, not before %v, not after %v",
+		server, x509Cert.Subject, caX509Cert.Subject, x509Cert.NotBefore, x509Cert.NotAfter)
 	return x509Cert, nil
 }
 
