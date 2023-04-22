@@ -190,6 +190,7 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 		providerBlocks block.Blocks
 		moduleBlocks   block.Blocks
 		variableBlocks block.Blocks
+		outputBlocks   block.Blocks
 	)
 	// load terraform block
 	if opts.TerraformOptions != nil {
@@ -212,8 +213,12 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 		variableBlocks = loadVariableBlocks(opts.VariableOptions)
 	}
 
-	blocks = make(block.Blocks, 0, block.CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks))
-	blocks = block.AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks)
+	if len(opts.OutputOptions) != 0 {
+		outputBlocks = loadOutputBlocks(opts.OutputOptions)
+	}
+
+	blocks = make(block.Blocks, 0, block.CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks, outputBlocks))
+	blocks = block.AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks, outputBlocks)
 
 	return
 }
@@ -348,6 +353,31 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 			Labels: []string{opts.Prefix + n},
 			Attributes: map[string]interface{}{
 				"type": `{{` + t + `}}`,
+			},
+		})
+	}
+
+	return blocks
+}
+
+// loadOutputBlocks returns terraform outputs config block.
+func loadOutputBlocks(opts OutputOptions) block.Blocks {
+	blockConfig := func(output Output) (string, string) {
+		label := fmt.Sprintf("%s_%s", output.ModuleName, output.Name)
+		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ModuleName, output.Name)
+		return label, value
+	}
+
+	// module output.
+	var blocks = make(block.Blocks, 0, len(opts))
+	for _, o := range opts {
+		label, value := blockConfig(o)
+		blocks = append(blocks, &block.Block{
+			Type:   block.TypeOutput,
+			Labels: []string{label},
+			Attributes: map[string]interface{}{
+				"value":     value,
+				"sensitive": o.Sensitive,
 			},
 		})
 	}

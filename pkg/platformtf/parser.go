@@ -3,6 +3,7 @@ package platformtf
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -98,6 +100,47 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 	}
 
 	return applicationResources, nil
+}
+
+func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue, error) {
+	var revisionState state
+	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
+		return nil, err
+	}
+
+	if len(revision.Output) == 0 || revision.Status != status.ApplicationRevisionStatusSucceeded {
+		return nil, nil
+	}
+
+	// sort by the module name length.
+	var moduleNames = make([]string, len(revision.Modules))
+	for i, v := range revision.Modules {
+		moduleNames[i] = v.Name
+	}
+	sort.SliceStable(moduleNames, func(i, j int) bool {
+		return len(moduleNames[i]) > len(moduleNames[j])
+	})
+
+	var outputs []types.OutputValue
+	for n, o := range revisionState.Outputs {
+		for _, mn := range moduleNames {
+			if strings.Index(n, mn) == 0 {
+				val := o.Value
+				if o.Sensitive {
+					val = []byte(`"<sensitive>"`)
+				}
+				outputs = append(outputs, types.OutputValue{
+					Name:       strings.TrimPrefix(n, mn+"_"), // name format is moduleName_outputName.
+					Value:      val,
+					Type:       o.Type,
+					Sensitive:  o.Sensitive,
+					ModuleName: mn,
+				})
+				break
+			}
+		}
+	}
+	return outputs, nil
 }
 
 // ParseInstanceModuleName get the module name from the module instance string.
