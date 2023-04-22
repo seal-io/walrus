@@ -467,6 +467,16 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, s := range secrets {
 		secretNames = append(secretNames, s.Name)
 	}
+
+	// prepare outputs
+	var outputCount int
+	for _, v := range moduleConfigs {
+		outputCount += len(v.Outputs)
+	}
+	var outputs = make([]config.Output, 0, outputCount)
+	for _, v := range moduleConfigs {
+		outputs = append(outputs, v.Outputs...)
+	}
 	var variableNameAndTypes = opts.ApplicationRevision.InputVariables.StringTypesWith(variableSchemas)
 	var secretOptionMaps = map[string]config.CreateOptions{
 		config.FileMain: {
@@ -490,6 +500,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				SecretNames:          secretNames,
 				Prefix:               _varPrefix,
 			},
+			OutputOptions: outputs,
 		},
 		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
 	}
@@ -895,6 +906,13 @@ func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion
 		if attrValue != "" {
 			mc.Attributes[v.Name] = attrValue
 		}
+	}
+
+	mc.Outputs = make([]config.Output, len(modVer.Schema.Outputs))
+	for i, v := range modVer.Schema.Outputs {
+		mc.Outputs[i].ModuleName = appMod.Name
+		mc.Outputs[i].Sensitive = v.Sensitive
+		mc.Outputs[i].Name = v.Name
 	}
 	return
 }

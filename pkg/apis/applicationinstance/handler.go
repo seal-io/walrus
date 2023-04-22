@@ -2,6 +2,7 @@ package applicationinstance
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
@@ -12,6 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
+	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -435,6 +437,28 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 	return &view.AccessEndpointResponse{
 		Endpoints: endpoints,
 	}, nil
+}
+
+func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.OutputResponse, error) {
+	ar, err := h.modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.InstanceID(req.ID)).
+		Select(
+			applicationrevision.FieldOutput,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldStatus,
+		).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error get latest application revision")
+	}
+
+	o, err := platformtf.ParseStateOutput(ar)
+	if err != nil {
+		return nil, fmt.Errorf("error get outputs: %w", err)
+	}
+
+	return o, nil
 }
 
 func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance, s, m string) error {

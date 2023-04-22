@@ -18,6 +18,8 @@ type ModuleConfig struct {
 	ModuleVersion *model.ModuleVersion
 	// Attributes is the attributes of the module.
 	Attributes map[string]interface{}
+	// Outputs is the module outputs.
+	Outputs []Output
 }
 
 // CreateOptions represents the CreateOptions of the Config.
@@ -27,6 +29,7 @@ type CreateOptions struct {
 	ProviderOptions  *ProviderOptions
 	ModuleOptions    *ModuleOptions
 	VariableOptions  *VariableOptions
+	OutputOptions    OutputOptions
 }
 
 type (
@@ -69,5 +72,14 @@ type (
 		SecretNames []string
 		// VariableNameAndTypes is the map of the variable name and type.
 		VariableNameAndTypes map[string]string
+	}
+
+	// OutputOptions is the options to create outputs blocks.
+	OutputOptions []Output
+	// Output indicate the output name and module
+	Output struct {
+		ModuleName string
+		Name       string
+		Sensitive  bool
 	}
 )

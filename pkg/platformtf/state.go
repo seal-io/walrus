@@ -1,6 +1,7 @@
 package platformtf
 
 import (
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -15,9 +16,9 @@ type state struct {
 }
 
 type outputState struct {
-	ValueRaw     json.RawMessage `json:"value"`
-	ValueTypeRaw json.RawMessage `json:"type"`
-	Sensitive    bool            `json:"sensitive,omitempty"`
+	Value     property.Value `json:"value"`
+	Type      property.Type  `json:"type"`
+	Sensitive bool           `json:"sensitive,omitempty"`
 }
 
 type resourceState struct {

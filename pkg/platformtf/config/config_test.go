@@ -33,6 +33,33 @@ func TestCreateConfigToBytes(t *testing.T) {
 var1    = "ami-0c55b159cbfafe1f0"
 `),
 		},
+		{
+			name: "test create config to bytes with outputs",
+			option: CreateOptions{
+				OutputOptions: []Output{
+					{
+						ModuleName: "test-module",
+						Name:       "test-output",
+					},
+					{
+						ModuleName: "test-module",
+						Name:       "test-output-sensitive",
+						Sensitive:  true,
+					},
+				},
+			},
+			expected: []byte(`output "test-module_test-output" {
+  sensitive = false
+  value     = module.test-module.test-output
+}
+
+output "test-module_test-output-sensitive" {
+  sensitive = true
+  value     = module.test-module.test-output-sensitive
+}
+
+`),
+		},
 	}
 
 	for _, tt := range testCases {

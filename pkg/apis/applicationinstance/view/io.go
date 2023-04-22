@@ -294,3 +294,27 @@ type ResourceEndpoint struct {
 	// Endpoints is access endpoints.
 	Endpoints []string `json:"endpoints,omitempty"`
 }
+
+type OutputRequest struct {
+	_ struct{} `route:"GET=/outputs"`
+
+	*model.ApplicationInstanceQueryInput `uri:",inline"`
+}
+
+func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
+	var modelClient = input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	_, err := modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(r.ID)).
+		OnlyID(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get application instance")
+	}
+	return nil
+}
+
+type OutputResponse = []types.OutputValue
