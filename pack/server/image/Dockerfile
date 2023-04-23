@@ -67,12 +67,12 @@ RUN set -eux; \
     gosu postgres /etc/init.d/postgresql stop
 
 # get k3s
-ENV K3S_IMAGE_DIR=/var/lib/seal/k3s/agent/images \
-    K3S_MANIFEST_DIR=/var/lib/seal/k3s/server/manifests \
-    K3S_RESOLV_CONF=/etc/resolv.conf
-COPY --from=rancher/k3s:v1.22.7-k3s1 \
+VOLUME /var/lib/k3s
+ENV K3S_DATA_DIR=/var/lib/k3s \
+    K3S_RESOLV_CONF=/etc/resolv.conf \
+    ETCDCTL_API=3
+COPY --from=rancher/k3s:v1.25.5-k3s1 \
     /bin/blkid \
-    /bin/charon \
     /bin/cni \
     /bin/conntrack \
     /bin/containerd \
@@ -80,10 +80,10 @@ COPY --from=rancher/k3s:v1.22.7-k3s1 \
     /bin/ethtool \
     /bin/ip \
     /bin/ipset \
+    /bin/k3s \
     /bin/losetup \
     /bin/pigz \
     /bin/runc \
-    /bin/swanctl \
     /bin/which \
     /bin/aux/xtables-legacy-multi \
     /usr/bin/
@@ -93,13 +93,12 @@ RUN set -eux; \
     ln -s /usr/bin/cni /usr/bin/host-local && \
     ln -s /usr/bin/cni /usr/bin/loopback && \
     ln -s /usr/bin/cni /usr/bin/portmap && \
-    ln -s /usr/bin/containerd /usr/bin/crictl && \
-    ln -s /usr/bin/containerd /usr/bin/ctr && \
-    ln -s /usr/bin/containerd /usr/bin/k3s && \
-    ln -s /usr/bin/containerd /usr/bin/k3s-agent && \
-    ln -s /usr/bin/containerd /usr/bin/k3s-etcd-snapshot && \
-    ln -s /usr/bin/containerd /usr/bin/k3s-server && \
-    ln -s /usr/bin/containerd /usr/bin/kubectl && \
+    ln -s /usr/bin/k3s /usr/bin/crictl && \
+    ln -s /usr/bin/k3s /usr/bin/ctr && \
+    ln -s /usr/bin/k3s /usr/bin/k3s-agent && \
+    ln -s /usr/bin/k3s /usr/bin/k3s-etcd-snapshot && \
+    ln -s /usr/bin/k3s /usr/bin/k3s-server && \
+    ln -s /usr/bin/k3s /usr/bin/kubectl && \
     ln -s /usr/bin/pigz /usr/bin/unpigz && \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/iptables && \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/iptables-save && \
@@ -110,20 +109,14 @@ RUN set -eux; \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-restore && \
     ln -s /usr/bin/xtables-legacy-multi /usr/bin/ip6tables-translate; \
     \
-    case "${TARGETARCH}" in \
-      amd64|x86_64) \
-        IMAGE_URL='https://github.com/k3s-io/k3s/releases/download/v1.22.7%2Bk3s1/k3s-airgap-images-amd64.tar.zst'; \
-        IMAGE_SUM='51b342d888bc7ece1a56909435a25a67b377286717773fb363f2c88fcfe4e3d7'; \
-        ;; \
-      aarch64|arm64) \
-        IMAGE_URL='https://github.com/k3s-io/k3s/releases/download/v1.22.7%2Bk3s1/k3s-airgap-images-arm64.tar.zst'; \
-        IMAGE_SUM='8f948ed9635ecb420daae47afc246f578409b58e11bb19f55c84973681e6104e'; \
-        ;; \
-    esac; \
+    IMAGE_URL="https://github.com/k3s-io/k3s/releases/download/v1.25.5%2Bk3s1/k3s-airgap-images-${TARGETARCH}.tar.zst"; \
+    mkdir -p ${K3S_DATA_DIR}/agent/images && \
+    axel -n 16 -o ${K3S_DATA_DIR}/agent/images/k3s-images.tar.zst ${IMAGE_URL}; \
     \
-    mkdir -p ${K3S_IMAGE_DIR} && \
-    axel -n 16 -o ${K3S_IMAGE_DIR}/k3s-images.tar.zst ${IMAGE_URL} && \
-    echo "${IMAGE_SUM} *${K3S_IMAGE_DIR}/k3s-images.tar.zst" | sha256sum -c -
+    ETCDCTL_VER="v3.5.5"; \
+    ETCDCTL_URL="https://github.com/etcd-io/etcd/releases/download/${ETCDCTL_VER}/etcd-${ETCDCTL_VER}-linux-${TARGETARCH}.tar.gz"; \
+    axel -n 16 -o /tmp/etcdctl.tar.gz ${ETCDCTL_URL} && \
+    tar -xzvf /tmp/etcdctl.tar.gz --directory /usr/bin/ --strip-components=1 --no-same-owner etcd-${ETCDCTL_VER}-linux-${TARGETARCH}/etcdctl
 
 # get casdoor
 ENV BEEGO_CONFIG_PATH="/etc/casdoor/app.conf"
