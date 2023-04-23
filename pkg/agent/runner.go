@@ -45,5 +45,6 @@ func (r *Agent) Action(cmd *cli.Command) {
 }
 
 func (r *Agent) Run(ctx context.Context) error {
-	return nil
+	<-ctx.Done()
+	return ctx.Err()
 }

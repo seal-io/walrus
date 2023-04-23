@@ -29,14 +29,6 @@ ENV LANG='en_US.UTF-8' \
     LANGUAGE='en_US:en' \
     LC_ALL='en_US.UTF-8'
 
-# set user/group IDs
-RUN set -eux; \
-	groupadd -r seal --gid=1000 && \
-	useradd -r -g seal --uid=1000 --home-dir=/var/lib/seal --shell=/bin/bash seal; \
-    \
-	mkdir -p /var/lib/seal && \
-	chown -R seal:seal /var/lib/seal
-
 # get postgres
 VOLUME /var/lib/postgresql
 RUN set -eux; \
@@ -128,7 +120,7 @@ ARG SERVE_UI_INDEX="file:///var/lib/seal/ui"
 ENV SERVER_SETTING_SERVE_URL="" \
     SERVER_SETTING_SERVE_UI_INDEX="${SERVE_UI_INDEX}"
 EXPOSE 80 443
-VOLUME /var/lib/seal
+VOLUME /var/run/seal
 COPY /image/ /
 COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/seal
-CMD ["/entrypoint.sh", "seal", "--log-debug", "--log-verbosity=4"]
+CMD ["seal", "--log-debug", "--log-verbosity=4"]
