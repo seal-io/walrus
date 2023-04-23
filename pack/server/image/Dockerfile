@@ -64,7 +64,9 @@ RUN set -eux; \
       gosu postgres echo "host  all  root  127.0.0.1/32  trust" >> /etc/postgresql/main/pg_hba.conf && \
       gosu postgres echo "host  all  root  ::1/128       trust" >> /etc/postgresql/main/pg_hba.conf && \
       gosu postgres echo "host  all  all   0.0.0.0/0     scram-sha-256" >> /etc/postgresql/main/pg_hba.conf && \
-    gosu postgres /etc/init.d/postgresql stop
+    gosu postgres /etc/init.d/postgresql stop; \
+    \
+    sed -i "s/data_directory/#data_directory/" /etc/postgresql/main/postgresql.conf
 
 # get k3s
 VOLUME /var/lib/k3s
