@@ -24,6 +24,7 @@ import (
 	klogv2 "k8s.io/klog/v2"
 
 	"github.com/seal-io/seal/pkg/casdoor"
+	"github.com/seal-io/seal/pkg/consts"
 	"github.com/seal-io/seal/pkg/dao/model"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // default = ent
 	"github.com/seal-io/seal/pkg/k8s"
@@ -69,7 +70,7 @@ func New() *Server {
 	return &Server{
 		BindAddress:           "0.0.0.0",
 		EnableTls:             true,
-		TlsCertDir:            filepath.FromSlash("/var/run/seal"),
+		TlsCertDir:            filepath.FromSlash(filepath.Join(consts.DataDir, "tls")),
 		ConnQPS:               10,
 		ConnBurst:             20,
 		KubeConnTimeout:       5 * time.Minute,

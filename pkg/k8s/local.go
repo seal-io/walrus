@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/seal-io/seal/pkg/consts"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/osx"
@@ -76,7 +77,18 @@ func (Embedded) Run(ctx context.Context) error {
 	var (
 		k3sDataDir       = osx.Getenv("K3S_DATA_DIR", "/var/lib/k3s")
 		k3sServerDataDir = filepath.Join(k3sDataDir, "server")
+		runDataPath      = filepath.Join(consts.DataDir, "k3s")
 	)
+
+	// link run data directory.
+	var err = files.Link(
+		runDataPath,
+		k3sServerDataDir,
+		files.LinkEvenIfNotFound(false, 0766),
+		files.LinkInReplace())
+	if err != nil {
+		return fmt.Errorf("error link server data: %w", err)
+	}
 
 	// reset server data.
 	if files.Exists(filepath.Join(k3sServerDataDir, "db", "etcd")) {
@@ -86,7 +98,7 @@ func (Embedded) Run(ctx context.Context) error {
 			"--cluster-reset",
 			"--data-dir=" + k3sDataDir,
 		}
-		if err := runK3sWith(ctx, cmdArgs); err != nil {
+		if err = runK3sWith(ctx, cmdArgs); err != nil {
 			return err
 		}
 	}

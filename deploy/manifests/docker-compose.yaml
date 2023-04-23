@@ -46,9 +46,14 @@ services:
       - "--log-verbosity=4"
       - "--data-source-address=postgres://root:Root123@postgres:5432/seal?sslmode=disable"
       - "--casdoor-server=http://casdoor:8000"
+    volumes:
+      - seal-data:/var/run/seal
     depends_on:
       - postgres
       - casdoor
     ports:
       - "80:80"
       - "443:443"
+
+volumes:
+  seal-data: {}
