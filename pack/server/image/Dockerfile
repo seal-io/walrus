@@ -29,6 +29,14 @@ ENV LANG='en_US.UTF-8' \
     LANGUAGE='en_US:en' \
     LC_ALL='en_US.UTF-8'
 
+# get stats tool
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends \
+      procps sysstat dstat \
+      ifstat net-tools dnsutils \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
 # get postgres
 VOLUME /var/lib/postgresql
 RUN set -eux; \
