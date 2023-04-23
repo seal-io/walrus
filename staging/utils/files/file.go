@@ -6,7 +6,7 @@ import (
 )
 
 func Exists(path string) bool {
-	if _, err := os.Stat(path); err != nil {
+	if _, err := os.Lstat(path); err != nil {
 		return !os.IsNotExist(err)
 	}
 	return true
