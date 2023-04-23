@@ -29,15 +29,7 @@ ENV LANG='en_US.UTF-8' \
     LANGUAGE='en_US:en' \
     LC_ALL='en_US.UTF-8'
 
-# set user/group IDs
-RUN set -eux; \
-	groupadd -r seal --gid=1000 && \
-	useradd -r -g seal --uid=1000 --home-dir=/var/lib/seal --shell=/bin/bash seal; \
-    \
-	mkdir -p /var/lib/seal && \
-	chown -R seal:seal /var/lib/seal
-
-VOLUME /var/lib/seal
+VOLUME /var/run/seal
 COPY /image/ /
 COPY /build/agent-${TARGETOS}-${TARGETARCH} /usr/bin/seal
-CMD seal
+CMD ["seal", "--log-debug", "--log-verbosity=4"]

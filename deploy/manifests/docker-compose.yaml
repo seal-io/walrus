@@ -31,9 +31,9 @@ services:
 
   seal:
     image: "sealio/seal-server:main"
-    entrypoint: "/entrypoint.sh"
     restart: always
     # privileged is used for internal k3s.
+    #
     privileged: true
     container_name: seal
     environment:
