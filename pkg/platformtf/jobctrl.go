@@ -101,7 +101,7 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 }
 
 // syncApplicationRevisionStatus sync the application revision status.
-func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) error {
+func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
 	var (
 		logger         = log.WithName("platformtf").WithName("jobctrl")
 		revisionStatus = status.ApplicationRevisionStatusSucceeded
@@ -111,6 +111,19 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		// not a deployer job
 		return nil
 	}
+
+	defer func() {
+		if job.Status.Succeeded == 0 && job.Status.Failed == 0 && err == nil {
+			return
+		}
+
+		// delete the secret of the job.
+		derr := r.deleteSecret(ctx, job.Name)
+		if derr != nil {
+			logger.Warnf("delete secret failed, job: %s, err: %s", job.Name, derr)
+		}
+	}()
+
 	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, types.ID(appRevisionID))
 	if err != nil {
 		return err
@@ -151,12 +164,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return err
 	}
 
-	if err = revisionbus.Notify(ctx, r.ModelClient, appRevision); err != nil {
-		return err
-	}
-
-	// if the job is complete, then delete the secret.
-	return r.deleteSecret(ctx, job.Name)
+	return revisionbus.Notify(ctx, r.ModelClient, appRevision)
 }
 
 // getJobPodsLogs returns the logs of all pods of a job.
