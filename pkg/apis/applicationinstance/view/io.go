@@ -102,33 +102,11 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if *r.Force {
-		modelClient := input.(model.ClientSet)
-		revision, err := modelClient.ApplicationRevisions().Query().
-			Where(applicationrevision.InstanceID(r.ID)).
-			Order(model.Desc(applicationrevision.FieldCreateTime)).
-			First(ctx)
-		if err != nil && !model.IsNotFound(err) {
-			return runtime.Errorw(err, "failed to get application deployment")
-		}
 
-		if revision != nil {
-			switch revision.Status {
-			case status.ApplicationRevisionStatusSucceeded:
-			case status.ApplicationRevisionStatusRunning:
-				return runtime.Error(http.StatusBadRequest, "deployment is running, please wait for it to finish before deleting the instance")
-			case status.ApplicationRevisionStatusFailed:
-				resourceExist, err := modelClient.ApplicationResources().Query().
-					Where(applicationresource.InstanceID(r.ID)).
-					Exist(ctx)
-				if err != nil {
-					return err
-				}
-				if resourceExist {
-					return runtime.Error(http.StatusBadRequest, "latest deployment is not succeeded, please fix the app configuration or rollback the instance before deleting it")
-				}
-			default:
-				return runtime.Error(http.StatusBadRequest, "invalid deployment status")
-			}
+		var modelClient = input.(model.ClientSet)
+		err := validateRevisionStatus(ctx, modelClient, r.ID)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -255,6 +233,11 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return fmt.Errorf("invalid variables: %w", err)
 	}
 
+	err = validateRevisionStatus(ctx, modelClient, r.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -318,3 +301,35 @@ func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type OutputResponse = []types.OutputValue
+
+func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
+	revision, err := modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.InstanceID(id)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return runtime.Errorw(err, "failed to get application deployment")
+	}
+
+	if revision != nil {
+		switch revision.Status {
+		case status.ApplicationRevisionStatusSucceeded:
+		case status.ApplicationRevisionStatusRunning:
+			return runtime.Error(http.StatusBadRequest, "deployment is running, please wait for it to finish before deleting the instance")
+		case status.ApplicationRevisionStatusFailed:
+			resourceExist, err := modelClient.ApplicationResources().Query().
+				Where(applicationresource.InstanceID(id)).
+				Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if resourceExist {
+				return runtime.Error(http.StatusBadRequest, "latest deployment is not succeeded, please fix the app configuration or rollback the instance before deleting it")
+			}
+		default:
+			return runtime.Error(http.StatusBadRequest, "invalid deployment status")
+		}
+	}
+
+	return nil
+}
