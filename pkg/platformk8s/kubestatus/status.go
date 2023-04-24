@@ -55,13 +55,8 @@ func StatusError(msg string) *typestatus.Status {
 	}
 }
 
-type GetOptions struct {
-	WithJobs     bool
-	IgnorePaused bool
-}
-
 // Get returns status of the given k8s resource.
-func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured, opts GetOptions) (*typestatus.Status, error) {
+func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
 	switch o.GetKind() {
 	case "Service":
 		return getService(ctx, o)
@@ -72,7 +67,7 @@ func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured
 	case "APIService":
 		return getAPIService(ctx, o)
 	case "Deployment":
-		return getDeployment(ctx, o, opts.IgnorePaused)
+		return getDeployment(ctx, o)
 	case "DaemonSet":
 		return getDaemonSet(ctx, o)
 	case "StatefulSet":
@@ -80,9 +75,7 @@ func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured
 	case "ReplicationController", "ReplicaSet":
 		return getReplicas(ctx, dynamicCli, o)
 	case "Job":
-		if opts.WithJobs {
-			return getJob(ctx, o)
-		}
+		return getJob(ctx, o)
 	case "HorizontalPodAutoscaler":
 		return getHorizontalPodAutoscaler(ctx, o)
 	case "CertificateSigningRequest":
@@ -240,20 +233,7 @@ func getAPIService(ctx context.Context, o *unstructured.Unstructured) (*typestat
 }
 
 // getDeployment returns the status of kubernetes deployment resource.
-func getDeployment(ctx context.Context, o *unstructured.Unstructured, pauseAsReady bool) (*typestatus.Status, error) {
-	// paused processing.
-	spec, exist, _ := unstructured.NestedMap(o.Object, "spec")
-	if !exist {
-		return nil, errors.New("not found 'deployment' spec")
-	}
-	var specPaused, _, _ = unstructured.NestedBool(spec, "paused")
-	if specPaused {
-		if pauseAsReady {
-			return &GeneralStatusReady, nil
-		}
-		return &GeneralStatusReadyTransitioning, nil
-	}
-
+func getDeployment(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'deployment' status conditions")
