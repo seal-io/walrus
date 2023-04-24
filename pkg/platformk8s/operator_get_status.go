@@ -61,10 +61,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 		return kubestatus.StatusError("resource not found"), nil
 	}
 
-	var opts = kubestatus.GetOptions{
-		IgnorePaused: true,
-	}
-	os, err := kubestatus.Get(ctx, dynamicCli, o, opts)
+	os, err := kubestatus.Get(ctx, dynamicCli, o)
 	if err != nil {
 		err = fmt.Errorf("error stating status of kubernetes %s %s/%s: %w", gvr.Resource, ns, n, err)
 		return kubestatus.StatusError(err.Error()), err
