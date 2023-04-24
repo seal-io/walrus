@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -60,15 +59,12 @@ func LoadCustomConfig(c *model.Connector) (*CustomConfig, error) {
 		return nil, fmt.Errorf("connector type is not custom connector: %s", c.ID)
 	}
 
-	bs, err := json.Marshal(c.ConfigData)
-	if err != nil {
-		return nil, err
+	var cc = &CustomConfig{
+		Attributes: make(map[string]interface{}),
+	}
+	for k, d := range c.ConfigData {
+		cc.Attributes[k] = d.Value
 	}
 
-	var pc CustomConfig
-	if err = json.Unmarshal(bs, &pc); err != nil {
-		return nil, err
-	}
-
-	return &pc, nil
+	return cc, nil
 }
