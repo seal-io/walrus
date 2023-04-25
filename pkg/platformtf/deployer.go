@@ -603,9 +603,12 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 			return nil, nil, fmt.Errorf("version %s of module %s not found", m.Version, m.ModuleID)
 		}
 
-		// TODO (alex): add module config validation here.
-		// verify module config attributes value type are valid.
-		moduleConfigs = append(moduleConfigs, getModuleConfig(m, modVer, opts))
+		var mc *config.ModuleConfig
+		mc, err = getModuleConfig(m, modVer, opts)
+		if err != nil {
+			return nil, nil, err
+		}
+		moduleConfigs = append(moduleConfigs, mc)
 
 		if modVer.Schema != nil {
 			requiredProviders = append(requiredProviders, modVer.Schema.RequiredProviders...)
@@ -874,11 +877,22 @@ func getVarConfigOptions(secrets model.Secrets, variables property.Values) confi
 	return varsConfigOpts
 }
 
-func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (mc *config.ModuleConfig) {
-	var attrs = make(map[string]any, len(appMod.Attributes))
-	for k := range appMod.Attributes {
-		attrs[k] = appMod.Attributes[k]
+func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (mc *config.ModuleConfig, err error) {
+	var (
+		props     = make(property.Properties, len(appMod.Attributes))
+		typesWith = appMod.Attributes.TypesWith(modVer.Schema.Variables)
+	)
+	for k, v := range appMod.Attributes {
+		props[k] = property.Property{
+			Type:  typesWith[k],
+			Value: v,
+		}
 	}
+	attrs, err := props.TypedValues()
+	if err != nil {
+		return
+	}
+
 	mc = &config.ModuleConfig{
 		Name:          appMod.Name,
 		ModuleVersion: modVer,
