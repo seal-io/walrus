@@ -36,7 +36,7 @@ var (
 	// ServeUiIndex keeps the address for serving UI.
 	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
 	// TerraformDeployerImage indicates the image for terraform deployment.
-	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.0"), modifyWith(notBlank, containerImageReference))
+	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.2"), modifyWith(notBlank, containerImageReference))
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
 	// OpenAiApiToken keeps the openAI API token for generating module completions.
