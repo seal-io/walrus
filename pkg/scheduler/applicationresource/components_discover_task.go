@@ -2,6 +2,8 @@ package applicationresource
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"sync"
 	"time"
 
@@ -157,12 +159,11 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, offset, lim
 			}
 
 			// delete stale components.
-			for j := range deleteCompIDs {
-				err = in.modelClient.ApplicationResources().DeleteOneID(deleteCompIDs[j]).
-					Exec(ctx)
-				if err != nil {
-					berr = multierr.Append(berr, err)
-				}
+			_, err = in.modelClient.ApplicationResources().Delete().
+				Where(applicationresource.IDIn(deleteCompIDs...)).
+				Exec(ctx)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				berr = multierr.Append(berr, err)
 			}
 		}
 
