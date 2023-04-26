@@ -2,6 +2,8 @@ package applicationrevision
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,21 +13,25 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/applicationrevision/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/applicationresources"
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platformtf"
-	resourcetopic "github.com/seal-io/seal/pkg/topic/applicationresource"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -321,16 +327,109 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		return err
 	}
 
-	var parser platformtf.Parser
-	applicationResources, err := parser.ParseAppRevision(entity)
+	return h.manageResources(ctx, entity)
+}
+
+// manageResources manages the resources of the given revision,
+// and states/labels the resources within 3 minutes in the background.
+func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationRevision) error {
+	// TODO(thxCode): generate by entc.
+	var key = func(r *model.ApplicationResource) string {
+		// align to schema definition.
+		return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
+	}
+
+	var p platformtf.Parser
+	var observedRess, err = p.ParseAppRevision(entity)
 	if err != nil {
 		return err
 	}
-	return resourcetopic.Notify(ctx, resourcetopic.Name, resourcetopic.TopicMessage{
-		ModelClient:          h.modelClient,
-		ApplicationResources: applicationResources,
-		InstanceID:           entity.InstanceID,
+
+	// get record resources from local.
+	recordRess, err := h.modelClient.ApplicationResources().
+		Query().
+		Where(applicationresource.InstanceID(entity.InstanceID)).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	// calculate creating list and deleting list.
+	var observedRessIndex = make(map[string]*model.ApplicationResource, len(observedRess))
+	for j := range observedRess {
+		var c = observedRess[j]
+		observedRessIndex[key(c)] = c
+	}
+	var deleteRessIDs = make([]types.ID, 0, len(recordRess))
+	for _, c := range recordRess {
+		var k = key(c)
+		if observedRessIndex[k] != nil {
+			delete(observedRessIndex, k)
+			continue
+		}
+		deleteRessIDs = append(deleteRessIDs, c.ID)
+	}
+	var createRess = make([]*model.ApplicationResource, 0, len(observedRessIndex))
+	for k := range observedRessIndex {
+		createRess = append(createRess, observedRessIndex[k])
+	}
+
+	// diff by transactional session.
+	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		// create new resources.
+		if len(createRess) != 0 {
+			creates, err := dao.ApplicationResourceCreates(tx, createRess...)
+			if err != nil {
+				return err
+			}
+			createRess, err = tx.ApplicationResources().CreateBulk(creates...).
+				Save(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		// delete stale resources.
+		_, err = tx.ApplicationResources().Delete().
+			Where(applicationresource.IDIn(deleteRessIDs...)).
+			Exec(ctx)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	if len(createRess) == 0 {
+		return nil
+	}
+
+	// state/label the new resources async.
+	var ids = make([]types.ID, len(createRess))
+	for i := range createRess {
+		ids[i] = createRess[i].ID
+	}
+	gopool.Go(func() {
+		var logger = log.WithName("application-revision")
+		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		entities, err := applicationresources.ListLabelCandidatesByIDs(ctx, h.modelClient, ids)
+		if err != nil {
+			logger.Errorf("error listing candidates: %v", err)
+			return
+		}
+		err = applicationresources.Label(ctx, entities)
+		if err != nil {
+			logger.Errorf("error labeling entities: %v", err)
+		}
+		err = applicationresources.State(ctx, h.modelClient, entities) // reuse the result of label listed.
+		if err != nil {
+			logger.Errorf("error stating entities: %v", err)
+		}
+	})
+	return nil
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest) error {

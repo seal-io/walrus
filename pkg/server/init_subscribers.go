@@ -4,17 +4,13 @@ import (
 	"context"
 
 	"github.com/seal-io/seal/pkg/bus"
-	"github.com/seal-io/seal/pkg/topic"
 )
 
-func (r *Server) initSubscribers(ctx context.Context, opts initOptions) error {
-	if err := bus.Setup(ctx, bus.SetupOptions{ModelClient: opts.ModelClient}); err != nil {
+func (r *Server) initSubscribers(ctx context.Context, opts initOptions) (err error) {
+	err = bus.Setup(ctx, bus.SetupOptions{ModelClient: opts.ModelClient})
+	if err != nil {
 		return err
 	}
 
-	if err := topic.Setup(ctx, topic.SetupOptions{ModelClient: opts.ModelClient}); err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
