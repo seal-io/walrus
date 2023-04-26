@@ -492,7 +492,7 @@ func GuessSchema(n string, t string, d any) (Schema, error) {
 	if diags.HasErrors() {
 		return Schema{}, fmt.Errorf("error parsing expression: %w", diags)
 	}
-	ty, diags := typeexpr.Type(expr)
+	ty, _, diags := typeexpr.TypeConstraintWithDefaults(expr)
 	if diags.HasErrors() {
 		return Schema{}, fmt.Errorf("error getting type: %w", diags)
 	}
