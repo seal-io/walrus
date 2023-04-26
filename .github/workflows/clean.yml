@@ -1,7 +1,7 @@
 name: Clean
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
   actions: write
 
