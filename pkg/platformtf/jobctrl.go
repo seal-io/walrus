@@ -62,8 +62,8 @@ const (
 	_applicationRevisionIDLabel = "seal.io/application-revision-id"
 	// _jobNameFormat the format of job name.
 	_jobNameFormat = "tf-job-%s-%s"
-	// _secretPrefix the prefix of secret name.
-	_secretPrefix = "tf-secret-"
+	// _jobSecretPrefix the prefix of secret name.
+	_jobSecretPrefix = "tf-secret-"
 	// _secretMountPath the path to mount the secret.
 	_secretMountPath = "/seal/secrets"
 	// _workdir the working directory of the job.
@@ -214,7 +214,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 60
 		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ApplicationRevisionID)
-		configName                    = _secretPrefix + opts.ApplicationRevisionID
+		configName                    = _jobSecretPrefix + opts.ApplicationRevisionID
 	)
 	podTemplate := getPodTemplate(opts.ApplicationRevisionID, configName, opts)
 	job := &batchv1.Job{
