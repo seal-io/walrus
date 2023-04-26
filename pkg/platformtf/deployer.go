@@ -73,7 +73,10 @@ type CreateJobOptions struct {
 const _backendAPI = "/v1/application-revisions/%s/terraform-states"
 
 // _varPrefix the prefix of the variable name.
-const _varPrefix = "_seal_"
+const _varPrefix = "_seal_var_"
+
+// _secretPrefix the prefix of the secret name.
+const _secretPrefix = "_seal_secret_"
 
 var (
 	// _secretReg the regexp to match the secret variable.
@@ -300,7 +303,7 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.Applicatio
 func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
 	var secretData = make(map[string][]byte)
 	// secretName terraform tfConfig name
-	secretName := _secretPrefix + string(opts.ApplicationRevision.ID)
+	secretName := _jobSecretPrefix + string(opts.ApplicationRevision.ID)
 
 	// prepare terraform config files bytes for deployment.
 	terraformData, err := d.LoadConfigsBytes(ctx, opts)
@@ -449,7 +452,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		return nil, err
 	}
 	if serverAddress == "" {
-		return nil, fmt.Errorf("server address is empty")
+		return nil, errors.New("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress, fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
 	// prepare API token for terraform backend.
@@ -496,9 +499,10 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				ModuleConfigs: moduleConfigs,
 			},
 			VariableOptions: &config.VariableOptions{
-				VariableNameAndTypes: variableNameAndTypes,
+				VarPrefix:            _varPrefix,
+				SecretPrefix:         _secretPrefix,
 				SecretNames:          secretNames,
-				Prefix:               _varPrefix,
+				VariableNameAndTypes: variableNameAndTypes,
 			},
 			OutputOptions: outputs,
 		},
@@ -867,7 +871,7 @@ func getVarConfigOptions(secrets model.Secrets, variables property.Values) confi
 	}
 
 	for _, v := range secrets {
-		varsConfigOpts.Attributes[_varPrefix+v.Name] = v.Value
+		varsConfigOpts.Attributes[_secretPrefix+v.Name] = v.Value
 	}
 
 	for k, v := range variables {

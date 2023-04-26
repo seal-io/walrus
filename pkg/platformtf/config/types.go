@@ -66,8 +66,10 @@ type (
 
 	// VariableOptions is the options to create variables blocks.
 	VariableOptions struct {
-		// Prefix is the prefix of the variable name.
-		Prefix string
+		// VarPrefix is the prefix of the variable name.
+		VarPrefix string
+		// SecretPrefix is the prefix of the secret name.
+		SecretPrefix string
 		// SecretNames is the list of the secret name, type is always string.
 		SecretNames []string
 		// VariableNameAndTypes is the map of the variable name and type.
