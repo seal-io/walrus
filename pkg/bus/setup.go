@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/seal-io/seal/pkg/bus/applicationrevision"
-	"github.com/seal-io/seal/pkg/bus/connector"
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/bus/setting"
-	"github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/modules"
@@ -21,16 +19,6 @@ type SetupOptions struct {
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// application revision
 	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status", platformtf.SyncApplicationRevisionStatus)
-	if err != nil {
-		return
-	}
-
-	// connector
-	err = connector.AddSubscriber("connector-sync-status", connectors.StatusSync(opts.ModelClient).Do)
-	if err != nil {
-		return
-	}
-	err = connector.AddSubscriber("connector-sync-cost-custom-pricing", connectors.SyncCostCustomPricing)
 	if err != nil {
 		return
 	}

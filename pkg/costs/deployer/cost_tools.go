@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s"
+	"github.com/seal-io/seal/utils/log"
 )
 
 const (
@@ -44,6 +45,8 @@ type input struct {
 }
 
 func DeployCostTools(ctx context.Context, conn *model.Connector, replace bool) error {
+	log.WithName("cost").Debugf("deploying cost tools for connector %s", conn.Name)
+
 	apiConfig, kubeconfig, err := platformk8s.LoadApiConfig(*conn)
 	if err != nil {
 		return err
