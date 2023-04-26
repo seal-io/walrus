@@ -109,6 +109,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expectedError:  true,
 		},
 		{
+			name:           "Invalid variable type",
+			input:          "testdata/invalid_variable_type",
+			expectedOutput: &types.ModuleSchema{},
+			expectedError:  true,
+		},
+		{
 			name:  "With README.md",
 			input: "testdata/with_readme",
 			expectedOutput: &types.ModuleSchema{

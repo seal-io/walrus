@@ -286,7 +286,11 @@ func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
 	}
 
 	for _, v := range sortVariables(mod.Variables) {
-		moduleSchema.Variables = append(moduleSchema.Variables, getVariableSchema(v))
+		s, err := getVariableSchema(v)
+		if err != nil {
+			return nil, err
+		}
+		moduleSchema.Variables = append(moduleSchema.Variables, s)
 	}
 
 	for _, v := range sortOutput(mod.Outputs) {
@@ -358,10 +362,10 @@ func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
 	return i.Line < j.Line
 }
 
-func getVariableSchema(v *tfconfig.Variable) property.Schema {
+func getVariableSchema(v *tfconfig.Variable) (property.Schema, error) {
 	var variable, err = property.GuessSchema(v.Name, v.Type, v.Default)
 	if err != nil {
-		panic(fmt.Errorf("unresolved variable %s schema: %w", v.Name, err))
+		return property.Schema{}, fmt.Errorf("unresolved variable %s schema: %w", v.Name, err)
 	}
 	if v.Required {
 		variable = variable.WithRequired()
@@ -373,11 +377,11 @@ func getVariableSchema(v *tfconfig.Variable) property.Schema {
 	comments, err := loadComments(v.Pos.Filename, v.Pos.Line)
 	if err != nil {
 		log.Warnf("failed to load terraform comments for var %s, error: %v", v.Name, err)
-		return variable
+		return variable, nil
 	}
 	extendVariableSchema(&variable, comments)
 
-	return variable
+	return variable, nil
 }
 
 func loadComments(filename string, lineNum int) ([]string, error) {
