@@ -5,14 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/multierr"
-
+	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -68,71 +62,12 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 }
 
 func (in *StatusSyncTask) buildStateTask(ctx context.Context, offset, limit int) func() error {
-	return func() (berr error) {
-		var entities, err = in.modelClient.ApplicationResources().Query().
-			Order(model.Desc(applicationresource.FieldCreateTime)).
-			Offset(offset).
-			Limit(limit).
-			Unique(false).
-			Select(
-				applicationresource.FieldID,
-				applicationresource.FieldStatus,
-				applicationresource.FieldInstanceID,
-				applicationresource.FieldConnectorID,
-				applicationresource.FieldType,
-				applicationresource.FieldName,
-				applicationresource.FieldDeployerType).
-			WithConnector(func(cq *model.ConnectorQuery) {
-				cq.Select(
-					connector.FieldName,
-					connector.FieldType,
-					connector.FieldCategory,
-					connector.FieldConfigVersion,
-					connector.FieldConfigData)
-			}).
-			All(ctx)
+	return func() error {
+		var entities, err = applicationresources.ListStateCandidatesByPage(
+			ctx, in.modelClient, offset, limit)
 		if err != nil {
 			return err
 		}
-
-		for i := 0; i < len(entities); i++ {
-			var op, err = platform.GetOperator(ctx, operator.CreateOptions{
-				Connector: *entities[i].Edges.Connector,
-			})
-			if multierr.AppendInto(&berr, err) {
-				continue
-			}
-			// get status of the application resource.
-			st, err := op.GetStatus(ctx, entities[i])
-			if err != nil {
-				berr = multierr.Append(berr, err)
-			}
-			// get endpoints of the application resource.
-			eps, err := op.GetEndpoints(ctx, entities[i])
-			if err != nil {
-				berr = multierr.Append(berr, err)
-			}
-			// new application resource status.
-			newStatus := types.ApplicationResourceStatus{
-				Status:            *st,
-				ResourceEndpoints: eps,
-			}
-			if entities[i].Status.Equal(newStatus) {
-				// do not update if the status is same as previous.
-				continue
-			}
-
-			err = in.modelClient.ApplicationResources().UpdateOne(entities[i]).
-				SetStatus(newStatus).
-				Exec(ctx)
-			if err != nil {
-				if model.IsNotFound(err) {
-					// application resource has been deleted by other thread processing.
-					continue
-				}
-				berr = multierr.Append(berr, err)
-			}
-		}
-		return
+		return applicationresources.State(ctx, in.modelClient, entities)
 	}
 }

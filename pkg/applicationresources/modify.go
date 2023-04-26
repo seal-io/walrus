@@ -83,7 +83,11 @@ func Update(ctx context.Context, message resourcetopic.TopicMessage) error {
 	if err != nil {
 		return err
 	}
-	return Label(ctx, entities)
+	err = Label(ctx, entities)
+	if err != nil {
+		return err
+	}
+	return State(ctx, message.ModelClient, entities)
 }
 
 // TODO(thxCode): generate by entc.
