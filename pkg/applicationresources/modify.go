@@ -75,18 +75,15 @@ func Update(ctx context.Context, message resourcetopic.TopicMessage) error {
 		return err
 	}
 
-	count := len(updated)
-	if count == 0 {
-		return nil
-	}
-
-	var ids = make([]types.ID, count)
+	var ids = make([]types.ID, len(updated))
 	for i := range updated {
 		ids[i] = updated[i].ID
 	}
-
-	err = ApplyLabels(ctx, message.ModelClient, 0, count, ids)()
-	return err
+	entities, err := ListLabelCandidatesByIDs(ctx, message.ModelClient, ids)
+	if err != nil {
+		return err
+	}
+	return Label(ctx, entities)
 }
 
 // TODO(thxCode): generate by entc.
