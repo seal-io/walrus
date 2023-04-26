@@ -1,17 +1,23 @@
 package connector
 
 import (
+	"context"
+	"time"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	connbus "github.com/seal-io/seal/pkg/bus/connector"
 	pkgconn "github.com/seal-io/seal/pkg/connectors"
+	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/gopool"
+	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -47,7 +53,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		return nil, err
 	}
 
-	err = connbus.Notify(ctx, entity, false)
+	err = h.applyFinOps(entity, false)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +77,12 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return err
 	}
 
-	return connbus.Notify(ctx, entity, false)
+	err = h.applyFinOps(entity, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -256,30 +267,75 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 // Extensional APIs
 
 func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRequest) error {
-	o, err := h.modelClient.Connectors().Get(ctx, req.ID)
+	entity, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return err
 	}
 
-	status.ConnectorStatusCostToolsDeployed.Unknown(o, "")
-	if err = pkgconn.UpdateStatus(ctx, h.modelClient, o); err != nil {
+	status.ConnectorStatusCostToolsDeployed.Unknown(entity, "Redeploying cost tools actively")
+	if err = pkgconn.UpdateStatus(ctx, h.modelClient, entity); err != nil {
 		return err
 	}
 
-	return connbus.Notify(ctx, o, true)
+	err = h.applyFinOps(entity, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataRequest) error {
-	o, err := h.modelClient.Connectors().Get(ctx, req.ID)
+	entity, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return err
 	}
 
-	status.ConnectorStatusCostSynced.Unknown(o, "")
-	if err = pkgconn.UpdateStatus(ctx, h.modelClient, o); err != nil {
+	status.ConnectorStatusCostSynced.Unknown(entity, "Syncing cost data actively")
+	if err = pkgconn.UpdateStatus(ctx, h.modelClient, entity); err != nil {
 		return err
 	}
 
 	syncer := pkgconn.NewStatusSyncer(h.modelClient)
-	return syncer.SyncFinOpsStatus(ctx, o)
+	return syncer.SyncFinOpsStatus(ctx, entity)
+}
+
+// applyFinOps updates custom pricing and (re)installs cost tools if needed,
+// within 3 minutes in the background.
+func (h Handler) applyFinOps(conn *model.Connector, reinstall bool) error {
+	// skip non-k8s connectors.
+	if conn.Category != types.ConnectorCategoryKubernetes {
+		return nil
+	}
+	// skip finops disabling connectors.
+	if !conn.EnableFinOps {
+		return nil
+	}
+
+	gopool.Go(func() {
+		var logger = log.WithName("cost")
+		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		// update pricing.
+		var err = deployer.UpdateCustomPricing(ctx, conn)
+		if err != nil {
+			logger.Errorf("error updating custom pricing to connector %s: %v", conn.Name, err)
+		}
+
+		// deploy tools.
+		err = deployer.DeployCostTools(ctx, conn, reinstall)
+		if err != nil {
+			// log instead of return error, then continue to sync the final status to connector
+			logger.Errorf("error ensuring cost tools for connector %s: %v", conn.Name, err)
+		}
+
+		// sync status.
+		var syncer = pkgconn.NewStatusSyncer(h.modelClient)
+		err = syncer.SyncStatus(ctx, conn)
+		if err != nil {
+			logger.Errorf("error syncing status of connector %s: %v", conn.Name, err)
+		}
+	})
+	return nil
 }
