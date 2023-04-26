@@ -575,7 +575,7 @@ type Schema struct {
 	// combines multiple levels with a slash.
 	Group string `json:"group,omitempty"`
 	// Options specifies available options of this property when the type is string.
-	Options []string `json:"options,omitempty"`
+	Options []Value `json:"options,omitempty"`
 	// ShowIf specifies to show this property if the condition is true,
 	// e.g. ShowIf: foo=bar.
 	ShowIf string `json:"showIf,omitempty"`
@@ -614,11 +614,9 @@ func (i Schema) WithGroup(g string) Schema {
 	return i
 }
 
-// WithOptions indicates the options of schema if the type is string.
-func (i Schema) WithOptions(o ...string) Schema {
-	if i.Type == cty.String {
-		i.Options = o
-	}
+// WithOptions indicates the options of schema.
+func (i Schema) WithOptions(o ...Value) Schema {
+	i.Options = o
 	return i
 }
 

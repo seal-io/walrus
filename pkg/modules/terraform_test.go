@@ -13,6 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/utils/json"
 )
 
 func TestGetModuleNameByPath(t *testing.T) {
@@ -170,13 +171,15 @@ func TestLoadTerraformSchema(t *testing.T) {
 					property.StringSchema("foo", pointer.String("foo")).
 						WithGroup("Test Group").
 						WithLabel("Foo Label").
-						WithOptions("F1", "F2", "F3"),
+						WithOptions(json.MustMarshal("F1"), json.MustMarshal("F2"), json.MustMarshal("F3")),
 					property.StringSchema("bar", pointer.String("bar")).
 						WithGroup("Test Group").
 						WithLabel("Bar Label").
-						WithOptions("B1", "B2", "B3").
+						WithOptions(json.MustMarshal("B1"), json.MustMarshal("B2"), json.MustMarshal("B3")).
 						WithShowIf("foo=F1"),
 					property.StringSchema("thee", pointer.String("thee")),
+					property.IntSchema("number_options_var", pointer.Int(1)).
+						WithOptions(json.MustMarshal(1), json.MustMarshal(2), json.MustMarshal(3)),
 					property.StringSchema("subgroup1_1", pointer.String("subgroup1_1")).
 						WithGroup("Test Subgroup/Subgroup 1").
 						WithLabel("Subgroup1_1 Label"),

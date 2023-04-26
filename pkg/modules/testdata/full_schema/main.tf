@@ -43,6 +43,13 @@ variable "thee" {
   default = "thee"
 }
 
+// number_options_var is a test variable with number options
+// @options [1, 2, 3]
+variable "number_options_var" {
+  type    = number
+  default = 1
+}
+
 // subgroup1_1 is another test variable using sub group
 // @label "Subgroup1_1 Label"
 // some comments
