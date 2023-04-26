@@ -361,7 +361,7 @@ func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
 func getVariableSchema(v *tfconfig.Variable) property.Schema {
 	var variable, err = property.GuessSchema(v.Name, v.Type, v.Default)
 	if err != nil {
-		panic(fmt.Errorf("unresolved variable schema: %w", err))
+		panic(fmt.Errorf("unresolved variable %s schema: %w", v.Name, err))
 	}
 	if v.Required {
 		variable = variable.WithRequired()
