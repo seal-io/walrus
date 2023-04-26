@@ -267,7 +267,9 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 			"password":               opts.Token,
 			"skip_cert_verification": opts.SkipTLSVerify,
 			// use PUT method to update the state
-			"update_method": _updateMethod,
+			"update_method":  _updateMethod,
+			"retry_max":      10,
+			"retry_wait_max": 5,
 		},
 	}
 
