@@ -50,13 +50,24 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 	const bks = 100
 	var bkc = cnt / bks
 	if bkc == 0 {
-		var st = applicationresources.ApplyLabels(ctx, in.modelClient, 0, bks, nil)
-		return st()
+		var at = in.buildApplyTask(ctx, 0, bks)
+		return at()
 	}
 	var wg = gopool.Group()
 	for bk := 0; bk < bkc; bk++ {
-		var st = applicationresources.ApplyLabels(ctx, in.modelClient, bk, bks, nil)
-		wg.Go(st)
+		var at = in.buildApplyTask(ctx, bk, bks)
+		wg.Go(at)
 	}
 	return wg.Wait()
+}
+
+func (in *LabelApplyTask) buildApplyTask(ctx context.Context, offset, limit int) func() error {
+	return func() error {
+		var entities, err = applicationresources.ListLabelCandidatesByPage(
+			ctx, in.modelClient, offset, limit)
+		if err != nil {
+			return err
+		}
+		return applicationresources.Label(ctx, entities)
+	}
 }
