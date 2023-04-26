@@ -21,7 +21,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-getter v1.7.0
 	github.com/hashicorp/go-version v1.6.0
-	github.com/hashicorp/hcl/v2 v2.13.0
+	github.com/hashicorp/hcl/v2 v2.16.2
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20230201191712-8cad743c8c26
 	github.com/lib/pq v1.10.7
 	github.com/mattn/go-sqlite3 v1.14.16
