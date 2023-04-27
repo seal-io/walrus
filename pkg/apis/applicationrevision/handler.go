@@ -444,7 +444,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		}
 
 		for cid, crids := range ids {
-			entities, err := applicationresources.ListLabelCandidatesByIDs(ctx, h.modelClient, crids)
+			entities, err := applicationresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
 			if err != nil {
 				logger.Errorf("error listing candidates: %v", err)
 				continue
@@ -467,7 +467,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				continue
 			}
 
-			err = applicationresources.State(ctx, op, h.modelClient, entities) // reuse the result of label listed.
+			err = applicationresources.State(ctx, op, h.modelClient, entities)
 			if err != nil {
 				logger.Errorf("error stating entities: %v", err)
 			}

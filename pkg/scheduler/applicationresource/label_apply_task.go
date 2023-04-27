@@ -108,7 +108,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 
 func (in *LabelApplyTask) buildApplyTask(ctx context.Context, op operator.Operator, offset, limit int) func() error {
 	return func() error {
-		var entities, err = applicationresources.ListLabelCandidatesByPage(
+		var entities, err = applicationresources.ListCandidatesByPage(
 			ctx, in.modelClient, offset, limit)
 		if err != nil {
 			return fmt.Errorf("error listing label candidates: %w", err)
