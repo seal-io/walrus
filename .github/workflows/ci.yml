@@ -190,35 +190,3 @@ jobs:
           DOCKERHUB_USERNAME: "${{ secrets.CI_DOCKERHUB_USERNAME }}"
           DOCKERHUB_PASSWORD: "${{ secrets.CI_DOCKERHUB_PASSWORD }}"
         continue-on-error: true
-      - name: Remove Publish Result
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/github-script@v6
-        with:
-          # clean up caches created by the branch itself,
-          # ref to https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#force-deleting-cache-entries,
-          # and https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache.
-          script: |
-            const ref = 'refs/${{ github.ref_type == 'tag' && 'tags' || 'heads' }}/${{ github.ref_name }}'
-            
-            console.debug("getting cache list...")
-            const cs = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: ref
-            });
-            console.log("got cache list")
-            
-            for (const c of cs.data.actions_caches) {
-              if (!c.key.match(/^archive-.*$/)) {
-                continue
-              }
-              console.debug(`cleaning cache "${c.key}"...`)
-              await github.rest.actions.deleteActionsCacheByKey({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: ref,
-                key: c.key
-              })
-              console.log(`cleaned cache "${c.key}"`)
-            }
-        continue-on-error: true
