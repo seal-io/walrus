@@ -354,8 +354,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	}
 
 	// get record resources from local.
-	recordRess, err := h.modelClient.ApplicationResources().
-		Query().
+	recordRess, err := h.modelClient.ApplicationResources().Query().
 		Where(applicationresource.InstanceID(entity.InstanceID)).
 		All(ctx)
 	if err != nil {

@@ -21,47 +21,68 @@ const (
 // ConditionType is the type of status
 type ConditionType string
 
-// True set status value to True for object field .Status.Conditions, object must be a pointer
+// True set status value to True for object field .Status.Conditions,
+// object must be a pointer.
 func (ct ConditionType) True(obj interface{}, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusTrue, message)
 }
 
-// False set status value to False for object field .Status.Conditions, object must be a pointer
+// False set status value to False for object field .Status.Conditions,
+// object must be a pointer.
 func (ct ConditionType) False(obj interface{}, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusFalse, message)
 }
 
-// Unknown set status value to Unknown for object field .Status.Conditions, object must be a pointer
+// Unknown set status value to Unknown for object field .Status.Conditions,
+// object must be a pointer.
 func (ct ConditionType) Unknown(obj interface{}, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusUnknown, message)
 }
 
-// Status set status value to custom value for object field .Status.Conditions, object must be a pointer
+// Status set status value to custom value for object field .Status.Conditions,
+// object must be a pointer.
 func (ct ConditionType) Status(obj interface{}, status ConditionStatus) {
 	setCondStatus(obj, ct, status)
 }
 
-// Message set message to conditionType for object field .Status.Conditions, object must be a pointer
+// Remove drop status from the object field .Status.Conditions,
+// object must be a pointer.
+func (ct ConditionType) Remove(obj interface{}) {
+	delCondStatus(obj, ct)
+}
+
+// Reset clean the object field .Status.Conditions,
+// and set the status as Unknown type into the object field .Status.Conditions,
+// object must be a pointer.
+func (ct ConditionType) Reset(obj interface{}, message string) {
+	resetCondStatus(obj, ct, ConditionStatusUnknown, message)
+}
+
+// Message set message to conditionType for object field .Status.Conditions,
+// object must be a pointer.
 func (ct ConditionType) Message(obj interface{}, message string) {
 	setCondMessage(obj, ct, message)
 }
 
-// IsTrue check status value for object, object must be a pointer
+// IsTrue check status value for object,
+// object must be a pointer.
 func (ct ConditionType) IsTrue(obj interface{}) bool {
 	return getCondStatus(obj, ct) == "True"
 }
 
-// IsFalse check status value for object, object must be a pointer
+// IsFalse check status value for object,
+// object must be a pointer.
 func (ct ConditionType) IsFalse(obj interface{}) bool {
 	return getCondStatus(obj, ct) == "False"
 }
 
-// IsUnknown check status value for object, object must be a pointer
+// IsUnknown check status value for object,
+// object must be a pointer.
 func (ct ConditionType) IsUnknown(obj interface{}) bool {
 	return getCondStatus(obj, ct) == "Unknown"
 }
 
-// GetMessage get message from conditionType for object field .Status.Conditions
+// GetMessage get message from conditionType for object field .Status.Conditions.
 func (ct ConditionType) GetMessage(obj interface{}) string {
 	return getCondMessage(obj, ct)
 }
@@ -91,6 +112,61 @@ func setCondStatus(obj interface{}, condType ConditionType, status ConditionStat
 	}
 
 	applyCondStatus(st, condType, status)
+	stField.Set(reflect.ValueOf(*st))
+}
+
+func delCondStatus(obj interface{}, condType ConditionType) {
+	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
+		return
+	}
+
+	stField, st := getStatus(obj)
+	if st == nil {
+		return
+	}
+
+	if len(st.Conditions) == 0 {
+		return
+	}
+
+	for i, v := range st.Conditions {
+		if v.Type != condType {
+			continue
+		}
+
+		switch s := len(st.Conditions); {
+		case i == 0 && s == 1:
+			st.Conditions = st.Conditions[:0]
+		case i == 0:
+			st.Conditions = st.Conditions[1:]
+		case i == s-1:
+			st.Conditions = st.Conditions[:i]
+		default:
+			st.Conditions = append(st.Conditions[:i],
+				st.Conditions[i+1:]...)
+		}
+		// NB(thxCode): do not skip this loop until we check all condition items,
+		// which can avoid duplicate items in condition list.
+	}
+	stField.Set(reflect.ValueOf(*st))
+}
+
+func resetCondStatus(obj interface{}, condType ConditionType, status ConditionStatus, message string) {
+	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
+		return
+	}
+
+	stField, st := getStatus(obj)
+	if st == nil {
+		return
+	}
+
+	if st.Conditions != nil {
+		// NB(thxCode): clean conditions.
+		st.Conditions = st.Conditions[:0]
+	}
+
+	applyCondStatusAndMessage(st, condType, status, message)
 	stField.Set(reflect.ValueOf(*st))
 }
 

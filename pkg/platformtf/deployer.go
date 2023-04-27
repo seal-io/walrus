@@ -187,7 +187,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 	})
 }
 
-// Rollback instance to a specific revision
+// Rollback instance to a specific revision.
 func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) (err error) {
 	if opts.ApplicationRevision == nil || opts.ApplicationRevision.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")
@@ -198,7 +198,7 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 		return err
 	}
 
-	ai.Status = status.ApplicationInstanceStatusDeploying
+	status.ApplicationInstanceStatusDeployed.Reset(ai, "Rolling back")
 	update, err := dao.ApplicationInstanceUpdate(d.modelClient, ai)
 	if err != nil {
 		return err
@@ -240,8 +240,7 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 			_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 			return
 		}
-		ai.Status = status.ApplicationInstanceStatusDeployFailed
-		ai.StatusMessage = err.Error()
+		status.ApplicationInstanceStatusDeployed.False(ai, err.Error())
 		instanceUpdate, updateErr := dao.ApplicationInstanceUpdate(d.modelClient, ai)
 		if updateErr != nil {
 			d.logger.Error(err)
@@ -262,7 +261,7 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 	})
 }
 
-// getApplication will get the application by id
+// getApplication will get the application by id.
 func (d Deployer) getApplication(ctx context.Context, id types.ID) (*model.Application, error) {
 	return d.modelClient.Applications().Query().
 		Where(application.ID(id)).
@@ -828,12 +827,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 	var instanceUpdate *model.ApplicationInstanceUpdateOne
 	switch revision.Status {
 	case status.ApplicationRevisionStatusSucceeded:
-		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
-			// delete application instance.
+		if status.ApplicationInstanceStatusDeleted.IsUnknown(appInstance) {
 			err = mc.ApplicationInstances().DeleteOne(appInstance).
 				Exec(ctx)
 		} else {
-			appInstance.Status = status.ApplicationInstanceStatusDeployed
+			status.ApplicationInstanceStatusDeployed.True(appInstance, "")
+			status.ApplicationInstanceStatusReady.Unknown(appInstance, "")
 			instanceUpdate, err = dao.ApplicationInstanceUpdate(mc, appInstance)
 			if err != nil {
 				return err
@@ -841,12 +840,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 			err = instanceUpdate.Exec(ctx)
 		}
 	case status.ApplicationRevisionStatusFailed:
-		if appInstance.Status == status.ApplicationInstanceStatusDeleting {
-			appInstance.Status = status.ApplicationInstanceStatusDeleteFailed
+		if status.ApplicationInstanceStatusDeleted.IsUnknown(appInstance) {
+			status.ApplicationInstanceStatusDeleted.False(appInstance, "")
 		} else {
-			appInstance.Status = status.ApplicationInstanceStatusDeployFailed
+			status.ApplicationInstanceStatusDeployed.False(appInstance, "")
 		}
-		appInstance.StatusMessage = revision.StatusMessage
+		appInstance.Status.SummaryStatusMessage = revision.StatusMessage
 		instanceUpdate, err = dao.ApplicationInstanceUpdate(mc, appInstance)
 		if err != nil {
 			return err

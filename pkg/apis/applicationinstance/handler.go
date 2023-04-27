@@ -57,6 +57,7 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
+	var logger = log.WithName("application-instances")
 	var entity = req.Model()
 
 	// get deployer.
@@ -71,7 +72,6 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 	}
 
 	// create instance, mark status to deploying.
-	entity.Status = status.ApplicationInstanceStatusDeploying
 	creates, err := dao.ApplicationInstanceCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,13 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 		if err == nil {
 			return
 		}
-		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeployFailed, err.Error())
+		// update a failure status.
+		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
+		var uerr = h.updateInstanceStatus(ctx, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of instance %s: %v",
+				entity.ID, uerr)
+		}
 	}()
 
 	// apply instance.
@@ -101,13 +107,12 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
 			Exec(ctx)
 		if derr != nil {
-			log.WithName("application-instances").
-				Errorf("error deleting: %v", derr)
+			logger.Errorf("error deleting: %v", derr)
 		}
 		return nil, err
 	}
 
-	if err := publishApplicationUpdate(ctx, entity); err != nil {
+	if err = publishApplicationUpdate(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -115,6 +120,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
+	var logger = log.WithName("application-instances")
 	var entity = req.Model()
 
 	// get deployer.
@@ -149,8 +155,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	// mark status to deleting.
-	entity.Status = status.ApplicationInstanceStatusDeleting
-	entity.StatusMessage = ""
+	status.ApplicationInstanceStatusDeleted.Unknown(entity, "Deleting")
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
@@ -164,10 +169,16 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		if err == nil {
 			return
 		}
-		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeleteFailed, err.Error())
+		// update a failure status.
+		status.ApplicationInstanceStatusDeleted.False(entity, err.Error())
+		var uerr = h.updateInstanceStatus(ctx, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of instance %s: %v",
+				entity.ID, uerr)
+		}
 	}()
 
-	if err := publishApplicationUpdate(ctx, entity); err != nil {
+	if err = publishApplicationUpdate(ctx, entity); err != nil {
 		return err
 	}
 
@@ -363,6 +374,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.Collection
 // Extensional APIs
 
 func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
+	var logger = log.WithName("application-instances")
 	var entity = req.Model()
 
 	// get deployer.
@@ -376,10 +388,9 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		return err
 	}
 
-	// update instance, mark status to deploying.
+	// update instance, mark status from deploying.
 	entity.Variables = req.Variables
-	entity.Status = status.ApplicationInstanceStatusDeploying
-	entity.StatusMessage = ""
+	status.ApplicationInstanceStatusDeployed.Reset(entity, "Upgrading")
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
@@ -393,10 +404,16 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		if err == nil {
 			return
 		}
-		_ = h.updateInstanceStatus(ctx, entity, status.ApplicationInstanceStatusDeployFailed, err.Error())
+		// update a failure status.
+		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
+		var uerr = h.updateInstanceStatus(ctx, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of instance %s: %v",
+				entity.ID, uerr)
+		}
 	}()
 
-	if err := publishApplicationUpdate(ctx, entity); err != nil {
+	if err = publishApplicationUpdate(ctx, entity); err != nil {
 		return err
 	}
 
@@ -556,23 +573,14 @@ func (h Handler) getInstanceOutputs(ctx *gin.Context, instanceID types.ID) ([]ty
 	return o, nil
 }
 
-func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance, s, m string) error {
-	var logger = log.WithName("application-instance")
-
-	entity.Status = s
-	entity.StatusMessage = m
-	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	err = update.Exec(ctx)
+func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance) error {
+	entity.Status.SetSummary(status.WalkApplicationInstance(&entity.Status))
+	var err = h.modelClient.ApplicationInstances().UpdateOne(entity).
+		SetStatus(entity.Status).
+		Exec(ctx)
 	if err != nil && !model.IsNotFound(err) {
-		logger.Errorf("failed to update status of instance %s: %v", entity.ID, err)
 		return err
 	}
-
 	return nil
 }
 
@@ -585,7 +593,6 @@ func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*mo
 
 	return h.createInstance(ctx, &model.ApplicationInstance{
 		Name:          req.Name,
-		Status:        status.ApplicationInstanceStatusDeploying,
 		Variables:     applicationInstance.Variables,
 		ApplicationID: applicationInstance.ApplicationID,
 		EnvironmentID: applicationInstance.EnvironmentID,
