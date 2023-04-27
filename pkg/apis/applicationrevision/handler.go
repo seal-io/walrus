@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"k8s.io/apimachinery/pkg/util/sets"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 
@@ -421,29 +422,39 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		for cid, crids := range ids {
-			var c, err = h.modelClient.Connectors().Query().
-				Select(
-					connector.FieldID,
-					connector.FieldName,
-					connector.FieldType,
-					connector.FieldCategory,
-					connector.FieldConfigVersion,
-					connector.FieldConfigData).
-				Where(connector.ID(cid)).
-				Only(ctx)
-			if err != nil {
-				logger.Errorf("error getting connector %s: %v",
-					cid, err)
-				continue
-			}
+		// fetch related connectors at once,
+		// and then index these connectors by its id.
+		var cs, err = h.modelClient.Connectors().Query().
+			Select(
+				connector.FieldID,
+				connector.FieldName,
+				connector.FieldType,
+				connector.FieldCategory,
+				connector.FieldConfigVersion,
+				connector.FieldConfigData).
+			Where(connector.IDIn(sets.KeySet(ids).UnsortedList()...)).
+			All(ctx)
+		if err != nil {
+			logger.Errorf("cannot list connectors: %v", err)
+			return
+		}
+		var csidx = make(map[types.ID]*model.Connector, len(cs))
+		for i := range cs {
+			csidx[cs[i].ID] = cs[i]
+		}
 
+		for cid, crids := range ids {
 			entities, err := applicationresources.ListLabelCandidatesByIDs(ctx, h.modelClient, crids)
 			if err != nil {
 				logger.Errorf("error listing candidates: %v", err)
 				continue
 			}
 			if len(entities) == 0 {
+				continue
+			}
+
+			var c, exist = csidx[cid]
+			if !exist {
 				continue
 			}
 
@@ -456,7 +467,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				continue
 			}
 
-			err = applicationresources.State(ctx, h.modelClient, entities) // reuse the result of label listed.
+			err = applicationresources.State(ctx, op, h.modelClient, entities) // reuse the result of label listed.
 			if err != nil {
 				logger.Errorf("error stating entities: %v", err)
 			}
