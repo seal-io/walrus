@@ -78,8 +78,8 @@ func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error
 					Type: dm.Type,
 					Collection: []view.ApplicationResource{
 						{
-							ApplicationResourceOutput: model.ExposeApplicationResource(entity),
-							Keys:                      keys,
+							Resource: model.ExposeApplicationResource(entity),
+							Keys:     keys,
 						},
 					},
 				}
@@ -297,7 +297,7 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 
 	var resp = make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
-		resp[i].ApplicationResourceOutput = model.ExposeApplicationResource(entities[i])
+		resp[i].Resource = model.ExposeApplicationResource(entities[i])
 		if !withoutKeys {
 			resp[i].Keys, err = getKeys(ctx, entities[i])
 			if err != nil {
