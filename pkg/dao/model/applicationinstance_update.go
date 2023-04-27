@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ApplicationInstanceUpdate is the builder for updating ApplicationInstance entities.
@@ -35,46 +36,6 @@ type ApplicationInstanceUpdate struct {
 // Where appends a list predicates to the ApplicationInstanceUpdate builder.
 func (aiu *ApplicationInstanceUpdate) Where(ps ...predicate.ApplicationInstance) *ApplicationInstanceUpdate {
 	aiu.mutation.Where(ps...)
-	return aiu
-}
-
-// SetStatus sets the "status" field.
-func (aiu *ApplicationInstanceUpdate) SetStatus(s string) *ApplicationInstanceUpdate {
-	aiu.mutation.SetStatus(s)
-	return aiu
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (aiu *ApplicationInstanceUpdate) SetNillableStatus(s *string) *ApplicationInstanceUpdate {
-	if s != nil {
-		aiu.SetStatus(*s)
-	}
-	return aiu
-}
-
-// ClearStatus clears the value of the "status" field.
-func (aiu *ApplicationInstanceUpdate) ClearStatus() *ApplicationInstanceUpdate {
-	aiu.mutation.ClearStatus()
-	return aiu
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (aiu *ApplicationInstanceUpdate) SetStatusMessage(s string) *ApplicationInstanceUpdate {
-	aiu.mutation.SetStatusMessage(s)
-	return aiu
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (aiu *ApplicationInstanceUpdate) SetNillableStatusMessage(s *string) *ApplicationInstanceUpdate {
-	if s != nil {
-		aiu.SetStatusMessage(*s)
-	}
-	return aiu
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (aiu *ApplicationInstanceUpdate) ClearStatusMessage() *ApplicationInstanceUpdate {
-	aiu.mutation.ClearStatusMessage()
 	return aiu
 }
 
@@ -93,6 +54,26 @@ func (aiu *ApplicationInstanceUpdate) SetVariables(pr property.Values) *Applicat
 // ClearVariables clears the value of the "variables" field.
 func (aiu *ApplicationInstanceUpdate) ClearVariables() *ApplicationInstanceUpdate {
 	aiu.mutation.ClearVariables()
+	return aiu
+}
+
+// SetStatus sets the "status" field.
+func (aiu *ApplicationInstanceUpdate) SetStatus(s status.Status) *ApplicationInstanceUpdate {
+	aiu.mutation.SetStatus(s)
+	return aiu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aiu *ApplicationInstanceUpdate) SetNillableStatus(s *status.Status) *ApplicationInstanceUpdate {
+	if s != nil {
+		aiu.SetStatus(*s)
+	}
+	return aiu
+}
+
+// ClearStatus clears the value of the "status" field.
+func (aiu *ApplicationInstanceUpdate) ClearStatus() *ApplicationInstanceUpdate {
+	aiu.mutation.ClearStatus()
 	return aiu
 }
 
@@ -244,18 +225,6 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			}
 		}
 	}
-	if value, ok := aiu.mutation.Status(); ok {
-		_spec.SetField(applicationinstance.FieldStatus, field.TypeString, value)
-	}
-	if aiu.mutation.StatusCleared() {
-		_spec.ClearField(applicationinstance.FieldStatus, field.TypeString)
-	}
-	if value, ok := aiu.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationinstance.FieldStatusMessage, field.TypeString, value)
-	}
-	if aiu.mutation.StatusMessageCleared() {
-		_spec.ClearField(applicationinstance.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := aiu.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationinstance.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -264,6 +233,12 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 	}
 	if aiu.mutation.VariablesCleared() {
 		_spec.ClearField(applicationinstance.FieldVariables, field.TypeOther)
+	}
+	if value, ok := aiu.mutation.Status(); ok {
+		_spec.SetField(applicationinstance.FieldStatus, field.TypeJSON, value)
+	}
+	if aiu.mutation.StatusCleared() {
+		_spec.ClearField(applicationinstance.FieldStatus, field.TypeJSON)
 	}
 	if aiu.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -403,46 +378,6 @@ type ApplicationInstanceUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetStatus sets the "status" field.
-func (aiuo *ApplicationInstanceUpdateOne) SetStatus(s string) *ApplicationInstanceUpdateOne {
-	aiuo.mutation.SetStatus(s)
-	return aiuo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (aiuo *ApplicationInstanceUpdateOne) SetNillableStatus(s *string) *ApplicationInstanceUpdateOne {
-	if s != nil {
-		aiuo.SetStatus(*s)
-	}
-	return aiuo
-}
-
-// ClearStatus clears the value of the "status" field.
-func (aiuo *ApplicationInstanceUpdateOne) ClearStatus() *ApplicationInstanceUpdateOne {
-	aiuo.mutation.ClearStatus()
-	return aiuo
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (aiuo *ApplicationInstanceUpdateOne) SetStatusMessage(s string) *ApplicationInstanceUpdateOne {
-	aiuo.mutation.SetStatusMessage(s)
-	return aiuo
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (aiuo *ApplicationInstanceUpdateOne) SetNillableStatusMessage(s *string) *ApplicationInstanceUpdateOne {
-	if s != nil {
-		aiuo.SetStatusMessage(*s)
-	}
-	return aiuo
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (aiuo *ApplicationInstanceUpdateOne) ClearStatusMessage() *ApplicationInstanceUpdateOne {
-	aiuo.mutation.ClearStatusMessage()
-	return aiuo
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (aiuo *ApplicationInstanceUpdateOne) SetUpdateTime(t time.Time) *ApplicationInstanceUpdateOne {
 	aiuo.mutation.SetUpdateTime(t)
@@ -458,6 +393,26 @@ func (aiuo *ApplicationInstanceUpdateOne) SetVariables(pr property.Values) *Appl
 // ClearVariables clears the value of the "variables" field.
 func (aiuo *ApplicationInstanceUpdateOne) ClearVariables() *ApplicationInstanceUpdateOne {
 	aiuo.mutation.ClearVariables()
+	return aiuo
+}
+
+// SetStatus sets the "status" field.
+func (aiuo *ApplicationInstanceUpdateOne) SetStatus(s status.Status) *ApplicationInstanceUpdateOne {
+	aiuo.mutation.SetStatus(s)
+	return aiuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aiuo *ApplicationInstanceUpdateOne) SetNillableStatus(s *status.Status) *ApplicationInstanceUpdateOne {
+	if s != nil {
+		aiuo.SetStatus(*s)
+	}
+	return aiuo
+}
+
+// ClearStatus clears the value of the "status" field.
+func (aiuo *ApplicationInstanceUpdateOne) ClearStatus() *ApplicationInstanceUpdateOne {
+	aiuo.mutation.ClearStatus()
 	return aiuo
 }
 
@@ -639,18 +594,6 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			}
 		}
 	}
-	if value, ok := aiuo.mutation.Status(); ok {
-		_spec.SetField(applicationinstance.FieldStatus, field.TypeString, value)
-	}
-	if aiuo.mutation.StatusCleared() {
-		_spec.ClearField(applicationinstance.FieldStatus, field.TypeString)
-	}
-	if value, ok := aiuo.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationinstance.FieldStatusMessage, field.TypeString, value)
-	}
-	if aiuo.mutation.StatusMessageCleared() {
-		_spec.ClearField(applicationinstance.FieldStatusMessage, field.TypeString)
-	}
 	if value, ok := aiuo.mutation.UpdateTime(); ok {
 		_spec.SetField(applicationinstance.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -659,6 +602,12 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if aiuo.mutation.VariablesCleared() {
 		_spec.ClearField(applicationinstance.FieldVariables, field.TypeOther)
+	}
+	if value, ok := aiuo.mutation.Status(); ok {
+		_spec.SetField(applicationinstance.FieldStatus, field.TypeJSON, value)
+	}
+	if aiuo.mutation.StatusCleared() {
+		_spec.ClearField(applicationinstance.FieldStatus, field.TypeJSON)
 	}
 	if aiuo.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

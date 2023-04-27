@@ -426,12 +426,12 @@ func (aiq *ApplicationInstanceQuery) WithResources(opts ...func(*ApplicationReso
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ApplicationInstance.Query().
-//		GroupBy(applicationinstance.FieldStatus).
+//		GroupBy(applicationinstance.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (aiq *ApplicationInstanceQuery) GroupBy(field string, fields ...string) *ApplicationInstanceGroupBy {
@@ -449,11 +449,11 @@ func (aiq *ApplicationInstanceQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.ApplicationInstance.Query().
-//		Select(applicationinstance.FieldStatus).
+//		Select(applicationinstance.FieldCreateTime).
 //		Scan(ctx, &v)
 func (aiq *ApplicationInstanceQuery) Select(fields ...string) *ApplicationInstanceSelect {
 	aiq.ctx.Fields = append(aiq.ctx.Fields, fields...)

@@ -16,10 +16,6 @@ const (
 	Label = "application_instance"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
-	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -32,6 +28,8 @@ const (
 	FieldName = "name"
 	// FieldVariables holds the string denoting the variables field in the database.
 	FieldVariables = "variables"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// EdgeApplication holds the string denoting the application edge name in mutations.
 	EdgeApplication = "application"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -75,14 +73,13 @@ const (
 // Columns holds all SQL columns for applicationinstance fields.
 var Columns = []string{
 	FieldID,
-	FieldStatus,
-	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldApplicationID,
 	FieldEnvironmentID,
 	FieldName,
 	FieldVariables,
+	FieldStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

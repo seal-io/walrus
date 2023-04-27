@@ -17,6 +17,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/utils/json"
 )
 
 // ApplicationInstance is the model entity for the ApplicationInstance schema.
@@ -24,10 +26,6 @@ type ApplicationInstance struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Status of the resource.
-	Status string `json:"status,omitempty" sql:"status"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -40,6 +38,8 @@ type ApplicationInstance struct {
 	Name string `json:"name,omitempty" sql:"name"`
 	// Variables of the instance.
 	Variables property.Values `json:"variables,omitempty" sql:"variables"`
+	// Status of the instance.
+	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationInstanceQuery when eager-loading is set.
 	Edges ApplicationInstanceEdges `json:"edges,omitempty"`
@@ -109,11 +109,13 @@ func (*ApplicationInstance) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case applicationinstance.FieldStatus:
+			values[i] = new([]byte)
 		case applicationinstance.FieldID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
 			values[i] = new(oid.ID)
 		case applicationinstance.FieldVariables:
 			values[i] = new(property.Values)
-		case applicationinstance.FieldStatus, applicationinstance.FieldStatusMessage, applicationinstance.FieldName:
+		case applicationinstance.FieldName:
 			values[i] = new(sql.NullString)
 		case applicationinstance.FieldCreateTime, applicationinstance.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -137,18 +139,6 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ai.ID = *value
-			}
-		case applicationinstance.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				ai.Status = value.String
-			}
-		case applicationinstance.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
-			} else if value.Valid {
-				ai.StatusMessage = value.String
 			}
 		case applicationinstance.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -187,6 +177,14 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field variables", values[i])
 			} else if value != nil {
 				ai.Variables = *value
+			}
+		case applicationinstance.FieldStatus:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ai.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
 			}
 		}
 	}
@@ -236,12 +234,6 @@ func (ai *ApplicationInstance) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationInstance(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ai.ID))
-	builder.WriteString("status=")
-	builder.WriteString(ai.Status)
-	builder.WriteString(", ")
-	builder.WriteString("statusMessage=")
-	builder.WriteString(ai.StatusMessage)
-	builder.WriteString(", ")
 	if v := ai.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -263,6 +255,9 @@ func (ai *ApplicationInstance) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("variables=")
 	builder.WriteString(fmt.Sprintf("%v", ai.Variables))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", ai.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

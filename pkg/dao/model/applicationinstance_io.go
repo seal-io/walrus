@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ApplicationInstanceQueryInput is the input for the ApplicationInstance query.
@@ -27,14 +28,12 @@ func (in ApplicationInstanceQueryInput) Model() *ApplicationInstance {
 
 // ApplicationInstanceCreateInput is the input for the ApplicationInstance creation.
 type ApplicationInstanceCreateInput struct {
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Name of the instance.
 	Name string `json:"name"`
 	// Variables of the instance.
 	Variables property.Values `json:"variables,omitempty"`
+	// Status of the instance.
+	Status status.Status `json:"status,omitempty"`
 	// Application to which the instance belongs.
 	Application ApplicationQueryInput `json:"application"`
 	// Environment to which the instance belongs.
@@ -44,10 +43,9 @@ type ApplicationInstanceCreateInput struct {
 // Model converts the ApplicationInstanceCreateInput to ApplicationInstance.
 func (in ApplicationInstanceCreateInput) Model() *ApplicationInstance {
 	var entity = &ApplicationInstance{
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		Name:          in.Name,
-		Variables:     in.Variables,
+		Name:      in.Name,
+		Variables: in.Variables,
+		Status:    in.Status,
 	}
 	entity.ApplicationID = in.Application.ID
 	entity.EnvironmentID = in.Environment.ID
@@ -58,21 +56,18 @@ func (in ApplicationInstanceCreateInput) Model() *ApplicationInstance {
 type ApplicationInstanceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Variables of the instance.
 	Variables property.Values `json:"variables,omitempty"`
+	// Status of the instance.
+	Status status.Status `json:"status,omitempty"`
 }
 
 // Model converts the ApplicationInstanceUpdateInput to ApplicationInstance.
 func (in ApplicationInstanceUpdateInput) Model() *ApplicationInstance {
 	var entity = &ApplicationInstance{
-		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		Variables:     in.Variables,
+		ID:        in.ID,
+		Variables: in.Variables,
+		Status:    in.Status,
 	}
 	return entity
 }
@@ -81,10 +76,6 @@ func (in ApplicationInstanceUpdateInput) Model() *ApplicationInstance {
 type ApplicationInstanceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -93,6 +84,8 @@ type ApplicationInstanceOutput struct {
 	Name string `json:"name,omitempty"`
 	// Variables of the instance.
 	Variables property.Values `json:"variables,omitempty"`
+	// Status of the instance.
+	Status status.Status `json:"status,omitempty"`
 	// Application to which the instance belongs.
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Environment to which the instance belongs.
@@ -109,17 +102,16 @@ func ExposeApplicationInstance(in *ApplicationInstance) *ApplicationInstanceOutp
 		return nil
 	}
 	var entity = &ApplicationInstanceOutput{
-		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
-		CreateTime:    in.CreateTime,
-		UpdateTime:    in.UpdateTime,
-		Name:          in.Name,
-		Variables:     in.Variables,
-		Application:   ExposeApplication(in.Edges.Application),
-		Environment:   ExposeEnvironment(in.Edges.Environment),
-		Revisions:     ExposeApplicationRevisions(in.Edges.Revisions),
-		Resources:     ExposeApplicationResources(in.Edges.Resources),
+		ID:          in.ID,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
+		Name:        in.Name,
+		Variables:   in.Variables,
+		Status:      in.Status,
+		Application: ExposeApplication(in.Edges.Application),
+		Environment: ExposeEnvironment(in.Edges.Environment),
+		Revisions:   ExposeApplicationRevisions(in.Edges.Revisions),
+		Resources:   ExposeApplicationResources(in.Edges.Resources),
 	}
 	if entity.Application == nil {
 		entity.Application = &ApplicationOutput{}
