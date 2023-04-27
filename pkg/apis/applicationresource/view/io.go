@@ -19,7 +19,7 @@ import (
 type ApplicationResourceQuery struct {
 	*model.ApplicationResourceQueryInput `uri:",inline"`
 
-	Entity *model.ApplicationResource `json:"-"`
+	Entity *model.ApplicationResource `uri:"-" json:"-"`
 }
 
 func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) error {
@@ -103,9 +103,8 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 }
 
 type ApplicationResource struct {
-	*model.ApplicationResourceOutput `json:",inline"`
-
-	Keys *operator.Keys `json:"keys"`
+	Resource *model.ApplicationResourceOutput `json:",inline"`
+	Keys     *operator.Keys                   `json:"keys"`
 }
 
 type CollectionGetResponse = []ApplicationResource

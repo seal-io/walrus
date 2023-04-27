@@ -174,7 +174,7 @@ type GetTerraformStatesResponse = json.RawMessage
 
 type UpdateTerraformStatesRequest struct {
 	GetRequest      `uri:",inline"`
-	json.RawMessage `json:",inline"`
+	json.RawMessage `uri:"-" json:",inline"`
 }
 
 type StreamLogRequest struct {
