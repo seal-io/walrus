@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 // ApplicationInstanceCreate is the builder for creating a ApplicationInstance entity.
@@ -31,34 +32,6 @@ type ApplicationInstanceCreate struct {
 	mutation *ApplicationInstanceMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
-}
-
-// SetStatus sets the "status" field.
-func (aic *ApplicationInstanceCreate) SetStatus(s string) *ApplicationInstanceCreate {
-	aic.mutation.SetStatus(s)
-	return aic
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (aic *ApplicationInstanceCreate) SetNillableStatus(s *string) *ApplicationInstanceCreate {
-	if s != nil {
-		aic.SetStatus(*s)
-	}
-	return aic
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (aic *ApplicationInstanceCreate) SetStatusMessage(s string) *ApplicationInstanceCreate {
-	aic.mutation.SetStatusMessage(s)
-	return aic
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (aic *ApplicationInstanceCreate) SetNillableStatusMessage(s *string) *ApplicationInstanceCreate {
-	if s != nil {
-		aic.SetStatusMessage(*s)
-	}
-	return aic
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -110,6 +83,20 @@ func (aic *ApplicationInstanceCreate) SetName(s string) *ApplicationInstanceCrea
 // SetVariables sets the "variables" field.
 func (aic *ApplicationInstanceCreate) SetVariables(pr property.Values) *ApplicationInstanceCreate {
 	aic.mutation.SetVariables(pr)
+	return aic
+}
+
+// SetStatus sets the "status" field.
+func (aic *ApplicationInstanceCreate) SetStatus(s status.Status) *ApplicationInstanceCreate {
+	aic.mutation.SetStatus(s)
+	return aic
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aic *ApplicationInstanceCreate) SetNillableStatus(s *status.Status) *ApplicationInstanceCreate {
+	if s != nil {
+		aic.SetStatus(*s)
+	}
 	return aic
 }
 
@@ -288,14 +275,6 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := aic.mutation.Status(); ok {
-		_spec.SetField(applicationinstance.FieldStatus, field.TypeString, value)
-		_node.Status = value
-	}
-	if value, ok := aic.mutation.StatusMessage(); ok {
-		_spec.SetField(applicationinstance.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
-	}
 	if value, ok := aic.mutation.CreateTime(); ok {
 		_spec.SetField(applicationinstance.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -311,6 +290,10 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 	if value, ok := aic.mutation.Variables(); ok {
 		_spec.SetField(applicationinstance.FieldVariables, field.TypeOther, value)
 		_node.Variables = value
+	}
+	if value, ok := aic.mutation.Status(); ok {
+		_spec.SetField(applicationinstance.FieldStatus, field.TypeJSON, value)
+		_node.Status = value
 	}
 	if nodes := aic.mutation.ApplicationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -401,7 +384,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 // of the `INSERT` statement. For example:
 //
 //	client.ApplicationInstance.Create().
-//		SetStatus(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -410,7 +393,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationInstanceUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (aic *ApplicationInstanceCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationInstanceUpsertOne {
@@ -446,42 +429,6 @@ type (
 	}
 )
 
-// SetStatus sets the "status" field.
-func (u *ApplicationInstanceUpsert) SetStatus(v string) *ApplicationInstanceUpsert {
-	u.Set(applicationinstance.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsert) UpdateStatus() *ApplicationInstanceUpsert {
-	u.SetExcluded(applicationinstance.FieldStatus)
-	return u
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ApplicationInstanceUpsert) ClearStatus() *ApplicationInstanceUpsert {
-	u.SetNull(applicationinstance.FieldStatus)
-	return u
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationInstanceUpsert) SetStatusMessage(v string) *ApplicationInstanceUpsert {
-	u.Set(applicationinstance.FieldStatusMessage, v)
-	return u
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsert) UpdateStatusMessage() *ApplicationInstanceUpsert {
-	u.SetExcluded(applicationinstance.FieldStatusMessage)
-	return u
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationInstanceUpsert) ClearStatusMessage() *ApplicationInstanceUpsert {
-	u.SetNull(applicationinstance.FieldStatusMessage)
-	return u
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationInstanceUpsert) SetUpdateTime(v time.Time) *ApplicationInstanceUpsert {
 	u.Set(applicationinstance.FieldUpdateTime, v)
@@ -509,6 +456,24 @@ func (u *ApplicationInstanceUpsert) UpdateVariables() *ApplicationInstanceUpsert
 // ClearVariables clears the value of the "variables" field.
 func (u *ApplicationInstanceUpsert) ClearVariables() *ApplicationInstanceUpsert {
 	u.SetNull(applicationinstance.FieldVariables)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *ApplicationInstanceUpsert) SetStatus(v status.Status) *ApplicationInstanceUpsert {
+	u.Set(applicationinstance.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ApplicationInstanceUpsert) UpdateStatus() *ApplicationInstanceUpsert {
+	u.SetExcluded(applicationinstance.FieldStatus)
+	return u
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ApplicationInstanceUpsert) ClearStatus() *ApplicationInstanceUpsert {
+	u.SetNull(applicationinstance.FieldStatus)
 	return u
 }
 
@@ -572,48 +537,6 @@ func (u *ApplicationInstanceUpsertOne) Update(set func(*ApplicationInstanceUpser
 	return u
 }
 
-// SetStatus sets the "status" field.
-func (u *ApplicationInstanceUpsertOne) SetStatus(v string) *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsertOne) UpdateStatus() *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ApplicationInstanceUpsertOne) ClearStatus() *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationInstanceUpsertOne) SetStatusMessage(v string) *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsertOne) UpdateStatusMessage() *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationInstanceUpsertOne) ClearStatusMessage() *ApplicationInstanceUpsertOne {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationInstanceUpsertOne) SetUpdateTime(v time.Time) *ApplicationInstanceUpsertOne {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
@@ -646,6 +569,27 @@ func (u *ApplicationInstanceUpsertOne) UpdateVariables() *ApplicationInstanceUps
 func (u *ApplicationInstanceUpsertOne) ClearVariables() *ApplicationInstanceUpsertOne {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
 		s.ClearVariables()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ApplicationInstanceUpsertOne) SetStatus(v status.Status) *ApplicationInstanceUpsertOne {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ApplicationInstanceUpsertOne) UpdateStatus() *ApplicationInstanceUpsertOne {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ApplicationInstanceUpsertOne) ClearStatus() *ApplicationInstanceUpsertOne {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.ClearStatus()
 	})
 }
 
@@ -781,7 +725,7 @@ func (aicb *ApplicationInstanceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationInstanceUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (aicb *ApplicationInstanceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationInstanceUpsertBulk {
@@ -872,48 +816,6 @@ func (u *ApplicationInstanceUpsertBulk) Update(set func(*ApplicationInstanceUpse
 	return u
 }
 
-// SetStatus sets the "status" field.
-func (u *ApplicationInstanceUpsertBulk) SetStatus(v string) *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsertBulk) UpdateStatus() *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ApplicationInstanceUpsertBulk) ClearStatus() *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.ClearStatus()
-	})
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (u *ApplicationInstanceUpsertBulk) SetStatusMessage(v string) *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.SetStatusMessage(v)
-	})
-}
-
-// UpdateStatusMessage sets the "statusMessage" field to the value that was provided on create.
-func (u *ApplicationInstanceUpsertBulk) UpdateStatusMessage() *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.UpdateStatusMessage()
-	})
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (u *ApplicationInstanceUpsertBulk) ClearStatusMessage() *ApplicationInstanceUpsertBulk {
-	return u.Update(func(s *ApplicationInstanceUpsert) {
-		s.ClearStatusMessage()
-	})
-}
-
 // SetUpdateTime sets the "updateTime" field.
 func (u *ApplicationInstanceUpsertBulk) SetUpdateTime(v time.Time) *ApplicationInstanceUpsertBulk {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
@@ -946,6 +848,27 @@ func (u *ApplicationInstanceUpsertBulk) UpdateVariables() *ApplicationInstanceUp
 func (u *ApplicationInstanceUpsertBulk) ClearVariables() *ApplicationInstanceUpsertBulk {
 	return u.Update(func(s *ApplicationInstanceUpsert) {
 		s.ClearVariables()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ApplicationInstanceUpsertBulk) SetStatus(v status.Status) *ApplicationInstanceUpsertBulk {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ApplicationInstanceUpsertBulk) UpdateStatus() *ApplicationInstanceUpsertBulk {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ApplicationInstanceUpsertBulk) ClearStatus() *ApplicationInstanceUpsertBulk {
+	return u.Update(func(s *ApplicationInstanceUpsert) {
+		s.ClearStatus()
 	})
 }
 

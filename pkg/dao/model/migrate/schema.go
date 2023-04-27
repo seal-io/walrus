@@ -112,12 +112,11 @@ var (
 	// ApplicationInstancesColumns holds the columns for the "application_instances" table.
 	ApplicationInstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -129,13 +128,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_instances_applications_instances",
-				Columns:    []*schema.Column{ApplicationInstancesColumns[7]},
+				Columns:    []*schema.Column{ApplicationInstancesColumns[6]},
 				RefColumns: []*schema.Column{ApplicationsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "application_instances_environments_instances",
-				Columns:    []*schema.Column{ApplicationInstancesColumns[8]},
+				Columns:    []*schema.Column{ApplicationInstancesColumns[7]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -144,12 +143,12 @@ var (
 			{
 				Name:    "applicationinstance_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ApplicationInstancesColumns[4]},
+				Columns: []*schema.Column{ApplicationInstancesColumns[2]},
 			},
 			{
 				Name:    "applicationinstance_application_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ApplicationInstancesColumns[7], ApplicationInstancesColumns[8], ApplicationInstancesColumns[5]},
+				Columns: []*schema.Column{ApplicationInstancesColumns[6], ApplicationInstancesColumns[7], ApplicationInstancesColumns[3]},
 			},
 		},
 	}

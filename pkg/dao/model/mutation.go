@@ -3545,12 +3545,11 @@ type ApplicationInstanceMutation struct {
 	op                 Op
 	typ                string
 	id                 *oid.ID
-	status             *string
-	statusMessage      *string
 	createTime         *time.Time
 	updateTime         *time.Time
 	name               *string
 	variables          *property.Values
+	status             *status.Status
 	clearedFields      map[string]struct{}
 	application        *oid.ID
 	clearedapplication bool
@@ -3669,104 +3668,6 @@ func (m *ApplicationInstanceMutation) IDs(ctx context.Context) ([]oid.ID, error)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetStatus sets the "status" field.
-func (m *ApplicationInstanceMutation) SetStatus(s string) {
-	m.status = &s
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *ApplicationInstanceMutation) Status() (r string, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the ApplicationInstance entity.
-// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationInstanceMutation) OldStatus(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ClearStatus clears the value of the "status" field.
-func (m *ApplicationInstanceMutation) ClearStatus() {
-	m.status = nil
-	m.clearedFields[applicationinstance.FieldStatus] = struct{}{}
-}
-
-// StatusCleared returns if the "status" field was cleared in this mutation.
-func (m *ApplicationInstanceMutation) StatusCleared() bool {
-	_, ok := m.clearedFields[applicationinstance.FieldStatus]
-	return ok
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *ApplicationInstanceMutation) ResetStatus() {
-	m.status = nil
-	delete(m.clearedFields, applicationinstance.FieldStatus)
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (m *ApplicationInstanceMutation) SetStatusMessage(s string) {
-	m.statusMessage = &s
-}
-
-// StatusMessage returns the value of the "statusMessage" field in the mutation.
-func (m *ApplicationInstanceMutation) StatusMessage() (r string, exists bool) {
-	v := m.statusMessage
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatusMessage returns the old "statusMessage" field's value of the ApplicationInstance entity.
-// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationInstanceMutation) OldStatusMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatusMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatusMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatusMessage: %w", err)
-	}
-	return oldValue.StatusMessage, nil
-}
-
-// ClearStatusMessage clears the value of the "statusMessage" field.
-func (m *ApplicationInstanceMutation) ClearStatusMessage() {
-	m.statusMessage = nil
-	m.clearedFields[applicationinstance.FieldStatusMessage] = struct{}{}
-}
-
-// StatusMessageCleared returns if the "statusMessage" field was cleared in this mutation.
-func (m *ApplicationInstanceMutation) StatusMessageCleared() bool {
-	_, ok := m.clearedFields[applicationinstance.FieldStatusMessage]
-	return ok
-}
-
-// ResetStatusMessage resets all changes to the "statusMessage" field.
-func (m *ApplicationInstanceMutation) ResetStatusMessage() {
-	m.statusMessage = nil
-	delete(m.clearedFields, applicationinstance.FieldStatusMessage)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -3998,6 +3899,55 @@ func (m *ApplicationInstanceMutation) ResetVariables() {
 	delete(m.clearedFields, applicationinstance.FieldVariables)
 }
 
+// SetStatus sets the "status" field.
+func (m *ApplicationInstanceMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ApplicationInstanceMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ApplicationInstance entity.
+// If the ApplicationInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationInstanceMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ApplicationInstanceMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[applicationinstance.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ApplicationInstanceMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[applicationinstance.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ApplicationInstanceMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, applicationinstance.FieldStatus)
+}
+
 // ClearApplication clears the "application" edge to the Application entity.
 func (m *ApplicationInstanceMutation) ClearApplication() {
 	m.clearedapplication = true
@@ -4192,13 +4142,7 @@ func (m *ApplicationInstanceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationInstanceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
-	if m.status != nil {
-		fields = append(fields, applicationinstance.FieldStatus)
-	}
-	if m.statusMessage != nil {
-		fields = append(fields, applicationinstance.FieldStatusMessage)
-	}
+	fields := make([]string, 0, 7)
 	if m.createTime != nil {
 		fields = append(fields, applicationinstance.FieldCreateTime)
 	}
@@ -4217,6 +4161,9 @@ func (m *ApplicationInstanceMutation) Fields() []string {
 	if m.variables != nil {
 		fields = append(fields, applicationinstance.FieldVariables)
 	}
+	if m.status != nil {
+		fields = append(fields, applicationinstance.FieldStatus)
+	}
 	return fields
 }
 
@@ -4225,10 +4172,6 @@ func (m *ApplicationInstanceMutation) Fields() []string {
 // schema.
 func (m *ApplicationInstanceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case applicationinstance.FieldStatus:
-		return m.Status()
-	case applicationinstance.FieldStatusMessage:
-		return m.StatusMessage()
 	case applicationinstance.FieldCreateTime:
 		return m.CreateTime()
 	case applicationinstance.FieldUpdateTime:
@@ -4241,6 +4184,8 @@ func (m *ApplicationInstanceMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case applicationinstance.FieldVariables:
 		return m.Variables()
+	case applicationinstance.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -4250,10 +4195,6 @@ func (m *ApplicationInstanceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ApplicationInstanceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case applicationinstance.FieldStatus:
-		return m.OldStatus(ctx)
-	case applicationinstance.FieldStatusMessage:
-		return m.OldStatusMessage(ctx)
 	case applicationinstance.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case applicationinstance.FieldUpdateTime:
@@ -4266,6 +4207,8 @@ func (m *ApplicationInstanceMutation) OldField(ctx context.Context, name string)
 		return m.OldName(ctx)
 	case applicationinstance.FieldVariables:
 		return m.OldVariables(ctx)
+	case applicationinstance.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown ApplicationInstance field %s", name)
 }
@@ -4275,20 +4218,6 @@ func (m *ApplicationInstanceMutation) OldField(ctx context.Context, name string)
 // type.
 func (m *ApplicationInstanceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case applicationinstance.FieldStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case applicationinstance.FieldStatusMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatusMessage(v)
-		return nil
 	case applicationinstance.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4331,6 +4260,13 @@ func (m *ApplicationInstanceMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetVariables(v)
 		return nil
+	case applicationinstance.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ApplicationInstance field %s", name)
 }
@@ -4361,14 +4297,11 @@ func (m *ApplicationInstanceMutation) AddField(name string, value ent.Value) err
 // mutation.
 func (m *ApplicationInstanceMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(applicationinstance.FieldStatus) {
-		fields = append(fields, applicationinstance.FieldStatus)
-	}
-	if m.FieldCleared(applicationinstance.FieldStatusMessage) {
-		fields = append(fields, applicationinstance.FieldStatusMessage)
-	}
 	if m.FieldCleared(applicationinstance.FieldVariables) {
 		fields = append(fields, applicationinstance.FieldVariables)
+	}
+	if m.FieldCleared(applicationinstance.FieldStatus) {
+		fields = append(fields, applicationinstance.FieldStatus)
 	}
 	return fields
 }
@@ -4384,14 +4317,11 @@ func (m *ApplicationInstanceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ApplicationInstanceMutation) ClearField(name string) error {
 	switch name {
-	case applicationinstance.FieldStatus:
-		m.ClearStatus()
-		return nil
-	case applicationinstance.FieldStatusMessage:
-		m.ClearStatusMessage()
-		return nil
 	case applicationinstance.FieldVariables:
 		m.ClearVariables()
+		return nil
+	case applicationinstance.FieldStatus:
+		m.ClearStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationInstance nullable field %s", name)
@@ -4401,12 +4331,6 @@ func (m *ApplicationInstanceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ApplicationInstanceMutation) ResetField(name string) error {
 	switch name {
-	case applicationinstance.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case applicationinstance.FieldStatusMessage:
-		m.ResetStatusMessage()
-		return nil
 	case applicationinstance.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
@@ -4424,6 +4348,9 @@ func (m *ApplicationInstanceMutation) ResetField(name string) error {
 		return nil
 	case applicationinstance.FieldVariables:
 		m.ResetVariables()
+		return nil
+	case applicationinstance.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationInstance field %s", name)
