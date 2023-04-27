@@ -103,13 +103,13 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 }
 
 func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue, error) {
+	if len(revision.Output) == 0 || revision.Status != status.ApplicationRevisionStatusSucceeded {
+		return nil, nil
+	}
+
 	var revisionState state
 	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
 		return nil, err
-	}
-
-	if len(revision.Output) == 0 || revision.Status != status.ApplicationRevisionStatusSucceeded {
-		return nil, nil
 	}
 
 	// sort by the module name length.
