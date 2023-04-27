@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -51,29 +52,69 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	var cnt, err = in.modelClient.ApplicationResources().Query().
-		Where(applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered)).
-		Count(ctx)
+	// NB(thxCode): connectors are usually less in number,
+	// in case of reuse the connection built from a connector,
+	// we can treat each connector as a task group,
+	// group 100 resources of each connector into one task unit,
+	// and then process sub resources syncing in task unit.
+	var cs, err = in.modelClient.Connectors().Query().
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+			connector.FieldType,
+			connector.FieldCategory,
+			connector.FieldConfigVersion,
+			connector.FieldConfigData).
+		Where(connector.CategoryNEQ(types.ConnectorCategoryCustom)).
+		All(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot list all connectors: %w", err)
 	}
-
-	// divide processing buckets with count.
-	const bks = 100
-	var bkc = cnt / bks
-	if bkc == 0 {
-		var st = in.buildSyncTask(ctx, 0, bks)
-		return st()
+	if len(cs) == 0 {
+		return nil
 	}
 	var wg = gopool.Group()
-	for bk := 0; bk < bkc; bk++ {
-		var st = in.buildSyncTask(ctx, bk, bks)
+	for i := range cs {
+		var st = in.buildSyncTasks(ctx, cs[i])
 		wg.Go(st)
 	}
 	return wg.Wait()
 }
 
-func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, offset, limit int) func() error {
+func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.Connector) func() error {
+	return func() error {
+		var op, err = platform.GetOperator(ctx, operator.CreateOptions{
+			Connector: *c,
+		})
+		if err != nil {
+			return err
+		}
+
+		cnt, err := c.QueryResources().
+			Where(applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered)).
+			Count(ctx)
+		if err != nil {
+			return fmt.Errorf("cannot count not discovered resources of connect %s: %w", c.ID, err)
+		}
+		if cnt == 0 {
+			return nil
+		}
+		const bks = 100
+		var bkc = cnt / bks
+		if bkc == 0 {
+			var at = in.buildSyncTask(ctx, op, 0, bks)
+			return at()
+		}
+		var wg = gopool.Group()
+		for bk := 0; bk < bkc; bk++ {
+			var at = in.buildSyncTask(ctx, op, bk, bks)
+			wg.Go(at)
+		}
+		return wg.Wait()
+	}
+}
+
+func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator.Operator, offset, limit int) func() error {
 	return func() (berr error) {
 		var entities, err = in.modelClient.ApplicationResources().Query().
 			Order(model.Desc(applicationresource.FieldCreateTime)).
@@ -88,29 +129,14 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, offset, lim
 				applicationresource.FieldConnectorID,
 				applicationresource.FieldName,
 				applicationresource.FieldDeployerType).
-			WithConnector(func(cq *model.ConnectorQuery) {
-				cq.Select(
-					connector.FieldName,
-					connector.FieldType,
-					connector.FieldCategory,
-					connector.FieldConfigVersion,
-					connector.FieldConfigData)
-			}).
 			All(ctx)
 		if err != nil {
 			return err
 		}
 
-		for i := 0; i < len(entities); i++ {
-			var op, err = platform.GetOperator(ctx, operator.CreateOptions{
-				Connector: *entities[i].Edges.Connector,
-			})
-			if multierr.AppendInto(&berr, err) {
-				continue
-			}
-
+		for i := range entities {
 			// get observed components from remote.
-			observedComps, err := op.GetComponents(ctx, entities[i])
+			var observedComps, err = op.GetComponents(ctx, entities[i])
 			if multierr.AppendInto(&berr, err) {
 				continue
 			}
