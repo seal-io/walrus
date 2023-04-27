@@ -114,14 +114,20 @@ type ApplicationResourceOutput struct {
 	Components []*ApplicationResourceOutput `json:"components,omitempty"`
 }
 
-// MarshalJSON implements the json.Marshaler interface.
-func (in ApplicationResourceOutput) MarshalJSON() ([]byte, error) {
+// Normalize normalizes the fields,
+// and impacts the output.
+func (in *ApplicationResourceOutput) Normalize() *ApplicationResourceOutput {
 	if in.Module != "" {
 		// show application module name only.
 		in.Module = strings.Split(in.Module, "/")[0]
 	}
+	return in
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (in *ApplicationResourceOutput) MarshalJSON() ([]byte, error) {
 	type Alias ApplicationResourceOutput
-	return json.Marshal((*Alias)(&in))
+	return json.Marshal((*Alias)(in.Normalize()))
 }
 
 // ExposeApplicationResource converts the ApplicationResource to ApplicationResourceOutput.
