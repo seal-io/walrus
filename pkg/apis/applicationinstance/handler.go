@@ -3,8 +3,11 @@ package applicationinstance
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zclconf/go-cty/cty"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/applicationinstance/view"
@@ -16,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
@@ -23,7 +27,9 @@ import (
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 func Handle(mc model.ClientSet, kc *rest.Config, tc bool) Handler {
@@ -401,7 +407,86 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	return dp.Apply(ctx, entity, applyOpts)
 }
 
-func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (*view.AccessEndpointResponse, error) {
+func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (view.AccessEndpointResponse, error) {
+	// endpoints from output
+	endpoints, err := h.endpointsFromOutput(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if len(endpoints) != 0 {
+		return endpoints, nil
+	}
+
+	// endpoints from resources
+	return h.endpointsFromResources(ctx, req)
+}
+
+func (h Handler) endpointsFromOutput(ctx *gin.Context, req view.AccessEndpointRequest) (view.AccessEndpointResponse, error) {
+	outputs, err := h.getInstanceOutputs(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		invalidTypeErr = runtime.Error(http.StatusBadRequest, "element type of output endpoints should be string")
+		endpoints      = make([]view.Endpoint, 0, len(outputs))
+	)
+	for _, v := range outputs {
+		if !view.IsEndpointOuput(v.Name) {
+			continue
+		}
+
+		prop := property.Property{
+			Type:  v.Type,
+			Value: v.Value,
+		}
+		switch {
+		case v.Type == cty.String:
+			ep, _, err := prop.GetString()
+			if err != nil {
+				return nil, err
+			}
+			if err := validation.IsValidEndpoint(ep); err != nil {
+				return nil, runtime.Error(http.StatusBadRequest, err)
+			}
+
+			endpoints = append(endpoints, view.Endpoint{
+				ModuleName: v.ModuleName,
+				Endpoints:  []string{ep},
+				Name:       v.Name,
+			})
+		case v.Type.IsListType() || v.Type.IsSetType() || v.Type.IsTupleType():
+			if v.Type.IsTupleType() {
+				// for tuple: each element has its own type
+				for _, tp := range v.Type.TupleElementTypes() {
+					if tp != cty.String {
+						return nil, invalidTypeErr
+					}
+				}
+			} else if v.Type.ElementType() != cty.String {
+				// for list and set: all elements are the same type
+				return nil, invalidTypeErr
+			}
+
+			eps, _, err := property.GetSlice[string](prop)
+			if err != nil {
+				return nil, err
+			}
+			if err := validation.IsValidEndpoints(eps); err != nil {
+				return nil, runtime.Error(http.StatusBadRequest, err)
+			}
+
+			endpoints = append(endpoints, view.Endpoint{
+				ModuleName: v.ModuleName,
+				Endpoints:  eps,
+				Name:       v.Name,
+			})
+		}
+	}
+
+	return endpoints, nil
+}
+
+func (h Handler) endpointsFromResources(ctx *gin.Context, req view.AccessEndpointRequest) ([]view.Endpoint, error) {
 	res, err := h.modelClient.ApplicationResources().Query().
 		Where(
 			applicationresource.InstanceID(req.ID),
@@ -414,6 +499,7 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 			applicationresource.FieldType,
 			applicationresource.FieldName,
 			applicationresource.FieldStatus,
+			applicationresource.FieldModule,
 		).
 		All(ctx)
 	if err != nil {
@@ -423,25 +509,34 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 		return nil, nil
 	}
 
-	var endpoints []view.ResourceEndpoint
+	getModuleName := func(origin string) string {
+		if arr := strings.Split(origin, "/"); len(arr) >= 1 {
+			return arr[0]
+		}
+		return ""
+	}
+
+	var endpoints []view.Endpoint
 	for _, v := range res {
+		mn := getModuleName(v.Module)
 		for _, eps := range v.Status.ResourceEndpoints {
-			endpoints = append(endpoints, view.ResourceEndpoint{
-				ResourceID:      v.Name,
-				ResourceKind:    v.Type,
-				ResourceSubKind: eps.EndpointType,
-				Endpoints:       eps.Endpoints,
+			endpoints = append(endpoints, view.Endpoint{
+				ModuleName: mn,
+				Name:       strs.Join("/", eps.EndpointType, v.Name),
+				Endpoints:  eps.Endpoints,
 			})
 		}
 	}
-	return &view.AccessEndpointResponse{
-		Endpoints: endpoints,
-	}, nil
+	return endpoints, nil
 }
 
 func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.OutputResponse, error) {
+	return h.getInstanceOutputs(ctx, req.ID)
+}
+
+func (h Handler) getInstanceOutputs(ctx *gin.Context, instanceID types.ID) ([]types.OutputValue, error) {
 	ar, err := h.modelClient.ApplicationRevisions().Query().
-		Where(applicationrevision.InstanceID(req.ID)).
+		Where(applicationrevision.InstanceID(instanceID)).
 		Select(
 			applicationrevision.FieldOutput,
 			applicationrevision.FieldModules,

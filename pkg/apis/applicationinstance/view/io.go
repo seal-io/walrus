@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"k8s.io/utils/pointer"
 
@@ -241,6 +242,10 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 	return nil
 }
 
+func IsEndpointOuput(outputName string) bool {
+	return strings.HasPrefix(outputName, "endpoint")
+}
+
 type AccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
 
@@ -263,18 +268,14 @@ func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) err
 	return nil
 }
 
-type AccessEndpointResponse struct {
-	Endpoints []ResourceEndpoint `json:"endpoints"`
-}
+type AccessEndpointResponse = []Endpoint
 
-type ResourceEndpoint struct {
-	// ResourceID is the namespaced name.
-	ResourceID string `json:"resourceID,omitempty"`
-	// ResourceKind be Ingress or Service.
-	ResourceKind string `json:"resourceKind,omitempty"`
-	// ResourceSubKind is the sub kind for endpoint, like nodePort, loadBalance.
-	ResourceSubKind string `json:"resourceSubKind,omitempty"`
-	// Endpoints is access endpoints.
+type Endpoint struct {
+	// ModuleName is the name of module.
+	ModuleName string `json:"moduleName,omitempty"`
+	// Name is identifier for the endpoint
+	Name string `json:"name,omitempty"`
+	// Endpoint is access endpoint.
 	Endpoints []string `json:"endpoints,omitempty"`
 }
 
