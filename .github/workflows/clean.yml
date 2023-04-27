@@ -1,7 +1,7 @@
 name: Clean
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
   actions: write
 
@@ -10,9 +10,9 @@ defaults:
     shell: bash
 
 on:
-  pull_request:
-    types:
-      - closed
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch: { }
 
 jobs:
   clean:
@@ -24,30 +24,54 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Remove Publish Result
+      - name: Remove Cache
         uses: actions/github-script@v6
         with:
-          # clean up caches created by the pull request itself,
+          # clean up caches,
           # ref to https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#force-deleting-cache-entries,
           # and https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache.
           script: |
-            const ref = 'refs/pull/${{ github.event.pull_request.number }}/merge'
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            var deleteCaches = new Array()
             
-            console.debug("getting cache list...")
-            const cs = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: ref
+            // get candidate items.
+            const { data: cs } = await github.rest.actions.getActionsCacheList({
+              owner: owner,
+              repo: repo,
             });
-            console.log("got cache list")
+            for (const c of cs.actions_caches) {
+              // clean closed pull request's caches.
+              if (c.ref.match(/^refs\/pull\/.*$/)) {
+                var prNum = c.ref.replace(/[^\d]/g, "")
+                const { data: pr } = await github.rest.pulls.get({
+                  owner: owner,
+                  repo: repo,
+                  pull_number: prNum,
+                })
+                if (pr.state === 'closed') {
+                  deleteCaches.push(c)
+                }
+                continue
+              }
+              // clean push archived caches.
+              if (c.key.match(/^archive-.*$/)) {
+                deleteCaches.push(c)
+                continue
+              }
+              // clean stale built caches.
+              if (!c.key.match(/^setup-go-.*-${{ hashFiles('**/go.sum') }}$/)) {
+                deleteCaches.push(c)
+                continue
+              }
+            }
             
-            for (const c of cs.data.actions_caches) {
-              console.debug(`cleaning cache "${c.key}"...`)
-              await github.rest.actions.deleteActionsCacheByKey({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: ref,
-                key: c.key
+            // delete 
+            for (const c of deleteCaches) {
+              await github.rest.actions.deleteActionsCacheById({
+                owner: owner,
+                repo: repo,
+                cache_id: c.id,
               })
               console.log(`cleaned cache "${c.key}"`)
             }
