@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationInstance) ([]*model.ApplicationInstanceCreate, error) {
@@ -25,9 +25,10 @@ func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationI
 			SetName(r.Name)
 
 		// optional.
-		c.SetStatus(r.Status)
-		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
 		c.SetVariables(r.Variables)
+		status.ApplicationInstanceStatusDeployed.Unknown(r, "Deploying instance")
+		r.Status.SetSummary(status.WalkApplicationInstance(&r.Status))
+		c.SetStatus(r.Status)
 
 		rrs[i] = c
 	}
@@ -44,9 +45,9 @@ func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInsta
 	}
 
 	var c = mc.ApplicationInstances().UpdateOne(input).
-		SetStatusMessage(strs.NormalizeSpecialChars(input.StatusMessage)).
 		SetVariables(input.Variables)
-	if input.Status != "" {
+	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
+	if input.Status.Changed() {
 		c.SetStatus(input.Status)
 	}
 
