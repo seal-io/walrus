@@ -9,25 +9,19 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 )
 
-// Label applies the labels to the given model.ApplicationResource according to its connector.
-func Label(ctx context.Context, candidates []*model.ApplicationResource) (berr error) {
-	for i := range candidates {
-		// get operator.
-		var op, err = platform.GetOperator(ctx, operator.CreateOptions{
-			Connector: *candidates[i].Edges.Connector,
-		})
-		if multierr.AppendInto(&berr, err) {
-			continue
-		}
+// Label applies the labels to the given model.ApplicationResource list with the given operator.Operator.
+func Label(ctx context.Context, op operator.Operator, candidates []*model.ApplicationResource) (berr error) {
+	if op == nil {
+		return
+	}
 
+	for i := range candidates {
 		// get label values.
 		var (
 			appName     string
@@ -56,7 +50,7 @@ func Label(ctx context.Context, candidates []*model.ApplicationResource) (berr e
 			types.LabelSealProject:     projectName,
 			types.LabelSealApplication: appName,
 		}
-		err = op.Label(ctx, candidates[i], ls)
+		var err = op.Label(ctx, candidates[i], ls)
 		if multierr.AppendInto(&berr, err) {
 			continue
 		}
@@ -95,8 +89,7 @@ func queryLabelCandidates(modelClient model.ClientSet) *model.ApplicationResourc
 			aiq.Select(
 				applicationinstance.FieldApplicationID,
 				applicationinstance.FieldEnvironmentID,
-			).WithEnvironment(func(
-				eq *model.EnvironmentQuery) {
+			).WithEnvironment(func(eq *model.EnvironmentQuery) {
 				eq.Select(
 					environment.FieldID,
 					environment.FieldName,
@@ -113,13 +106,5 @@ func queryLabelCandidates(modelClient model.ClientSet) *model.ApplicationResourc
 					)
 				})
 			})
-		}).
-		WithConnector(func(cq *model.ConnectorQuery) {
-			cq.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData)
 		})
 }
