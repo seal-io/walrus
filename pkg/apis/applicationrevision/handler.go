@@ -21,12 +21,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/deployer"
+	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/gopool"
@@ -344,6 +346,9 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	if err != nil {
 		return err
 	}
+	if observedRess == nil {
+		return nil
+	}
 
 	// get record resources from local.
 	recordRess, err := h.modelClient.ApplicationResources().
@@ -400,33 +405,65 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	if err != nil {
 		return err
 	}
-
 	if len(createRess) == 0 {
 		return nil
 	}
 
 	// state/label the new resources async.
-	var ids = make([]types.ID, len(createRess))
+	var ids = make(map[types.ID][]types.ID)
 	for i := range createRess {
-		ids[i] = createRess[i].ID
+		// group resources by connector.
+		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
+			createRess[i].ID)
 	}
 	gopool.Go(func() {
 		var logger = log.WithName("application-revision")
 		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		entities, err := applicationresources.ListLabelCandidatesByIDs(ctx, h.modelClient, ids)
-		if err != nil {
-			logger.Errorf("error listing candidates: %v", err)
-			return
-		}
-		err = applicationresources.Label(ctx, entities)
-		if err != nil {
-			logger.Errorf("error labeling entities: %v", err)
-		}
-		err = applicationresources.State(ctx, h.modelClient, entities) // reuse the result of label listed.
-		if err != nil {
-			logger.Errorf("error stating entities: %v", err)
+		for cid, crids := range ids {
+			var c, err = h.modelClient.Connectors().Query().
+				Select(
+					connector.FieldID,
+					connector.FieldName,
+					connector.FieldType,
+					connector.FieldCategory,
+					connector.FieldConfigVersion,
+					connector.FieldConfigData).
+				Where(connector.ID(cid)).
+				Only(ctx)
+			if err != nil {
+				logger.Errorf("error getting connector %s: %v",
+					cid, err)
+				continue
+			}
+
+			entities, err := applicationresources.ListLabelCandidatesByIDs(ctx, h.modelClient, crids)
+			if err != nil {
+				logger.Errorf("error listing candidates: %v", err)
+				continue
+			}
+			if len(entities) == 0 {
+				continue
+			}
+
+			op, err := platform.GetOperator(ctx, operator.CreateOptions{
+				Connector: *c,
+			})
+			if err != nil {
+				logger.Errorf("error getting operator of connector %s: %v",
+					c.ID, err)
+				continue
+			}
+
+			err = applicationresources.State(ctx, h.modelClient, entities) // reuse the result of label listed.
+			if err != nil {
+				logger.Errorf("error stating entities: %v", err)
+			}
+			err = applicationresources.Label(ctx, op, entities)
+			if err != nil {
+				logger.Errorf("error labeling entities: %v", err)
+			}
 		}
 	})
 	return nil
