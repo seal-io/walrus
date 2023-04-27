@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 type ApplicationInstance struct {
@@ -19,7 +20,6 @@ type ApplicationInstance struct {
 func (ApplicationInstance) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
-		mixin.Status{},
 		mixin.Time{},
 	}
 }
@@ -47,6 +47,9 @@ func (ApplicationInstance) Fields() []ent.Field {
 			Immutable(),
 		property.ValuesField("variables").
 			Comment("Variables of the instance.").
+			Optional(),
+		field.JSON("status", status.Status{}).
+			Comment("Status of the instance.").
 			Optional(),
 	}
 }
