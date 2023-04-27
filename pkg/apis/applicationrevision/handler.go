@@ -444,6 +444,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			csidx[cs[i].ID] = cs[i]
 		}
 
+		var sr applicationresources.StateResult
 		for cid, crids := range ids {
 			entities, err := applicationresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
 			if err != nil {
@@ -468,14 +469,46 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				continue
 			}
 
-			err = applicationresources.State(ctx, op, h.modelClient, entities)
+			nsr, err := applicationresources.State(ctx, op, h.modelClient, entities)
 			if err != nil {
 				logger.Errorf("error stating entities: %v", err)
+			} else {
+				sr.Merge(nsr)
 			}
 			err = applicationresources.Label(ctx, op, entities)
 			if err != nil {
 				logger.Errorf("error labeling entities: %v", err)
 			}
+		}
+
+		// state application instance.
+		i, err := h.modelClient.ApplicationInstances().Query().
+			Where(applicationinstance.ID(entity.InstanceID)).
+			Select(
+				applicationinstance.FieldID,
+				applicationinstance.FieldStatus).
+			Only(ctx)
+		if err != nil {
+			logger.Errorf("cannot get application instance: %v", err)
+			return
+		}
+		switch {
+		case sr.Error:
+			status.ApplicationInstanceStatusReady.False(i, "")
+		case sr.Transitioning:
+			status.ApplicationInstanceStatusReady.Unknown(i, "")
+		default:
+			status.ApplicationInstanceStatusReady.True(i, "")
+		}
+		i.Status.SetSummary(status.WalkApplicationInstance(&i.Status))
+		if !i.Status.Changed() {
+			return
+		}
+		err = h.modelClient.ApplicationInstances().UpdateOne(i).
+			SetStatus(i.Status).
+			Exec(ctx)
+		if err != nil {
+			logger.Errorf("cannot update application instance: %v", err)
 		}
 	})
 	return nil

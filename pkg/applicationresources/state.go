@@ -10,8 +10,28 @@ import (
 	"github.com/seal-io/seal/pkg/platform/operator"
 )
 
-// State gets status of the given model.ApplicationResource list with the given operator.Operator.
-func State(ctx context.Context, op operator.Operator, modelClient model.ClientSet, candidates []*model.ApplicationResource) (berr error) {
+type StateResult struct {
+	Error         bool
+	Transitioning bool
+}
+
+func (r *StateResult) Merge(s StateResult) {
+	r.merge(s.Error, s.Transitioning)
+}
+
+func (r *StateResult) merge(isError, isTransitioning bool) {
+	switch {
+	case isError:
+		r.Error = true
+		r.Transitioning = false
+	case !r.Error && isTransitioning:
+		r.Transitioning = true
+	}
+}
+
+// State gets status of the given model.ApplicationResource list with the given operator.Operator,
+// and represents is ready if both `Error` and `Transitioning` of StateResult are false.
+func State(ctx context.Context, op operator.Operator, modelClient model.ClientSet, candidates []*model.ApplicationResource) (sr StateResult, berr error) {
 	if op == nil {
 		return
 	}
@@ -21,6 +41,8 @@ func State(ctx context.Context, op operator.Operator, modelClient model.ClientSe
 		st, err := op.GetStatus(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
+		} else {
+			sr.merge(st.Error, sr.Transitioning)
 		}
 		// get endpoints of the application resource.
 		eps, err := op.GetEndpoints(ctx, candidates[i])

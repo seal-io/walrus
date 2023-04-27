@@ -10,9 +10,11 @@ import (
 
 	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
@@ -109,6 +111,9 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 		var is, err = in.modelClient.ApplicationInstances().Query().
 			Offset(offset).
 			Limit(limit).
+			Select(
+				applicationinstance.FieldID,
+				applicationinstance.FieldStatus).
 			All(ctx)
 		if err != nil {
 			return fmt.Errorf("error listing application instances in pagination %d,%d: %w",
@@ -149,17 +154,40 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 				rs[y])
 		}
 
+		var sr applicationresources.StateResult
 		for cid, crs := range ids {
 			var op, exist = ops[cid]
 			if !exist {
 				// ignore if not found operator.
 				continue
 			}
-			err = applicationresources.State(ctx, op, in.modelClient, crs)
+			nsr, err := applicationresources.State(ctx, op, in.modelClient, crs)
 			if multierr.AppendInto(&berr, err) {
 				continue
 			}
+			sr.Merge(nsr)
 		}
+
+		// state application instance.
+		switch {
+		case sr.Error:
+			status.ApplicationInstanceStatusReady.False(i, "")
+		case sr.Transitioning:
+			status.ApplicationInstanceStatusReady.Unknown(i, "")
+		default:
+			status.ApplicationInstanceStatusReady.True(i, "")
+		}
+		i.Status.SetSummary(status.WalkApplicationInstance(&i.Status))
+		if !i.Status.Changed() {
+			return
+		}
+		err = in.modelClient.ApplicationInstances().UpdateOne(i).
+			SetStatus(i.Status).
+			Exec(ctx)
+		if err != nil {
+			berr = multierr.Append(berr, err)
+		}
+
 		return
 	}
 }
