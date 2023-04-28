@@ -125,7 +125,9 @@ func (f path[T]) Walk(st *Status) *Summary {
 		var stepsConditionIndex = make([]int, len(f.steps))
 		for i, c := range st.Conditions {
 			// plus 1 to avoid aligning not found item.
-			stepsConditionIndex[f.stepsIndex[T(c.Type)]] = i + 1
+			if idx, exist := f.stepsIndex[T(c.Type)]; exist {
+				stepsConditionIndex[idx] = i + 1
+			}
 		}
 
 		// walk the path to configure the summary.
@@ -161,7 +163,9 @@ type Decision[T ~string] path[T]
 // Make makes a decision on the given specified step with dedicated decide logic.
 func (d Decision[T]) Make(step T, with Decide) Decision[T] {
 	if with != nil {
-		d.stepsDecide[d.stepsIndex[step]] = with
+		if idx, exist := d.stepsIndex[step]; exist {
+			d.stepsDecide[idx] = with
+		}
 	}
 	return d
 }
