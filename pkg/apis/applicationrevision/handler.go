@@ -472,9 +472,11 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			nsr, err := applicationresources.State(ctx, op, h.modelClient, entities)
 			if err != nil {
 				logger.Errorf("error stating entities: %v", err)
-			} else {
-				sr.Merge(nsr)
+				// mark error as transitioning,
+				// which doesn't flip the status.
+				nsr.Transitioning = true
 			}
+			sr.Merge(nsr)
 			err = applicationresources.Label(ctx, op, entities)
 			if err != nil {
 				logger.Errorf("error labeling entities: %v", err)
@@ -490,6 +492,10 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			Only(ctx)
 		if err != nil {
 			logger.Errorf("cannot get application instance: %v", err)
+			return
+		}
+		if status.ApplicationInstanceStatusDeleted.Exist(i) {
+			// skip if the instance is on deleting.
 			return
 		}
 		switch {

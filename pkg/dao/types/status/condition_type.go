@@ -67,19 +67,29 @@ func (ct ConditionType) Message(obj interface{}, message string) {
 // IsTrue check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsTrue(obj interface{}) bool {
-	return getCondStatus(obj, ct) == "True"
+	var s, _ = getCondStatus(obj, ct)
+	return s == ConditionStatusTrue
 }
 
 // IsFalse check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsFalse(obj interface{}) bool {
-	return getCondStatus(obj, ct) == "False"
+	var s, _ = getCondStatus(obj, ct)
+	return s == ConditionStatusFalse
 }
 
 // IsUnknown check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsUnknown(obj interface{}) bool {
-	return getCondStatus(obj, ct) == "Unknown"
+	var s, _ = getCondStatus(obj, ct)
+	return s == ConditionStatusUnknown
+}
+
+// Exist returns true if the status is existed,
+// object must be a pointer.
+func (ct ConditionType) Exist(obj interface{}) bool {
+	var _, exist = getCondStatus(obj, ct)
+	return exist
 }
 
 // GetMessage get message from conditionType for object field .Status.Conditions.
@@ -170,21 +180,21 @@ func resetCondStatus(obj interface{}, condType ConditionType, status ConditionSt
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func getCondStatus(obj interface{}, condType ConditionType) ConditionStatus {
+func getCondStatus(obj interface{}, condType ConditionType) (ConditionStatus, bool) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
-		return ""
+		return "", false
 	}
 
 	_, st := getStatus(obj)
 	if st == nil {
-		return ""
+		return "", false
 	}
 
 	cond := getCond(st, condType)
 	if cond == nil {
-		return ""
+		return "", false
 	}
-	return cond.Status
+	return cond.Status, true
 }
 
 func setCondMessage(obj interface{}, condType ConditionType, message string) {

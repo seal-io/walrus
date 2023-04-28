@@ -155,7 +155,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	// mark status to deleting.
-	status.ApplicationInstanceStatusDeleted.Unknown(entity, "Deleting")
+	status.ApplicationInstanceStatusDeleted.Reset(entity, "Deleting")
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
