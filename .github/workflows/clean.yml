@@ -54,6 +54,10 @@ jobs:
                 }
                 continue
               }
+              // do not clean toolbox caches.
+              if (c.key.match(/^toolbox-.*$/)) {
+                continue
+              }
               // clean push archived caches.
               if (c.key.match(/^archive-.*$/)) {
                 deleteCaches.push(c)
