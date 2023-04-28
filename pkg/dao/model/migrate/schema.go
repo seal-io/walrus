@@ -245,6 +245,8 @@ var (
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "modules", Type: field.TypeJSON},
+		{Name: "secrets", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "input_variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
@@ -262,13 +264,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_revisions_application_instances_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[11]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[13]},
 				RefColumns: []*schema.Column{ApplicationInstancesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_revisions_environments_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[12]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[14]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},

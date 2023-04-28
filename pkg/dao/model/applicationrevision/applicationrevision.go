@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
@@ -31,6 +32,10 @@ const (
 	FieldEnvironmentID = "environment_id"
 	// FieldModules holds the string denoting the modules field in the database.
 	FieldModules = "modules"
+	// FieldSecrets holds the string denoting the secrets field in the database.
+	FieldSecrets = "secrets"
+	// FieldVariables holds the string denoting the variables field in the database.
+	FieldVariables = "variables"
 	// FieldInputVariables holds the string denoting the inputvariables field in the database.
 	FieldInputVariables = "input_variables"
 	// FieldInputPlan holds the string denoting the inputplan field in the database.
@@ -74,6 +79,8 @@ var Columns = []string{
 	FieldInstanceID,
 	FieldEnvironmentID,
 	FieldModules,
+	FieldSecrets,
+	FieldVariables,
 	FieldInputVariables,
 	FieldInputPlan,
 	FieldOutput,
@@ -107,6 +114,8 @@ var (
 	EnvironmentIDValidator func(string) error
 	// DefaultModules holds the default value on creation for the "modules" field.
 	DefaultModules []types.ApplicationModule
+	// DefaultSecrets holds the default value on creation for the "secrets" field.
+	DefaultSecrets crypto.Map[string, string]
 	// DefaultInputVariables holds the default value on creation for the "inputVariables" field.
 	DefaultInputVariables property.Values
 	// DefaultDeployerType holds the default value on creation for the "deployerType" field.

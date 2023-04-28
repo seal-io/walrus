@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
@@ -34,6 +35,10 @@ type ApplicationRevisionCreateInput struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
+	// Secrets of the revision.
+	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Application variables schema of the revision.
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Input variables of the revision.
 	InputVariables property.Values `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
@@ -58,6 +63,8 @@ func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		Modules:                   in.Modules,
+		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		InputVariables:            in.InputVariables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
@@ -80,6 +87,10 @@ type ApplicationRevisionUpdateInput struct {
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
+	// Secrets of the revision.
+	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Application variables schema of the revision.
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Input variables of the revision.
 	InputVariables property.Values `json:"inputVariables,omitempty"`
 	// Input plan of the revision.
@@ -101,6 +112,8 @@ func (in ApplicationRevisionUpdateInput) Model() *ApplicationRevision {
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		Modules:                   in.Modules,
+		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		InputVariables:            in.InputVariables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
@@ -123,6 +136,10 @@ type ApplicationRevisionOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty"`
+	// Secrets of the revision.
+	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Application variables schema of the revision.
+	Variables property.Schemas `json:"variables,omitempty"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
 	// Duration in seconds of the revision deploying.
@@ -146,6 +163,8 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 		StatusMessage:             in.StatusMessage,
 		CreateTime:                in.CreateTime,
 		Modules:                   in.Modules,
+		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,

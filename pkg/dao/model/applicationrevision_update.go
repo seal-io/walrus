@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
@@ -85,6 +86,24 @@ func (aru *ApplicationRevisionUpdate) SetModules(tm []types.ApplicationModule) *
 // AppendModules appends tm to the "modules" field.
 func (aru *ApplicationRevisionUpdate) AppendModules(tm []types.ApplicationModule) *ApplicationRevisionUpdate {
 	aru.mutation.AppendModules(tm)
+	return aru
+}
+
+// SetSecrets sets the "secrets" field.
+func (aru *ApplicationRevisionUpdate) SetSecrets(c crypto.Map[string, string]) *ApplicationRevisionUpdate {
+	aru.mutation.SetSecrets(c)
+	return aru
+}
+
+// SetVariables sets the "variables" field.
+func (aru *ApplicationRevisionUpdate) SetVariables(pr property.Schemas) *ApplicationRevisionUpdate {
+	aru.mutation.SetVariables(pr)
+	return aru
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (aru *ApplicationRevisionUpdate) ClearVariables() *ApplicationRevisionUpdate {
+	aru.mutation.ClearVariables()
 	return aru
 }
 
@@ -234,6 +253,15 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 			sqljson.Append(u, applicationrevision.FieldModules, value)
 		})
 	}
+	if value, ok := aru.mutation.Secrets(); ok {
+		_spec.SetField(applicationrevision.FieldSecrets, field.TypeOther, value)
+	}
+	if value, ok := aru.mutation.Variables(); ok {
+		_spec.SetField(applicationrevision.FieldVariables, field.TypeOther, value)
+	}
+	if aru.mutation.VariablesCleared() {
+		_spec.ClearField(applicationrevision.FieldVariables, field.TypeOther)
+	}
 	if value, ok := aru.mutation.InputVariables(); ok {
 		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)
 	}
@@ -333,6 +361,24 @@ func (aruo *ApplicationRevisionUpdateOne) SetModules(tm []types.ApplicationModul
 // AppendModules appends tm to the "modules" field.
 func (aruo *ApplicationRevisionUpdateOne) AppendModules(tm []types.ApplicationModule) *ApplicationRevisionUpdateOne {
 	aruo.mutation.AppendModules(tm)
+	return aruo
+}
+
+// SetSecrets sets the "secrets" field.
+func (aruo *ApplicationRevisionUpdateOne) SetSecrets(c crypto.Map[string, string]) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetSecrets(c)
+	return aruo
+}
+
+// SetVariables sets the "variables" field.
+func (aruo *ApplicationRevisionUpdateOne) SetVariables(pr property.Schemas) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetVariables(pr)
+	return aruo
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (aruo *ApplicationRevisionUpdateOne) ClearVariables() *ApplicationRevisionUpdateOne {
+	aruo.mutation.ClearVariables()
 	return aruo
 }
 
@@ -511,6 +557,15 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, applicationrevision.FieldModules, value)
 		})
+	}
+	if value, ok := aruo.mutation.Secrets(); ok {
+		_spec.SetField(applicationrevision.FieldSecrets, field.TypeOther, value)
+	}
+	if value, ok := aruo.mutation.Variables(); ok {
+		_spec.SetField(applicationrevision.FieldVariables, field.TypeOther, value)
+	}
+	if aruo.mutation.VariablesCleared() {
+		_spec.ClearField(applicationrevision.FieldVariables, field.TypeOther)
 	}
 	if value, ok := aruo.mutation.InputVariables(); ok {
 		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)

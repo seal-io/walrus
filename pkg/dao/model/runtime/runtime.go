@@ -296,20 +296,24 @@ func init() {
 	applicationrevisionDescModules := applicationrevisionFields[2].Descriptor()
 	// applicationrevision.DefaultModules holds the default value on creation for the modules field.
 	applicationrevision.DefaultModules = applicationrevisionDescModules.Default.([]types.ApplicationModule)
+	// applicationrevisionDescSecrets is the schema descriptor for secrets field.
+	applicationrevisionDescSecrets := applicationrevisionFields[3].Descriptor()
+	// applicationrevision.DefaultSecrets holds the default value on creation for the secrets field.
+	applicationrevision.DefaultSecrets = applicationrevisionDescSecrets.Default.(crypto.Map[string, string])
 	// applicationrevisionDescInputVariables is the schema descriptor for inputVariables field.
-	applicationrevisionDescInputVariables := applicationrevisionFields[3].Descriptor()
+	applicationrevisionDescInputVariables := applicationrevisionFields[5].Descriptor()
 	// applicationrevision.DefaultInputVariables holds the default value on creation for the inputVariables field.
 	applicationrevision.DefaultInputVariables = applicationrevisionDescInputVariables.Default.(property.Values)
 	// applicationrevisionDescDeployerType is the schema descriptor for deployerType field.
-	applicationrevisionDescDeployerType := applicationrevisionFields[6].Descriptor()
+	applicationrevisionDescDeployerType := applicationrevisionFields[8].Descriptor()
 	// applicationrevision.DefaultDeployerType holds the default value on creation for the deployerType field.
 	applicationrevision.DefaultDeployerType = applicationrevisionDescDeployerType.Default.(string)
 	// applicationrevisionDescDuration is the schema descriptor for duration field.
-	applicationrevisionDescDuration := applicationrevisionFields[7].Descriptor()
+	applicationrevisionDescDuration := applicationrevisionFields[9].Descriptor()
 	// applicationrevision.DefaultDuration holds the default value on creation for the duration field.
 	applicationrevision.DefaultDuration = applicationrevisionDescDuration.Default.(int)
 	// applicationrevisionDescPreviousRequiredProviders is the schema descriptor for previousRequiredProviders field.
-	applicationrevisionDescPreviousRequiredProviders := applicationrevisionFields[8].Descriptor()
+	applicationrevisionDescPreviousRequiredProviders := applicationrevisionFields[10].Descriptor()
 	// applicationrevision.DefaultPreviousRequiredProviders holds the default value on creation for the previousRequiredProviders field.
 	applicationrevision.DefaultPreviousRequiredProviders = applicationrevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	clustercostFields := schema.ClusterCost{}.Fields()

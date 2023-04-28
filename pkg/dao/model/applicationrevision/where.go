@@ -13,6 +13,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
@@ -85,6 +86,16 @@ func InstanceID(v oid.ID) predicate.ApplicationRevision {
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
 func EnvironmentID(v oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
+// Secrets applies equality check predicate on the "secrets" field. It's identical to SecretsEQ.
+func Secrets(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldSecrets, v))
+}
+
+// Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
+func Variables(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldVariables, v))
 }
 
 // InputVariables applies equality check predicate on the "inputVariables" field. It's identical to InputVariablesEQ.
@@ -440,6 +451,96 @@ func EnvironmentIDEqualFold(v oid.ID) predicate.ApplicationRevision {
 func EnvironmentIDContainsFold(v oid.ID) predicate.ApplicationRevision {
 	vc := string(v)
 	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldEnvironmentID, vc))
+}
+
+// SecretsEQ applies the EQ predicate on the "secrets" field.
+func SecretsEQ(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldSecrets, v))
+}
+
+// SecretsNEQ applies the NEQ predicate on the "secrets" field.
+func SecretsNEQ(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldSecrets, v))
+}
+
+// SecretsIn applies the In predicate on the "secrets" field.
+func SecretsIn(vs ...crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldSecrets, vs...))
+}
+
+// SecretsNotIn applies the NotIn predicate on the "secrets" field.
+func SecretsNotIn(vs ...crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldSecrets, vs...))
+}
+
+// SecretsGT applies the GT predicate on the "secrets" field.
+func SecretsGT(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldSecrets, v))
+}
+
+// SecretsGTE applies the GTE predicate on the "secrets" field.
+func SecretsGTE(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldSecrets, v))
+}
+
+// SecretsLT applies the LT predicate on the "secrets" field.
+func SecretsLT(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldSecrets, v))
+}
+
+// SecretsLTE applies the LTE predicate on the "secrets" field.
+func SecretsLTE(v crypto.Map[string, string]) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldSecrets, v))
+}
+
+// VariablesEQ applies the EQ predicate on the "variables" field.
+func VariablesEQ(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldVariables, v))
+}
+
+// VariablesNEQ applies the NEQ predicate on the "variables" field.
+func VariablesNEQ(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldVariables, v))
+}
+
+// VariablesIn applies the In predicate on the "variables" field.
+func VariablesIn(vs ...property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldVariables, vs...))
+}
+
+// VariablesNotIn applies the NotIn predicate on the "variables" field.
+func VariablesNotIn(vs ...property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldVariables, vs...))
+}
+
+// VariablesGT applies the GT predicate on the "variables" field.
+func VariablesGT(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldVariables, v))
+}
+
+// VariablesGTE applies the GTE predicate on the "variables" field.
+func VariablesGTE(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldVariables, v))
+}
+
+// VariablesLT applies the LT predicate on the "variables" field.
+func VariablesLT(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldVariables, v))
+}
+
+// VariablesLTE applies the LTE predicate on the "variables" field.
+func VariablesLTE(v property.Schemas) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldVariables, v))
+}
+
+// VariablesIsNil applies the IsNil predicate on the "variables" field.
+func VariablesIsNil() predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIsNull(FieldVariables))
+}
+
+// VariablesNotNil applies the NotNil predicate on the "variables" field.
+func VariablesNotNil() predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotNull(FieldVariables))
 }
 
 // InputVariablesEQ applies the EQ predicate on the "inputVariables" field.
