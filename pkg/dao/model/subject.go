@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
@@ -44,7 +45,8 @@ type Subject struct {
 	// The path of the subject from the root group to itself.
 	Paths []string `json:"paths,omitempty" sql:"paths"`
 	// Indicate whether the subject is builtin.
-	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
+	Builtin      bool `json:"builtin,omitempty" sql:"builtin"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -63,7 +65,7 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 		case subject.FieldCreateTime, subject.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Subject", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -157,9 +159,17 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Builtin = value.Bool
 			}
+		default:
+			s.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Subject.
+// This includes values selected through modifiers, order, etc.
+func (s *Subject) Value(name string) (ent.Value, error) {
+	return s.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Subject.

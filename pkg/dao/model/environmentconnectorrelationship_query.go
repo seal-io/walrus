@@ -26,7 +26,7 @@ import (
 type EnvironmentConnectorRelationshipQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []environmentconnectorrelationship.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.EnvironmentConnectorRelationship
 	withEnvironment *EnvironmentQuery
@@ -63,7 +63,7 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) Unique(unique bool) *Environm
 }
 
 // Order specifies how the records should be ordered.
-func (ecrq *EnvironmentConnectorRelationshipQuery) Order(o ...OrderFunc) *EnvironmentConnectorRelationshipQuery {
+func (ecrq *EnvironmentConnectorRelationshipQuery) Order(o ...environmentconnectorrelationship.OrderOption) *EnvironmentConnectorRelationshipQuery {
 	ecrq.order = append(ecrq.order, o...)
 	return ecrq
 }
@@ -235,7 +235,7 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) Clone() *EnvironmentConnector
 	return &EnvironmentConnectorRelationshipQuery{
 		config:          ecrq.config,
 		ctx:             ecrq.ctx.Clone(),
-		order:           append([]OrderFunc{}, ecrq.order...),
+		order:           append([]environmentconnectorrelationship.OrderOption{}, ecrq.order...),
 		inters:          append([]Interceptor{}, ecrq.inters...),
 		predicates:      append([]predicate.EnvironmentConnectorRelationship{}, ecrq.predicates...),
 		withEnvironment: ecrq.withEnvironment.Clone(),
@@ -472,6 +472,12 @@ func (ecrq *EnvironmentConnectorRelationshipQuery) querySpec() *sqlgraph.QuerySp
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		for i := range fields {
 			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+		}
+		if ecrq.withEnvironment != nil {
+			_spec.Node.AddColumnOnce(environmentconnectorrelationship.FieldEnvironmentID)
+		}
+		if ecrq.withConnector != nil {
+			_spec.Node.AddColumnOnce(environmentconnectorrelationship.FieldConnectorID)
 		}
 	}
 	if ps := ecrq.predicates; len(ps) > 0 {

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -29,7 +30,8 @@ type EnvironmentConnectorRelationship struct {
 	ConnectorID oid.ID `json:"connectorID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentConnectorRelationshipQuery when eager-loading is set.
-	Edges EnvironmentConnectorRelationshipEdges `json:"edges,omitempty"`
+	Edges        EnvironmentConnectorRelationshipEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // EnvironmentConnectorRelationshipEdges holds the relations/edges for other nodes in the graph.
@@ -79,7 +81,7 @@ func (*EnvironmentConnectorRelationship) scanValues(columns []string) ([]any, er
 		case environmentconnectorrelationship.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type EnvironmentConnectorRelationship", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -112,9 +114,17 @@ func (ecr *EnvironmentConnectorRelationship) assignValues(columns []string, valu
 			} else if value != nil {
 				ecr.ConnectorID = *value
 			}
+		default:
+			ecr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the EnvironmentConnectorRelationship.
+// This includes values selected through modifiers, order, etc.
+func (ecr *EnvironmentConnectorRelationship) Value(name string) (ent.Value, error) {
+	return ecr.selectValues.Get(name)
 }
 
 // QueryEnvironment queries the "environment" edge of the EnvironmentConnectorRelationship entity.

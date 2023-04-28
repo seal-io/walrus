@@ -737,5 +737,5 @@ func init() {
 }
 
 const (
-	Version = "v0.11.8" // Version of ent codegen.
+	Version = "v0.12.2" // Version of ent codegen.
 )

@@ -241,10 +241,7 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 			Columns: []string{applicationmodulerelationship.ApplicationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = amrc.schemaConfig.ApplicationModuleRelationship
@@ -262,10 +259,7 @@ func (amrc *ApplicationModuleRelationshipCreate) createSpec() (*ApplicationModul
 			Columns: []string{applicationmodulerelationship.ModuleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: module.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(module.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = amrc.schemaConfig.ApplicationModuleRelationship
@@ -512,8 +506,8 @@ func (amrcb *ApplicationModuleRelationshipCreateBulk) Save(ctx context.Context) 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, amrcb.builders[i+1].mutation)
 				} else {

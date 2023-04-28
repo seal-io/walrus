@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -125,6 +127,102 @@ var (
 	// DefaultPreviousRequiredProviders holds the default value on creation for the "previousRequiredProviders" field.
 	DefaultPreviousRequiredProviders []types.ProviderRequirement
 )
+
+// OrderOption defines the ordering options for the ApplicationRevision queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByStatusMessage orders the results by the statusMessage field.
+func ByStatusMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatusMessage, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByInstanceID orders the results by the instanceID field.
+func ByInstanceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInstanceID, opts...).ToFunc()
+}
+
+// ByEnvironmentID orders the results by the environmentID field.
+func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
+}
+
+// BySecrets orders the results by the secrets field.
+func BySecrets(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSecrets, opts...).ToFunc()
+}
+
+// ByVariables orders the results by the variables field.
+func ByVariables(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVariables, opts...).ToFunc()
+}
+
+// ByInputVariables orders the results by the inputVariables field.
+func ByInputVariables(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInputVariables, opts...).ToFunc()
+}
+
+// ByInputPlan orders the results by the inputPlan field.
+func ByInputPlan(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInputPlan, opts...).ToFunc()
+}
+
+// ByOutput orders the results by the output field.
+func ByOutput(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOutput, opts...).ToFunc()
+}
+
+// ByDeployerType orders the results by the deployerType field.
+func ByDeployerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeployerType, opts...).ToFunc()
+}
+
+// ByDuration orders the results by the duration field.
+func ByDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByInstanceField orders the results by instance field.
+func ByInstanceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInstanceStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByEnvironmentField orders the results by environment field.
+func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newInstanceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InstanceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, InstanceTable, InstanceColumn),
+	)
+}
+func newEnvironmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnvironmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

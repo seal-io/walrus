@@ -30,7 +30,7 @@ import (
 type ConnectorQuery struct {
 	config
 	ctx                 *QueryContext
-	order               []OrderFunc
+	order               []connector.OrderOption
 	inters              []Interceptor
 	predicates          []predicate.Connector
 	withEnvironments    *EnvironmentConnectorRelationshipQuery
@@ -69,7 +69,7 @@ func (cq *ConnectorQuery) Unique(unique bool) *ConnectorQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (cq *ConnectorQuery) Order(o ...OrderFunc) *ConnectorQuery {
+func (cq *ConnectorQuery) Order(o ...connector.OrderOption) *ConnectorQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -363,7 +363,7 @@ func (cq *ConnectorQuery) Clone() *ConnectorQuery {
 	return &ConnectorQuery{
 		config:              cq.config,
 		ctx:                 cq.ctx.Clone(),
-		order:               append([]OrderFunc{}, cq.order...),
+		order:               append([]connector.OrderOption{}, cq.order...),
 		inters:              append([]Interceptor{}, cq.inters...),
 		predicates:          append([]predicate.Connector{}, cq.predicates...),
 		withEnvironments:    cq.withEnvironments.Clone(),
@@ -571,8 +571,11 @@ func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *Environme
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(environmentconnectorrelationship.FieldConnectorID)
+	}
 	query.Where(predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
-		s.Where(sql.InValues(connector.EnvironmentsColumn, fks...))
+		s.Where(sql.InValues(s.C(connector.EnvironmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -582,7 +585,7 @@ func (cq *ConnectorQuery) loadEnvironments(ctx context.Context, query *Environme
 		fk := n.ConnectorID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "connector_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "connector_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}
@@ -598,8 +601,11 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ApplicationR
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationresource.FieldConnectorID)
+	}
 	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(connector.ResourcesColumn, fks...))
+		s.Where(sql.InValues(s.C(connector.ResourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -609,7 +615,7 @@ func (cq *ConnectorQuery) loadResources(ctx context.Context, query *ApplicationR
 		fk := n.ConnectorID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -625,8 +631,11 @@ func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCo
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(clustercost.FieldConnectorID)
+	}
 	query.Where(predicate.ClusterCost(func(s *sql.Selector) {
-		s.Where(sql.InValues(connector.ClusterCostsColumn, fks...))
+		s.Where(sql.InValues(s.C(connector.ClusterCostsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -636,7 +645,7 @@ func (cq *ConnectorQuery) loadClusterCosts(ctx context.Context, query *ClusterCo
 		fk := n.ConnectorID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -652,8 +661,11 @@ func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *Alloca
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(allocationcost.FieldConnectorID)
+	}
 	query.Where(predicate.AllocationCost(func(s *sql.Selector) {
-		s.Where(sql.InValues(connector.AllocationCostsColumn, fks...))
+		s.Where(sql.InValues(s.C(connector.AllocationCostsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -663,7 +675,7 @@ func (cq *ConnectorQuery) loadAllocationCosts(ctx context.Context, query *Alloca
 		fk := n.ConnectorID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "connectorID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

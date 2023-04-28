@@ -763,11 +763,7 @@ func HasInstance() predicate.ApplicationResource {
 // HasInstanceWith applies the HasEdge predicate on the "instance" edge with a given conditions (other predicates).
 func HasInstanceWith(preds ...predicate.ApplicationInstance) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(InstanceInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, InstanceTable, InstanceColumn),
-		)
+		step := newInstanceStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationResource
@@ -796,11 +792,7 @@ func HasConnector() predicate.ApplicationResource {
 // HasConnectorWith applies the HasEdge predicate on the "connector" edge with a given conditions (other predicates).
 func HasConnectorWith(preds ...predicate.Connector) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ConnectorInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
-		)
+		step := newConnectorStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Connector
 		step.Edge.Schema = schemaConfig.ApplicationResource
@@ -829,11 +821,7 @@ func HasComposition() predicate.ApplicationResource {
 // HasCompositionWith applies the HasEdge predicate on the "composition" edge with a given conditions (other predicates).
 func HasCompositionWith(preds ...predicate.ApplicationResource) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CompositionTable, CompositionColumn),
-		)
+		step := newCompositionStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
@@ -862,11 +850,7 @@ func HasComponents() predicate.ApplicationResource {
 // HasComponentsWith applies the HasEdge predicate on the "components" edge with a given conditions (other predicates).
 func HasComponentsWith(preds ...predicate.ApplicationResource) predicate.ApplicationResource {
 	return predicate.ApplicationResource(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ComponentsTable, ComponentsColumn),
-		)
+		step := newComponentsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource

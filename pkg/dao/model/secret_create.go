@@ -234,10 +234,7 @@ func (sc *SecretCreate) createSpec() (*Secret, *sqlgraph.CreateSpec) {
 			Columns: []string{secret.ProjectColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: project.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = sc.schemaConfig.Secret
@@ -471,8 +468,8 @@ func (scb *SecretCreateBulk) Save(ctx context.Context) ([]*Secret, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, scb.builders[i+1].mutation)
 				} else {

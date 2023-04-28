@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -38,7 +39,8 @@ type Role struct {
 	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Indicate whether the subject is session level, decide when creating.
-	Session bool `json:"session,omitempty" sql:"session"`
+	Session      bool `json:"session,omitempty" sql:"session"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -57,7 +59,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 		case role.FieldCreateTime, role.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Role", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -129,9 +131,17 @@ func (r *Role) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.Session = value.Bool
 			}
+		default:
+			r.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Role.
+// This includes values selected through modifiers, order, etc.
+func (r *Role) Value(name string) (ent.Value, error) {
+	return r.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Role.

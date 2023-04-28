@@ -169,10 +169,7 @@ func (ecrc *EnvironmentConnectorRelationshipCreate) createSpec() (*EnvironmentCo
 			Columns: []string{environmentconnectorrelationship.EnvironmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: environment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ecrc.schemaConfig.EnvironmentConnectorRelationship
@@ -190,10 +187,7 @@ func (ecrc *EnvironmentConnectorRelationshipCreate) createSpec() (*EnvironmentCo
 			Columns: []string{environmentconnectorrelationship.ConnectorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: connector.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ecrc.schemaConfig.EnvironmentConnectorRelationship
@@ -346,8 +340,8 @@ func (ecrcb *EnvironmentConnectorRelationshipCreateBulk) Save(ctx context.Contex
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ecrcb.builders[i+1].mutation)
 				} else {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -78,6 +79,49 @@ var (
 	// DefaultPrivate holds the default value on creation for the "private" field.
 	DefaultPrivate bool
 )
+
+// OrderOption defines the ordering options for the Setting queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByValue orders the results by the value field.
+func ByValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValue, opts...).ToFunc()
+}
+
+// ByHidden orders the results by the hidden field.
+func ByHidden(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHidden, opts...).ToFunc()
+}
+
+// ByEditable orders the results by the editable field.
+func ByEditable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEditable, opts...).ToFunc()
+}
+
+// ByPrivate orders the results by the private field.
+func ByPrivate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrivate, opts...).ToFunc()
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

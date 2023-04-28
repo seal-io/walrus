@@ -28,7 +28,7 @@ import (
 type ApplicationResourceQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []applicationresource.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ApplicationResource
 	withInstance    *ApplicationInstanceQuery
@@ -67,7 +67,7 @@ func (arq *ApplicationResourceQuery) Unique(unique bool) *ApplicationResourceQue
 }
 
 // Order specifies how the records should be ordered.
-func (arq *ApplicationResourceQuery) Order(o ...OrderFunc) *ApplicationResourceQuery {
+func (arq *ApplicationResourceQuery) Order(o ...applicationresource.OrderOption) *ApplicationResourceQuery {
 	arq.order = append(arq.order, o...)
 	return arq
 }
@@ -361,7 +361,7 @@ func (arq *ApplicationResourceQuery) Clone() *ApplicationResourceQuery {
 	return &ApplicationResourceQuery{
 		config:          arq.config,
 		ctx:             arq.ctx.Clone(),
-		order:           append([]OrderFunc{}, arq.order...),
+		order:           append([]applicationresource.OrderOption{}, arq.order...),
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.ApplicationResource{}, arq.predicates...),
 		withInstance:    arq.withInstance.Clone(),
@@ -653,8 +653,11 @@ func (arq *ApplicationResourceQuery) loadComponents(ctx context.Context, query *
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationresource.FieldCompositionID)
+	}
 	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(applicationresource.ComponentsColumn, fks...))
+		s.Where(sql.InValues(s.C(applicationresource.ComponentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -664,7 +667,7 @@ func (arq *ApplicationResourceQuery) loadComponents(ctx context.Context, query *
 		fk := n.CompositionID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "compositionID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "compositionID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -700,6 +703,15 @@ func (arq *ApplicationResourceQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != applicationresource.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if arq.withInstance != nil {
+			_spec.Node.AddColumnOnce(applicationresource.FieldInstanceID)
+		}
+		if arq.withConnector != nil {
+			_spec.Node.AddColumnOnce(applicationresource.FieldConnectorID)
+		}
+		if arq.withComposition != nil {
+			_spec.Node.AddColumnOnce(applicationresource.FieldCompositionID)
 		}
 	}
 	if ps := arq.predicates; len(ps) > 0 {

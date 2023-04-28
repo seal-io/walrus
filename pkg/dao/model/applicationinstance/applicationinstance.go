@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -112,6 +114,114 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the ApplicationInstance queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByApplicationID orders the results by the applicationID field.
+func ByApplicationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApplicationID, opts...).ToFunc()
+}
+
+// ByEnvironmentID orders the results by the environmentID field.
+func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByVariables orders the results by the variables field.
+func ByVariables(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVariables, opts...).ToFunc()
+}
+
+// ByApplicationField orders the results by application field.
+func ByApplicationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newApplicationStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByEnvironmentField orders the results by environment field.
+func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByRevisionsCount orders the results by revisions count.
+func ByRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRevisionsStep(), opts...)
+	}
+}
+
+// ByRevisions orders the results by revisions terms.
+func ByRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByResourcesCount orders the results by resources count.
+func ByResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newResourcesStep(), opts...)
+	}
+}
+
+// ByResources orders the results by resources terms.
+func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newApplicationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ApplicationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
+	)
+}
+func newEnvironmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnvironmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+	)
+}
+func newRevisionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RevisionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
+	)
+}
+func newResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

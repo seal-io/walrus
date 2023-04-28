@@ -5,6 +5,11 @@
 
 package clustercost
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the clustercost type in the database.
 	Label = "cluster_cost"
@@ -90,6 +95,78 @@ var (
 	// ManagementCostValidator is a validator for the "managementCost" field. It is called by the builders before save.
 	ManagementCostValidator func(float64) error
 )
+
+// OrderOption defines the ordering options for the ClusterCost queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByStartTime orders the results by the startTime field.
+func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
+}
+
+// ByEndTime orders the results by the endTime field.
+func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
+}
+
+// ByMinutes orders the results by the minutes field.
+func ByMinutes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinutes, opts...).ToFunc()
+}
+
+// ByConnectorID orders the results by the connectorID field.
+func ByConnectorID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConnectorID, opts...).ToFunc()
+}
+
+// ByClusterName orders the results by the clusterName field.
+func ByClusterName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClusterName, opts...).ToFunc()
+}
+
+// ByTotalCost orders the results by the totalCost field.
+func ByTotalCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalCost, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
+}
+
+// ByAllocationCost orders the results by the allocationCost field.
+func ByAllocationCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAllocationCost, opts...).ToFunc()
+}
+
+// ByIdleCost orders the results by the idleCost field.
+func ByIdleCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIdleCost, opts...).ToFunc()
+}
+
+// ByManagementCost orders the results by the managementCost field.
+func ByManagementCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldManagementCost, opts...).ToFunc()
+}
+
+// ByConnectorField orders the results by connector field.
+func ByConnectorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConnectorStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newConnectorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConnectorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

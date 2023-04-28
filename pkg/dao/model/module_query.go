@@ -27,7 +27,7 @@ import (
 type ModuleQuery struct {
 	config
 	ctx              *QueryContext
-	order            []OrderFunc
+	order            []module.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.Module
 	withApplications *ApplicationModuleRelationshipQuery
@@ -64,7 +64,7 @@ func (mq *ModuleQuery) Unique(unique bool) *ModuleQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mq *ModuleQuery) Order(o ...OrderFunc) *ModuleQuery {
+func (mq *ModuleQuery) Order(o ...module.OrderOption) *ModuleQuery {
 	mq.order = append(mq.order, o...)
 	return mq
 }
@@ -308,7 +308,7 @@ func (mq *ModuleQuery) Clone() *ModuleQuery {
 	return &ModuleQuery{
 		config:           mq.config,
 		ctx:              mq.ctx.Clone(),
-		order:            append([]OrderFunc{}, mq.order...),
+		order:            append([]module.OrderOption{}, mq.order...),
 		inters:           append([]Interceptor{}, mq.inters...),
 		predicates:       append([]predicate.Module{}, mq.predicates...),
 		withApplications: mq.withApplications.Clone(),
@@ -476,8 +476,11 @@ func (mq *ModuleQuery) loadApplications(ctx context.Context, query *ApplicationM
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationmodulerelationship.FieldModuleID)
+	}
 	query.Where(predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
-		s.Where(sql.InValues(module.ApplicationsColumn, fks...))
+		s.Where(sql.InValues(s.C(module.ApplicationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -487,7 +490,7 @@ func (mq *ModuleQuery) loadApplications(ctx context.Context, query *ApplicationM
 		fk := n.ModuleID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "module_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "module_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}
@@ -503,8 +506,11 @@ func (mq *ModuleQuery) loadVersions(ctx context.Context, query *ModuleVersionQue
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(moduleversion.FieldModuleID)
+	}
 	query.Where(predicate.ModuleVersion(func(s *sql.Selector) {
-		s.Where(sql.InValues(module.VersionsColumn, fks...))
+		s.Where(sql.InValues(s.C(module.VersionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -514,7 +520,7 @@ func (mq *ModuleQuery) loadVersions(ctx context.Context, query *ModuleVersionQue
 		fk := n.ModuleID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "moduleID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "moduleID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

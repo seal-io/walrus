@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/project"
@@ -35,7 +36,8 @@ type Secret struct {
 	Value crypto.String `json:"-" sql:"value"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SecretQuery when eager-loading is set.
-	Edges SecretEdges `json:"edges,omitempty"`
+	Edges        SecretEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // SecretEdges holds the relations/edges for other nodes in the graph.
@@ -74,7 +76,7 @@ func (*Secret) scanValues(columns []string) ([]any, error) {
 		case secret.FieldCreateTime, secret.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Secret", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -126,9 +128,17 @@ func (s *Secret) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.Value = *value
 			}
+		default:
+			s.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// GetValue returns the ent.Value that was dynamically selected and assigned to the Secret.
+// This includes values selected through modifiers, order, etc.
+func (s *Secret) GetValue(name string) (ent.Value, error) {
+	return s.selectValues.Get(name)
 }
 
 // QueryProject queries the "project" edge of the Secret entity.

@@ -191,10 +191,7 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aru.schemaConfig.ApplicationResource
@@ -208,10 +205,7 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aru.schemaConfig.ApplicationResource
@@ -228,10 +222,7 @@ func (aru *ApplicationResourceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aru.schemaConfig.ApplicationResource
@@ -449,10 +440,7 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aruo.schemaConfig.ApplicationResource
@@ -466,10 +454,7 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aruo.schemaConfig.ApplicationResource
@@ -486,10 +471,7 @@ func (aruo *ApplicationResourceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aruo.schemaConfig.ApplicationResource

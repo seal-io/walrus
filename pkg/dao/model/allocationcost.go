@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
@@ -86,7 +87,8 @@ type AllocationCost struct {
 	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty" sql:"ramByteUsageMax"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AllocationCostQuery when eager-loading is set.
-	Edges AllocationCostEdges `json:"edges"`
+	Edges        AllocationCostEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // AllocationCostEdges holds the relations/edges for other nodes in the graph.
@@ -129,7 +131,7 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 		case allocationcost.FieldStartTime, allocationcost.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type AllocationCost", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -333,9 +335,17 @@ func (ac *AllocationCost) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ac.RamByteUsageMax = value.Float64
 			}
+		default:
+			ac.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the AllocationCost.
+// This includes values selected through modifiers, order, etc.
+func (ac *AllocationCost) Value(name string) (ent.Value, error) {
+	return ac.selectValues.Get(name)
 }
 
 // QueryConnector queries the "connector" edge of the AllocationCost entity.

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/environment"
@@ -34,7 +35,8 @@ type Environment struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
-	Edges EnvironmentEdges `json:"edges,omitempty"`
+	Edges        EnvironmentEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // EnvironmentEdges holds the relations/edges for other nodes in the graph.
@@ -91,7 +93,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 		case environment.FieldCreateTime, environment.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Environment", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -145,9 +147,17 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 				e.UpdateTime = new(time.Time)
 				*e.UpdateTime = value.Time
 			}
+		default:
+			e.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Environment.
+// This includes values selected through modifiers, order, etc.
+func (e *Environment) Value(name string) (ent.Value, error) {
+	return e.selectValues.Get(name)
 }
 
 // QueryConnectors queries the "connectors" edge of the Environment entity.

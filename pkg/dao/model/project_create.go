@@ -262,10 +262,7 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pc.schemaConfig.Application
@@ -282,10 +279,7 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pc.schemaConfig.Secret
@@ -577,8 +571,8 @@ func (pcb *ProjectCreateBulk) Save(ctx context.Context) ([]*Project, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pcb.builders[i+1].mutation)
 				} else {

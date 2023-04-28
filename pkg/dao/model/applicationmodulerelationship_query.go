@@ -26,7 +26,7 @@ import (
 type ApplicationModuleRelationshipQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []applicationmodulerelationship.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ApplicationModuleRelationship
 	withApplication *ApplicationQuery
@@ -63,7 +63,7 @@ func (amrq *ApplicationModuleRelationshipQuery) Unique(unique bool) *Application
 }
 
 // Order specifies how the records should be ordered.
-func (amrq *ApplicationModuleRelationshipQuery) Order(o ...OrderFunc) *ApplicationModuleRelationshipQuery {
+func (amrq *ApplicationModuleRelationshipQuery) Order(o ...applicationmodulerelationship.OrderOption) *ApplicationModuleRelationshipQuery {
 	amrq.order = append(amrq.order, o...)
 	return amrq
 }
@@ -235,7 +235,7 @@ func (amrq *ApplicationModuleRelationshipQuery) Clone() *ApplicationModuleRelati
 	return &ApplicationModuleRelationshipQuery{
 		config:          amrq.config,
 		ctx:             amrq.ctx.Clone(),
-		order:           append([]OrderFunc{}, amrq.order...),
+		order:           append([]applicationmodulerelationship.OrderOption{}, amrq.order...),
 		inters:          append([]Interceptor{}, amrq.inters...),
 		predicates:      append([]predicate.ApplicationModuleRelationship{}, amrq.predicates...),
 		withApplication: amrq.withApplication.Clone(),
@@ -472,6 +472,12 @@ func (amrq *ApplicationModuleRelationshipQuery) querySpec() *sqlgraph.QuerySpec 
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		for i := range fields {
 			_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
+		}
+		if amrq.withApplication != nil {
+			_spec.Node.AddColumnOnce(applicationmodulerelationship.FieldApplicationID)
+		}
+		if amrq.withModule != nil {
+			_spec.Node.AddColumnOnce(applicationmodulerelationship.FieldModuleID)
 		}
 	}
 	if ps := amrq.predicates; len(ps) > 0 {

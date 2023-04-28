@@ -609,11 +609,7 @@ func HasEnvironments() predicate.Connector {
 // HasEnvironmentsWith applies the HasEdge predicate on the "environments" edge with a given conditions (other predicates).
 func HasEnvironmentsWith(preds ...predicate.EnvironmentConnectorRelationship) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(EnvironmentsInverseTable, EnvironmentsColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, EnvironmentsTable, EnvironmentsColumn),
-		)
+		step := newEnvironmentsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
@@ -642,11 +638,7 @@ func HasResources() predicate.Connector {
 // HasResourcesWith applies the HasEdge predicate on the "resources" edge with a given conditions (other predicates).
 func HasResourcesWith(preds ...predicate.ApplicationResource) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ResourcesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
-		)
+		step := newResourcesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource
@@ -675,11 +667,7 @@ func HasClusterCosts() predicate.Connector {
 // HasClusterCostsWith applies the HasEdge predicate on the "clusterCosts" edge with a given conditions (other predicates).
 func HasClusterCostsWith(preds ...predicate.ClusterCost) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ClusterCostsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClusterCostsTable, ClusterCostsColumn),
-		)
+		step := newClusterCostsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ClusterCost
 		step.Edge.Schema = schemaConfig.ClusterCost
@@ -708,11 +696,7 @@ func HasAllocationCosts() predicate.Connector {
 // HasAllocationCostsWith applies the HasEdge predicate on the "allocationCosts" edge with a given conditions (other predicates).
 func HasAllocationCostsWith(preds ...predicate.AllocationCost) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AllocationCostsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AllocationCostsTable, AllocationCostsColumn),
-		)
+		step := newAllocationCostsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.AllocationCost
 		step.Edge.Schema = schemaConfig.AllocationCost

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/token"
@@ -32,7 +33,8 @@ type Token struct {
 	// The name of token.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Expiration in seconds.
-	Expiration *int `json:"expiration,omitempty" sql:"expiration"`
+	Expiration   *int `json:"expiration,omitempty" sql:"expiration"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -49,7 +51,7 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 		case token.FieldCreateTime, token.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Token", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -108,9 +110,17 @@ func (t *Token) assignValues(columns []string, values []any) error {
 				t.Expiration = new(int)
 				*t.Expiration = int(value.Int64)
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Token.
+// This includes values selected through modifiers, order, etc.
+func (t *Token) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Token.

@@ -1673,11 +1673,7 @@ func HasConnector() predicate.AllocationCost {
 // HasConnectorWith applies the HasEdge predicate on the "connector" edge with a given conditions (other predicates).
 func HasConnectorWith(preds ...predicate.Connector) predicate.AllocationCost {
 	return predicate.AllocationCost(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ConnectorInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
-		)
+		step := newConnectorStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Connector
 		step.Edge.Schema = schemaConfig.AllocationCost

@@ -28,7 +28,7 @@ import (
 type ProjectQuery struct {
 	config
 	ctx              *QueryContext
-	order            []OrderFunc
+	order            []project.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.Project
 	withApplications *ApplicationQuery
@@ -65,7 +65,7 @@ func (pq *ProjectQuery) Unique(unique bool) *ProjectQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *ProjectQuery) Order(o ...OrderFunc) *ProjectQuery {
+func (pq *ProjectQuery) Order(o ...project.OrderOption) *ProjectQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -309,7 +309,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 	return &ProjectQuery{
 		config:           pq.config,
 		ctx:              pq.ctx.Clone(),
-		order:            append([]OrderFunc{}, pq.order...),
+		order:            append([]project.OrderOption{}, pq.order...),
 		inters:           append([]Interceptor{}, pq.inters...),
 		predicates:       append([]predicate.Project{}, pq.predicates...),
 		withApplications: pq.withApplications.Clone(),
@@ -475,8 +475,11 @@ func (pq *ProjectQuery) loadApplications(ctx context.Context, query *Application
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(application.FieldProjectID)
+	}
 	query.Where(predicate.Application(func(s *sql.Selector) {
-		s.Where(sql.InValues(project.ApplicationsColumn, fks...))
+		s.Where(sql.InValues(s.C(project.ApplicationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -486,7 +489,7 @@ func (pq *ProjectQuery) loadApplications(ctx context.Context, query *Application
 		fk := n.ProjectID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -502,8 +505,11 @@ func (pq *ProjectQuery) loadSecrets(ctx context.Context, query *SecretQuery, nod
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(secret.FieldProjectID)
+	}
 	query.Where(predicate.Secret(func(s *sql.Selector) {
-		s.Where(sql.InValues(project.SecretsColumn, fks...))
+		s.Where(sql.InValues(s.C(project.SecretsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -513,7 +519,7 @@ func (pq *ProjectQuery) loadSecrets(ctx context.Context, query *SecretQuery, nod
 		fk := n.ProjectID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

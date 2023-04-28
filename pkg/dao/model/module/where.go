@@ -60,6 +60,16 @@ func IDLTE(id string) predicate.Module {
 	return predicate.Module(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Module {
+	return predicate.Module(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Module {
+	return predicate.Module(sql.FieldContainsFold(FieldID, id))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.Module {
 	return predicate.Module(sql.FieldEQ(FieldStatus, v))
@@ -557,11 +567,7 @@ func HasApplications() predicate.Module {
 // HasApplicationsWith applies the HasEdge predicate on the "applications" edge with a given conditions (other predicates).
 func HasApplicationsWith(preds ...predicate.ApplicationModuleRelationship) predicate.Module {
 	return predicate.Module(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationsInverseTable, ApplicationsColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, ApplicationsTable, ApplicationsColumn),
-		)
+		step := newApplicationsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
@@ -590,11 +596,7 @@ func HasVersions() predicate.Module {
 // HasVersionsWith applies the HasEdge predicate on the "versions" edge with a given conditions (other predicates).
 func HasVersionsWith(preds ...predicate.ModuleVersion) predicate.Module {
 	return predicate.Module(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(VersionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, VersionsTable, VersionsColumn),
-		)
+		step := newVersionsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ModuleVersion
 		step.Edge.Schema = schemaConfig.ModuleVersion

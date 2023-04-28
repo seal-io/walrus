@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -34,7 +35,8 @@ type Setting struct {
 	// Indicate the system setting should be edited or not, default is readonly.
 	Editable *bool `json:"editable,omitempty" sql:"editable"`
 	// Indicate the system setting should be exposed or not, default is exposed.
-	Private *bool `json:"private,omitempty" sql:"private"`
+	Private      *bool `json:"private,omitempty" sql:"private"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,7 +53,7 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 		case setting.FieldCreateTime, setting.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Setting", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -118,9 +120,17 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 				s.Private = new(bool)
 				*s.Private = value.Bool
 			}
+		default:
+			s.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// GetValue returns the ent.Value that was dynamically selected and assigned to the Setting.
+// This includes values selected through modifiers, order, etc.
+func (s *Setting) GetValue(name string) (ent.Value, error) {
+	return s.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Setting.

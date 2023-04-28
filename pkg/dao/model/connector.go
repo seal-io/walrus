@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -51,7 +52,8 @@ type Connector struct {
 	Category string `json:"category,omitempty" sql:"category"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
-	Edges ConnectorEdges `json:"edges,omitempty"`
+	Edges        ConnectorEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ConnectorEdges holds the relations/edges for other nodes in the graph.
@@ -123,7 +125,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Connector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -223,9 +225,17 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Category = value.String
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Connector.
+// This includes values selected through modifiers, order, etc.
+func (c *Connector) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryEnvironments queries the "environments" edge of the Connector entity.

@@ -230,10 +230,7 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = au.schemaConfig.ApplicationInstance
@@ -247,10 +244,7 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = au.schemaConfig.ApplicationInstance
@@ -267,10 +261,7 @@ func (au *ApplicationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = au.schemaConfig.ApplicationInstance
@@ -526,10 +517,7 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = auo.schemaConfig.ApplicationInstance
@@ -543,10 +531,7 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = auo.schemaConfig.ApplicationInstance
@@ -563,10 +548,7 @@ func (auo *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Applicatio
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = auo.schemaConfig.ApplicationInstance

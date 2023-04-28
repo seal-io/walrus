@@ -7,6 +7,9 @@ package environmentconnectorrelationship
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -69,6 +72,52 @@ var (
 	// ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
 	ConnectorIDValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the EnvironmentConnectorRelationship queries.
+type OrderOption func(*sql.Selector)
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByEnvironmentID orders the results by the environment_id field.
+func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
+}
+
+// ByConnectorID orders the results by the connector_id field.
+func ByConnectorID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConnectorID, opts...).ToFunc()
+}
+
+// ByEnvironmentField orders the results by environment field.
+func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByConnectorField orders the results by connector field.
+func ByConnectorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConnectorStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newEnvironmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, EnvironmentColumn),
+		sqlgraph.To(EnvironmentInverseTable, EnvironmentFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, EnvironmentTable, EnvironmentColumn),
+	)
+}
+func newConnectorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, ConnectorColumn),
+		sqlgraph.To(ConnectorInverseTable, ConnectorFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ConnectorTable, ConnectorColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

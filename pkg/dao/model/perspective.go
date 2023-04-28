@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
@@ -37,6 +38,7 @@ type Perspective struct {
 	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty" sql:"allocationQueries"`
+	selectValues      sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -55,7 +57,7 @@ func (*Perspective) scanValues(columns []string) ([]any, error) {
 		case perspective.FieldCreateTime, perspective.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Perspective", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -121,9 +123,17 @@ func (pe *Perspective) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field allocationQueries: %w", err)
 				}
 			}
+		default:
+			pe.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Perspective.
+// This includes values selected through modifiers, order, etc.
+func (pe *Perspective) Value(name string) (ent.Value, error) {
+	return pe.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Perspective.

@@ -280,10 +280,7 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = mu.schemaConfig.ModuleVersion
@@ -297,10 +294,7 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = mu.schemaConfig.ModuleVersion
@@ -317,10 +311,7 @@ func (mu *ModuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = mu.schemaConfig.ModuleVersion
@@ -627,10 +618,7 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = muo.schemaConfig.ModuleVersion
@@ -644,10 +632,7 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = muo.schemaConfig.ModuleVersion
@@ -664,10 +649,7 @@ func (muo *ModuleUpdateOne) sqlSave(ctx context.Context) (_node *Module, err err
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = muo.schemaConfig.ModuleVersion

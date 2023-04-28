@@ -12,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
@@ -37,9 +40,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
 )
 
 const (

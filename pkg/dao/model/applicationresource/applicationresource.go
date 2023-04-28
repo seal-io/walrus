@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -127,6 +129,127 @@ var (
 	// DeployerTypeValidator is a validator for the "deployerType" field. It is called by the builders before save.
 	DeployerTypeValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the ApplicationResource queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByInstanceID orders the results by the instanceID field.
+func ByInstanceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInstanceID, opts...).ToFunc()
+}
+
+// ByConnectorID orders the results by the connectorID field.
+func ByConnectorID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConnectorID, opts...).ToFunc()
+}
+
+// ByCompositionID orders the results by the compositionID field.
+func ByCompositionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompositionID, opts...).ToFunc()
+}
+
+// ByModule orders the results by the module field.
+func ByModule(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModule, opts...).ToFunc()
+}
+
+// ByMode orders the results by the mode field.
+func ByMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMode, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDeployerType orders the results by the deployerType field.
+func ByDeployerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeployerType, opts...).ToFunc()
+}
+
+// ByInstanceField orders the results by instance field.
+func ByInstanceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInstanceStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByConnectorField orders the results by connector field.
+func ByConnectorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConnectorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCompositionField orders the results by composition field.
+func ByCompositionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCompositionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByComponentsCount orders the results by components count.
+func ByComponentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newComponentsStep(), opts...)
+	}
+}
+
+// ByComponents orders the results by components terms.
+func ByComponents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newComponentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newInstanceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InstanceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, InstanceTable, InstanceColumn),
+	)
+}
+func newConnectorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConnectorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
+	)
+}
+func newCompositionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CompositionTable, CompositionColumn),
+	)
+}
+func newComponentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ComponentsTable, ComponentsColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

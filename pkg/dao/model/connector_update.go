@@ -383,10 +383,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ApplicationResource
@@ -400,10 +397,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ApplicationResource
@@ -420,10 +414,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ApplicationResource
@@ -440,10 +431,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ClusterCost
@@ -457,10 +445,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ClusterCost
@@ -477,10 +462,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.ClusterCost
@@ -497,10 +479,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.AllocationCost
@@ -514,10 +493,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.AllocationCost
@@ -534,10 +510,7 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cu.schemaConfig.AllocationCost
@@ -942,10 +915,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ApplicationResource
@@ -959,10 +929,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ApplicationResource
@@ -979,10 +946,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ApplicationResource
@@ -999,10 +963,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ClusterCost
@@ -1016,10 +977,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ClusterCost
@@ -1036,10 +994,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.ClusterCost
@@ -1056,10 +1011,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.AllocationCost
@@ -1073,10 +1025,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.AllocationCost
@@ -1093,10 +1042,7 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cuo.schemaConfig.AllocationCost

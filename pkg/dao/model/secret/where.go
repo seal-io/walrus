@@ -399,11 +399,7 @@ func HasProject() predicate.Secret {
 // HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
 func HasProjectWith(preds ...predicate.Project) predicate.Secret {
 	return predicate.Secret(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProjectInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
-		)
+		step := newProjectStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.Secret

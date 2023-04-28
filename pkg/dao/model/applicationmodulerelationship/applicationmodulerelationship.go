@@ -7,6 +7,9 @@ package applicationmodulerelationship
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -89,6 +92,72 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the ApplicationModuleRelationship queries.
+type OrderOption func(*sql.Selector)
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByApplicationID orders the results by the application_id field.
+func ByApplicationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApplicationID, opts...).ToFunc()
+}
+
+// ByModuleID orders the results by the module_id field.
+func ByModuleID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModuleID, opts...).ToFunc()
+}
+
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByAttributes orders the results by the attributes field.
+func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
+}
+
+// ByApplicationField orders the results by application field.
+func ByApplicationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newApplicationStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByModuleField orders the results by module field.
+func ByModuleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newModuleStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newApplicationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, ApplicationColumn),
+		sqlgraph.To(ApplicationInverseTable, ApplicationFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ApplicationTable, ApplicationColumn),
+	)
+}
+func newModuleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, ModuleColumn),
+		sqlgraph.To(ModuleInverseTable, ModuleFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ModuleTable, ModuleColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

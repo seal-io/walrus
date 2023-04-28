@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
@@ -44,7 +45,8 @@ type ClusterCost struct {
 	ManagementCost float64 `json:"managementCost,omitempty" sql:"managementCost"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ClusterCostQuery when eager-loading is set.
-	Edges ClusterCostEdges `json:"edges"`
+	Edges        ClusterCostEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // ClusterCostEdges holds the relations/edges for other nodes in the graph.
@@ -85,7 +87,7 @@ func (*ClusterCost) scanValues(columns []string) ([]any, error) {
 		case clustercost.FieldStartTime, clustercost.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ClusterCost", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -165,9 +167,17 @@ func (cc *ClusterCost) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				cc.ManagementCost = value.Float64
 			}
+		default:
+			cc.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ClusterCost.
+// This includes values selected through modifiers, order, etc.
+func (cc *ClusterCost) Value(name string) (ent.Value, error) {
+	return cc.selectValues.Get(name)
 }
 
 // QueryConnector queries the "connector" edge of the ClusterCost entity.

@@ -14,6 +14,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/migrate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
@@ -34,9 +39,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 
-	"entgo.io/ent/dialect"
-	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
+	stdsql "database/sql"
+
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 )
 
 // Client is the client that holds all ent builders.
@@ -114,6 +119,57 @@ func (c *Client) init() {
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
 	c.Token = NewTokenClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+		// schemaConfig contains alternative names for all tables.
+		schemaConfig SchemaConfig
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -232,49 +288,29 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.AllocationCost.Use(hooks...)
-	c.Application.Use(hooks...)
-	c.ApplicationInstance.Use(hooks...)
-	c.ApplicationModuleRelationship.Use(hooks...)
-	c.ApplicationResource.Use(hooks...)
-	c.ApplicationRevision.Use(hooks...)
-	c.ClusterCost.Use(hooks...)
-	c.Connector.Use(hooks...)
-	c.Environment.Use(hooks...)
-	c.EnvironmentConnectorRelationship.Use(hooks...)
-	c.Module.Use(hooks...)
-	c.ModuleVersion.Use(hooks...)
-	c.Perspective.Use(hooks...)
-	c.Project.Use(hooks...)
-	c.Role.Use(hooks...)
-	c.Secret.Use(hooks...)
-	c.Setting.Use(hooks...)
-	c.Subject.Use(hooks...)
-	c.Token.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.AllocationCost, c.Application, c.ApplicationInstance,
+		c.ApplicationModuleRelationship, c.ApplicationResource, c.ApplicationRevision,
+		c.ClusterCost, c.Connector, c.Environment, c.EnvironmentConnectorRelationship,
+		c.Module, c.ModuleVersion, c.Perspective, c.Project, c.Role, c.Secret,
+		c.Setting, c.Subject, c.Token,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.AllocationCost.Intercept(interceptors...)
-	c.Application.Intercept(interceptors...)
-	c.ApplicationInstance.Intercept(interceptors...)
-	c.ApplicationModuleRelationship.Intercept(interceptors...)
-	c.ApplicationResource.Intercept(interceptors...)
-	c.ApplicationRevision.Intercept(interceptors...)
-	c.ClusterCost.Intercept(interceptors...)
-	c.Connector.Intercept(interceptors...)
-	c.Environment.Intercept(interceptors...)
-	c.EnvironmentConnectorRelationship.Intercept(interceptors...)
-	c.Module.Intercept(interceptors...)
-	c.ModuleVersion.Intercept(interceptors...)
-	c.Perspective.Intercept(interceptors...)
-	c.Project.Intercept(interceptors...)
-	c.Role.Intercept(interceptors...)
-	c.Secret.Intercept(interceptors...)
-	c.Setting.Intercept(interceptors...)
-	c.Subject.Intercept(interceptors...)
-	c.Token.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.AllocationCost, c.Application, c.ApplicationInstance,
+		c.ApplicationModuleRelationship, c.ApplicationResource, c.ApplicationRevision,
+		c.ClusterCost, c.Connector, c.Environment, c.EnvironmentConnectorRelationship,
+		c.Module, c.ModuleVersion, c.Perspective, c.Project, c.Role, c.Secret,
+		c.Setting, c.Subject, c.Token,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // AllocationCosts implements the ClientSet.
@@ -3210,4 +3246,56 @@ func (c *TokenClient) mutate(ctx context.Context, m *TokenMutation) (Value, erro
 	default:
 		return nil, fmt.Errorf("model: unknown Token mutation op: %q", m.Op())
 	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		AllocationCost, Application, ApplicationInstance, ApplicationModuleRelationship,
+		ApplicationResource, ApplicationRevision, ClusterCost, Connector, Environment,
+		EnvironmentConnectorRelationship, Module, ModuleVersion, Perspective, Project,
+		Role, Secret, Setting, Subject, Token []ent.Hook
+	}
+	inters struct {
+		AllocationCost, Application, ApplicationInstance, ApplicationModuleRelationship,
+		ApplicationResource, ApplicationRevision, ClusterCost, Connector, Environment,
+		EnvironmentConnectorRelationship, Module, ModuleVersion, Perspective, Project,
+		Role, Secret, Setting, Subject, Token []ent.Interceptor
+	}
+)
+
+// SchemaConfig represents alternative schema names for all tables
+// that can be passed at runtime.
+type SchemaConfig = internal.SchemaConfig
+
+// AlternateSchemas allows alternate schema names to be
+// passed into ent operations.
+func AlternateSchema(schemaConfig SchemaConfig) Option {
+	return func(c *config) {
+		c.schemaConfig = schemaConfig
+	}
+}
+
+// ExecContext allows calling the underlying ExecContext method of the driver if it is supported by it.
+// See, database/sql#DB.ExecContext for more information.
+func (c *config) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := c.driver.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the driver if it is supported by it.
+// See, database/sql#DB.QueryContext for more information.
+func (c *config) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := c.driver.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
 }

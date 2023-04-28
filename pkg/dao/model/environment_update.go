@@ -245,10 +245,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationInstance
@@ -262,10 +259,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationInstance
@@ -282,10 +276,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationInstance
@@ -302,10 +293,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationRevision
@@ -319,10 +307,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationRevision
@@ -339,10 +324,7 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = eu.schemaConfig.ApplicationRevision
@@ -613,10 +595,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationInstance
@@ -630,10 +609,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationInstance
@@ -650,10 +626,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationInstance
@@ -670,10 +643,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationRevision
@@ -687,10 +657,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationRevision
@@ -707,10 +674,7 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = euo.schemaConfig.ApplicationRevision

@@ -464,11 +464,7 @@ func HasApplication() predicate.ApplicationModuleRelationship {
 // HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
 func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, ApplicationColumn),
-			sqlgraph.To(ApplicationInverseTable, ApplicationFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ApplicationTable, ApplicationColumn),
-		)
+		step := newApplicationStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship
@@ -497,11 +493,7 @@ func HasModule() predicate.ApplicationModuleRelationship {
 // HasModuleWith applies the HasEdge predicate on the "module" edge with a given conditions (other predicates).
 func HasModuleWith(preds ...predicate.Module) predicate.ApplicationModuleRelationship {
 	return predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, ModuleColumn),
-			sqlgraph.To(ModuleInverseTable, ModuleFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ModuleTable, ModuleColumn),
-		)
+		step := newModuleStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Module
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship

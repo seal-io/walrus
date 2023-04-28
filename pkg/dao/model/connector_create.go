@@ -401,10 +401,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = cc.schemaConfig.ApplicationResource
@@ -421,10 +418,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			Columns: []string{connector.ClusterCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: clustercost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cc.schemaConfig.ClusterCost
@@ -441,10 +435,7 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			Columns: []string{connector.AllocationCostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: allocationcost.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
 			},
 		}
 		edge.Schema = cc.schemaConfig.AllocationCost
@@ -921,8 +912,8 @@ func (ccb *ConnectorCreateBulk) Save(ctx context.Context) ([]*Connector, error) 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {

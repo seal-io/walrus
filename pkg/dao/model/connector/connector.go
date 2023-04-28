@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
@@ -135,6 +137,143 @@ var (
 	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
 	CategoryValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the Connector queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByConfigVersion orders the results by the configVersion field.
+func ByConfigVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfigVersion, opts...).ToFunc()
+}
+
+// ByConfigData orders the results by the configData field.
+func ByConfigData(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfigData, opts...).ToFunc()
+}
+
+// ByEnableFinOps orders the results by the enableFinOps field.
+func ByEnableFinOps(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnableFinOps, opts...).ToFunc()
+}
+
+// ByCategory orders the results by the category field.
+func ByCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
+// ByEnvironmentsCount orders the results by environments count.
+func ByEnvironmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnvironmentsStep(), opts...)
+	}
+}
+
+// ByEnvironments orders the results by environments terms.
+func ByEnvironments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByResourcesCount orders the results by resources count.
+func ByResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newResourcesStep(), opts...)
+	}
+}
+
+// ByResources orders the results by resources terms.
+func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByClusterCostsCount orders the results by clusterCosts count.
+func ByClusterCostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newClusterCostsStep(), opts...)
+	}
+}
+
+// ByClusterCosts orders the results by clusterCosts terms.
+func ByClusterCosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newClusterCostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAllocationCostsCount orders the results by allocationCosts count.
+func ByAllocationCostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAllocationCostsStep(), opts...)
+	}
+}
+
+// ByAllocationCosts orders the results by allocationCosts terms.
+func ByAllocationCosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAllocationCostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newEnvironmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnvironmentsInverseTable, EnvironmentsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, EnvironmentsTable, EnvironmentsColumn),
+	)
+}
+func newResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+	)
+}
+func newClusterCostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ClusterCostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ClusterCostsTable, ClusterCostsColumn),
+	)
+}
+func newAllocationCostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AllocationCostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AllocationCostsTable, AllocationCostsColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

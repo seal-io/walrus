@@ -318,11 +318,7 @@ func HasConnectors() predicate.Environment {
 // HasConnectorsWith applies the HasEdge predicate on the "connectors" edge with a given conditions (other predicates).
 func HasConnectorsWith(preds ...predicate.EnvironmentConnectorRelationship) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ConnectorsInverseTable, ConnectorsColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, ConnectorsTable, ConnectorsColumn),
-		)
+		step := newConnectorsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.EnvironmentConnectorRelationship
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
@@ -351,11 +347,7 @@ func HasInstances() predicate.Environment {
 // HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
 func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(InstancesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
-		)
+		step := newInstancesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationInstance
@@ -384,11 +376,7 @@ func HasRevisions() predicate.Environment {
 // HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
 func HasRevisionsWith(preds ...predicate.ApplicationRevision) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RevisionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
-		)
+		step := newRevisionsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationRevision
 		step.Edge.Schema = schemaConfig.ApplicationRevision

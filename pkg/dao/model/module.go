@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
@@ -40,7 +41,8 @@ type Module struct {
 	Source string `json:"source,omitempty" sql:"source"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleQuery when eager-loading is set.
-	Edges ModuleEdges `json:"edges,omitempty"`
+	Edges        ModuleEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ModuleEdges holds the relations/edges for other nodes in the graph.
@@ -84,7 +86,7 @@ func (*Module) scanValues(columns []string) ([]any, error) {
 		case module.FieldCreateTime, module.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Module", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -156,9 +158,17 @@ func (m *Module) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Source = value.String
 			}
+		default:
+			m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Module.
+// This includes values selected through modifiers, order, etc.
+func (m *Module) Value(name string) (ent.Value, error) {
+	return m.selectValues.Get(name)
 }
 
 // QueryApplications queries the "applications" edge of the Module entity.
