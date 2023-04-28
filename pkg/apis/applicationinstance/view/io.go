@@ -302,6 +302,25 @@ func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
 
 type OutputResponse = []types.OutputValue
 
+type CreateCloneRequest struct {
+	_ struct{} `route:"POST=/clone"`
+
+	ID   types.ID `uri:"id"`
+	Name string   `json:"name"`
+}
+
+func (r *CreateCloneRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	if r.Name == "" {
+		return errors.New("invalid name: blank")
+	}
+
+	return nil
+}
+
 func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
 	revision, err := modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(id)).
