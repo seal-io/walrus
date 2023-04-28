@@ -6,7 +6,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
-	"entgo.io/ent/entc/integration/ent/hook"
 	"entgo.io/ent/schema/field"
 	"github.com/sony/sonyflake"
 
@@ -36,8 +35,12 @@ func Hook() ent.Hook {
 		SetID(ID)
 	}
 	var g = sonyflake.NewSonyflake(Config.Get())
-	var h = func(n ent.Mutator) ent.Mutator {
+	return func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate) {
+				return n.Mutate(ctx, m)
+			}
+
 			is, ok := m.(setter)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation %T", m)
@@ -50,5 +53,4 @@ func Hook() ent.Hook {
 			return n.Mutate(ctx, m)
 		})
 	}
-	return hook.On(h, ent.OpCreate)
 }

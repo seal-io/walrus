@@ -82,7 +82,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.ApplicationResource] `query:",inline"`
+	runtime.RequestCollection[predicate.ApplicationResource, applicationresource.OrderOption] `query:",inline"`
 
 	InstanceID  types.ID `query:"instanceID"`
 	WithoutKeys bool     `query:"withoutKeys,omitempty"`

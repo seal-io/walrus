@@ -132,7 +132,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.Connector] `query:",inline"`
+	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
 
 	Category string `query:"category,omitempty"`
 	Type     string `query:"type,omitempty"`
@@ -208,8 +208,8 @@ func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id 
 type GetRepositoriesRequest struct {
 	_ struct{} `route:"GET=/repositories"`
 
-	runtime.RequestCollection[predicate.Connector] `query:",inline"`
-	ID                                             types.ID `uri:"id"`
+	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
+	ID                                                                    types.ID `uri:"id"`
 }
 
 type GetRepositoriesResponse = []*scm.Repository
@@ -217,9 +217,9 @@ type GetRepositoriesResponse = []*scm.Repository
 type GetBranchesRequest struct {
 	_ struct{} `route:"GET=/repository-branches"`
 
-	runtime.RequestCollection[predicate.Connector] `query:",inline"`
-	ID                                             types.ID `uri:"id"`
-	Repository                                     string   `query:"repository"`
+	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
+	ID                                                                    types.ID `uri:"id"`
+	Repository                                                            string   `query:"repository"`
 }
 
 type GetBranchesResponse = []*scm.Reference

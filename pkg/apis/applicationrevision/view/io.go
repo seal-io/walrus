@@ -115,9 +115,9 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestPagination `query:",inline"`
-	runtime.RequestExtracting `query:",inline"`
-	runtime.RequestSorting    `query:",inline"`
+	runtime.RequestPagination                               `query:",inline"`
+	runtime.RequestExtracting                               `query:",inline"`
+	runtime.RequestSorting[applicationrevision.OrderOption] `query:",inline"`
 
 	InstanceID types.ID `query:"instanceID,omitempty"`
 }
