@@ -41,7 +41,6 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
 		if r.Type == types.ConnectorTypeK8s {
-			status.ConnectorStatusProvisioned.Unknown(r, "Provisioning connector")
 			if r.EnableFinOps {
 				status.ConnectorStatusCostToolsDeployed.Unknown(r, "Deploying cost tools")
 				status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")

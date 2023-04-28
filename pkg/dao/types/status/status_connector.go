@@ -1,7 +1,7 @@
 package status
 
 const (
-	ConnectorStatusProvisioned       ConditionType = "Provisioned"
+	ConnectorStatusConnected         ConditionType = "Connected"
 	ConnectorStatusCostToolsDeployed ConditionType = "CostToolDeployed"
 	ConnectorStatusCostSynced        ConditionType = "CostSynced"
 	ConnectorStatusReady             ConditionType = "Ready"
@@ -11,9 +11,9 @@ const (
 //
 //	|  Condition Type  |     Condition Status    | Human Readable Status | Human Sensible Status |
 //	| ---------------- | ----------------------- | --------------------- | --------------------- |
-//	| Provisioned      | Unknown                 | Provisioning          | Transitioning         |
-//	| Provisioned      | False                   | ProvisionFailed       | Error                 |
-//	| Provisioned      | True                    | Provisioned           |                       |
+//	| Connected        | Unknown                 | Connecting            | Transitioning         |
+//	| Connected        | False                   | ConnectFailed         | Error                 |
+//	| Connected        | True                    | Connected             |                       |
 //	| CostToolDeployed | Unknown                 | CostToolDeploying     | Transitioning         |
 //	| CostToolDeployed | False                   | CostToolDeployFailed  | Error                 |
 //	| CostToolDeployed | True                    | CostToolDeployed      |                       |
@@ -26,7 +26,7 @@ const (
 var connectorStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
-			ConnectorStatusProvisioned,
+			ConnectorStatusConnected,
 			ConnectorStatusCostToolsDeployed,
 			ConnectorStatusCostSynced,
 			ConnectorStatusReady,

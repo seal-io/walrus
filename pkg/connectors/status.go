@@ -36,7 +36,7 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 		check  func(context.Context, model.Connector) (string, error)
 	}{
 		{
-			status: status.ConnectorStatusProvisioned,
+			status: status.ConnectorStatusConnected,
 			check: func(ctx context.Context, m model.Connector) (string, error) {
 				return "", in.checkReachable(ctx, m)
 			},
