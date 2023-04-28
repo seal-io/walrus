@@ -50,7 +50,10 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.2
 )
 
-require github.com/go-co-op/gocron v1.22.0 // indirect
+require (
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	github.com/go-co-op/gocron v1.22.0 // indirect
+)
 
 require (
 	ariga.io/atlas v0.10.0 // indirect
@@ -86,7 +89,6 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect
 	github.com/aws/aws-sdk-go v1.44.153 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.2.0 // indirect
