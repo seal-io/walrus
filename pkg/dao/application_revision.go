@@ -31,6 +31,12 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 		if r.Modules != nil {
 			c.SetModules(r.Modules)
 		}
+		if r.Secrets != nil {
+			c.SetSecrets(r.Secrets)
+		}
+		if r.Variables != nil {
+			c.SetVariables(r.Variables)
+		}
 		if r.InputVariables != nil {
 			c.SetInputVariables(r.InputVariables)
 		}
@@ -71,6 +77,9 @@ func ApplicationRevisionUpdate(mc model.ClientSet, input *model.ApplicationRevis
 	}
 	if input.Duration != 0 {
 		c.SetDuration(input.Duration)
+	}
+	if input.Secrets != nil {
+		c.SetSecrets(input.Secrets)
 	}
 
 	return c, nil
