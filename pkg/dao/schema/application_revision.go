@@ -7,6 +7,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
@@ -36,6 +37,12 @@ func (ApplicationRevision) Fields() []ent.Field {
 		field.JSON("modules", []types.ApplicationModule{}).
 			Comment("Application modules.").
 			Default([]types.ApplicationModule{}),
+		crypto.MapField[string, string]("secrets").
+			Comment("Secrets of the revision.").
+			Default(crypto.Map[string, string]{}),
+		property.SchemasField("variables").
+			Comment("Application variables schema of the revision.").
+			Optional(),
 		property.ValuesField("inputVariables").
 			Comment("Input variables of the revision.").
 			Default(property.Values{}).
