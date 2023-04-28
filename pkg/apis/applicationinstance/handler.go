@@ -481,6 +481,69 @@ func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.Applica
 	return nil
 }
 
+// CreateClone creates a clone instance of the application instance.
+func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*model.ApplicationInstanceOutput, error) {
+	applicationInstance, err := h.modelClient.ApplicationInstances().Get(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return h.createInstance(ctx, &model.ApplicationInstance{
+		Name:          req.Name,
+		Status:        status.ApplicationInstanceStatusDeploying,
+		Variables:     applicationInstance.Variables,
+		ApplicationID: applicationInstance.ApplicationID,
+		EnvironmentID: applicationInstance.EnvironmentID,
+	})
+}
+
+func (h Handler) createInstance(ctx context.Context, entity *model.ApplicationInstance) (*model.ApplicationInstanceOutput, error) {
+	creates, err := dao.ApplicationInstanceCreates(h.modelClient, entity)
+	if err != nil {
+		return nil, err
+	}
+	entity, err = creates[0].Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// get deployer.
+	var createOpts = deployer.CreateOptions{
+		Type:        platformtf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	}
+	dp, err := platform.GetDeployer(ctx, createOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	// apply instance.
+	var applyOpts = deployer.ApplyOptions{
+		SkipTLSVerify: !h.tlsCertified,
+	}
+	err = dp.Apply(ctx, entity, applyOpts)
+	if err != nil {
+		// NB(thxCode): a better approach is to use transaction,
+		// however, building the application deployment process is a time-consuming task,
+		// to prevent long-time transaction, we use a deletion to achieve this.
+		// usually, the probability of this delete operation failing is very low.
+		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
+			Exec(ctx)
+		if derr != nil {
+			log.WithName("application-instances").
+				Errorf("error deleting: %v", derr)
+		}
+		return nil, err
+	}
+
+	if err := publishApplicationUpdate(ctx, entity); err != nil {
+		return nil, err
+	}
+
+	return model.ExposeApplicationInstance(entity), nil
+}
+
 func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInstance) error {
 	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{entity.ApplicationID})
 }
