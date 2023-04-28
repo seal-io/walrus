@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWalker_sxs(t *testing.T) {
@@ -123,6 +124,230 @@ func TestWalker_sxs(t *testing.T) {
 	p.Dump("Progressing Again [T]", f.Walk(&r.Status))
 
 	t.Log(p.String())
+}
+
+func TestWalker_multiple(t *testing.T) {
+	const (
+		ExampleResourceStatusDeployed ConditionType = "Deployed"
+		ExampleResourceStatusReady    ConditionType = "Ready"
+		ExampleResourceStatusDeleted  ConditionType = "Deleted"
+	)
+
+	var f = NewWalker(
+		[][]ConditionType{
+			{
+				ExampleResourceStatusDeployed,
+				ExampleResourceStatusReady,
+			},
+			{
+				ExampleResourceStatusDeleted,
+			},
+		},
+		func(d Decision[ConditionType]) {
+			d.Make(ApplicationInstanceStatusDeleted,
+				func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+					switch st {
+					case ConditionStatusUnknown:
+						return "Deleting", false, true
+					case ConditionStatusFalse:
+						return "DeleteFailed", true, false
+					}
+					return "Deleted", false, false
+				})
+		},
+	)
+
+	type (
+		input struct {
+			Status Status
+			Before func(*input)
+		}
+	)
+	var testCases = []struct {
+		name     string
+		given    input
+		expected *Summary
+	}{
+		{
+			name: "no conditions",
+			given: input{
+				Status: Status{
+					Conditions: nil,
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Ready",
+			},
+		},
+		{
+			name: "first deploy",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusUnknown,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Deploying",
+				Transitioning: true,
+			},
+		},
+		{
+			name: "deployed",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusUnknown,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Preparing",
+				Transitioning: true,
+			},
+		},
+		{
+			name: "redeploy",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusUnknown,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusTrue,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Deploying",
+				Transitioning: true,
+			},
+		},
+		{
+			name: "redeploy but failed",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusFalse,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusTrue,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "DeployFailed",
+				Error:         true,
+			},
+		},
+		{
+			name: "delete",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusDeleted,
+							Status: ConditionStatusUnknown,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Deleting",
+				Transitioning: true,
+			},
+		},
+		{
+			name: "delete but failed",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusDeleted,
+							Status: ConditionStatusFalse,
+						},
+					},
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "DeleteFailed",
+				Error:         true,
+			},
+		},
+		{
+			name: "delete failed but redeploy",
+			given: input{
+				Status: Status{
+					Conditions: []Condition{
+						{
+							Type:   ExampleResourceStatusDeployed,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusReady,
+							Status: ConditionStatusTrue,
+						},
+						{
+							Type:   ExampleResourceStatusDeleted,
+							Status: ConditionStatusFalse,
+						},
+					},
+				},
+				Before: func(i *input) {
+					// remove deleted status and mark deployed status.
+					ExampleResourceStatusDeployed.Reset(i, "")
+				},
+			},
+			expected: &Summary{
+				SummaryStatus: "Deploying",
+				Transitioning: true,
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.given.Before != nil {
+				tc.given.Before(&tc.given)
+			}
+			var actual = f.Walk(&tc.given.Status)
+			assert.Equal(t, tc.expected, actual, "case %q", tc.name)
+		})
+	}
 }
 
 type printer struct {
