@@ -116,8 +116,7 @@ type path[T ~string] struct {
 }
 
 func (f path[T]) Walk(st *Status) *Summary {
-	// copy create a new summary.
-	var s = st.Summary
+	var s Summary
 
 	// walk the status if condition list is not empty.
 	if len(st.Conditions) != 0 {
