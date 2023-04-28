@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
@@ -48,6 +49,12 @@ type Deployer struct {
 	clientSet   *kubernetes.Clientset
 }
 
+type CreateRevisionOptions struct {
+	JobType             string
+	Application         *model.Application
+	ApplicationInstance *model.ApplicationInstance
+}
+
 // CreateSecretsOptions options for creating deployment job secrets.
 type CreateSecretsOptions struct {
 	SkipTLSVerify       bool
@@ -64,6 +71,7 @@ type CreateSecretsOptions struct {
 type CreateJobOptions struct {
 	Type                string
 	SkipTLSVerify       bool
+	Application         *model.Application
 	ApplicationInstance *model.ApplicationInstance
 	ApplicationRevision *model.ApplicationRevision
 }
@@ -103,7 +111,16 @@ func (d Deployer) Type() deployer.Type {
 
 // Apply will apply the application to deploy the application.
 func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) (err error) {
-	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeApply)
+	app, err := d.getApplication(ctx, ai.ApplicationID)
+	if err != nil {
+		return err
+	}
+
+	ar, err := d.CreateApplicationRevision(ctx, CreateRevisionOptions{
+		JobType:             JobTypeApply,
+		Application:         app,
+		ApplicationInstance: ai,
+	})
 	if err != nil {
 		return err
 	}
@@ -119,6 +136,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 	return d.CreateK8sJob(ctx, CreateJobOptions{
 		Type:                JobTypeApply,
 		SkipTLSVerify:       applyOpts.SkipTLSVerify,
+		Application:         app,
 		ApplicationInstance: ai,
 		ApplicationRevision: ar,
 	})
@@ -128,7 +146,15 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 // 1. get the latest revision, and checkAppRevision it if it is running.
 // 2. if not running, then destroy resources.
 func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) (err error) {
-	ar, err := d.CreateApplicationRevision(ctx, ai, JobTypeDestroy)
+	app, err := d.getApplication(ctx, ai.ApplicationID)
+	if err != nil {
+		return err
+	}
+	ar, err := d.CreateApplicationRevision(ctx, CreateRevisionOptions{
+		JobType:             JobTypeDestroy,
+		Application:         app,
+		ApplicationInstance: ai,
+	})
 	if err != nil {
 		return err
 	}
@@ -155,6 +181,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 	return d.CreateK8sJob(ctx, CreateJobOptions{
 		Type:                JobTypeDestroy,
 		SkipTLSVerify:       destroyOpts.SkipTLSVerify,
+		Application:         app,
 		ApplicationInstance: ai,
 		ApplicationRevision: ar,
 	})
@@ -164,6 +191,11 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) (err error) {
 	if opts.ApplicationRevision == nil || opts.ApplicationRevision.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")
+	}
+
+	app, err := d.getApplication(ctx, ai.ApplicationID)
+	if err != nil {
+		return err
 	}
 
 	ai.Status = status.ApplicationInstanceStatusDeploying
@@ -179,14 +211,16 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 	var (
 		ar     *model.ApplicationRevision
 		entity = &model.ApplicationRevision{
+			Status:                    status.ApplicationRevisionStatusRunning,
 			InstanceID:                ai.ID,
 			EnvironmentID:             ai.EnvironmentID,
-			Status:                    status.ApplicationRevisionStatusRunning,
-			InputVariables:            opts.ApplicationRevision.InputVariables,
 			Modules:                   opts.ApplicationRevision.Modules,
-			PreviousRequiredProviders: opts.ApplicationRevision.PreviousRequiredProviders,
+			Secrets:                   opts.ApplicationRevision.Secrets,
+			Variables:                 opts.ApplicationRevision.Variables,
+			InputVariables:            opts.ApplicationRevision.InputVariables,
 			InputPlan:                 opts.ApplicationRevision.InputPlan,
 			DeployerType:              opts.ApplicationRevision.DeployerType,
+			PreviousRequiredProviders: opts.ApplicationRevision.PreviousRequiredProviders,
 		}
 	)
 	revisionCreates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
@@ -222,20 +256,16 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 	return d.CreateK8sJob(ctx, CreateJobOptions{
 		Type:                JobTypeApply,
 		SkipTLSVerify:       opts.SkipTLSVerify,
+		Application:         app,
 		ApplicationInstance: ai,
 		ApplicationRevision: ar,
 	})
 }
 
-// CreateK8sJob will create a k8s job to deploy、destroy or rollback the application instance.
-func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error {
-	connectors, err := d.getConnectors(ctx, opts.ApplicationInstance)
-	if err != nil {
-		return err
-	}
-	// get application, we need the project id to fetch available secrets.
-	app, err := d.modelClient.Applications().Query().
-		Where(application.ID(opts.ApplicationInstance.ApplicationID)).
+// getApplication will get the application by id
+func (d Deployer) getApplication(ctx context.Context, id types.ID) (*model.Application, error) {
+	return d.modelClient.Applications().Query().
+		Where(application.ID(id)).
 		WithProject(func(pq *model.ProjectQuery) {
 			pq.Select(
 				project.FieldID,
@@ -243,6 +273,11 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 			)
 		}).
 		Only(ctx)
+}
+
+// CreateK8sJob will create a k8s job to deploy、destroy or rollback the application instance.
+func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error {
+	connectors, err := d.getConnectors(ctx, opts.ApplicationInstance)
 	if err != nil {
 		return err
 	}
@@ -252,10 +287,10 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		SkipTLSVerify:       opts.SkipTLSVerify,
 		ApplicationRevision: opts.ApplicationRevision,
 		Connectors:          connectors,
-		ProjectID:           app.ProjectID,
+		ProjectID:           opts.Application.ProjectID,
 		// metadata
-		ProjectName:             app.Edges.Project.Name,
-		ApplicationName:         app.Name,
+		ProjectName:             opts.Application.Edges.Project.Name,
+		ApplicationName:         opts.Application.Name,
 		ApplicationInstanceName: opts.ApplicationInstance.Name,
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
@@ -335,12 +370,13 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 // get the latest revision, and check it if it is running.
 // if not running, then apply the latest revision.
 // if running, then wait for the latest revision to be applied.
-func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.ApplicationInstance, jobType string) (*model.ApplicationRevision, error) {
+func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevisionOptions) (*model.ApplicationRevision, error) {
 	var entity = &model.ApplicationRevision{
 		DeployerType:   DeployerType,
-		InstanceID:     ai.ID,
-		EnvironmentID:  ai.EnvironmentID,
-		InputVariables: ai.Variables,
+		InstanceID:     opts.ApplicationInstance.ID,
+		EnvironmentID:  opts.ApplicationInstance.EnvironmentID,
+		Variables:      opts.Application.Variables,
+		InputVariables: opts.ApplicationInstance.Variables,
 		Status:         status.ApplicationRevisionStatusRunning,
 	}
 
@@ -348,7 +384,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 	// when creating a new revision.
 	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.And(
-			applicationrevision.InstanceID(ai.ID),
+			applicationrevision.InstanceID(opts.ApplicationInstance.ID),
 			applicationrevision.DeployerType(DeployerType))).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
@@ -362,7 +398,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 		// inherit the output of previous revision.
 		entity.Output = prevEntity.Output
 		// inherit the required providers of previous succeeded revision.
-		previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, ai.ID)
+		previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, opts.ApplicationInstance.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -382,7 +418,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 
 	// get modules for new revision.
 	amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
-		Where(applicationmodulerelationship.ApplicationID(ai.ApplicationID)).
+		Where(applicationmodulerelationship.ApplicationID(opts.Application.ID)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -397,7 +433,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, ai *model.Appli
 		}
 	}
 
-	if jobType == JobTypeDestroy &&
+	if opts.JobType == JobTypeDestroy &&
 		prevEntity != nil &&
 		prevEntity.Status == status.ApplicationRevisionStatusSucceeded {
 		entity.Modules = prevEntity.Modules
@@ -516,8 +552,14 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		}
 	}
 
-	// save input plan to app revision
+	// save input plan to app revision.
 	opts.ApplicationRevision.InputPlan = string(secretMaps[config.FileMain])
+	// save secrets to app revision.
+	secretMap := make(crypto.Map[string, string], len(secrets))
+	for _, s := range secrets {
+		secretMap[s.Name] = string(s.Value)
+	}
+	opts.ApplicationRevision.Secrets = secretMap
 	update, err := dao.ApplicationRevisionUpdate(d.modelClient, opts.ApplicationRevision)
 	if err != nil {
 		return nil, err

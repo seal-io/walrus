@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -238,4 +239,34 @@ func (r *RollbackApplicationRequest) Validate() error {
 	}
 
 	return nil
+}
+
+type RevisionDiffRequest struct {
+	_ struct{} `route:"/diff"`
+
+	ID         types.ID `uri:"id"`
+	InstanceID types.ID `query:"instanceID"`
+}
+
+func (r *RevisionDiffRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	if !r.InstanceID.Valid(0) {
+		return errors.New("invalid instance id: blank")
+	}
+
+	return nil
+}
+
+type RevisionDiff struct {
+	InputVariables property.Values           `json:"inputVariables"`
+	Variables      property.Schemas          `json:"variables"`
+	Modules        []types.ApplicationModule `json:"modules"`
+}
+
+type RevisionDiffResponse struct {
+	Old RevisionDiff `json:"old"`
+	New RevisionDiff `json:"new"`
 }

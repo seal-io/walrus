@@ -150,6 +150,8 @@ var (
 		applicationrevision.FieldOutput,
 		applicationrevision.FieldInputVariables,
 		applicationrevision.FieldModules,
+		applicationrevision.FieldVariables,
+		applicationrevision.FieldSecrets,
 	)
 	sortFields = []string{
 		applicationrevision.FieldCreateTime}
@@ -556,10 +558,69 @@ func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackA
 		return err
 	}
 	app.Edges.Modules = amr
-	// update application.
-	updates, err := dao.ApplicationUpdates(h.modelClient, app)
+	app.Variables = applicationRevision.Variables
+
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var updates, err = dao.ApplicationUpdates(tx, app)
+		if err != nil {
+			return err
+		}
+		return updates[0].Exec(ctx)
+	})
+}
+
+// GetRevisionDiff get the revision with the application instance latest revision diff.
+func (h Handler) GetRevisionDiff(ctx *gin.Context, req view.RevisionDiffRequest) (*view.RevisionDiffResponse, error) {
+	instance, err := h.modelClient.ApplicationInstances().Query().
+		WithApplication(func(q *model.ApplicationQuery) {
+			q.Select(
+				application.FieldID,
+				application.FieldVariables)
+
+		}).
+		Where(applicationinstance.ID(req.InstanceID)).
+		Only(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return updates[0].Exec(ctx)
+
+	latestRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldID,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldInputVariables,
+			applicationrevision.FieldVariables,
+		).
+		Where(applicationrevision.InstanceID(req.InstanceID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	compareRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldID,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldInputVariables,
+			applicationrevision.FieldVariables,
+		).
+		Where(applicationrevision.ID(req.ID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &view.RevisionDiffResponse{
+		Old: view.RevisionDiff{
+			InputVariables: latestRevision.InputVariables,
+			Variables:      instance.Edges.Application.Variables,
+			Modules:        latestRevision.Modules,
+		},
+		New: view.RevisionDiff{
+			InputVariables: compareRevision.InputVariables,
+			Variables:      compareRevision.Variables,
+			Modules:        compareRevision.Modules,
+		},
+	}, nil
 }
