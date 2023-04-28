@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/alitto/pond v1.8.3
 	github.com/allegro/bigcache/v3 v3.1.0
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-co-op/gocron v1.18.0
 	github.com/go-logr/logr v1.2.3

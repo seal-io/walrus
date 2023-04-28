@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/golang-module/carbon"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -86,6 +87,22 @@ func TimeRangeWithinDecade(startTime, endTime time.Time) error {
 
 	if endTime.Sub(startTime) > maxDurationPerDecade {
 		return fmt.Errorf("invalid time range: start time and end time must be within decade")
+	}
+	return nil
+}
+
+func IsValidEndpoint(ep string) error {
+	if govalidator.IsHost(ep) || govalidator.IsURL(ep) {
+		return nil
+	}
+	return fmt.Errorf("%s isn't a valid endpoint", ep)
+}
+
+func IsValidEndpoints(eps []string) error {
+	for _, v := range eps {
+		if err := IsValidEndpoint(v); err != nil {
+			return err
+		}
 	}
 	return nil
 }
