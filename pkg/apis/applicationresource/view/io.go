@@ -156,7 +156,7 @@ type GetKeysRequest = ApplicationResourceQuery
 type GetKeysResponse = *operator.Keys
 
 type StreamLogRequest struct {
-	ApplicationResourceQuery `uri:",inline"`
+	ApplicationResourceQuery `query:"-" uri:",inline"`
 
 	Key          string `query:"key"`
 	Previous     bool   `query:"previous,omitempty"`
@@ -178,7 +178,7 @@ func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type StreamExecRequest struct {
-	ApplicationResourceQuery `uri:",inline"`
+	ApplicationResourceQuery `query:"-" uri:",inline"`
 
 	Key    string `query:"key"`
 	Shell  string `query:"shell,omitempty"`
