@@ -42,7 +42,7 @@ func State(ctx context.Context, op operator.Operator, modelClient model.ClientSe
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		} else {
-			sr.merge(st.Error, sr.Transitioning)
+			sr.merge(st.Error, st.Transitioning)
 		}
 		// get endpoints of the application resource.
 		eps, err := op.GetEndpoints(ctx, candidates[i])

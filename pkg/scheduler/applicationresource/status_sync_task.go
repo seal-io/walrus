@@ -163,12 +163,18 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 			}
 			nsr, err := applicationresources.State(ctx, op, in.modelClient, crs)
 			if multierr.AppendInto(&berr, err) {
-				continue
+				// mark error as transitioning,
+				// which doesn't flip the status.
+				nsr.Transitioning = true
 			}
 			sr.Merge(nsr)
 		}
 
 		// state application instance.
+		if status.ApplicationInstanceStatusDeleted.Exist(i) {
+			// skip if the instance is on deleting.
+			return
+		}
 		switch {
 		case sr.Error:
 			status.ApplicationInstanceStatusReady.False(i, "")
