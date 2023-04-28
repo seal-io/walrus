@@ -26,7 +26,7 @@ import (
 type ClusterCostQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []clustercost.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.ClusterCost
 	withConnector *ConnectorQuery
@@ -62,7 +62,7 @@ func (ccq *ClusterCostQuery) Unique(unique bool) *ClusterCostQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (ccq *ClusterCostQuery) Order(o ...OrderFunc) *ClusterCostQuery {
+func (ccq *ClusterCostQuery) Order(o ...clustercost.OrderOption) *ClusterCostQuery {
 	ccq.order = append(ccq.order, o...)
 	return ccq
 }
@@ -281,7 +281,7 @@ func (ccq *ClusterCostQuery) Clone() *ClusterCostQuery {
 	return &ClusterCostQuery{
 		config:        ccq.config,
 		ctx:           ccq.ctx.Clone(),
-		order:         append([]OrderFunc{}, ccq.order...),
+		order:         append([]clustercost.OrderOption{}, ccq.order...),
 		inters:        append([]Interceptor{}, ccq.inters...),
 		predicates:    append([]predicate.ClusterCost{}, ccq.predicates...),
 		withConnector: ccq.withConnector.Clone(),
@@ -475,6 +475,9 @@ func (ccq *ClusterCostQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != clustercost.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if ccq.withConnector != nil {
+			_spec.Node.AddColumnOnce(clustercost.FieldConnectorID)
 		}
 	}
 	if ps := ccq.predicates; len(ps) > 0 {

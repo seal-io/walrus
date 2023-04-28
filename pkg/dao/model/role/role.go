@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -85,6 +86,49 @@ var (
 	// DefaultSession holds the default value on creation for the "session" field.
 	DefaultSession bool
 )
+
+// OrderOption defines the ordering options for the Role queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByDomain orders the results by the domain field.
+func ByDomain(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDomain, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByBuiltin orders the results by the builtin field.
+func ByBuiltin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuiltin, opts...).ToFunc()
+}
+
+// BySession orders the results by the session field.
+func BySession(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSession, opts...).ToFunc()
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

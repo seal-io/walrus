@@ -454,11 +454,7 @@ func HasApplication() predicate.ApplicationInstance {
 // HasApplicationWith applies the HasEdge predicate on the "application" edge with a given conditions (other predicates).
 func HasApplicationWith(preds ...predicate.Application) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ApplicationTable, ApplicationColumn),
-		)
+		step := newApplicationStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.ApplicationInstance
@@ -487,11 +483,7 @@ func HasEnvironment() predicate.ApplicationInstance {
 // HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
 func HasEnvironmentWith(preds ...predicate.Environment) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(EnvironmentInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
-		)
+		step := newEnvironmentStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.ApplicationInstance
@@ -520,11 +512,7 @@ func HasRevisions() predicate.ApplicationInstance {
 // HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
 func HasRevisionsWith(preds ...predicate.ApplicationRevision) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RevisionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
-		)
+		step := newRevisionsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationRevision
 		step.Edge.Schema = schemaConfig.ApplicationRevision
@@ -553,11 +541,7 @@ func HasResources() predicate.ApplicationInstance {
 // HasResourcesWith applies the HasEdge predicate on the "resources" edge with a given conditions (other predicates).
 func HasResourcesWith(preds ...predicate.ApplicationResource) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ResourcesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
-		)
+		step := newResourcesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationResource
 		step.Edge.Schema = schemaConfig.ApplicationResource

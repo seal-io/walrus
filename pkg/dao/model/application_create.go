@@ -280,10 +280,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 			Columns: []string{application.ProjectColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: project.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ac.schemaConfig.Application
@@ -301,10 +298,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 			Columns: []string{application.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ac.schemaConfig.ApplicationInstance
@@ -638,8 +632,8 @@ func (acb *ApplicationCreateBulk) Save(ctx context.Context) ([]*Application, err
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {

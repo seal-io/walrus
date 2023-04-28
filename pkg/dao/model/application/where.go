@@ -449,11 +449,7 @@ func HasProject() predicate.Application {
 // HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
 func HasProjectWith(preds ...predicate.Project) predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProjectInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
-		)
+		step := newProjectStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.Application
@@ -482,11 +478,7 @@ func HasInstances() predicate.Application {
 // HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
 func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(InstancesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
-		)
+		step := newInstancesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationInstance
 		step.Edge.Schema = schemaConfig.ApplicationInstance
@@ -515,11 +507,7 @@ func HasModules() predicate.Application {
 // HasModulesWith applies the HasEdge predicate on the "modules" edge with a given conditions (other predicates).
 func HasModulesWith(preds ...predicate.ApplicationModuleRelationship) predicate.Application {
 	return predicate.Application(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ModulesInverseTable, ModulesColumn),
-			sqlgraph.Edge(sqlgraph.O2M, true, ModulesTable, ModulesColumn),
-		)
+		step := newModulesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ApplicationModuleRelationship
 		step.Edge.Schema = schemaConfig.ApplicationModuleRelationship

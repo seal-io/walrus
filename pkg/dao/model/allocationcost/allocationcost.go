@@ -6,6 +6,9 @@
 package allocationcost
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
@@ -196,6 +199,168 @@ var (
 	// RamByteUsageMaxValidator is a validator for the "ramByteUsageMax" field. It is called by the builders before save.
 	RamByteUsageMaxValidator func(float64) error
 )
+
+// OrderOption defines the ordering options for the AllocationCost queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByStartTime orders the results by the startTime field.
+func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
+}
+
+// ByEndTime orders the results by the endTime field.
+func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
+}
+
+// ByMinutes orders the results by the minutes field.
+func ByMinutes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinutes, opts...).ToFunc()
+}
+
+// ByConnectorID orders the results by the connectorID field.
+func ByConnectorID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConnectorID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByFingerprint orders the results by the fingerprint field.
+func ByFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFingerprint, opts...).ToFunc()
+}
+
+// ByClusterName orders the results by the clusterName field.
+func ByClusterName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClusterName, opts...).ToFunc()
+}
+
+// ByNamespace orders the results by the namespace field.
+func ByNamespace(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNamespace, opts...).ToFunc()
+}
+
+// ByNode orders the results by the node field.
+func ByNode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNode, opts...).ToFunc()
+}
+
+// ByController orders the results by the controller field.
+func ByController(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldController, opts...).ToFunc()
+}
+
+// ByControllerKind orders the results by the controllerKind field.
+func ByControllerKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldControllerKind, opts...).ToFunc()
+}
+
+// ByPod orders the results by the pod field.
+func ByPod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPod, opts...).ToFunc()
+}
+
+// ByContainer orders the results by the container field.
+func ByContainer(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContainer, opts...).ToFunc()
+}
+
+// ByTotalCost orders the results by the totalCost field.
+func ByTotalCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalCost, opts...).ToFunc()
+}
+
+// ByCurrency orders the results by the currency field.
+func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
+}
+
+// ByCpuCost orders the results by the cpuCost field.
+func ByCpuCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCpuCost, opts...).ToFunc()
+}
+
+// ByCpuCoreRequest orders the results by the cpuCoreRequest field.
+func ByCpuCoreRequest(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCpuCoreRequest, opts...).ToFunc()
+}
+
+// ByGpuCost orders the results by the gpuCost field.
+func ByGpuCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGpuCost, opts...).ToFunc()
+}
+
+// ByGpuCount orders the results by the gpuCount field.
+func ByGpuCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGpuCount, opts...).ToFunc()
+}
+
+// ByRamCost orders the results by the ramCost field.
+func ByRamCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRamCost, opts...).ToFunc()
+}
+
+// ByRamByteRequest orders the results by the ramByteRequest field.
+func ByRamByteRequest(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRamByteRequest, opts...).ToFunc()
+}
+
+// ByPvCost orders the results by the pvCost field.
+func ByPvCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPvCost, opts...).ToFunc()
+}
+
+// ByPvBytes orders the results by the pvBytes field.
+func ByPvBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPvBytes, opts...).ToFunc()
+}
+
+// ByLoadBalancerCost orders the results by the loadBalancerCost field.
+func ByLoadBalancerCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoadBalancerCost, opts...).ToFunc()
+}
+
+// ByCpuCoreUsageAverage orders the results by the cpuCoreUsageAverage field.
+func ByCpuCoreUsageAverage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCpuCoreUsageAverage, opts...).ToFunc()
+}
+
+// ByCpuCoreUsageMax orders the results by the cpuCoreUsageMax field.
+func ByCpuCoreUsageMax(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCpuCoreUsageMax, opts...).ToFunc()
+}
+
+// ByRamByteUsageAverage orders the results by the ramByteUsageAverage field.
+func ByRamByteUsageAverage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRamByteUsageAverage, opts...).ToFunc()
+}
+
+// ByRamByteUsageMax orders the results by the ramByteUsageMax field.
+func ByRamByteUsageMax(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRamByteUsageMax, opts...).ToFunc()
+}
+
+// ByConnectorField orders the results by connector field.
+func ByConnectorField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConnectorStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newConnectorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConnectorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConnectorTable, ConnectorColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

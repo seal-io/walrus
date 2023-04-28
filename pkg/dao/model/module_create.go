@@ -296,10 +296,7 @@ func (mc *ModuleCreate) createSpec() (*Module, *sqlgraph.CreateSpec) {
 			Columns: []string{module.VersionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: moduleversion.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(moduleversion.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = mc.schemaConfig.ModuleVersion
@@ -708,8 +705,8 @@ func (mcb *ModuleCreateBulk) Save(ctx context.Context) ([]*Module, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mcb.builders[i+1].mutation)
 				} else {

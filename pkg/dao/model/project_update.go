@@ -245,10 +245,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Application
@@ -262,10 +259,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Application
@@ -282,10 +276,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Application
@@ -302,10 +293,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Secret
@@ -319,10 +307,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Secret
@@ -339,10 +324,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = pu.schemaConfig.Secret
@@ -613,10 +595,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Application
@@ -630,10 +609,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Application
@@ -650,10 +626,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.ApplicationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Application
@@ -670,10 +643,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Secret
@@ -687,10 +657,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Secret
@@ -707,10 +674,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Columns: []string{project.SecretsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: secret.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = puo.schemaConfig.Secret

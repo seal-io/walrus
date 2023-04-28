@@ -388,10 +388,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 			Columns: []string{applicationrevision.InstanceColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationRevision
@@ -409,10 +406,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 			Columns: []string{applicationrevision.EnvironmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: environment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationRevision
@@ -932,8 +926,8 @@ func (arcb *ApplicationRevisionCreateBulk) Save(ctx context.Context) ([]*Applica
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, arcb.builders[i+1].mutation)
 				} else {

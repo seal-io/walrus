@@ -366,10 +366,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 			Columns: []string{applicationresource.InstanceColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationResource
@@ -387,10 +384,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 			Columns: []string{applicationresource.ConnectorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: connector.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationResource
@@ -408,10 +402,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 			Columns: []string{applicationresource.CompositionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationResource
@@ -429,10 +420,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 			Columns: []string{applicationresource.ComponentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = arc.schemaConfig.ApplicationResource
@@ -696,8 +684,8 @@ func (arcb *ApplicationResourceCreateBulk) Save(ctx context.Context) ([]*Applica
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, arcb.builders[i+1].mutation)
 				} else {

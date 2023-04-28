@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -42,7 +43,8 @@ type ApplicationInstance struct {
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationInstanceQuery when eager-loading is set.
-	Edges ApplicationInstanceEdges `json:"edges,omitempty"`
+	Edges        ApplicationInstanceEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ApplicationInstanceEdges holds the relations/edges for other nodes in the graph.
@@ -120,7 +122,7 @@ func (*ApplicationInstance) scanValues(columns []string) ([]any, error) {
 		case applicationinstance.FieldCreateTime, applicationinstance.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ApplicationInstance", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -186,9 +188,17 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
 			}
+		default:
+			ai.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ApplicationInstance.
+// This includes values selected through modifiers, order, etc.
+func (ai *ApplicationInstance) Value(name string) (ent.Value, error) {
+	return ai.selectValues.Get(name)
 }
 
 // QueryApplication queries the "application" edge of the ApplicationInstance entity.

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -38,7 +39,8 @@ type ApplicationModuleRelationship struct {
 	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationModuleRelationshipQuery when eager-loading is set.
-	Edges ApplicationModuleRelationshipEdges `json:"edges,omitempty"`
+	Edges        ApplicationModuleRelationshipEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ApplicationModuleRelationshipEdges holds the relations/edges for other nodes in the graph.
@@ -92,7 +94,7 @@ func (*ApplicationModuleRelationship) scanValues(columns []string) ([]any, error
 		case applicationmodulerelationship.FieldCreateTime, applicationmodulerelationship.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ApplicationModuleRelationship", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -150,9 +152,17 @@ func (amr *ApplicationModuleRelationship) assignValues(columns []string, values 
 			} else if value != nil {
 				amr.Attributes = *value
 			}
+		default:
+			amr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ApplicationModuleRelationship.
+// This includes values selected through modifiers, order, etc.
+func (amr *ApplicationModuleRelationship) Value(name string) (ent.Value, error) {
+	return amr.selectValues.Get(name)
 }
 
 // QueryApplication queries the "application" edge of the ApplicationModuleRelationship entity.

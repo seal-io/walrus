@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/project"
@@ -34,7 +35,8 @@ type Project struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
-	Edges ProjectEdges `json:"edges,omitempty"`
+	Edges        ProjectEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
@@ -80,7 +82,7 @@ func (*Project) scanValues(columns []string) ([]any, error) {
 		case project.FieldCreateTime, project.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Project", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -134,9 +136,17 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 				pr.UpdateTime = new(time.Time)
 				*pr.UpdateTime = value.Time
 			}
+		default:
+			pr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Project.
+// This includes values selected through modifiers, order, etc.
+func (pr *Project) Value(name string) (ent.Value, error) {
+	return pr.selectValues.Get(name)
 }
 
 // QueryApplications queries the "applications" edge of the Project entity.

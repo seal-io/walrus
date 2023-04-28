@@ -228,11 +228,7 @@ func HasEnvironment() predicate.EnvironmentConnectorRelationship {
 // HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
 func HasEnvironmentWith(preds ...predicate.Environment) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, EnvironmentColumn),
-			sqlgraph.To(EnvironmentInverseTable, EnvironmentFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, EnvironmentTable, EnvironmentColumn),
-		)
+		step := newEnvironmentStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship
@@ -261,11 +257,7 @@ func HasConnector() predicate.EnvironmentConnectorRelationship {
 // HasConnectorWith applies the HasEdge predicate on the "connector" edge with a given conditions (other predicates).
 func HasConnectorWith(preds ...predicate.Connector) predicate.EnvironmentConnectorRelationship {
 	return predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, ConnectorColumn),
-			sqlgraph.To(ConnectorInverseTable, ConnectorFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ConnectorTable, ConnectorColumn),
-		)
+		step := newConnectorStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Connector
 		step.Edge.Schema = schemaConfig.EnvironmentConnectorRelationship

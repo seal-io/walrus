@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/application"
@@ -40,7 +41,8 @@ type Application struct {
 	Variables property.Schemas `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationQuery when eager-loading is set.
-	Edges ApplicationEdges `json:"edges,omitempty"`
+	Edges        ApplicationEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ApplicationEdges holds the relations/edges for other nodes in the graph.
@@ -103,7 +105,7 @@ func (*Application) scanValues(columns []string) ([]any, error) {
 		case application.FieldCreateTime, application.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Application", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -169,9 +171,17 @@ func (a *Application) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				a.Variables = *value
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Application.
+// This includes values selected through modifiers, order, etc.
+func (a *Application) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
 }
 
 // QueryProject queries the "project" edge of the Application entity.

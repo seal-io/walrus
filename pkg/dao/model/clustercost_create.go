@@ -320,10 +320,7 @@ func (ccc *ClusterCostCreate) createSpec() (*ClusterCost, *sqlgraph.CreateSpec) 
 			Columns: []string{clustercost.ConnectorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: connector.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ccc.schemaConfig.ClusterCost
@@ -708,8 +705,8 @@ func (cccb *ClusterCostCreateBulk) Save(ctx context.Context) ([]*ClusterCost, er
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, cccb.builders[i+1].mutation)
 				} else {

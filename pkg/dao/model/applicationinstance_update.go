@@ -248,10 +248,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationRevision
@@ -265,10 +262,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationRevision
@@ -285,10 +279,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationRevision
@@ -305,10 +296,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationResource
@@ -322,10 +310,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationResource
@@ -342,10 +327,7 @@ func (aiu *ApplicationInstanceUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiu.schemaConfig.ApplicationResource
@@ -617,10 +599,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationRevision
@@ -634,10 +613,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationRevision
@@ -654,10 +630,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationRevision
@@ -674,10 +647,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationResource
@@ -691,10 +661,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationResource
@@ -711,10 +678,7 @@ func (aiuo *ApplicationInstanceUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aiuo.schemaConfig.ApplicationResource

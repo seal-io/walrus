@@ -25,7 +25,7 @@ import (
 type PerspectiveQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []perspective.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Perspective
 	modifiers  []func(*sql.Selector)
@@ -60,7 +60,7 @@ func (pq *PerspectiveQuery) Unique(unique bool) *PerspectiveQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PerspectiveQuery) Order(o ...OrderFunc) *PerspectiveQuery {
+func (pq *PerspectiveQuery) Order(o ...perspective.OrderOption) *PerspectiveQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -254,7 +254,7 @@ func (pq *PerspectiveQuery) Clone() *PerspectiveQuery {
 	return &PerspectiveQuery{
 		config:     pq.config,
 		ctx:        pq.ctx.Clone(),
-		order:      append([]OrderFunc{}, pq.order...),
+		order:      append([]perspective.OrderOption{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Perspective{}, pq.predicates...),
 		// clone intermediate query.

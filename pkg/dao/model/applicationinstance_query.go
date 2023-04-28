@@ -30,7 +30,7 @@ import (
 type ApplicationInstanceQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []applicationinstance.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ApplicationInstance
 	withApplication *ApplicationQuery
@@ -69,7 +69,7 @@ func (aiq *ApplicationInstanceQuery) Unique(unique bool) *ApplicationInstanceQue
 }
 
 // Order specifies how the records should be ordered.
-func (aiq *ApplicationInstanceQuery) Order(o ...OrderFunc) *ApplicationInstanceQuery {
+func (aiq *ApplicationInstanceQuery) Order(o ...applicationinstance.OrderOption) *ApplicationInstanceQuery {
 	aiq.order = append(aiq.order, o...)
 	return aiq
 }
@@ -363,7 +363,7 @@ func (aiq *ApplicationInstanceQuery) Clone() *ApplicationInstanceQuery {
 	return &ApplicationInstanceQuery{
 		config:          aiq.config,
 		ctx:             aiq.ctx.Clone(),
-		order:           append([]OrderFunc{}, aiq.order...),
+		order:           append([]applicationinstance.OrderOption{}, aiq.order...),
 		inters:          append([]Interceptor{}, aiq.inters...),
 		predicates:      append([]predicate.ApplicationInstance{}, aiq.predicates...),
 		withApplication: aiq.withApplication.Clone(),
@@ -625,8 +625,11 @@ func (aiq *ApplicationInstanceQuery) loadRevisions(ctx context.Context, query *A
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationrevision.FieldInstanceID)
+	}
 	query.Where(predicate.ApplicationRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(applicationinstance.RevisionsColumn, fks...))
+		s.Where(sql.InValues(s.C(applicationinstance.RevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -636,7 +639,7 @@ func (aiq *ApplicationInstanceQuery) loadRevisions(ctx context.Context, query *A
 		fk := n.InstanceID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "instanceID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "instanceID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -652,8 +655,11 @@ func (aiq *ApplicationInstanceQuery) loadResources(ctx context.Context, query *A
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationresource.FieldInstanceID)
+	}
 	query.Where(predicate.ApplicationResource(func(s *sql.Selector) {
-		s.Where(sql.InValues(applicationinstance.ResourcesColumn, fks...))
+		s.Where(sql.InValues(s.C(applicationinstance.ResourcesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -663,7 +669,7 @@ func (aiq *ApplicationInstanceQuery) loadResources(ctx context.Context, query *A
 		fk := n.InstanceID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "instanceID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "instanceID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -699,6 +705,12 @@ func (aiq *ApplicationInstanceQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != applicationinstance.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if aiq.withApplication != nil {
+			_spec.Node.AddColumnOnce(applicationinstance.FieldApplicationID)
+		}
+		if aiq.withEnvironment != nil {
+			_spec.Node.AddColumnOnce(applicationinstance.FieldEnvironmentID)
 		}
 	}
 	if ps := aiq.predicates; len(ps) > 0 {

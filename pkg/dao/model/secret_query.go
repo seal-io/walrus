@@ -26,7 +26,7 @@ import (
 type SecretQuery struct {
 	config
 	ctx         *QueryContext
-	order       []OrderFunc
+	order       []secret.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.Secret
 	withProject *ProjectQuery
@@ -62,7 +62,7 @@ func (sq *SecretQuery) Unique(unique bool) *SecretQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (sq *SecretQuery) Order(o ...OrderFunc) *SecretQuery {
+func (sq *SecretQuery) Order(o ...secret.OrderOption) *SecretQuery {
 	sq.order = append(sq.order, o...)
 	return sq
 }
@@ -281,7 +281,7 @@ func (sq *SecretQuery) Clone() *SecretQuery {
 	return &SecretQuery{
 		config:      sq.config,
 		ctx:         sq.ctx.Clone(),
-		order:       append([]OrderFunc{}, sq.order...),
+		order:       append([]secret.OrderOption{}, sq.order...),
 		inters:      append([]Interceptor{}, sq.inters...),
 		predicates:  append([]predicate.Secret{}, sq.predicates...),
 		withProject: sq.withProject.Clone(),
@@ -475,6 +475,9 @@ func (sq *SecretQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != secret.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if sq.withProject != nil {
+			_spec.Node.AddColumnOnce(secret.FieldProjectID)
 		}
 	}
 	if ps := sq.predicates; len(ps) > 0 {

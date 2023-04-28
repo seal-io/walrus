@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -100,6 +101,59 @@ var (
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.
 	DefaultBuiltin bool
 )
+
+// OrderOption defines the ordering options for the Subject queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByKind orders the results by the kind field.
+func ByKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKind, opts...).ToFunc()
+}
+
+// ByGroup orders the results by the group field.
+func ByGroup(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroup, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByMountTo orders the results by the mountTo field.
+func ByMountTo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMountTo, opts...).ToFunc()
+}
+
+// ByLoginTo orders the results by the loginTo field.
+func ByLoginTo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoginTo, opts...).ToFunc()
+}
+
+// ByBuiltin orders the results by the builtin field.
+func ByBuiltin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuiltin, opts...).ToFunc()
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

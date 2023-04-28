@@ -27,7 +27,7 @@ import (
 type ApplicationRevisionQuery struct {
 	config
 	ctx             *QueryContext
-	order           []OrderFunc
+	order           []applicationrevision.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ApplicationRevision
 	withInstance    *ApplicationInstanceQuery
@@ -64,7 +64,7 @@ func (arq *ApplicationRevisionQuery) Unique(unique bool) *ApplicationRevisionQue
 }
 
 // Order specifies how the records should be ordered.
-func (arq *ApplicationRevisionQuery) Order(o ...OrderFunc) *ApplicationRevisionQuery {
+func (arq *ApplicationRevisionQuery) Order(o ...applicationrevision.OrderOption) *ApplicationRevisionQuery {
 	arq.order = append(arq.order, o...)
 	return arq
 }
@@ -308,7 +308,7 @@ func (arq *ApplicationRevisionQuery) Clone() *ApplicationRevisionQuery {
 	return &ApplicationRevisionQuery{
 		config:          arq.config,
 		ctx:             arq.ctx.Clone(),
-		order:           append([]OrderFunc{}, arq.order...),
+		order:           append([]applicationrevision.OrderOption{}, arq.order...),
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.ApplicationRevision{}, arq.predicates...),
 		withInstance:    arq.withInstance.Clone(),
@@ -550,6 +550,12 @@ func (arq *ApplicationRevisionQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != applicationrevision.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if arq.withInstance != nil {
+			_spec.Node.AddColumnOnce(applicationrevision.FieldInstanceID)
+		}
+		if arq.withEnvironment != nil {
+			_spec.Node.AddColumnOnce(applicationrevision.FieldEnvironmentID)
 		}
 	}
 	if ps := arq.predicates; len(ps) > 0 {

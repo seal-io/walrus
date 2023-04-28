@@ -29,7 +29,7 @@ import (
 type ApplicationQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []application.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.Application
 	withProject   *ProjectQuery
@@ -67,7 +67,7 @@ func (aq *ApplicationQuery) Unique(unique bool) *ApplicationQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (aq *ApplicationQuery) Order(o ...OrderFunc) *ApplicationQuery {
+func (aq *ApplicationQuery) Order(o ...application.OrderOption) *ApplicationQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -336,7 +336,7 @@ func (aq *ApplicationQuery) Clone() *ApplicationQuery {
 	return &ApplicationQuery{
 		config:        aq.config,
 		ctx:           aq.ctx.Clone(),
-		order:         append([]OrderFunc{}, aq.order...),
+		order:         append([]application.OrderOption{}, aq.order...),
 		inters:        append([]Interceptor{}, aq.inters...),
 		predicates:    append([]predicate.Application{}, aq.predicates...),
 		withProject:   aq.withProject.Clone(),
@@ -550,8 +550,11 @@ func (aq *ApplicationQuery) loadInstances(ctx context.Context, query *Applicatio
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationinstance.FieldApplicationID)
+	}
 	query.Where(predicate.ApplicationInstance(func(s *sql.Selector) {
-		s.Where(sql.InValues(application.InstancesColumn, fks...))
+		s.Where(sql.InValues(s.C(application.InstancesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -561,7 +564,7 @@ func (aq *ApplicationQuery) loadInstances(ctx context.Context, query *Applicatio
 		fk := n.ApplicationID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "applicationID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "applicationID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -577,8 +580,11 @@ func (aq *ApplicationQuery) loadModules(ctx context.Context, query *ApplicationM
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationmodulerelationship.FieldApplicationID)
+	}
 	query.Where(predicate.ApplicationModuleRelationship(func(s *sql.Selector) {
-		s.Where(sql.InValues(application.ModulesColumn, fks...))
+		s.Where(sql.InValues(s.C(application.ModulesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -588,7 +594,7 @@ func (aq *ApplicationQuery) loadModules(ctx context.Context, query *ApplicationM
 		fk := n.ApplicationID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "application_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "application_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}
@@ -624,6 +630,9 @@ func (aq *ApplicationQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != application.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if aq.withProject != nil {
+			_spec.Node.AddColumnOnce(application.FieldProjectID)
 		}
 	}
 	if ps := aq.predicates; len(ps) > 0 {

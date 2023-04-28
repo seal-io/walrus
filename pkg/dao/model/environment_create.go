@@ -262,10 +262,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			Columns: []string{environment.InstancesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationinstance.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ec.schemaConfig.ApplicationInstance
@@ -282,10 +279,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 			Columns: []string{environment.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = ec.schemaConfig.ApplicationRevision
@@ -577,8 +571,8 @@ func (ecb *EnvironmentCreateBulk) Save(ctx context.Context) ([]*Environment, err
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ecb.builders[i+1].mutation)
 				} else {

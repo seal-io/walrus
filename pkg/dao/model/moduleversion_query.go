@@ -26,7 +26,7 @@ import (
 type ModuleVersionQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []moduleversion.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ModuleVersion
 	withModule *ModuleQuery
@@ -62,7 +62,7 @@ func (mvq *ModuleVersionQuery) Unique(unique bool) *ModuleVersionQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mvq *ModuleVersionQuery) Order(o ...OrderFunc) *ModuleVersionQuery {
+func (mvq *ModuleVersionQuery) Order(o ...moduleversion.OrderOption) *ModuleVersionQuery {
 	mvq.order = append(mvq.order, o...)
 	return mvq
 }
@@ -281,7 +281,7 @@ func (mvq *ModuleVersionQuery) Clone() *ModuleVersionQuery {
 	return &ModuleVersionQuery{
 		config:     mvq.config,
 		ctx:        mvq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mvq.order...),
+		order:      append([]moduleversion.OrderOption{}, mvq.order...),
 		inters:     append([]Interceptor{}, mvq.inters...),
 		predicates: append([]predicate.ModuleVersion{}, mvq.predicates...),
 		withModule: mvq.withModule.Clone(),
@@ -475,6 +475,9 @@ func (mvq *ModuleVersionQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != moduleversion.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if mvq.withModule != nil {
+			_spec.Node.AddColumnOnce(moduleversion.FieldModuleID)
 		}
 	}
 	if ps := mvq.predicates; len(ps) > 0 {

@@ -25,7 +25,7 @@ import (
 type SubjectQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []subject.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Subject
 	modifiers  []func(*sql.Selector)
@@ -60,7 +60,7 @@ func (sq *SubjectQuery) Unique(unique bool) *SubjectQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (sq *SubjectQuery) Order(o ...OrderFunc) *SubjectQuery {
+func (sq *SubjectQuery) Order(o ...subject.OrderOption) *SubjectQuery {
 	sq.order = append(sq.order, o...)
 	return sq
 }
@@ -254,7 +254,7 @@ func (sq *SubjectQuery) Clone() *SubjectQuery {
 	return &SubjectQuery{
 		config:     sq.config,
 		ctx:        sq.ctx.Clone(),
-		order:      append([]OrderFunc{}, sq.order...),
+		order:      append([]subject.OrderOption{}, sq.order...),
 		inters:     append([]Interceptor{}, sq.inters...),
 		predicates: append([]predicate.Subject{}, sq.predicates...),
 		// clone intermediate query.

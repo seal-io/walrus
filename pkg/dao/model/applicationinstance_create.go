@@ -303,10 +303,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 			Columns: []string{applicationinstance.ApplicationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: application.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aic.schemaConfig.ApplicationInstance
@@ -324,10 +321,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 			Columns: []string{applicationinstance.EnvironmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: environment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aic.schemaConfig.ApplicationInstance
@@ -345,10 +339,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 			Columns: []string{applicationinstance.RevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationrevision.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aic.schemaConfig.ApplicationRevision
@@ -365,10 +356,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 			Columns: []string{applicationinstance.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: applicationresource.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = aic.schemaConfig.ApplicationResource
@@ -656,8 +644,8 @@ func (aicb *ApplicationInstanceCreateBulk) Save(ctx context.Context) ([]*Applica
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, aicb.builders[i+1].mutation)
 				} else {

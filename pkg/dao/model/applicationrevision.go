@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
@@ -57,7 +58,8 @@ type ApplicationRevision struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty" sql:"previousRequiredProviders"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
-	Edges ApplicationRevisionEdges `json:"edges,omitempty"`
+	Edges        ApplicationRevisionEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ApplicationRevisionEdges holds the relations/edges for other nodes in the graph.
@@ -119,7 +121,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 		case applicationrevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ApplicationRevision", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -228,9 +230,17 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field previousRequiredProviders: %w", err)
 				}
 			}
+		default:
+			ar.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ApplicationRevision.
+// This includes values selected through modifiers, order, etc.
+func (ar *ApplicationRevision) Value(name string) (ent.Value, error) {
+	return ar.selectValues.Get(name)
 }
 
 // QueryInstance queries the "instance" edge of the ApplicationRevision entity.

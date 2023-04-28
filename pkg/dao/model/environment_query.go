@@ -29,7 +29,7 @@ import (
 type EnvironmentQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []environment.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Environment
 	withConnectors *EnvironmentConnectorRelationshipQuery
@@ -67,7 +67,7 @@ func (eq *EnvironmentQuery) Unique(unique bool) *EnvironmentQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (eq *EnvironmentQuery) Order(o ...OrderFunc) *EnvironmentQuery {
+func (eq *EnvironmentQuery) Order(o ...environment.OrderOption) *EnvironmentQuery {
 	eq.order = append(eq.order, o...)
 	return eq
 }
@@ -336,7 +336,7 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 	return &EnvironmentQuery{
 		config:         eq.config,
 		ctx:            eq.ctx.Clone(),
-		order:          append([]OrderFunc{}, eq.order...),
+		order:          append([]environment.OrderOption{}, eq.order...),
 		inters:         append([]Interceptor{}, eq.inters...),
 		predicates:     append([]predicate.Environment{}, eq.predicates...),
 		withConnectors: eq.withConnectors.Clone(),
@@ -524,8 +524,11 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(environmentconnectorrelationship.FieldEnvironmentID)
+	}
 	query.Where(predicate.EnvironmentConnectorRelationship(func(s *sql.Selector) {
-		s.Where(sql.InValues(environment.ConnectorsColumn, fks...))
+		s.Where(sql.InValues(s.C(environment.ConnectorsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -535,7 +538,7 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 		fk := n.EnvironmentID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environment_id" returned %v for node %v`, fk, n)
+			return fmt.Errorf(`unexpected referenced foreign-key "environment_id" returned %v for node %v`, fk, n)
 		}
 		assign(node, n)
 	}
@@ -551,8 +554,11 @@ func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *Applicatio
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationinstance.FieldEnvironmentID)
+	}
 	query.Where(predicate.ApplicationInstance(func(s *sql.Selector) {
-		s.Where(sql.InValues(environment.InstancesColumn, fks...))
+		s.Where(sql.InValues(s.C(environment.InstancesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -562,7 +568,7 @@ func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *Applicatio
 		fk := n.EnvironmentID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -578,8 +584,11 @@ func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *Applicatio
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(applicationrevision.FieldEnvironmentID)
+	}
 	query.Where(predicate.ApplicationRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(environment.RevisionsColumn, fks...))
+		s.Where(sql.InValues(s.C(environment.RevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -589,7 +598,7 @@ func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *Applicatio
 		fk := n.EnvironmentID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

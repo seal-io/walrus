@@ -378,11 +378,7 @@ func HasModule() predicate.ModuleVersion {
 // HasModuleWith applies the HasEdge predicate on the "module" edge with a given conditions (other predicates).
 func HasModuleWith(preds ...predicate.Module) predicate.ModuleVersion {
 	return predicate.ModuleVersion(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ModuleInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ModuleTable, ModuleColumn),
-		)
+		step := newModuleStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Module
 		step.Edge.Schema = schemaConfig.ModuleVersion

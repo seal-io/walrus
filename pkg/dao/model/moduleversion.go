@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/module"
@@ -38,7 +39,8 @@ type ModuleVersion struct {
 	Schema *types.ModuleSchema `json:"schema,omitempty" sql:"schema"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ModuleVersionQuery when eager-loading is set.
-	Edges ModuleVersionEdges `json:"edges,omitempty"`
+	Edges        ModuleVersionEdges `json:"edges,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // ModuleVersionEdges holds the relations/edges for other nodes in the graph.
@@ -77,7 +79,7 @@ func (*ModuleVersion) scanValues(columns []string) ([]any, error) {
 		case moduleversion.FieldCreateTime, moduleversion.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ModuleVersion", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -137,9 +139,17 @@ func (mv *ModuleVersion) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field schema: %w", err)
 				}
 			}
+		default:
+			mv.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ModuleVersion.
+// This includes values selected through modifiers, order, etc.
+func (mv *ModuleVersion) Value(name string) (ent.Value, error) {
+	return mv.selectValues.Get(name)
 }
 
 // QueryModule queries the "module" edge of the ModuleVersion entity.

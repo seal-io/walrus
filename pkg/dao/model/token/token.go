@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -73,6 +74,44 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the Token queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByUpdateTime orders the results by the updateTime field.
+func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByCasdoorTokenName orders the results by the casdoorTokenName field.
+func ByCasdoorTokenName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCasdoorTokenName, opts...).ToFunc()
+}
+
+// ByCasdoorTokenOwner orders the results by the casdoorTokenOwner field.
+func ByCasdoorTokenOwner(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCasdoorTokenOwner, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByExpiration orders the results by the expiration field.
+func ByExpiration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiration, opts...).ToFunc()
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {

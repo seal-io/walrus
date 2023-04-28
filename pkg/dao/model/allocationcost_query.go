@@ -26,7 +26,7 @@ import (
 type AllocationCostQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []allocationcost.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.AllocationCost
 	withConnector *ConnectorQuery
@@ -62,7 +62,7 @@ func (acq *AllocationCostQuery) Unique(unique bool) *AllocationCostQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (acq *AllocationCostQuery) Order(o ...OrderFunc) *AllocationCostQuery {
+func (acq *AllocationCostQuery) Order(o ...allocationcost.OrderOption) *AllocationCostQuery {
 	acq.order = append(acq.order, o...)
 	return acq
 }
@@ -281,7 +281,7 @@ func (acq *AllocationCostQuery) Clone() *AllocationCostQuery {
 	return &AllocationCostQuery{
 		config:        acq.config,
 		ctx:           acq.ctx.Clone(),
-		order:         append([]OrderFunc{}, acq.order...),
+		order:         append([]allocationcost.OrderOption{}, acq.order...),
 		inters:        append([]Interceptor{}, acq.inters...),
 		predicates:    append([]predicate.AllocationCost{}, acq.predicates...),
 		withConnector: acq.withConnector.Clone(),
@@ -475,6 +475,9 @@ func (acq *AllocationCostQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != allocationcost.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if acq.withConnector != nil {
+			_spec.Node.AddColumnOnce(allocationcost.FieldConnectorID)
 		}
 	}
 	if ps := acq.predicates; len(ps) > 0 {

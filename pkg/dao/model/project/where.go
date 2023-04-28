@@ -318,11 +318,7 @@ func HasApplications() predicate.Project {
 // HasApplicationsWith applies the HasEdge predicate on the "applications" edge with a given conditions (other predicates).
 func HasApplicationsWith(preds ...predicate.Application) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ApplicationsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ApplicationsTable, ApplicationsColumn),
-		)
+		step := newApplicationsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Application
 		step.Edge.Schema = schemaConfig.Application
@@ -351,11 +347,7 @@ func HasSecrets() predicate.Project {
 // HasSecretsWith applies the HasEdge predicate on the "secrets" edge with a given conditions (other predicates).
 func HasSecretsWith(preds ...predicate.Secret) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SecretsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
-		)
+		step := newSecretsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Secret
 		step.Edge.Schema = schemaConfig.Secret
