@@ -6301,6 +6301,8 @@ type ApplicationRevisionMutation struct {
 	createTime                      *time.Time
 	modules                         *[]types.ApplicationModule
 	appendmodules                   []types.ApplicationModule
+	secrets                         *crypto.Map[string, string]
+	variables                       *property.Schemas
 	inputVariables                  *property.Values
 	inputPlan                       *string
 	output                          *string
@@ -6680,6 +6682,91 @@ func (m *ApplicationRevisionMutation) ResetModules() {
 	m.appendmodules = nil
 }
 
+// SetSecrets sets the "secrets" field.
+func (m *ApplicationRevisionMutation) SetSecrets(c crypto.Map[string, string]) {
+	m.secrets = &c
+}
+
+// Secrets returns the value of the "secrets" field in the mutation.
+func (m *ApplicationRevisionMutation) Secrets() (r crypto.Map[string, string], exists bool) {
+	v := m.secrets
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSecrets returns the old "secrets" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldSecrets(ctx context.Context) (v crypto.Map[string, string], err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSecrets is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSecrets requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSecrets: %w", err)
+	}
+	return oldValue.Secrets, nil
+}
+
+// ResetSecrets resets all changes to the "secrets" field.
+func (m *ApplicationRevisionMutation) ResetSecrets() {
+	m.secrets = nil
+}
+
+// SetVariables sets the "variables" field.
+func (m *ApplicationRevisionMutation) SetVariables(pr property.Schemas) {
+	m.variables = &pr
+}
+
+// Variables returns the value of the "variables" field in the mutation.
+func (m *ApplicationRevisionMutation) Variables() (r property.Schemas, exists bool) {
+	v := m.variables
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVariables returns the old "variables" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldVariables(ctx context.Context) (v property.Schemas, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVariables is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVariables requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVariables: %w", err)
+	}
+	return oldValue.Variables, nil
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (m *ApplicationRevisionMutation) ClearVariables() {
+	m.variables = nil
+	m.clearedFields[applicationrevision.FieldVariables] = struct{}{}
+}
+
+// VariablesCleared returns if the "variables" field was cleared in this mutation.
+func (m *ApplicationRevisionMutation) VariablesCleared() bool {
+	_, ok := m.clearedFields[applicationrevision.FieldVariables]
+	return ok
+}
+
+// ResetVariables resets all changes to the "variables" field.
+func (m *ApplicationRevisionMutation) ResetVariables() {
+	m.variables = nil
+	delete(m.clearedFields, applicationrevision.FieldVariables)
+}
+
 // SetInputVariables sets the "inputVariables" field.
 func (m *ApplicationRevisionMutation) SetInputVariables(pr property.Values) {
 	m.inputVariables = &pr
@@ -7017,7 +7104,7 @@ func (m *ApplicationRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.status != nil {
 		fields = append(fields, applicationrevision.FieldStatus)
 	}
@@ -7035,6 +7122,12 @@ func (m *ApplicationRevisionMutation) Fields() []string {
 	}
 	if m.modules != nil {
 		fields = append(fields, applicationrevision.FieldModules)
+	}
+	if m.secrets != nil {
+		fields = append(fields, applicationrevision.FieldSecrets)
+	}
+	if m.variables != nil {
+		fields = append(fields, applicationrevision.FieldVariables)
 	}
 	if m.inputVariables != nil {
 		fields = append(fields, applicationrevision.FieldInputVariables)
@@ -7074,6 +7167,10 @@ func (m *ApplicationRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.EnvironmentID()
 	case applicationrevision.FieldModules:
 		return m.Modules()
+	case applicationrevision.FieldSecrets:
+		return m.Secrets()
+	case applicationrevision.FieldVariables:
+		return m.Variables()
 	case applicationrevision.FieldInputVariables:
 		return m.InputVariables()
 	case applicationrevision.FieldInputPlan:
@@ -7107,6 +7204,10 @@ func (m *ApplicationRevisionMutation) OldField(ctx context.Context, name string)
 		return m.OldEnvironmentID(ctx)
 	case applicationrevision.FieldModules:
 		return m.OldModules(ctx)
+	case applicationrevision.FieldSecrets:
+		return m.OldSecrets(ctx)
+	case applicationrevision.FieldVariables:
+		return m.OldVariables(ctx)
 	case applicationrevision.FieldInputVariables:
 		return m.OldInputVariables(ctx)
 	case applicationrevision.FieldInputPlan:
@@ -7169,6 +7270,20 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModules(v)
+		return nil
+	case applicationrevision.FieldSecrets:
+		v, ok := value.(crypto.Map[string, string])
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSecrets(v)
+		return nil
+	case applicationrevision.FieldVariables:
+		v, ok := value.(property.Schemas)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVariables(v)
 		return nil
 	case applicationrevision.FieldInputVariables:
 		v, ok := value.(property.Values)
@@ -7263,6 +7378,9 @@ func (m *ApplicationRevisionMutation) ClearedFields() []string {
 	if m.FieldCleared(applicationrevision.FieldStatusMessage) {
 		fields = append(fields, applicationrevision.FieldStatusMessage)
 	}
+	if m.FieldCleared(applicationrevision.FieldVariables) {
+		fields = append(fields, applicationrevision.FieldVariables)
+	}
 	return fields
 }
 
@@ -7282,6 +7400,9 @@ func (m *ApplicationRevisionMutation) ClearField(name string) error {
 		return nil
 	case applicationrevision.FieldStatusMessage:
 		m.ClearStatusMessage()
+		return nil
+	case applicationrevision.FieldVariables:
+		m.ClearVariables()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision nullable field %s", name)
@@ -7308,6 +7429,12 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 		return nil
 	case applicationrevision.FieldModules:
 		m.ResetModules()
+		return nil
+	case applicationrevision.FieldSecrets:
+		m.ResetSecrets()
+		return nil
+	case applicationrevision.FieldVariables:
+		m.ResetVariables()
 		return nil
 	case applicationrevision.FieldInputVariables:
 		m.ResetInputVariables()

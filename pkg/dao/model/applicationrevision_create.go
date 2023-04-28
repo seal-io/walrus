@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
@@ -89,6 +90,18 @@ func (arc *ApplicationRevisionCreate) SetEnvironmentID(o oid.ID) *ApplicationRev
 // SetModules sets the "modules" field.
 func (arc *ApplicationRevisionCreate) SetModules(tm []types.ApplicationModule) *ApplicationRevisionCreate {
 	arc.mutation.SetModules(tm)
+	return arc
+}
+
+// SetSecrets sets the "secrets" field.
+func (arc *ApplicationRevisionCreate) SetSecrets(c crypto.Map[string, string]) *ApplicationRevisionCreate {
+	arc.mutation.SetSecrets(c)
+	return arc
+}
+
+// SetVariables sets the "variables" field.
+func (arc *ApplicationRevisionCreate) SetVariables(pr property.Schemas) *ApplicationRevisionCreate {
+	arc.mutation.SetVariables(pr)
 	return arc
 }
 
@@ -208,6 +221,10 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultModules
 		arc.mutation.SetModules(v)
 	}
+	if _, ok := arc.mutation.Secrets(); !ok {
+		v := applicationrevision.DefaultSecrets
+		arc.mutation.SetSecrets(v)
+	}
 	if _, ok := arc.mutation.InputVariables(); !ok {
 		v := applicationrevision.DefaultInputVariables
 		arc.mutation.SetInputVariables(v)
@@ -250,6 +267,9 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.Modules(); !ok {
 		return &ValidationError{Name: "modules", err: errors.New(`model: missing required field "ApplicationRevision.modules"`)}
+	}
+	if _, ok := arc.mutation.Secrets(); !ok {
+		return &ValidationError{Name: "secrets", err: errors.New(`model: missing required field "ApplicationRevision.secrets"`)}
 	}
 	if _, ok := arc.mutation.InputVariables(); !ok {
 		return &ValidationError{Name: "inputVariables", err: errors.New(`model: missing required field "ApplicationRevision.inputVariables"`)}
@@ -327,6 +347,14 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.Modules(); ok {
 		_spec.SetField(applicationrevision.FieldModules, field.TypeJSON, value)
 		_node.Modules = value
+	}
+	if value, ok := arc.mutation.Secrets(); ok {
+		_spec.SetField(applicationrevision.FieldSecrets, field.TypeOther, value)
+		_node.Secrets = value
+	}
+	if value, ok := arc.mutation.Variables(); ok {
+		_spec.SetField(applicationrevision.FieldVariables, field.TypeOther, value)
+		_node.Variables = value
 	}
 	if value, ok := arc.mutation.InputVariables(); ok {
 		_spec.SetField(applicationrevision.FieldInputVariables, field.TypeOther, value)
@@ -491,6 +519,36 @@ func (u *ApplicationRevisionUpsert) SetModules(v []types.ApplicationModule) *App
 // UpdateModules sets the "modules" field to the value that was provided on create.
 func (u *ApplicationRevisionUpsert) UpdateModules() *ApplicationRevisionUpsert {
 	u.SetExcluded(applicationrevision.FieldModules)
+	return u
+}
+
+// SetSecrets sets the "secrets" field.
+func (u *ApplicationRevisionUpsert) SetSecrets(v crypto.Map[string, string]) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldSecrets, v)
+	return u
+}
+
+// UpdateSecrets sets the "secrets" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdateSecrets() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldSecrets)
+	return u
+}
+
+// SetVariables sets the "variables" field.
+func (u *ApplicationRevisionUpsert) SetVariables(v property.Schemas) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldVariables, v)
+	return u
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdateVariables() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldVariables)
+	return u
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationRevisionUpsert) ClearVariables() *ApplicationRevisionUpsert {
+	u.SetNull(applicationrevision.FieldVariables)
 	return u
 }
 
@@ -682,6 +740,41 @@ func (u *ApplicationRevisionUpsertOne) SetModules(v []types.ApplicationModule) *
 func (u *ApplicationRevisionUpsertOne) UpdateModules() *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateModules()
+	})
+}
+
+// SetSecrets sets the "secrets" field.
+func (u *ApplicationRevisionUpsertOne) SetSecrets(v crypto.Map[string, string]) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetSecrets(v)
+	})
+}
+
+// UpdateSecrets sets the "secrets" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdateSecrets() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateSecrets()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ApplicationRevisionUpsertOne) SetVariables(v property.Schemas) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdateVariables() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationRevisionUpsertOne) ClearVariables() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.ClearVariables()
 	})
 }
 
@@ -1049,6 +1142,41 @@ func (u *ApplicationRevisionUpsertBulk) SetModules(v []types.ApplicationModule) 
 func (u *ApplicationRevisionUpsertBulk) UpdateModules() *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdateModules()
+	})
+}
+
+// SetSecrets sets the "secrets" field.
+func (u *ApplicationRevisionUpsertBulk) SetSecrets(v crypto.Map[string, string]) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetSecrets(v)
+	})
+}
+
+// UpdateSecrets sets the "secrets" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdateSecrets() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateSecrets()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ApplicationRevisionUpsertBulk) SetVariables(v property.Schemas) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdateVariables() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateVariables()
+	})
+}
+
+// ClearVariables clears the value of the "variables" field.
+func (u *ApplicationRevisionUpsertBulk) ClearVariables() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.ClearVariables()
 	})
 }
 

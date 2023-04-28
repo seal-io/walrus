@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
@@ -38,6 +39,10 @@ type ApplicationRevision struct {
 	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Application modules.
 	Modules []types.ApplicationModule `json:"modules,omitempty" sql:"modules"`
+	// Secrets of the revision.
+	Secrets crypto.Map[string, string] `json:"secrets,omitempty" sql:"secrets"`
+	// Application variables schema of the revision.
+	Variables property.Schemas `json:"variables,omitempty" sql:"variables"`
 	// Input variables of the revision.
 	InputVariables property.Values `json:"-" sql:"inputVariables"`
 	// Input plan of the revision.
@@ -99,8 +104,12 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationrevision.FieldModules, applicationrevision.FieldPreviousRequiredProviders:
 			values[i] = new([]byte)
+		case applicationrevision.FieldSecrets:
+			values[i] = new(crypto.Map[string, string])
 		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(oid.ID)
+		case applicationrevision.FieldVariables:
+			values[i] = new(property.Schemas)
 		case applicationrevision.FieldInputVariables:
 			values[i] = new(property.Values)
 		case applicationrevision.FieldDuration:
@@ -168,6 +177,18 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 				if err := json.Unmarshal(*value, &ar.Modules); err != nil {
 					return fmt.Errorf("unmarshal field modules: %w", err)
 				}
+			}
+		case applicationrevision.FieldSecrets:
+			if value, ok := values[i].(*crypto.Map[string, string]); !ok {
+				return fmt.Errorf("unexpected type %T for field secrets", values[i])
+			} else if value != nil {
+				ar.Secrets = *value
+			}
+		case applicationrevision.FieldVariables:
+			if value, ok := values[i].(*property.Schemas); !ok {
+				return fmt.Errorf("unexpected type %T for field variables", values[i])
+			} else if value != nil {
+				ar.Variables = *value
 			}
 		case applicationrevision.FieldInputVariables:
 			if value, ok := values[i].(*property.Values); !ok {
@@ -264,6 +285,12 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("modules=")
 	builder.WriteString(fmt.Sprintf("%v", ar.Modules))
+	builder.WriteString(", ")
+	builder.WriteString("secrets=")
+	builder.WriteString(fmt.Sprintf("%v", ar.Secrets))
+	builder.WriteString(", ")
+	builder.WriteString("variables=")
+	builder.WriteString(fmt.Sprintf("%v", ar.Variables))
 	builder.WriteString(", ")
 	builder.WriteString("inputVariables=<sensitive>")
 	builder.WriteString(", ")
