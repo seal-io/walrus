@@ -18,14 +18,14 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-type RequestCollection[T ~func(*sql.Selector)] struct {
-	RequestQuerying[T] `query:",inline"`
-	RequestSorting     `query:",inline"`
+type RequestCollection[Q, S ~func(*sql.Selector)] struct {
+	RequestQuerying[Q] `query:",inline"`
+	RequestSorting[S]  `query:",inline"`
 	RequestPagination  `query:",inline"`
 	RequestExtracting  `query:",inline"`
 }
 
-func (r RequestCollection[T]) Validate() (err error) {
+func (r RequestCollection[Q, S]) Validate() (err error) {
 	var validates = []func() error{
 		r.RequestQuerying.Validate,
 		r.RequestSorting.Validate,
@@ -79,13 +79,13 @@ func (r RequestPagination) Paging() (limit, offset int, request bool) {
 	return
 }
 
-type RequestSorting struct {
+type RequestSorting[T ~func(*sql.Selector)] struct {
 	// Sorts specifies the fields for sorting,
 	// i.e. /v1/repositories?sort=-createTime&sort=name.
 	Sorts []string `query:"sort,omitempty"`
 }
 
-func (r RequestSorting) Validate() error {
+func (r RequestSorting[T]) Validate() error {
 	for i := 0; i < len(r.Sorts); i++ {
 		if strings.TrimSpace(r.Sorts[i]) == "" {
 			return errors.New("blank sort value is not allowed")
@@ -95,7 +95,7 @@ func (r RequestSorting) Validate() error {
 }
 
 // WithAsc appends the asc sorting field list to the sorting list.
-func (r RequestSorting) WithAsc(fields ...string) RequestSorting {
+func (r RequestSorting[T]) WithAsc(fields ...string) RequestSorting[T] {
 	for i := 0; i < len(fields); i++ {
 		if fields[i] == "" {
 			continue
@@ -106,7 +106,7 @@ func (r RequestSorting) WithAsc(fields ...string) RequestSorting {
 }
 
 // WithDesc appends the desc sorting list to the sorting list.
-func (r RequestSorting) WithDesc(fields ...string) RequestSorting {
+func (r RequestSorting[T]) WithDesc(fields ...string) RequestSorting[T] {
 	for i := 0; i < len(fields); i++ {
 		if fields[i] == "" {
 			continue
@@ -118,12 +118,12 @@ func (r RequestSorting) WithDesc(fields ...string) RequestSorting {
 
 // Sorting returns the order list with the given allow list,
 // returns false if there are not any sorting key requesting and default list.
-func (r RequestSorting) Sorting(allowKeys []string, defaultOrders ...model.OrderFunc) ([]model.OrderFunc, bool) {
+func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T, bool) {
 	if len(r.Sorts) == 0 || len(allowKeys) == 0 {
 		return defaultOrders, len(defaultOrders) != 0
 	}
 
-	var orders = make([]model.OrderFunc, 0, len(allowKeys))
+	var orders = make([]T, 0, len(allowKeys))
 	var allows = sets.NewString(allowKeys...)
 	for i := 0; i < len(r.Sorts); i++ {
 		if r.Sorts[i] == "" {

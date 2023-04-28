@@ -102,7 +102,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.Perspective] `query:",inline"`
+	runtime.RequestCollection[predicate.Perspective, perspective.OrderOption] `query:",inline"`
 
 	Name string `query:"name,omitempty"`
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -71,7 +73,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.Project] `query:",inline"`
+	runtime.RequestCollection[predicate.Project, project.OrderOption] `query:",inline"`
 }
 
 type CollectionGetResponse = []*model.ProjectOutput
@@ -79,8 +81,8 @@ type CollectionGetResponse = []*model.ProjectOutput
 // Extensional APIs
 
 type GetSecretsRequest struct {
-	*model.ProjectQueryInput                    `uri:",inline"`
-	runtime.RequestCollection[predicate.Secret] `query:",inline"`
+	*model.ProjectQueryInput                                        `uri:",inline"`
+	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
 }
 
 func (r *GetSecretsRequest) Validate() error {

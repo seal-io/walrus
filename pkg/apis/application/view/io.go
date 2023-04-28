@@ -176,7 +176,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.Application] `query:",inline"`
+	runtime.RequestCollection[predicate.Application, application.OrderOption] `query:",inline"`
 
 	ProjectIDs []types.ID `query:"projectID"`
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
@@ -26,7 +27,7 @@ type GetResponse = *model.ModuleVersionOutput
 // Batch APIs
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.ModuleVersion] `query:",inline"`
+	runtime.RequestCollection[predicate.ModuleVersion, moduleversion.OrderOption] `query:",inline"`
 
 	ModuleIDs []string `query:"moduleID"`
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -85,7 +86,7 @@ func (r CollectionDeleteRequest) Validate() error {
 }
 
 type CollectionGetRequest struct {
-	runtime.RequestCollection[predicate.Module] `query:",inline"`
+	runtime.RequestCollection[predicate.Module, module.OrderOption] `query:",inline"`
 }
 
 type CollectionGetResponse = []*model.ModuleOutput
