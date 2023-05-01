@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -315,9 +316,15 @@ func (r RequestOperating) Validate() error {
 }
 
 type RequestStream struct {
+	firstReadOnce *sync.Once
+	firstReadChan <-chan struct {
+		t int
+		r io.Reader
+		e error
+	}
 	ctx       context.Context
 	ctxCancel func()
-	ws        *websocket.Conn
+	conn      *websocket.Conn
 }
 
 // SendMsg sends the given data to client.
@@ -352,7 +359,7 @@ func (r RequestStream) RecvJSON(i any) error {
 
 // Write implements io.Writer.
 func (r RequestStream) Write(p []byte) (n int, err error) {
-	msgWriter, err := r.ws.NextWriter(websocket.TextMessage)
+	msgWriter, err := r.conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		return
 	}
@@ -362,7 +369,19 @@ func (r RequestStream) Write(p []byte) (n int, err error) {
 
 // Read implements io.Reader.
 func (r RequestStream) Read(p []byte) (n int, err error) {
-	msgType, msgReader, err := r.ws.NextReader()
+	var (
+		firstRead bool
+		msgType   int
+		msgReader io.Reader
+	)
+	r.firstReadOnce.Do(func() {
+		firstRead = true
+		var fr = <-r.firstReadChan
+		msgType, msgReader, err = fr.t, fr.r, fr.e
+	})
+	if !firstRead {
+		msgType, msgReader, err = r.conn.NextReader()
+	}
 	if err != nil {
 		return
 	}
@@ -401,11 +420,4 @@ func (r RequestStream) Err() error {
 // Value implements context.Context.
 func (r RequestStream) Value(key any) any {
 	return r.ctx.Value(key)
-}
-
-func IsRequestStreamCloseError(err error) bool {
-	return websocket.IsCloseError(err,
-		websocket.CloseAbnormalClosure,
-		websocket.CloseProtocolError,
-		websocket.CloseGoingAway)
 }
