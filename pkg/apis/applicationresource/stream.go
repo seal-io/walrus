@@ -1,6 +1,8 @@
 package applicationresource
 
 import (
+	"context"
+	"strings"
 	"sync"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -11,9 +13,10 @@ func asTermStream(proxy runtime.RequestStream, initWidth, initHeight int32) term
 	var resizeCh = make(chan termSize, 2)
 	resizeCh <- termSize{Width: initWidth, Height: initHeight}
 	return termStream{
-		once:   &sync.Once{},
-		proxy:  proxy,
-		resize: resizeCh,
+		Context: context.Background(),
+		once:    &sync.Once{},
+		proxy:   proxy,
+		resize:  resizeCh,
 	}
 }
 
@@ -23,6 +26,8 @@ type termSize struct {
 }
 
 type termStream struct {
+	context.Context
+
 	once   *sync.Once
 	proxy  runtime.RequestStream
 	resize chan termSize
@@ -37,7 +42,7 @@ func (h termStream) Read(p []byte) (n int, err error) {
 	for {
 		n, err = h.proxy.Read(p)
 		if err != nil {
-			if runtime.IsRequestStreamCloseError(err) {
+			if !isUnexpectedError(err) {
 				// send exit to upstream if proxy exit unexpectedly.
 				h.once.Do(func() {
 					n = copy(p, "exit 0\n")
@@ -66,4 +71,9 @@ func (h termStream) Write(p []byte) (n int, err error) {
 func (h termStream) Next() (uint16, uint16, bool) {
 	var t, ok = <-h.resize
 	return uint16(t.Width), uint16(t.Height), ok
+}
+
+func isUnexpectedError(err error) bool {
+	var errMsg = err.Error()
+	return strings.Contains(errMsg, "use of closed network connection") // terminated by destination.
 }

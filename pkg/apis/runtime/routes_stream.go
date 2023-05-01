@@ -3,7 +3,9 @@ package runtime
 import (
 	"context"
 	"errors"
+	"io"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,14 +20,13 @@ func isUpgradeStreamRequest(c *gin.Context) bool {
 }
 
 func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
-	var logger = log.WithName("restful")
+	var logger = log.WithName("apis")
 
 	const (
-		// Time allowed to write a message to the peer.
-		writeWait = 10 * time.Second
 		// Time allowed to read the next pong message from the peer.
 		pongWait = 5 * time.Second
-		// Send pings to peer with this period, must be less than `pongWait`.
+		// Send pings to peer with this period, must be less than `pongWait`,
+		// it is also the timeout to write a ping message to the peer.
 		pingPeriod = (pongWait * 9) / 10
 	)
 
@@ -35,33 +36,62 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 		WriteBufferSize:  4096,
 	}
 
-	var ws, err = up.Upgrade(c.Writer, c.Request, nil)
+	var conn, err = up.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Errorf("error upgrading stream request: %v", err)
 		return
 	}
 	defer func() {
-		_ = ws.Close()
+		_ = conn.Close()
 	}()
 
-	var downCtx = c.Request.Context()
-	var upCtx, upCtxCancel = context.WithCancel(context.Background())
-	defer upCtxCancel()
-	var proxy = RequestStream{
-		ctx:       upCtx,
-		ctxCancel: upCtxCancel,
-		ws:        ws,
-	}
+	var ctx, cancel = context.WithCancel(c)
+	defer cancel()
+	var (
+		fro sync.Once
+		frc = make(chan struct {
+			t int
+			r io.Reader
+			e error
+		})
+		proxy = RequestStream{
+			firstReadOnce: &fro,
+			firstReadChan: frc,
+			ctx:           ctx,
+			ctxCancel:     cancel,
+			conn:          conn,
+		}
+	)
 
+	// in order to avoid downstream connection leaking,
+	// we need configuring a handler to close the upstream context.
+	// to trigger the close handler,
+	// we have to cut out a goroutine to received downstream,
+	// if downstream closes, the close handler will be triggered.
+	conn.SetCloseHandler(func(int, string) (err error) {
+		cancel()
+		return
+	})
+	gopool.Go(func() {
+		var fr struct {
+			t int
+			r io.Reader
+			e error
+		}
+		fr.t, fr.r, fr.e = conn.NextReader()
+		frc <- fr
+	})
+
+	// ping downstream asynchronously.
 	gopool.Go(func() {
 		var ping = func() error {
-			_ = ws.SetReadDeadline(getDeadline(pongWait))
-			ws.SetPongHandler(func(string) error {
-				return ws.SetReadDeadline(getDeadline(pongWait))
+			_ = conn.SetReadDeadline(getDeadline(pongWait))
+			conn.SetPongHandler(func(string) error {
+				return conn.SetReadDeadline(getDeadline(pongWait))
 			})
-			return ws.WriteControl(websocket.PingMessage,
+			return conn.WriteControl(websocket.PingMessage,
 				[]byte{},
-				getDeadline(writeWait))
+				getDeadline(pingPeriod))
 		}
 		var t = time.NewTicker(pingPeriod)
 		defer t.Stop()
@@ -70,15 +100,10 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 			case <-t.C:
 				if ping() != nil {
 					// cancel upstream if failed to touch downstream.
-					upCtxCancel()
+					cancel()
 					return
 				}
-			case <-downCtx.Done():
-				// cancel upstream if downstream has been closed explicitly.
-				upCtxCancel()
-				return
-			case <-upCtx.Done():
-				// close by main progress.
+			case <-ctx.Done():
 				return
 			}
 		}
@@ -92,13 +117,12 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 	var errInterface = outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
 		err = errInterface.(error)
-		if !errors.Is(err, context.Canceled) &&
-			!errors.Is(err, context.DeadlineExceeded) {
-			logger.Errorf("error processing stream request: %v", err)
+		if !isDownstreamCloseError(err) {
 			var we *websocket.CloseError
 			if errors.As(err, &we) {
 				closeMsg = websocket.FormatCloseMessage(we.Code, we.Text)
 			} else {
+				logger.Errorf("error processing stream request: %v", err)
 				if ue := errors.Unwrap(err); ue != nil {
 					err = ue
 				}
@@ -106,7 +130,16 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 			}
 		}
 	}
-	_ = ws.WriteControl(websocket.CloseMessage, closeMsg, getDeadline(writeWait))
+	_ = conn.WriteControl(websocket.CloseMessage, closeMsg, getDeadline(pingPeriod))
+}
+
+func isDownstreamCloseError(err error) bool {
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		websocket.IsCloseError(err,
+			websocket.CloseAbnormalClosure,
+			websocket.CloseProtocolError,
+			websocket.CloseGoingAway)
 }
 
 func getDeadline(duration time.Duration) time.Time {

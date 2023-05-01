@@ -258,7 +258,7 @@ func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecReques
 		Shell:   req.Shell,
 		Resizer: ts,
 	}
-	err = op.Exec(ctx, req.Key, opts)
+	err = op.Exec(ts, req.Key, opts)
 	if err != nil {
 		if strings.Contains(err.Error(), "OCI runtime exec failed: exec failed:") {
 			return &websocket.CloseError{
