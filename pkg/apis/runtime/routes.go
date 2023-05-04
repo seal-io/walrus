@@ -257,6 +257,8 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	func Stream(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>/:id
+//	func Stream(RequestUnidiStream, <Input>) error
+//	 ->    GET /<plural>/:id?watch=true
 //	func Create(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>
 //	func Delete(*gin.Context, <Input>) ((<Output>,) error)
@@ -270,6 +272,8 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	func CollectionStream(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>
+//	func CollectionStream(RequestUnidiStream, <Input>) error
+//	 ->    GET /<plural>?watch=true
 //	func CollectionCreate(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>/_/batch
 //	func CollectionDelete(*gin.Context, <Input>) ((<Output>,) error)
@@ -283,8 +287,12 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	func Stream<Something>(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>/:id/<something>
+//	func Stream<Something>(RequestUnidiStream, <Input>) error
+//	 ->    GET /<plural>/:id/<something>?watch=true
 //	func CollectionStream<Something>(RequestBidiStream, <Input>) error
-//	 ->     ws /<plural>/:id/<something>
+//	 ->     ws /<plural>/_/<something>
+//	func CollectionStream<Something>(RequestUnidiStream, <Input>) error
+//	 ->    GET /<plural>/_/<something>?watch=true
 //	func Create<Something>(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>/:id/<something>
 //	func CollectionCreate<Something>(*gin.Context, <Input>) ((<Output>,) error)
@@ -701,7 +709,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			case 2:
 				if forStream {
 					if !isTypeOfRequestStream(mrt.In(0)) {
-						return fmt.Errorf("illegal first input type of '%s': expected runtime.RequestBidiStream", mn)
+						return fmt.Errorf("illegal first input type of '%s': expected runtime.RequestBidiStream or runtime.RequestUnidiStream", mn)
 					}
 				} else {
 					if !isTypeOfGinContext(mrt.In(0)) {
@@ -891,13 +899,16 @@ func isImplementationOfError(r reflect.Type) bool {
 }
 
 func isTypeOfRequestStream(r reflect.Type) bool {
-	var expected = reflect.TypeOf(RequestBidiStream{}).String()
+	var (
+		expectedUnidi = reflect.TypeOf(RequestUnidiStream{}).String()
+		expectedBidi  = reflect.TypeOf(RequestBidiStream{}).String()
+	)
 	switch r.Kind() {
 	default:
 		return false
 	case reflect.Struct:
 		var given = r.String()
-		return given == expected
+		return given == expectedUnidi || given == expectedBidi
 	}
 }
 
