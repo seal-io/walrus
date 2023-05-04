@@ -315,7 +315,7 @@ func (r RequestOperating) Validate() error {
 	return nil
 }
 
-type RequestStream struct {
+type RequestBidiStream struct {
 	firstReadOnce *sync.Once
 	firstReadChan <-chan struct {
 		t int
@@ -328,13 +328,13 @@ type RequestStream struct {
 }
 
 // SendMsg sends the given data to client.
-func (r RequestStream) SendMsg(data []byte) error {
+func (r RequestBidiStream) SendMsg(data []byte) error {
 	var _, err = r.Write(data)
 	return err
 }
 
 // SendJSON marshals the given object as JSON and sends to client.
-func (r RequestStream) SendJSON(i any) error {
+func (r RequestBidiStream) SendJSON(i any) error {
 	bs, err := json.Marshal(i)
 	if err != nil {
 		return err
@@ -343,12 +343,12 @@ func (r RequestStream) SendJSON(i any) error {
 }
 
 // RecvMsg receives message from client.
-func (r RequestStream) RecvMsg() ([]byte, error) {
+func (r RequestBidiStream) RecvMsg() ([]byte, error) {
 	return io.ReadAll(r)
 }
 
 // RecvJSON receives JSON message from client and unmarshals into the given object.
-func (r RequestStream) RecvJSON(i any) error {
+func (r RequestBidiStream) RecvJSON(i any) error {
 	bs, err := r.RecvMsg()
 	if err != nil {
 		return err
@@ -358,7 +358,7 @@ func (r RequestStream) RecvJSON(i any) error {
 }
 
 // Write implements io.Writer.
-func (r RequestStream) Write(p []byte) (n int, err error) {
+func (r RequestBidiStream) Write(p []byte) (n int, err error) {
 	msgWriter, err := r.conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		return
@@ -368,7 +368,7 @@ func (r RequestStream) Write(p []byte) (n int, err error) {
 }
 
 // Read implements io.Reader.
-func (r RequestStream) Read(p []byte) (n int, err error) {
+func (r RequestBidiStream) Read(p []byte) (n int, err error) {
 	var (
 		firstRead bool
 		msgType   int
@@ -401,26 +401,26 @@ func (r RequestStream) Read(p []byte) (n int, err error) {
 }
 
 // Cancel cancels the underlay context.Context.
-func (r RequestStream) Cancel() {
+func (r RequestBidiStream) Cancel() {
 	r.ctxCancel()
 }
 
 // Deadline implements context.Context.
-func (r RequestStream) Deadline() (deadline time.Time, ok bool) {
+func (r RequestBidiStream) Deadline() (deadline time.Time, ok bool) {
 	return r.ctx.Deadline()
 }
 
 // Done implements context.Context.
-func (r RequestStream) Done() <-chan struct{} {
+func (r RequestBidiStream) Done() <-chan struct{} {
 	return r.ctx.Done()
 }
 
 // Err implements context.Context.
-func (r RequestStream) Err() error {
+func (r RequestBidiStream) Err() error {
 	return r.ctx.Err()
 }
 
 // Value implements context.Context.
-func (r RequestStream) Value(key any) any {
+func (r RequestBidiStream) Value(key any) any {
 	return r.ctx.Value(key)
 }

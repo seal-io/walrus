@@ -40,7 +40,7 @@ func (h Handler) Validating() any {
 
 // Basic APIs
 
-func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+func (h Handler) Stream(ctx runtime.RequestBidiStream, req view.StreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.ApplicationResource)
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return resp, cnt, nil
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+func (h Handler) CollectionStream(ctx runtime.RequestBidiStream, req view.CollectionStreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.ApplicationResource)
 	if err != nil {
 		return err
@@ -210,7 +210,7 @@ func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKey
 	return getKeys(ctx, req.Entity)
 }
 
-func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest) error {
+func (h Handler) StreamLog(ctx runtime.RequestBidiStream, req view.StreamLogRequest) error {
 	var res = req.Entity
 
 	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
@@ -235,7 +235,7 @@ func (h Handler) StreamLog(ctx runtime.RequestStream, req view.StreamLogRequest)
 	return op.Log(ctx, req.Key, opts)
 }
 
-func (h Handler) StreamExec(ctx runtime.RequestStream, req view.StreamExecRequest) error {
+func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRequest) error {
 	var res = req.Entity
 
 	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/apis/account"
@@ -58,12 +57,10 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	var throttler = runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
 	var rectifier = runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
 	var wsCounter = runtime.If(
-		func(g *gin.Context) bool {
-			// validate websocket connection.
-			return websocket.IsWebSocketUpgrade(g.Request)
-		},
+		// validate websocket connection.
+		runtime.IsBidiStreamRequest,
+		// maximum 10 connection per ip.
 		runtime.PerIP(func() runtime.Handle {
-			// maximum 10 connection per ip.
 			return runtime.RequestCounting(10, 5*time.Second)
 		}),
 	)

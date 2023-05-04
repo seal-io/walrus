@@ -255,7 +255,7 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	* Basic APIs
 //
-//	func Stream(RequestStream, <Input>) error
+//	func Stream(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>/:id
 //	func Create(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>
@@ -268,7 +268,7 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	* Batch APIs
 //
-//	func CollectionStream(RequestStream, <Input>) error
+//	func CollectionStream(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>
 //	func CollectionCreate(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>/_/batch
@@ -281,9 +281,9 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //
 //	* Extensional APIs
 //
-//	func Stream<Something>(RequestStream, <Input>) error
+//	func Stream<Something>(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>/:id/<something>
-//	func CollectionStream<Something>(RequestStream, <Input>) error
+//	func CollectionStream<Something>(RequestBidiStream, <Input>) error
 //	 ->     ws /<plural>/:id/<something>
 //	func Create<Something>(*gin.Context, <Input>) ((<Output>,) error)
 //	 ->   POST /<plural>/:id/<something>
@@ -371,7 +371,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 
 			// check request whether to stream.
 			var withStream bool
-			if rh.method == http.MethodGet && isUpgradeStreamRequest(c) {
+			if isStreamRequest(c) {
 				if !smr.IsValid() {
 					c.AbortWithStatus(http.StatusBadRequest)
 					return
@@ -461,7 +461,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 
 			// process as stream request.
 			if withStream {
-				doUpgradeStreamRequest(c, rmr, ri)
+				doStreamRequest(c, rmr, ri)
 				return
 			}
 
@@ -701,7 +701,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			case 2:
 				if forStream {
 					if !isTypeOfRequestStream(mrt.In(0)) {
-						return fmt.Errorf("illegal first input type of '%s': expected runtime.RequestStream", mn)
+						return fmt.Errorf("illegal first input type of '%s': expected runtime.RequestBidiStream", mn)
 					}
 				} else {
 					if !isTypeOfGinContext(mrt.In(0)) {
@@ -891,7 +891,7 @@ func isImplementationOfError(r reflect.Type) bool {
 }
 
 func isTypeOfRequestStream(r reflect.Type) bool {
-	var expected = reflect.TypeOf(RequestStream{}).String()
+	var expected = reflect.TypeOf(RequestBidiStream{}).String()
 	switch r.Kind() {
 	default:
 		return false
