@@ -375,8 +375,11 @@ func (r RequestStream) Read(p []byte) (n int, err error) {
 		msgReader io.Reader
 	)
 	r.firstReadOnce.Do(func() {
+		var fr, ok = <-r.firstReadChan
+		if !ok {
+			return
+		}
 		firstRead = true
-		var fr = <-r.firstReadChan
 		msgType, msgReader, err = fr.t, fr.r, fr.e
 	})
 	if !firstRead {
