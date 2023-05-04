@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.uber.org/multierr"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -313,6 +314,62 @@ func (r RequestOperating) Validate() error {
 		return errors.New("blank action value is not allowed")
 	}
 	return nil
+}
+
+type RequestUnidiStream struct {
+	ctx       context.Context
+	ctxCancel func()
+	conn      gin.ResponseWriter
+}
+
+// SendMsg sends the given data to client.
+func (r RequestUnidiStream) SendMsg(data []byte) error {
+	var _, err = r.Write(data)
+	return err
+}
+
+// SendJSON marshals the given object as JSON and sends to client.
+func (r RequestUnidiStream) SendJSON(i any) error {
+	bs, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+	return r.SendMsg(bs)
+}
+
+// Write implements io.Writer.
+func (r RequestUnidiStream) Write(p []byte) (n int, err error) {
+	n, err = r.conn.Write(p)
+	if err != nil {
+		return
+	}
+	r.conn.Flush()
+	return
+}
+
+// Cancel cancels the underlay context.Context.
+func (r RequestUnidiStream) Cancel() {
+	r.ctxCancel()
+}
+
+// Deadline implements context.Context.
+func (r RequestUnidiStream) Deadline() (deadline time.Time, ok bool) {
+	return r.ctx.Deadline()
+}
+
+// Done implements context.Context.
+func (r RequestUnidiStream) Done() <-chan struct{} {
+	return r.ctx.Done()
+}
+
+// Err implements context.Context.
+func (r RequestUnidiStream) Err() error {
+	return r.ctx.Err()
+}
+
+// Value implements context.Context.
+func (r RequestUnidiStream) Value(key any) any {
+	return r.ctx.Value(key)
 }
 
 type RequestBidiStream struct {

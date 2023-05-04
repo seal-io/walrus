@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,7 +18,13 @@ import (
 )
 
 func isStreamRequest(c *gin.Context) bool {
-	return IsBidiStreamRequest(c)
+	return IsUnidiStreamRequest(c) || IsBidiStreamRequest(c)
+}
+
+// IsUnidiStreamRequest returns true if the incoming request is a watching request.
+func IsUnidiStreamRequest(c *gin.Context) bool {
+	return c.Request.Method == http.MethodGet &&
+		strings.EqualFold(c.Query("watch"), "true")
 }
 
 // IsBidiStreamRequest returns true if the incoming request is a websocket request.
@@ -28,11 +35,42 @@ func IsBidiStreamRequest(c *gin.Context) bool {
 
 func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	switch {
+	case IsUnidiStreamRequest(c):
+		doUnidiStreamRequest(c, mr, ri)
 	case IsBidiStreamRequest(c):
 		doBidiStreamRequest(c, mr, ri)
 	default:
 		// unreachable
 		panic("cannot process as stream request")
+	}
+}
+
+func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+	var logger = log.WithName("apis")
+
+	var ctx, cancel = context.WithCancel(c.Request.Context())
+	defer cancel()
+	var proxy = RequestUnidiStream{
+		ctx:       ctx,
+		ctxCancel: cancel,
+		conn:      c.Writer,
+	}
+
+	c.Header("Transfer-Encoding", "chunked")
+	c.Header("Cache-Control", "no-store")
+	c.Header("Content-Type", "application/octet-stream; charset=ISO-8859-1")
+	c.Header("X-Content-Type-Options", "nosniff")
+
+	var inputs = make([]reflect.Value, 0, 2)
+	inputs = append(inputs, reflect.ValueOf(proxy))
+	inputs = append(inputs, ri)
+	var outputs = mr.Call(inputs)
+	var errInterface = outputs[len(outputs)-1].Interface()
+	if errInterface != nil {
+		var err = errInterface.(error)
+		if !isUnidiDownstreamCloseError(err) {
+			logger.Errorf("error processing unidirectional stream request: %v", err)
+		}
 	}
 }
 
@@ -62,7 +100,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		_ = conn.Close()
 	}()
 
-	var ctx, cancel = context.WithCancel(c)
+	var ctx, cancel = context.WithCancel(c.Request.Context())
 	defer cancel()
 	var (
 		frc = make(chan struct {
@@ -151,6 +189,16 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		}
 	}
 	_ = conn.WriteControl(websocket.CloseMessage, closeMsg, getDeadline(pingPeriod))
+}
+
+func isUnidiDownstreamCloseError(err error) bool {
+	if errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var errMsg = err.Error()
+	return strings.Contains(errMsg, "client disconnected") ||
+		strings.Contains(errMsg, "stream closed")
 }
 
 func isBidiDownstreamCloseError(err error) bool {

@@ -84,6 +84,8 @@ func Logging(ignorePaths ...string) Handle {
 		var reqClientIP = c.ClientIP()
 		var reqMethod = c.Request.Method
 		switch {
+		case IsUnidiStreamRequest(c):
+			reqMethod = "US"
 		case IsBidiStreamRequest(c):
 			reqMethod = "BS"
 		}
