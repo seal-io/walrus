@@ -10,11 +10,15 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
@@ -293,8 +297,9 @@ func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
 		moduleSchema.Variables = append(moduleSchema.Variables, s)
 	}
 
-	for _, v := range sortOutput(mod.Outputs) {
-		moduleSchema.Outputs = append(moduleSchema.Outputs, getOutputSchema(v))
+	moduleSchema.Outputs, err = getOutputsSchema(mod.Outputs)
+	if err != nil {
+		return nil, err
 	}
 	moduleSchema.RequiredProviders = getRequiredProviders(mod.RequiredProviders)
 
@@ -438,12 +443,116 @@ func extendVariableSchema(variable *property.Schema, comments []string) {
 	}
 }
 
-func getOutputSchema(v *tfconfig.Output) property.Schema {
-	var output = property.AnySchema(v.Name, nil).
-		WithDescription(v.Description)
-	if v.Sensitive {
-		output = output.WithSensitive()
+func getOutputsSchema(outputs map[string]*tfconfig.Output) (property.Schemas, error) {
+	var (
+		filenames     = sets.Set[string]{}
+		outputsSchema property.Schemas
+	)
+	for _, v := range outputs {
+		filenames.Insert(v.Pos.Filename)
+	}
+	values, err := getOutputValues(filenames)
+	if err != nil {
+		return nil, err
 	}
 
-	return output
+	for _, v := range sortOutput(outputs) {
+		s := property.AnySchema(v.Name, nil).
+			WithDescription(v.Description)
+		if v.Sensitive {
+			s = s.WithSensitive()
+		}
+		if ov, ok := values[v.Name]; ok {
+			s = s.WithValue(ov)
+		}
+		outputsSchema = append(outputsSchema, s)
+	}
+
+	return outputsSchema, nil
+}
+
+func getOutputValues(filenames sets.Set[string]) (map[string][]byte, error) {
+	var (
+		wg = gopool.Group()
+		mu sync.Mutex
+
+		logger  = log.WithName("module")
+		outputs = make(map[string][]byte)
+		parser  = hclparse.NewParser()
+	)
+	for _, filename := range filenames.UnsortedList() {
+		wg.Go(func() error {
+			b, err := os.ReadFile(filename)
+			if err != nil {
+				return fmt.Errorf("error read output configuration file %s: %w", filename, err)
+			}
+
+			var (
+				file *hcl.File
+				diag hcl.Diagnostics
+			)
+			if strings.HasSuffix(filename, ".json") {
+				file, diag = parser.ParseJSON(b, filename)
+			} else {
+				file, diag = parser.ParseHCL(b, filename)
+			}
+			if diag.HasErrors() {
+				logger.Warnf("error parse output configuration file %s: %s", filename, diag.Error())
+				return nil
+			}
+			if file == nil {
+				return nil
+			}
+
+			o := getOutputValueFromFile(file)
+			mu.Lock()
+			for on, oe := range o {
+				outputs[on] = oe
+			}
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := wg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return outputs, nil
+}
+
+func getOutputValueFromFile(file *hcl.File) map[string][]byte {
+	var (
+		rootSchema = &hcl.BodySchema{
+			Blocks: []hcl.BlockHeaderSchema{
+				{
+					Type:       "output",
+					LabelNames: []string{"name"},
+				},
+			},
+		}
+		outputSchema = &hcl.BodySchema{
+			Attributes: []hcl.AttributeSchema{
+				{
+					Name: "value",
+				},
+			},
+		}
+	)
+
+	var (
+		outputs       = make(map[string][]byte)
+		content, _, _ = file.Body.PartialContent(rootSchema)
+	)
+	for _, block := range content.Blocks {
+		if block.Type == "output" {
+			ct, _, _ := block.Body.PartialContent(outputSchema)
+			name := block.Labels[0]
+			if attr, defined := ct.Attributes["value"]; defined {
+				outputs[name] = attr.Expr.Range().SliceBytes(file.Bytes)
+			}
+		}
+	}
+
+	return outputs
 }

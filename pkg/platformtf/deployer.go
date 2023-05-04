@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
@@ -922,34 +923,50 @@ func getVarConfigOptions(secrets model.Secrets, variables property.Values) confi
 	return varsConfigOpts
 }
 
-func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (mc *config.ModuleConfig, err error) {
+func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (*config.ModuleConfig, error) {
 	var (
-		props     = make(property.Properties, len(appMod.Attributes))
-		typesWith = appMod.Attributes.TypesWith(modVer.Schema.Variables)
+		props              = make(property.Properties, len(appMod.Attributes))
+		typesWith          = appMod.Attributes.TypesWith(modVer.Schema.Variables)
+		sensitiveVariables = sets.Set[string]{}
 	)
 	for k, v := range appMod.Attributes {
 		props[k] = property.Property{
 			Type:  typesWith[k],
 			Value: v,
 		}
+
+		// add sensitive from app attributes.
+		val, err := v.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+
+		if _secretReg.Match(val) {
+			sensitiveVariables.Insert(k)
+		}
 	}
 	attrs, err := props.TypedValues()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	mc = &config.ModuleConfig{
+	mc := &config.ModuleConfig{
 		Name:          appMod.Name,
 		ModuleVersion: modVer,
 		Attributes:    attrs,
 	}
 
 	if modVer.Schema == nil {
-		return
+		return mc, nil
 	}
 
-	// add seal metadata.
 	for _, v := range modVer.Schema.Variables {
+		// add sensitive from schema variable.
+		if v.Sensitive {
+			sensitiveVariables.Insert(v.Name)
+		}
+
+		// add seal metadata.
 		var attrValue string
 		switch v.Name {
 		case SealMetadataProjectName:
@@ -967,11 +984,38 @@ func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion
 		}
 	}
 
+	sensitiveVariableRegex, err := matchAnyRegex(sensitiveVariables.UnsortedList())
+	if err != nil {
+		return nil, err
+	}
+
 	mc.Outputs = make([]config.Output, len(modVer.Schema.Outputs))
 	for i, v := range modVer.Schema.Outputs {
 		mc.Outputs[i].ModuleName = appMod.Name
 		mc.Outputs[i].Sensitive = v.Sensitive
 		mc.Outputs[i].Name = v.Name
+
+		if v.Sensitive {
+			continue
+		}
+
+		// update sensitive while output is from sensitive data, like secret.
+		if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(v.Value) {
+			mc.Outputs[i].Sensitive = true
+		}
 	}
-	return
+	return mc, nil
+}
+
+func matchAnyRegex(list []string) (*regexp.Regexp, error) {
+	var sb strings.Builder
+	sb.WriteString("(")
+	for i, v := range list {
+		sb.WriteString(fmt.Sprintf(`var\.%s`, v))
+		if i < len(list)-1 {
+			sb.WriteString("|")
+		}
+	}
+	sb.WriteString(")")
+	return regexp.Compile(sb.String())
 }

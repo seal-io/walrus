@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -128,10 +129,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expectedOutput: &types.ModuleSchema{
 				Outputs: property.Schemas{
 					property.AnySchema("first", nil).
-						WithDescription("The first output."),
+						WithDescription("The first output.").
+						WithValue([]byte("1")),
 					property.AnySchema("second", nil).
 						WithDescription("The second output.").
-						WithSensitive(),
+						WithSensitive().
+						WithValue([]byte("2")),
 				},
 			},
 			expectedError: false,
@@ -168,10 +171,12 @@ func TestLoadTerraformSchema(t *testing.T) {
 				},
 				Outputs: property.Schemas{
 					property.AnySchema("first", nil).
-						WithDescription("The first output."),
+						WithDescription("The first output.").
+						WithValue([]byte("null_resource.test.id")),
 					property.AnySchema("second", nil).
 						WithDescription("The second output.").
-						WithSensitive(),
+						WithSensitive().
+						WithValue([]byte(`"some value"`)),
 				},
 				Variables: property.Schemas{
 					property.StringSchema("foo", pointer.String("foo")).
@@ -353,6 +358,39 @@ func TestLoadTerraformModuleVersions(t *testing.T) {
 
 				assert.Equal(t, actualV.Schema, v.Schema)
 			}
+		})
+	}
+}
+
+func TestOutputValueExpression(t *testing.T) {
+	testCases := []struct {
+		name           string
+		input          string
+		expectedOutput map[string][]byte
+		expectedError  bool
+	}{
+		{
+			name:  "Get output value expression",
+			input: "testdata/with_output/main.tf",
+			expectedOutput: map[string][]byte{
+				"first":  []byte("1"),
+				"second": []byte("2"),
+			},
+			expectedError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			files := sets.Set[string]{}
+			files.Insert(tc.input)
+			actualOutput, actualError := getOutputValues(files)
+			if tc.expectedError {
+				assert.Error(t, actualError)
+			} else {
+				assert.NoError(t, actualError)
+			}
+			assert.Equal(t, tc.expectedOutput, actualOutput)
 		})
 	}
 }

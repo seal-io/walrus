@@ -565,6 +565,8 @@ type Schema struct {
 	Type Type `json:"type"`
 	// Default specifies the default value of this property.
 	Default Value `json:"default,omitempty"`
+	// Value argument takes an expression whose result is to generate value.
+	Value []byte `json:"value,omitempty"`
 	// Required indicates this property is required or not.
 	Required bool `json:"required,omitempty"`
 	// Sensitive indicates this property is sensitive or not.
@@ -629,6 +631,12 @@ func (i Schema) WithShowIf(s string) Schema {
 // WithHidden indicates the schema is hidden.
 func (i Schema) WithHidden() Schema {
 	i.Hidden = true
+	return i
+}
+
+// WithValue indicates the value expression of schema.
+func (i Schema) WithValue(expr []byte) Schema {
+	i.Value = expr
 	return i
 }
 
