@@ -888,9 +888,11 @@ func parseAttributeReplace(
 				}
 			}
 			secretNames = append(secretNames, matched...)
-			repl := "${var." + _varPrefix + "${1}}"
-			str = _varReg.ReplaceAllString(str, repl)
-			attributes[key] = _secretReg.ReplaceAllString(str, repl)
+			varRepl := "${var." + _varPrefix + "${1}}"
+			str = _varReg.ReplaceAllString(str, varRepl)
+
+			secretRepl := "${var." + _secretPrefix + "${1}}"
+			attributes[key] = _secretReg.ReplaceAllString(str, secretRepl)
 		case reflect.Slice:
 			if _, ok := value.([]interface{}); !ok {
 				continue
