@@ -104,7 +104,7 @@ func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.
 	return model.ExposeApplication(entity), nil
 }
 
-func (h Handler) Stream(ctx runtime.RequestBidiStream, req view.StreamRequest) error {
+func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 		})
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestBidiStream, req view.CollectionStreamRequest) error {
+func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err
