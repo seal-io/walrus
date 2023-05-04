@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"reflect"
 	"sync"
 	"time"
@@ -15,11 +16,27 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-func isUpgradeStreamRequest(c *gin.Context) bool {
-	return websocket.IsWebSocketUpgrade(c.Request)
+func isStreamRequest(c *gin.Context) bool {
+	return IsBidiStreamRequest(c)
 }
 
-func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+// IsBidiStreamRequest returns true if the incoming request is a websocket request.
+func IsBidiStreamRequest(c *gin.Context) bool {
+	return c.Request.Method == http.MethodGet &&
+		c.IsWebsocket()
+}
+
+func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+	switch {
+	case IsBidiStreamRequest(c):
+		doBidiStreamRequest(c, mr, ri)
+	default:
+		// unreachable
+		panic("cannot process as stream request")
+	}
+}
+
+func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	var logger = log.WithName("apis")
 
 	const (
@@ -38,7 +55,7 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 
 	var conn, err = up.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		logger.Errorf("error upgrading stream request: %v", err)
+		logger.Errorf("error upgrading bidirectional stream request: %v", err)
 		return
 	}
 	defer func() {
@@ -53,7 +70,7 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 			r io.Reader
 			e error
 		})
-		proxy = RequestStream{
+		proxy = RequestBidiStream{
 			firstReadOnce: &sync.Once{},
 			firstReadChan: frc,
 			ctx:           ctx,
@@ -120,12 +137,12 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 	var errInterface = outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
 		err = errInterface.(error)
-		if !isDownstreamCloseError(err) {
+		if !isBidiDownstreamCloseError(err) {
 			var we *websocket.CloseError
 			if errors.As(err, &we) {
 				closeMsg = websocket.FormatCloseMessage(we.Code, we.Text)
 			} else {
-				logger.Errorf("error processing stream request: %v", err)
+				logger.Errorf("error processing bidirectional stream request: %v", err)
 				if ue := errors.Unwrap(err); ue != nil {
 					err = ue
 				}
@@ -136,7 +153,7 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 	_ = conn.WriteControl(websocket.CloseMessage, closeMsg, getDeadline(pingPeriod))
 }
 
-func isDownstreamCloseError(err error) bool {
+func isBidiDownstreamCloseError(err error) bool {
 	return errors.Is(err, context.Canceled) ||
 		errors.Is(err, context.DeadlineExceeded) ||
 		websocket.IsCloseError(err,

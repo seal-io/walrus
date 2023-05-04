@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/utils/json"
 )
 
-func asTermStream(proxy runtime.RequestStream, initWidth, initHeight int32) termStream {
+func asTermStream(proxy runtime.RequestBidiStream, initWidth, initHeight int32) termStream {
 	var resizeCh = make(chan termSize, 2)
 	resizeCh <- termSize{Width: initWidth, Height: initHeight}
 	return termStream{
@@ -29,7 +29,7 @@ type termStream struct {
 	context.Context
 
 	once   *sync.Once
-	proxy  runtime.RequestStream
+	proxy  runtime.RequestBidiStream
 	resize chan termSize
 }
 

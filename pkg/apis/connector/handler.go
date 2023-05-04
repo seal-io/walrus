@@ -94,7 +94,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return model.ExposeConnector(entity), nil
 }
 
-func (h Handler) Stream(ctx runtime.RequestStream, req view.StreamRequest) error {
+func (h Handler) Stream(ctx runtime.RequestBidiStream, req view.StreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.Connector)
 	if err != nil {
 		return err
@@ -210,7 +210,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeConnectors(entities), cnt, nil
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestStream, req view.CollectionStreamRequest) error {
+func (h Handler) CollectionStream(ctx runtime.RequestBidiStream, req view.CollectionStreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.Connector)
 	if err != nil {
 		return err
