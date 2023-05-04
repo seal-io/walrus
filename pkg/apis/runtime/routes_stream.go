@@ -48,14 +48,13 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 	var ctx, cancel = context.WithCancel(c)
 	defer cancel()
 	var (
-		fro sync.Once
 		frc = make(chan struct {
 			t int
 			r io.Reader
 			e error
 		})
 		proxy = RequestStream{
-			firstReadOnce: &fro,
+			firstReadOnce: &sync.Once{},
 			firstReadChan: frc,
 			ctx:           ctx,
 			ctxCancel:     cancel,
@@ -79,7 +78,11 @@ func doUpgradeStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) 
 			e error
 		}
 		fr.t, fr.r, fr.e = conn.NextReader()
-		frc <- fr
+		select {
+		case frc <- fr:
+		case <-ctx.Done():
+			close(frc)
+		}
 	})
 
 	// ping downstream asynchronously.
