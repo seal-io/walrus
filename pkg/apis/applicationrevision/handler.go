@@ -71,7 +71,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return model.ExposeApplicationRevision(entity), nil
 }
 
-func (h Handler) Stream(ctx runtime.RequestBidiStream, req view.StreamRequest) error {
+func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeApplicationRevisions(entities), cnt, nil
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestBidiStream, req view.CollectionStreamRequest) error {
+func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
 	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
@@ -520,7 +520,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	return nil
 }
 
-func (h Handler) StreamLog(ctx runtime.RequestBidiStream, req view.StreamLogRequest) error {
+func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
 	var cli, err = coreclient.NewForConfig(h.kubeConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
