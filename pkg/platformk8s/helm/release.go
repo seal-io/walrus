@@ -16,6 +16,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/pkg/platformk8s/kubestatus"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -36,14 +37,14 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 	}
 
 	// get helm release with namespace.
-	var hrn = res.Name
+	var hrns, hrn = kube.ParseNamespacedName(res.Name)
 	var restConfig, err = opts.RESTClientGetter.ToRESTConfig()
 	if err != nil {
 		return nil, fmt.Errorf("error getting helm rest config: %w", err)
 	}
 	if opts.KubeClient == nil || opts.Releases == nil {
 		var clientGetter = IncompleteRestClientGetter(*restConfig)
-		err = opts.Init(clientGetter, "", dr, opts.Log)
+		err = opts.Init(clientGetter, hrns, dr, opts.Log)
 		if err != nil {
 			return nil, fmt.Errorf("error initing helm config: %w", err)
 		}
