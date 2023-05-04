@@ -37,11 +37,11 @@ type instanceObjectState struct {
 	Deposed  string      `json:"deposed,omitempty"`
 
 	SchemaVersion           uint64            `json:"schema_version"`
-	AttributesRaw           json.RawMessage   `json:"attributes,omitempty"`
+	Attributes              json.RawMessage   `json:"attributes,omitempty"`
 	AttributesFlat          map[string]string `json:"attributes_flat,omitempty"`
 	AttributeSensitivePaths json.RawMessage   `json:"sensitive_attributes,omitempty"`
 
-	PrivateRaw []byte `json:"private,omitempty"`
+	Private []byte `json:"private,omitempty"`
 
 	Dependencies []string `json:"dependencies,omitempty"`
 

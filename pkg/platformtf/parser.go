@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -44,26 +44,21 @@ func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.App
 // ParseState parse the terraform state to application resources.
 func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
 	var logger = log.WithName("platformtf").WithName("parser")
+
 	var revisionState state
-	var applicationResources model.ApplicationResources
 	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {
 		return nil, err
 	}
 
+	var applicationResources model.ApplicationResources
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
-		case "managed", "data":
 		default:
 			logger.Errorf("unknown resource mode: %s", rs.Mode)
 			continue
+		case "managed", "data":
 		}
 
-		// "module": "module.singleton[0]" or "module": "module.singleton"
-		moduleName, err := ParseInstanceModuleName(rs.Module)
-		if err != nil {
-			logger.Errorf("invalid module format: %s", rs.Module)
-			continue
-		}
 		// try to get the connector id from the provider.
 		connector, err := ParseInstanceProviderConnector(rs.Provider)
 		if err != nil {
@@ -75,15 +70,44 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 			continue
 		}
 
+		// "module": "module.singleton[0]" or "module": "module.singleton"
+		moduleName, err := ParseInstanceModuleName(rs.Module)
+		if err != nil {
+			logger.Errorf("invalid module format: %s", rs.Module)
+			continue
+		}
+
 		for _, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
 			if err != nil {
-				logger.Errorf("parse instance id failed: %w, instance: %v", err, is)
+				logger.Errorf("parse instance id failed: %v, instance: %v",
+					err, is)
 				continue
 			}
 			if instanceID == "" {
 				logger.Errorf("instance id is empty, instance: %v", is)
 				continue
+			}
+
+			// FIXME(thxCode): as a good solution,
+			//  the https://registry.terraform.io/providers/hashicorp/helm should provide a complete ID.
+			if rs.Type == "helm_release" && !strings.Contains(instanceID, "/") {
+				// NB(thxCode): the ID of helm_release resource doesn't include namespace,
+				// so we can't fetch the real Helm Release record that under specified namespace.
+				// in order to recognize the real Helm Release record,
+				// we should enrich the instanceID with the namespace name.
+				md, err := ParseInstanceMetadata(is)
+				if err != nil {
+					logger.Errorf("parse instance metadata failed: %v, instance attributes: %s",
+						err, string(is.Attributes))
+					continue
+				}
+
+				if nsr := json.Get(md, "namespace"); nsr.String() != "" {
+					instanceID = nsr.String() + "/" + instanceID
+				} else {
+					instanceID = core.NamespaceDefault + "/" + instanceID
+				}
 			}
 
 			applicationResource := &model.ApplicationResource{
@@ -208,12 +232,12 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 // ParseInstanceID get the real instance id from the instance object state.
 // The instance id is stored in the "name" attribute of application resource
 func ParseInstanceID(is instanceObjectState) (string, error) {
-	if is.AttributesRaw != nil {
-		ty, err := ctyjson.ImpliedType(is.AttributesRaw)
+	if is.Attributes != nil {
+		ty, err := ctyjson.ImpliedType(is.Attributes)
 		if err != nil {
 			return "", err
 		}
-		val, err := ctyjson.Unmarshal(is.AttributesRaw, ty)
+		val, err := ctyjson.Unmarshal(is.Attributes, ty)
 		if err != nil {
 			return "", err
 		}
@@ -243,6 +267,26 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 	}
 
 	return "", fmt.Errorf("no id found in instance object state: %v", is)
+}
+
+// ParseInstanceMetadata get the metadata from the instance object state.
+func ParseInstanceMetadata(is instanceObjectState) ([]byte, error) {
+	if is.Attributes == nil {
+		return nil, errors.New("no attributes")
+	}
+
+	var arr = json.Get(is.Attributes, "metadata").Array()
+	switch l := len(arr); {
+	case l == 0:
+		return nil, errors.New("not found metadata")
+	case l > 1:
+		return nil, errors.New("not singular metadata")
+	}
+
+	if !arr[0].IsObject() {
+		return nil, errors.New("metadata is not an object")
+	}
+	return strs.ToBytes(&arr[0].Raw), nil
 }
 
 // ParseStateProviders parse terraform state and get providers.
