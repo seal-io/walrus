@@ -112,7 +112,7 @@ func TestParseInstanceID(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-			input:          instanceObjectState{AttributesRaw: []byte(`{"id":"123"}`)},
+			input:          instanceObjectState{Attributes: []byte(`{"id":"123"}`)},
 			expectedOutput: "123",
 			expectedError:  false,
 		},
