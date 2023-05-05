@@ -81,9 +81,8 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 	}
 
 	for _, v := range inputModules {
-		moduleSchema := moduleSchemas[moduleVersionKey(v.ModuleID, v.Version)]
-		// schema doesn't exist.
-		if moduleSchema == nil {
+		moduleSchema, ok := moduleSchemas[moduleVersionKey(v.ModuleID, v.Version)]
+		if !ok {
 			return fmt.Errorf("invalid module %s: empty schema", v.Name)
 		}
 		// verify attributes with attributes schema that defined on versioned module.
