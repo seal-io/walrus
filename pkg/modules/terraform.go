@@ -473,12 +473,10 @@ func getOutputsSchema(outputs map[string]*tfconfig.Output) (property.Schemas, er
 
 func getOutputValues(filenames sets.Set[string]) (map[string][]byte, error) {
 	var (
-		wg = gopool.Group()
-		mu sync.Mutex
-
+		mu      sync.Mutex
 		logger  = log.WithName("module")
+		wg      = gopool.Group()
 		outputs = make(map[string][]byte)
-		parser  = hclparse.NewParser()
 	)
 	for _, filename := range filenames.UnsortedList() {
 		wg.Go(func() error {
@@ -488,8 +486,9 @@ func getOutputValues(filenames sets.Set[string]) (map[string][]byte, error) {
 			}
 
 			var (
-				file *hcl.File
-				diag hcl.Diagnostics
+				file   *hcl.File
+				diag   hcl.Diagnostics
+				parser = hclparse.NewParser()
 			)
 			if strings.HasSuffix(filename, ".json") {
 				file, diag = parser.ParseJSON(b, filename)
