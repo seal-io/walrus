@@ -103,9 +103,8 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if *r.Force {
-
 		var modelClient = input.(model.ClientSet)
-		err := validateRevisionStatus(ctx, modelClient, r.ID)
+		err := validateRevisionStatus(ctx, modelClient, r.ID, "delete")
 		if err != nil {
 			return err
 		}
@@ -234,7 +233,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return fmt.Errorf("invalid variables: %w", err)
 	}
 
-	err = validateRevisionStatus(ctx, modelClient, r.ID)
+	err = validateRevisionStatus(ctx, modelClient, r.ID, "upgrade")
 	if err != nil {
 		return err
 	}
@@ -322,7 +321,7 @@ func (r *CreateCloneRequest) Validate() error {
 	return nil
 }
 
-func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
+func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id types.ID, action string) error {
 	revision, err := modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(id)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
@@ -337,6 +336,10 @@ func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id
 		case status.ApplicationRevisionStatusRunning:
 			return runtime.Error(http.StatusBadRequest, "deployment is running, please wait for it to finish before deleting the instance")
 		case status.ApplicationRevisionStatusFailed:
+			if action != "delete" {
+				return nil
+			}
+
 			resourceExist, err := modelClient.ApplicationResources().Query().
 				Where(applicationresource.InstanceID(id)).
 				Exist(ctx)

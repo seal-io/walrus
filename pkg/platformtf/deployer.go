@@ -209,6 +209,18 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 		return err
 	}
 
+	latestRevision, err := d.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldInstanceID,
+			applicationrevision.FieldOutput,
+		).
+		Where(applicationrevision.InstanceID(ai.ID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return err
+	}
+
 	var (
 		ar     *model.ApplicationRevision
 		entity = &model.ApplicationRevision{
@@ -219,11 +231,16 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 			Secrets:                   opts.ApplicationRevision.Secrets,
 			Variables:                 opts.ApplicationRevision.Variables,
 			InputVariables:            opts.ApplicationRevision.InputVariables,
-			InputPlan:                 opts.ApplicationRevision.InputPlan,
+			Output:                    latestRevision.Output,
 			DeployerType:              opts.ApplicationRevision.DeployerType,
 			PreviousRequiredProviders: opts.ApplicationRevision.PreviousRequiredProviders,
 		}
 	)
+	requiredProviders, err := d.getRequiredProviders(ctx, ai.ID, entity.Output)
+	if err != nil {
+		return err
+	}
+	entity.PreviousRequiredProviders = requiredProviders
 	revisionCreates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
 	if err != nil {
 		return err
@@ -397,21 +414,9 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 		}
 		// inherit the output of previous revision.
 		entity.Output = prevEntity.Output
-		// inherit the required providers of previous succeeded revision.
-		previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, opts.ApplicationInstance.ID)
+		requiredProviders, err := d.getRequiredProviders(ctx, opts.ApplicationInstance.ID, entity.Output)
 		if err != nil {
 			return nil, err
-		}
-		stateRequiredProviders, err := ParseStateProviders(entity.Output)
-		if err != nil {
-			return nil, err
-		}
-		stateRequiredProviderSet := sets.New(stateRequiredProviders...)
-		var requiredProviders = make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
-		for _, p := range previousRequiredProviders {
-			if stateRequiredProviderSet.Has(p.Name) {
-				requiredProviders = append(requiredProviders, p)
-			}
 		}
 		entity.PreviousRequiredProviders = requiredProviders
 	}
@@ -449,6 +454,27 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 		return nil, err
 	}
 	return creates[0].Save(ctx)
+}
+
+func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID, previousOutput string) ([]types.ProviderRequirement, error) {
+	var stateRequiredProviderSet = sets.NewString()
+	previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, instanceID)
+	if err != nil {
+		return nil, err
+	}
+	stateRequiredProviders, err := ParseStateProviders(previousOutput)
+	if err != nil {
+		return nil, err
+	}
+	stateRequiredProviderSet.Insert(stateRequiredProviders...)
+
+	var requiredProviders = make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
+	for _, p := range previousRequiredProviders {
+		if stateRequiredProviderSet.Has(p.Name) {
+			requiredProviders = append(requiredProviders, p)
+		}
+	}
+	return requiredProviders, nil
 }
 
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
