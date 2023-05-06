@@ -12,7 +12,7 @@ const (
 //	|  Condition Type  |     Condition Status    | Human Readable Status | Human Sensible Status |
 //	| ---------------- | ----------------------- | --------------------- | --------------------- |
 //	| Connected        | Unknown                 | Connecting            | Transitioning         |
-//	| Connected        | False                   | ConnectFailed         | Error                 |
+//	| Connected        | False                   | Disconnected          | Error                 |
 //	| Connected        | True                    | Connected             |                       |
 //	| CostToolDeployed | Unknown                 | CostToolDeploying     | Transitioning         |
 //	| CostToolDeployed | False                   | CostToolDeployFailed  | Error                 |
