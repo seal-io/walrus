@@ -9,6 +9,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/seal-io/seal/pkg/applicationresources"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
@@ -143,9 +144,6 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 		if err != nil {
 			return fmt.Errorf("error listing application resources: %w", err)
 		}
-		if len(rs) == 0 {
-			return
-		}
 
 		var ids = make(map[types.ID][]*model.ApplicationResource)
 		for y := range rs {
@@ -183,13 +181,13 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 		default:
 			status.ApplicationInstanceStatusReady.True(i, "")
 		}
-		i.Status.SetSummary(status.WalkApplicationInstance(&i.Status))
-		if !i.Status.Changed() {
+		update, err := dao.ApplicationInstanceStatusUpdate(in.modelClient, i)
+		if err != nil {
+			berr = multierr.Append(berr, err)
 			return
 		}
-		err = in.modelClient.ApplicationInstances().UpdateOne(i).
-			SetStatus(i.Status).
-			Exec(ctx)
+
+		err = update.Exec(ctx)
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}

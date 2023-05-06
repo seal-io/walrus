@@ -53,3 +53,23 @@ func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInsta
 
 	return c, nil
 }
+
+// ApplicationInstanceStatusUpdate updates the status of the given application instance.
+// TODO (alex): unify the status update logic for all application instances.
+func ApplicationInstanceStatusUpdate(mc model.ClientSet, input *model.ApplicationInstance) (*model.ApplicationInstanceUpdateOne, error) {
+	if input == nil {
+		return nil, errors.New("invalid input: nil entity")
+	}
+
+	if input.ID == "" {
+		return nil, errors.New("invalid input: illegal predicates")
+	}
+
+	var c = mc.ApplicationInstances().UpdateOne(input)
+	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
+	if !input.Status.Changed() {
+		c.SetStatus(input.Status)
+	}
+
+	return c, nil
+}
