@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
+	"github.com/seal-io/seal/pkg/platformk8s/kubeendpoint"
 )
 
 // GetEndpoints implements operator.Operator.
@@ -37,13 +37,13 @@ func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResou
 	for _, r := range rs {
 		switch r.Resource {
 		case "services":
-			var endpoints, err = kube.GetServiceEndpoints(ctx, client, r.Namespace, r.Name)
+			var endpoints, err = kubeendpoint.GetServiceEndpoints(ctx, client, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
 			eps = append(eps, endpoints...)
 		case "ingresses":
-			var endpoints, err = kube.GetIngressEndpoints(ctx, client, r.Namespace, r.Name)
+			var endpoints, err = kubeendpoint.GetIngressEndpoints(ctx, client, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
