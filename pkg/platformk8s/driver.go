@@ -2,6 +2,7 @@ package platformk8s
 
 import (
 	"fmt"
+	"time"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -10,17 +11,62 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/seal/utils/version"
 )
 
-// GetConfig returns the rest.Config with the given model.
-func GetConfig(conn model.Connector) (*rest.Config, error) {
-	var apiConfig, _, err = LoadApiConfig(conn)
+// ConfigOption holds the modification to modify the return rest.Config.
+type ConfigOption func(*rest.Config)
+
+// WithoutTimeout disables the timeout.
+func WithoutTimeout() ConfigOption {
+	return func(c *rest.Config) {
+		c.Timeout = 0
+	}
+}
+
+// WithTimeout sets the timeout.
+func WithTimeout(t time.Duration) ConfigOption {
+	return func(c *rest.Config) {
+		c.Timeout = t
+	}
+}
+
+// WithRateLimit sets rate limitation.
+func WithRateLimit(qps float32, burst int) ConfigOption {
+	return func(c *rest.Config) {
+		c.QPS = qps
+		c.Burst = burst
+	}
+}
+
+// GetConfig returns the rest.Config with the given model,
+// by default, the rest.Config configures with 15s timeout/16 qps/64 burst,
+// please modify the default configuration with ConfigOption as need.
+func GetConfig(conn model.Connector, opts ...ConfigOption) (restConfig *rest.Config, err error) {
+	apiConfig, _, err := LoadApiConfig(conn)
 	if err != nil {
 		return nil, err
 	}
-	return clientcmd.
+
+	restConfig, err = clientcmd.
 		NewNonInteractiveClientConfig(*apiConfig, "", &clientcmd.ConfigOverrides{}, nil).
 		ClientConfig()
+	if err != nil {
+		err = fmt.Errorf("cannot construct rest config from api config: %w", err)
+		return
+	}
+	restConfig.Timeout = 15 * time.Second
+	restConfig.QPS = 16
+	restConfig.Burst = 64
+	restConfig.UserAgent = version.GetUserAgent()
+	for i := range opts {
+		if opts[i] == nil {
+			continue
+		}
+		opts[i](restConfig)
+	}
+
+	return
 }
 
 // LoadApiConfig returns the client api.Config with the given model.

@@ -2,6 +2,7 @@ package platformk8s
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/utils/version"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -51,7 +53,11 @@ users:
 		})
 		if assert.NoError(t, err, "unexpected error") {
 			assert.Equal(t, &rest.Config{
-				Host: "https://127.0.0.1:6443",
+				Host:      "https://127.0.0.1:6443",
+				Timeout:   15 * time.Second,
+				QPS:       16,
+				Burst:     64,
+				UserAgent: version.GetUserAgent(),
 			}, config)
 		}
 

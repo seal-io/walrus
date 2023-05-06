@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/version"
 )
 
 type Deployer struct {
@@ -36,6 +37,10 @@ func New(kubeCfg string) (*Deployer, error) {
 	if err != nil {
 		return nil, err
 	}
+	restCfg.Timeout = 0
+	restCfg.QPS = 16
+	restCfg.Burst = 64
+	restCfg.UserAgent = version.GetUserAgent()
 
 	return &Deployer{
 		restCfg: restCfg,
