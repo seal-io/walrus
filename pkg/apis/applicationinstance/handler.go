@@ -574,10 +574,11 @@ func (h Handler) getInstanceOutputs(ctx *gin.Context, instanceID types.ID) ([]ty
 }
 
 func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance) error {
-	entity.Status.SetSummary(status.WalkApplicationInstance(&entity.Status))
-	var err = h.modelClient.ApplicationInstances().UpdateOne(entity).
-		SetStatus(entity.Status).
-		Exec(ctx)
+	update, err := dao.ApplicationInstanceStatusUpdate(h.modelClient, entity)
+	if err != nil {
+		return err
+	}
+	err = update.Exec(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return err
 	}

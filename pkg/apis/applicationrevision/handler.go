@@ -506,13 +506,12 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		default:
 			status.ApplicationInstanceStatusReady.True(i, "")
 		}
-		i.Status.SetSummary(status.WalkApplicationInstance(&i.Status))
-		if !i.Status.Changed() {
-			return
+		update, err := dao.ApplicationInstanceStatusUpdate(h.modelClient, i)
+		if err != nil {
+			logger.Errorf("cannot update application instance: %v", err)
 		}
-		err = h.modelClient.ApplicationInstances().UpdateOne(i).
-			SetStatus(i.Status).
-			Exec(ctx)
+
+		err = update.Exec(ctx)
 		if err != nil {
 			logger.Errorf("cannot update application instance: %v", err)
 		}
