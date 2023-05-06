@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -39,63 +40,6 @@ func (h Handler) Validating() any {
 }
 
 // Basic APIs
-
-func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationResource)
-	if err != nil {
-		return err
-	}
-
-	defer func() { t.Unsubscribe() }()
-	for {
-		var event topic.Event
-		event, err = t.Receive(ctx)
-		if err != nil {
-			return err
-		}
-		dm, ok := event.Data.(datamessage.Message)
-		if !ok {
-			continue
-		}
-
-		var streamData view.StreamResponse
-		for _, id := range dm.Data {
-			if id != req.ID {
-				continue
-			}
-
-			switch dm.Type {
-			case datamessage.EventCreate, datamessage.EventUpdate:
-				entity, err := h.modelClient.ApplicationResources().Get(ctx, id)
-				if err != nil && !model.IsNotFound(err) {
-					return err
-				}
-				keys, err := getKeys(ctx, entity)
-				if err != nil {
-					return err
-				}
-				streamData = view.StreamResponse{
-					Type: dm.Type,
-					Collection: []view.ApplicationResource{
-						{
-							Resource: model.ExposeApplicationResource(entity),
-							Keys:     keys,
-						},
-					},
-				}
-			case datamessage.EventDelete:
-				streamData = view.StreamResponse{
-					Type: dm.Type,
-					IDs:  dm.Data,
-				}
-			}
-		}
-		err = ctx.SendJSON(streamData)
-		if err != nil {
-			return err
-		}
-	}
-}
 
 // Batch APIs
 
@@ -207,7 +151,17 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs
 
 func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
-	return getKeys(ctx, req.Entity)
+	var res = req.Entity
+
+	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	if err != nil {
+		return nil, err
+	}
+	if err = op.IsConnected(ctx); err != nil {
+		return nil, fmt.Errorf("unreachable connector: %w", err)
+	}
+
+	return op.GetKeys(ctx, res)
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
@@ -264,6 +218,8 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 }
 
 func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) (view.CollectionGetResponse, error) {
+	var logger = log.WithName("application-resource")
+
 	// allow returning without sorting keys.
 	entities, err := query.Unique(false).
 		// must extract connector.
@@ -287,26 +243,41 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 		return nil, err
 	}
 
+	// expose resources.
 	var resp = make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
 		resp[i].Resource = model.ExposeApplicationResource(entities[i])
-		if !withoutKeys {
-			resp[i].Keys, err = getKeys(ctx, entities[i])
+	}
+
+	// fetch keys for each resource without error returning.
+	if !withoutKeys {
+		// NB(thxCode): we can safety index the connector with its pointer here,
+		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
+		var m = make(map[*model.Connector][]int)
+		for i := 0; i < len(entities); i++ {
+			m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
+		}
+
+		for c, idxs := range m {
+			// get operator by connector.
+			var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *c})
 			if err != nil {
-				return nil, err
+				logger.Warnf("cannot get operator of connector: %v", err)
+				continue
+			}
+			if err = op.IsConnected(ctx); err != nil {
+				logger.Warnf("unreachable connector: %v", err)
+				continue
+			}
+			// fetch keys for the resources that related to same connector.
+			for _, i := range idxs {
+				resp[i].Keys, err = op.GetKeys(ctx, entities[i])
+				if err != nil {
+					logger.Errorf("error getting keys: %v", err)
+				}
 			}
 		}
 	}
-	return resp, nil
-}
 
-func getKeys(ctx context.Context, r *model.ApplicationResource) (*operator.Keys, error) {
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *r.Edges.Connector})
-	if err != nil {
-		return nil, err
-	}
-	if err = op.IsConnected(ctx); err != nil {
-		return nil, fmt.Errorf("unreachable connector: %w", err)
-	}
-	return op.GetKeys(ctx, r)
+	return resp, nil
 }
