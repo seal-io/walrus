@@ -34,6 +34,7 @@ import (
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
+	"github.com/seal-io/seal/utils/version"
 )
 
 type Server struct {
@@ -443,6 +444,7 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 	cfg.Timeout = r.KubeConnTimeout
 	cfg.QPS = float32(r.KubeConnQPS)
 	cfg.Burst = r.KubeConnBurst
+	cfg.UserAgent = version.GetUserAgent()
 }
 
 func (r *Server) setDataSourceDriver(drv *sql.DB) {
