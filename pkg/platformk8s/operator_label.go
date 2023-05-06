@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
+	"github.com/seal-io/seal/pkg/platformk8s/kubelabel"
 )
 
 // Label implements operator.Operator.
@@ -45,5 +46,5 @@ func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, la
 		}
 		return nil
 	}
-	return kube.Label(ctx, client, obj, labels)
+	return kubelabel.Apply(ctx, client, obj, labels)
 }
