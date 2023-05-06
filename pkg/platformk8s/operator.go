@@ -40,9 +40,8 @@ func (Operator) Type() operator.Type {
 }
 
 // IsConnected implements operator.Operator.
-func (op Operator) IsConnected(ctx context.Context) (bool, error) {
+func (op Operator) IsConnected(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	var err = k8s.Wait(ctx, op.RestConfig)
-	return err == nil, err
+	return k8s.Wait(ctx, op.RestConfig)
 }

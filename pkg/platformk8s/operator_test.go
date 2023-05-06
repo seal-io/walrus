@@ -39,7 +39,7 @@ func TestOperator(t *testing.T) {
 	}
 
 	t.Run("IsConnected", func(t *testing.T) {
-		var _, err = op.IsConnected(ctx)
+		var err = op.IsConnected(ctx)
 		if err != nil {
 			t.Fatalf("error connecting kubernetes cluster: %v", err)
 		}

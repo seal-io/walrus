@@ -19,7 +19,7 @@ type Operator interface {
 	Type() Type
 
 	// IsConnected validates whether is connected.
-	IsConnected(context.Context) (bool, error)
+	IsConnected(context.Context) error
 
 	// GetKeys returns keys from the given resource.
 	GetKeys(context.Context, *model.ApplicationResource) (*Keys, error)

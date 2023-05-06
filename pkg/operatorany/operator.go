@@ -26,8 +26,8 @@ func (Operator) Type() operator.Type {
 	return OperatorType
 }
 
-func (Operator) IsConnected(ctx context.Context) (bool, error) {
-	return true, nil
+func (Operator) IsConnected(ctx context.Context) error {
+	return nil
 }
 
 func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*operator.Keys, error) {
