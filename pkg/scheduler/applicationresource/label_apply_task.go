@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/operatorunknown"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
@@ -82,11 +83,17 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 		if err != nil {
 			return err
 		}
+		if err = op.IsConnected(ctx); err != nil {
+			// warn out without breaking the whole syncing.
+			in.logger.Warnf("unreachable connector %q", c.ID)
+			// NB(thxCode): replace disconnected connector with unknown connector.
+			op = operatorunknown.Operator{}
+		}
 
 		cnt, err := c.QueryResources().
 			Count(ctx)
 		if err != nil {
-			return fmt.Errorf("cannot count resources of connect %s: %w", c.ID, err)
+			return fmt.Errorf("cannot count resources of connector %q: %w", c.ID, err)
 		}
 		if cnt == 0 {
 			return nil
