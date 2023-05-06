@@ -520,7 +520,12 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
-	var cli, err = coreclient.NewForConfig(h.kubeConfig)
+	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once tracing,
+	// and rely on the session context timeout control,
+	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel.
+	var restConfig = *h.kubeConfig // copy
+	restConfig.Timeout = 0
+	var cli, err = coreclient.NewForConfig(&restConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}

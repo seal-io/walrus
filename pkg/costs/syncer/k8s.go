@@ -57,7 +57,10 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		return err
 	}
 
-	restCfg, err := platformk8s.GetConfig(*conn)
+	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once full-series costs synchronization,
+	// and rely on the session context timeout control,
+	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel or timeout.
+	restCfg, err := platformk8s.GetConfig(*conn, platformk8s.WithoutTimeout())
 	if err != nil {
 		return err
 	}
