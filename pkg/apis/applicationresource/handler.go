@@ -217,12 +217,8 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	if err != nil {
 		return err
 	}
-	ok, err := op.IsConnected(ctx)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("cannot connect %s", res.Edges.Connector.Name)
+	if err = op.IsConnected(ctx); err != nil {
+		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
 	var opts = operator.LogOptions{
@@ -242,12 +238,8 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 	if err != nil {
 		return err
 	}
-	ok, err := op.IsConnected(ctx)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("cannot connect %s", res.Edges.Connector.Name)
+	if err = op.IsConnected(ctx); err != nil {
+		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
 	var ts = asTermStream(ctx, req.Width, req.Height)
@@ -313,12 +305,8 @@ func getKeys(ctx context.Context, r *model.ApplicationResource) (*operator.Keys,
 	if err != nil {
 		return nil, err
 	}
-	ok, err := op.IsConnected(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("cannot connect %s", r.Edges.Connector.Name)
+	if err = op.IsConnected(ctx); err != nil {
+		return nil, fmt.Errorf("unreachable connector: %w", err)
 	}
 	return op.GetKeys(ctx, r)
 }

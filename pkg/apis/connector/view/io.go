@@ -233,12 +233,8 @@ func validateConnector(ctx context.Context, entity *model.Connector) error {
 		if err != nil {
 			return fmt.Errorf("invalid connector config: %w", err)
 		}
-		connected, err := op.IsConnected(ctx)
-		if err != nil {
-			return fmt.Errorf("invalid connector: %w", err)
-		}
-		if !connected {
-			return errors.New("invalid connector: unreachable")
+		if err = op.IsConnected(ctx); err != nil {
+			return fmt.Errorf("unreachable connector: %w", err)
 		}
 	case types.ConnectorCategoryVersionControl:
 		vcsClient, err := vcs.NewClient(entity)
