@@ -1,11 +1,11 @@
-package kube
+package kubeendpoint
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"net/url"
+	"strconv"
 
 	apicorev1 "k8s.io/api/core/v1"
 	apinetworkingv1 "k8s.io/api/networking/v1"
@@ -34,14 +34,14 @@ func GetServiceEndpoints(ctx context.Context, kubeCli *kubernetes.Clientset, ns,
 			return nil, err
 		}
 		for _, port := range svc.Spec.Ports {
-			nodePort := fmt.Sprint(port.NodePort)
+			nodePort := strconv.FormatInt(int64(port.NodePort), 10)
 			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
 		}
 	case apicorev1.ServiceTypeLoadBalancer:
 		accessIP := serviceLoadBalancerIP(*svc)
 		if accessIP != "" {
 			for _, port := range svc.Spec.Ports {
-				targetPort := fmt.Sprint(port.Port)
+				targetPort := strconv.FormatInt(int64(port.Port), 10)
 				endpoints = append(endpoints, net.JoinHostPort(accessIP, targetPort))
 			}
 		}
@@ -66,7 +66,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 	}
 
 	if len(list.Items) == 0 {
-		return "", fmt.Errorf("node list is empty")
+		return "", errors.New("node list is empty")
 	}
 
 	var nodes = list.Items
