@@ -16,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/operatorunknown"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
@@ -87,8 +88,14 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		})
 		if err != nil {
 			// warn out without breaking the whole syncing.
-			in.logger.Infof("cannot get operator of connector %s: %v", cs[i].ID, err)
+			in.logger.Warnf("cannot get operator of connector %q: %v", cs[i].ID, err)
 			continue
+		}
+		if err = op.IsConnected(ctx); err != nil {
+			// warn out without breaking the whole syncing.
+			in.logger.Warnf("unreachable connector %q", cs[i].ID)
+			// NB(thxCode): replace disconnected connector with unknown connector.
+			op = operatorunknown.Operator{}
 		}
 		ops[cs[i].ID] = op
 	}
