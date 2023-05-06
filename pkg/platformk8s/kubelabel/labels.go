@@ -1,4 +1,4 @@
-package kube
+package kubelabel
 
 import (
 	"context"
@@ -17,8 +17,8 @@ import (
 	"github.com/seal-io/seal/utils/json"
 )
 
-// Label apply the labels to kubernetes resource.
-func Label(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured, labels map[string]string) error {
+// Apply applies the labels to kubernetes resource.
+func Apply(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured, labels map[string]string) error {
 	p := patcher{
 		dynamicCli: dynamicCli,
 	}
