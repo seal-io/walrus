@@ -205,7 +205,7 @@ var replacements = map[string]struct {
 	T, E, D string
 }{
 	"Progressing": {"Progressing", "Progressing", "Progressed"},
-	"Provisioned": {"Provisioning", "ProvisionFailed", "Provisioned"},
+	"Connected":   {"Connecting", "Disconnected", "Connected"},
 	"Initialized": {"Initializing", "InitializeFailed", "Initialized"},
 	"Scheduled":   {"Scheduling", "ScheduleFailed", "Scheduled"},
 	"Accepted":    {"Accepting", "NotAccepted", "Accepted"},
