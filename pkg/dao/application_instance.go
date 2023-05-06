@@ -67,7 +67,7 @@ func ApplicationInstanceStatusUpdate(mc model.ClientSet, input *model.Applicatio
 
 	var c = mc.ApplicationInstances().UpdateOne(input)
 	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
-	if !input.Status.Changed() {
+	if input.Status.Changed() {
 		c.SetStatus(input.Status)
 	}
 
