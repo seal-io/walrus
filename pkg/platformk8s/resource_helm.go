@@ -27,7 +27,7 @@ func parseResourcesOfHelm(ctx context.Context, op Operator, res *model.Applicati
 	}
 	var hr, err = helm.GetRelease(ctx, res, opts)
 	if err != nil {
-		return nil, resourceParsingError("error getting helm release: " + err.Error())
+		return nil, resourceParsingError("error parsing helm release: " + err.Error())
 	}
 
 	// parse helm release.

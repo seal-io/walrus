@@ -52,7 +52,7 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 	var hg = action.NewGet(&opts)
 	hr, err := hg.Run(hrn)
 	if err != nil {
-		return nil, fmt.Errorf("error getting helm release %s, %w", hrn, err)
+		return nil, fmt.Errorf("error getting helm release %q: %w", res.Name, err)
 	}
 
 	return hr, nil

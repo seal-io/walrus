@@ -128,9 +128,9 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 		}
 	}
 	if err != nil {
-		logger.Errorf("error executing task: %s %v", in.task.Name(), err)
+		logger.Errorf("error executing task: %s: %v", in.task.Name(), err)
 	} else {
-		logger.Debugf("executed task: %s ", in.task.Name())
+		logger.Debugf("executed task: %s", in.task.Name())
 	}
 
 	// NB(thxCode): always return nil as there is no way to restart the job at present.
