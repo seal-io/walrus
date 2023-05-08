@@ -46,7 +46,7 @@ func (Connector) Fields() []ent.Field {
 			Default(crypto.Properties{}),
 		field.Bool("enableFinOps").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
-		field.JSON("finOpsCustomPricing", types.FinOpsCustomPricing{}).
+		field.JSON("finOpsCustomPricing", &types.FinOpsCustomPricing{}).
 			Comment("Custom pricing user defined.").
 			Optional(),
 		field.String("category").
