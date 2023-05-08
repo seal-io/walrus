@@ -8582,7 +8582,7 @@ type ConnectorMutation struct {
 	configVersion          *string
 	configData             *crypto.Properties
 	enableFinOps           *bool
-	finOpsCustomPricing    *types.FinOpsCustomPricing
+	finOpsCustomPricing    **types.FinOpsCustomPricing
 	category               *string
 	clearedFields          map[string]struct{}
 	resources              map[oid.ID]struct{}
@@ -9090,12 +9090,12 @@ func (m *ConnectorMutation) ResetEnableFinOps() {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (m *ConnectorMutation) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) {
+func (m *ConnectorMutation) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) {
 	m.finOpsCustomPricing = &tocp
 }
 
 // FinOpsCustomPricing returns the value of the "finOpsCustomPricing" field in the mutation.
-func (m *ConnectorMutation) FinOpsCustomPricing() (r types.FinOpsCustomPricing, exists bool) {
+func (m *ConnectorMutation) FinOpsCustomPricing() (r *types.FinOpsCustomPricing, exists bool) {
 	v := m.finOpsCustomPricing
 	if v == nil {
 		return
@@ -9106,7 +9106,7 @@ func (m *ConnectorMutation) FinOpsCustomPricing() (r types.FinOpsCustomPricing, 
 // OldFinOpsCustomPricing returns the old "finOpsCustomPricing" field's value of the Connector entity.
 // If the Connector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldFinOpsCustomPricing(ctx context.Context) (v types.FinOpsCustomPricing, err error) {
+func (m *ConnectorMutation) OldFinOpsCustomPricing(ctx context.Context) (v *types.FinOpsCustomPricing, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldFinOpsCustomPricing is only allowed on UpdateOne operations")
 	}
@@ -9552,7 +9552,7 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		m.SetEnableFinOps(v)
 		return nil
 	case connector.FieldFinOpsCustomPricing:
-		v, ok := value.(types.FinOpsCustomPricing)
+		v, ok := value.(*types.FinOpsCustomPricing)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

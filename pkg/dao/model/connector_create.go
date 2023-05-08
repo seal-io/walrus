@@ -127,16 +127,8 @@ func (cc *ConnectorCreate) SetEnableFinOps(b bool) *ConnectorCreate {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (cc *ConnectorCreate) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorCreate {
+func (cc *ConnectorCreate) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorCreate {
 	cc.mutation.SetFinOpsCustomPricing(tocp)
-	return cc
-}
-
-// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorCreate {
-	if tocp != nil {
-		cc.SetFinOpsCustomPricing(*tocp)
-	}
 	return cc
 }
 
@@ -605,7 +597,7 @@ func (u *ConnectorUpsert) UpdateEnableFinOps() *ConnectorUpsert {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (u *ConnectorUpsert) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsert {
+func (u *ConnectorUpsert) SetFinOpsCustomPricing(v *types.FinOpsCustomPricing) *ConnectorUpsert {
 	u.Set(connector.FieldFinOpsCustomPricing, v)
 	return u
 }
@@ -815,7 +807,7 @@ func (u *ConnectorUpsertOne) UpdateEnableFinOps() *ConnectorUpsertOne {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (u *ConnectorUpsertOne) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsertOne {
+func (u *ConnectorUpsertOne) SetFinOpsCustomPricing(v *types.FinOpsCustomPricing) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetFinOpsCustomPricing(v)
 	})
@@ -1193,7 +1185,7 @@ func (u *ConnectorUpsertBulk) UpdateEnableFinOps() *ConnectorUpsertBulk {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (u *ConnectorUpsertBulk) SetFinOpsCustomPricing(v types.FinOpsCustomPricing) *ConnectorUpsertBulk {
+func (u *ConnectorUpsertBulk) SetFinOpsCustomPricing(v *types.FinOpsCustomPricing) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.SetFinOpsCustomPricing(v)
 	})
