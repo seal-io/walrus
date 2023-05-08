@@ -59,33 +59,33 @@ func StatusError(msg string) *typestatus.Status {
 func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
 	switch o.GetKind() {
 	case "Service":
-		return getService(ctx, o)
+		return getService(o)
 	case "Pod":
-		return getPod(ctx, o)
+		return getPod(o)
 	case "PersistentVolume", "PersistentVolumeClaim":
-		return getPersistentVolume(ctx, o)
+		return getPersistentVolume(o)
 	case "APIService":
-		return getAPIService(ctx, o)
+		return getAPIService(o)
 	case "Deployment":
-		return getDeployment(ctx, o)
+		return getDeployment(o)
 	case "DaemonSet":
-		return getDaemonSet(ctx, o)
+		return getDaemonSet(o)
 	case "StatefulSet":
-		return getStatefulSet(ctx, o)
+		return getStatefulSet(o)
 	case "ReplicationController", "ReplicaSet":
 		return getReplicas(ctx, dynamicCli, o)
 	case "Job":
-		return getJob(ctx, o)
+		return getJob(o)
 	case "HorizontalPodAutoscaler":
-		return getHorizontalPodAutoscaler(ctx, o)
+		return getHorizontalPodAutoscaler(o)
 	case "CertificateSigningRequest":
-		return getCertificateSigningRequest(ctx, o)
+		return getCertificateSigningRequest(o)
 	case "Ingress":
-		return getIngress(ctx, o)
+		return getIngress(o)
 	case "NetworkPolicy":
-		return getNetworkPolicy(ctx, o)
+		return getNetworkPolicy(o)
 	case "PodDisruptionBudget":
-		return getPodDisruptionBudget(ctx, o)
+		return getPodDisruptionBudget(o)
 	case "ValidatingWebhookConfiguration", "MutatingWebhookConfiguration":
 		return getWebhookConfiguration(ctx, dynamicCli, o)
 	}
@@ -94,7 +94,7 @@ func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured
 }
 
 // getService returns the status of kubernetes service resource.
-func getService(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	spec, exist, _ := unstructured.NestedMap(o.Object, "spec")
 	if !exist {
 		return nil, errors.New("not found 'service' spec")
@@ -131,7 +131,7 @@ func getService(ctx context.Context, o *unstructured.Unstructured) (*typestatus.
 }
 
 // getPod returns the status of kubernetes pod resource.
-func getPod(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getPod(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'pod' status")
@@ -146,14 +146,14 @@ func getPod(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Stat
 
 	// dig clearer error message from status.
 	if st.Error {
-		st.SummaryStatusMessage = digPodErrorReason(ctx, status)
+		st.SummaryStatusMessage = digPodErrorReason(status)
 	}
 
 	return st, nil
 }
 
 // getPersistentVolume returns the status of kubernetes persistent volume(claim) resource,
-func getPersistentVolume(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getPersistentVolume(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'persistent volume(claim)' status")
@@ -208,7 +208,7 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 	}
 	for i := range pl.Items {
 		var p = pl.Items[i]
-		var ps, err = getPod(ctx, &p)
+		var ps, err = getPod(&p)
 		if err != nil {
 			return nil, fmt.Errorf("error stating kubernetes pod %s/%s: %w",
 				p.GetNamespace(), p.GetName(), err)
@@ -226,7 +226,7 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 }
 
 // getAPIService returns the status of kubernetes api service resource,
-func getAPIService(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getAPIService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'api service' status conditions")
@@ -239,7 +239,7 @@ func getAPIService(ctx context.Context, o *unstructured.Unstructured) (*typestat
 }
 
 // getDeployment returns the status of kubernetes deployment resource.
-func getDeployment(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getDeployment(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'deployment' status conditions")
@@ -253,7 +253,7 @@ func getDeployment(ctx context.Context, o *unstructured.Unstructured) (*typestat
 
 // getDaemonSet returns the status of kubernetes daemon set resource,
 // daemonSet status condition is empty, judge the summary based on other fields
-func getDaemonSet(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'daemonSet' status")
@@ -310,7 +310,7 @@ func getDaemonSet(ctx context.Context, o *unstructured.Unstructured) (*typestatu
 
 // getStatefulSet returns the status of kubernetes stateful set resource,
 // daemonSet status condition is empty, judge the summary based on other fields
-func getStatefulSet(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'statefulSet' status")
@@ -361,7 +361,7 @@ func getStatefulSet(ctx context.Context, o *unstructured.Unstructured) (*typesta
 }
 
 // getJob returns the status of kubernetes job resource.
-func getJob(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getJob(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'job' status conditions")
@@ -374,7 +374,7 @@ func getJob(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Stat
 }
 
 // getHorizontalPodAutoscaler returns the status of kubernetes hpa resource.
-func getHorizontalPodAutoscaler(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getHorizontalPodAutoscaler(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'horizontal pod autoscaler' status conditions")
@@ -387,7 +387,7 @@ func getHorizontalPodAutoscaler(ctx context.Context, o *unstructured.Unstructure
 }
 
 // getCertificateSigningRequest returns the status of kubernetes csr resource.
-func getCertificateSigningRequest(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getCertificateSigningRequest(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'certificate signing request' status conditions")
@@ -401,7 +401,7 @@ func getCertificateSigningRequest(ctx context.Context, o *unstructured.Unstructu
 
 // getIngress returns the status of kubernetes ingress resource,
 // ingress status isn't contain conditions, judge the summary based on other fields.
-func getIngress(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getIngress(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// if len(.status.loadBalancer.ingress) != 0, then ready.
 	var statusLBIngresses, _, _ = unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 	if len(statusLBIngresses) > 0 {
@@ -413,7 +413,7 @@ func getIngress(ctx context.Context, o *unstructured.Unstructured) (*typestatus.
 }
 
 // getNetworkPolicy returns the status of kubernetes network policy resource.
-func getNetworkPolicy(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getNetworkPolicy(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'network policy' status conditions")
@@ -426,7 +426,7 @@ func getNetworkPolicy(ctx context.Context, o *unstructured.Unstructured) (*types
 }
 
 // getPodDisruptionBudget returns the status of kubernetes pdb resource.
-func getPodDisruptionBudget(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getPodDisruptionBudget(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
 		return nil, errors.New("not found 'pod disruption budget' status conditions")
@@ -465,7 +465,7 @@ func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicCli
 			}
 			return nil, err
 		}
-		svcState, err := getService(ctx, svc)
+		svcState, err := getService(svc)
 		if err != nil {
 			return nil, fmt.Errorf("error stating kubernetes service: %w", err)
 		}
