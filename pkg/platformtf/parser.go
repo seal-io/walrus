@@ -36,12 +36,16 @@ type AbsProviderConfig struct {
 
 type Parser struct{}
 
-// ParseAppRevision parse the application revision output(terraform state) to application resources.
+// ParseAppRevision parse the application revision output(terraform state) to application resources,
+// returns list must not be `nil` unless unexpected input or raising error,
+// it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.ApplicationResources, error) {
 	return p.ParseState(revision.Output, revision)
 }
 
-// ParseState parse the terraform state to application resources.
+// ParseState parse the terraform state to application resources,
+// returns list must not be `nil` unless unexpected input or raising error,
+// it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
 	var logger = log.WithName("platformtf").WithName("parser")
 
@@ -50,7 +54,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 		return nil, err
 	}
 
-	var applicationResources model.ApplicationResources
+	var applicationResources = make(model.ApplicationResources, 0)
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
 		default:
