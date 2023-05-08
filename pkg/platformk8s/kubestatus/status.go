@@ -143,6 +143,12 @@ func getPod(ctx context.Context, o *unstructured.Unstructured) (*typestatus.Stat
 	)
 	st.SetConditions(toConditions(statusConds))
 	st.SetSummary(podStatusPaths.Walk(st))
+
+	// dig clearer error message from status.
+	if st.Error {
+		st.SummaryStatusMessage = digPodErrorReason(ctx, status)
+	}
+
 	return st, nil
 }
 
