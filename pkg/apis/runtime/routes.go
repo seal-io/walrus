@@ -588,7 +588,7 @@ const (
 )
 
 func getRouteHandlers(h Resource, p string) []routeHandler {
-	var logger = log.WithName("restful")
+	var logger = log.WithName("api")
 
 	var list []routeHandler
 	var index = map[string]int{}

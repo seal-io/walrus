@@ -66,7 +66,7 @@ type Value interface {
 
 var (
 	cacher = cache.MustNew(context.Background())
-	logger = log.WithName("settings")
+	logger = log.WithName("setting")
 )
 
 // value holds the entity implemented the Value interface.

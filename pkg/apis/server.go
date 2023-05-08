@@ -19,7 +19,7 @@ import (
 )
 
 func NewServer() (*Server, error) {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 	return &Server{
 		logger: logger,
 	}, nil

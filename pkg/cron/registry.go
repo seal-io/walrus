@@ -78,7 +78,7 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 
 // Sync observes the cron expr setting changes and re-register jobs.
 func Sync(ctx context.Context, m settingbus.BusMessage) error {
-	var logger = log.WithName("cronjobs")
+	var logger = log.WithName("task")
 
 	type job struct {
 		Name string

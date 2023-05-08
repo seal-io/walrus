@@ -15,7 +15,7 @@ import (
 // which is the same as gin.Recovery,
 // but friendly message information can be provided according to the request header.
 func Recovering() Handle {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {

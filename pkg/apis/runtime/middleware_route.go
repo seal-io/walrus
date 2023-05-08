@@ -30,7 +30,7 @@ func NoMethod() Handle {
 // Logging is a gin middleware,
 // which is the same as gin.Logger but uses a unified logging tool.
 func Logging(ignorePaths ...string) Handle {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 	if !logger.Enabled(log.DebugLevel) {
 		return func(c *gin.Context) {
 			c.Next()

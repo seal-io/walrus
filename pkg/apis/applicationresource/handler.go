@@ -218,7 +218,7 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 }
 
 func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) (view.CollectionGetResponse, error) {
-	var logger = log.WithName("application-resource")
+	var logger = log.WithName("api").WithName("application-resource")
 
 	// allow returning without sorting keys.
 	entities, err := query.Unique(false).

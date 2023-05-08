@@ -226,7 +226,7 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 // loadTerraformBlock loads the terraform block.
 func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 	var (
-		logger         = log.WithName("platformtf")
+		logger         = log.WithName("deployer").WithName("tf")
 		terraformBlock = &block.Block{
 			Type: block.TypeTerraform,
 		}
@@ -290,7 +290,7 @@ func loadProviderBlocks(opts *ProviderOptions) (block.Blocks, error) {
 // loadModuleBlocks returns config modules to get terraform module config block.
 func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) block.Blocks {
 	var (
-		logger       = log.WithName("platformtf").WithName("config")
+		logger       = log.WithName("deployer").WithName("tf").WithName("config")
 		blocks       block.Blocks
 		providersMap = make(map[string]interface{})
 	)

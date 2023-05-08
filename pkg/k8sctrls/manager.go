@@ -13,7 +13,7 @@ import (
 )
 
 func NewManager(cfg *rest.Config) (*Manager, error) {
-	var logger = log.WithName("k8sctrls")
+	var logger = log.WithName("k8sctrl")
 	var mgr, err = ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Logger:    log.AsLogr(logger),

@@ -33,6 +33,8 @@ func authn(c *gin.Context, modelClient model.ClientSet) error {
 }
 
 func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) error {
+	var logger = log.WithName("api").WithName("auth")
+
 	if sj, active := cache.LoadTokenSubject(token); sj != nil {
 		if !active {
 			// anonymous
@@ -57,7 +59,7 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 	var r, err = casdoor.IntrospectToken(c, cred.ClientID, cred.ClientSecret, token)
 	if err != nil {
 		// avoid d-dos
-		log.WithName("auth").Errorf("error verifying user token: %v", err)
+		logger.Errorf("error verifying user token: %v", err)
 		cache.StoreTokenSubject(token, "", false)
 		return nil
 	}
@@ -77,6 +79,8 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 }
 
 func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSession *req.HttpCookie) error {
+	var logger = log.WithName("api").WithName("auth")
+
 	if sj, active := cache.LoadSessionSubject(string(internalSession.Value())); sj != nil {
 		if !active {
 			// anonymous
@@ -97,7 +101,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 	var r, err = casdoor.GetUserInfo(c, []*req.HttpCookie{internalSession})
 	if err != nil {
 		// avoid d-dos
-		log.WithName("auth").Errorf("error getting user account: %v", err)
+		logger.Errorf("error getting user account: %v", err)
 		cache.StoreSessionSubject(string(internalSession.Value()), "", false)
 		return casdoor.InterruptSession(c.Writer, []*req.HttpCookie{internalSession})
 	}

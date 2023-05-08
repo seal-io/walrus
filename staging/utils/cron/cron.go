@@ -111,7 +111,7 @@ type timeoutTask struct {
 }
 
 func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
-	var logger = log.WithName("cronjobs")
+	var logger = log.WithName("task")
 
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
@@ -202,7 +202,7 @@ func (in *scheduler) Stop() error {
 
 func init() {
 	gocron.SetPanicHandler(func(jobName string, recoverData interface{}) {
-		log.WithName("cronjobs").Errorf("panic in job: %s, recover data: %v", jobName, recoverData)
+		log.WithName("task").Errorf("panic in job: %s, recover data: %v", jobName, recoverData)
 	})
 }
 

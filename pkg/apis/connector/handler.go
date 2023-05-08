@@ -313,28 +313,28 @@ func (h Handler) applyFinOps(conn *model.Connector, reinstall bool) error {
 	}
 
 	gopool.Go(func() {
-		var logger = log.WithName("cost")
+		var logger = log.WithName("api").WithName("connector")
 		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
 		// update pricing.
 		var err = deployer.UpdateCustomPricing(ctx, conn)
 		if err != nil {
-			logger.Errorf("error updating custom pricing to connector %s: %v", conn.Name, err)
+			logger.Errorf("error updating custom pricing to connector %q: %v", conn.ID, err)
 		}
 
 		// deploy tools.
 		err = deployer.DeployCostTools(ctx, conn, reinstall)
 		if err != nil {
 			// log instead of return error, then continue to sync the final status to connector
-			logger.Errorf("error ensuring cost tools for connector %s: %v", conn.Name, err)
+			logger.Errorf("error ensuring cost tools for connector %q: %v", conn.ID, err)
 		}
 
 		// sync status.
 		var syncer = pkgconn.NewStatusSyncer(h.modelClient)
 		err = syncer.SyncStatus(ctx, conn)
 		if err != nil {
-			logger.Errorf("error syncing status of connector %s: %v", conn.Name, err)
+			logger.Errorf("error syncing status of connector %q: %v", conn.ID, err)
 		}
 	})
 	return nil
