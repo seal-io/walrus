@@ -71,7 +71,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
-	var logger = log.WithName("application-instances")
+	var logger = log.WithName("api").WithName("application-instance")
 	var entity = req.Model()
 
 	// get deployer.
@@ -325,7 +325,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs
 
 func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
-	var logger = log.WithName("application-instances")
+	var logger = log.WithName("api").WithName("application-instance")
 	var entity = req.Model()
 
 	// get deployer.
@@ -551,7 +551,7 @@ func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*mo
 }
 
 func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions) (*model.ApplicationInstanceOutput, error) {
-	var logger = log.WithName("application-instances")
+	var logger = log.WithName("api").WithName("application-instance")
 
 	// get deployer.
 	var createOpts = deployer.CreateOptions{
@@ -617,8 +617,7 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
 			Exec(ctx)
 		if derr != nil {
-			log.WithName("application-instances").
-				Errorf("error deleting: %v", derr)
+			logger.Errorf("error deleting: %v", derr)
 		}
 		return nil, err
 	}

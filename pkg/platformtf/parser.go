@@ -47,7 +47,7 @@ func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.App
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
-	var logger = log.WithName("platformtf").WithName("parser")
+	var logger = log.WithName("deployer").WithName("tf").WithName("parser")
 
 	var revisionState state
 	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {

@@ -16,7 +16,7 @@ import (
 // Erroring is a gin middleware,
 // which converts the chain calling error into response.
 func Erroring() Handle {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 	return func(c *gin.Context) {
 		c.Next()
 		if len(c.Errors) == 0 {

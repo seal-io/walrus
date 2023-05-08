@@ -60,7 +60,7 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, e
 	// setup reconciler below.
 	return []Reconciler{
 		platformtf.JobReconciler{
-			Logger:      opts.GetLogger().WithName("platformtf-job"),
+			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),
 			KubeClient:  opts.GetClient(),
 			Kubeconfig:  opts.GetConfig(),
 			ModelClient: opts.ModelClient,

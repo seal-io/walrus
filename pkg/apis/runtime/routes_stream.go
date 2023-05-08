@@ -46,7 +46,7 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 }
 
 func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 
 	var ctx, cancel = context.WithCancel(c.Request.Context())
 	defer cancel()
@@ -75,7 +75,7 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 }
 
 func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
-	var logger = log.WithName("apis")
+	var logger = log.WithName("api")
 
 	const (
 		// Time allowed to read the next pong message from the peer.

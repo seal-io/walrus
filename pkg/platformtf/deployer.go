@@ -107,7 +107,7 @@ func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deplo
 	return &Deployer{
 		modelClient: opts.ModelClient,
 		clientSet:   clientSet,
-		logger:      log.WithName("deployer").WithName("terraform"),
+		logger:      log.WithName("deployer").WithName("tf"),
 	}, nil
 }
 
@@ -466,7 +466,7 @@ func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID,
 
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
 func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
-	var logger = log.WithName("platformtf")
+	var logger = log.WithName("deployer").WithName("tf")
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts)

@@ -102,10 +102,6 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 
 // syncApplicationRevisionStatus sync the application revision status.
 func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
-	var (
-		logger         = log.WithName("platformtf").WithName("jobctrl")
-		revisionStatus = status.ApplicationRevisionStatusSucceeded
-	)
 	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
 	if !ok {
 		// not a deployer job
@@ -120,7 +116,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		// delete the secret of the job.
 		derr := r.deleteSecret(ctx, job.Name)
 		if derr != nil {
-			logger.Warnf("delete secret failed, job: %s, err: %s", job.Name, derr)
+			r.Logger.Error(err, "failed to delete secret", "application-revision", appRevisionID)
 		}
 	}()
 
@@ -143,12 +139,13 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return err
 	}
 
+	var revisionStatus = status.ApplicationRevisionStatusSucceeded
 	if job.Status.Succeeded > 0 {
-		logger.Debugf("job is succeeded, job: %s", job.Name)
+		r.Logger.Info("succeed", "application-revision", appRevisionID)
 	}
 	if job.Status.Failed > 0 {
+		r.Logger.Info("failed", "application-revision", appRevisionID)
 		revisionStatus = status.ApplicationRevisionStatusFailed
-		logger.Debugf("job is failed, job: %s", job.Name)
 	}
 
 	// report to application revision.
@@ -209,7 +206,7 @@ func (r JobReconciler) deleteSecret(ctx context.Context, secretName string) erro
 // CreateJob create a job to run terraform deployment.
 func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCreateOptions) error {
 	var (
-		logger = log.WithName("platformtf").WithName("jobctrl")
+		logger = log.WithName("deployer").WithName("tf")
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 60
@@ -231,12 +228,12 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 	_, err := clientSet.BatchV1().Jobs(types.SealSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		if kerrors.IsAlreadyExists(err) {
-			logger.Warnf("job %s already exists", name)
+			logger.Warnf("k8s job %s already exists", name)
 		} else {
 			return err
 		}
 	}
-	logger.Debugf("job %s created", name)
+	logger.Debugf("k8s job %s created", name)
 
 	return nil
 }

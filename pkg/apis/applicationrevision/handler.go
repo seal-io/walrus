@@ -285,7 +285,7 @@ func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformState
 
 // UpdateTerraformStates update the terraform states of the application revision deployment.
 func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) (err error) {
-	var logger = log.WithName("platformtf").WithName("state")
+	var logger = log.WithName("api").WithName("application-revision")
 
 	entity, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
@@ -319,12 +319,12 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 		}
 		updateRevision, updateErr := revisionUpdate.Save(updateCtx)
 		if updateErr != nil {
-			logger.Errorf("update application revision status failed: %v", err)
+			logger.Errorf("update status failed: %v", err)
 			return
 		}
 
 		if nerr := revisionbus.Notify(ctx, h.modelClient, updateRevision); nerr != nil {
-			logger.Errorf("notify application revision failed: %v", nerr)
+			logger.Errorf("notify failed: %v", nerr)
 		}
 	}()
 
@@ -421,7 +421,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			createRess[i].ID)
 	}
 	gopool.Go(func() {
-		var logger = log.WithName("application-revision")
+		var logger = log.WithName("api").WithName("application-revision")
 		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
