@@ -46,6 +46,11 @@ type Handler struct {
 	tlsCertified bool
 }
 
+type createInstanceOptions struct {
+	Clone               bool
+	ApplicationInstance *model.ApplicationInstance
+}
+
 func (h Handler) Kind() string {
 	return "ApplicationInstance"
 }
@@ -57,66 +62,11 @@ func (h Handler) Validating() any {
 // Basic APIs
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
-	var logger = log.WithName("application-instances")
 	var entity = req.Model()
 
-	// get deployer.
-	var createOpts = deployer.CreateOptions{
-		Type:        platformtf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-	dp, err := platform.GetDeployer(ctx, createOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	// create instance, mark status to deploying.
-	creates, err := dao.ApplicationInstanceCreates(h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
-	entity, err = creates[0].Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err == nil {
-			return
-		}
-		// update a failure status.
-		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
-		var uerr = h.updateInstanceStatus(ctx, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of instance %s: %v",
-				entity.ID, uerr)
-		}
-	}()
-
-	// apply instance.
-	var applyOpts = deployer.ApplyOptions{
-		SkipTLSVerify: !h.tlsCertified,
-	}
-	err = dp.Apply(ctx, entity, applyOpts)
-	if err != nil {
-		// NB(thxCode): a better approach is to use transaction,
-		// however, building the application deployment process is a time-consuming task,
-		// to prevent long-time transaction, we use a deletion to achieve this.
-		// usually, the probability of this delete operation failing is very low.
-		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
-			Exec(ctx)
-		if derr != nil {
-			logger.Errorf("error deleting: %v", derr)
-		}
-		return nil, err
-	}
-
-	if err = publishApplicationUpdate(ctx, entity); err != nil {
-		return nil, err
-	}
-
-	return model.ExposeApplicationInstance(entity), nil
+	return h.createInstance(ctx, createInstanceOptions{
+		ApplicationInstance: entity,
+	})
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
@@ -591,24 +541,16 @@ func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*mo
 	if err != nil {
 		return nil, err
 	}
+	applicationInstance.Name = req.Name
 
-	return h.createInstance(ctx, &model.ApplicationInstance{
-		Name:          req.Name,
-		Variables:     applicationInstance.Variables,
-		ApplicationID: applicationInstance.ApplicationID,
-		EnvironmentID: applicationInstance.EnvironmentID,
+	return h.createInstance(ctx, createInstanceOptions{
+		Clone:               true,
+		ApplicationInstance: applicationInstance,
 	})
 }
 
-func (h Handler) createInstance(ctx context.Context, entity *model.ApplicationInstance) (*model.ApplicationInstanceOutput, error) {
-	creates, err := dao.ApplicationInstanceCreates(h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
-	entity, err = creates[0].Save(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions) (*model.ApplicationInstanceOutput, error) {
+	var logger = log.WithName("application-instances")
 
 	// get deployer.
 	var createOpts = deployer.CreateOptions{
@@ -621,6 +563,28 @@ func (h Handler) createInstance(ctx context.Context, entity *model.ApplicationIn
 		return nil, err
 	}
 
+	// create instance, mark status to deploying.
+	creates, err := dao.ApplicationInstanceCreates(h.modelClient, opts.ApplicationInstance)
+	if err != nil {
+		return nil, err
+	}
+	entity, err := creates[0].Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		// update a failure status.
+		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
+		var uerr = h.updateInstanceStatus(ctx, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of instance %s: %v",
+				entity.ID, uerr)
+		}
+	}()
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
