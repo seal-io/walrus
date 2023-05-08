@@ -156,7 +156,9 @@ const (
 func GetContainerStateType(s core.ContainerState) ContainerStateType {
 	switch {
 	case s.Waiting != nil:
-		return ContainerStateWaiting
+		if s.Waiting.Reason == "PodInitializing" {
+			return ContainerStateWaiting
+		}
 	case s.Running != nil:
 		return ContainerStateRunning
 	case s.Terminated != nil:
