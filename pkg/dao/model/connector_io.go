@@ -46,7 +46,7 @@ type ConnectorCreateInput struct {
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
-	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Category of the connector.
 	Category string `json:"category"`
 }
@@ -87,7 +87,7 @@ type ConnectorUpdateInput struct {
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
-	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Category of the connector.
 	Category string `json:"category,omitempty"`
 }
@@ -134,7 +134,7 @@ type ConnectorOutput struct {
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty"`
 	// Custom pricing user defined.
-	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
+	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Category of the connector.
 	Category string `json:"category,omitempty"`
 	// Environments holds the value of the environments edge.

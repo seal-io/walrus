@@ -47,7 +47,7 @@ type Connector struct {
 	// Config whether enable finOps, will install prometheus and opencost while enable.
 	EnableFinOps bool `json:"enableFinOps,omitempty" sql:"enableFinOps"`
 	// Custom pricing user defined.
-	FinOpsCustomPricing types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty" sql:"finOpsCustomPricing"`
+	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty" sql:"finOpsCustomPricing"`
 	// Category of the connector.
 	Category string `json:"category,omitempty" sql:"category"`
 	// Edges holds the relations/edges for other nodes in the graph.

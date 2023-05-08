@@ -118,16 +118,8 @@ func (cu *ConnectorUpdate) SetEnableFinOps(b bool) *ConnectorUpdate {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (cu *ConnectorUpdate) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorUpdate {
+func (cu *ConnectorUpdate) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdate {
 	cu.mutation.SetFinOpsCustomPricing(tocp)
-	return cu
-}
-
-// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
-func (cu *ConnectorUpdate) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdate {
-	if tocp != nil {
-		cu.SetFinOpsCustomPricing(*tocp)
-	}
 	return cu
 }
 
@@ -620,16 +612,8 @@ func (cuo *ConnectorUpdateOne) SetEnableFinOps(b bool) *ConnectorUpdateOne {
 }
 
 // SetFinOpsCustomPricing sets the "finOpsCustomPricing" field.
-func (cuo *ConnectorUpdateOne) SetFinOpsCustomPricing(tocp types.FinOpsCustomPricing) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdateOne {
 	cuo.mutation.SetFinOpsCustomPricing(tocp)
-	return cuo
-}
-
-// SetNillableFinOpsCustomPricing sets the "finOpsCustomPricing" field if the given value is not nil.
-func (cuo *ConnectorUpdateOne) SetNillableFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorUpdateOne {
-	if tocp != nil {
-		cuo.SetFinOpsCustomPricing(*tocp)
-	}
 	return cuo
 }
 
