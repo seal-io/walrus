@@ -695,6 +695,9 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		secrets       model.Secrets
 	)
 
+	for _, moduleConfig := range moduleConfigs {
+		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
+	}
 	// if application revision has secrets that inherit from cloned revision, use them directly.
 	if len(opts.ApplicationRevision.Secrets) > 0 {
 		for k, v := range opts.ApplicationRevision.Secrets {
@@ -705,10 +708,6 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		}
 
 		return secrets, nil
-	}
-
-	for _, moduleConfig := range moduleConfigs {
-		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
 	}
 	nameIn := make([]interface{}, len(moduleSecrets))
 	for i, name := range moduleSecrets {
