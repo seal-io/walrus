@@ -39,13 +39,15 @@ func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResou
 		case "services":
 			var endpoints, err = kubeendpoint.GetServiceEndpoints(ctx, client, r.Namespace, r.Name)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error getting kubernetes service endpoints %s/%s: %w",
+					r.Namespace, r.Name, err)
 			}
 			eps = append(eps, endpoints...)
 		case "ingresses":
 			var endpoints, err = kubeendpoint.GetIngressEndpoints(ctx, client, r.Namespace, r.Name)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error getting kubernetes ingress endpoints %s/%s: %w",
+					r.Namespace, r.Name, err)
 			}
 			eps = append(eps, endpoints...)
 		}
