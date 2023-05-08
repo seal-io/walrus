@@ -561,8 +561,8 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 	}
 
 	var rollbackOpts = deployer.RollbackOptions{
-		ApplicationRevision: applicationRevision,
-		SkipTLSVerify:       !h.tlsCertified,
+		SkipTLSVerify: !h.tlsCertified,
+		CloneFrom:     applicationRevision,
 	}
 	return dp.Rollback(ctx, applicationInstance, rollbackOpts)
 }

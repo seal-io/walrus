@@ -51,9 +51,12 @@ type Deployer struct {
 }
 
 type CreateRevisionOptions struct {
+	// JobType indicates the type of the job.
 	JobType             string
 	Application         *model.Application
 	ApplicationInstance *model.ApplicationInstance
+	// CloneFrom indicates the application revision to clone from.
+	CloneFrom *model.ApplicationRevision
 }
 
 // CreateSecretsOptions options for creating deployment job secrets.
@@ -74,6 +77,8 @@ type CreateJobOptions struct {
 	SkipTLSVerify       bool
 	Application         *model.Application
 	ApplicationInstance *model.ApplicationInstance
+	// ApplicationRevision indicates the application revision
+	// to create the deploy job.
 	ApplicationRevision *model.ApplicationRevision
 }
 
@@ -111,7 +116,7 @@ func (d Deployer) Type() deployer.Type {
 }
 
 // Apply will apply the application to deploy the application.
-func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, applyOpts deployer.ApplyOptions) (err error) {
+func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts deployer.ApplyOptions) (err error) {
 	app, err := d.getApplication(ctx, ai.ApplicationID)
 	if err != nil {
 		return err
@@ -121,6 +126,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 		JobType:             JobTypeApply,
 		Application:         app,
 		ApplicationInstance: ai,
+		CloneFrom:           opts.CloneFrom,
 	})
 	if err != nil {
 		return err
@@ -136,7 +142,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, appl
 
 	return d.CreateK8sJob(ctx, CreateJobOptions{
 		Type:                JobTypeApply,
-		SkipTLSVerify:       applyOpts.SkipTLSVerify,
+		SkipTLSVerify:       opts.SkipTLSVerify,
 		Application:         app,
 		ApplicationInstance: ai,
 		ApplicationRevision: ar,
@@ -190,7 +196,7 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 
 // Rollback instance to a specific revision.
 func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) (err error) {
-	if opts.ApplicationRevision == nil || opts.ApplicationRevision.InstanceID != ai.ID {
+	if opts.CloneFrom == nil || opts.CloneFrom.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")
 	}
 
@@ -209,43 +215,14 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 		return err
 	}
 
-	latestRevision, err := d.modelClient.ApplicationRevisions().Query().
-		Select(
-			applicationrevision.FieldInstanceID,
-			applicationrevision.FieldOutput,
-		).
-		Where(applicationrevision.InstanceID(ai.ID)).
-		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		First(ctx)
-	if err != nil {
-		return err
-	}
-
-	var (
-		ar     *model.ApplicationRevision
-		entity = &model.ApplicationRevision{
-			Status:                    status.ApplicationRevisionStatusRunning,
-			InstanceID:                ai.ID,
-			EnvironmentID:             ai.EnvironmentID,
-			Modules:                   opts.ApplicationRevision.Modules,
-			Secrets:                   opts.ApplicationRevision.Secrets,
-			Variables:                 opts.ApplicationRevision.Variables,
-			InputVariables:            opts.ApplicationRevision.InputVariables,
-			Output:                    latestRevision.Output,
-			DeployerType:              opts.ApplicationRevision.DeployerType,
-			PreviousRequiredProviders: opts.ApplicationRevision.PreviousRequiredProviders,
-		}
+	ar, err := d.CreateApplicationRevision(ctx,
+		CreateRevisionOptions{
+			JobType:             JobTypeApply,
+			Application:         app,
+			ApplicationInstance: ai,
+			CloneFrom:           opts.CloneFrom,
+		},
 	)
-	requiredProviders, err := d.getRequiredProviders(ctx, ai.ID, entity.Output)
-	if err != nil {
-		return err
-	}
-	entity.PreviousRequiredProviders = requiredProviders
-	revisionCreates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
-	if err != nil {
-		return err
-	}
-	ar, err = revisionCreates[0].Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -388,14 +365,41 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 // if not running, then apply the latest revision.
 // if running, then wait for the latest revision to be applied.
 func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevisionOptions) (*model.ApplicationRevision, error) {
-	var entity = &model.ApplicationRevision{
-		DeployerType:   DeployerType,
-		InstanceID:     opts.ApplicationInstance.ID,
-		EnvironmentID:  opts.ApplicationInstance.EnvironmentID,
-		Variables:      opts.Application.Variables,
-		InputVariables: opts.ApplicationInstance.Variables,
-		Status:         status.ApplicationRevisionStatusRunning,
+	var entity *model.ApplicationRevision
+	if opts.CloneFrom != nil {
+		entity = &model.ApplicationRevision{
+			Modules:        opts.CloneFrom.Modules,
+			Secrets:        opts.CloneFrom.Secrets,
+			Variables:      opts.CloneFrom.Variables,
+			InputVariables: opts.CloneFrom.InputVariables,
+		}
+	} else {
+		entity = &model.ApplicationRevision{
+			Variables:      opts.Application.Variables,
+			InputVariables: opts.ApplicationInstance.Variables,
+		}
+		// get modules for new revision.
+		amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
+			Where(applicationmodulerelationship.ApplicationID(opts.Application.ID)).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		entity.Modules = make([]types.ApplicationModule, len(amrs))
+		for i := range amrs {
+			entity.Modules[i] = types.ApplicationModule{
+				ModuleID:   amrs[i].ModuleID,
+				Version:    amrs[i].Version,
+				Name:       amrs[i].Name,
+				Attributes: amrs[i].Attributes,
+			}
+		}
 	}
+
+	entity.Status = status.ApplicationRevisionStatusRunning
+	entity.DeployerType = DeployerType
+	entity.InstanceID = opts.ApplicationInstance.ID
+	entity.EnvironmentID = opts.ApplicationInstance.EnvironmentID
 
 	// output of the previous revision should be inherited to the new one
 	// when creating a new revision.
@@ -419,23 +423,6 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 			return nil, err
 		}
 		entity.PreviousRequiredProviders = requiredProviders
-	}
-
-	// get modules for new revision.
-	amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
-		Where(applicationmodulerelationship.ApplicationID(opts.Application.ID)).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	entity.Modules = make([]types.ApplicationModule, len(amrs))
-	for i := range amrs {
-		entity.Modules[i] = types.ApplicationModule{
-			ModuleID:   amrs[i].ModuleID,
-			Version:    amrs[i].Version,
-			Name:       amrs[i].Name,
-			Attributes: amrs[i].Attributes,
-		}
 	}
 
 	if opts.JobType == JobTypeDestroy &&
@@ -483,10 +470,6 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	// prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-	variableSchemas, err := d.GetVariableSchemas(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -542,7 +525,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, v := range moduleConfigs {
 		outputs = append(outputs, v.Outputs...)
 	}
-	var variableNameAndTypes = opts.ApplicationRevision.InputVariables.StringTypesWith(variableSchemas)
+	var variableNameAndTypes = opts.ApplicationRevision.InputVariables.StringTypesWith(opts.ApplicationRevision.Variables)
 	var secretOptionMaps = map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
@@ -580,12 +563,15 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 
 	// save input plan to app revision.
 	opts.ApplicationRevision.InputPlan = string(secretMaps[config.FileMain])
-	// save secrets to app revision.
-	secretMap := make(crypto.Map[string, string], len(secrets))
-	for _, s := range secrets {
-		secretMap[s.Name] = string(s.Value)
+	// if application revision does not inherit secrets from cloned revision,
+	// then save the parsed secrets to app revision.
+	if len(opts.ApplicationRevision.Secrets) == 0 {
+		secretMap := make(crypto.Map[string, string], len(secrets))
+		for _, s := range secrets {
+			secretMap[s.Name] = string(s.Value)
+		}
+		opts.ApplicationRevision.Secrets = secretMap
 	}
-	opts.ApplicationRevision.Secrets = secretMap
 	update, err := dao.ApplicationRevisionUpdate(d.modelClient, opts.ApplicationRevision)
 	if err != nil {
 		return nil, err
@@ -619,18 +605,6 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 		secretData[secretFileName] = []byte(s)
 	}
 	return secretData, nil
-}
-
-func (d Deployer) GetVariableSchemas(ctx context.Context, opts CreateSecretsOptions) (property.Schemas, error) {
-	var app, err = d.modelClient.ApplicationInstances().Query().
-		Where(applicationinstance.ID(opts.ApplicationRevision.InstanceID)).
-		QueryApplication().
-		Select(application.FieldVariables).
-		Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return app.Variables, nil
 }
 
 // GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
@@ -720,6 +694,19 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		moduleSecrets []string
 		secrets       model.Secrets
 	)
+
+	// if application revision has secrets that inherit from cloned revision, use them directly.
+	if len(opts.ApplicationRevision.Secrets) > 0 {
+		for k, v := range opts.ApplicationRevision.Secrets {
+			secrets = append(secrets, &model.Secret{
+				Name:  k,
+				Value: crypto.String(v),
+			})
+		}
+
+		return secrets, nil
+	}
+
 	for _, moduleConfig := range moduleConfigs {
 		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
 	}
