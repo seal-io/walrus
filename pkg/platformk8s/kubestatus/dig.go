@@ -1,7 +1,6 @@
 package kubestatus
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
@@ -10,7 +9,7 @@ import (
 
 // the following codes inspired by https://github.com/kubernetes/kubernetes/blob/master/pkg/printers/internalversion/printers.go.
 
-func digPodErrorReason(ctx context.Context, status map[string]interface{}) (r string) {
+func digPodErrorReason(status map[string]interface{}) (r string) {
 	var initContainerStatuses, _, _ = unstructured.NestedSlice(status, "initContainerStatuses")
 	for i := range initContainerStatuses {
 		var initContainerStatus, ok = initContainerStatuses[i].(map[string]interface{})

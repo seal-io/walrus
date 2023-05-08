@@ -1,7 +1,6 @@
 package kubestatus
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -141,7 +140,7 @@ func Test_digPodErrorReason(t *testing.T) {
 		_ = json.Unmarshal(bs, &given)
 
 		t.Run(tc.name, func(t *testing.T) {
-			var actual = digPodErrorReason(context.Background(), given)
+			var actual = digPodErrorReason(given)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
