@@ -12,9 +12,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// ListCandidatesByPage gets the candidates for Label or State by pagination params.
-func ListCandidatesByPage(ctx context.Context, modelClient model.ClientSet, offset, limit int) ([]*model.ApplicationResource, error) {
+// ListCandidatesPageByConnector gets the candidates for Label or State by connector id in pagination.
+func ListCandidatesPageByConnector(ctx context.Context, modelClient model.ClientSet, connectorID types.ID, offset, limit int) ([]*model.ApplicationResource, error) {
 	return queryCandidates(modelClient).
+		Where(applicationresource.ConnectorID(connectorID)).
 		Offset(offset).
 		Limit(limit).
 		All(ctx)

@@ -108,7 +108,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	}
 	var wg = gopool.Group()
 	for bk := 0; bk < bkc; bk++ {
-		var st = in.buildStateTasks(ctx, bk, bks, ops)
+		var st = in.buildStateTasks(ctx, bk*bks, bks, ops)
 		wg.Go(st)
 	}
 	return wg.Wait()
@@ -117,8 +117,10 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int, ops map[types.ID]operator.Operator) func() error {
 	return func() error {
 		var is, err = in.modelClient.ApplicationInstances().Query().
+			Order(model.Desc(applicationinstance.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
+			Unique(false).
 			Select(
 				applicationinstance.FieldID,
 				applicationinstance.FieldStatus).
@@ -139,6 +141,8 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.ApplicationInstance, ops map[types.ID]operator.Operator) func() error {
 	return func() (berr error) {
 		var rs, err = i.QueryResources().
+			Order(model.Desc(applicationresource.FieldCreateTime)).
+			Unique(false).
 			Select(
 				applicationresource.FieldID,
 				applicationresource.FieldStatus,

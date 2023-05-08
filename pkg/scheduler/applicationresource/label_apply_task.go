@@ -101,22 +101,22 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 		const bks = 100
 		var bkc = cnt / bks
 		if bkc == 0 {
-			var at = in.buildApplyTask(ctx, op, 0, bks)
+			var at = in.buildApplyTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
 		var wg = gopool.Group()
 		for bk := 0; bk < bkc; bk++ {
-			var at = in.buildApplyTask(ctx, op, bk, bks)
+			var at = in.buildApplyTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
 		return wg.Wait()
 	}
 }
 
-func (in *LabelApplyTask) buildApplyTask(ctx context.Context, op operator.Operator, offset, limit int) func() error {
+func (in *LabelApplyTask) buildApplyTask(ctx context.Context, op operator.Operator, connectorID types.ID, offset, limit int) func() error {
 	return func() error {
-		var entities, err = applicationresources.ListCandidatesByPage(
-			ctx, in.modelClient, offset, limit)
+		var entities, err = applicationresources.ListCandidatesPageByConnector(
+			ctx, in.modelClient, connectorID, offset, limit)
 		if err != nil {
 			return fmt.Errorf("error listing label candidates: %w", err)
 		}
