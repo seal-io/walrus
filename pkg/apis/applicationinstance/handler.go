@@ -2,6 +2,7 @@ package applicationinstance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -585,9 +586,27 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 				entity.ID, uerr)
 		}
 	}()
+
+	// clonedInstanceRevision is the latest application revision
+	// of the cloned application instance.
+	var clonedInstanceRevision *model.ApplicationRevision
+	if opts.Clone {
+		if opts.ApplicationInstance.ID == "" {
+			return nil, errors.New("application instance id is empty")
+		}
+		clonedInstanceRevision, err = h.modelClient.ApplicationRevisions().Query().
+			Where(applicationrevision.InstanceID(opts.ApplicationInstance.ID)).
+			Order(model.Desc(applicationrevision.FieldCreateTime)).
+			First(ctx)
+		if err != nil && !model.IsNotFound(err) {
+			return nil, err
+		}
+	}
+
 	// apply instance.
 	var applyOpts = deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
+		CloneFrom:     clonedInstanceRevision,
 	}
 	err = dp.Apply(ctx, entity, applyOpts)
 	if err != nil {

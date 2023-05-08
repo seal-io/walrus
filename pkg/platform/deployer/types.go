@@ -29,6 +29,8 @@ type Deployer interface {
 // ApplyOptions holds the options of Deployer's Apply action.
 type ApplyOptions struct {
 	SkipTLSVerify bool
+	// CloneFrom is the application revision to clone from.
+	CloneFrom *model.ApplicationRevision
 }
 
 // DestroyOptions holds the options of Deployer's Destroy action.
@@ -38,6 +40,7 @@ type DestroyOptions struct {
 
 // RollbackOptions hold the options of Deployer's Rollback action.
 type RollbackOptions struct {
-	ApplicationRevision *model.ApplicationRevision
-	SkipTLSVerify       bool
+	SkipTLSVerify bool
+	// CloneFrom is the application revision to clone from.
+	CloneFrom *model.ApplicationRevision
 }
