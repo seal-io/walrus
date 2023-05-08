@@ -33,7 +33,7 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 	}
 
 	// get components of resources.
-	var comps []*model.ApplicationResource
+	var comps = make([]*model.ApplicationResource, 0)
 	for _, r := range rs {
 		switch r.Resource {
 		case "persistentvolumeclaims":

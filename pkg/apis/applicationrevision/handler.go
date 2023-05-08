@@ -396,11 +396,13 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			}
 		}
 		// delete stale resources.
-		_, err = tx.ApplicationResources().Delete().
-			Where(applicationresource.IDIn(deleteRessIDs...)).
-			Exec(ctx)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return err
+		if len(deleteRessIDs) != 0 {
+			_, err = tx.ApplicationResources().Delete().
+				Where(applicationresource.IDIn(deleteRessIDs...)).
+				Exec(ctx)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
 		}
 		return nil
 	})

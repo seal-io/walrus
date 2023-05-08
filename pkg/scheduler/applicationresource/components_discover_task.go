@@ -192,11 +192,13 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 			}
 
 			// delete stale components.
-			_, err = in.modelClient.ApplicationResources().Delete().
-				Where(applicationresource.IDIn(deleteCompIDs...)).
-				Exec(ctx)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				berr = multierr.Append(berr, err)
+			if len(deleteCompIDs) != 0 {
+				_, err = in.modelClient.ApplicationResources().Delete().
+					Where(applicationresource.IDIn(deleteCompIDs...)).
+					Exec(ctx)
+				if err != nil && !errors.Is(err, sql.ErrNoRows) {
+					berr = multierr.Append(berr, err)
+				}
 			}
 		}
 
