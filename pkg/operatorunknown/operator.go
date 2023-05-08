@@ -34,8 +34,9 @@ func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource
 func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResource) (*status.Status, error) {
 	return &status.Status{
 		Summary: status.Summary{
-			SummaryStatus: "Unknown",
-			Error:         true,
+			SummaryStatus:        "Unknown",
+			SummaryStatusMessage: "Connector Error: unreachable",
+			Error:                true,
 		},
 	}, nil
 }
