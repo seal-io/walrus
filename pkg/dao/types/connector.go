@@ -34,11 +34,11 @@ func (c *FinOpsCustomPricing) IsZero() bool {
 		c.Storage == ""
 }
 
-func DefaultFinOpsCustomPricing() FinOpsCustomPricing {
+func DefaultFinOpsCustomPricing() *FinOpsCustomPricing {
 	// opencost will treat custom price from configMap as month cost, and divide / 730 to calculate hourly cost,
 	// the default pricing from opencost is hourly cost, so we multiply by 730 and place here.
 	// https://github.com/opencost/opencost/blob/d7958021bff300610b4585de0fac4e7289d3b5b9/pkg/cloud/providerconfig.go#L214
-	return FinOpsCustomPricing{
+	return &FinOpsCustomPricing{
 		CPU:     "23.07603",
 		SpotCPU: "4.85815",
 		RAM:     "3.09301",
