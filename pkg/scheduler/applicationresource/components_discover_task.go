@@ -109,21 +109,24 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 		const bks = 100
 		var bkc = cnt / bks
 		if bkc == 0 {
-			var at = in.buildSyncTask(ctx, op, 0, bks)
+			var at = in.buildSyncTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
 		var wg = gopool.Group()
 		for bk := 0; bk < bkc; bk++ {
-			var at = in.buildSyncTask(ctx, op, bk, bks)
+			var at = in.buildSyncTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
 		return wg.Wait()
 	}
 }
 
-func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator.Operator, offset, limit int) func() error {
+func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator.Operator, connectorID types.ID, offset, limit int) func() error {
 	return func() (berr error) {
 		var entities, err = in.modelClient.ApplicationResources().Query().
+			Where(
+				applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered),
+				applicationresource.ConnectorID(connectorID)).
 			Order(model.Desc(applicationresource.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
