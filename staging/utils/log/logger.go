@@ -92,6 +92,8 @@ type Logger interface {
 	PrinterLogger
 
 	Enabled(v LoggingLevel) bool
+	SetLevel(v LoggingLevel)
+	GetLevel() LoggingLevel
 	V(v uint64) VerbosityLogger
 	WithName(name string) Logger
 	WithValues(keysAndValues ...interface{}) Logger
@@ -105,7 +107,7 @@ type LegacyLogger interface {
 
 // logger holds the global logger.
 var logger = DelegatedLogger{
-	Delegate: WrapZapperAsLogger(NewDevelopmentZapper()),
+	Delegate: NewDevelopmentWrappedZapperAsLogger(),
 }
 
 // Write exposes the io.Writer implementation of the global logger.
@@ -216,6 +218,16 @@ func PrintS(msg string, keysAndValues ...interface{}) {
 // Enabled exposes the Logger implementation of the global logger.
 func Enabled(v LoggingLevel) bool {
 	return logger.Enabled(v)
+}
+
+// SetLevel set the Logger level of the global logger.
+func SetLevel(v LoggingLevel) {
+	logger.SetLevel(v)
+}
+
+// GetLevel exposes the Logger level of the global logger.
+func GetLevel() LoggingLevel {
+	return logger.GetLevel()
 }
 
 // V exposes the Logger implementation of the global logger.

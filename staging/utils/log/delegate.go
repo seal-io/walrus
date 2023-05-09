@@ -198,6 +198,18 @@ func (l DelegatedLogger) Enabled(v LoggingLevel) bool {
 	}
 	return l.Delegate.Enabled(v)
 }
+func (l DelegatedLogger) SetLevel(v LoggingLevel) {
+	if l.Delegate == nil {
+		return
+	}
+	l.Delegate.SetLevel(v)
+}
+func (l DelegatedLogger) GetLevel() LoggingLevel {
+	if l.Delegate == nil {
+		return minLevel
+	}
+	return l.Delegate.GetLevel()
+}
 func (l DelegatedLogger) V(v uint64) VerbosityLogger {
 	if l.Delegate == nil {
 		return silenceLogger{}

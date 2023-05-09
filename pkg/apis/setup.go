@@ -127,6 +127,8 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		var r = debugApis
 		runtime.MustRouteGet(r, "/version", debug.Version())
 		runtime.MustRouteGet(r.Group("", runtime.OnlyLocalIP()), "/pprof/*any", debug.PProf())
+		runtime.MustRoutePut(r.Group("", runtime.OnlyLocalIP()), "/flags", debug.SetFlags())
+		runtime.MustRouteGet(r, "/flags", debug.GetFlags())
 	}
 
 	return apis, nil

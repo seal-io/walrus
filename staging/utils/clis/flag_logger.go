@@ -32,8 +32,7 @@ func (Logger) Flags(cmd *Command) {
 func (Logger) Before(cmd *Command) {
 	var pb = cmd.Before
 	cmd.Before = func(ctx *cli.Context) error {
-		var z = log.NewZapper(ctx.Bool("log-json"), !ctx.Bool("log-debug"), ctx.Bool("log-stdout"))
-		var l = log.WrapZapperAsLogger(z)
+		var l = log.NewWrappedZapperAsLogger(ctx.Bool("log-json"), !ctx.Bool("log-debug"), ctx.Bool("log-stdout"))
 		log.SetLogger(l)
 		log.SetVerbosity(ctx.Uint64("log-verbosity"))
 		if pb != nil {
