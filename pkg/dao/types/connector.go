@@ -25,13 +25,14 @@ type FinOpsCustomPricing struct {
 }
 
 func (c *FinOpsCustomPricing) IsZero() bool {
-	return c.CPU == "" &&
-		c.SpotCPU == "" &&
-		c.RAM == "" &&
-		c.SpotRAM == "" &&
-		c.GPU == "" &&
-		c.SpotGPU == "" &&
-		c.Storage == ""
+	return c == nil ||
+		c.CPU == "" &&
+			c.SpotCPU == "" &&
+			c.RAM == "" &&
+			c.SpotRAM == "" &&
+			c.GPU == "" &&
+			c.SpotGPU == "" &&
+			c.Storage == ""
 }
 
 func DefaultFinOpsCustomPricing() *FinOpsCustomPricing {
