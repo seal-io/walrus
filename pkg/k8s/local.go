@@ -112,7 +112,7 @@ func (Embedded) Run(ctx context.Context) error {
 		"--disable-network-policy",
 		"--disable-helm-controller",
 		"--flannel-backend=host-gw",
-		"--node-name=" + osx.Hostname("local"),
+		"--node-name=local",
 		"--data-dir=" + k3sDataDir,
 		"--write-kubeconfig=" + embeddedKubeConfigPath,
 		"--kubelet-arg=system-reserved=cpu=300m,memory=256Mi",
