@@ -101,8 +101,8 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	}
 	// execute tasks.
 	const bks = 10
-	var bkc = cnt / bks
-	if bkc == 0 {
+	var bkc = cnt/bks + 1
+	if bkc == 1 {
 		var st = in.buildStateTasks(ctx, 0, bks, ops)
 		return st()
 	}
