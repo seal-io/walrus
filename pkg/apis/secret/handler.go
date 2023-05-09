@@ -84,7 +84,6 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 
 var (
 	getFields = secret.WithoutFields(
-		secret.FieldCreateTime,
 		secret.FieldValue)
 )
 
