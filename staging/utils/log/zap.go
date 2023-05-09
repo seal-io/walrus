@@ -13,8 +13,7 @@ import (
 )
 
 // NewZapper creates a Zap logger.
-func NewZapper(asJSON, inProduction, toStdout bool) *zap.Logger {
-	var zapLevel = zap.DebugLevel
+func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLevel) {
 	var zapWriteSyncer = zapcore.AddSync(os.Stderr)
 	if toStdout {
 		zapWriteSyncer = zapcore.AddSync(os.Stdout)
@@ -25,9 +24,10 @@ func NewZapper(asJSON, inProduction, toStdout bool) *zap.Logger {
 		zap.ErrorOutput(zapWriteSyncer),
 	}
 
+	var zapLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
 	var zapEncoderConfig = zap.NewDevelopmentEncoderConfig()
 	if inProduction {
-		zapLevel = zap.InfoLevel
+		zapLevel.SetLevel(zap.InfoLevel)
 		zapEncoderConfig = zap.NewProductionEncoderConfig()
 		zapOptions = append(zapOptions,
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
@@ -65,22 +65,30 @@ func NewZapper(asJSON, inProduction, toStdout bool) *zap.Logger {
 		zapEncoder = zapcore.NewJSONEncoder(zapEncoderConfig)
 	}
 
-	return zap.New(zapcore.NewCore(zapEncoder, zapWriteSyncer, zapLevel), zapOptions...)
+	return zap.New(zapcore.NewCore(zapEncoder, zapWriteSyncer, zapLevel), zapOptions...), zapLevel
 }
 
-// NewDevelopmentZapper creates a Zap logger with development configuration.
-func NewDevelopmentZapper() *zap.Logger {
-	return NewZapper(false, false, false)
+// NewDevelopmentWrappedZapperAsLogger create a wrapped Zap logger as Logger with development config.
+func NewDevelopmentWrappedZapperAsLogger() Logger {
+	l, lv := NewZapper(false, false, false)
+	return zapLogger{l: l, s: l.Sugar(), lv: lv}
+}
+
+// NewWrappedZapperAsLogger create a wrapped Zap logger as Logger.
+func NewWrappedZapperAsLogger(asJSON, inProduction, toStdout bool) Logger {
+	l, lv := NewZapper(asJSON, inProduction, toStdout)
+	return zapLogger{l: l, s: l.Sugar(), lv: lv}
 }
 
 // WrapZapperAsLogger wraps a Zap logger as Logger.
-func WrapZapperAsLogger(l *zap.Logger) Logger {
-	return zapLogger{l: l, s: l.Sugar()}
+func WrapZapperAsLogger(l *zap.Logger, lv zap.AtomicLevel) Logger {
+	return zapLogger{l: l, s: l.Sugar(), lv: lv}
 }
 
 type zapLogger struct {
-	l *zap.Logger
-	s *zap.SugaredLogger
+	l  *zap.Logger
+	s  *zap.SugaredLogger
+	lv zap.AtomicLevel
 }
 
 func (z zapLogger) Write(p []byte) (int, error) {
@@ -178,20 +186,30 @@ func (z zapLogger) PrintS(msg string, keysAndValues ...interface{}) {
 }
 
 func (z zapLogger) Enabled(v LoggingLevel) bool {
-	var lvl zapcore.Level
-	switch v {
-	case DebugLevel:
-		lvl = zapcore.DebugLevel
-	case InfoLevel:
-		lvl = zapcore.InfoLevel
-	case WarnLevel:
-		lvl = zapcore.WarnLevel
-	case ErrorLevel:
-		lvl = zapcore.ErrorLevel
-	case FatalLevel:
-		lvl = zapcore.FatalLevel
-	}
+	lvl := toZapLevel(v)
 	return z.l.Core().Enabled(lvl)
+}
+
+func (z zapLogger) SetLevel(v LoggingLevel) {
+	lvl := toZapLevel(v)
+	z.lv.SetLevel(lvl)
+}
+
+func (z zapLogger) GetLevel() LoggingLevel {
+	switch z.l.Level() {
+	case zapcore.DebugLevel:
+		return DebugLevel
+	case zapcore.InfoLevel:
+		return InfoLevel
+	case zapcore.WarnLevel:
+		return WarnLevel
+	case zapcore.ErrorLevel:
+		return ErrorLevel
+	case zapcore.FatalLevel:
+		return FatalLevel
+	default:
+		return minLevel
+	}
 }
 
 func (z zapLogger) V(v uint64) VerbosityLogger {
@@ -237,6 +255,22 @@ func handleFields(args ...interface{}) (fields []zap.Field) {
 		}
 		fields = append(fields, field)
 		i++
+	}
+	return
+}
+
+func toZapLevel(l LoggingLevel) (lvl zapcore.Level) {
+	switch l {
+	case DebugLevel:
+		lvl = zapcore.DebugLevel
+	case InfoLevel:
+		lvl = zapcore.InfoLevel
+	case WarnLevel:
+		lvl = zapcore.WarnLevel
+	case ErrorLevel:
+		lvl = zapcore.ErrorLevel
+	case FatalLevel:
+		lvl = zapcore.FatalLevel
 	}
 	return
 }
