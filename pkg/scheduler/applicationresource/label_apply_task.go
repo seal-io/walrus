@@ -99,8 +99,8 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 			return nil
 		}
 		const bks = 100
-		var bkc = cnt / bks
-		if bkc == 0 {
+		var bkc = cnt/bks + 1
+		if bkc == 1 {
 			var at = in.buildApplyTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
