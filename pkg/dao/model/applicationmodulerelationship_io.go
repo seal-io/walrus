@@ -115,14 +115,18 @@ func ExposeApplicationModuleRelationship(in *ApplicationModuleRelationship) *App
 		Application: ExposeApplication(in.Edges.Application),
 		Module:      ExposeModule(in.Edges.Module),
 	}
-	if entity.Application == nil {
-		entity.Application = &ApplicationOutput{}
+	if in.ApplicationID != "" {
+		if entity.Application == nil {
+			entity.Application = &ApplicationOutput{}
+		}
+		entity.Application.ID = in.ApplicationID
 	}
-	entity.Application.ID = in.ApplicationID
-	if entity.Module == nil {
-		entity.Module = &ModuleOutput{}
+	if in.ModuleID != "" {
+		if entity.Module == nil {
+			entity.Module = &ModuleOutput{}
+		}
+		entity.Module.ID = in.ModuleID
 	}
-	entity.Module.ID = in.ModuleID
 	return entity
 }
 

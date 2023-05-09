@@ -97,10 +97,12 @@ func ExposeModuleVersion(in *ModuleVersion) *ModuleVersionOutput {
 		Schema:     in.Schema,
 		Module:     ExposeModule(in.Edges.Module),
 	}
-	if entity.Module == nil {
-		entity.Module = &ModuleOutput{}
+	if in.ModuleID != "" {
+		if entity.Module == nil {
+			entity.Module = &ModuleOutput{}
+		}
+		entity.Module.ID = in.ModuleID
 	}
-	entity.Module.ID = in.ModuleID
 	return entity
 }
 
