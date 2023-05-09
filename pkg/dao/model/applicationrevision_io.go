@@ -171,14 +171,18 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 		Instance:                  ExposeApplicationInstance(in.Edges.Instance),
 		Environment:               ExposeEnvironment(in.Edges.Environment),
 	}
-	if entity.Instance == nil {
-		entity.Instance = &ApplicationInstanceOutput{}
+	if in.InstanceID != "" {
+		if entity.Instance == nil {
+			entity.Instance = &ApplicationInstanceOutput{}
+		}
+		entity.Instance.ID = in.InstanceID
 	}
-	entity.Instance.ID = in.InstanceID
-	if entity.Environment == nil {
-		entity.Environment = &EnvironmentOutput{}
+	if in.EnvironmentID != "" {
+		if entity.Environment == nil {
+			entity.Environment = &EnvironmentOutput{}
+		}
+		entity.Environment.ID = in.EnvironmentID
 	}
-	entity.Environment.ID = in.EnvironmentID
 	return entity
 }
 

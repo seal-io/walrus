@@ -113,14 +113,18 @@ func ExposeApplicationInstance(in *ApplicationInstance) *ApplicationInstanceOutp
 		Revisions:   ExposeApplicationRevisions(in.Edges.Revisions),
 		Resources:   ExposeApplicationResources(in.Edges.Resources),
 	}
-	if entity.Application == nil {
-		entity.Application = &ApplicationOutput{}
+	if in.ApplicationID != "" {
+		if entity.Application == nil {
+			entity.Application = &ApplicationOutput{}
+		}
+		entity.Application.ID = in.ApplicationID
 	}
-	entity.Application.ID = in.ApplicationID
-	if entity.Environment == nil {
-		entity.Environment = &EnvironmentOutput{}
+	if in.EnvironmentID != "" {
+		if entity.Environment == nil {
+			entity.Environment = &EnvironmentOutput{}
+		}
+		entity.Environment.ID = in.EnvironmentID
 	}
-	entity.Environment.ID = in.EnvironmentID
 	return entity
 }
 

@@ -79,14 +79,18 @@ func ExposeEnvironmentConnectorRelationship(in *EnvironmentConnectorRelationship
 		Environment: ExposeEnvironment(in.Edges.Environment),
 		Connector:   ExposeConnector(in.Edges.Connector),
 	}
-	if entity.Environment == nil {
-		entity.Environment = &EnvironmentOutput{}
+	if in.EnvironmentID != "" {
+		if entity.Environment == nil {
+			entity.Environment = &EnvironmentOutput{}
+		}
+		entity.Environment.ID = in.EnvironmentID
 	}
-	entity.Environment.ID = in.EnvironmentID
-	if entity.Connector == nil {
-		entity.Connector = &ConnectorOutput{}
+	if in.ConnectorID != "" {
+		if entity.Connector == nil {
+			entity.Connector = &ConnectorOutput{}
+		}
+		entity.Connector.ID = in.ConnectorID
 	}
-	entity.Connector.ID = in.ConnectorID
 	return entity
 }
 

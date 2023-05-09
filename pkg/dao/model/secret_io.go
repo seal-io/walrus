@@ -90,10 +90,12 @@ func ExposeSecret(in *Secret) *SecretOutput {
 		Name:       in.Name,
 		Project:    ExposeProject(in.Edges.Project),
 	}
-	if entity.Project == nil {
-		entity.Project = &ProjectOutput{}
+	if in.ProjectID != "" {
+		if entity.Project == nil {
+			entity.Project = &ProjectOutput{}
+		}
+		entity.Project.ID = in.ProjectID
 	}
-	entity.Project.ID = in.ProjectID
 	return entity
 }
 

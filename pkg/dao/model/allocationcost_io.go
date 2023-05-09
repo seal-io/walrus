@@ -279,10 +279,12 @@ func ExposeAllocationCost(in *AllocationCost) *AllocationCostOutput {
 		RamByteUsageMax:     in.RamByteUsageMax,
 		Connector:           ExposeConnector(in.Edges.Connector),
 	}
-	if entity.Connector == nil {
-		entity.Connector = &ConnectorOutput{}
+	if in.ConnectorID != "" {
+		if entity.Connector == nil {
+			entity.Connector = &ConnectorOutput{}
+		}
+		entity.Connector.ID = in.ConnectorID
 	}
-	entity.Connector.ID = in.ConnectorID
 	return entity
 }
 

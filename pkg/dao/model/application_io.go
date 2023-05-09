@@ -134,10 +134,12 @@ func ExposeApplication(in *Application) *ApplicationOutput {
 		Instances:   ExposeApplicationInstances(in.Edges.Instances),
 		Modules:     ExposeApplicationModuleRelationships(in.Edges.Modules),
 	}
-	if entity.Project == nil {
-		entity.Project = &ProjectOutput{}
+	if in.ProjectID != "" {
+		if entity.Project == nil {
+			entity.Project = &ProjectOutput{}
+		}
+		entity.Project.ID = in.ProjectID
 	}
-	entity.Project.ID = in.ProjectID
 	return entity
 }
 

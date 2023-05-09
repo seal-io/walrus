@@ -150,18 +150,24 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 		Composition:  ExposeApplicationResource(in.Edges.Composition),
 		Components:   ExposeApplicationResources(in.Edges.Components),
 	}
-	if entity.Instance == nil {
-		entity.Instance = &ApplicationInstanceOutput{}
+	if in.InstanceID != "" {
+		if entity.Instance == nil {
+			entity.Instance = &ApplicationInstanceOutput{}
+		}
+		entity.Instance.ID = in.InstanceID
 	}
-	entity.Instance.ID = in.InstanceID
-	if entity.Connector == nil {
-		entity.Connector = &ConnectorOutput{}
+	if in.ConnectorID != "" {
+		if entity.Connector == nil {
+			entity.Connector = &ConnectorOutput{}
+		}
+		entity.Connector.ID = in.ConnectorID
 	}
-	entity.Connector.ID = in.ConnectorID
-	if entity.Composition == nil {
-		entity.Composition = &ApplicationResourceOutput{}
+	if in.CompositionID != "" {
+		if entity.Composition == nil {
+			entity.Composition = &ApplicationResourceOutput{}
+		}
+		entity.Composition.ID = in.CompositionID
 	}
-	entity.Composition.ID = in.CompositionID
 	return entity
 }
 

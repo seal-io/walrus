@@ -134,10 +134,12 @@ func ExposeClusterCost(in *ClusterCost) *ClusterCostOutput {
 		ManagementCost: in.ManagementCost,
 		Connector:      ExposeConnector(in.Edges.Connector),
 	}
-	if entity.Connector == nil {
-		entity.Connector = &ConnectorOutput{}
+	if in.ConnectorID != "" {
+		if entity.Connector == nil {
+			entity.Connector = &ConnectorOutput{}
+		}
+		entity.Connector.ID = in.ConnectorID
 	}
-	entity.Connector.ID = in.ConnectorID
 	return entity
 }
 
