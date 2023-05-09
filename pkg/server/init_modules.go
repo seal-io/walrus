@@ -9,15 +9,15 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/utils/version"
+	"github.com/seal-io/seal/pkg/settings"
 )
 
 func (r *Server) initModules(ctx context.Context, opts initOptions) error {
-	// TODO swap dev & release ref post v0.1.2
-	var ref = "release"
-	if version.IsValid() {
-		ref = "main"
+	var ref, err = settings.ServeModuleRefer.Value(ctx, opts.ModelClient)
+	if err != nil {
+		return err
 	}
+
 	var builtin = []*model.Module{
 		{
 			ID:          "webservice",
@@ -45,7 +45,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		},
 	}
 
-	var creates, err = dao.ModuleCreates(opts.ModelClient, builtin...)
+	creates, err := dao.ModuleCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}
