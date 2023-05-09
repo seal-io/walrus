@@ -159,10 +159,18 @@ func Expose{{ $.Name }}(in *{{ $.Name }}) *{{ $.Name }}Output {
 	{{- range $e := $outputEdges }}
 		{{- $struct := $e.StructField }}
 		{{- if $e.Unique }}
-			if entity.{{ $struct }} == nil {
-				entity.{{ $struct }} = &{{ $e.Type.Name }}Output{}
+			{{- if $e.Type.ID.Type.Nillable }}
+			if in.{{ $struct }}ID != nil {
+			{{- else if $e.Type.ID.Type.Numeric }}
+			if in.{{ $struct }}ID != 0 {
+			{{- else }}
+			if in.{{ $struct }}ID != "" {
+			{{- end }}
+				if entity.{{ $struct }} == nil {
+					entity.{{ $struct }} = &{{ $e.Type.Name }}Output{}
+				}
+				entity.{{ $struct }}.ID = in.{{ $struct }}ID
 			}
-			entity.{{ $struct }}.ID = in.{{ $struct }}ID
 		{{- end }}
 	{{- end }}
 	return entity
