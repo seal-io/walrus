@@ -35,6 +35,8 @@ var (
 	ServeUrl = newValue("ServeUrl", editable, nil, modifyWith(httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
 	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
+	// ServeModuleRefer keeps the branch name of github.com/seal-io/modules repo for serving module.
+	ServeModuleRefer = newValue("ServeModuleRefer", private, initializeFromEnv("main"), nil)
 	// TerraformDeployerImage indicates the image for terraform deployment.
 	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.2"), modifyWith(notBlank, containerImageReference))
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
