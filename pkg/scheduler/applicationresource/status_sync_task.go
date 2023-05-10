@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/operatorunknown"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -113,6 +114,7 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 			Unique(false).
 			Select(
 				applicationinstance.FieldID,
+				applicationinstance.FieldApplicationID,
 				applicationinstance.FieldStatus).
 			All(ctx)
 		if err != nil {
@@ -189,6 +191,13 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 		}
 
 		err = update.Exec(ctx)
+		if err != nil {
+			berr = multierr.Append(berr, err)
+		}
+
+		// FIXME(thxCode): there are several places call the following publishing,
+		//   we need an approach to unify them.
+		err = datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{i.ApplicationID})
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}
