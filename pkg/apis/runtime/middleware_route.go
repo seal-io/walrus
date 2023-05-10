@@ -93,8 +93,10 @@ func Logging(ignorePaths ...string) Handle {
 		if raw := c.Request.URL.RawQuery; raw != "" {
 			reqPath = reqPath + "?" + raw
 		}
-		logger.Debugf("%d | %10s | %13v | %15s | %-7s %s",
+		var reqProto = c.Request.Proto
+		logger.Debugf("%d | %8s | %10s | %13v | %15s | %-7s %s",
 			respStatus,
+			reqProto,
 			respSize,
 			reqLatency,
 			reqClientIP,
