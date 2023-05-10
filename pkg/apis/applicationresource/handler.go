@@ -94,6 +94,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	if err != nil {
 		return err
 	}
+	defer func() { t.Unsubscribe() }()
 
 	var query = h.modelClient.ApplicationResources().Query()
 	if req.InstanceID != "" {
@@ -104,7 +105,6 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		query.Select(fields...)
 	}
 
-	defer func() { t.Unsubscribe() }()
 	for {
 		var (
 			event topic.Event
