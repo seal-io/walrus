@@ -27,6 +27,9 @@ const (
 
 	// Connector is the topic for connector.
 	Connector topic.Topic = "Connector"
+
+	// Module is the topic for module.
+	Module topic.Topic = "Module"
 )
 
 type Message struct {
@@ -40,6 +43,7 @@ var allowed = sets.New(
 	ApplicationInstance,
 	ApplicationRevision,
 	Connector,
+	Module,
 )
 
 func Publish(ctx context.Context, mutationType string, op model.Op, ids []types.ID) error {

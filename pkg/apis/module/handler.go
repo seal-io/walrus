@@ -4,11 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/module/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	modbus "github.com/seal-io/seal/pkg/bus/module"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/topic"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -151,6 +154,61 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	return model.ExposeModules(entities), cnt, nil
+}
+
+func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
+	var t, err = topic.Subscribe(datamessage.Module)
+	if err != nil {
+		return err
+	}
+	defer func() { t.Unsubscribe() }()
+
+	var query = h.modelClient.Modules().Query()
+	if fields, ok := req.Extracting(getFields, getFields...); ok {
+		query.Select(fields...)
+	}
+
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message)
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamResponse
+		switch dm.Type {
+		case datamessage.EventCreate, datamessage.EventUpdate:
+			entities, err := query.Clone().
+				// allow returning without sorting keys.
+				Unique(false).
+				Where(module.IDIn(dm.Data...)).
+				All(ctx)
+
+			if err != nil {
+				return err
+			}
+			streamData = view.StreamResponse{
+				Type:       dm.Type,
+				Collection: model.ExposeModules(entities),
+			}
+		case datamessage.EventDelete:
+			streamData = view.StreamResponse{
+				Type: dm.Type,
+				IDs:  dm.Data,
+			}
+		}
+		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
+			continue
+		}
+		err = ctx.SendJSON(streamData)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // Extensional APIs

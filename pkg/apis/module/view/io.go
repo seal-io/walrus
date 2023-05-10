@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/module"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -69,6 +70,12 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ModuleOutput
 
+type StreamResponse struct {
+	Type       datamessage.EventType `json:"type"`
+	IDs        []string              `json:"ids,omitempty"`
+	Collection []*model.ModuleOutput `json:"collection,omitempty"`
+}
+
 // Batch APIs
 
 type CollectionDeleteRequest []*model.ModuleQueryInput
@@ -90,6 +97,10 @@ type CollectionGetRequest struct {
 }
 
 type CollectionGetResponse = []*model.ModuleOutput
+
+type CollectionStreamRequest struct {
+	runtime.RequestExtracting `query:",inline"`
+}
 
 // Extensional APIs
 
