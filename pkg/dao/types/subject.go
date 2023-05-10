@@ -51,17 +51,17 @@ func (in SubjectRoles) Deduplicate() SubjectRoles {
 		v SubjectRole
 		i int
 	}
-	var set = map[string]setEntry{}
+	set := map[string]setEntry{}
 	for i := 0; i < len(in); i++ {
 		if in[i].IsZero() {
 			continue
 		}
-		var k = in[i].String()
+		k := in[i].String()
 		if _, existed := set[k]; !existed {
 			set[k] = setEntry{v: in[i], i: len(set)}
 		}
 	}
-	var out = make(SubjectRoles, len(set))
+	out := make(SubjectRoles, len(set))
 	for _, o := range set {
 		out[o.i] = o.v
 	}
@@ -74,7 +74,7 @@ func (in SubjectRoles) Sort() SubjectRoles {
 }
 
 func (in SubjectRoles) Clone() SubjectRoles {
-	var out = make(SubjectRoles, 0, len(in))
+	out := make(SubjectRoles, 0, len(in))
 	for i := 0; i < len(in); i++ {
 		out = append(out, in[i])
 	}
@@ -83,11 +83,11 @@ func (in SubjectRoles) Clone() SubjectRoles {
 
 func (in SubjectRoles) Delete(rs ...SubjectRole) SubjectRoles {
 	type setEntry struct{}
-	var set = map[string]setEntry{}
+	set := map[string]setEntry{}
 	for i := 0; i < len(rs); i++ {
 		set[rs[i].String()] = setEntry{}
 	}
-	var out = SubjectRoles{}
+	out := SubjectRoles{}
 	for i := 0; i < len(in); i++ {
 		if _, existed := set[in[i].String()]; existed {
 			continue

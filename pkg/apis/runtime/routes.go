@@ -27,7 +27,7 @@ func init() {
 // MustRoutePost likes RoutePost,
 // but panics if error occurs.
 func MustRoutePost(r gin.IRoutes, p string, h any) {
-	var err = RoutePost(r, p, h)
+	err := RoutePost(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +57,7 @@ func RoutePost(r gin.IRoutes, p string, h any) error {
 // MustRouteDelete likes RouteDelete,
 // but panics if error occurs.
 func MustRouteDelete(r gin.IRoutes, p string, h any) {
-	var err = RouteDelete(r, p, h)
+	err := RouteDelete(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +87,7 @@ func RouteDelete(r gin.IRoutes, p string, h any) error {
 // MustRoutePut likes RoutePut,
 // but panics if error occurs.
 func MustRoutePut(r gin.IRoutes, p string, h any) {
-	var err = RoutePut(r, p, h)
+	err := RoutePut(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -117,7 +117,7 @@ func RoutePut(r gin.IRoutes, p string, h any) error {
 // MustRouteGet likes RouteGet,
 // but panics if error occurs.
 func MustRouteGet(r gin.IRoutes, p string, h any) {
-	var err = RouteGet(r, p, h)
+	err := RouteGet(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -147,7 +147,7 @@ func RouteGet(r gin.IRoutes, p string, h any) error {
 // MustRouteHead likes RouteHead,
 // but panics if error occurs.
 func MustRouteHead(r gin.IRoutes, p string, h any) {
-	var err = RouteHead(r, p, h)
+	err := RouteHead(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -177,7 +177,7 @@ func RouteHead(r gin.IRoutes, p string, h any) error {
 // MustRouteStatic likes RouteStatic,
 // but panics if error occurs.
 func MustRouteStatic(r gin.IRoutes, p string, h any) {
-	var err = RouteStatic(r, p, h)
+	err := RouteStatic(r, p, h)
 	if err != nil {
 		panic(err)
 	}
@@ -185,7 +185,7 @@ func MustRouteStatic(r gin.IRoutes, p string, h any) {
 
 // RouteStatic registers the given handler as HEAD and GET router.
 func RouteStatic(r gin.IRoutes, p string, h any) error {
-	var err = RouteHead(r, p, h)
+	err := RouteHead(r, p, h)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func RouteStatic(r gin.IRoutes, p string, h any) error {
 // MustRouteResource likes RouteResource,
 // but panics if error occurs.
 func MustRouteResource(r gin.IRoutes, h Resource) {
-	var err = RouteResource(r, h)
+	err := RouteResource(r, h)
 	if err != nil {
 		panic(err)
 	}
@@ -229,14 +229,14 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 	var sb strings.Builder
 	sb.WriteString("failed to ")
 
-	var n = m.Name
-	var cn = strings.TrimPrefix(n, "Collection")
+	n := m.Name
+	cn := strings.TrimPrefix(n, "Collection")
 	n, isPlural := cn, cn != n
-	var rn = strings.TrimPrefix(n, "Route")
+	rn := strings.TrimPrefix(n, "Route")
 	n, isCustomized := rn, rn != n
 	sb.WriteString(strings.ReplaceAll(strs.Dasherize(n), "-", " "))
 	if !isCustomized {
-		var r = m.Resource
+		r := m.Resource
 		if !isPlural {
 			r = strs.Singularize(r)
 		}
@@ -315,17 +315,17 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 //	 -> method /<plural>/_/<subpath>
 func RouteResource(r gin.IRoutes, h Resource) error {
 	if adv, ok := r.(AdviceBeforeResourceRegistering); ok {
-		var err = adv.BeforeAdvice(adviceResource{Resource: h})
+		err := adv.BeforeAdvice(adviceResource{Resource: h})
 		if err != nil {
 			return err
 		}
 	}
 
-	var k = h.Kind()
-	var resource, resourcePath = getResourceAndResourcePath(k)
-	var rhs = getRouteHandlers(h, resourcePath)
+	k := h.Kind()
+	resource, resourcePath := getResourceAndResourcePath(k)
+	rhs := getRouteHandlers(h, resourcePath)
 	for i := range rhs {
-		var rh = rhs[i]
+		rh := rhs[i]
 
 		// Normal request caller.
 		var (
@@ -360,13 +360,13 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 		}
 
 		// Construct virtual handler.
-		var vhm = RouteResourceHandleErrorMetadata{
+		vhm := RouteResourceHandleErrorMetadata{
 			Resource: resource,
 			Name:     rh.name,
 		}
-		var vh = func(c *gin.Context) {
+		vh := func(c *gin.Context) {
 			// Auth request.
-			var s = session.LoadSubject(c)
+			s := session.LoadSubject(c)
 			if !s.Enforce(c, resource) {
 				if s.IsAnonymous() {
 					c.AbortWithStatus(http.StatusUnauthorized)
@@ -418,7 +418,8 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				}
 			}
 			if ripState[ProfileCategoryQuery] {
-				if err := binding.MapFormWithTag(ri.Interface(), c.Request.URL.Query(), "query"); err != nil {
+				if err := binding.MapFormWithTag(ri.Interface(),
+					c.Request.URL.Query(), "query"); err != nil {
 					return
 				}
 			}
@@ -474,10 +475,10 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			}
 
 			// Process as normal request.
-			var inputs = make([]reflect.Value, 0, 2)
+			inputs := make([]reflect.Value, 0, 2)
 			inputs = append(inputs, reflect.ValueOf(c))
 			inputs = append(inputs, ri)
-			var outputs = rmr.Call(inputs)
+			outputs := rmr.Call(inputs)
 
 			// Render response.
 			if c.Request.Context().Err() != nil ||
@@ -486,17 +487,17 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				// Already render inside the above processing.
 				return
 			}
-			var errInterface = outputs[len(outputs)-1].Interface()
+			errInterface := outputs[len(outputs)-1].Interface()
 			if errInterface != nil {
-				var err = errInterface.(error)
-				var ge = c.Error(err)
+				err := errInterface.(error)
+				ge := c.Error(err)
 				if !isGinError(err) {
 					_ = ge.SetType(gin.ErrorTypePrivate).
 						SetMeta(vhm)
 				}
 				return
 			}
-			var code = http.StatusOK
+			code := http.StatusOK
 			switch len(outputs) {
 			case 1:
 				if rh.method == http.MethodPost {
@@ -514,7 +515,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				if rh.method == http.MethodPost {
 					code = http.StatusCreated
 				}
-				var obj = outputs[0].Interface()
+				obj := outputs[0].Interface()
 				switch ot := obj.(type) {
 				case rendCloser:
 					if ot == nil {
@@ -531,7 +532,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 					c.JSON(code, obj) // TODO negotiate.
 				}
 			case 3:
-				var obj = GetResponseCollection(c, outputs[0].Interface(), int(outputs[1].Int()))
+				obj := GetResponseCollection(c, outputs[0].Interface(), int(outputs[1].Int()))
 				c.JSON(code, obj) // TODO negotiate.
 			}
 		}
@@ -549,12 +550,12 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			rip = sip
 			rmrt = smrt
 		}
-		var rop = GetOutputProfile(rmrt)
+		rop := GetOutputProfile(rmrt)
 		schemeRoute(resource, k+"."+rh.name, rh.method, rh.path, rip, rop)
 	}
 
 	if adv, ok := r.(AdviceAfterResourceRegistering); ok {
-		var err = adv.AfterAdvice(adviceResource{Resource: h})
+		err := adv.AfterAdvice(adviceResource{Resource: h})
 		if err != nil {
 			return err
 		}
@@ -588,22 +589,22 @@ const (
 )
 
 func getRouteHandlers(h Resource, p string) []routeHandler {
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 
 	var list []routeHandler
-	var index = map[string]int{}
+	index := map[string]int{}
 
-	var hr = reflect.ValueOf(h)
-	var ht = hr.Type()
+	hr := reflect.ValueOf(h)
+	ht := hr.Type()
 
-	var ms = sets.Set[string]{}
+	ms := sets.Set[string]{}
 	for i := 0; i < ht.NumMethod(); i++ {
 		ms.Insert(ht.Method(i).Name)
 	}
 
 	for _, mn := range sets.List[string](ms) {
-		var mr = hr.MethodByName(mn)
-		var mrt = mr.Type()
+		mr := hr.MethodByName(mn)
+		mrt := mr.Type()
 
 		var (
 			rh            routeHandler
@@ -701,7 +702,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		ms.Delete(mn)
 
 		// Validate.
-		var err = func() error {
+		err := func() error {
 			// Validate input arguments.
 			switch mrt.NumIn() {
 			default:
@@ -709,7 +710,8 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			case 2:
 				if forStream {
 					if !isTypeOfRequestStream(mrt.In(0)) {
-						return fmt.Errorf("illegal first input type of '%s': expected runtime.RequestBidiStream or runtime.RequestUnidiStream", mn)
+						return fmt.Errorf("illegal first input type of '%s': "+
+							"expected runtime.RequestBidiStream or runtime.RequestUnidiStream", mn)
 					}
 				} else {
 					if !isTypeOfGinContext(mrt.In(0)) {
@@ -733,10 +735,18 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			// Validate output arguments.
 			switch mrt.NumOut() {
 			default:
-				return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 3", mn, mrt.NumOut())
+				return fmt.Errorf(
+					"invalid output number of '%s': got %d but expected not more than 3",
+					mn,
+					mrt.NumOut(),
+				)
 			case 3:
 				if forStream || rh.method != http.MethodGet {
-					return fmt.Errorf("invalid output number of '%s': got %d but exepcted not more than 2", mn, mrt.NumOut())
+					return fmt.Errorf(
+						"invalid output number of '%s': got %d but exepcted not more than 2",
+						mn,
+						mrt.NumOut(),
+					)
 				}
 				if !isTypeOfInt(mrt.Out(1)) {
 					return fmt.Errorf("illegal second output type of '%s': expected int", mn)
@@ -746,14 +756,22 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				}
 			case 2:
 				if forStream {
-					return fmt.Errorf("invalid output number of '%s': got %d but exepcted not more than 1", mn, mrt.NumOut())
+					return fmt.Errorf(
+						"invalid output number of '%s': got %d but exepcted not more than 1",
+						mn,
+						mrt.NumOut(),
+					)
 				}
 				if !isImplementationOfError(mrt.Out(1)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
 			case 1:
 				if !forStream && rh.method == http.MethodGet {
-					return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 1", mn, mrt.NumOut())
+					return fmt.Errorf(
+						"invalid output number of '%s': got %d but expected not more than 1",
+						mn,
+						mrt.NumOut(),
+					)
 				}
 				if !isImplementationOfError(mrt.Out(0)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
@@ -768,7 +786,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 
 		rh.refs = []reflect.Value{mr}
 		if rh.method == http.MethodGet {
-			var idx, exist = index[rh.method+":"+rh.path]
+			idx, exist := index[rh.method+":"+rh.path]
 			if exist {
 				if forStream { // Attach to GET handler.
 					list[idx].refs = append(list[idx].refs, mr)
@@ -787,8 +805,8 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 	}
 
 	for _, mn := range sets.List[string](ms) {
-		var mr = hr.MethodByName(mn)
-		var mrt = mr.Type()
+		mr := hr.MethodByName(mn)
+		mrt := mr.Type()
 
 		var (
 			rh            routeHandler
@@ -809,7 +827,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		ms.Delete(mn)
 
 		// Validate and complete.
-		var err = func() error {
+		err := func() error {
 			// Validate input arguments.
 			switch mrt.NumIn() {
 			default:
@@ -824,7 +842,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				case reflect.Struct, reflect.Pointer:
 				}
 
-				var rp = getProfileRouter(mrt.In(1))
+				rp := getProfileRouter(mrt.In(1))
 				if rp == nil {
 					return errors.New("illegal route profile: not found")
 				}
@@ -837,10 +855,18 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			// Validate output arguments.
 			switch mrt.NumOut() {
 			default:
-				return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 3", mn, mrt.NumOut())
+				return fmt.Errorf(
+					"invalid output number of '%s': got %d but expected not more than 3",
+					mn,
+					mrt.NumOut(),
+				)
 			case 3:
 				if !forCollection || rh.method != http.MethodGet {
-					return fmt.Errorf("invalid output number of '%s': got %d but exepcted not more than 2", mn, mrt.NumOut())
+					return fmt.Errorf(
+						"invalid output number of '%s': got %d but exepcted not more than 2",
+						mn,
+						mrt.NumOut(),
+					)
 				}
 				if !isTypeOfInt(mrt.Out(1)) {
 					return fmt.Errorf("illegal second output type of '%s': expected int", mn)
@@ -854,7 +880,11 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				}
 			case 1:
 				if rh.method == http.MethodGet {
-					return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 1", mn, mrt.NumOut())
+					return fmt.Errorf(
+						"invalid output number of '%s': got %d but expected not more than 1",
+						mn,
+						mrt.NumOut(),
+					)
 				}
 				if !isImplementationOfError(mrt.Out(0)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
@@ -869,7 +899,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 
 		rh.refs = []reflect.Value{mr}
 		if rh.method == http.MethodGet {
-			var idx, exist = index[rh.method+":"+rh.path]
+			idx, exist := index[rh.method+":"+rh.path]
 			if exist {
 				list[idx].refs[0] = mr
 				list[idx].name = mn // Rename to the GET handler.
@@ -889,7 +919,7 @@ type rendCloser interface {
 }
 
 func isImplementationOfError(r reflect.Type) bool {
-	var expected = reflect.TypeOf((*error)(nil)).Elem()
+	expected := reflect.TypeOf((*error)(nil)).Elem()
 	switch r.Kind() {
 	default:
 		return false
@@ -907,18 +937,18 @@ func isTypeOfRequestStream(r reflect.Type) bool {
 	default:
 		return false
 	case reflect.Struct:
-		var given = r.String()
+		given := r.String()
 		return given == expectedUnidi || given == expectedBidi
 	}
 }
 
 func isTypeOfGinContext(r reflect.Type) bool {
-	var expected = reflect.TypeOf(gin.Context{}).String()
+	expected := reflect.TypeOf(gin.Context{}).String()
 	switch r.Kind() {
 	default:
 		return false
 	case reflect.Pointer:
-		var given = r.Elem().String()
+		given := r.Elem().String()
 		return given == expected
 	}
 }

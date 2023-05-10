@@ -32,9 +32,9 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var creates, err = dao.ProjectCreates(h.modelClient, entity)
+	creates, err := dao.ProjectCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +51,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var updates, err = dao.ProjectUpdates(h.modelClient, entity)
+	updates, err := dao.ProjectUpdates(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.Projects().Get(ctx, req.ID)
+	entity, err := h.modelClient.Projects().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,11 +92,15 @@ var (
 		project.FieldUpdateTime)
 	sortFields = []string{
 		project.FieldName,
-		project.FieldCreateTime}
+		project.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Projects().Query()
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Projects().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -130,14 +134,15 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 // Extensional APIs.
 
-var (
-	secretQueryFields = []string{
-		secret.FieldName,
-	}
-)
+var secretQueryFields = []string{
+	secret.FieldName,
+}
 
-func (h Handler) GetSecrets(ctx *gin.Context, req view.GetSecretsRequest) (view.GetSecretsResponse, error) {
-	var query = h.modelClient.Secrets().Query()
+func (h Handler) GetSecrets(
+	ctx *gin.Context,
+	req view.GetSecretsRequest,
+) (view.GetSecretsResponse, error) {
+	query := h.modelClient.Secrets().Query()
 	if queries, ok := req.Querying(secretQueryFields); ok {
 		query.Where(queries)
 	}

@@ -21,7 +21,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 		}
 	}
 
-	var limiter = make(chan struct{}, max)
+	limiter := make(chan struct{}, max)
 	var token struct{}
 
 	if wait <= 0 {
@@ -41,7 +41,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 	}
 
 	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(c, wait)
+		ctx, cancel := context.WithTimeout(c, wait)
 		defer cancel()
 		select {
 		case <-ctx.Done():
@@ -66,7 +66,7 @@ func RequestThrottling(qps int, burst int) Handle {
 		}
 	}
 
-	var limiter = rate.NewLimiter(rate.Limit(qps), burst)
+	limiter := rate.NewLimiter(rate.Limit(qps), burst)
 	return func(c *gin.Context) {
 		if !limiter.Allow() {
 			if c.Err() == nil {
@@ -94,9 +94,9 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 		arrival time.Time
 		sleep   time.Duration
 	}
-	var window = time.Second / time.Duration(qps)
-	var maxSleep = -1 * time.Duration(slack) * window
-	var statePointer = func() unsafe.Pointer {
+	window := time.Second / time.Duration(qps)
+	maxSleep := -1 * time.Duration(slack) * window
+	statePointer := func() unsafe.Pointer {
 		var s state
 		return unsafe.Pointer(&s)
 	}()
@@ -109,16 +109,17 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 			default:
 			}
 
-			var prevStatePointer = atomic.LoadPointer(&statePointer)
-			var prevState = (*state)(prevStatePointer)
-			var currState = state{
+			prevStatePointer := atomic.LoadPointer(&statePointer)
+			prevState := (*state)(prevStatePointer)
+			currState := state{
 				arrival: time.Now(),
 				sleep:   prevState.sleep,
 			}
 
 			// For first request.
 			if prevState.arrival.IsZero() {
-				var taken = atomic.CompareAndSwapPointer(&statePointer, prevStatePointer, unsafe.Pointer(&currState))
+				taken := atomic.CompareAndSwapPointer(&statePointer,
+					prevStatePointer, unsafe.Pointer(&currState))
 				if !taken {
 					continue
 				}
@@ -141,12 +142,12 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 				c.AbortWithStatus(http.StatusTooManyRequests)
 				return
 			}
-			var taken = atomic.CompareAndSwapPointer(&statePointer, prevStatePointer, unsafe.Pointer(&currState))
+			taken := atomic.CompareAndSwapPointer(&statePointer, prevStatePointer, unsafe.Pointer(&currState))
 			if !taken {
 				continue
 			}
 			// Allow it after waiting.
-			var t = time.NewTimer(wait)
+			t := time.NewTimer(wait)
 			select {
 			case <-t.C:
 				t.Stop()

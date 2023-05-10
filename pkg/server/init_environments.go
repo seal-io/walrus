@@ -11,7 +11,7 @@ import (
 )
 
 func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
-	var builtin = []*model.Environment{
+	builtin := []*model.Environment{
 		// Default environment.
 		{
 			Name:        "default",
@@ -19,7 +19,7 @@ func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
 		},
 	}
 
-	var creates, err = dao.EnvironmentCreates(opts.ModelClient, builtin...)
+	creates, err := dao.EnvironmentCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}

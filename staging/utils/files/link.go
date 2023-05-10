@@ -68,12 +68,12 @@ func Link(src, dst string, opts ...LinkOptions) error {
 		opts[i](&o)
 	}
 
-	var srcInfo, err = os.Lstat(src)
+	srcInfo, err := os.Lstat(src)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) || !o.create {
 			return err
 		}
-		var m = os.FileMode(0666)
+		m := os.FileMode(0o666)
 		if o.createPerm != nil {
 			m = *o.createPerm
 		}
@@ -82,9 +82,9 @@ func Link(src, dst string, opts ...LinkOptions) error {
 				return fmt.Errorf("cannot create src dir: %w", err)
 			}
 		} else {
-			var dstDir = filepath.Dir(dst)
+			dstDir := filepath.Dir(dst)
 			if !Exists(dstDir) {
-				if err = os.MkdirAll(dstDir, 0666); err != nil {
+				if err = os.MkdirAll(dstDir, 0o666); err != nil {
 					return fmt.Errorf("cannot create dir of dst: %w", err)
 				}
 			}
@@ -106,9 +106,9 @@ func Link(src, dst string, opts ...LinkOptions) error {
 			return fmt.Errorf("cannot clean dst: %w", err)
 		}
 	} else {
-		var dstDir = filepath.Dir(dst)
+		dstDir := filepath.Dir(dst)
 		if !Exists(dstDir) {
-			if err = os.MkdirAll(dstDir, 0666); err != nil {
+			if err = os.MkdirAll(dstDir, 0o666); err != nil {
 				return fmt.Errorf("cannot create dir of dst: %w", err)
 			}
 		}
@@ -133,13 +133,13 @@ func Link(src, dst string, opts ...LinkOptions) error {
 	}
 
 	if o.preserveTimes {
-		var aTime, mTime, _ = fileTimes(srcInfo)
+		aTime, mTime, _ := fileTimes(srcInfo)
 		if err = os.Chtimes(dst, aTime, mTime); err != nil {
 			return fmt.Errorf("cannot preserve times: %w", err)
 		}
 	}
 	if o.preserveOwner {
-		var uid, gid = fileOwner(srcInfo)
+		uid, gid := fileOwner(srcInfo)
 		if err = os.Lchown(dst, uid, gid); err != nil {
 			return fmt.Errorf("cannot preserve owner: %w", err)
 		}

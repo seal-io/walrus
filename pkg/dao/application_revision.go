@@ -7,19 +7,22 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationRevision) ([]*model.ApplicationRevisionCreate, error) {
+func ApplicationRevisionCreates(
+	mc model.ClientSet,
+	input ...*model.ApplicationRevision,
+) ([]*model.ApplicationRevisionCreate, error) {
 	if len(input) == 0 {
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ApplicationRevisionCreate, len(input))
+	rrs := make([]*model.ApplicationRevisionCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.ApplicationRevisions().Create().
+		c := mc.ApplicationRevisions().Create().
 			SetInstanceID(r.InstanceID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetInputPlan(r.InputPlan).
@@ -55,7 +58,10 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 	return rrs, nil
 }
 
-func ApplicationRevisionUpdate(mc model.ClientSet, input *model.ApplicationRevision) (*model.ApplicationRevisionUpdateOne, error) {
+func ApplicationRevisionUpdate(
+	mc model.ClientSet,
+	input *model.ApplicationRevision,
+) (*model.ApplicationRevisionUpdateOne, error) {
 	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
@@ -64,7 +70,7 @@ func ApplicationRevisionUpdate(mc model.ClientSet, input *model.ApplicationRevis
 		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	var c = mc.ApplicationRevisions().UpdateOne(input).
+	c := mc.ApplicationRevisions().UpdateOne(input).
 		SetStatusMessage(strs.NormalizeSpecialChars(input.StatusMessage))
 	if input.Status != "" {
 		c.SetStatus(input.Status)

@@ -110,8 +110,8 @@ func (ApplicationResource) Interceptors() []ent.Interceptor {
 	}
 
 	// Filters out not "data" mode and "kubectl_manifest" type resources.
-	var filter = ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
-		var t, ok = query.(target)
+	filter := ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
+		t, ok := query.(target)
 		if ok {
 			t.WhereP(
 				sql.FieldNEQ("mode", "data"),

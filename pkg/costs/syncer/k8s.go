@@ -156,7 +156,13 @@ func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs [
 	return nil
 }
 
-func (in *K8sCostSyncer) timeRange(ctx context.Context, restCfg *rest.Config, conn *model.Connector, startTime, endTime *time.Time) (*time.Time, *time.Time, error) {
+func (in *K8sCostSyncer) timeRange(
+	ctx context.Context,
+	restCfg *rest.Config,
+	conn *model.Connector,
+	startTime,
+	endTime *time.Time,
+) (*time.Time, *time.Time, error) {
 	// Time range existed.
 	if startTime != nil && endTime != nil {
 		return startTime, endTime, nil
@@ -173,7 +179,7 @@ func (in *K8sCostSyncer) timeRange(ctx context.Context, restCfg *rest.Config, co
 		return nil, nil, err
 	}
 
-	var clusterEarliestTime = time.Now()
+	clusterEarliestTime := time.Now()
 	for _, v := range nodes.Items {
 		if v.CreationTimestamp.Time.Before(clusterEarliestTime) {
 			clusterEarliestTime = v.CreationTimestamp.Time

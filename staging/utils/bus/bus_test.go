@@ -18,7 +18,7 @@ func (in testMessage) String() string {
 
 func TestBus_PublishStruct(t *testing.T) {
 	var actual testMessage
-	var err = Subscribe("struct", func(ctx context.Context, m testMessage) error {
+	err := Subscribe("struct", func(ctx context.Context, m testMessage) error {
 		actual = m
 		return nil
 	})
@@ -32,7 +32,7 @@ func TestBus_PublishStruct(t *testing.T) {
 
 func TestBus_PublishPointer(t *testing.T) {
 	var actual *testMessage
-	var err = Subscribe("pointer", func(ctx context.Context, m *testMessage) error {
+	err := Subscribe("pointer", func(ctx context.Context, m *testMessage) error {
 		actual = m
 		return nil
 	})
@@ -46,7 +46,7 @@ func TestBus_PublishPointer(t *testing.T) {
 
 func TestBus_PublishInterfaceValue(t *testing.T) {
 	var actual *testMessage
-	var err = Subscribe("interface value", func(ctx context.Context, m *testMessage) error {
+	err := Subscribe("interface value", func(ctx context.Context, m *testMessage) error {
 		actual = m
 		return nil
 	})
@@ -61,7 +61,7 @@ func TestBus_PublishInterfaceValue(t *testing.T) {
 
 func TestBus_PublishMap(t *testing.T) {
 	var actual map[string]int
-	var err = Subscribe("map", func(ctx context.Context, m map[string]int) error {
+	err := Subscribe("map", func(ctx context.Context, m map[string]int) error {
 		actual = m
 		return nil
 	})
@@ -75,7 +75,7 @@ func TestBus_PublishMap(t *testing.T) {
 
 func TestBus_PublishSlice(t *testing.T) {
 	var actual []string
-	var err = Subscribe("slice", func(ctx context.Context, m []string) error {
+	err := Subscribe("slice", func(ctx context.Context, m []string) error {
 		actual = m
 		return nil
 	})
@@ -89,7 +89,7 @@ func TestBus_PublishSlice(t *testing.T) {
 
 func TestBus_PublishArray(t *testing.T) {
 	var actual [2]int
-	var err = Subscribe("array", func(ctx context.Context, m [2]int) error {
+	err := Subscribe("array", func(ctx context.Context, m [2]int) error {
 		actual = m
 		return nil
 	})

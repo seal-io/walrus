@@ -16,7 +16,7 @@ import (
 // Erroring is a gin middleware,
 // which converts the chain calling error into response.
 func Erroring() Handle {
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 	return func(c *gin.Context) {
 		c.Next()
 		if len(c.Errors) == 0 {
@@ -30,7 +30,7 @@ func Erroring() Handle {
 
 		// Log private errors.
 		if me := c.Errors.ByType(gin.ErrorTypePrivate); len(me) != 0 {
-			var reqPath = c.Request.URL.Path
+			reqPath := c.Request.URL.Path
 			if raw := c.Request.URL.RawQuery; raw != "" {
 				reqPath = reqPath + "?" + raw
 			}
@@ -38,13 +38,13 @@ func Erroring() Handle {
 		}
 
 		// Get last error from chain and parse into response.
-		var he = getHttpError(c)
+		he := getHttpError(c)
 		c.AbortWithStatusJSON(he.code, he) // TODO negotiate.
 	}
 }
 
 func getHttpError(c *gin.Context) (he httpError) {
-	var ge = c.Errors.Last()
+	ge := c.Errors.Last()
 
 	if ge == nil || ge.Err == nil {
 		he.code = http.StatusInternalServerError
@@ -72,25 +72,25 @@ func getHttpError(c *gin.Context) (he httpError) {
 }
 
 func diagnoseError(ge *gin.Error) (int, string) {
-	var c = http.StatusInternalServerError
+	c := http.StatusInternalServerError
 	if ge.Type == gin.ErrorTypeBind {
 		c = http.StatusBadRequest
 	}
 
 	var b strings.Builder
 	if ge.Meta != nil {
-		var m, ok = ge.Meta.(RouteResourceHandleErrorMetadata)
+		m, ok := ge.Meta.(RouteResourceHandleErrorMetadata)
 		if ok {
 			b.WriteString(m.String())
 		}
 	}
 
-	var err = ge.Err
+	err := ge.Err
 	if ue := errors.Unwrap(err); ue != nil {
 		err = ue
 	}
 	for i := range diagnosis {
-		var s = diagnosis[i].probe(err)
+		s := diagnosis[i].probe(err)
 		if s == "" {
 			continue
 		}

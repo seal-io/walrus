@@ -16,11 +16,11 @@ type setupApisOptions struct {
 }
 
 func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
-	var srv, err = apis.NewServer()
+	srv, err := apis.NewServer()
 	if err != nil {
 		return err
 	}
-	var serveOpts = apis.ServeOptions{
+	serveOpts := apis.ServeOptions{
 		SetupOptions: apis.SetupOptions{
 			EnableAuthn: r.EnableAuthn,
 			ConnQPS:     r.ConnQPS,

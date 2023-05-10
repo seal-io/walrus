@@ -6,19 +6,22 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
-func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationResource) ([]*model.ApplicationResourceCreate, error) {
+func ApplicationResourceCreates(
+	mc model.ClientSet,
+	input ...*model.ApplicationResource,
+) ([]*model.ApplicationResourceCreate, error) {
 	if len(input) == 0 {
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ApplicationResourceCreate, len(input))
+	rrs := make([]*model.ApplicationResourceCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.ApplicationResources().Create().
+		c := mc.ApplicationResources().Create().
 			SetInstanceID(r.InstanceID).
 			SetConnectorID(r.ConnectorID).
 			SetName(r.Name).

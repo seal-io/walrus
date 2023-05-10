@@ -22,7 +22,7 @@ func New() *Agent {
 }
 
 func (r *Agent) Flags(cmd *cli.Command) {
-	var flags = [...]cli.Flag{}
+	flags := [...]cli.Flag{}
 	for i := range flags {
 		cmd.Flags = append(cmd.Flags, flags[i])
 	}
@@ -31,7 +31,7 @@ func (r *Agent) Flags(cmd *cli.Command) {
 func (r *Agent) Before(cmd *cli.Command) {
 	r.Logger.Before(cmd)
 	// Compatible with other loggers.
-	var logger = log.GetLogger()
+	logger := log.GetLogger()
 	stdlog.SetOutput(logger)
 	logrus.SetOutput(logger)
 	klog.SetOutput(logger)

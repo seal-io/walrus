@@ -29,7 +29,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 	}
 
 	if res.Type == "helm_release" {
-		var opts = helm.GetReleaseOptions{
+		opts := helm.GetReleaseOptions{
 			RESTClientGetter: helm.IncompleteRestClientGetter(*op.RestConfig),
 			Log:              op.Logger.Debugf,
 		}
@@ -37,12 +37,12 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 		return helm.GetReleaseStatus(ctx, res, opts)
 	}
 
-	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
+	gvr, ok := intercept.Terraform().GetGVR(res.Type)
 	if !ok {
 		// Mark ready if it's unresolved type.
 		return &kubestatus.GeneralStatusReady, nil
 	}
-	var ns, n = kube.ParseNamespacedName(res.Name)
+	ns, n := kube.ParseNamespacedName(res.Name)
 
 	// Fetch label selector with dynamic client.
 	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)

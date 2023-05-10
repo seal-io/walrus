@@ -12,7 +12,7 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.AllocationCostCreate, len(input))
+	rrs := make([]*model.AllocationCostCreate, len(input))
 	for i := range input {
 		r := input[i]
 		if r == nil {

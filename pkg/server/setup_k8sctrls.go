@@ -16,11 +16,11 @@ type setupK8sCtrlsOptions struct {
 }
 
 func (r *Server) setupK8sCtrls(ctx context.Context, opts setupK8sCtrlsOptions) error {
-	var mgr, err = k8sctrls.NewManager(opts.K8sConfig)
+	mgr, err := k8sctrls.NewManager(opts.K8sConfig)
 	if err != nil {
 		return err
 	}
-	var startOpts = k8sctrls.StartOptions{
+	startOpts := k8sctrls.StartOptions{
 		SetupOptions: k8sctrls.SetupOptions{
 			ModelClient: opts.ModelClient,
 		},

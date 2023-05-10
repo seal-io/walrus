@@ -192,7 +192,7 @@ func (in *HttpRequest) WithBodyBytes(bs []byte) *HttpRequest {
 // - Content-Length: size of JSON bytes (calculated by fasthttp),
 // it's able to overwrite the Content-Type with WithContentType.
 func (in *HttpRequest) WithBodyJSON(object interface{}) *HttpRequest {
-	var bs, err = json.Marshal(object)
+	bs, err := json.Marshal(object)
 	if err != nil {
 		in.err = err
 		return in
@@ -208,8 +208,10 @@ func (in *HttpRequest) WithBodyJSON(object interface{}) *HttpRequest {
 // - Content-Length: size of bytes (calculated by fasthttp),
 // it supports to upload a local file with "@" prefix.
 func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
-	var buff bytes.Buffer
-	var w = multipart.NewWriter(&buff)
+	var (
+		buff bytes.Buffer
+		w    = multipart.NewWriter(&buff)
+	)
 
 	var err error
 	for k, v := range formParams {
@@ -237,7 +239,7 @@ func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
 }
 
 func addFile(w *multipart.Writer, fieldName, path string) error {
-	var file, err = os.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
@@ -321,7 +323,7 @@ func (in *HttpRequest) WithBearerAuthToken(t string) *HttpRequest {
 
 // WithBasicAuth specifies the basic auth for request.
 func (in *HttpRequest) WithBasicAuth(u, p string) *HttpRequest {
-	var t = base64.StdEncoding.EncodeToString([]byte(u + ":" + p))
+	t := base64.StdEncoding.EncodeToString([]byte(u + ":" + p))
 	return in.WithHeader("Authorization", "Basic "+t)
 }
 
@@ -364,17 +366,19 @@ func (in *HttpRequest) WithInsight() *HttpRequest {
 
 // Response do actual requesting.
 func (in *HttpRequest) Response(ctx context.Context, url string, method string) *HttpResponse {
-	var request = fasthttp.AcquireRequest()
+	request := fasthttp.AcquireRequest()
 	in.request.CopyTo(request)
 	request.SetRequestURI(url)
 	request.Header.SetMethod(method)
 
-	var response = fasthttp.AcquireResponse()
-	var resp = &HttpResponse{
-		err:      in.err,
-		request:  request,
-		response: response,
-	}
+	var (
+		response = fasthttp.AcquireResponse()
+		resp     = &HttpResponse{
+			err:      in.err,
+			request:  request,
+			response: response,
+		}
+	)
 	if in.err != nil {
 		return resp
 	}
@@ -387,7 +391,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		if in.insight {
 			log.Debugf("requesting %s", request.Header.String())
 		}
-		var respErrChan = make(chan error)
+		respErrChan := make(chan error)
 		gopool.Go(func() {
 			if in.redirect {
 				respErrChan <- in.client.DoRedirects(request, response, 16)
@@ -410,13 +414,13 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		if in.requestRetryIf == nil || !in.requestRetryIf(response.StatusCode(), resp.err) {
 			break
 		}
-		var waitDuration, shouldWait = in.requestRetryBackoff(i+1, response)
+		waitDuration, shouldWait := in.requestRetryBackoff(i+1, response)
 		if !shouldWait {
 			log.Warnf("reached limitation of retry requesting %s %s", method, url)
 			break
 		}
 		log.Debugf("retry requesting %s %s after %v", method, url, waitDuration)
-		var waitTimer = time.NewTimer(waitDuration)
+		waitTimer := time.NewTimer(waitDuration)
 		select {
 		case <-ctx.Done():
 			// Allow cancelling from retry waiting.
@@ -499,7 +503,7 @@ func defaultHttpRequestRetryIf(statusCode int, respErr error) bool {
 		if errors.Is(respErr, fasthttp.ErrConnectionClosed) {
 			return true
 		}
-		var respErrMsg = respErr.Error()
+		respErrMsg := respErr.Error()
 		// Retry if receiving requesting timeout (tcp connected but failed to send header),
 		// it can cause by DNS error, server resource exhausted.
 		return strings.Contains(respErrMsg, "Client.Timeout exceeded while awaiting headers")
@@ -530,8 +534,10 @@ func createHttpRequestRetryBackoff(waitMin, waitMax time.Duration, attemptMax in
 				}
 			}
 		}
-		var v = math.Pow(2, float64(attemptNum)) * float64(waitMin)
-		var sleep = time.Duration(v)
+		var (
+			v     = math.Pow(2, float64(attemptNum)) * float64(waitMin)
+			sleep = time.Duration(v)
+		)
 		if sleep > waitMax {
 			sleep = waitMax
 		}
@@ -551,16 +557,16 @@ type HttpResponse struct {
 func (in *HttpResponse) Error() error {
 	in.once.Do(func() {
 		if in.err == nil {
-			var sc = in.StatusCode()
+			sc := in.StatusCode()
 			if !(199 < sc && sc < 300) {
 				var msg strings.Builder
 				msg.WriteString(strconv.FormatInt(int64(sc), 10))
-				var message = in.StatusMessage()
+				message := in.StatusMessage()
 				if message != "" {
 					msg.WriteString(" ")
 					msg.WriteString(message)
 				}
-				var body = in.BodyStringOnly()
+				body := in.BodyStringOnly()
 				if body != "" {
 					msg.WriteString(": ")
 					msg.WriteString(body)
@@ -586,7 +592,7 @@ func (in *HttpResponse) StatusCode() int {
 // StatusMessage returns status message of response,
 // it must call before Release called.
 func (in *HttpResponse) StatusMessage() string {
-	var m = in.response.Header.StatusMessage()
+	m := in.response.Header.StatusMessage()
 	if len(m) == 0 {
 		return ""
 	}
@@ -615,7 +621,7 @@ func (in *HttpResponse) Header(k string) string {
 func (in *HttpResponse) Cookies(ks ...string) (cs []*HttpCookie) {
 	if len(ks) != 0 {
 		for _, k := range ks {
-			var cbytes = in.response.Header.PeekCookie(k)
+			cbytes := in.response.Header.PeekCookie(k)
 			if len(cbytes) == 0 {
 				continue
 			}

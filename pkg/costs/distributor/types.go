@@ -26,16 +26,21 @@ type SharedCost struct {
 	Condition      types.SharedCost `json:"condition"`
 }
 
-// orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset, offset is in seconds east of UTC.
+// orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset,
+// offset is in seconds east of UTC.
 func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid order by: blank")
 	}
 
-	var timezone = timex.TimezoneInPosix(offset)
+	timezone := timex.TimezoneInPosix(offset)
 	switch field {
 	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth:
-		return fmt.Sprintf(`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`, field, timezone), nil
+		return fmt.Sprintf(
+			`date_trunc('%s', start_time AT TIME ZONE '%s') DESC`,
+			field,
+			timezone,
+		), nil
 	default:
 		return `SUM(total_cost) DESC`, nil
 	}
@@ -168,9 +173,17 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 		labelName := strings.TrimPrefix(string(cond.FieldName), types.LabelPrefix)
 		switch cond.Operator {
 		case types.OperatorIn:
-			pred = sqljson.ValueIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
+			pred = sqljson.ValueIn(
+				allocationcost.FieldLabels,
+				toArgs(cond.Values),
+				sqljson.Path(labelName),
+			)
 		case types.OperatorNotIn:
-			pred = sqljson.ValueNotIn(allocationcost.FieldLabels, toArgs(cond.Values), sqljson.Path(labelName))
+			pred = sqljson.ValueNotIn(
+				allocationcost.FieldLabels,
+				toArgs(cond.Values),
+				sqljson.Path(labelName),
+			)
 		}
 		return pred
 	}

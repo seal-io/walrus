@@ -11,7 +11,7 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ClusterCostCreate, len(input))
+	rrs := make([]*model.ClusterCostCreate, len(input))
 	for i := range input {
 		r := input[i]
 		if r == nil {

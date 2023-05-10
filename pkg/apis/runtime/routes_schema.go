@@ -14,7 +14,7 @@ import (
 )
 
 func OpenAPI(i *ogen.Info) ogen.Spec {
-	var sc = *spec
+	sc := *spec
 	if i != nil {
 		sc.SetInfo(i)
 	}
@@ -51,11 +51,11 @@ func getSchemaResponseHTTPs() []int {
 }
 
 func getSchemaHTTPResponses() []*ogen.NamedResponse {
-	var httpc = getSchemaResponseHTTPs()
-	var resps = make([]*ogen.NamedResponse, 0, len(httpc))
+	httpc := getSchemaResponseHTTPs()
+	resps := make([]*ogen.NamedResponse, 0, len(httpc))
 	for i := range httpc {
-		var c = strconv.Itoa(httpc[i])
-		var t = http.StatusText(httpc[i])
+		c := strconv.Itoa(httpc[i])
+		t := http.StatusText(httpc[i])
 		resps = append(resps, ogen.NewNamedResponse(
 			c,
 			ogen.NewResponse().
@@ -90,7 +90,7 @@ func schemeRoute(resource, handle string, method, path string, ip *InputProfile,
 }
 
 func toSchemaPath(path string) *ogen.PathItem {
-	var paths = strings.Split(path, "/")
+	paths := strings.Split(path, "/")
 	for i := range paths {
 		if paths[i] == "" || paths[i][0] != ':' {
 			continue
@@ -108,10 +108,17 @@ func toSchemaPath(path string) *ogen.PathItem {
 	return spec.Paths[path]
 }
 
-func toSchemaOperation(resource, handle string, method, path string, ip *InputProfile, op *OutputProfile) *ogen.Operation {
-	var r = getRoute(method, path)
+func toSchemaOperation(
+	resource,
+	handle,
+	method,
+	path string,
+	ip *InputProfile,
+	op *OutputProfile,
+) *ogen.Operation {
+	r := getRoute(method, path)
 
-	var o = ogen.NewOperation().
+	o := ogen.NewOperation().
 		SetTags([]string{strs.Camelize(resource)}).
 		SetOperationID(handle).
 		SetParameters(toSchemaParameters(r, ip)).
@@ -128,7 +135,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 		return nil
 	}
 
-	var props = ip.Flat(ProfileCategoryHeader, ProfileCategoryUri, ProfileCategoryQuery)
+	props := ip.Flat(ProfileCategoryHeader, ProfileCategoryUri, ProfileCategoryQuery)
 
 	var params []*ogen.Parameter
 	for i := 0; i < len(props); i++ {
@@ -149,7 +156,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 				continue
 			}
 		}
-		var param = &ogen.Parameter{
+		param := &ogen.Parameter{
 			In:       in,
 			Name:     props[i].Name,
 			Required: props[i].Required,
@@ -165,7 +172,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 		return nil
 	}
 
-	var categoryContentTypes = map[ProfileCategory]string{
+	categoryContentTypes := map[ProfileCategory]string{
 		ProfileCategoryForm: binding.MIMEMultipartPOSTForm,
 		ProfileCategoryJson: binding.MIMEJSON,
 	}
@@ -173,14 +180,14 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 		delete(categoryContentTypes, ProfileCategoryForm)
 	}
 
-	var content = make(map[string]ogen.Media, len(categoryContentTypes))
+	content := make(map[string]ogen.Media, len(categoryContentTypes))
 	for category, contentType := range categoryContentTypes {
-		var props = ip.Filter(category)
+		props := ip.Filter(category)
 		if len(props) == 0 {
 			continue
 		}
 		if _, exist := content[contentType]; !exist {
-			var schema = basicSchemas[ip.TypeDescriptor]
+			schema := basicSchemas[ip.TypeDescriptor]
 			if schema == nil {
 				schema = ogen.NewSchema().
 					SetType(string(jsonschema.Object))
@@ -190,7 +197,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 			}
 		}
 		if len(props) == 1 && ip.Type == ProfileTypeArray {
-			var schema = toSchemaSchema(category, &props[0])
+			schema := toSchemaSchema(category, &props[0])
 			if schema != nil {
 				content[contentType] = ogen.Media{
 					Schema: schema,
@@ -215,19 +222,19 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 	if len(content) == 0 {
 		return nil
 	}
-	var req = ogen.NewRequestBody().
+	req := ogen.NewRequestBody().
 		SetRequired(true).
 		SetContent(content)
 	return req
 }
 
 func toSchemaResponses(r route, op *OutputProfile) []*ogen.NamedResponse {
-	var c = http.StatusOK
+	c := http.StatusOK
 	if r.method == http.MethodPost {
 		c = http.StatusCreated
 	}
 
-	var resp = toSchemaResponse(r, op)
+	resp := toSchemaResponse(r, op)
 	if resp == nil {
 		if r.method == http.MethodPost {
 			c = http.StatusNoContent
@@ -245,15 +252,15 @@ func toSchemaResponse(r route, op *OutputProfile) *ogen.Response {
 		return nil
 	}
 
-	var categoryContentTypes = map[ProfileCategory]string{
+	categoryContentTypes := map[ProfileCategory]string{
 		ProfileCategoryJson: binding.MIMEJSON,
 	}
 
-	var content = make(map[string]ogen.Media, 1)
+	content := make(map[string]ogen.Media, 1)
 	for category, contentType := range categoryContentTypes {
-		var props = op.Filter(category)
+		props := op.Filter(category)
 		if _, exist := content[contentType]; !exist {
-			var schema = basicSchemas[op.TypeDescriptor]
+			schema := basicSchemas[op.TypeDescriptor]
 			if schema == nil {
 				schema = ogen.NewSchema().
 					SetType(string(jsonschema.Object))
@@ -280,7 +287,7 @@ func toSchemaResponse(r route, op *OutputProfile) *ogen.Response {
 	}
 	if op.Page {
 		for c := range content {
-			var media = content[c]
+			media := content[c]
 			media.Schema = ogen.NewSchema().
 				AddRequiredProperties(
 					media.Schema.ToProperty("items"),
@@ -309,7 +316,7 @@ func toSchemaResponse(r route, op *OutputProfile) *ogen.Response {
 		content["application/octet-stream"] = content[binding.MIMEJSON]
 		delete(content, binding.MIMEJSON)
 	}
-	var resp = ogen.NewResponse().
+	resp := ogen.NewResponse().
 		SetContent(content)
 	return resp
 }
@@ -357,11 +364,11 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 	case ProfileTypeBasic:
 		return basicSchemas[prop.TypeDescriptor]
 	case ProfileTypeArray:
-		var schema, exist = basicSchemas[prop.TypeDescriptor]
+		schema, exist := basicSchemas[prop.TypeDescriptor]
 		if exist {
 			schema = schema.AsArray()
 			if prop.TypeArrayLength != 0 {
-				var items = uint64(prop.TypeArrayLength)
+				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
@@ -372,19 +379,19 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 
 	switch prop.TypeDescriptor {
 	case "object":
-		var schema = ogen.NewSchema().
+		schema := ogen.NewSchema().
 			SetType(string(jsonschema.Object))
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
 			if prop.TypeArrayLength != 0 {
-				var items = uint64(prop.TypeArrayLength)
+				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
 		}
 		return schema
 	case "array":
-		var schema = ogen.NewSchema().
+		schema := ogen.NewSchema().
 			SetType(string(jsonschema.Object))
 		if len(prop.Properties) == 1 {
 			schema = toSchemaSchema(category, &prop.Properties[0])
@@ -392,7 +399,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
 			if prop.TypeArrayLength != 0 {
-				var items = uint64(prop.TypeArrayLength)
+				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
@@ -400,17 +407,17 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		}
 	}
 
-	var schemaID = prop.TypeDescriptor
+	schemaID := prop.TypeDescriptor
 	if category != "" {
 		schemaID += "." + category
 	}
 	if prop.TypeRefer {
-		var schema = ogen.NewSchema().
+		schema := ogen.NewSchema().
 			SetRef("#/components/schemas/" + schemaID)
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
 			if prop.TypeArrayLength != 0 {
-				var items = uint64(prop.TypeArrayLength)
+				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
@@ -418,7 +425,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		return schema
 	}
 
-	var namedSchema = ogen.NewNamedSchema(schemaID,
+	namedSchema := ogen.NewNamedSchema(schemaID,
 		ogen.NewSchema().SetType(string(jsonschema.Object)))
 	for i := 0; i < len(prop.Properties); i++ {
 		var add func(...*ogen.Property) *ogen.Schema
@@ -430,11 +437,11 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		add(toSchemaProperty(category, &prop.Properties[i]))
 	}
 	spec.AddNamedSchemas(namedSchema)
-	var schema = namedSchema.AsLocalRef()
+	schema := namedSchema.AsLocalRef()
 	if prop.Type == ProfileTypeArray {
 		schema = schema.AsArray()
 		if prop.TypeArrayLength != 0 {
-			var items = uint64(prop.TypeArrayLength)
+			items := uint64(prop.TypeArrayLength)
 			schema.SetMinItems(&items)
 			schema.SetMaxItems(&items)
 		}
@@ -443,7 +450,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 }
 
 func getRoute(method, path string) route {
-	var pathParams = sets.Set[string]{}
+	pathParams := sets.Set[string]{}
 	for _, sg := range strings.Split(path, "/") {
 		if sg == "" || sg[0] != ':' {
 			continue

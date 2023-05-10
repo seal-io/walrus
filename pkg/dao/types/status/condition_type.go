@@ -67,28 +67,28 @@ func (ct ConditionType) Message(obj interface{}, message string) {
 // IsTrue check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsTrue(obj interface{}) bool {
-	var s, _ = getCondStatus(obj, ct)
+	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusTrue
 }
 
 // IsFalse check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsFalse(obj interface{}) bool {
-	var s, _ = getCondStatus(obj, ct)
+	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusFalse
 }
 
 // IsUnknown check status value for object,
 // object must be a pointer.
 func (ct ConditionType) IsUnknown(obj interface{}) bool {
-	var s, _ = getCondStatus(obj, ct)
+	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusUnknown
 }
 
 // Exist returns true if the status is existed,
 // object must be a pointer.
 func (ct ConditionType) Exist(obj interface{}) bool {
-	var _, exist = getCondStatus(obj, ct)
+	_, exist := getCondStatus(obj, ct)
 	return exist
 }
 

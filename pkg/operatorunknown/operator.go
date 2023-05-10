@@ -41,11 +41,17 @@ func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResour
 	}, nil
 }
 
-func (Operator) GetEndpoints(ctx context.Context, resource *model.ApplicationResource) ([]types.ApplicationResourceEndpoint, error) {
+func (Operator) GetEndpoints(
+	ctx context.Context,
+	resource *model.ApplicationResource,
+) ([]types.ApplicationResourceEndpoint, error) {
 	return nil, nil
 }
 
-func (Operator) GetComponents(ctx context.Context, resource *model.ApplicationResource) ([]*model.ApplicationResource, error) {
+func (Operator) GetComponents(
+	ctx context.Context,
+	resource *model.ApplicationResource,
+) ([]*model.ApplicationResource, error) {
 	return nil, nil
 }
 

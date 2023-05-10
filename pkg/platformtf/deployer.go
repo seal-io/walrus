@@ -152,7 +152,11 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts
 // Destroy will destroy the resource of the application.
 // 1. Get the latest revision, and checkAppRevision it if it is running.
 // 2. If not running, then destroy resources.
-func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) (err error) {
+func (d Deployer) Destroy(
+	ctx context.Context,
+	ai *model.ApplicationInstance,
+	destroyOpts deployer.DestroyOptions,
+) (err error) {
 	app, err := d.getApplication(ctx, ai.ApplicationID)
 	if err != nil {
 		return err
@@ -195,7 +199,11 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 }
 
 // Rollback instance to a specific revision.
-func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, opts deployer.RollbackOptions) (err error) {
+func (d Deployer) Rollback(
+	ctx context.Context,
+	ai *model.ApplicationInstance,
+	opts deployer.RollbackOptions,
+) (err error) {
 	if opts.CloneFrom == nil || opts.CloneFrom.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")
 	}
@@ -330,7 +338,7 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.Applicatio
 
 // createK8sSecrets will create the k8s secrets for deployment.
 func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
-	var secretData = make(map[string][]byte)
+	secretData := make(map[string][]byte)
 	// SecretName terraform tfConfig name.
 	secretName := _jobSecretPrefix + string(opts.ApplicationRevision.ID)
 
@@ -364,7 +372,10 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 // Get the latest revision, and check it if it is running.
 // If not running, then apply the latest revision.
 // If running, then wait for the latest revision to be applied.
-func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevisionOptions) (*model.ApplicationRevision, error) {
+func (d Deployer) CreateApplicationRevision(
+	ctx context.Context,
+	opts CreateRevisionOptions,
+) (*model.ApplicationRevision, error) {
 	var entity *model.ApplicationRevision
 	if opts.CloneFrom != nil {
 		entity = &model.ApplicationRevision{
@@ -403,7 +414,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 
 	// Output of the previous revision should be inherited to the new one
 	// when creating a new revision.
-	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
+	prevEntity, err := d.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.And(
 			applicationrevision.InstanceID(opts.ApplicationInstance.ID),
 			applicationrevision.DeployerType(DeployerType))).
@@ -443,8 +454,12 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 	return creates[0].Save(ctx)
 }
 
-func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID, previousOutput string) ([]types.ProviderRequirement, error) {
-	var stateRequiredProviderSet = sets.NewString()
+func (d Deployer) getRequiredProviders(
+	ctx context.Context,
+	instanceID types.ID,
+	previousOutput string,
+) ([]types.ProviderRequirement, error) {
+	stateRequiredProviderSet := sets.NewString()
 	previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, instanceID)
 	if err != nil {
 		return nil, err
@@ -455,7 +470,7 @@ func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID,
 	}
 	stateRequiredProviderSet.Insert(stateRequiredProviders...)
 
-	var requiredProviders = make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
+	requiredProviders := make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
 	for _, p := range previousRequiredProviders {
 		if stateRequiredProviderSet.Has(p.Name) {
 			requiredProviders = append(requiredProviders, p)
@@ -466,7 +481,7 @@ func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID,
 
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
 func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
-	var logger = log.WithName("deployer").WithName("tf")
+	logger := log.WithName("deployer").WithName("tf")
 	// Prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts)
@@ -474,7 +489,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		return nil, err
 	}
 	// Merge current and previous required providers.
-	providerRequirements = append(providerRequirements, opts.ApplicationRevision.PreviousRequiredProviders...)
+	providerRequirements = append(providerRequirements,
+		opts.ApplicationRevision.PreviousRequiredProviders...)
 
 	requiredProviders := make(map[string]*tfconfig.ProviderRequirement, 0)
 	for _, p := range providerRequirements {
@@ -499,7 +515,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	if serverAddress == "" {
 		return nil, errors.New("server address is empty")
 	}
-	address := fmt.Sprintf("%s%s", serverAddress, fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
+	address := fmt.Sprintf("%s%s", serverAddress,
+		fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
 	// Prepare API token for terraform backend.
 	token, err := settings.PrivilegeApiToken.Value(ctx, d.modelClient)
 	if err != nil {
@@ -507,11 +524,11 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	}
 
 	// Prepare terraform config files to be mounted to secret.
-	var requiredProviderNames = sets.NewString()
+	requiredProviderNames := sets.NewString()
 	for _, p := range providerRequirements {
 		requiredProviderNames = requiredProviderNames.Insert(p.Name)
 	}
-	var secretNames = make([]string, 0, len(secrets))
+	secretNames := make([]string, 0, len(secrets))
 	for _, s := range secrets {
 		secretNames = append(secretNames, s.Name)
 	}
@@ -521,12 +538,12 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, v := range moduleConfigs {
 		outputCount += len(v.Outputs)
 	}
-	var outputs = make([]config.Output, 0, outputCount)
+	outputs := make([]config.Output, 0, outputCount)
 	for _, v := range moduleConfigs {
 		outputs = append(outputs, v.Outputs...)
 	}
-	var variableNameAndTypes = opts.ApplicationRevision.InputVariables.StringTypesWith(opts.ApplicationRevision.Variables)
-	var secretOptionMaps = map[string]config.CreateOptions{
+	variableNameAndTypes := opts.ApplicationRevision.InputVariables.StringTypesWith(opts.ApplicationRevision.Variables)
+	secretOptionMaps := map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
 				Token:                token,
@@ -553,7 +570,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		},
 		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
 	}
-	var secretMaps = make(map[string][]byte, 0)
+	secretMaps := make(map[string][]byte, 0)
 	for k, v := range secretOptionMaps {
 		secretMaps[k], err = config.CreateConfigToBytes(v)
 		if err != nil {
@@ -600,15 +617,20 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 			return nil, err
 		}
 
-		// NB(alex) the secret file name must be config + connector id to match with terraform provider in config convert.
+		// NB(alex) the secret file name must be config + connector id to
+		// match with terraform provider in config convert.
 		secretFileName := util.GetK8sSecretName(c.ID.String())
 		secretData[secretFileName] = []byte(s)
 	}
 	return secretData, nil
 }
 
-// GetModuleConfigs returns module configs and required connectors to get terraform module config block from application revision.
-func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOptions) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
+// GetModuleConfigs returns module configs and required connectors to
+// get terraform module config block from application revision.
+func (d Deployer) GetModuleConfigs(
+	ctx context.Context,
+	opts CreateSecretsOptions,
+) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
 		moduleConfigs     []*config.ModuleConfig
 		requiredProviders = make([]types.ProviderRequirement, 0)
@@ -619,7 +641,10 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 	)
 
 	for _, m := range ar.Modules {
-		predicates = append(predicates, moduleversion.And(moduleversion.ModuleID(m.ModuleID), moduleversion.Version(m.Version)))
+		predicates = append(predicates, moduleversion.And(
+			moduleversion.ModuleID(m.ModuleID),
+			moduleversion.Version(m.Version),
+		))
 	}
 	moduleVersions, err := d.modelClient.ModuleVersions().
 		Query().
@@ -665,7 +690,7 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 }
 
 func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstance) (model.Connectors, error) {
-	var rs, err = d.modelClient.EnvironmentConnectorRelationships().Query().
+	rs, err := d.modelClient.EnvironmentConnectorRelationships().Query().
 		Where(environmentconnectorrelationship.EnvironmentID(ai.EnvironmentID)).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
@@ -689,7 +714,11 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 }
 
 // parseModuleSecrets parse module secrets, and return matched model.Secrets.
-func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*config.ModuleConfig, opts CreateSecretsOptions) (model.Secrets, error) {
+func (d Deployer) parseModuleSecrets(
+	ctx context.Context,
+	moduleConfigs []*config.ModuleConfig,
+	opts CreateSecretsOptions,
+) (model.Secrets, error) {
 	var (
 		moduleSecrets []string
 		secrets       model.Secrets
@@ -777,13 +806,16 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 
 // getPreviousRequiredProviders get previous succeed revision required providers.
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
-func (d Deployer) getPreviousRequiredProviders(ctx context.Context, instanceID types.ID) ([]types.ProviderRequirement, error) {
+func (d Deployer) getPreviousRequiredProviders(
+	ctx context.Context,
+	instanceID types.ID,
+) ([]types.ProviderRequirement, error) {
 	var (
 		prevRequiredProviders = make([]types.ProviderRequirement, 0)
 		predicates            []predicate.ModuleVersion
 	)
 
-	var entity, err = d.modelClient.ApplicationRevisions().Query().
+	entity, err := d.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(instanceID)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
@@ -869,7 +901,12 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 		return err
 	}
 
-	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{appInstance.ApplicationID})
+	return datamessage.Publish(
+		ctx,
+		string(datamessage.Application),
+		model.OpUpdate,
+		[]types.ID{appInstance.ApplicationID},
+	)
 }
 
 // parseAttributeReplace parses attribute secrets ${secret.name} replaces it with ${var._varprefix+name},
@@ -937,7 +974,11 @@ func getVarConfigOptions(secrets model.Secrets, variables property.Values) confi
 	return varsConfigOpts
 }
 
-func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion, ops CreateSecretsOptions) (*config.ModuleConfig, error) {
+func getModuleConfig(
+	appMod types.ApplicationModule,
+	modVer *model.ModuleVersion,
+	ops CreateSecretsOptions,
+) (*config.ModuleConfig, error) {
 	var (
 		props              = make(property.Properties, len(appMod.Attributes))
 		typesWith          = appMod.Attributes.TypesWith(modVer.Schema.Variables)

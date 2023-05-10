@@ -14,7 +14,7 @@ var cacher *bigcache.BigCache
 
 func init() {
 	// Narrow the expiry form default cache creator.
-	var cfg = bigcache.Config{
+	cfg := bigcache.Config{
 		LifeWindow:         5 * time.Minute,
 		CleanWindow:        2 * time.Minute,
 		Shards:             64,

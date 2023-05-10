@@ -12,10 +12,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
-const qnameCharFmt string = "[A-Za-z0-9]"
-const qnameExtCharFmt string = "[-A-Za-z0-9_.]"
-const qualifiedNameFmt string = "(" + qnameCharFmt + qnameExtCharFmt + "*)?" + qnameCharFmt
-const qualifiedNameErrMsg string = "a qualified name must consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character(e.g. MyName, my.name or 123-abc)"
+const (
+	qnameCharFmt        string = "[A-Za-z0-9]"
+	qnameExtCharFmt     string = "[-A-Za-z0-9_.]"
+	qualifiedNameFmt    string = "(" + qnameCharFmt + qnameExtCharFmt + "*)?" + qnameCharFmt
+	qualifiedNameErrMsg string = "a qualified name must consist of alphanumeric characters, '-'," +
+		" '_' or '.', and must start and end with an alphanumeric character(e.g. MyName, my.name or 123-abc)"
+)
 const qualifiedNameMaxLength int = 60
 
 var qualifiedNameRegexp = regexp.MustCompile("^" + qualifiedNameFmt + "$")

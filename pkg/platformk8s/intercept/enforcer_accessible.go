@@ -45,7 +45,7 @@ func init() {
 		extensionsv1beta1.SchemeGroupVersion.WithKind("Ingress"),
 	} {
 		acEnforcer.gvks.Insert(gvk)
-		var gvr, _ = meta.UnsafeGuessKindToResource(gvk)
+		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
 		acEnforcer.gvrs.Insert(gvr)
 	}
 }

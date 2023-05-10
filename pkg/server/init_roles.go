@@ -13,7 +13,7 @@ import (
 )
 
 func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
-	var builtin = []*model.Role{
+	builtin := []*model.Role{
 		// System anonymity.
 		{
 			Domain:      "system",
@@ -82,7 +82,7 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 		},
 	}
 
-	var creates, err = dao.RoleCreates(opts.ModelClient, builtin...)
+	creates, err := dao.RoleCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}

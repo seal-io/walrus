@@ -59,13 +59,16 @@ func init() {
 	// ref to https://registry.terraform.io/providers/hashicorp/kubernetes/2.18.1.
 	//
 	for _, alias := range TFAllTypes {
-		var gvk = func() schema.GroupVersionKind {
+		gvk := func() schema.GroupVersionKind {
 			switch alias {
 			case "kubernetes_namespace_v1", "kubernetes_namespace":
 				return corev1.SchemeGroupVersion.WithKind("Namespace")
 			case "kubernetes_service_v1", "kubernetes_service":
 				return corev1.SchemeGroupVersion.WithKind("Service")
-			case "kubernetes_service_account_v1", "kubernetes_service_account", "kubernetes_default_service_account_v1", "kubernetes_default_service_account":
+			case "kubernetes_service_account_v1",
+				"kubernetes_service_account",
+				"kubernetes_default_service_account_v1",
+				"kubernetes_default_service_account":
 				return corev1.SchemeGroupVersion.WithKind("ServiceAccount")
 			case "kubernetes_config_map_v1", "kubernetes_config_map", "kubernetes_config_map_v1_data":
 				return corev1.SchemeGroupVersion.WithKind("ConfigMap")

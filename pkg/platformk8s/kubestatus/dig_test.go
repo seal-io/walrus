@@ -9,7 +9,7 @@ import (
 )
 
 func Test_digPodErrorReason(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name     string
 		given    core.PodStatus
 		expected string
@@ -136,11 +136,11 @@ func Test_digPodErrorReason(t *testing.T) {
 	for _, tc := range testCases {
 		// Convert object to map.
 		var given map[string]interface{}
-		var bs, _ = json.Marshal(tc.given)
+		bs, _ := json.Marshal(tc.given)
 		_ = json.Unmarshal(bs, &given)
 
 		t.Run(tc.name, func(t *testing.T) {
-			var actual = digPodErrorReason(given)
+			actual := digPodErrorReason(given)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}

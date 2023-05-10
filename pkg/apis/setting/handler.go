@@ -34,7 +34,7 @@ func (h Handler) Validating() any {
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	// Bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var changed, err = settings.Index(req.Name).Set(ctx, tx, *req.Value)
+		changed, err := settings.Index(req.Name).Set(ctx, tx, *req.Value)
 		if err != nil {
 			return err
 		}
@@ -45,22 +45,23 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 			&model.Setting{
 				Name:  req.Name,
 				Value: *req.Value,
-			}})
+			},
+		})
 	})
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var input = []predicate.Setting{
+	input := []predicate.Setting{
 		setting.Private(false),
 	}
 	if req.ID.IsNaive() {
 		input = append(input, setting.ID(req.ID))
 	} else {
-		var keys = req.ID.Split()
+		keys := req.ID.Split()
 		input = append(input, setting.Name(keys[0]))
 	}
 
-	var entity, err = h.modelClient.Settings().Query().
+	entity, err := h.modelClient.Settings().Query().
 		Where(input...).
 		Select(setting.WithoutFields(
 			setting.FieldCreateTime, setting.FieldUpdateTime, setting.FieldPrivate)...).
@@ -79,9 +80,9 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateRequest) error {
 	// Bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var list = make(model.Settings, 0, len(req))
+		list := make(model.Settings, 0, len(req))
 		for i := range req {
-			var changed, err = settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
+			changed, err := settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
 			if err != nil {
 				return err
 			}
@@ -100,14 +101,16 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 	})
 }
 
-var (
-	getFields = setting.WithoutFields(
-		setting.FieldCreateTime,
-		setting.FieldPrivate)
+var getFields = setting.WithoutFields(
+	setting.FieldCreateTime,
+	setting.FieldPrivate,
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var input = []predicate.Setting{
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	input := []predicate.Setting{
 		setting.Private(false),
 	}
 	{
@@ -116,7 +119,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 			if req.IDs[i].IsNaive() {
 				sps = append(sps, setting.ID(req.IDs[i]))
 			} else {
-				var keys = req.IDs[i].Split()
+				keys := req.IDs[i].Split()
 				sps = append(sps, setting.Name(keys[0]))
 			}
 		}
@@ -125,7 +128,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		}
 	}
 
-	var query = h.modelClient.Settings().Query().
+	query := h.modelClient.Settings().Query().
 		Where(input...)
 
 	// Get count.

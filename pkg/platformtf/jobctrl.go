@@ -182,7 +182,9 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	var logs string
 	for _, pod := range pods.Items {
 		var podLogs []byte
-		podLogs, err = clientSet.CoreV1().Pods(types.SealSystemNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{}).DoRaw(ctx)
+		podLogs, err = clientSet.CoreV1().Pods(types.SealSystemNamespace).
+			GetLogs(pod.Name, &corev1.PodLogOptions{}).
+			DoRaw(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -333,7 +335,9 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 
 	jobPod := podList.Items[0]
 	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
-		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{ResourceVersion: "0"})
+		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
+			ResourceVersion: "0",
+		})
 		if getErr != nil {
 			return false, getErr
 		}
@@ -349,8 +353,11 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 
 	var (
 		containerName, containerType = states[0].Name, states[0].Type
-		follow                       = kube.IsContainerRunning(&jobPod, kube.Container{Type: containerType, Name: containerName})
-		podLogOpts                   = &corev1.PodLogOptions{
+		follow                       = kube.IsContainerRunning(&jobPod, kube.Container{
+			Type: containerType,
+			Name: containerName,
+		})
+		podLogOpts = &corev1.PodLogOptions{
 			Container: containerName,
 			Follow:    follow,
 		}

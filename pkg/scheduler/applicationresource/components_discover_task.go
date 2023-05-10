@@ -46,7 +46,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 		in.logger.Warn("previous processing is not finished")
 		return nil
 	}
-	var startTs = time.Now()
+	startTs := time.Now()
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -57,16 +57,16 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 	// we can treat each connector as a task group,
 	// group 100 resources of each connector into one task unit,
 	// and then process sub resources syncing in task unit.
-	var cs, err = listCandidateConnectors(ctx, in.modelClient)
+	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
 		return fmt.Errorf("cannot list all connectors: %w", err)
 	}
 	if len(cs) == 0 {
 		return nil
 	}
-	var wg = gopool.Group()
+	wg := gopool.Group()
 	for i := range cs {
-		var st = in.buildSyncTasks(ctx, cs[i])
+		st := in.buildSyncTasks(ctx, cs[i])
 		wg.Go(st)
 	}
 	return wg.Wait()
@@ -74,7 +74,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 
 func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.Connector) func() error {
 	return func() error {
-		var op, err = platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := platform.GetOperator(ctx, operator.CreateOptions{
 			Connector: *c,
 		})
 		if err != nil {
@@ -97,23 +97,29 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 			return nil
 		}
 		const bks = 100
-		var bkc = cnt/bks + 1
+		bkc := cnt/bks + 1
 		if bkc == 1 {
-			var at = in.buildSyncTask(ctx, op, c.ID, 0, bks)
+			at := in.buildSyncTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
-		var wg = gopool.Group()
+		wg := gopool.Group()
 		for bk := 0; bk < bkc; bk++ {
-			var at = in.buildSyncTask(ctx, op, c.ID, bk*bks, bks)
+			at := in.buildSyncTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
 		return wg.Wait()
 	}
 }
 
-func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator.Operator, connectorID types.ID, offset, limit int) func() error {
+func (in *ComponentsDiscoverTask) buildSyncTask(
+	ctx context.Context,
+	op operator.Operator,
+	connectorID types.ID,
+	offset,
+	limit int,
+) func() error {
 	return func() (berr error) {
-		var entities, err = in.modelClient.ApplicationResources().Query().
+		entities, err := in.modelClient.ApplicationResources().Query().
 			Where(
 				applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered),
 				applicationresource.ConnectorID(connectorID)).
@@ -136,7 +142,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 
 		for i := range entities {
 			// Get observed components from remote.
-			var observedComps, err = op.GetComponents(ctx, entities[i])
+			observedComps, err := op.GetComponents(ctx, entities[i])
 			if multierr.AppendInto(&berr, err) {
 				continue
 			}
@@ -153,21 +159,21 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 			}
 
 			// Calculate creating list and deleting list.
-			var observedCompsIndex = make(map[string]*model.ApplicationResource, len(observedComps))
+			observedCompsIndex := make(map[string]*model.ApplicationResource, len(observedComps))
 			for j := range observedComps {
-				var c = observedComps[j]
+				c := observedComps[j]
 				observedCompsIndex[strs.Join("/", c.Type, c.Name)] = c
 			}
-			var deleteCompIDs = make([]oid.ID, 0, len(recordComps))
+			deleteCompIDs := make([]oid.ID, 0, len(recordComps))
 			for _, c := range recordComps {
-				var k = strs.Join("/", c.Type, c.Name)
+				k := strs.Join("/", c.Type, c.Name)
 				if observedCompsIndex[k] != nil {
 					delete(observedCompsIndex, k)
 					continue
 				}
 				deleteCompIDs = append(deleteCompIDs, c.ID)
 			}
-			var createComps = make([]*model.ApplicationResource, 0, len(observedCompsIndex))
+			createComps := make([]*model.ApplicationResource, 0, len(observedCompsIndex))
 			for k := range observedCompsIndex {
 				createComps = append(createComps, observedCompsIndex[k])
 			}

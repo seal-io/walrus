@@ -33,7 +33,7 @@ func Go(f func()) {
 
 // TryGo tries to submit a task as goroutine.
 func TryGo(f func()) bool {
-	var r = gp.TrySubmit(f)
+	r := gp.TrySubmit(f)
 	printState()
 	return r
 }

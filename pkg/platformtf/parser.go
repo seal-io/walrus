@@ -46,14 +46,14 @@ func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.App
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
-	var logger = log.WithName("deployer").WithName("tf").WithName("parser")
+	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 
 	var revisionState state
 	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {
 		return nil, err
 	}
 
-	var applicationResources = make(model.ApplicationResources, 0)
+	applicationResources := make(model.ApplicationResources, 0)
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
 		default:
@@ -140,7 +140,7 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 	}
 
 	// Sort by the module name length.
-	var moduleNames = make([]string, len(revision.Modules))
+	moduleNames := make([]string, len(revision.Modules))
 	for i, v := range revision.Modules {
 		moduleNames[i] = v.Name
 	}
@@ -278,7 +278,7 @@ func ParseInstanceMetadata(is instanceObjectState) ([]byte, error) {
 		return nil, errors.New("no attributes")
 	}
 
-	var arr = json.Get(is.Attributes, "metadata").Array()
+	arr := json.Get(is.Attributes, "metadata").Array()
 	switch l := len(arr); {
 	case l == 0:
 		return nil, errors.New("not found metadata")
@@ -298,7 +298,7 @@ func ParseStateProviders(s string) ([]string, error) {
 		return nil, nil
 	}
 
-	var providers = sets.NewString()
+	providers := sets.NewString()
 	var revisionState state
 	if err := json.Unmarshal([]byte(s), &revisionState); err != nil {
 		return nil, err
@@ -365,7 +365,7 @@ func ParseAbsProviderConfig(traversal hcl.Traversal) (*AbsProviderConfig, error)
 		return nil, errors.New("extraneous operators after provider configuration alias")
 	}
 
-	var ret = &AbsProviderConfig{}
+	ret := &AbsProviderConfig{}
 	if tt, ok := remain[1].(hcl.TraverseIndex); ok {
 		if !tt.Key.Type().Equals(cty.String) {
 			return nil, errors.New("the prefix \"provider.\" must be followed by a provider type name")

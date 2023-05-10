@@ -13,7 +13,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ConnectorCreate, len(input))
+	rrs := make([]*model.ConnectorCreate, len(input))
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -21,7 +21,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		}
 
 		// Required.
-		var c = mc.Connectors().Create().
+		c := mc.Connectors().Create().
 			SetName(r.Name).
 			SetType(r.Type).
 			SetConfigVersion(r.ConfigVersion).
@@ -43,7 +43,8 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if r.Type == types.ConnectorTypeK8s {
 			if r.EnableFinOps {
 				status.ConnectorStatusCostToolsDeployed.Unknown(r, "Deploying cost tools")
-				status.ConnectorStatusCostSynced.Unknown(r, "It takes about an hour to generate hour-level cost data")
+				status.ConnectorStatusCostSynced.Unknown(r,
+					"It takes about an hour to generate hour-level cost data")
 			}
 		}
 		r.Status.SetSummary(status.WalkConnector(&r.Status))
@@ -68,7 +69,7 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 	}
 
 	// Conditional.
-	var c = mc.Connectors().UpdateOne(input).
+	c := mc.Connectors().UpdateOne(input).
 		SetDescription(input.Description).
 		SetEnableFinOps(input.EnableFinOps)
 

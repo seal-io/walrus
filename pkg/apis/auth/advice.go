@@ -31,7 +31,7 @@ type generator struct {
 }
 
 func (g generator) AfterAdvice(h runtime.AdviceResource) error {
-	var resource, resourcePath = h.ResourceAndResourcePath()
+	resource, resourcePath := h.ResourceAndResourcePath()
 
 	// NB(thxCode): do not generate role for the following resource,
 	// as we already granted the related permission to "system/user" role.
@@ -40,7 +40,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 		return nil
 	}
 
-	var builtin = []*model.Role{
+	builtin := []*model.Role{
 		// Resource admin.
 		{
 			Domain:      resourcePath,
@@ -73,7 +73,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 		},
 	}
 
-	var creates, err = dao.RoleCreates(g.modelClient, builtin...)
+	creates, err := dao.RoleCreates(g.modelClient, builtin...)
 	if err != nil {
 		return err
 	}

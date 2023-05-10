@@ -70,15 +70,18 @@ var replicaSetStatusPaths = status.NewWalker(
 		},
 	},
 	func(d status.Decision[apps.ReplicaSetConditionType]) {
-		d.Make(apps.ReplicaSetReplicaFailure, func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
-			switch st {
-			case status.ConditionStatusFalse:
-				return "ReplicaDeployed", false, false
-			case status.ConditionStatusTrue:
-				return "ReplicaDeployFailed", true, false
-			}
-			return "ReplicaDeploying", false, true
-		})
+		d.Make(
+			apps.ReplicaSetReplicaFailure,
+			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+				switch st {
+				case status.ConditionStatusFalse:
+					return "ReplicaDeployed", false, false
+				case status.ConditionStatusTrue:
+					return "ReplicaDeployFailed", true, false
+				}
+				return "ReplicaDeploying", false, true
+			},
+		)
 	},
 )
 

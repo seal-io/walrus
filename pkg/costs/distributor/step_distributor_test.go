@@ -36,10 +36,10 @@ func TestStepDistribute(t *testing.T) {
 	}()
 
 	var (
-		startTime = time.Date(2023, 02, 27, 0, 0, 0, 0, time.UTC)
+		startTime = time.Date(2023, 0o2, 27, 0, 0, 0, 0, time.UTC)
 		endTime   = startTime.Add(5 * 24 * time.Hour)
 
-		utc8StartTime = time.Date(2023, 02, 27, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 28800))
+		utc8StartTime = time.Date(2023, 0o2, 27, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 28800))
 		utc8EndTime   = utc8StartTime.Add(1 * 24 * time.Hour)
 	)
 	_, err := testData(ctx, client, startTime, endTime)
@@ -175,7 +175,9 @@ func TestStepDistribute(t *testing.T) {
 		assert.Nil(t, err, "%s: error get distribute resource costs: %w", v.name, err)
 		assert.Equal(t, v.outputTotalItemNum, count, "%s: total item count mismatch", v.name)
 		assert.Len(t, items, v.outputQueriedItemNum, "%s: queried item length mismatch", v.name)
-		assert.Equal(t, v.outputQueriedItemCost, items[0].Cost.TotalCost, "%s: first item total cost mismatch", v.name)
-		assert.Equal(t, v.outputQueriedItemSharedCost, items[0].Cost.SharedCost, "%s: first item shared cost mismatch", v.name)
+		assert.Equal(t, v.outputQueriedItemCost, items[0].Cost.TotalCost,
+			"%s: first item total cost mismatch", v.name)
+		assert.Equal(t, v.outputQueriedItemSharedCost, items[0].Cost.SharedCost,
+			"%s: first item shared cost mismatch", v.name)
 	}
 }

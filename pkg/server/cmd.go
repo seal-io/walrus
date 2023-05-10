@@ -6,7 +6,7 @@ import (
 
 func Command() *cli.Command {
 	var cmd cli.Command
-	var server = New()
+	server := New()
 	server.Flags(&cmd)
 	server.Before(&cmd)
 	server.Action(&cmd)

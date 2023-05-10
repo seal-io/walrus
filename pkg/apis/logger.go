@@ -18,7 +18,7 @@ type logWriter struct {
 }
 
 func (l logWriter) Write(p []byte) (int, error) {
-	var s = bufio.NewScanner(bytes.NewReader(p))
+	s := bufio.NewScanner(bytes.NewReader(p))
 	for s.Scan() {
 		if strings.HasSuffix(s.Text(), "tls: unknown certificate") {
 			continue

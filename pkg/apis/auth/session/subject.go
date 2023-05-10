@@ -42,7 +42,7 @@ func StoreSubjectCurrentOperation(c *gin.Context, operation Operation) {
 }
 
 func ParseSubjectKey(s string) (group, name string, err error) {
-	var ss = strings.SplitN(s, "/", 2)
+	ss := strings.SplitN(s, "/", 2)
 	if len(ss) != 2 {
 		return "", "", fmt.Errorf("invalid cached subject: %s", s)
 	}
@@ -101,11 +101,11 @@ func (s Subject) Key() string {
 
 // Enforce returns true if this subject has permission to access the given resource.
 func (s Subject) Enforce(c *gin.Context, resource string) bool {
-	var action = c.Request.Method
-	var id = c.Param("id")
-	var url = c.FullPath()
+	action := c.Request.Method
+	id := c.Param("id")
+	url := c.FullPath()
 	for i := 0; i < len(s.Policies); i++ {
-		var rp = &s.Policies[i]
+		rp := &s.Policies[i]
 		if enforce(rp, action, resource, id, url) {
 			return true
 		}
@@ -184,8 +184,8 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 // Give returns Permission of the given resource.
 func (s Subject) Give(resource string) (p Permission) {
 	for i := 0; i < len(s.Policies); i++ {
-		var rp = &s.Policies[i]
-		var pk, pv = getPermission(rp, resource)
+		rp := &s.Policies[i]
+		pk, pv := getPermission(rp, resource)
 		for k, idx := range getOperators() {
 			if pk&k == 0 {
 				continue

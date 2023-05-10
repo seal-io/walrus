@@ -39,7 +39,7 @@ func (b bus) Subscribe(n string, h Handler) error {
 	if b == nil {
 		return errors.New("nil bus")
 	}
-	var ht = reflect.TypeOf(h)
+	ht := reflect.TypeOf(h)
 	if ht.NumIn() != 2 {
 		return errors.New("handler must has two parameters")
 	}
@@ -58,7 +58,7 @@ func (b bus) Subscribe(n string, h Handler) error {
 	default:
 	}
 
-	var mt = getTypeSymbol(ht.In(1))
+	mt := getTypeSymbol(ht.In(1))
 	b[mt] = append(b[mt], namedHandler{n: n, h: h})
 	return nil
 }
@@ -69,19 +69,19 @@ func (b bus) Publish(ctx context.Context, m Message) error {
 		return errors.New("nil bus")
 	}
 
-	var mt = getTypeSymbol(reflect.TypeOf(m))
-	var hs, exist = b[mt]
+	mt := getTypeSymbol(reflect.TypeOf(m))
+	hs, exist := b[mt]
 	if !exist {
 		return nil
 	}
 
-	var in = []reflect.Value{
+	in := []reflect.Value{
 		reflect.ValueOf(ctx),
 		reflect.ValueOf(m),
 	}
 	for i := range hs {
-		var r = reflect.ValueOf(hs[i].h).Call(in)
-		var err = r[0].Interface()
+		r := reflect.ValueOf(hs[i].h).Call(in)
+		err := r[0].Interface()
 		if err != nil {
 			return fmt.Errorf("error calling %q handler: %v", hs[i].n, err)
 		}
@@ -90,7 +90,7 @@ func (b bus) Publish(ctx context.Context, m Message) error {
 }
 
 func getTypeSymbol(t reflect.Type) string {
-	var s = t.String()
+	s := t.String()
 	var p string
 	switch t.Kind() {
 	default:
@@ -118,7 +118,7 @@ func Subscribe(n string, h Handler) error {
 
 // MustSubscribe likes Subscribe, but panic if error found.
 func MustSubscribe(n string, h Handler) {
-	var err = Subscribe(n, h)
+	err := Subscribe(n, h)
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +131,7 @@ func Publish(ctx context.Context, m Message) error {
 
 // MustPublish likes Publish, but panic if error found.
 func MustPublish(ctx context.Context, m Message) {
-	var err = Publish(ctx, m)
+	err := Publish(ctx, m)
 	if err != nil {
 		panic(err)
 	}

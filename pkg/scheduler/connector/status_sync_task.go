@@ -37,13 +37,14 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Warn("previous processing is not finished")
 		return nil
 	}
-	var startTs = time.Now()
+	startTs := time.Now()
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().Where(
+		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -53,7 +54,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		wg     = gopool.Group()
 	)
 	for i := range conns {
-		var conn = conns[i]
+		conn := conns[i]
 		in.logger.Debugf("sync status for connector: %s", conn.Name)
 		wg.Go(func() error {
 			if err := syncer.SyncStatus(ctx, conn); err != nil {

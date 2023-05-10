@@ -12,7 +12,7 @@ import (
 )
 
 func (r *Server) initSettings(ctx context.Context, opts initOptions) error {
-	var creates, err = dao.SettingCreates(opts.ModelClient, settings.All()...)
+	creates, err := dao.SettingCreates(opts.ModelClient, settings.All()...)
 	if err != nil {
 		return err
 	}

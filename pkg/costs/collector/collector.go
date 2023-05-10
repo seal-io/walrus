@@ -22,7 +22,8 @@ import (
 
 // cost endpoint access path.
 var (
-	pathServiceProxy         = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", types.SealSystemNamespace, deployer.NameOpencost)
+	pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy",
+		types.SealSystemNamespace, deployer.NameOpencost)
 	pathAllocation           = "/allocation/compute"
 	pathClusterCost          = "/clusterCosts"
 	pathPrometheusQueryRange = "/prometheusQueryRange"
@@ -50,7 +51,11 @@ type Collector struct {
 	conn          *model.Connector
 }
 
-func NewCollector(restCfg *rest.Config, conn *model.Connector, clusterName string) (*Collector, error) {
+func NewCollector(
+	restCfg *rest.Config,
+	conn *model.Connector,
+	clusterName string,
+) (*Collector, error) {
 	client, err := rest.HTTPClientFor(restCfg)
 	if err != nil {
 		return nil, err
@@ -63,8 +68,10 @@ func NewCollector(restCfg *rest.Config, conn *model.Connector, clusterName strin
 	}, nil
 }
 
-func (c *Collector) K8sCosts(startTime, endTime *time.Time, step time.Duration) (
-	[]*model.ClusterCost, []*model.AllocationCost, error) {
+func (c *Collector) K8sCosts(
+	startTime, endTime *time.Time,
+	step time.Duration,
+) ([]*model.ClusterCost, []*model.AllocationCost, error) {
 	cc, err := c.clusterCosts(startTime, endTime, step)
 	if err != nil {
 		return nil, nil, err
@@ -84,10 +91,14 @@ func (c *Collector) K8sCosts(startTime, endTime *time.Time, step time.Duration) 
 }
 
 // allocationResourceCosts get cost for allocation resources.
-func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step time.Duration) ([]*model.AllocationCost, error) {
+func (c *Collector) allocationResourceCosts(
+	startTime, endTime *time.Time,
+	step time.Duration,
+) ([]*model.AllocationCost, error) {
 	window := fmt.Sprintf("%d,%d", startTime.Unix(), endTime.Unix())
 	queries := url.Values{
-		// Each AllocationSet would be a container, use pod, container as aggregate key to prevent containers with same name.
+		// Each AllocationSet would be a container, use pod,
+		// container as aggregate key to prevent containers with same name.
 		"aggregate": []string{"pod,container"},
 		// Accumulate sums each AllocationSet in the given range, just returning a single cumulative.
 		"accumulate": []string{"false"},
@@ -156,9 +167,12 @@ func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step 
 }
 
 // clusterCosts get costs for cluster.
-func (c *Collector) clusterCosts(startTime, endTime *time.Time, step time.Duration) ([]*model.ClusterCost, error) {
+func (c *Collector) clusterCosts(
+	startTime, endTime *time.Time,
+	step time.Duration,
+) ([]*model.ClusterCost, error) {
 	var costs []*model.ClusterCost
-	var stepStart = *startTime
+	stepStart := *startTime
 	for endTime.After(stepStart) {
 		stepEnd := stepStart.Add(step)
 		cc, err := c.clusterCostsWithinRange(&stepStart, &stepEnd)
@@ -185,7 +199,9 @@ func (c *Collector) clusterCosts(startTime, endTime *time.Time, step time.Durati
 }
 
 // getClusterCostWithinRange get cluster cost within range.
-func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*model.ClusterCost, error) {
+func (c *Collector) clusterCostsWithinRange(
+	startTime, endTime *time.Time,
+) (*model.ClusterCost, error) {
 	offset := time.Since(*endTime).Seconds()
 	if offset < 0 {
 		return nil, nil
@@ -234,9 +250,13 @@ func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*mod
 }
 
 func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.AllocationCost) {
-	var allocationCosts = make(map[string]*model.AllocationCost)
+	allocationCosts := make(map[string]*model.AllocationCost)
 	for _, v := range acs {
-		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
+		key := fmt.Sprintf(
+			"%s-%s",
+			v.StartTime.Format(time.RFC3339),
+			v.EndTime.Format(time.RFC3339),
+		)
 		if _, ok := allocationCosts[key]; !ok {
 			allocationCosts[key] = &model.AllocationCost{}
 		}
@@ -245,7 +265,11 @@ func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.Al
 	}
 
 	for i, v := range ccs {
-		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
+		key := fmt.Sprintf(
+			"%s-%s",
+			v.StartTime.Format(time.RFC3339),
+			v.EndTime.Format(time.RFC3339),
+		)
 		if ac, ok := allocationCosts[key]; ok {
 			// Can't get load balancer cost from cluster cost, so add it from allocation cost.
 			ccs[i].TotalCost += ac.LoadBalancerCost
@@ -285,7 +309,8 @@ func (c *Collector) clusterManagementCost(startTime, endTime *time.Time) (float6
 		return 0, err
 	}
 
-	if len(obj.Data.Result) == 0 || len(obj.Data.Result[0].Values) == 0 || len(obj.Data.Result[0].Values[0]) < 2 {
+	if len(obj.Data.Result) == 0 || len(obj.Data.Result[0].Values) == 0 ||
+		len(obj.Data.Result[0].Values[0]) < 2 {
 		return 0, nil
 	}
 
@@ -310,7 +335,12 @@ func (c *Collector) getRequest(url string, obj interface{}) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("response from %s, code: %d, body: %s", url, resp.StatusCode, string(body))
+		return fmt.Errorf(
+			"response from %s, code: %d, body: %s",
+			url,
+			resp.StatusCode,
+			string(body),
+		)
 	}
 
 	if err = json.Unmarshal(body, obj); err != nil {

@@ -26,7 +26,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if r.Group == "" {
 		return errors.New("invalid group: blank")
@@ -44,7 +44,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid password: blank")
 	}
 
-	var group, err = modelClient.Subjects().Query().
+	group, err := modelClient.Subjects().Query().
 		Where(
 			subject.Kind("group"),
 			subject.Name(r.Group),
@@ -68,24 +68,24 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
 	}
 
-	var confirmUser = []predicate.Subject{
+	confirmUser := []predicate.Subject{
 		subject.Kind("user"),
 		subject.Builtin(false),
 	}
 	if r.ID.IsNaive() {
 		confirmUser = append(confirmUser, subject.ID(r.ID))
 	} else {
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
-	var userEntity, err = modelClient.Subjects().Query().
+	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo, subject.FieldLoginTo).
 		Only(ctx)
@@ -112,23 +112,23 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
 	}
 
-	var confirmUser = []predicate.Subject{
+	confirmUser := []predicate.Subject{
 		subject.Kind("user"),
 	}
 	if r.ID.IsNaive() {
 		confirmUser = append(confirmUser, subject.ID(r.ID))
 	} else {
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
-	var userEntity, err = modelClient.Subjects().Query().
+	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)
@@ -199,7 +199,7 @@ type RouteMountRequest struct {
 }
 
 func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
@@ -214,18 +214,18 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 	}
 
-	var confirmUser = []predicate.Subject{
+	confirmUser := []predicate.Subject{
 		subject.Kind("user"),
 		subject.Builtin(false),
 	}
 	if r.ID.IsNaive() {
 		confirmUser = append(confirmUser, subject.ID(r.ID))
 	} else {
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
-	var userEntity, err = modelClient.Subjects().Query().
+	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
 		Only(ctx)

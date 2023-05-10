@@ -25,7 +25,7 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 	}
 
 	// Confirm.
-	var cli, err = coreclient.NewForConfig(op.RestConfig)
+	cli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
@@ -39,7 +39,7 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 	}
 
 	// Stream.
-	var stmOpts = &core.PodLogOptions{
+	stmOpts := &core.PodLogOptions{
 		Container:    cn,
 		Follow:       kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}),
 		Previous:     opts.Previous,
@@ -69,7 +69,7 @@ func GetPodLogs(
 		return fmt.Errorf("failed to create log stream: %w", err)
 	}
 	defer func() { _ = stm.Close() }()
-	var r = bufio.NewReader(stm)
+	r := bufio.NewReader(stm)
 	for {
 		var bs []byte
 		bs, err = r.ReadBytes('\n')

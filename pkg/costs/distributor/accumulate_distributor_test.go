@@ -199,7 +199,8 @@ func TestAccumulateDistribute(t *testing.T) {
 		assert.Equal(t, v.outputTotalItemNum, count, "%s: total item count mismatch", v.name)
 		assert.Nil(t, err, "%s: error get distribute resource cost: %w", v.name, err)
 		if len(items) != 0 {
-			assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost, "%s: first item total cost mismatch", v.name)
+			assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost,
+				"%s: first item total cost mismatch", v.name)
 		}
 	}
 }
@@ -390,7 +391,8 @@ func TestAllocationResourceCosts(t *testing.T) {
 		assert.Nil(t, err, "%s: error get allocation resource cost: %w", v.name, err)
 		assert.Equal(t, v.outputTotalItemNum, queried, "%s: total item number mismatch", v.name)
 		assert.Len(t, items, v.outputQueriedItemNum, "%s: queried item length mismatch", v.name)
-		assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost, "%s: first item total cost mismatch", v.name)
+		assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost,
+			"%s: first item total cost mismatch", v.name)
 	}
 }
 

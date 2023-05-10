@@ -47,25 +47,33 @@ batchSize = 100
 ldapServerPort = 389
 languages = en,zh,es,fr,de,ja,ko,ru
 quota = {"organization": -1, "user": -1, "application": -1, "provider": -1}
-sessionConfig = {"enableSetCookie":true,"cookieName":"casdoor_session_id","cookieLifeTime":3600,"providerConfig":"{{ .DataDir }}","gclifetime":3600,"domain":"","secure":false,"disableHTTPOnly":false}
+sessionConfig = {
+	"enableSetCookie":true,
+	"cookieName":"casdoor_session_id",
+	"cookieLifeTime":3600,
+	"providerConfig":"{{ .DataDir }}",
+	"gclifetime":3600,"domain":"",
+	"secure":false,
+	"disableHTTPOnly":false
+}
 `
 
 type Embedded struct{}
 
 func (Embedded) Run(ctx context.Context, dataSourceAddress string) error {
-	var runDataPath = filepath.Join(consts.DataDir, "casdoor")
-	var configPath, err = writeConfig(dataSourceAddress, runDataPath)
+	runDataPath := filepath.Join(consts.DataDir, "casdoor")
+	configPath, err := writeConfig(dataSourceAddress, runDataPath)
 	if err != nil {
 		return err
 	}
 
 	const cmdName = "casdoor"
-	var logger = log.WithName(cmdName)
-	var cmdArgs = []string{
+	logger := log.WithName(cmdName)
+	cmdArgs := []string{
 		"-createDatabase=true",
 	}
 	logger.Infof("run: %s %s", cmdName, strs.Join(" ", cmdArgs...))
-	var cmd = exec.CommandContext(ctx, cmdName, cmdArgs...)
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 	cmd.Env = append(os.Environ(), casdoorConfigPathEnvName+"="+configPath)
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
@@ -80,7 +88,7 @@ func (Embedded) GetAddress(ctx context.Context) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 90*time.Second)
 	defer cancel()
 
-	var err = Wait(ctx, embeddedCasdoorEndpointAddress)
+	err := Wait(ctx, embeddedCasdoorEndpointAddress)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +97,7 @@ func (Embedded) GetAddress(ctx context.Context) (string, error) {
 }
 
 func writeConfig(dataSourceAddress, dataDir string) (string, error) {
-	var dsd, dsn, err = rds.GetDriverAndName(dataSourceAddress)
+	dsd, dsn, err := rds.GetDriverAndName(dataSourceAddress)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +108,7 @@ func writeConfig(dataSourceAddress, dataDir string) (string, error) {
 		return "", fmt.Errorf("error parsing casdoor config template: %w", err)
 	}
 
-	var buf = bytespool.GetBuffer()
+	buf := bytespool.GetBuffer()
 	defer func() { bytespool.Put(buf) }()
 	err = tmpl.Execute(buf, map[string]string{
 		"DataSourceDriver": dsd,
@@ -111,9 +119,9 @@ func writeConfig(dataSourceAddress, dataDir string) (string, error) {
 		return "", fmt.Errorf("error rendering casdoor config: %w", err)
 	}
 
-	var configPath = os.Getenv(casdoorConfigPathEnvName)
+	configPath := os.Getenv(casdoorConfigPathEnvName)
 	if configPath == "" {
 		configPath = files.TempFile("")
 	}
-	return configPath, os.WriteFile(configPath, buf.Bytes(), 0600)
+	return configPath, os.WriteFile(configPath, buf.Bytes(), 0o600)
 }

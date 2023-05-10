@@ -29,16 +29,14 @@ func (h Handler) Validating() any {
 
 // Basic APIs.
 
-var (
-	queryFields = []string{
-		secret.FieldName,
-	}
-)
+var queryFields = []string{
+	secret.FieldName,
+}
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
-	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.SecretCreates(tx, entity)
+	entity := req.Model()
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		creates, err := dao.SecretCreates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -57,9 +55,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.SecretUpdates(tx, entity)
+		updates, err := dao.SecretUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -82,13 +80,14 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 	})
 }
 
-var (
-	getFields = secret.WithoutFields(
-		secret.FieldValue)
-)
+var getFields = secret.WithoutFields(
+	secret.FieldValue)
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Secrets().Query()
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Secrets().Query()
 	if len(req.ProjectIDs) != 0 {
 		// Project scope.
 		query.Where(secret.ProjectIDIn(req.ProjectIDs...))

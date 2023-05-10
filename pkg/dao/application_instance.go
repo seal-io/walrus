@@ -7,19 +7,22 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationInstance) ([]*model.ApplicationInstanceCreate, error) {
+func ApplicationInstanceCreates(
+	mc model.ClientSet,
+	input ...*model.ApplicationInstance,
+) ([]*model.ApplicationInstanceCreate, error) {
 	if len(input) == 0 {
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ApplicationInstanceCreate, len(input))
+	rrs := make([]*model.ApplicationInstanceCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.ApplicationInstances().Create().
+		c := mc.ApplicationInstances().Create().
 			SetApplicationID(r.ApplicationID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetName(r.Name)
@@ -35,7 +38,10 @@ func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationI
 	return rrs, nil
 }
 
-func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInstance) (*model.ApplicationInstanceUpdateOne, error) {
+func ApplicationInstanceUpdate(
+	mc model.ClientSet,
+	input *model.ApplicationInstance,
+) (*model.ApplicationInstanceUpdateOne, error) {
 	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
@@ -44,7 +50,7 @@ func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInsta
 		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	var c = mc.ApplicationInstances().UpdateOne(input).
+	c := mc.ApplicationInstances().UpdateOne(input).
 		SetVariables(input.Variables)
 	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
 	if input.Status.Changed() {
@@ -56,7 +62,10 @@ func ApplicationInstanceUpdate(mc model.ClientSet, input *model.ApplicationInsta
 
 // ApplicationInstanceStatusUpdate updates the status of the given application instance.
 // TODO (alex): unify the status update logic for all application instances.
-func ApplicationInstanceStatusUpdate(mc model.ClientSet, input *model.ApplicationInstance) (*model.ApplicationInstanceUpdateOne, error) {
+func ApplicationInstanceStatusUpdate(
+	mc model.ClientSet,
+	input *model.ApplicationInstance,
+) (*model.ApplicationInstanceUpdateOne, error) {
 	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
@@ -65,7 +74,7 @@ func ApplicationInstanceStatusUpdate(mc model.ClientSet, input *model.Applicatio
 		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	var c = mc.ApplicationInstances().UpdateOne(input)
+	c := mc.ApplicationInstances().UpdateOne(input)
 	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
 	if input.Status.Changed() {
 		c.SetStatus(input.Status)

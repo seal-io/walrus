@@ -13,11 +13,11 @@ import (
 
 // GetDeployer returns deployer.Deployer with the given deployer.CreateOptions.
 func GetDeployer(ctx context.Context, opts deployer.CreateOptions) (deployer.Deployer, error) {
-	var f, exist = dpCreators[opts.Type]
+	f, exist := dpCreators[opts.Type]
 	if !exist {
 		return nil, fmt.Errorf("unknown deployer: %s", opts.Type)
 	}
-	var dp, err = f(ctx, opts)
+	dp, err := f(ctx, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting %s deployer: %w", opts.Type, err)
 	}
@@ -35,7 +35,7 @@ func init() {
 
 // GetOperator returns operator.Operator with the given operator.CreateOptions.
 func GetOperator(ctx context.Context, opts operator.CreateOptions) (op operator.Operator, err error) {
-	var f, exist = opCreators[opts.Connector.Type]
+	f, exist := opCreators[opts.Connector.Type]
 	if !exist {
 		// Try to create an any operator.
 		op, err = operatorany.NewOperator(ctx, opts)

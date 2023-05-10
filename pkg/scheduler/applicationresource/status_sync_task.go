@@ -104,7 +104,12 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	return wg.Wait()
 }
 
-func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int, ops map[types.ID]operator.Operator) func() error {
+func (in *StatusSyncTask) buildStateTasks(
+	ctx context.Context,
+	offset,
+	limit int,
+	ops map[types.ID]operator.Operator,
+) func() error {
 	return func() error {
 		is, err := in.modelClient.ApplicationInstances().Query().
 			Order(model.Desc(applicationinstance.FieldCreateTime)).
@@ -128,7 +133,11 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 	}
 }
 
-func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.ApplicationInstance, ops map[types.ID]operator.Operator) func() error {
+func (in *StatusSyncTask) buildStateTask(
+	ctx context.Context,
+	i *model.ApplicationInstance,
+	ops map[types.ID]operator.Operator,
+) func() error {
 	return func() (berr error) {
 		rs, err := i.QueryResources().
 			Order(model.Desc(applicationresource.FieldCreateTime)).

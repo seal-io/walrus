@@ -16,33 +16,38 @@ import (
 
 // parseResourcesOfHelm parses the given `helm_release` model.ApplicationResource,
 // and keeps resource item which matches.
-func parseResourcesOfHelm(ctx context.Context, op Operator, res *model.ApplicationResource, match func(schema.GroupVersionKind) bool) ([]resource, error) {
+func parseResourcesOfHelm(
+	ctx context.Context,
+	op Operator,
+	res *model.ApplicationResource,
+	match func(schema.GroupVersionKind) bool,
+) ([]resource, error) {
 	if match == nil {
 		return nil, nil
 	}
 
-	var opts = helm.GetReleaseOptions{
+	opts := helm.GetReleaseOptions{
 		RESTClientGetter: helm.IncompleteRestClientGetter(*op.RestConfig),
 		Log:              op.Logger.Debugf,
 	}
-	var hr, err = helm.GetRelease(ctx, res, opts)
+	hr, err := helm.GetRelease(ctx, res, opts)
 	if err != nil {
 		return nil, resourceParsingError("error parsing helm release: " + err.Error())
 	}
 
 	// Parse helm release.
 	var rs []resource
-	var hms = releaseutil.SplitManifests(hr.Manifest)
+	hms := releaseutil.SplitManifests(hr.Manifest)
 	if len(hms) == 0 {
 		return nil, nil
 	}
-	var hs = polymorphic.YamlSerializer()
+	hs := polymorphic.YamlSerializer()
 	for k := range hms {
 		var (
 			obj unstructured.Unstructured
 			gvk *schema.GroupVersionKind
 		)
-		var ms = hms[k]
+		ms := hms[k]
 		_, gvk, err = hs.Decode(strs.ToBytes(&ms), nil, &obj)
 		if err != nil {
 			op.Logger.Warnf("error decoding helm release resource: %v", err)
@@ -51,7 +56,7 @@ func parseResourcesOfHelm(ctx context.Context, op Operator, res *model.Applicati
 		if !match(*gvk) {
 			continue
 		}
-		var gvr, _ = meta.UnsafeGuessKindToResource(*gvk)
+		gvr, _ := meta.UnsafeGuessKindToResource(*gvk)
 		rs = append(rs, resource{
 			GroupVersionResource: gvr,
 			Namespace:            obj.GetNamespace(),

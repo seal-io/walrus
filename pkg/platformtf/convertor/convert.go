@@ -37,8 +37,12 @@ func LoadConvertor(provider string) Convertor {
 }
 
 // ToProvidersBlocks converts the connectors to provider blocks with required providers.
-func ToProvidersBlocks(providers []string, connectors model.Connectors, opts ConvertOptions) (blocks block.Blocks, err error) {
-	var builtinProviders = []string{
+func ToProvidersBlocks(
+	providers []string,
+	connectors model.Connectors,
+	opts ConvertOptions,
+) (blocks block.Blocks, err error) {
+	builtinProviders := []string{
 		TypeKubernetes,
 		TypeHelm,
 	}

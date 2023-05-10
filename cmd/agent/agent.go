@@ -9,8 +9,10 @@ import (
 )
 
 func main() {
-	var cmd = agent.Command()
-	var app = clis.AsApp(cmd)
+	var (
+		cmd = agent.Command()
+		app = clis.AsApp(cmd)
+	)
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}

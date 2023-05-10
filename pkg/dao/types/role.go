@@ -35,17 +35,17 @@ func (in RolePolicies) Deduplicate() RolePolicies {
 		v RolePolicy
 		i int
 	}
-	var set = map[string]setEntry{}
+	set := map[string]setEntry{}
 	for i := range in {
 		if in[i].IsZero() {
 			continue
 		}
-		var k = in[i].String()
+		k := in[i].String()
 		if _, existed := set[k]; !existed {
 			set[k] = setEntry{v: in[i], i: len(set)}
 		}
 	}
-	var out = make(RolePolicies, len(set))
+	out := make(RolePolicies, len(set))
 	for _, o := range set {
 		out[o.i] = o.v
 	}
@@ -58,7 +58,7 @@ func (in RolePolicies) Sort() RolePolicies {
 }
 
 func (in RolePolicies) Clone() RolePolicies {
-	var out = make(RolePolicies, 0, len(in))
+	out := make(RolePolicies, 0, len(in))
 	for i := 0; i < len(in); i++ {
 		out = append(out, in[i])
 	}
@@ -67,11 +67,11 @@ func (in RolePolicies) Clone() RolePolicies {
 
 func (in RolePolicies) Delete(rs ...RolePolicy) RolePolicies {
 	type setEntry struct{}
-	var set = map[string]setEntry{}
+	set := map[string]setEntry{}
 	for i := 0; i < len(rs); i++ {
 		set[rs[i].String()] = setEntry{}
 	}
-	var out = RolePolicies{}
+	out := RolePolicies{}
 	for i := 0; i < len(in); i++ {
 		if _, existed := set[in[i].String()]; existed {
 			continue
@@ -182,7 +182,7 @@ func aggregateList(l *[]string) []string {
 	if len(*l) < 2 {
 		return *l
 	}
-	var s = sets.NewString(*l...)
+	s := sets.NewString(*l...)
 	if s.Has("*") {
 		return []string{"*"}
 	}
@@ -200,8 +200,8 @@ func (in RolePolicy) IsZero() bool {
 }
 
 func (in RolePolicy) String() string {
-	var appendAttributes = func(sb *strings.Builder, prefix string, ss []string) {
-		var s = len(ss)
+	appendAttributes := func(sb *strings.Builder, prefix string, ss []string) {
+		s := len(ss)
 		if s == 0 {
 			return
 		}

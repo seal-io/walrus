@@ -15,7 +15,7 @@ import (
 // which is the same as gin.Recovery,
 // but friendly message information can be provided according to the request header.
 func Recovering() Handle {
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -25,7 +25,7 @@ func Recovering() Handle {
 				} else {
 					e = fmt.Errorf("%v", r)
 				}
-				var cs = callstack(3)
+				cs := callstack(3)
 				logger.Errorf("panic observing: %v, callstack: \n%s", e, cs)
 				if isStreamRequest(c) {
 					// Stream request always send header at first,
@@ -49,7 +49,7 @@ func callstack(skip int) []byte {
 		if !ok {
 			break
 		}
-		var fn = "???"
+		fn := "???"
 		f := runtime.FuncForPC(pc)
 		if f != nil {
 			fn = f.Name()

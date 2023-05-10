@@ -13,7 +13,7 @@ import (
 )
 
 func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
-	var builtin = []*model.Subject{
+	builtin := []*model.Subject{
 		// Group default.
 		{
 			Kind:        "group",
@@ -40,7 +40,7 @@ func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 		},
 	}
 
-	var creates, err = dao.SubjectCreates(opts.ModelClient, builtin...)
+	creates, err := dao.SubjectCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}

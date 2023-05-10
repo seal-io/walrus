@@ -18,7 +18,8 @@ type SetupOptions struct {
 
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// Application revision.
-	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status", platformtf.SyncApplicationRevisionStatus)
+	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status",
+		platformtf.SyncApplicationRevisionStatus)
 	if err != nil {
 		return
 	}

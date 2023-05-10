@@ -31,7 +31,11 @@ func (r *StateResult) merge(isError, isTransitioning bool) {
 
 // State gets status of the given model.ApplicationResource list with the given operator.Operator,
 // and represents is ready if both `Error` and `Transitioning` of StateResult are false.
-func State(ctx context.Context, op operator.Operator, modelClient model.ClientSet, candidates []*model.ApplicationResource) (sr StateResult, berr error) {
+func State(
+	ctx context.Context, op operator.Operator,
+	modelClient model.ClientSet,
+	candidates []*model.ApplicationResource,
+) (sr StateResult, berr error) {
 	if op == nil {
 		return
 	}

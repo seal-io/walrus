@@ -12,7 +12,7 @@ import (
 )
 
 func MustNew(ctx context.Context) *bigcache.BigCache {
-	var n, err = New(ctx)
+	n, err := New(ctx)
 	if err != nil {
 		panic(fmt.Errorf("error creating cache: %w", err))
 	}
@@ -23,7 +23,7 @@ func New(ctx context.Context) (*bigcache.BigCache, error) {
 	// Each shard initializes with `(MaxEntriesInWindows / Shards) * MaxEntrySize` = 300 * 512 = 150kb
 	// each shard limits in `(HardMaxCacheSize * 1024 * 1024) / Shards` = 64 * 1024 * 1024 / 64 = 1mb
 	// initializes with 64 * 150kb = 9mb, limits with 64 * 1mb = 64mb.
-	var cfg = bigcache.Config{
+	cfg := bigcache.Config{
 		LifeWindow:         15 * time.Minute,
 		CleanWindow:        3 * time.Minute,
 		Shards:             64,
@@ -42,7 +42,7 @@ func NewWithConfig(ctx context.Context, cfg bigcache.Config) (*bigcache.BigCache
 	}
 	if cfg.OnRemoveWithReason == nil {
 		cfg.OnRemoveWithReason = func(key string, entry []byte, reason bigcache.RemoveReason) {
-			var desc = "unknown"
+			desc := "unknown"
 			switch reason {
 			case bigcache.Deleted:
 				desc = "deleted"
@@ -51,7 +51,7 @@ func NewWithConfig(ctx context.Context, cfg bigcache.Config) (*bigcache.BigCache
 			case bigcache.NoSpace:
 				desc = "nospace"
 			}
-			var size = humanize.IBytes(uint64(len(entry)))
+			size := humanize.IBytes(uint64(len(entry)))
 			cfg.Logger.Printf("%s: %10s | %s", desc, size, key)
 		}
 	}

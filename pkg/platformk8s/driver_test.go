@@ -16,7 +16,7 @@ import (
 
 func TestGetConfig(t *testing.T) {
 	t.Run("v1", func(t *testing.T) {
-		var dummyKubeconfigText = `
+		dummyKubeconfigText := `
 apiVersion: v1
 kind: Config
 clusters:
@@ -36,7 +36,7 @@ users:
     client-certificate-data: ""
     client-key-data: ""
 `
-		var _, err = GetConfig(model.Connector{
+		_, err := GetConfig(model.Connector{
 			Name:          "test",
 			ConfigVersion: "v1",
 			ConfigData: crypto.Properties{

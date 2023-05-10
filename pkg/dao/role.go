@@ -14,14 +14,14 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.RoleCreate, len(input))
+	rrs := make([]*model.RoleCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.Roles().Create().
+		c := mc.Roles().Create().
 			SetName(r.Name)
 
 		// Optional.
@@ -44,7 +44,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.RoleUpdate, len(input))
+	rrs := make([]*model.RoleUpdate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -66,7 +66,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		}
 
 		// Conditional.
-		var c = mc.Roles().Update().
+		c := mc.Roles().Update().
 			Where(ps...).
 			SetDescription(r.Description)
 		if len(r.Policies) != 0 {

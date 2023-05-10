@@ -29,7 +29,7 @@ func (op Operator) Exec(ctx context.Context, k string, opts operator.ExecOptions
 	}
 
 	// Confirm.
-	var cli, err = coreclient.NewForConfig(op.RestConfig)
+	cli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
@@ -46,7 +46,7 @@ func (op Operator) Exec(ctx context.Context, k string, opts operator.ExecOptions
 	}
 
 	// Stream.
-	var stmURL = cli.RESTClient().Post().
+	stmURL := cli.RESTClient().Post().
 		Resource("pods").
 		Name(pn).
 		Namespace(ns).
@@ -62,7 +62,7 @@ func (op Operator) Exec(ctx context.Context, k string, opts operator.ExecOptions
 			scheme.ParameterCodec,
 		).
 		URL()
-	var stmOpts = remotecommand.StreamOptions{
+	stmOpts := remotecommand.StreamOptions{
 		Stdin:  opts.In,
 		Stdout: opts.Out,
 		Tty:    true,
@@ -117,7 +117,7 @@ func (t terminalResizer) Next() *remotecommand.TerminalSize {
 	if t == nil {
 		return nil
 	}
-	var w, h, ok = t()
+	w, h, ok := t()
 	if !ok {
 		return nil
 	}

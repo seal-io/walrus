@@ -35,7 +35,12 @@ type resource struct {
 
 // parseOperableResources parse the given model.ApplicationResource,
 // and keeps resource item which matches enforcer validation.
-func parseResources(ctx context.Context, op Operator, res *model.ApplicationResource, enforcer intercept.Enforcer) ([]resource, error) {
+func parseResources(
+	ctx context.Context,
+	op Operator,
+	res *model.ApplicationResource,
+	enforcer intercept.Enforcer,
+) ([]resource, error) {
 	if res.DeployerType != types.DeployerTypeTF {
 		return nil, resourceParsingError("unknown deployer type: " + res.DeployerType)
 	}
@@ -44,16 +49,16 @@ func parseResources(ctx context.Context, op Operator, res *model.ApplicationReso
 		return parseResourcesOfHelm(ctx, op, res, enforcer.AllowGVK)
 	}
 
-	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
+	gvr, ok := intercept.Terraform().GetGVR(res.Type)
 	if !ok {
 		return nil, nil
 	}
 	if !enforcer.AllowGVR(gvr) {
 		return nil, nil
 	}
-	var ns, n = kube.ParseNamespacedName(res.Name)
+	ns, n := kube.ParseNamespacedName(res.Name)
 
-	var rs = make([]resource, 0, 1)
+	rs := make([]resource, 0, 1)
 	rs = append(rs, resource{
 		GroupVersionResource: gvr,
 		Namespace:            ns,

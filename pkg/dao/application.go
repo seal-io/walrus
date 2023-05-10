@@ -24,7 +24,7 @@ type WrappedApplicationCreate struct {
 }
 
 func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Application, err error) {
-	var mc = ac.ApplicationCreate.Mutation().Client()
+	mc := ac.ApplicationCreate.Mutation().Client()
 
 	// Save entity.
 	created, err = ac.ApplicationCreate.Save(ctx)
@@ -33,15 +33,15 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 	}
 
 	// Construct relationships.
-	var newRss = ac.entity.Edges.Modules
-	var createRss = make([]*model.ApplicationModuleRelationshipCreate, len(newRss))
+	newRss := ac.entity.Edges.Modules
+	createRss := make([]*model.ApplicationModuleRelationshipCreate, len(newRss))
 	for i, rs := range newRss {
 		if rs == nil {
 			return nil, errors.New("invalid input: nil relationship")
 		}
 
 		// Required.
-		var c = mc.ApplicationModuleRelationships().Create().
+		c := mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(created.ID).
 			SetModuleID(rs.ModuleID).
 			SetVersion(rs.Version).
@@ -65,7 +65,7 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 }
 
 func (ac *WrappedApplicationCreate) Exec(ctx context.Context) error {
-	var _, err = ac.Save(ctx)
+	_, err := ac.Save(ctx)
 	return err
 }
 
@@ -74,14 +74,14 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*WrappedApplicationCreate, len(input))
+	rrs := make([]*WrappedApplicationCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.Applications().Create().
+		c := mc.Applications().Create().
 			SetName(r.Name).
 			SetProjectID(r.ProjectID)
 
@@ -112,7 +112,7 @@ type WrappedApplicationUpdate struct {
 }
 
 func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err error) {
-	var mc = au.ApplicationUpdate.Mutation().Client()
+	mc := au.ApplicationUpdate.Mutation().Client()
 
 	if len(au.ApplicationUpdate.Mutation().Fields()) != 0 {
 		// Update entity.
@@ -140,14 +140,14 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	}
 
 	// Create new relationship or update relationship.
-	var applicationID = oldEntity.ID
-	var newRsKeys = sets.New[string]()
-	var newRss = au.entity.Edges.Modules
+	applicationID := oldEntity.ID
+	newRsKeys := sets.New[string]()
+	newRss := au.entity.Edges.Modules
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(applicationID), rs.ModuleID, rs.Name))
 
 		// Required.
-		var c = mc.ApplicationModuleRelationships().Create().
+		c := mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(applicationID).
 			SetModuleID(rs.ModuleID).
 			SetVersion(rs.Version).
@@ -178,7 +178,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	}
 
 	// Delete stale relationship.
-	var oldRss = oldEntity.Edges.Modules
+	oldRss := oldEntity.Edges.Modules
 	for _, rs := range oldRss {
 		if newRsKeys.Has(strs.Join("/", string(rs.ApplicationID), rs.ModuleID, rs.Name)) {
 			continue
@@ -199,7 +199,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 }
 
 func (au *WrappedApplicationUpdate) Exec(ctx context.Context) error {
-	var _, err = au.Save(ctx)
+	_, err := au.Save(ctx)
 	return err
 }
 
@@ -208,7 +208,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*WrappedApplicationUpdate, len(input))
+	rrs := make([]*WrappedApplicationUpdate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -230,7 +230,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		}
 
 		// Conditional.
-		var c = mc.Applications().Update().
+		c := mc.Applications().Update().
 			Where(ps...).
 			SetDescription(r.Description)
 		if r.Name != "" {

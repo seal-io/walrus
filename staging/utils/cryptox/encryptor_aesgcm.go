@@ -9,7 +9,7 @@ import (
 
 // AesGcm returns an Encryptor with AES-GCM encryption.
 func AesGcm(k []byte) (Encryptor, error) {
-	var b, err = aes.NewCipher(k)
+	b, err := aes.NewCipher(k)
 	if err != nil {
 		return nil, err
 	}
@@ -22,11 +22,11 @@ type aesGcmEncryptor struct {
 }
 
 func (e aesGcmEncryptor) Encrypt(p []byte, a []byte) ([]byte, error) {
-	var g, err = cipher.NewGCM(e.b)
+	g, err := cipher.NewGCM(e.b)
 	if err != nil {
 		return nil, err
 	}
-	var n = make([]byte, g.NonceSize())
+	n := make([]byte, g.NonceSize())
 	_, err = io.ReadFull(rand.Reader, n)
 	if err != nil {
 		return nil, err
@@ -35,11 +35,11 @@ func (e aesGcmEncryptor) Encrypt(p []byte, a []byte) ([]byte, error) {
 }
 
 func (e aesGcmEncryptor) Decrypt(c []byte, a []byte) ([]byte, error) {
-	var g, err = cipher.NewGCM(e.b)
+	g, err := cipher.NewGCM(e.b)
 	if err != nil {
 		return nil, err
 	}
-	var n = c[:g.NonceSize()]
+	n := c[:g.NonceSize()]
 	c = c[g.NonceSize():]
 	return g.Open(nil, n, c, a)
 }

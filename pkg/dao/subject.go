@@ -13,7 +13,7 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.SubjectCreate, len(input))
+	rrs := make([]*model.SubjectCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -23,7 +23,7 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		if len(r.Paths) == 0 {
 			return nil, errors.New("invalid input: empty paths")
 		}
-		var c = mc.Subjects().Create().
+		c := mc.Subjects().Create().
 			SetName(r.Name).
 			SetPaths(r.Paths)
 
@@ -50,7 +50,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.SubjectUpdate, len(input))
+	rrs := make([]*model.SubjectUpdate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -73,7 +73,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		}
 
 		// Conditional.
-		var c = mc.Subjects().Update().
+		c := mc.Subjects().Update().
 			Where(ps...).
 			SetDescription(r.Description)
 		if r.Group != "" {

@@ -16,13 +16,13 @@ import (
 )
 
 func authz(c *gin.Context, modelClient model.ClientSet) error {
-	var s = session.LoadSubject(c)
+	s := session.LoadSubject(c)
 
-	var permission, cached = cache.LoadSubjectPermission(s.Key())
+	permission, cached := cache.LoadSubjectPermission(s.Key())
 	if !cached {
 		permission = &cache.SubjectPermission{}
 		var err error
-		var roles = types.SubjectRoles{
+		roles := types.SubjectRoles{
 			{
 				Domain: "system",
 				Name:   "anonymity",
@@ -52,8 +52,12 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 	return nil
 }
 
-func getRoles(ctx context.Context, modelClient model.ClientSet, group, name string) (types.SubjectRoles, error) {
-	var s, err = modelClient.Subjects().Query().
+func getRoles(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	group, name string,
+) (types.SubjectRoles, error) {
+	s, err := modelClient.Subjects().Query().
 		Where(subject.And(
 			subject.Kind("user"),
 			subject.Group(group),
@@ -67,7 +71,11 @@ func getRoles(ctx context.Context, modelClient model.ClientSet, group, name stri
 	return s.Roles, nil
 }
 
-func getPolicies(ctx context.Context, modelClient model.ClientSet, roles types.SubjectRoles) (types.RolePolicies, error) {
+func getPolicies(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	roles types.SubjectRoles,
+) (types.RolePolicies, error) {
 	var predicates []predicate.Role
 	for i := 0; i < len(roles); i++ {
 		predicates = append(predicates,
@@ -76,7 +84,7 @@ func getPolicies(ctx context.Context, modelClient model.ClientSet, roles types.S
 				role.Name(roles[i].Name),
 			))
 	}
-	var entities, err = modelClient.Roles().Query().
+	entities, err := modelClient.Roles().Query().
 		Where(role.Or(predicates...)).
 		Select(role.FieldPolicies).
 		All(ctx)

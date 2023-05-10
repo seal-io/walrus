@@ -34,10 +34,10 @@ func (h Handler) Kind() string {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
-	var entity = req.Model()
-	var s = session.LoadSubject(ctx)
+	entity := req.Model()
+	s := session.LoadSubject(ctx)
 	var cred casdoor.ApplicationCredential
-	var err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
+	err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +77,12 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	if req.ID.IsNaive() {
 		input = append(input, token.ID(req.ID))
 	} else {
-		var keys = req.ID.Split()
+		keys := req.ID.Split()
 		input = append(input, token.CasdoorTokenName(keys[0]))
 	}
 
 	// Delete token.
-	var entity, err = h.modelClient.Tokens().Query().
+	entity, err := h.modelClient.Tokens().Query().
 		Where(input...).
 		Select(token.FieldCasdoorTokenOwner, token.FieldCasdoorTokenName).
 		Only(ctx)
@@ -90,7 +90,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		return runtime.Errorw(err, "failed to get token")
 	}
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var _, err = tx.Tokens().Delete().
+		_, err := tx.Tokens().Delete().
 			Where(input...).
 			Exec(ctx)
 		if err != nil {
@@ -102,7 +102,8 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		if err != nil {
 			return err
 		}
-		err = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret, entity.CasdoorTokenOwner, entity.CasdoorTokenName)
+		err = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret,
+			entity.CasdoorTokenOwner, entity.CasdoorTokenName)
 		if err != nil {
 			return fmt.Errorf("failed to delete token from casdoor: %w", err)
 		}
@@ -129,13 +130,16 @@ var (
 		token.FieldCasdoorTokenOwner)
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Tokens().Query()
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Tokens().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
 
-	var entities, err = query.
+	entities, err := query.
 		Order(model.Desc(token.FieldCreateTime)).
 		Select(getFields...).
 		// Allow returning without sorting keys.

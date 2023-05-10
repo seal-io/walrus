@@ -11,14 +11,14 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.TokenCreate, len(input))
+	rrs := make([]*model.TokenCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.Tokens().Create().
+		c := mc.Tokens().Create().
 			SetCasdoorTokenName(r.CasdoorTokenName).
 			SetCasdoorTokenOwner(r.CasdoorTokenOwner).
 			SetName(r.Name)

@@ -13,8 +13,8 @@ import (
 )
 
 func NewManager(cfg *rest.Config) (*Manager, error) {
-	var logger = log.WithName("k8sctrl")
-	var mgr, err = ctrl.NewManager(cfg, ctrl.Options{
+	logger := log.WithName("k8sctrl")
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Logger:    log.AsLogr(logger),
 		Namespace: types.SealSystemNamespace,
@@ -40,9 +40,9 @@ type StartOptions struct {
 func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 	m.logger.Info("starting")
 
-	var mgr = m.mgr
+	mgr := m.mgr
 	opts.SetupOptions.ReconcileHelper = mgr
-	var reconcilers, err = m.Setup(ctx, opts.SetupOptions)
+	reconcilers, err := m.Setup(ctx, opts.SetupOptions)
 	if err != nil {
 		return err
 	}

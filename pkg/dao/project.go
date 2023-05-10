@@ -13,14 +13,14 @@ func ProjectCreates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ProjectCreate, len(input))
+	rrs := make([]*model.ProjectCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.Projects().Create().
+		c := mc.Projects().Create().
 			SetName(r.Name)
 
 		// Optional.
@@ -38,7 +38,7 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ProjectUpdate, len(input))
+	rrs := make([]*model.ProjectUpdate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -57,7 +57,7 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 		}
 
 		// Conditional.
-		var c = mc.Projects().Update().
+		c := mc.Projects().Update().
 			Where(ps...).
 			SetDescription(r.Description)
 		if r.Name != "" {

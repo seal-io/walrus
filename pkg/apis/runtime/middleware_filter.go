@@ -26,10 +26,10 @@ func Only(match func(*gin.Context) bool) Handle {
 // OnlyLocalIP judges the incoming request whether is from localhost,
 // aborts with 403 if not match.
 func OnlyLocalIP() Handle {
-	var isLocalIP = func(c *gin.Context) bool {
-		var host = c.Request.Host
+	isLocalIP := func(c *gin.Context) bool {
+		host := c.Request.Host
 		if host == "127.0.0.1" || host == "localhost" || host == "::1" {
-			var ip = c.RemoteIP()
+			ip := c.RemoteIP()
 			return ip == "::1" || host == ip
 		}
 		return false
@@ -59,9 +59,9 @@ func Per(hashRequest func(*gin.Context) string, provideHandler func() Handle) Ha
 	}
 	var m sync.Map
 	return func(c *gin.Context) {
-		var k = hashRequest(c)
+		k := hashRequest(c)
 		var h Handle
-		var v, ok = m.LoadOrStore(k, nil)
+		v, ok := m.LoadOrStore(k, nil)
 		if !ok {
 			h = provideHandler()
 			m.Store(k, h)
@@ -74,7 +74,7 @@ func Per(hashRequest func(*gin.Context) string, provideHandler func() Handle) Ha
 
 // PerIP provides new handler according to incoming request IP.
 func PerIP(provideHandler func() Handle) Handle {
-	var hashRequestByIP = func(c *gin.Context) string {
+	hashRequestByIP := func(c *gin.Context) string {
 		return c.ClientIP()
 	}
 	return Per(hashRequestByIP, provideHandler)

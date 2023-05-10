@@ -14,18 +14,18 @@ import (
 
 // NewZapper creates a Zap logger.
 func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLevel) {
-	var zapWriteSyncer = zapcore.AddSync(os.Stderr)
+	zapWriteSyncer := zapcore.AddSync(os.Stderr)
 	if toStdout {
 		zapWriteSyncer = zapcore.AddSync(os.Stdout)
 	}
-	var zapOptions = []zap.Option{
+	zapOptions := []zap.Option{
 		zap.AddCallerSkip(1),
 		zap.AddStacktrace(zap.ErrorLevel),
 		zap.ErrorOutput(zapWriteSyncer),
 	}
 
-	var zapLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
-	var zapEncoderConfig = zap.NewDevelopmentEncoderConfig()
+	zapLevel := zap.NewAtomicLevelAt(zap.DebugLevel)
+	zapEncoderConfig := zap.NewDevelopmentEncoderConfig()
 	if inProduction {
 		zapLevel.SetLevel(zap.InfoLevel)
 		zapEncoderConfig = zap.NewProductionEncoderConfig()
@@ -37,7 +37,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 	}
 
 	zapEncoderConfig.EncodeLevel = func(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-		var s = "D"
+		s := "D"
 		switch l {
 		case zapcore.InfoLevel:
 			s = "I"
@@ -60,7 +60,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 		zapEncoderConfig.EncodeTime = zapcore.EpochTimeEncoder
 	}
 
-	var zapEncoder = zapcore.NewConsoleEncoder(zapEncoderConfig)
+	zapEncoder := zapcore.NewConsoleEncoder(zapEncoderConfig)
 	if asJSON {
 		zapEncoder = zapcore.NewJSONEncoder(zapEncoderConfig)
 	}
@@ -92,7 +92,7 @@ type zapLogger struct {
 }
 
 func (z zapLogger) Write(p []byte) (int, error) {
-	var s = bufio.NewScanner(bytes.NewReader(p))
+	s := bufio.NewScanner(bytes.NewReader(p))
 	for s.Scan() {
 		z.s.Info(s.Text())
 	}
@@ -231,13 +231,13 @@ func (z zapLogger) WithValues(keysAndValues ...interface{}) Logger {
 }
 
 func handleFields(args ...interface{}) (fields []zap.Field) {
-	var argSize = len(args)
+	argSize := len(args)
 	if argSize == 0 {
 		return
 	}
 	for i := 0; i < argSize; {
 		var field zap.Field
-		var arg = args[i]
+		arg := args[i]
 		switch a := arg.(type) {
 		case zap.Field:
 			field = a

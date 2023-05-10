@@ -7,7 +7,8 @@ import (
 )
 
 func AsApp(cmd *Command) *App {
-	var app = cli.NewApp()
+	app := cli.NewApp()
+
 	app.Name = cmd.Name
 	app.HelpName = cmd.HelpName
 	app.Usage = cmd.Usage

@@ -19,7 +19,7 @@ func StoreSubjectPermission(subject string, permission SubjectPermission) {
 	if subject == "" {
 		return
 	}
-	var bs, err = json.Marshal(permission)
+	bs, err := json.Marshal(permission)
 	if err == nil {
 		_ = cacher.Set(subjectPermissionKeyPrefix+subject, bs)
 	}
@@ -32,10 +32,10 @@ func LoadSubjectPermission(subject string) (*SubjectPermission, bool) {
 	if subject == "" {
 		return nil, false
 	}
-	var bs, _ = cacher.Get(subjectPermissionKeyPrefix + subject)
+	bs, _ := cacher.Get(subjectPermissionKeyPrefix + subject)
 	if len(bs) > 0 {
 		var permission SubjectPermission
-		var err = json.Unmarshal(bs, &permission)
+		err := json.Unmarshal(bs, &permission)
 		if err == nil {
 			return &permission, true
 		}
@@ -53,13 +53,13 @@ func CleanSubjectPermission(subject string) {
 
 // CleanSubjectPermissions cleans all subject permissions.
 func CleanSubjectPermissions() {
-	var it = cacher.Iterator()
+	it := cacher.Iterator()
 	for it.SetNext() {
-		var e, err = it.Value()
+		e, err := it.Value()
 		if err != nil {
 			break
 		}
-		var key = e.Key()
+		key := e.Key()
 		if strings.HasPrefix(key, subjectPermissionKeyPrefix) {
 			_ = cacher.Delete(key)
 		}

@@ -124,7 +124,10 @@ var (
 	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.Modules().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)

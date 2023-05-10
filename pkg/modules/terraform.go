@@ -51,7 +51,7 @@ const (
 // GetTerraformModuleFiles parse a full tf configuration to a map using filename as the key.
 func GetTerraformModuleFiles(name, content string) (map[string]string, error) {
 	modDir := files.TempDir("seal-module*")
-	if err := os.WriteFile(filepath.Join(modDir, fileNameMainTf), []byte(content), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(modDir, fileNameMainTf), []byte(content), 0o600); err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(modDir)
@@ -69,7 +69,7 @@ func GetTerraformModuleFiles(name, content string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to render module readme: %w", err)
 	}
 
-	var files = make(map[string]string)
+	files := make(map[string]string)
 
 	// TODO split the configuration to variables.tf, outputs.tf, etc.
 	files[fileNameMainTf] = content
@@ -100,15 +100,15 @@ type schemaSyncer struct {
 // Do fetches and updates the schema of the given module,
 // within 5 mins in the background.
 func (s schemaSyncer) Do(_ context.Context, message module.BusMessage) error {
-	var logger = log.WithName("module")
+	logger := log.WithName("module")
 
 	gopool.Go(func() {
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
-		var m = message.Refer
+		m := message.Refer
 
 		logger.Debugf("syncing schema for module %s", m.ID)
-		var err = syncSchema(ctx, s.mc, m)
+		err := syncSchema(ctx, s.mc, m)
 		if err == nil {
 			return
 		}
@@ -138,7 +138,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 
 	return mc.WithTx(ctx, func(tx *model.Tx) error {
 		// Clean up previous module versions if there's any.
-		var _, err = tx.ModuleVersions().Delete().
+		_, err := tx.ModuleVersions().Delete().
 			Where(moduleversion.ModuleID(m.ID)).
 			Exec(ctx)
 		if err != nil {
@@ -250,7 +250,7 @@ func getVersionsFromRoot(root string) ([]string, error) {
 }
 
 func getVersionedSource(source, version string) string {
-	var protocol, base, subdir, query = "", source, "", ""
+	protocol, base, subdir, query := "", source, "", ""
 
 	if strings.Contains(base, "?") {
 		base, query, _ = strings.Cut(base, "?")
@@ -263,7 +263,7 @@ func getVersionedSource(source, version string) string {
 	}
 	subdir = filepath.Join(subdir, version)
 
-	var result = fmt.Sprintf("%s//%s", base, subdir)
+	result := fmt.Sprintf("%s//%s", base, subdir)
 	if protocol != "" {
 		result = fmt.Sprintf("%s://%s", protocol, result)
 	}
@@ -368,7 +368,7 @@ func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
 }
 
 func getVariableSchema(v *tfconfig.Variable) (property.Schema, error) {
-	var variable, err = property.GuessSchema(v.Name, v.Type, v.Default)
+	variable, err := property.GuessSchema(v.Name, v.Type, v.Default)
 	if err != nil {
 		return property.Schema{}, fmt.Errorf("unresolved variable %s schema: %w", v.Name, err)
 	}

@@ -55,7 +55,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	}()
 
 	// Set bootstrap password.
-	var adminPassword = r.BootstrapPassword
+	adminPassword := r.BootstrapPassword
 	if adminPassword == "" {
 		adminPassword = strs.Hex(16)
 	}
@@ -68,7 +68,8 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 		// NB(thxCode): revert the password if occurs error,
 		// make the `initCasdoor` idempotent.
 		if err != nil {
-			_ = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret, casdoor.BuiltinOrg, casdoor.BuiltinAdmin,
+			_ = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret,
+				casdoor.BuiltinOrg, casdoor.BuiltinAdmin,
 				"", casdoor.BuiltinAdminInitPwd)
 		}
 	}()

@@ -46,7 +46,7 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.IsNaive() {
 		return errors.New("invalid id: blank")
@@ -55,7 +55,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return err
 	}
 
-	var existed, err = modelClient.Perspectives().Query().
+	existed, err := modelClient.Perspectives().Query().
 		Where(perspective.ID(r.ID)).
 		Only(ctx)
 	if err != nil {

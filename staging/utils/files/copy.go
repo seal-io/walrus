@@ -90,7 +90,7 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 		opts[i](&o)
 	}
 
-	var srcInfo, err = os.Lstat(src)
+	srcInfo, err := os.Lstat(src)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) && o.ignore {
 			return nil
@@ -119,7 +119,7 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 		break
 	}
 
-	var dstInfo = srcInfo
+	dstInfo := srcInfo
 	if s, err := os.Lstat(dst); err == nil {
 		if o.replace {
 			if err = os.RemoveAll(dst); err != nil {
@@ -135,7 +135,7 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 		return nil
 	}
 	defer func() {
-		var m = dstInfo.Mode()
+		m := dstInfo.Mode()
 		if o.perm != nil {
 			m = *o.perm
 		}
@@ -149,13 +149,13 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 	}
 
 	if o.preserveTimes {
-		var aTime, mTime, _ = fileTimes(srcInfo)
+		aTime, mTime, _ := fileTimes(srcInfo)
 		if err = os.Chtimes(dst, aTime, mTime); err != nil {
 			return fmt.Errorf("cannot preserve times: %w", err)
 		}
 	}
 	if o.preserveOwner {
-		var uid, gid = fileOwner(srcInfo)
+		uid, gid := fileOwner(srcInfo)
 		if err = os.Lchown(dst, uid, gid); err != nil {
 			return fmt.Errorf("cannot preserve owner: %w", err)
 		}
@@ -165,11 +165,11 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 
 func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 	// Switch directory permission for copying.
-	if err := os.Mkdir(dst, 0666); err != nil {
+	if err := os.Mkdir(dst, 0o666); err != nil {
 		if !os.IsExist(err) {
 			return err
 		}
-		if err = os.Chmod(dst, 0666); err != nil {
+		if err = os.Chmod(dst, 0o666); err != nil {
 			return err
 		}
 	}
@@ -183,7 +183,7 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 		if err != nil {
 			return err
 		}
-		var dstSub = filepath.Join(dst, sub)
+		dstSub := filepath.Join(dst, sub)
 
 		switch m := srcSubInfo.Mode(); {
 		default:
@@ -207,13 +207,13 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 		}
 
 		if o.preserveTimes {
-			var aTime, mTime, _ = fileTimes(srcInfo)
+			aTime, mTime, _ := fileTimes(srcInfo)
 			if err = os.Chtimes(dstSub, aTime, mTime); err != nil {
 				return err
 			}
 		}
 		if o.preserveOwner {
-			var uid, gid = fileOwner(srcInfo)
+			uid, gid := fileOwner(srcInfo)
 			if err = os.Lchown(dstSub, uid, gid); err != nil {
 				return err
 			}
@@ -229,16 +229,16 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 }
 
 func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
-	var dstDir = filepath.Dir(dst)
+	dstDir := filepath.Dir(dst)
 	if !Exists(dstDir) {
-		if err := os.MkdirAll(dstDir, 0666); err != nil {
+		if err := os.MkdirAll(dstDir, 0o666); err != nil {
 			return err
 		}
 	}
 
 	if o.buffer {
 		// Copy with buffer.
-		var srcFile, err = os.Open(src)
+		srcFile, err := os.Open(src)
 		if err != nil {
 			return err
 		}
@@ -252,7 +252,7 @@ func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
 		return err
 	}
 
-	var content, err = os.ReadFile(src)
+	content, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
@@ -262,5 +262,5 @@ func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
 			return err
 		}
 	}
-	return os.WriteFile(dst, content, 0600)
+	return os.WriteFile(dst, content, 0o600)
 }

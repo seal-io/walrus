@@ -59,7 +59,7 @@ func LoadCustomConfig(c *model.Connector) (*CustomConfig, error) {
 		return nil, fmt.Errorf("connector type is not custom connector: %s", c.ID)
 	}
 
-	var cc = &CustomConfig{
+	cc := &CustomConfig{
 		Attributes: make(map[string]interface{}),
 	}
 	for k, d := range c.ConfigData {

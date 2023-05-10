@@ -38,7 +38,7 @@ func TestWalker_sxs(t *testing.T) {
 	//      | Available      | True                    | Available             | Done                  |
 
 	// 3. Create a flow to connect the above condition types.
-	var f = NewWalker(
+	f := NewWalker(
 		// Define paths.
 		[][]ConditionType{
 			{
@@ -133,7 +133,7 @@ func TestWalker_multiple(t *testing.T) {
 		ExampleResourceStatusDeleted  ConditionType = "Deleted"
 	)
 
-	var f = NewWalker(
+	f := NewWalker(
 		[][]ConditionType{
 			{
 				ExampleResourceStatusDeployed,
@@ -163,7 +163,7 @@ func TestWalker_multiple(t *testing.T) {
 			Before func(*input)
 		}
 	)
-	var testCases = []struct {
+	testCases := []struct {
 		name     string
 		given    input
 		expected *Summary
@@ -344,7 +344,7 @@ func TestWalker_multiple(t *testing.T) {
 			if tc.given.Before != nil {
 				tc.given.Before(&tc.given)
 			}
-			var actual = f.Walk(&tc.given.Status)
+			actual := f.Walk(&tc.given.Status)
 			assert.Equal(t, tc.expected, actual, "case %q", tc.name)
 		})
 	}

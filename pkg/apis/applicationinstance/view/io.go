@@ -32,7 +32,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.Application.ID.Valid(0) {
 		return errors.New("invalid application id: blank")
@@ -103,7 +103,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if *r.Force {
-		var modelClient = input.(model.ClientSet)
+		modelClient := input.(model.ClientSet)
 		err := validateRevisionStatus(ctx, modelClient, r.ID, "delete")
 		if err != nil {
 			return err
@@ -141,7 +141,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 	exist, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.ID)).
 		Exist(ctx)
@@ -160,7 +160,7 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ApplicationID.Valid(0) {
 		return errors.New("invalid application id: blank")
@@ -184,7 +184,7 @@ type CollectionStreamRequest struct {
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.ApplicationID != "" {
-		var modelClient = input.(model.ClientSet)
+		modelClient := input.(model.ClientSet)
 		if !r.ApplicationID.Valid(0) {
 			return errors.New("invalid application id: blank")
 		}
@@ -208,7 +208,7 @@ type RouteUpgradeRequest struct {
 }
 
 func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
@@ -252,7 +252,7 @@ type AccessEndpointRequest struct {
 }
 
 func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
@@ -285,7 +285,7 @@ type OutputRequest struct {
 }
 
 func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
@@ -321,7 +321,12 @@ func (r *CreateCloneRequest) Validate() error {
 	return nil
 }
 
-func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id types.ID, action string) error {
+func validateRevisionStatus(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	id types.ID,
+	action string,
+) error {
 	revision, err := modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(id)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
@@ -334,7 +339,8 @@ func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id
 		switch revision.Status {
 		case status.ApplicationRevisionStatusSucceeded:
 		case status.ApplicationRevisionStatusRunning:
-			return runtime.Error(http.StatusBadRequest, "deployment is running, please wait for it to finish before deleting the instance")
+			return runtime.Error(http.StatusBadRequest,
+				"deployment is running, please wait for it to finish before deleting the instance")
 		case status.ApplicationRevisionStatusFailed:
 			if action != "delete" {
 				return nil
@@ -347,7 +353,11 @@ func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id
 				return err
 			}
 			if resourceExist {
-				return runtime.Error(http.StatusBadRequest, "latest deployment is not succeeded, please fix the app configuration or rollback the instance before deleting it")
+				return runtime.Error(
+					http.StatusBadRequest,
+					"latest deployment is not succeeded,"+
+						" please fix the app configuration or rollback the instance before deleting it",
+				)
 			}
 		default:
 			return runtime.Error(http.StatusBadRequest, "invalid deployment status")

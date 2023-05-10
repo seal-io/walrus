@@ -6,7 +6,8 @@ import (
 
 var (
 	tmplOpencost            = template.Must(template.New("opencost").Parse(tmplOpencostContent))
-	tmplPrometheusScrapeJob = template.Must(template.New("prometheusScrapeJob").Parse(tmplPrometheusScrapeJobContent))
+	tmplPrometheusScrapeJob = template.Must(
+		template.New("prometheusScrapeJob").Parse(tmplPrometheusScrapeJobContent))
 )
 
 // source: https://github.com/opencost/opencost/blob/v1.100.2/kubernetes/opencost.yaml
@@ -150,7 +151,8 @@ spec:
             - name: PROMETHEUS_SERVER_ENDPOINT
               value: {{.PrometheusEndpoint}}
             - name: CLOUD_PROVIDER_API_KEY
-              value: "AIzaSyD29bGxmHAVEOBYtgd8sYM2gM2ekfxQX4U" # The GCP Pricing API requires a key. This is supplied just for evaluation.
+			  # The GCP Pricing API requires a key. This is supplied just for evaluation.
+              value: "AIzaSyD29bGxmHAVEOBYtgd8sYM2gM2ekfxQX4U" 
             - name: CLUSTER_ID
               value: {{.ClusterID}} # Default cluster ID to use if cluster_id is not set in Prometheus metrics.
             - name: PRICING_CONFIGMAP_NAME

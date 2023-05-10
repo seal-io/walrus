@@ -71,7 +71,6 @@ func TestParseInstanceProviderConnector(t *testing.T) {
 		expectedError  bool
 	}{
 		{
-
 			input:          "provider.connector--instance",
 			expectedOutput: "",
 			expectedError:  true,
@@ -191,20 +190,28 @@ func TestParseProvidreString(t *testing.T) {
 			},
 		},
 		{
-			input:         `module.baz["foo"].provider["registry.terraform.io/hashicorp/aws"]`,
-			expectedError: errors.New("invalid provider configuration address \"module.baz[\"foo\"].provider[\"registry.terraform.io/hashicorp/aws\"]"),
+			input: `module.baz["foo"].provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New(
+				"invalid provider configuration address \"module.baz[\"foo\"].provider[\"registry.terraform.io/hashicorp/aws\"]",
+			),
 		},
 		{
-			input:         `module.baz[1].provider["registry.terraform.io/hashicorp/aws"]`,
-			expectedError: errors.New("invalid provider configuration address \"module.baz[1].provider[\"registry.terraform.io/hashicorp/aws\"]"),
+			input: `module.baz[1].provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New(
+				"invalid provider configuration address \"module.baz[1].provider[\"registry.terraform.io/hashicorp/aws\"]",
+			),
 		},
 		{
-			input:         `module.baz[1].module.bar.provider["registry.terraform.io/hashicorp/aws"]`,
-			expectedError: errors.New("invalid provider configuration address \"module.baz[1].module.bar.provider[\"registry.terraform.io/hashicorp/aws\"]"),
+			input: `module.baz[1].module.bar.provider["registry.terraform.io/hashicorp/aws"]`,
+			expectedError: errors.New(
+				"invalid provider configuration address \"module.baz[1].module.bar.provider[\"registry.terraform.io/hashicorp/aws\"]",
+			),
 		},
 		{
-			input:         `aws`,
-			expectedError: errors.New("provider address must begin with \"provider.\", followed by a provider type name"),
+			input: `aws`,
+			expectedError: errors.New(
+				"provider address must begin with \"provider.\", followed by a provider type name",
+			),
 		},
 		{
 			input:         `provider.`,

@@ -38,7 +38,7 @@ func (l *Lines) Read() ([]string, error) {
 
 func (l *Lines) extract(r io.Reader) ([]string, error) {
 	bf := bufio.NewReader(r)
-	var lines = make([]string, 0)
+	lines := make([]string, 0)
 	for lnum := 0; ; lnum++ {
 		if lnum >= l.LineNum-1 {
 			break

@@ -35,7 +35,7 @@ func (g *waitGroup) Go(f func() error) {
 		return
 	}
 
-	var wf = func() (err error) {
+	wf := func() (err error) {
 		defer func() {
 			if v := recover(); v != nil {
 				switch vt := v.(type) {
@@ -53,7 +53,7 @@ func (g *waitGroup) Go(f func() error) {
 	g.g.Add(1)
 	Go(func() {
 		defer g.g.Done()
-		var err = wf()
+		err := wf()
 		if err != nil {
 			g.m.Lock()
 			g.err = multierr.Append(g.err, err)
@@ -66,7 +66,7 @@ func (g *waitGroup) Go(f func() error) {
 // Waiting group notifies closing when any task raises error,
 // any submitting task should use the returning context to receive quiting.
 func GroupWithContext(ctx context.Context) (contextWaitGroup, context.Context) {
-	var g, c = gp.GroupContext(ctx)
+	g, c := gp.GroupContext(ctx)
 	return contextWaitGroup{g: g}, c
 }
 
@@ -87,7 +87,7 @@ func (g contextWaitGroup) Go(f func() error) {
 		return
 	}
 
-	var wf = func() (err error) {
+	wf := func() (err error) {
 		defer func() {
 			if v := recover(); v != nil {
 				switch vt := v.(type) {

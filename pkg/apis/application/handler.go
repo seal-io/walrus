@@ -47,9 +47,9 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
-	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.ApplicationCreates(tx, entity)
+	entity := req.Model()
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		creates, err := dao.ApplicationCreates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -68,9 +68,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.ApplicationUpdates(tx, entity)
+		updates, err := dao.ApplicationUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -82,8 +82,11 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return h.getApplicationOutput(ctx, req.ID)
 }
 
-func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.ApplicationOutput, error) {
-	var entity, err = h.modelClient.Applications().Query().
+func (h Handler) getApplicationOutput(
+	ctx context.Context,
+	id types.ID,
+) (*model.ApplicationOutput, error) {
+	entity, err := h.modelClient.Applications().Query().
 		Where(application.ID(id)).
 		// Must extract modules.
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
@@ -106,7 +109,7 @@ func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.
 }
 
 func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.Application)
+	t, err := topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err
 	}
@@ -174,11 +177,15 @@ var (
 	getFields  = application.WithoutFields(application.FieldUpdateTime)
 	sortFields = []string{
 		application.FieldName,
-		application.FieldCreateTime}
+		application.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Applications().Query().
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Applications().Query().
 		Where(application.ProjectIDIn(req.ProjectIDs...))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -222,7 +229,7 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 				applicationinstance.FieldStatus).
 				Where(func(s *sql.Selector) {
 					// Sq generate instance with row number.
-					var sq = s.Clone().
+					sq := s.Clone().
 						AppendSelectExprAs(
 							sql.RowNumber().
 								PartitionBy(applicationinstance.FieldApplicationID).
@@ -246,14 +253,17 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 		})
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.Application)
+func (h Handler) CollectionStream(
+	ctx runtime.RequestUnidiStream,
+	req view.CollectionStreamRequest,
+) error {
+	t, err := topic.Subscribe(datamessage.Application)
 	if err != nil {
 		return err
 	}
 	defer func() { t.Unsubscribe() }()
 
-	var query = h.modelClient.Applications().Query().
+	query := h.modelClient.Applications().Query().
 		WithProject(func(q *model.ProjectQuery) {
 			q.Select(project.FieldID)
 		})

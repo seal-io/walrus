@@ -18,7 +18,12 @@ import (
 )
 
 // Apply applies the labels to kubernetes resource.
-func Apply(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured, labels map[string]string) error {
+func Apply(
+	ctx context.Context,
+	dynamicCli *dynamic.DynamicClient,
+	o *unstructured.Unstructured,
+	labels map[string]string,
+) error {
 	p := patcher{
 		dynamicCli: dynamicCli,
 	}
@@ -45,7 +50,11 @@ type patcher struct {
 	dynamicCli *dynamic.DynamicClient
 }
 
-func (p *patcher) applyLabelsToWorkloads(ctx context.Context, o *unstructured.Unstructured, labels map[string]string) error {
+func (p *patcher) applyLabelsToWorkloads(
+	ctx context.Context,
+	o *unstructured.Unstructured,
+	labels map[string]string,
+) error {
 	pods, err := p.selectPods(ctx, o)
 	if err != nil {
 		return err
@@ -111,12 +120,12 @@ func (p *patcher) selectPods(ctx context.Context, o *unstructured.Unstructured) 
 		gvk    = o.GetObjectKind().GroupVersionKind()
 		gvr, _ = meta.UnsafeGuessKindToResource(gvk)
 	)
-	var ns, s, err = polymorphic.SelectorsForObject(o)
+	ns, s, err := polymorphic.SelectorsForObject(o)
 	if err != nil {
 		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w", gvr.Resource, ns, name, err)
 	}
 
-	var ss = s.String()
+	ss := s.String()
 	pl, err := p.dynamicCli.
 		Resource(core.SchemeGroupVersion.WithResource("pods")).
 		Namespace(ns).

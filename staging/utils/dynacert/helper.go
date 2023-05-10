@@ -27,25 +27,27 @@ import (
 
 func GenCA() (crypto.Signer, *x509.Certificate, error) {
 	// Generate private key.
-	var key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Generate certificate.
-	var now = time.Now()
-	var x509Cert = &x509.Certificate{
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		NotBefore:             now.Add(-5 * time.Minute).UTC(),
-		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(), // 10 years.
-		SerialNumber:          new(big.Int).SetInt64(now.Unix()),
-		Subject: pkix.Name{
-			CommonName:   "dynacert-ca@" + strconv.FormatInt(now.Unix(), 10),
-			Organization: []string{"seal.io"},
-		},
-	}
+	var (
+		now      = time.Now()
+		x509Cert = &x509.Certificate{
+			BasicConstraintsValid: true,
+			IsCA:                  true,
+			KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+			NotBefore:             now.Add(-5 * time.Minute).UTC(),
+			NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(), // 10 years.
+			SerialNumber:          new(big.Int).SetInt64(now.Unix()),
+			Subject: pkix.Name{
+				CommonName:   "dynacert-ca@" + strconv.FormatInt(now.Unix(), 10),
+				Organization: []string{"seal.io"},
+			},
+		}
+	)
 	certDER, err := x509.CreateCertificate(rand.Reader, x509Cert, x509Cert, key.Public(), key)
 	if err != nil {
 		return nil, nil, err
@@ -60,7 +62,12 @@ func GenCA() (crypto.Signer, *x509.Certificate, error) {
 	return key, x509Cert, nil
 }
 
-func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto.Signer, server ...string) (*x509.Certificate, error) {
+func GenServerCert(
+	caKey crypto.Signer,
+	caX509Cert *x509.Certificate,
+	key crypto.Signer,
+	server ...string,
+) (*x509.Certificate, error) {
 	var (
 		dnsNames    []string
 		ipAddresses []net.IP
@@ -73,8 +80,8 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 		}
 	}
 
-	var now = time.Now()
-	var x509Cert = &x509.Certificate{
+	now := time.Now()
+	x509Cert := &x509.Certificate{
 		DNSNames:     dnsNames,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		IPAddresses:  ipAddresses,
@@ -102,12 +109,12 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 }
 
 func LoadOrGenSelfSignedCA(ctx context.Context, cache Cache) (crypto.Signer, *x509.Certificate, error) {
-	var bs, err = cache.Get(ctx, "ca")
+	bs, err := cache.Get(ctx, "ca")
 	if err != nil {
 		if !errors.Is(err, autocert.ErrCacheMiss) {
 			return nil, nil, err
 		}
-		var key, x509Cert, err = GenCA()
+		key, x509Cert, err := GenCA()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -139,17 +146,17 @@ func encodeTlsCertificate(tlsCert *tls.Certificate) ([]byte, error) {
 	// Encode private key.
 	switch k := tlsCert.PrivateKey.(type) {
 	case *ecdsa.PrivateKey:
-		var b, err = x509.MarshalECPrivateKey(k)
+		b, err := x509.MarshalECPrivateKey(k)
 		if err != nil {
 			return nil, err
 		}
-		var pb = &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}
+		pb := &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}
 		if err = pem.Encode(&buf, pb); err != nil {
 			return nil, err
 		}
 	case *rsa.PrivateKey:
-		var b = x509.MarshalPKCS1PrivateKey(k)
-		var pb = &pem.Block{Type: "RSA PRIVATE KEY", Bytes: b}
+		b := x509.MarshalPKCS1PrivateKey(k)
+		pb := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: b}
 		if err := pem.Encode(&buf, pb); err != nil {
 			return nil, err
 		}
@@ -159,7 +166,7 @@ func encodeTlsCertificate(tlsCert *tls.Certificate) ([]byte, error) {
 
 	// Encode public key.
 	for _, b := range tlsCert.Certificate {
-		var pb = &pem.Block{Type: "CERTIFICATE", Bytes: b}
+		pb := &pem.Block{Type: "CERTIFICATE", Bytes: b}
 		if err := pem.Encode(&buf, pb); err != nil {
 			return nil, err
 		}
@@ -178,7 +185,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	key, err := x509.ParseECPrivateKey(keyBlock.Bytes)
 	if err != nil {
 		// Try RSA.
-		var k, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
+		k, err := x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
 		if err != nil {
 			return nil, errors.New("corrupt private key: parse failed")
 		}
@@ -204,7 +211,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	for i := range certs {
 		n += len(certs[i])
 	}
-	var der = make([]byte, n)
+	der := make([]byte, n)
 	n = 0
 	for i := range certs {
 		n += copy(der[n:], certs[i])
@@ -216,7 +223,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	if len(x509Certs) == 0 {
 		return nil, errors.New("corrupt certificate: not found")
 	}
-	var leaf = x509Certs[0]
+	leaf := x509Certs[0]
 
 	// Validate leaf certificate.
 	err = verifyCert(leaf, hostname)
@@ -225,7 +232,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	}
 	switch prv := key.(type) {
 	case *ecdsa.PrivateKey:
-		var pub, ok = leaf.PublicKey.(*ecdsa.PublicKey)
+		pub, ok := leaf.PublicKey.(*ecdsa.PublicKey)
 		if !ok {
 			return nil, errors.New("corrupt certificate: not ECDSA type")
 		}
@@ -233,7 +240,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 			return nil, errors.New("corrupt private key: not match ECDSA certificate")
 		}
 	case *rsa.PrivateKey:
-		var pub, ok = leaf.PublicKey.(*rsa.PublicKey)
+		pub, ok := leaf.PublicKey.(*rsa.PublicKey)
 		if !ok {
 			return nil, errors.New("corrupt certificate: not RSA type")
 		}
@@ -250,7 +257,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 }
 
 func verifyCert(x509Cert *x509.Certificate, hostname string) error {
-	var now = time.Now()
+	now := time.Now()
 	if now.Before(x509Cert.NotBefore) {
 		return errors.New("corrupt certificate: not valid yet")
 	}
@@ -258,7 +265,7 @@ func verifyCert(x509Cert *x509.Certificate, hostname string) error {
 		return errors.New("corrupt certificate: expired")
 	}
 	if hostname != "" {
-		var err = x509Cert.VerifyHostname(hostname)
+		err := x509Cert.VerifyHostname(hostname)
 		if err != nil {
 			return fmt.Errorf("corrupt certificate: %w", err)
 		}

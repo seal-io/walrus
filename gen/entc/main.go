@@ -22,7 +22,7 @@ func init() {
 }
 
 func main() {
-	var err = generate()
+	err := generate()
 	if err != nil {
 		log.Fatalf("error generating: %v", err)
 	}
@@ -35,15 +35,15 @@ func generate() (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting working directory: %w", err)
 	}
-	var targetDir = filepath.Join(workingDir, "/pkg/dao/model")
-	var schemaDir = filepath.Join(workingDir, "/pkg/dao/schema")
-	var templateDir = filepath.Join(workingDir, "/pkg/dao/template")
+	targetDir := filepath.Join(workingDir, "/pkg/dao/model")
+	schemaDir := filepath.Join(workingDir, "/pkg/dao/schema")
+	templateDir := filepath.Join(workingDir, "/pkg/dao/template")
 	generatingDir := files.TempDir("seal-dao-generated-*")
 	defer func() {
 		_ = os.RemoveAll(generatingDir)
 	}()
-	var newGeneratedDir = filepath.Join(generatingDir, "/new")
-	var oldGeneratedDir = filepath.Join(generatingDir, "/old")
+	newGeneratedDir := filepath.Join(generatingDir, "/new")
+	oldGeneratedDir := filepath.Join(generatingDir, "/old")
 
 	header, err := os.ReadFile(filepath.Join(workingDir, "/hack/boilerplate/go.txt"))
 	if err != nil {
@@ -51,7 +51,7 @@ func generate() (err error) {
 	}
 
 	// Generate.
-	var feats = []gen.Feature{
+	feats := []gen.Feature{
 		gen.FeatureSnapshot,
 		gen.FeatureSchemaConfig,
 		gen.FeatureLock,
@@ -60,7 +60,7 @@ func generate() (err error) {
 		gen.FeatureUpsert,
 		gen.FeatureVersionedMigration,
 	}
-	var cfg = gen.Config{
+	cfg := gen.Config{
 		Features: feats,
 		Header:   string(header),
 		Target:   newGeneratedDir,
@@ -113,7 +113,7 @@ func configTemplateFuncs() {
 
 // configTemplate configures the template of generation.
 func configTemplate() {
-	var pkgf = func(s string) func(t *gen.Type) string {
+	pkgf := func(s string) func(t *gen.Type) string {
 		return func(t *gen.Type) string { return fmt.Sprintf(s, t.PackageDir()) }
 	}
 	// Generate io file for per model.

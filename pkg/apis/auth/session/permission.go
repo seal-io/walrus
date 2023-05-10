@@ -40,7 +40,7 @@ func (p Permission) If(s string) (pv Operation) {
 	if pk == 0 {
 		return
 	}
-	var idx = getOperators()[pk]
+	idx := getOperators()[pk]
 	return p[idx]
 }
 
@@ -92,8 +92,8 @@ func (p Operation) merge(v Operation) (o Operation) {
 		return v
 	}
 
-	var pf, pi, pe = p.Then()
-	var vf, vi, ve = v.Then()
+	pf, pi, pe := p.Then()
+	vf, vi, ve := v.Then()
 
 	switch {
 	case vf < pf:

@@ -24,7 +24,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		return fs
 	}
 
-	var ignoreSet = sets.New[string]("createTime", "updateTime")
+	ignoreSet := sets.New[string]("createTime", "updateTime")
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
@@ -69,7 +69,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 
 	// Distinct.
 	var nfs []*gen.Field
-	var fdSet = sets.New[string]()
+	fdSet := sets.New[string]()
 	for i := range fs {
 		if fdSet.Has(fs[i].Name) {
 			continue
@@ -81,7 +81,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 }
 
 func getInputEdges(n *gen.Type, a string) []*gen.Edge {
-	var ignoreSet = sets.New[string]()
+	ignoreSet := sets.New[string]()
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
@@ -139,7 +139,7 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 }
 
 func getOutputFields(n *gen.Type) []*gen.Field {
-	var ignoreSet = sets.New[string]()
+	ignoreSet := sets.New[string]()
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
@@ -179,7 +179,7 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 
 	// Distinct.
 	var nfs []*gen.Field
-	var fdSet = sets.New[string]()
+	fdSet := sets.New[string]()
 	for i := range fs {
 		if fdSet.Has(fs[i].Name) {
 			continue
@@ -191,7 +191,7 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 }
 
 func getOutputEdges(n *gen.Type) []*gen.Edge {
-	var ignoreSet = sets.New[string]()
+	ignoreSet := sets.New[string]()
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
@@ -215,7 +215,7 @@ func getOutputEdges(n *gen.Type) []*gen.Edge {
 }
 
 func getStructTag(v any, mustOmit bool) string {
-	var camel = gen.Funcs["camel"].(func(string) string)
+	camel := gen.Funcs["camel"].(func(string) string)
 	switch f := v.(type) {
 	case *gen.Field:
 		if mustOmit || f.Nillable || f.Optional || f.Default || f.UpdateDefault || f.Validators == 0 || f.Sensitive() {

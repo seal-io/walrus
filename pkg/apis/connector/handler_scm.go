@@ -14,14 +14,18 @@ import (
 
 // Extensional APIs for SCM connectors.
 
-func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositoriesRequest) (view.GetRepositoriesResponse, error) {
+func (h Handler) RouteGetRepositories(
+	ctx *gin.Context,
+	req view.GetRepositoriesRequest,
+) (view.GetRepositoriesResponse, error) {
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	if conn.Category != types.ConnectorCategoryVersionControl {
-		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported version control driver", conn.Type)
+		return nil, runtime.Errorf(http.StatusBadRequest,
+			"%q is not a supported version control driver", conn.Type)
 	}
 
 	client, err := vcs.NewClient(conn)
@@ -29,7 +33,7 @@ func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositories
 		return nil, err
 	}
 
-	var listOptions = scm.ListOptions{
+	listOptions := scm.ListOptions{
 		IncludePrivate: true,
 		Page:           req.Page,
 		Size:           req.PerPage,
@@ -45,14 +49,18 @@ func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositories
 	return repositories, nil
 }
 
-func (h Handler) RouteGetRepositoryBranches(ctx *gin.Context, req view.GetBranchesRequest) (view.GetBranchesResponse, error) {
+func (h Handler) RouteGetRepositoryBranches(
+	ctx *gin.Context,
+	req view.GetBranchesRequest,
+) (view.GetBranchesResponse, error) {
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	if conn.Category != types.ConnectorCategoryVersionControl {
-		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported SCM driver", conn.Type)
+		return nil, runtime.Errorf(http.StatusBadRequest,
+			"%q is not a supported SCM driver", conn.Type)
 	}
 
 	client, err := vcs.NewClient(conn)
@@ -60,7 +68,7 @@ func (h Handler) RouteGetRepositoryBranches(ctx *gin.Context, req view.GetBranch
 		return nil, err
 	}
 
-	var listOptions = scm.ListOptions{
+	listOptions := scm.ListOptions{
 		IncludePrivate: true,
 		Page:           req.Page,
 		Size:           req.PerPage,

@@ -155,12 +155,13 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 	}
 
 	if replace {
-		if err = helm.Uninstall(app.Name); err != nil && !strings.Contains(err.Error(), "not found") {
+		if err = helm.Uninstall(app.Name); err != nil &&
+			!strings.Contains(err.Error(), "not found") {
 			return err
 		}
 	}
 
-	var chartTgzPath = path.Join(helm.repoCache, app.ChartTgzName)
+	chartTgzPath := path.Join(helm.repoCache, app.ChartTgzName)
 	if _, err = os.Stat(chartTgzPath); err != nil {
 		chartTgzPath, err = helm.Download(app.Entry.URL, app.Entry.Name)
 		if err != nil {

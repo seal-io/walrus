@@ -39,7 +39,7 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Warn("previous processing is not finished")
 		return nil
 	}
-	var startTs = time.Now()
+	startTs := time.Now()
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -50,16 +50,16 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 	// we can treat each connector as a task group,
 	// group 100 resources of each connector into one task unit,
 	// and then process resources labeling in task unit.
-	var cs, err = listCandidateConnectors(ctx, in.modelClient)
+	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
 		return fmt.Errorf("cannot list all connectors: %w", err)
 	}
 	if len(cs) == 0 {
 		return nil
 	}
-	var wg = gopool.Group()
+	wg := gopool.Group()
 	for i := range cs {
-		var at = in.buildApplyTasks(ctx, cs[i])
+		at := in.buildApplyTasks(ctx, cs[i])
 		wg.Go(at)
 	}
 	return wg.Wait()
@@ -67,7 +67,7 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 
 func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connector) func() error {
 	return func() error {
-		var op, err = platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := platform.GetOperator(ctx, operator.CreateOptions{
 			Connector: *c,
 		})
 		if err != nil {
@@ -89,23 +89,29 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 			return nil
 		}
 		const bks = 100
-		var bkc = cnt/bks + 1
+		bkc := cnt/bks + 1
 		if bkc == 1 {
-			var at = in.buildApplyTask(ctx, op, c.ID, 0, bks)
+			at := in.buildApplyTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
-		var wg = gopool.Group()
+		wg := gopool.Group()
 		for bk := 0; bk < bkc; bk++ {
-			var at = in.buildApplyTask(ctx, op, c.ID, bk*bks, bks)
+			at := in.buildApplyTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
 		return wg.Wait()
 	}
 }
 
-func (in *LabelApplyTask) buildApplyTask(ctx context.Context, op operator.Operator, connectorID types.ID, offset, limit int) func() error {
+func (in *LabelApplyTask) buildApplyTask(
+	ctx context.Context,
+	op operator.Operator,
+	connectorID types.ID,
+	offset,
+	limit int,
+) func() error {
 	return func() error {
-		var entities, err = applicationresources.ListCandidatesPageByConnector(
+		entities, err := applicationresources.ListCandidatesPageByConnector(
 			ctx, in.modelClient, connectorID, offset, limit)
 		if err != nil {
 			return fmt.Errorf("error listing label candidates: %w", err)

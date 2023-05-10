@@ -18,11 +18,11 @@ const OperatorType = types.ConnectorTypeK8s
 func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Operator, error) {
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once operation,
 	// and rely on the session context timeout control of each operation.
-	var restConfig, err = GetConfig(opts.Connector, WithoutTimeout())
+	restConfig, err := GetConfig(opts.Connector, WithoutTimeout())
 	if err != nil {
 		return nil, err
 	}
-	var op = Operator{
+	op := Operator{
 		Logger:     log.WithName("operator").WithName("k8s"),
 		RestConfig: restConfig,
 	}

@@ -12,10 +12,14 @@ type ApplicationCredential struct {
 	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
-func GetApplicationCredential(ctx context.Context, adminSession []*req.HttpCookie, appz string) (*ApplicationCredential, error) {
-	var getApplicationURL = fmt.Sprintf("%s/api/get-application?id=admin/%s", endpoint.Get(), appz)
+func GetApplicationCredential(
+	ctx context.Context,
+	adminSession []*req.HttpCookie,
+	appz string,
+) (*ApplicationCredential, error) {
+	getApplicationURL := fmt.Sprintf("%s/api/get-application?id=admin/%s", endpoint.Get(), appz)
 	var app ApplicationCredential
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithCookies(adminSession...).
 		GetWithContext(ctx, getApplicationURL).
 		BodyJSON(&app)

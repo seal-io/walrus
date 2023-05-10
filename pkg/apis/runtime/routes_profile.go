@@ -83,14 +83,14 @@ type ProfileProperty struct {
 
 // State returns the state to describe what categories the ProfileProperty have.
 func (p ProfileProperty) State() map[ProfileCategory]bool {
-	var l = make(map[string]bool)
+	l := make(map[string]bool)
 	for i := 0; i < len(p.Properties); i++ {
 		if p.Properties[i].Category == "" {
 			continue
 		}
 		l[p.Properties[i].Category] = true
 		for j := 0; j < len(p.Properties[i].Properties); j++ {
-			var r = p.Properties[i].Properties[j].State()
+			r := p.Properties[i].Properties[j].State()
 			for k := range r {
 				l[k] = r[k]
 			}
@@ -124,7 +124,7 @@ func (p ProfileProperty) flat(categories sets.Set[string]) []ProfileProperty {
 			continue
 		}
 		for j := 0; j < len(p.Properties[i].Properties); j++ {
-			var r = p.Properties[i].Properties[j].flat(categories)
+			r := p.Properties[i].Properties[j].flat(categories)
 			l = append(l, r...)
 		}
 	}
@@ -167,7 +167,7 @@ func GetInputProfile(t reflect.Type) *InputProfile {
 	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
 	for _, category := range categories {
-		var vs = sets.New[string]()
+		vs := sets.New[string]()
 		p.Properties = append(p.Properties, getProfileProperties(vs, category, t)...)
 	}
 
@@ -192,7 +192,7 @@ func GetOutputProfile(t reflect.Type) *OutputProfile {
 	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
 	for _, category := range categories {
-		var vs = sets.New[string]()
+		vs := sets.New[string]()
 		p.Properties = append(p.Properties, getProfileProperties(vs, category, t)...)
 	}
 
@@ -210,10 +210,10 @@ func getProfileRouter(t reflect.Type) *ProfileRouter {
 		return nil
 	}
 	for i := 0; i < t.NumField(); i++ {
-		var f = t.Field(i)
-		var v = f.Tag.Get("route")
+		f := t.Field(i)
+		v := f.Tag.Get("route")
 		if !isTagBlank(v) {
-			var m, sp = getTagAttribute(v)
+			m, sp := getTagAttribute(v)
 			if m == "" || sp == "" {
 				continue
 			}
@@ -243,15 +243,15 @@ func getProfileProperties(vs sets.Set[string], category string, t reflect.Type) 
 
 	var ps []ProfileProperty
 	for i := 0; i < t.NumField(); i++ {
-		var f = t.Field(i)
+		f := t.Field(i)
 		if f.PkgPath != "" && !f.Anonymous {
 			continue
 		}
-		var v = f.Tag.Get(category)
+		v := f.Tag.Get(category)
 		if isTagBlank(v) {
 			continue
 		}
-		var name, attrs = getTagNameAndAttributes(v)
+		name, attrs := getTagNameAndAttributes(v)
 		if isTagInline(attrs) {
 			ps = append(ps, getProfileProperties(vs, category, f.Type)...)
 			continue
@@ -261,8 +261,14 @@ func getProfileProperties(vs sets.Set[string], category string, t reflect.Type) 
 	return ps
 }
 
-func getProfileProperty(vs sets.Set[string], category string, name string, attrs []string, t reflect.Type) ProfileProperty {
-	var p = ProfileProperty{
+func getProfileProperty(
+	vs sets.Set[string],
+	category string,
+	name string,
+	attrs []string,
+	t reflect.Type,
+) ProfileProperty {
+	p := ProfileProperty{
 		Required:       isTagRequired(attrs),
 		Default:        getTagAttributeValue(attrs, "default"),
 		Category:       category,
@@ -318,7 +324,7 @@ func getProfileProperty(vs sets.Set[string], category string, name string, attrs
 		t = decodeTypePointer(t.Elem())
 		p = getProfileProperty(vs, category, name, attrs, t)
 	case reflect.Struct:
-		var expected = reflect.TypeOf((*render.Render)(nil)).Elem()
+		expected := reflect.TypeOf((*render.Render)(nil)).Elem()
 		if t.ConvertibleTo(expected) {
 			p.Type = ProfileTypeBasic
 			p.TypeDescriptor = "render.Render"
@@ -402,7 +408,7 @@ func isTagBlank(tag string) bool {
 }
 
 func getTagNameAndAttributes(tag string) (name string, attrs []string) {
-	var ss = strings.SplitN(tag, ",", 2)
+	ss := strings.SplitN(tag, ",", 2)
 	name = strings.TrimSpace(ss[0])
 	if len(ss) == 2 {
 		ss[1] = strings.TrimSpace(ss[1])
@@ -433,7 +439,7 @@ func isTagRequired(attrs []string) bool {
 
 func getTagAttributeValue(attrs []string, key string) string {
 	for i := range attrs {
-		var k, v = getTagAttribute(attrs[i])
+		k, v := getTagAttribute(attrs[i])
 		if k == key {
 			return v
 		}
@@ -442,7 +448,7 @@ func getTagAttributeValue(attrs []string, key string) string {
 }
 
 func getTagAttribute(attr string) (key, value string) {
-	var ss = strings.SplitN(attr, "=", 2)
+	ss := strings.SplitN(attr, "=", 2)
 	if len(ss) == 1 {
 		return strings.TrimSpace(ss[0]), ""
 	}

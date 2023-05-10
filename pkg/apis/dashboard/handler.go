@@ -34,7 +34,10 @@ func (h Handler) Kind() string {
 
 // Extensional APIs.
 
-func (h Handler) CollectionRouteBasicInformation(ctx *gin.Context, _ view.BasicInfoRequest) (*view.BasicInfoResponse, error) {
+func (h Handler) CollectionRouteBasicInformation(
+	ctx *gin.Context,
+	_ view.BasicInfoRequest,
+) (*view.BasicInfoResponse, error) {
 	applicationNum, err := h.modelClient.Applications().Query().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -97,7 +100,6 @@ func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.Revi
 			model.Count(),
 		).
 		Scan(ctx, &statusCount)
-
 	if err != nil {
 		return nil, err
 	}

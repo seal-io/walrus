@@ -58,7 +58,7 @@ func init() {
 		corev1.SchemeGroupVersion.WithKind("ReplicationController"),
 	} {
 		opEnforcer.gvks.Insert(gvk)
-		var gvr, _ = meta.UnsafeGuessKindToResource(gvk)
+		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
 		opEnforcer.gvrs.Insert(gvr)
 	}
 }

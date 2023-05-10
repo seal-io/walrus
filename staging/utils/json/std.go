@@ -20,7 +20,7 @@ type RawMessage = json.RawMessage
 // MustMarshal is similar to Marshal,
 // but panics if found error.
 func MustMarshal(v interface{}) []byte {
-	var bs, err = Marshal(v)
+	bs, err := Marshal(v)
 	if err != nil {
 		panic(fmt.Errorf("error marshalling json: %w", err))
 	}
@@ -30,7 +30,7 @@ func MustMarshal(v interface{}) []byte {
 // MustUnmarshal is similar to Unmarshal,
 // but panics if found error.
 func MustUnmarshal(data []byte, v interface{}) {
-	var err = Unmarshal(data, v)
+	err := Unmarshal(data, v)
 	if err != nil {
 		panic(fmt.Errorf("error unmarshalling json: %w", err))
 	}
@@ -39,7 +39,7 @@ func MustUnmarshal(data []byte, v interface{}) {
 // MustMarshalIndent is similar to MarshalIndent,
 // but panics if found error.
 func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
-	var bs, err = MarshalIndent(v, prefix, indent)
+	bs, err := MarshalIndent(v, prefix, indent)
 	if err != nil {
 		panic(fmt.Errorf("error marshalling indent json: %w", err))
 	}
@@ -49,7 +49,7 @@ func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
 // ShouldMarshal is similar to Marshal,
 // but never return error.
 func ShouldMarshal(v interface{}) []byte {
-	var bs, _ = Marshal(v)
+	bs, _ := Marshal(v)
 	return bs
 }
 
@@ -62,6 +62,6 @@ func ShouldUnmarshal(data []byte, v interface{}) {
 // ShouldMarshalIndent is similar to MarshalIndent,
 // but never return error.
 func ShouldMarshalIndent(v interface{}, prefix, indent string) []byte {
-	var bs, _ = MarshalIndent(v, prefix, indent)
+	bs, _ := MarshalIndent(v, prefix, indent)
 	return bs
 }

@@ -4,7 +4,8 @@ var TFAllTypes = []string{
 	// Core.
 	"kubernetes_namespace_v1", "kubernetes_namespace",
 	"kubernetes_service_v1", "kubernetes_service",
-	"kubernetes_service_account_v1", "kubernetes_service_account", "kubernetes_default_service_account_v1", "kubernetes_default_service_account",
+	"kubernetes_service_account_v1", "kubernetes_service_account",
+	"kubernetes_default_service_account_v1", "kubernetes_default_service_account",
 	"kubernetes_config_map_v1", "kubernetes_config_map", "kubernetes_config_map_v1_data",
 	"kubernetes_secret_v1", "kubernetes_secret",
 	"kubernetes_pod_v1", "kubernetes_pod",

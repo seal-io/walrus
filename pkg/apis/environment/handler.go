@@ -32,9 +32,9 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
-	var err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.EnvironmentCreates(tx, entity)
+	entity := req.Model()
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		creates, err := dao.EnvironmentCreates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -53,9 +53,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.EnvironmentUpdates(tx, entity)
+		updates, err := dao.EnvironmentUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.Environments().Query().
+	entity, err := h.modelClient.Environments().Query().
 		Where(environment.ID(req.ID)).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
@@ -111,11 +111,15 @@ var (
 		environment.FieldUpdateTime)
 	sortFields = []string{
 		environment.FieldName,
-		environment.FieldCreateTime}
+		environment.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Environments().Query()
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Environments().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -133,7 +137,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
-	if orders, ok := req.Sorting(sortFields, model.Desc(environment.FieldCreateTime)); ok {
+	if orders, ok := req.Sorting(
+		sortFields,
+		model.Desc(environment.FieldCreateTime),
+	); ok {
 		query.Order(orders...)
 	}
 	entities, err := query.
