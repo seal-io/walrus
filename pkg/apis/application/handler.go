@@ -109,8 +109,8 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	if err != nil {
 		return err
 	}
-
 	defer func() { t.Unsubscribe() }()
+
 	for {
 		var event topic.Event
 		event, err = t.Receive(ctx)
@@ -250,6 +250,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	if err != nil {
 		return err
 	}
+	defer func() { t.Unsubscribe() }()
 
 	var query = h.modelClient.Applications().Query().
 		WithProject(func(q *model.ProjectQuery) {
@@ -262,7 +263,6 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		query.Select(fields...)
 	}
 
-	defer func() { t.Unsubscribe() }()
 	for {
 		var event topic.Event
 		event, err = t.Receive(ctx)
