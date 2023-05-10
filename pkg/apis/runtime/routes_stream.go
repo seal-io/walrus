@@ -46,6 +46,13 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 }
 
 func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+	var protoMajor, protoMinor = c.Request.ProtoMajor, c.Request.ProtoMinor
+	if protoMajor == 1 && protoMinor == 0 {
+		// do not support http/1.0.
+		c.AbortWithStatus(http.StatusUpgradeRequired)
+		return
+	}
+
 	var logger = log.WithName("api")
 
 	var ctx, cancel = context.WithCancel(c.Request.Context())
@@ -56,10 +63,13 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		conn:      c.Writer,
 	}
 
-	c.Header("Transfer-Encoding", "chunked")
 	c.Header("Cache-Control", "no-store")
 	c.Header("Content-Type", "application/octet-stream; charset=ISO-8859-1")
 	c.Header("X-Content-Type-Options", "nosniff")
+	if protoMajor == 1 {
+		c.Header("Transfer-Encoding", "chunked")
+	}
+	c.Writer.Flush()
 
 	var inputs = make([]reflect.Value, 0, 2)
 	inputs = append(inputs, reflect.ValueOf(proxy))
