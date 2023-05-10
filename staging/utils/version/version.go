@@ -24,7 +24,7 @@ func GetUserAgent() string {
 func Major() string {
 	vX := semver.Major(Version)
 	if vX == "" {
-		return "dev"
+		return Version
 	}
 	return vX
 }
@@ -32,15 +32,15 @@ func Major() string {
 func MajorMinor() string {
 	vXy := semver.MajorMinor(Version)
 	if vXy == "" {
-		return "dev"
+		return Version
 	}
 	return vXy
 }
 
 func Previous() string {
 	vXy := MajorMinor()
-	if vXy == "dev" {
-		return "dev"
+	if vXy == Version {
+		return Version
 	}
 	v := strings.Split(vXy, ".")
 	if v[1] != "0" {
@@ -53,7 +53,7 @@ func Previous() string {
 	x, _ := strconv.ParseInt(v[0][1:], 10, 64)
 	x--
 	if x < 0 {
-		return "dev"
+		return Version
 	}
 	return "v" + strconv.FormatInt(x, 10)
 }

@@ -16,7 +16,7 @@ type ProfileType = string
 const (
 	ProfileTypeBasic  ProfileType = "basic"
 	ProfileTypeArray  ProfileType = "array"
-	ProfileTypeObject ProfileType = "object"
+	ProfileTypeObject ProfileType = typeDescriptorObject
 )
 
 // ProfileCategory defines the category of the type profile.
@@ -28,6 +28,13 @@ const (
 	ProfileCategoryForm   ProfileCategory = "form"
 	ProfileCategoryQuery  ProfileCategory = "query"
 	ProfileCategoryJson   ProfileCategory = "json"
+
+	typeDescriptorInt     = "int"
+	typeDescriptorFloat32 = "float32"
+	typeDescriptorFloat64 = "float64"
+	typeDescriptorString  = "string"
+	typeDescriptorRender  = "render.Render"
+	typeDescriptorObject  = "object"
 )
 
 var categories = []ProfileCategory{
@@ -286,7 +293,7 @@ func getProfileProperty(
 	case reflect.Bool:
 		p.TypeDescriptor = "bool"
 	case reflect.Int:
-		p.TypeDescriptor = "int"
+		p.TypeDescriptor = typeDescriptorInt
 	case reflect.Int8:
 		p.TypeDescriptor = "int8"
 	case reflect.Int16:
@@ -306,20 +313,20 @@ func getProfileProperty(
 	case reflect.Uint64:
 		p.TypeDescriptor = "uint64"
 	case reflect.Float32:
-		p.TypeDescriptor = "float32"
+		p.TypeDescriptor = typeDescriptorFloat32
 	case reflect.Float64:
-		p.TypeDescriptor = "float64"
+		p.TypeDescriptor = typeDescriptorFloat64
 	case reflect.Uintptr, reflect.UnsafePointer:
-		p.TypeDescriptor = "int"
+		p.TypeDescriptor = typeDescriptorInt
 	case reflect.Complex64:
-		p.TypeDescriptor = "float32"
+		p.TypeDescriptor = typeDescriptorFloat32
 	case reflect.Complex128:
-		p.TypeDescriptor = "float64"
+		p.TypeDescriptor = typeDescriptorFloat64
 	case reflect.Chan, reflect.Func:
-		p.TypeDescriptor = "string"
+		p.TypeDescriptor = typeDescriptorString
 	case reflect.Interface, reflect.Map:
 		p.Type = ProfileTypeObject
-		p.TypeDescriptor = "object"
+		p.TypeDescriptor = typeDescriptorObject
 	case reflect.Pointer:
 		t = decodeTypePointer(t.Elem())
 		p = getProfileProperty(vs, category, name, attrs, t)
@@ -327,7 +334,7 @@ func getProfileProperty(
 		expected := reflect.TypeOf((*render.Render)(nil)).Elem()
 		if t.ConvertibleTo(expected) {
 			p.Type = ProfileTypeBasic
-			p.TypeDescriptor = "render.Render"
+			p.TypeDescriptor = typeDescriptorRender
 			return p
 		}
 		p.Type = ProfileTypeObject
@@ -337,7 +344,7 @@ func getProfileProperty(
 			p.Properties = getProfileProperties(vs, p.Category, t)
 		}
 	case reflect.String:
-		p.TypeDescriptor = "string"
+		p.TypeDescriptor = typeDescriptorString
 	case reflect.Array, reflect.Slice:
 		p.Type = ProfileTypeArray
 		if t.Kind() == reflect.Array {
@@ -354,7 +361,7 @@ func getProfileProperty(
 		case reflect.Bool:
 			p.TypeDescriptor = "bool"
 		case reflect.Int:
-			p.TypeDescriptor = "int"
+			p.TypeDescriptor = typeDescriptorInt
 		case reflect.Int8:
 			p.TypeDescriptor = "int8"
 		case reflect.Int16:
@@ -374,19 +381,19 @@ func getProfileProperty(
 		case reflect.Uint64:
 			p.TypeDescriptor = "uint64"
 		case reflect.Float32:
-			p.TypeDescriptor = "float32"
+			p.TypeDescriptor = typeDescriptorFloat32
 		case reflect.Float64:
-			p.TypeDescriptor = "float64"
+			p.TypeDescriptor = typeDescriptorFloat64
 		case reflect.Uintptr, reflect.UnsafePointer:
-			p.TypeDescriptor = "int"
+			p.TypeDescriptor = typeDescriptorInt
 		case reflect.Complex64:
-			p.TypeDescriptor = "float32"
+			p.TypeDescriptor = typeDescriptorFloat32
 		case reflect.Complex128:
-			p.TypeDescriptor = "float64"
+			p.TypeDescriptor = typeDescriptorFloat64
 		case reflect.Chan, reflect.Func:
-			p.TypeDescriptor = "string"
+			p.TypeDescriptor = typeDescriptorString
 		case reflect.Interface, reflect.Map:
-			p.TypeDescriptor = "object"
+			p.TypeDescriptor = typeDescriptorObject
 		case reflect.Struct:
 			p.TypeRefer = vs.Has(p.TypeDescriptor + "." + p.Category)
 			if !p.TypeRefer {
@@ -397,7 +404,7 @@ func getProfileProperty(
 			p.TypeDescriptor = "array"
 			p.Properties = getProfileProperties(vs, p.Category, t)
 		case reflect.String:
-			p.TypeDescriptor = "string"
+			p.TypeDescriptor = typeDescriptorString
 		}
 	}
 	return p

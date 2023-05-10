@@ -13,6 +13,12 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
+const (
+	displayFailed      = "Failed"
+	displaySigning     = "Signing"
+	displayProgressing = "Progressing"
+)
+
 // podStatusPaths makes the following decision.
 //
 //	| Condition Type   |     Condition Status    | Human Readable Status | Human Sensible Status |
@@ -132,7 +138,7 @@ var deploymentStatusPaths = status.NewWalker(
 				if st == status.ConditionStatusUnknown && reason == "DeploymentPaused" {
 					return "Pausing", false, true
 				}
-				return "Progressing", st == status.ConditionStatusFalse, st != status.ConditionStatusFalse
+				return displayProgressing, st == status.ConditionStatusFalse, st != status.ConditionStatusFalse
 			})
 
 		d.Make(apps.DeploymentReplicaFailure,
@@ -182,26 +188,26 @@ var jobStatusPaths = status.NewWalker(
 					return "Suspending", false, true
 				case status.ConditionStatusFalse:
 					if reason != "JobResumed" {
-						return "Progressing", true, false
+						return displayProgressing, true, false
 					}
 				}
-				return "Progressing", false, st == status.ConditionStatusUnknown
+				return displayProgressing, false, st == status.ConditionStatusUnknown
 			})
 
 		d.Make(batch.JobFailureTarget,
 			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
-					return "Failed", true, false
+					return displayFailed, true, false
 				}
-				return "Progressing", st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
 			})
 
 		d.Make(batch.JobFailed,
 			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
-					return "Failed", true, false
+					return displayFailed, true, false
 				}
-				return "Progressing", st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
 			})
 
 		d.Make(batch.JobComplete,
@@ -209,7 +215,7 @@ var jobStatusPaths = status.NewWalker(
 				if st == status.ConditionStatusTrue {
 					return "Completed", false, false
 				}
-				return "Progressing", st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return displayProgressing, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
 			})
 	},
 )
@@ -280,9 +286,9 @@ var csrStatusPaths = status.NewWalker(
 		d.Make(certificates.CertificateFailed,
 			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
-					return "Failed", true, false
+					return displayFailed, true, false
 				}
-				return "Signing", false, st == status.ConditionStatusUnknown
+				return displaySigning, false, st == status.ConditionStatusUnknown
 			})
 
 		d.Make(certificates.CertificateDenied,
@@ -290,7 +296,7 @@ var csrStatusPaths = status.NewWalker(
 				if st == status.ConditionStatusTrue {
 					return "Denied", true, false
 				}
-				return "Signing", false, st == status.ConditionStatusUnknown
+				return displaySigning, false, st == status.ConditionStatusUnknown
 			})
 
 		d.Make(certificates.CertificateApproved,
@@ -298,7 +304,7 @@ var csrStatusPaths = status.NewWalker(
 				if st == status.ConditionStatusTrue {
 					return "Approved", false, false
 				}
-				return "Signing", st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
+				return displaySigning, st == status.ConditionStatusFalse, st == status.ConditionStatusUnknown
 			})
 	},
 )
@@ -336,7 +342,7 @@ var networkPolicyStatusPaths = status.NewWalker(
 		d.Make(networking.NetworkPolicyConditionStatusFailure,
 			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
-					return "Failed", true, false
+					return displayFailed, true, false
 				}
 				return "Accepting", false, st == status.ConditionStatusUnknown
 			})
