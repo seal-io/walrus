@@ -133,13 +133,14 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	// get job pods logs.
-	revisionStatusMessage, err := r.getJobPodsLogs(ctx, job.Name)
-	if err != nil {
-		return err
+	revisionStatus := status.ApplicationRevisionStatusSucceeded
+	// Get job pods logs.
+	revisionStatusMessage, rerr := r.getJobPodsLogs(ctx, job.Name)
+	if rerr != nil {
+		r.Logger.Error(rerr, "failed to get job pod logs", "application-revision", appRevisionID)
+		revisionStatusMessage = rerr.Error()
 	}
 
-	var revisionStatus = status.ApplicationRevisionStatusSucceeded
 	if job.Status.Succeeded > 0 {
 		r.Logger.Info("succeed", "application-revision", appRevisionID)
 	}
