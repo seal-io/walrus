@@ -6,8 +6,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -32,9 +30,9 @@ const (
 	Module topic.Topic = "Module"
 )
 
-type Message struct {
+type Message[T any] struct {
 	Type EventType
-	Data []oid.ID
+	Data []T
 }
 
 var allowed = sets.New(
@@ -46,12 +44,16 @@ var allowed = sets.New(
 	Module,
 )
 
-func Publish(ctx context.Context, mutationType string, op model.Op, ids []types.ID) error {
+func Publish[T any](ctx context.Context, mutationType string, op model.Op, ids []T) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
 	if !allowed.Has(topic.Topic(mutationType)) {
 		return nil
 	}
 
-	var m = Message{
+	var m = Message[T]{
 		Type: EventTypeFor(op),
 		Data: ids,
 	}
