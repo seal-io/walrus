@@ -174,7 +174,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		if err != nil {
 			return err
 		}
-		dm, ok := event.Data.(datamessage.Message)
+		dm, ok := event.Data.(datamessage.Message[string])
 		if !ok {
 			continue
 		}

@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/topic"
 )
@@ -117,7 +118,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 		if err != nil {
 			return err
 		}
-		dm, ok := event.Data.(datamessage.Message)
+		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
@@ -269,7 +270,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		if err != nil {
 			return err
 		}
-		dm, ok := event.Data.(datamessage.Message)
+		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
