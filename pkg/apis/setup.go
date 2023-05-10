@@ -52,11 +52,11 @@ type SetupOptions struct {
 func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, error) {
 	gin.DefaultWriter = s.logger
 	gin.DefaultErrorWriter = s.logger
-	var apis = gin.New()
-	var auths = auth.Auth(opts.EnableAuthn, opts.ModelClient)
-	var throttler = runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
-	var rectifier = runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
-	var wsCounter = runtime.If(
+	apis := gin.New()
+	auths := auth.Auth(opts.EnableAuthn, opts.ModelClient)
+	throttler := runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
+	rectifier := runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
+	wsCounter := runtime.If(
 		// Validate websocket connection.
 		runtime.IsBidiStreamRequest,
 		// Maximum 10 connection per ip.
@@ -83,25 +83,26 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 
 	runtime.MustRouteGet(apis, "/livez", health.Livez())
 
-	var accountApis = apis.Group("/account",
+	accountApis := apis.Group("/account",
 		rectifier,
 		auths)
 	{
-		var r = accountApis
+		r := accountApis
 		runtime.MustRoutePost(r, "/login", account.Login())
 		runtime.MustRoutePost(r, "/logout", account.Logout())
 		runtime.MustRoutePost(r, "/info", account.Info(opts.ModelClient))
 		runtime.MustRouteGet(r, "/info", account.Info(opts.ModelClient))
 	}
 
-	var resourceApis = apis.Group("/v1",
+	resourceApis := apis.Group("/v1",
 		throttler,
 		auths)
 	{
-		var r = auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
+		r := auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
 		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
-		runtime.MustRouteResource(r.Group("", rectifier, wsCounter), applicationresource.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r.Group("", rectifier, wsCounter),
+			applicationresource.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
@@ -122,9 +123,9 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
 	runtime.MustRouteStatic(apis, "/swagger/*any", swagger.Index("/openapi"))
 
-	var debugApis = apis.Group("/debug")
+	debugApis := apis.Group("/debug")
 	{
-		var r = debugApis
+		r := debugApis
 		runtime.MustRouteGet(r, "/version", debug.Version())
 		runtime.MustRouteGet(r.Group("", runtime.OnlyLocalIP()), "/pprof/*any", debug.PProf())
 		runtime.MustRoutePut(r.Group("", runtime.OnlyLocalIP()), "/flags", debug.SetFlags())

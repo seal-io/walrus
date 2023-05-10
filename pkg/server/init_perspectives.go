@@ -11,13 +11,13 @@ import (
 )
 
 func (r *Server) initPerspectives(ctx context.Context, opts initOptions) error {
-	var builtin = []*model.Perspective{
+	builtin := []*model.Perspective{
 		perspectiveAll(),
 		perspectiveCluster(),
 		perspectiveProject(),
 	}
 
-	var creates, err = dao.PerspectiveCreates(opts.ModelClient, builtin...)
+	creates, err := dao.PerspectiveCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}

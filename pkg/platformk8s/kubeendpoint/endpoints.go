@@ -16,7 +16,12 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-func GetServiceEndpoints(ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string) ([]types.ApplicationResourceEndpoint, error) {
+func GetServiceEndpoints(
+	ctx context.Context,
+	kubeCli *kubernetes.Clientset,
+	ns,
+	n string,
+) ([]types.ApplicationResourceEndpoint, error) {
 	svc, err := kubeCli.CoreV1().Services(ns).
 		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
@@ -69,7 +74,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 		return "", errors.New("node list is empty")
 	}
 
-	var nodes = list.Items
+	nodes := list.Items
 	if svc.Spec.ExternalTrafficPolicy == apicorev1.ServiceExternalTrafficPolicyTypeLocal {
 		k8sEndpoints, err := kubeCli.CoreV1().Endpoints(svc.Namespace).
 			Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
@@ -77,7 +82,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 			return "", err
 		}
 
-		var nameSet = sets.Set[string]{}
+		nameSet := sets.Set[string]{}
 		for _, v := range k8sEndpoints.Subsets {
 			for _, addr := range v.Addresses {
 				nameSet.Insert(*addr.NodeName)
@@ -133,7 +138,9 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 	return svc.Spec.LoadBalancerIP
 }
 
-func GetIngressEndpoints(ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string) ([]types.ApplicationResourceEndpoint, error) {
+func GetIngressEndpoints(
+	ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string,
+) ([]types.ApplicationResourceEndpoint, error) {
 	ing, err := kubeCli.NetworkingV1().Ingresses(ns).
 		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
@@ -155,19 +162,19 @@ func ingressEndpoints(ing apinetworkingv1.Ingress) []string {
 		}
 	}
 
-	var tlsHostSet = sets.Set[string]{}
+	tlsHostSet := sets.Set[string]{}
 	for _, v := range ing.Spec.TLS {
 		tlsHostSet.Insert(v.Hosts...)
 	}
 
 	var endpoints []string
 	for _, v := range ing.Spec.Rules {
-		var scheme = "http"
+		scheme := "http"
 		if tlsHostSet.Has(v.Host) {
 			scheme = "https"
 		}
 
-		var host = lbAddr
+		host := lbAddr
 		if v.Host != "" {
 			host = v.Host
 		}

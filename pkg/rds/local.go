@@ -21,9 +21,9 @@ type Embedded struct{}
 
 func (Embedded) Run(ctx context.Context) error {
 	// Create run data dir if not found.
-	var runDataPath = filepath.Join(consts.DataDir, "postgresql")
+	runDataPath := filepath.Join(consts.DataDir, "postgresql")
 	if !files.Exists(runDataPath) {
-		var err = files.Copy(
+		err := files.Copy(
 			"/var/lib/postgresql/main",
 			runDataPath,
 			files.CopyWithTimes(),
@@ -37,18 +37,18 @@ func (Embedded) Run(ctx context.Context) error {
 		runUser = "postgres"
 		cmdName = "postgres"
 	)
-	var logger = log.WithName(cmdName)
-	var cmdArgs = []string{
+	logger := log.WithName(cmdName)
+	cmdArgs := []string{
 		runUser,
 		cmdName,
 		"-D", runDataPath,
 		"-c", "config_file=/etc/postgresql/main/postgresql.conf",
 	}
 	logger.Infof("run: gosu %s", strs.Join(" ", cmdArgs...))
-	var cmd = exec.CommandContext(ctx, "gosu", cmdArgs...)
+	cmd := exec.CommandContext(ctx, "gosu", cmdArgs...)
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
-	var err = cmd.Run()
+	err := cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
@@ -59,7 +59,7 @@ func (Embedded) GetDriver(ctx context.Context) (string, string, *sql.DB, error) 
 	ctx, cancel := context.WithTimeout(ctx, 90*time.Second)
 	defer cancel()
 
-	var drvDialect, drv, err = LoadDriver(defaultDataSourceAddress)
+	drvDialect, drv, err := LoadDriver(defaultDataSourceAddress)
 	if err != nil {
 		return "", "", nil, err
 	}

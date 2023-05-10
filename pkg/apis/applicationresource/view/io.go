@@ -24,13 +24,13 @@ type ApplicationResourceQuery struct {
 }
 
 func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 
-	var entity, err = modelClient.ApplicationResources().Query().
+	entity, err := modelClient.ApplicationResources().Query().
 		Where(applicationresource.ID(r.ID)).
 		Select(applicationresource.WithoutFields(
 			applicationresource.FieldInstanceID,
@@ -66,7 +66,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 	exist, err := modelClient.ApplicationResources().Query().
 		Where(applicationresource.ID(r.ID)).
 		Exist(ctx)
@@ -89,7 +89,7 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.InstanceID.Valid(0) {
 		return errors.New("invalid instance id: blank")
@@ -134,7 +134,7 @@ type CollectionStreamRequest struct {
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.InstanceID != "" {
-		var modelClient = input.(model.ClientSet)
+		modelClient := input.(model.ClientSet)
 		if !r.InstanceID.Valid(0) {
 			return errors.New("invalid instance id: blank")
 		}

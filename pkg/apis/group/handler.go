@@ -35,7 +35,7 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
-	var input = &model.Subject{
+	input := &model.Subject{
 		Kind:        "group",
 		Group:       req.Group,
 		Name:        req.Name,
@@ -44,7 +44,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 		Builtin:     false,
 	}
 
-	var creates, err = dao.SubjectCreates(h.modelClient, input)
+	creates, err := dao.SubjectCreates(h.modelClient, input)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	// Get sub subjects.
-	var subres, err = h.modelClient.Subjects().Query().
+	subres, err := h.modelClient.Subjects().Query().
 		Where(func(s *sql.Selector) {
 			s.Where(sql.And(
 				sqljson.ValueContains(subject.FieldPaths, req.Name),
@@ -67,7 +67,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		return fmt.Errorf("failed to get subresource of group: %w", err)
 	}
 
-	var inputs = [][]predicate.Subject{
+	inputs := [][]predicate.Subject{
 		{
 			subject.ID(req.ID),
 			subject.Kind("group"),
@@ -108,13 +108,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = &model.Subject{
+	input := &model.Subject{
 		Kind:        "group",
 		ID:          req.ID,
 		Description: req.Description,
 	}
 
-	var updates, err = dao.SubjectUpdates(h.modelClient, input)
+	updates, err := dao.SubjectUpdates(h.modelClient, input)
 	if err != nil {
 		return err
 	}
@@ -132,18 +132,22 @@ var (
 		subject.FieldLoginTo)
 	sortFields = []string{
 		subject.FieldCreateTime,
-		subject.FieldUpdateTime}
+		subject.FieldUpdateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var input = []predicate.Subject{
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	input := []predicate.Subject{
 		subject.Kind("group"),
 	}
 	if req.Group != "" {
 		input = append(input, subject.Group(req.Group))
 	}
 
-	var query = h.modelClient.Subjects().Query().
+	query := h.modelClient.Subjects().Query().
 		Where(input...)
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)

@@ -13,7 +13,13 @@ import (
 )
 
 // ListCandidatesPageByConnector gets the candidates for Label or State by connector id in pagination.
-func ListCandidatesPageByConnector(ctx context.Context, modelClient model.ClientSet, connectorID types.ID, offset, limit int) ([]*model.ApplicationResource, error) {
+func ListCandidatesPageByConnector(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	connectorID types.ID,
+	offset,
+	limit int,
+) ([]*model.ApplicationResource, error) {
 	return queryCandidates(modelClient).
 		Where(applicationresource.ConnectorID(connectorID)).
 		Offset(offset).
@@ -22,7 +28,11 @@ func ListCandidatesPageByConnector(ctx context.Context, modelClient model.Client
 }
 
 // ListCandidatesByIDs gets the candidates for Label or State by id list.
-func ListCandidatesByIDs(ctx context.Context, modelClient model.ClientSet, ids []types.ID) ([]*model.ApplicationResource, error) {
+func ListCandidatesByIDs(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	ids []types.ID,
+) ([]*model.ApplicationResource, error) {
 	return queryCandidates(modelClient).
 		Where(applicationresource.IDIn(ids...)).
 		All(ctx)

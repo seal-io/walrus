@@ -86,7 +86,7 @@ func New() *Server {
 }
 
 func (r *Server) Flags(cmd *cli.Command) {
-	var flags = [...]cli.Flag{
+	flags := [...]cli.Flag{
 		&cli.StringFlag{
 			Name:        "bind-address",
 			Usage:       "The IP address on which to listen.",
@@ -136,24 +136,28 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Name: "tls-cert-dir",
 			Usage: "The directory where the TLS certs are located. " +
 				"If --tls-cert-file and --tls-private-key-file are provided, this flag will be ignored. " +
-				"If --tls-cert-file and --tls-private-key-file are not provided, the self-signed certificate and key are generated and saved to the directory specified by this flag.",
+				"If --tls-cert-file and --tls-private-key-file are not provided, " +
+				"the self-signed certificate and key are generated and saved to the directory specified by this flag.",
 			Destination: &r.TlsCertDir,
 			Value:       r.TlsCertDir,
 			Action: func(c *cli.Context, s string) error {
 				if s == "" &&
 					(c.String("tls-cert-file") == "" || c.String("tls-private-key-file") == "") {
-					return errors.New("--tls-cert-dir: must be filled if --tls-cert-file and --tls-private-key-file are not provided")
+					return errors.New(
+						"--tls-cert-dir: must be filled if --tls-cert-file and --tls-private-key-file are not provided",
+					)
 				}
 				return nil
 			},
 		},
 		&cli.StringSliceFlag{
 			Name: "tls-auto-cert-domains",
-			Usage: "The domains to accept ACME HTTP-01 or TLS-ALPN-01 challenge to generate HTTPS x509 certificate and private key, " +
+			Usage: "The domains to accept ACME HTTP-01 or TLS-ALPN-01 challenge to " +
+				"generate HTTPS x509 certificate and private key, " +
 				"and saved to the directory specified by --tls-cert-dir. " +
 				"If --tls-cert-file and --tls-key-file are provided, this flag will be ignored.",
 			Action: func(c *cli.Context, v []string) error {
-				var f = field.NewPath("--tls-auto-cert-domains")
+				f := field.NewPath("--tls-auto-cert-domains")
 				for i := range v {
 					if err := validation.IsFullyQualifiedDomainName(f, v[i]).ToAggregate(); err != nil {
 						return err
@@ -220,8 +224,10 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "data-source-address",
 			Usage: "The addresses for connecting data source, e.g. " +
-				"Postgres(postgres://[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]), " +
-				"MySQL(mysql://[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]), " +
+				"Postgres(postgres://[username[:password]@][protocol[(address)]]/dbname" +
+				"[?param1=value1&...&paramN=valueN]), " +
+				"MySQL(mysql://[username[:password]@][protocol[(address)]]/dbname" +
+				"[?param1=value1&...&paramN=valueN]), " +
 				"SQLite3(file:dbpath[?param1=value1&...&paramN=valueN]).",
 			Destination: &r.DataSourceAddress,
 			Value:       r.DataSourceAddress,
@@ -246,24 +252,29 @@ func (r *Server) Flags(cmd *cli.Command) {
 		},
 		&cli.StringFlag{
 			Name: "data-source-data-encryption",
-			Usage: "The algorithm and key(in-hex string) for encrypting the user credentials storing in data source, e.g. " +
-				"aesgcm:3a9b4000d0ad8fbcd01eb922231d395d, aesgcm:b4d1c09dcf62214a05d85548b9217b34da63224d2605938abb6bf384050d2222",
+			Usage: "The algorithm and key(in-hex string) for encrypting the user credentials storing in data source, " +
+				"e.g. aesgcm:3a9b4000d0ad8fbcd01eb922231d395d, " +
+				"aesgcm:b4d1c09dcf62214a05d85548b9217b34da63224d2605938abb6bf384050d2222",
 			Action: func(c *cli.Context, s string) error {
-				var ss = strings.SplitN(s, ":", 2)
+				ss := strings.SplitN(s, ":", 2)
 				if len(ss) != 2 {
 					return errors.New("invalid data-source-data-encryption: illegal format")
 				}
-				var alg = ss[0]
-				var key, err = hex.DecodeString(ss[1])
+				alg := ss[0]
+				key, err := hex.DecodeString(ss[1])
 				if err != nil {
 					return errors.New("invalid data-source-data-encryption: must in hex string")
 				}
 				switch alg {
 				default:
-					return errors.New("invalid data-source-data-encryption: unknown algorithm " + alg)
+					return errors.New(
+						"invalid data-source-data-encryption: unknown algorithm " + alg,
+					)
 				case "aesgcm":
 					if ks := len(key); ks != 16 && ks != 32 {
-						return errors.New("invalid data-source-data-encryption: must in 16 bytes or 32 bytes")
+						return errors.New(
+							"invalid data-source-data-encryption: must in 16 bytes or 32 bytes",
+						)
 					}
 				}
 				r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey = alg, key
@@ -306,7 +317,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 func (r *Server) Before(cmd *cli.Command) {
 	r.Logger.Before(cmd)
 	// Compatible with other loggers.
-	var logger = log.GetLogger()
+	logger := log.GetLogger()
 	stdlog.SetOutput(logger)
 	logrus.SetOutput(logger)
 	klog.SetOutput(logger)
@@ -320,16 +331,16 @@ func (r *Server) Action(cmd *cli.Command) {
 }
 
 func (r *Server) Run(c context.Context) error {
-	var g, ctx = gopool.GroupWithContext(c)
+	g, ctx := gopool.GroupWithContext(c)
 
 	// Get kubernetes config.
-	var k8sCfg, err = k8s.GetConfig(r.KubeConfig)
+	k8sCfg, err := k8s.GetConfig(r.KubeConfig)
 	if err != nil {
 		// If not found, launch embedded kubernetes.
 		var e k8s.Embedded
 		g.Go(func() error {
 			log.Info("running embedded kubernetes")
-			var err = e.Run(ctx)
+			err := e.Run(ctx)
 			if err != nil {
 				log.Errorf("error running embedded kubernetes: %v", err)
 			}
@@ -354,7 +365,7 @@ func (r *Server) Run(c context.Context) error {
 		var e rds.Embedded
 		g.Go(func() error {
 			log.Info("running embedded database")
-			var err = e.Run(ctx)
+			err := e.Run(ctx)
 			if err != nil {
 				log.Errorf("error running embedded database: %v", err)
 			}
@@ -379,7 +390,7 @@ func (r *Server) Run(c context.Context) error {
 			var e casdoor.Embedded
 			g.Go(func() error {
 				log.Info("running embedded casdoor")
-				var err = e.Run(ctx, r.DataSourceAddress)
+				err := e.Run(ctx, r.DataSourceAddress)
 				if err != nil {
 					log.Errorf("error running embedded casdoor: %v", err)
 				}
@@ -399,8 +410,8 @@ func (r *Server) Run(c context.Context) error {
 
 	// Initialize some resources.
 	log.Info("initializing")
-	var modelClient = getModelClient(rdsDrvDialect, rdsDrv)
-	var initOpts = initOptions{
+	modelClient := getModelClient(rdsDrvDialect, rdsDrv)
+	initOpts := initOptions{
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
 	}
@@ -410,13 +421,13 @@ func (r *Server) Run(c context.Context) error {
 	}
 
 	// Setup k8s controllers.
-	var setupK8sCtrlsOpts = setupK8sCtrlsOptions{
+	setupK8sCtrlsOpts := setupK8sCtrlsOptions{
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
 	}
 	g.Go(func() error {
 		log.Info("setting up kubernetes controller")
-		var err = r.setupK8sCtrls(ctx, setupK8sCtrlsOpts)
+		err := r.setupK8sCtrls(ctx, setupK8sCtrlsOpts)
 		if err != nil {
 			log.Errorf("error setting up kubernetes controller: %v", err)
 		}
@@ -424,13 +435,13 @@ func (r *Server) Run(c context.Context) error {
 	})
 
 	// Setup apis.
-	var setupApisOpts = setupApisOptions{
+	setupApisOpts := setupApisOptions{
 		ModelClient: modelClient,
 		K8sConfig:   k8sCfg,
 	}
 	g.Go(func() error {
 		log.Info("setting up apis")
-		var err = r.setupApis(ctx, setupApisOpts)
+		err := r.setupApis(ctx, setupApisOpts)
 		if err != nil {
 			log.Errorf("error setting up apis: %v", err)
 		}
@@ -454,7 +465,7 @@ func (r *Server) setDataSourceDriver(drv *sql.DB) {
 }
 
 func getModelClient(drvDialect string, drv *sql.DB) *model.Client {
-	var logger = log.WithName("model")
+	logger := log.WithName("model")
 	return model.NewClient(
 		model.Log(func(args ...interface{}) { logger.Debug(args...) }),
 		model.Driver(entsql.NewDriver(drvDialect, entsql.Conn{ExecQuerier: drv})),

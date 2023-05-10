@@ -26,7 +26,7 @@ func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 		if sealSessions[i] == nil || sealSessions[i].Name != ExternalSessionCookieKey {
 			continue
 		}
-		var value = sealSessions[i].Value
+		value := sealSessions[i].Value
 		if value == "" {
 			break
 		}
@@ -77,7 +77,7 @@ func InterruptSession(w http.ResponseWriter, sessions []*req.HttpCookie) error {
 
 // manageSession manages the session of authenticated connection.
 func manageSession(w http.ResponseWriter, sessions []*req.HttpCookie, interrupt bool) error {
-	var s = getExternalSession(sessions)
+	s := getExternalSession(sessions)
 	if s == nil {
 		if interrupt {
 			return nil
@@ -100,7 +100,7 @@ func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 		if casdoorSessions[i] == nil || string(casdoorSessions[i].Key()) != InternalSessionCookieKey {
 			continue
 		}
-		var value = string(casdoorSessions[i].Value())
+		value := string(casdoorSessions[i].Value())
 		if value == "" {
 			break
 		}

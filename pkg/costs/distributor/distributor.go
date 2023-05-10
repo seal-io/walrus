@@ -9,8 +9,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// Distributor support use input condition to query resources costs, and split the shared costs base on the condition defined,
-// while the condition with the step(day, month etc.), will return the resource cost for each time bucket, like namespace cost per day,
+// Distributor support use input condition to query resources costs,
+// and split the shared costs base on the condition defined,
+// while the condition with the step(day, month etc.),
+// will return the resource cost for each time bucket, like namespace cost per day,
 // without step will return the resource total cost within the queried time range.
 type Distributor struct {
 	ad accumulateDistributor
@@ -28,7 +30,12 @@ func New(client model.ClientSet) *Distributor {
 	}
 }
 
-func (d *Distributor) Distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
+func (d *Distributor) Distribute(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) ([]view.Resource, int, error) {
 	cond = wrappedCondition(cond)
 	switch {
 	case cond.Step != "":

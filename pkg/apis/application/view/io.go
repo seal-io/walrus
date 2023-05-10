@@ -25,7 +25,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
@@ -39,7 +39,11 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-func validateModules(ctx context.Context, modelClient model.ClientSet, inputModules []*model.ApplicationModuleRelationship) error {
+func validateModules(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	inputModules []*model.ApplicationModuleRelationship,
+) error {
 	moduleVersionKey := func(moduleID, version string) string {
 		return fmt.Sprintf("%s/%s", moduleID, version)
 	}
@@ -72,7 +76,7 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 	if err != nil {
 		return err
 	}
-	var moduleSchemas = make(map[string]property.Schemas, len(moduleVersions))
+	moduleSchemas := make(map[string]property.Schemas, len(moduleVersions))
 	for _, m := range moduleVersions {
 		if m.Schema == nil {
 			continue
@@ -105,7 +109,7 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
@@ -147,7 +151,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
-	var client = input.(model.ClientSet)
+	client := input.(model.ClientSet)
 	exist, err := client.Applications().Query().
 		Where(application.ID(r.ID)).
 		Exist(ctx)

@@ -12,7 +12,7 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ModuleCreate, len(input))
+	rrs := make([]*model.ModuleCreate, len(input))
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -20,7 +20,7 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		}
 
 		// Required.
-		var c = mc.Modules().Create().
+		c := mc.Modules().Create().
 			SetID(r.ID).
 			SetSource(r.Source).
 			SetStatus(status.ModuleStatusInitializing)
@@ -47,7 +47,7 @@ func ModuleUpdate(mc model.ClientSet, input *model.Module) (*model.ModuleUpdateO
 	}
 
 	// Conditional.
-	var c = mc.Modules().UpdateOne(input).
+	c := mc.Modules().UpdateOne(input).
 		SetDescription(input.Description).
 		SetIcon(input.Icon).
 		SetStatus(input.Status).

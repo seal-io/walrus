@@ -23,7 +23,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 			validates = append(validates, many)
 		}
 		for i := range validates {
-			var ok, err = validates[i](ctx, name, oldValue, newValue)
+			ok, err := validates[i](ctx, name, oldValue, newValue)
 			if err != nil {
 				return runtime.Errorf(http.StatusBadRequest, "invalid setting %q: %w", name, err)
 			}
@@ -31,7 +31,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 				return nil
 			}
 		}
-		var err = client.Settings().Update().
+		err := client.Settings().Update().
 			SetValue(newValue).
 			Where(setting.Name(name)).
 			Exec(ctx)
@@ -72,7 +72,7 @@ func once(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // httpUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is an HTTP URL.
 func httpUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	var _, err = parseUrl(newVal, httpSchemeUrlOnly)
+	_, err := parseUrl(newVal, httpSchemeUrlOnly)
 	if err != nil {
 		return false, err
 	}
@@ -82,7 +82,7 @@ func httpUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // sockUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is a Socket URL.
 func sockUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	var _, err = parseUrl(newVal, sockSchemeUrlOnly)
+	_, err := parseUrl(newVal, sockSchemeUrlOnly)
 	if err != nil {
 		return false, err
 	}
@@ -92,7 +92,7 @@ func sockUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // anyUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is an URL.
 func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	var _, err = parseUrl(newVal, anySchemeUrl)
+	_, err := parseUrl(newVal, anySchemeUrl)
 	if err != nil {
 		return false, err
 	}
@@ -103,7 +103,7 @@ func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 // which means the value can be modified if it's cron expression.
 func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool, error) {
 	if newValue != "" {
-		var err = cron.ValidateCronExpr(newValue)
+		err := cron.ValidateCronExpr(newValue)
 		if err != nil {
 			return false, err
 		}
@@ -115,7 +115,7 @@ func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool,
 // which means the value can be modified if it's container image reference.
 func containerImageReference(ctx context.Context, name, oldValue, newValue string) (bool, error) {
 	if newValue != "" {
-		var _, err = imgdistref.ParseNormalizedNamed(newValue)
+		_, err := imgdistref.ParseNormalizedNamed(newValue)
 		if err != nil {
 			return false, err
 		}

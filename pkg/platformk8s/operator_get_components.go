@@ -16,13 +16,16 @@ import (
 )
 
 // GetComponents implements operator.Operator.
-func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationResource) ([]*model.ApplicationResource, error) {
+func (op Operator) GetComponents(
+	ctx context.Context,
+	res *model.ApplicationResource,
+) ([]*model.ApplicationResource, error) {
 	if res == nil {
 		return nil, nil
 	}
 
 	// Parse composite resources.
-	var rs, err = parseResources(ctx, op, res, intercept.Composite())
+	rs, err := parseResources(ctx, op, res, intercept.Composite())
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
@@ -33,11 +36,11 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 	}
 
 	// Get components of resources.
-	var comps = make([]*model.ApplicationResource, 0)
+	comps := make([]*model.ApplicationResource, 0)
 	for _, r := range rs {
 		switch r.Resource {
 		case "persistentvolumeclaims":
-			var component, err = op.getComponentOfPersistentVolumeClaim(ctx, r.Namespace, r.Name)
+			component, err := op.getComponentOfPersistentVolumeClaim(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -46,13 +49,13 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 			}
 			comps = append(comps, component)
 		case "cronjobs":
-			var components, err = op.getComponentsOfCronJob(ctx, r.Namespace, r.Name)
+			components, err := op.getComponentsOfCronJob(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
 			comps = append(comps, components...)
 		default:
-			var components, err = op.getComponentsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
+			components, err := op.getComponentsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -71,9 +74,13 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 	return comps, nil
 }
 
-func (op Operator) getComponentOfPersistentVolumeClaim(ctx context.Context, ns, n string) (*model.ApplicationResource, error) {
+func (op Operator) getComponentOfPersistentVolumeClaim(
+	ctx context.Context,
+	ns,
+	n string,
+) (*model.ApplicationResource, error) {
 	// Fetch controlled persistent volume claim.
-	var coreCli, err = coreclient.NewForConfig(op.RestConfig)
+	coreCli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
@@ -98,7 +105,7 @@ func (op Operator) getComponentOfPersistentVolumeClaim(ctx context.Context, ns, 
 }
 
 func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]*model.ApplicationResource, error) {
-	var psp, err = op.getPodsOfCronJob(ctx, ns, n)
+	psp, err := op.getPodsOfCronJob(ctx, ns, n)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +114,7 @@ func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]
 	}
 
 	// Convert pod to application resource.
-	var ps = *psp
+	ps := *psp
 	var rs []*model.ApplicationResource
 	for i := 0; i < len(ps); i++ {
 		rs = append(rs, &model.ApplicationResource{
@@ -118,8 +125,13 @@ func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]
 	return rs, nil
 }
 
-func (op Operator) getComponentsOfAny(ctx context.Context, gvr schema.GroupVersionResource, ns, n string) ([]*model.ApplicationResource, error) {
-	var psp, err = op.getPodsOfAny(ctx, gvr, ns, n)
+func (op Operator) getComponentsOfAny(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	ns,
+	n string,
+) ([]*model.ApplicationResource, error) {
+	psp, err := op.getPodsOfAny(ctx, gvr, ns, n)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +140,7 @@ func (op Operator) getComponentsOfAny(ctx context.Context, gvr schema.GroupVersi
 	}
 
 	// Convert pod to application resource.
-	var ps = *psp
+	ps := *psp
 	var rs []*model.ApplicationResource
 	for i := 0; i < len(ps); i++ {
 		rs = append(rs, &model.ApplicationResource{

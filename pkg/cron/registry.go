@@ -43,7 +43,7 @@ func Register(ctx context.Context, mc model.ClientSet, cs JobCreators) (err erro
 
 func doRegister(ctx context.Context, mc model.ClientSet) error {
 	// NB(thxCode): don't stop the core cron scheduler.
-	var err = cron.Start(ctx)
+	err := cron.Start(ctx)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 			continue
 		}
 
-		var s = settings.Index(n)
+		s := settings.Index(n)
 		if s == nil {
 			continue
 		}
@@ -78,7 +78,7 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 
 // Sync observes the cron expr setting changes and re-register jobs.
 func Sync(ctx context.Context, m settingbus.BusMessage) error {
-	var logger = log.WithName("task")
+	logger := log.WithName("task")
 
 	type job struct {
 		Name string
@@ -92,23 +92,23 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 			continue
 		}
 
-		var n = m.Refers[i].Name
-		var c, exist = js[n]
+		n := m.Refers[i].Name
+		c, exist := js[n]
 		if !exist {
 			continue
 		}
 
-		var s = settings.Index(n)
+		s := settings.Index(n)
 		if s == nil {
 			continue
 		}
 		// Get cron expr of the job from transactional model client.
-		var v, err = s.Value(ctx, m.TransactionalModelClient)
+		v, err := s.Value(ctx, m.TransactionalModelClient)
 		if err != nil {
 			return fmt.Errorf("error gettting job cron expr: %w", err)
 		}
 
-		var j = job{Name: n}
+		j := job{Name: n}
 		j.Expr, j.Task, err = c(ctx, n, v)
 		if err != nil {
 			return fmt.Errorf("error creating %s job: %w", n, err)
@@ -117,8 +117,8 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 	}
 
 	for i := 0; i < len(jobs); i++ {
-		var j = jobs[i]
-		var err = cron.Schedule(j.Name, j.Expr, j.Task)
+		j := jobs[i]
+		err := cron.Schedule(j.Name, j.Expr, j.Task)
 		if err != nil {
 			// NB(thxCode): raising error cannot roll back successfully scheduled job in the same for-loop,
 			// so just warn out here.

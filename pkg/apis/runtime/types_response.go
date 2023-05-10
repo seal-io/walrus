@@ -12,7 +12,7 @@ import (
 )
 
 func GetResponseCollection(c *gin.Context, data any, totalSize int) ResponseCollection {
-	var req = struct {
+	req := struct {
 		RequestPagination `query:",inline"`
 		RequestGrouping   `query:",inline"`
 	}{
@@ -23,7 +23,7 @@ func GetResponseCollection(c *gin.Context, data any, totalSize int) ResponseColl
 	_ = binding.MapFormWithTag(&req, c.Request.URL.Query(), "query")
 
 	var currentSize int
-	var dataRef = reflect.ValueOf(data)
+	dataRef := reflect.ValueOf(data)
 	if dataRef.Kind() == reflect.Slice {
 		currentSize = dataRef.Len()
 	}
@@ -40,10 +40,10 @@ func GetResponseCollection(c *gin.Context, data any, totalSize int) ResponseColl
 		totalPage = 1
 	}
 
-	var partial = currentSize < totalSize
-	var group = len(req.Groups) != 0
+	partial := currentSize < totalSize
+	group := len(req.Groups) != 0
 
-	var nextPage = req.Page + 1
+	nextPage := req.Page + 1
 	if !partial || nextPage > totalPage {
 		nextPage = 0
 	}
@@ -94,7 +94,7 @@ func (r ResponseStream) Render(w http.ResponseWriter) (err error) {
 		}
 		r.Headers["Content-Length"] = strconv.FormatInt(r.ContentLength, 10)
 	}
-	var header = w.Header()
+	header := w.Header()
 	for k, v := range r.Headers {
 		if header.Get(k) == "" {
 			header.Set(k, v)
@@ -105,9 +105,9 @@ func (r ResponseStream) Render(w http.ResponseWriter) (err error) {
 }
 
 func (r ResponseStream) WriteContentType(w http.ResponseWriter) {
-	var header = w.Header()
+	header := w.Header()
 	if vs := header["Content-Type"]; len(vs) == 0 {
-		var contentType = "application/octet-stream"
+		contentType := "application/octet-stream"
 		if r.ContentType != "" {
 			contentType = r.ContentType
 		}

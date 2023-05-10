@@ -17,7 +17,7 @@ func StoreSessionSubject(sessionValue, subject string, active bool) {
 	if sessionValue == "" {
 		return
 	}
-	var suffix = inactiveSuffix
+	suffix := inactiveSuffix
 	if active {
 		suffix = activeSuffix
 	}
@@ -31,7 +31,7 @@ func StoreSessionSubject(sessionValue, subject string, active bool) {
 func LoadSessionSubject(sessionValue string) (*string, bool) {
 	sessionValue = strings.TrimSpace(sessionValue)
 	if sessionValue != "" {
-		var bs, _ = cacher.Get(sessionKeyPrefix + sessionValue)
+		bs, _ := cacher.Get(sessionKeyPrefix + sessionValue)
 		if len(bs) < 7 {
 			return nil, false
 		}
@@ -39,7 +39,7 @@ func LoadSessionSubject(sessionValue string) (*string, bool) {
 			if len(bs[:len(bs)-7]) == 0 {
 				return nil, false
 			}
-			var s = string(bs[:len(bs)-7])
+			s := string(bs[:len(bs)-7])
 			return &s, true
 		}
 	}
@@ -57,13 +57,13 @@ func CleanSessionSubject(sessionValue string) {
 
 // CleanSessionSubjects cleans all subjects about session.
 func CleanSessionSubjects() {
-	var it = cacher.Iterator()
+	it := cacher.Iterator()
 	for it.SetNext() {
-		var e, err = it.Value()
+		e, err := it.Value()
 		if err != nil {
 			break
 		}
-		var key = e.Key()
+		key := e.Key()
 		if strings.HasPrefix(key, sessionKeyPrefix) {
 			_ = cacher.Delete(key)
 		}
@@ -77,7 +77,7 @@ func StoreTokenSubject(tokenValue, subject string, active bool) {
 	if tokenValue == "" {
 		return
 	}
-	var suffix = inactiveSuffix
+	suffix := inactiveSuffix
 	if active {
 		suffix = activeSuffix
 	}
@@ -91,7 +91,7 @@ func StoreTokenSubject(tokenValue, subject string, active bool) {
 func LoadTokenSubject(tokenValue string) (*string, bool) {
 	tokenValue = strings.TrimSpace(tokenValue)
 	if tokenValue != "" {
-		var bs, _ = cacher.Get(tokenKeyPrefix + tokenValue)
+		bs, _ := cacher.Get(tokenKeyPrefix + tokenValue)
 		if len(bs) < 7 {
 			return nil, false
 		}
@@ -99,7 +99,7 @@ func LoadTokenSubject(tokenValue string) (*string, bool) {
 			if len(bs[:len(bs)-7]) == 0 {
 				return nil, false
 			}
-			var s = string(bs[:len(bs)-7])
+			s := string(bs[:len(bs)-7])
 			return &s, true
 		}
 	}
@@ -117,13 +117,13 @@ func CleanTokenSubject(tokenValue string) {
 
 // CleanTokenSubjects cleans all subjects about token.
 func CleanTokenSubjects() {
-	var it = cacher.Iterator()
+	it := cacher.Iterator()
 	for it.SetNext() {
-		var e, err = it.Value()
+		e, err := it.Value()
 		if err != nil {
 			break
 		}
-		var key = e.Key()
+		key := e.Key()
 		if strings.HasPrefix(key, tokenKeyPrefix) {
 			_ = cacher.Delete(key)
 		}

@@ -37,7 +37,7 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
-	var input = &model.Subject{
+	input := &model.Subject{
 		Kind:        "user",
 		Group:       req.Group,
 		Name:        req.Name,
@@ -50,7 +50,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 	}
 
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var creates, err = dao.SubjectCreates(tx, input)
+		creates, err := dao.SubjectCreates(tx, input)
 		if err != nil {
 			return err
 		}
@@ -74,14 +74,14 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	var input = []predicate.Subject{
+	input := []predicate.Subject{
 		subject.Kind("user"),
 		subject.Group(req.Group),
 		subject.Name(req.Name),
 	}
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// TODO cascade delete token.
-		var _, err = tx.Subjects().Delete().
+		_, err := tx.Subjects().Delete().
 			Where(input...).
 			Exec(ctx)
 		if err != nil {
@@ -118,7 +118,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var input = &model.Subject{
+	input := &model.Subject{
 		Kind:        "user",
 		ID:          req.ID,
 		Description: req.Description,
@@ -126,7 +126,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	}
 
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.SubjectUpdates(tx, input)
+		updates, err := dao.SubjectUpdates(tx, input)
 		if err != nil {
 			return err
 		}
@@ -164,11 +164,15 @@ var (
 		subject.FieldLoginTo)
 	sortFields = []string{
 		subject.FieldCreateTime,
-		subject.FieldUpdateTime}
+		subject.FieldUpdateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var input = []predicate.Subject{
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	input := []predicate.Subject{
 		subject.Kind("user"),
 	}
 	if req.Group != "" {
@@ -177,7 +181,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		input = append(input, subject.MountTo(false)) // Created user.
 	}
 
-	var query = h.modelClient.Subjects().Query().
+	query := h.modelClient.Subjects().Query().
 		Where(input...)
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -211,7 +215,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 // Extensional APIs.
 
 func (h Handler) RouteMount(ctx *gin.Context, req view.RouteMountRequest) error {
-	var input = &model.Subject{
+	input := &model.Subject{
 		Kind:    "user",
 		Group:   req.Group,
 		Name:    req.Name,
@@ -222,7 +226,7 @@ func (h Handler) RouteMount(ctx *gin.Context, req view.RouteMountRequest) error 
 		Builtin: false,
 	}
 
-	var creates, err = dao.SubjectCreates(h.modelClient, input)
+	creates, err := dao.SubjectCreates(h.modelClient, input)
 	if err != nil {
 		return err
 	}

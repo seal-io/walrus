@@ -135,7 +135,7 @@ func (e httpError) Error() string {
 	sb.WriteString(" ")
 	sb.WriteString(http.StatusText(e.code))
 	if e.cause != nil {
-		var ev = reflect.ValueOf(e.cause)
+		ev := reflect.ValueOf(e.cause)
 		switch ev.Kind() {
 		case reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 			if ev.IsNil() {
@@ -152,11 +152,11 @@ func (e httpError) Error() string {
 }
 
 func (e httpError) JSON() any {
-	var jsonData = gin.H{}
+	jsonData := gin.H{}
 	jsonData["status"] = e.code
 	jsonData["statusText"] = http.StatusText(e.code)
 	if e.cause != nil {
-		var ev = reflect.ValueOf(e.cause)
+		ev := reflect.ValueOf(e.cause)
 		switch ev.Kind() {
 		case reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 			if ev.IsNil() {

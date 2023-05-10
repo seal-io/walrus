@@ -24,7 +24,7 @@ func Indent(spaces int, v string) string {
 //
 // The resulting byte slice is converted back to a string and returned.
 func NormalizeSpecialChars(s string) string {
-	var sbs = []byte(s)
+	sbs := []byte(s)
 	var buf bytes.Buffer
 	var lastChar byte
 	for i := 0; i < len(sbs); i++ {

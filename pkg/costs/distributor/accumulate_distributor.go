@@ -18,8 +18,18 @@ type accumulateDistributor struct {
 	client model.ClientSet
 }
 
-func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	allocationCosts, totalCount, queriedCount, err := r.allocationResourceCosts(ctx, startTime, endTime, cond)
+func (r *accumulateDistributor) distribute(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) ([]view.Resource, int, error) {
+	allocationCosts, totalCount, queriedCount, err := r.allocationResourceCosts(
+		ctx,
+		startTime,
+		endTime,
+		cond,
+	)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -48,7 +58,12 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 	return allocationCosts, queriedCount, nil
 }
 
-func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, int, error) {
+func (r *accumulateDistributor) allocationResourceCosts(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) ([]view.Resource, int, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
@@ -61,7 +76,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		return nil, 0, 0, err
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -149,7 +164,12 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 	return items, totalCount, queriedCount, nil
 }
 
-func (r *accumulateDistributor) sharedCosts(ctx context.Context, startTime, endTime time.Time, conds types.ShareCosts) ([]*SharedCost, error) {
+func (r *accumulateDistributor) sharedCosts(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	conds types.ShareCosts,
+) ([]*SharedCost, error) {
 	if len(conds) == 0 {
 		return nil, nil
 	}
@@ -182,12 +202,17 @@ func (r *accumulateDistributor) sharedCosts(ctx context.Context, startTime, endT
 	return sharedCosts, nil
 }
 
-func (r *accumulateDistributor) sharedAllocationCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost) (float64, error) {
+func (r *accumulateDistributor) sharedAllocationCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+) (float64, error) {
 	if len(cond.Filters) == 0 {
 		return 0, nil
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -214,12 +239,17 @@ func (r *accumulateDistributor) sharedAllocationCost(ctx context.Context, startT
 	return cost, nil
 }
 
-func (r *accumulateDistributor) sharedIdleCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost) (float64, error) {
+func (r *accumulateDistributor) sharedIdleCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+) (float64, error) {
 	if len(cond.IdleCostFilters) == 0 {
 		return 0, nil
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -246,15 +276,19 @@ func (r *accumulateDistributor) sharedIdleCost(ctx context.Context, startTime, e
 	}
 
 	return managementCost, nil
-
 }
 
-func (r *accumulateDistributor) sharedManagementCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost) (float64, error) {
+func (r *accumulateDistributor) sharedManagementCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+) (float64, error) {
 	if len(cond.ManagementCostFilters) == 0 {
 		return 0, nil
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -281,7 +315,6 @@ func (r *accumulateDistributor) sharedManagementCost(ctx context.Context, startT
 	}
 
 	return managementCost, nil
-
 }
 
 func (r *accumulateDistributor) totalAllocationCosts(cost []view.Resource) float64 {

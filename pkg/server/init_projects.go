@@ -11,7 +11,7 @@ import (
 )
 
 func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
-	var builtin = []*model.Project{
+	builtin := []*model.Project{
 		// Default project.
 		{
 			Name:        "default",
@@ -19,7 +19,7 @@ func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
 		},
 	}
 
-	var creates, err = dao.ProjectCreates(opts.ModelClient, builtin...)
+	creates, err := dao.ProjectCreates(opts.ModelClient, builtin...)
 	if err != nil {
 		return err
 	}

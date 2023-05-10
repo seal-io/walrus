@@ -29,7 +29,7 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.ModuleVersions().Get(ctx, req.ID)
+	entity, err := h.modelClient.ModuleVersions().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +44,15 @@ var (
 	}
 	getFields  = moduleversion.Columns
 	sortFields = []string{
-		moduleversion.FieldVersion}
+		moduleversion.FieldVersion,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ModuleVersions().Query().
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.ModuleVersions().Query().
 		Where(moduleversion.ModuleIDIn(req.ModuleIDs...))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)

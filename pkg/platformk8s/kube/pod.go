@@ -11,7 +11,7 @@ func IsPodReady(pod *core.Pod) bool {
 	if !IsPodRunning(pod) {
 		return false
 	}
-	var c, exist = GetPodCondition(&pod.Status, core.PodReady)
+	c, exist := GetPodCondition(&pod.Status, core.PodReady)
 	if exist {
 		return c.Status == core.ConditionTrue
 	}
@@ -69,7 +69,7 @@ func IsContainerRunning(pod *core.Pod, c Container) bool {
 		return false
 	}
 
-	var css = make([]*[]core.ContainerStatus, 0, 3)
+	css := make([]*[]core.ContainerStatus, 0, 3)
 	switch c.Type {
 	case ContainerRun:
 		css = append(css, &pod.Status.ContainerStatuses)
@@ -86,7 +86,7 @@ func IsContainerRunning(pod *core.Pod, c Container) bool {
 	}
 
 	for i := 0; i < len(css); i++ {
-		var cs = *css[i]
+		cs := *css[i]
 		for j := 0; j < len(cs); j++ {
 			if cs[j].Name != c.Name {
 				continue
@@ -186,7 +186,7 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 		return
 	}
 
-	var css = []struct {
+	css := []struct {
 		Type     ContainerType
 		Statuses *[]core.ContainerStatus
 	}{
@@ -204,9 +204,9 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 		},
 	}
 	for i := 0; i < len(css); i++ {
-		var cs = *css[i].Statuses
+		cs := *css[i].Statuses
 		for j := 0; j < len(cs); j++ {
-			var s = &cs[j]
+			s := &cs[j]
 			r = append(r, ContainerState{
 				Type:      css[i].Type,
 				Namespace: pod.Namespace,

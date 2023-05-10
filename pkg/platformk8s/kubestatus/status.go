@@ -56,7 +56,11 @@ func StatusError(msg string) *typestatus.Status {
 }
 
 // Get returns status of the given k8s resource.
-func Get(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func Get(
+	ctx context.Context,
+	dynamicCli *dynamic.DynamicClient,
+	o *unstructured.Unstructured,
+) (*typestatus.Status, error) {
 	switch o.GetKind() {
 	case "Service":
 		return getService(o)
@@ -101,13 +105,13 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// If .spec.type == ExternalName, then ready.
-	var specType, _, _ = unstructured.NestedString(spec, "type")
+	specType, _, _ := unstructured.NestedString(spec, "type")
 	if core.ServiceType(specType) == core.ServiceTypeExternalName {
 		return &GeneralStatusReady, nil
 	}
 
 	// If .spec.clusterIP == "", then unready.
-	var specClusterIP, _, _ = unstructured.NestedString(spec, "clusterIP")
+	specClusterIP, _, _ := unstructured.NestedString(spec, "clusterIP")
 	if specClusterIP == "" {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -115,11 +119,11 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// If .spec.type == LoadBalancer && len(.spec.externalIPs) > 0, then ready.
 	// If .spec.type == LoadBalancer && len(.status.loadBalancer.ingress) > 0, then ready.
 	if core.ServiceType(specType) == core.ServiceTypeLoadBalancer {
-		var specExternalIPs, _, _ = unstructured.NestedStringSlice(spec, "externalIPs")
+		specExternalIPs, _, _ := unstructured.NestedStringSlice(spec, "externalIPs")
 		if len(specExternalIPs) > 0 {
 			return &GeneralStatusReady, nil
 		}
-		var statusLBIngresses, _, _ = unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
+		statusLBIngresses, _, _ := unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 		if len(statusLBIngresses) > 0 {
 			return &GeneralStatusReady, nil
 		}
@@ -182,7 +186,11 @@ func getPersistentVolume(o *unstructured.Unstructured) (*typestatus.Status, erro
 }
 
 // getReplicas returns the status of kubernetes replica set resource.
-func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getReplicas(
+	ctx context.Context,
+	dynamicCli *dynamic.DynamicClient,
+	o *unstructured.Unstructured,
+) (*typestatus.Status, error) {
 	st := &typestatus.Status{}
 	// Use conditions to generate status while it existed.
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
@@ -193,12 +201,12 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 	}
 
 	// If getPod(all pod) == Running|Succeeded, then ready.
-	var ns, s, err = polymorphic.SelectorsForObject(o)
+	ns, s, err := polymorphic.SelectorsForObject(o)
 	if err != nil {
 		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w",
 			o.GroupVersionKind(), o.GetNamespace(), o.GetName(), err)
 	}
-	var ss = s.String()
+	ss := s.String()
 	pl, err := dynamicCli.Resource(core.SchemeGroupVersion.WithResource("pods")).
 		Namespace(ns).
 		List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss})
@@ -207,8 +215,8 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 			ns, ss, err)
 	}
 	for i := range pl.Items {
-		var p = pl.Items[i]
-		var ps, err = getPod(&p)
+		p := pl.Items[i]
+		ps, err := getPod(&p)
 		if err != nil {
 			return nil, fmt.Errorf("error stating kubernetes pod %s/%s: %w",
 				p.GetNamespace(), p.GetName(), err)
@@ -260,7 +268,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// If .status.observedGeneration < .metadata.generation, then unready.
-	var statusObservedGeneration, _, _ = unstructured.NestedInt64(status, "observedGeneration")
+	statusObservedGeneration, _, _ := unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -271,27 +279,37 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// If .spec.strategy.type != RollingUpdate, then ready.
-	var specStrategyType, _, _ = unstructured.NestedString(spec, "strategy", "type")
-	if apps.DaemonSetUpdateStrategyType(specStrategyType) != apps.RollingUpdateDaemonSetStrategyType {
+	specStrategyType, _, _ := unstructured.NestedString(spec, "strategy", "type")
+	if apps.DaemonSetUpdateStrategyType(specStrategyType) !=
+		apps.RollingUpdateDaemonSetStrategyType {
 		return &GeneralStatusReady, nil
 	}
 
 	// If .status.desiredNumberScheduled != .status.updatedNumberScheduled, then unready.
-	var statusDesiredNumberScheduled, _, _ = unstructured.NestedInt64(status, "desiredNumberScheduled")
-	var statusUpdatedNumberScheduled, _, _ = unstructured.NestedInt64(status, "updatedNumberScheduled")
+	statusDesiredNumberScheduled, _, _ := unstructured.NestedInt64(status, "desiredNumberScheduled")
+	statusUpdatedNumberScheduled, _, _ := unstructured.NestedInt64(status, "updatedNumberScheduled")
 	if statusDesiredNumberScheduled != statusUpdatedNumberScheduled {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// Expected replicas = .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
+	// Expected replicas =
+	// .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
 	// if .status.numberReady < expected replicas, then unready.
-	var expectedReplicas = statusDesiredNumberScheduled
+	expectedReplicas := statusDesiredNumberScheduled
 	if statusDesiredNumberScheduled > 0 {
 		var maxUnavailable int64
-		var specRollingUpdate, exist, _ = unstructured.NestedMap(spec, "strategy", "rollingUpdate")
+		specRollingUpdate, exist, _ := unstructured.NestedMap(
+			spec,
+			"strategy",
+			"rollingUpdate",
+		)
 		if exist {
-			var maxUnavailableIntStr = intstr.Parse(fmt.Sprint(specRollingUpdate["maxUnavailable"]))
-			var maxUnavailableInt, _ = intstr.GetScaledValueFromIntOrPercent(&maxUnavailableIntStr, int(statusDesiredNumberScheduled), true)
+			maxUnavailableIntStr := intstr.Parse(fmt.Sprint(specRollingUpdate["maxUnavailable"]))
+			maxUnavailableInt, _ := intstr.GetScaledValueFromIntOrPercent(
+				&maxUnavailableIntStr,
+				int(statusDesiredNumberScheduled),
+				true,
+			)
 			maxUnavailable = int64(maxUnavailableInt)
 		}
 		if maxUnavailable > statusDesiredNumberScheduled {
@@ -299,7 +317,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		}
 		expectedReplicas = statusDesiredNumberScheduled - maxUnavailable
 	}
-	var statusNumberReady, _, _ = unstructured.NestedInt64(status, "numberReady")
+	statusNumberReady, _, _ := unstructured.NestedInt64(status, "numberReady")
 	if statusNumberReady < expectedReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -317,7 +335,7 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// If .status.observedGeneration < .metadata.generation, then unready.
-	var statusObservedGeneration, _, _ = unstructured.NestedInt64(status, "observedGeneration")
+	statusObservedGeneration, _, _ := unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -328,30 +346,31 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// If .status.strategy.type != RollingUpdate, then ready.
-	var specStrategyType, _, _ = unstructured.NestedString(spec, "strategy", "type")
-	if apps.StatefulSetUpdateStrategyType(specStrategyType) != apps.RollingUpdateStatefulSetStrategyType {
+	specStrategyType, _, _ := unstructured.NestedString(spec, "strategy", "type")
+	if apps.StatefulSetUpdateStrategyType(specStrategyType) !=
+		apps.RollingUpdateStatefulSetStrategyType {
 		return &GeneralStatusReady, nil
 	}
 
 	// Expected replicas = .spec.replicas - .spec.strategy.rollingUpdate.partition.
 	// If .status.updateReplicas < expected replicas, then unready.
-	var specReplicas, _, _ = unstructured.NestedInt64(spec, "replicas")
-	var specPartition, _, _ = unstructured.NestedInt64(spec, "strategy", "rollingUpdate", "partition")
-	var expectedReplicas = specReplicas - specPartition
-	var statusUpdatedReplicas, _, _ = unstructured.NestedInt64(status, "updateReplicas")
+	specReplicas, _, _ := unstructured.NestedInt64(spec, "replicas")
+	specPartition, _, _ := unstructured.NestedInt64(spec, "strategy", "rollingUpdate", "partition")
+	expectedReplicas := specReplicas - specPartition
+	statusUpdatedReplicas, _, _ := unstructured.NestedInt64(status, "updateReplicas")
 	if statusUpdatedReplicas < expectedReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
 	// If .status.readyReplicas != .spec.replicas, then unready.
-	var statusReadyReplicas, _, _ = unstructured.NestedInt64(status, "readyReplicas")
+	statusReadyReplicas, _, _ := unstructured.NestedInt64(status, "readyReplicas")
 	if statusReadyReplicas != specReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
 	// If .status.currentRevision != .status.updateRevision, then unready.
-	var statusCurrentRevision, _, _ = unstructured.NestedString(status, "currentRevision")
-	var statusUpdateRevision, _, _ = unstructured.NestedString(status, "updateRevision")
+	statusCurrentRevision, _, _ := unstructured.NestedString(status, "currentRevision")
+	statusUpdateRevision, _, _ := unstructured.NestedString(status, "updateRevision")
 	if statusCurrentRevision != statusUpdateRevision {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -403,7 +422,7 @@ func getCertificateSigningRequest(o *unstructured.Unstructured) (*typestatus.Sta
 // ingress status isn't contain conditions, judge the summary based on other fields.
 func getIngress(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// If len(.status.loadBalancer.ingress) != 0, then ready.
-	var statusLBIngresses, _, _ = unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
+	statusLBIngresses, _, _ := unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 	if len(statusLBIngresses) > 0 {
 		return &GeneralStatusReady, nil
 	}
@@ -439,24 +458,28 @@ func getPodDisruptionBudget(o *unstructured.Unstructured) (*typestatus.Status, e
 }
 
 // getWebhookConfiguration returns the status of kubernetes webhook configuration resource.
-func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
+func getWebhookConfiguration(
+	ctx context.Context,
+	dynamicCli *dynamic.DynamicClient,
+	o *unstructured.Unstructured,
+) (*typestatus.Status, error) {
 	// If getService(.spec.webhooks[.clientConfig.service?]) == Unready, then unready.
-	var specWebhooks, _, _ = unstructured.NestedSlice(o.Object, "spec", "webhooks")
+	specWebhooks, _, _ := unstructured.NestedSlice(o.Object, "spec", "webhooks")
 	for i := range specWebhooks {
-		var webhook, ok = specWebhooks[i].(map[string]interface{})
+		webhook, ok := specWebhooks[i].(map[string]interface{})
 		if !ok {
 			continue
 		}
-		var webhookService, exist, _ = unstructured.NestedMap(webhook, "clientConfig", "service")
+		webhookService, exist, _ := unstructured.NestedMap(webhook, "clientConfig", "service")
 		if !exist {
 			continue
 		}
-		var svcName = webhookService["name"].(string)
+		svcName := webhookService["name"].(string)
 		if svcName == "" {
 			continue
 		}
-		var svcNamespace = webhookService["namespace"].(string)
-		var svc, err = dynamicCli.Resource(core.SchemeGroupVersion.WithResource("services")).
+		svcNamespace := webhookService["namespace"].(string)
+		svc, err := dynamicCli.Resource(core.SchemeGroupVersion.WithResource("services")).
 			Namespace(svcNamespace).
 			Get(ctx, svcName, meta.GetOptions{ResourceVersion: "0"})
 		if err != nil {
@@ -480,7 +503,7 @@ func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicCli
 
 func toConditions(statusConds []interface{}) (conds []typestatus.Condition) {
 	for i := range statusConds {
-		var condition, ok = statusConds[i].(map[string]interface{})
+		condition, ok := statusConds[i].(map[string]interface{})
 		if !ok {
 			continue
 		}

@@ -11,7 +11,7 @@ func ModuleVersionCreates(mc model.ClientSet, input ...*model.ModuleVersion) ([]
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.ModuleVersionCreate, len(input))
+	rrs := make([]*model.ModuleVersionCreate, len(input))
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -19,7 +19,7 @@ func ModuleVersionCreates(mc model.ClientSet, input ...*model.ModuleVersion) ([]
 		}
 
 		// Required.
-		var c = mc.ModuleVersions().Create().
+		c := mc.ModuleVersions().Create().
 			SetModuleID(r.ModuleID).
 			SetSource(r.Source).
 			SetVersion(r.Version)

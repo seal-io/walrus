@@ -10,8 +10,8 @@ import (
 )
 
 func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCookie, error) {
-	var loginURL = fmt.Sprintf("%s/api/login", endpoint.Get())
-	var loginReq = map[string]interface{}{
+	loginURL := fmt.Sprintf("%s/api/login", endpoint.Get())
+	loginReq := map[string]interface{}{
 		"type":         "login",
 		"application":  app,
 		"organization": org,
@@ -23,17 +23,17 @@ func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCook
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
-	var loginResp = req.HTTPRequest().
+	loginResp := req.HTTPRequest().
 		WithBodyJSON(loginReq).
 		PostWithContext(ctx, loginURL)
-	var err = loginResp.BodyJSON(&loginRespBody)
+	err := loginResp.BodyJSON(&loginRespBody)
 	if err != nil {
 		return nil, fmt.Errorf("error signing in user %s/%s: %w", org, usr, err)
 	}
 	if loginRespBody.Status == "error" {
 		return nil, fmt.Errorf("failed to sign in user %s/%s: %s", org, usr, loginRespBody.Msg)
 	}
-	var userSession = loginResp.Cookies()
+	userSession := loginResp.Cookies()
 	if len(userSession) == 0 {
 		return nil, fmt.Errorf("faield to sign in user %s/%s", org, usr)
 	}
@@ -41,8 +41,8 @@ func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCook
 }
 
 func SignOutUser(ctx context.Context, userSessions []*req.HttpCookie) error {
-	var logoutURL = fmt.Sprintf("%s/api/logout", endpoint.Get())
-	var err = req.HTTPRequest().
+	logoutURL := fmt.Sprintf("%s/api/logout", endpoint.Get())
+	err := req.HTTPRequest().
 		WithCookies(userSessions...).
 		PostWithContext(ctx, logoutURL).
 		Error()
@@ -53,8 +53,8 @@ func SignOutUser(ctx context.Context, userSessions []*req.HttpCookie) error {
 }
 
 func CreateUser(ctx context.Context, clientID, clientSecret string, app, org, usr, pwd string) error {
-	var createUserURL = fmt.Sprintf("%s/api/add-user", endpoint.Get())
-	var createUserReq = map[string]any{
+	createUserURL := fmt.Sprintf("%s/api/add-user", endpoint.Get())
+	createUserReq := map[string]any{
 		"owner":             org,
 		"name":              usr,
 		"type":              "normal-user",
@@ -68,7 +68,7 @@ func CreateUser(ctx context.Context, clientID, clientSecret string, app, org, us
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyJSON(createUserReq).
 		PostWithContext(ctx, createUserURL).
@@ -83,8 +83,8 @@ func CreateUser(ctx context.Context, clientID, clientSecret string, app, org, us
 }
 
 func DeleteUser(ctx context.Context, clientID, clientSecret string, org, usr string) error {
-	var deleteUserURL = fmt.Sprintf("%s/api/delete-user", endpoint.Get())
-	var deleteUserReq = map[string]any{
+	deleteUserURL := fmt.Sprintf("%s/api/delete-user", endpoint.Get())
+	deleteUserReq := map[string]any{
 		"owner": org,
 		"name":  usr,
 	}
@@ -92,7 +92,7 @@ func DeleteUser(ctx context.Context, clientID, clientSecret string, org, usr str
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyJSON(deleteUserReq).
 		PostWithContext(ctx, deleteUserURL).
@@ -107,8 +107,8 @@ func DeleteUser(ctx context.Context, clientID, clientSecret string, org, usr str
 }
 
 func UpdateUserPassword(ctx context.Context, clientID, clientSecret string, org, usr, oldPwd, newPwd string) error {
-	var setPwdURL = fmt.Sprintf("%s/api/set-password", endpoint.Get())
-	var setPwdReq = url.Values{
+	setPwdURL := fmt.Sprintf("%s/api/set-password", endpoint.Get())
+	setPwdReq := url.Values{
 		"userOwner":   []string{org},
 		"userName":    []string{usr},
 		"newPassword": []string{newPwd},
@@ -118,7 +118,7 @@ func UpdateUserPassword(ctx context.Context, clientID, clientSecret string, org,
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyForm(setPwdReq).
 		PostWithContext(ctx, setPwdURL).
@@ -142,9 +142,9 @@ type User struct {
 }
 
 func GetUser(ctx context.Context, clientID, clientSecret string, org, usr string) (*User, error) {
-	var getUserURL = fmt.Sprintf("%s/api/get-user?id=%s/%s", endpoint.Get(), org, usr)
+	getUserURL := fmt.Sprintf("%s/api/get-user?id=%s/%s", endpoint.Get(), org, usr)
 	var user User
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		GetWithContext(ctx, getUserURL).
 		BodyJSON(&user)
@@ -163,7 +163,7 @@ type UserInfo struct {
 }
 
 func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo, error) {
-	var getAccountURL = fmt.Sprintf("%s/api/get-account", endpoint.Get())
+	getAccountURL := fmt.Sprintf("%s/api/get-account", endpoint.Get())
 	var account struct {
 		Sub          string `json:"sub"`
 		Name         string `json:"name"`
@@ -171,7 +171,7 @@ func GetUserInfo(ctx context.Context, userSessions []*req.HttpCookie) (*UserInfo
 			Name string ` json:"name"`
 		} `json:"data2"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithCookies(userSessions...).
 		GetWithContext(ctx, getAccountURL).
 		BodyJSON(&account)

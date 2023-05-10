@@ -98,7 +98,7 @@ func loadRawConfigV1(data crypto.Properties) (string, error) {
 	// {
 	//      "kubeconfig": "..."
 	// }.
-	var kubeconfigText, exist, err = data["kubeconfig"].GetString()
+	kubeconfigText, exist, err := data["kubeconfig"].GetString()
 	if err != nil {
 		return "", fmt.Errorf(`failed to get "kubeconfig": %w`, err)
 	}

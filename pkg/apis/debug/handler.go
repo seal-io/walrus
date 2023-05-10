@@ -13,7 +13,7 @@ import (
 )
 
 func Version() runtime.Handle {
-	var info = gin.H{
+	info := gin.H{
 		"version": version.Version,
 		"commit":  version.GitCommit,
 	}
@@ -24,7 +24,7 @@ func Version() runtime.Handle {
 
 func PProf() runtime.HTTPHandler {
 	// NB(thxCode): init from net/http/pprof.
-	var m = http.NewServeMux()
+	m := http.NewServeMux()
 	m.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
 	m.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
 	m.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))

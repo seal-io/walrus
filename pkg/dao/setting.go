@@ -13,14 +13,14 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.SettingCreate, len(input))
+	rrs := make([]*model.SettingCreate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
 		}
 
 		// Required.
-		var c = mc.Settings().Create().
+		c := mc.Settings().Create().
 			SetName(r.Name)
 
 		// Optional.
@@ -38,7 +38,7 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 		return nil, errors.New("invalid input: empty list")
 	}
 
-	var rrs = make([]*model.SettingUpdate, len(input))
+	rrs := make([]*model.SettingUpdate, len(input))
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -56,7 +56,7 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		var c = mc.Settings().Update().
+		c := mc.Settings().Update().
 			Where(ps...).
 			SetValue(r.Value).
 			SetNillableHidden(r.Hidden).

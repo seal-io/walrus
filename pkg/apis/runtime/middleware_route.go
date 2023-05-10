@@ -30,29 +30,29 @@ func NoMethod() Handle {
 // Logging is a gin middleware,
 // which is the same as gin.Logger but uses a unified logging tool.
 func Logging(ignorePaths ...string) Handle {
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 	if !logger.Enabled(log.DebugLevel) {
 		return func(c *gin.Context) {
 			c.Next()
 		}
 	}
 
-	var skipPaths = sets.Set[string]{}
-	var skipPrefixPaths = sets.Set[string]{}
+	skipPaths := sets.Set[string]{}
+	skipPrefixPaths := sets.Set[string]{}
 	for i := range ignorePaths {
 		skipPaths.Insert(ignorePaths[i])
-		var lastIdx = strings.LastIndex(ignorePaths[i], "/") + 1
+		lastIdx := strings.LastIndex(ignorePaths[i], "/") + 1
 		if lastIdx <= 0 {
 			continue
 		}
-		var lastSeg = ignorePaths[i][lastIdx:]
+		lastSeg := ignorePaths[i][lastIdx:]
 		if !strings.HasPrefix(lastSeg, "*") {
 			continue
 		}
 		skipPrefixPaths.Insert(ignorePaths[i][:lastIdx])
 	}
 	return func(c *gin.Context) {
-		var path = pointer.String(c.FullPath())
+		path := pointer.String(c.FullPath())
 		if *path == "" {
 			path = &c.Request.URL.Path
 		}
@@ -68,28 +68,28 @@ func Logging(ignorePaths ...string) Handle {
 		}
 
 		// Start timer.
-		var start = time.Now()
+		start := time.Now()
 
 		c.Next()
 
-		var reqLatency = time.Since(start)
+		reqLatency := time.Since(start)
 		if reqLatency > time.Minute {
 			reqLatency -= reqLatency % time.Second
 		}
-		var respStatus = c.Writer.Status()
-		var respSize = "0 B"
+		respStatus := c.Writer.Status()
+		respSize := "0 B"
 		if c.Writer.Written() {
 			respSize = humanize.IBytes(uint64(c.Writer.Size()))
 		}
-		var reqClientIP = c.ClientIP()
-		var reqMethod = c.Request.Method
+		reqClientIP := c.ClientIP()
+		reqMethod := c.Request.Method
 		switch {
 		case IsUnidiStreamRequest(c):
 			reqMethod = "US"
 		case IsBidiStreamRequest(c):
 			reqMethod = "BS"
 		}
-		var reqPath = c.Request.URL.Path
+		reqPath := c.Request.URL.Path
 		if raw := c.Request.URL.RawQuery; raw != "" {
 			reqPath = reqPath + "?" + raw
 		}

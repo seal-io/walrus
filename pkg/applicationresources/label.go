@@ -40,12 +40,12 @@ func Label(ctx context.Context, op operator.Operator, candidates []*model.Applic
 			}
 		}
 
-		var ls = map[string]string{
+		ls := map[string]string{
 			types.LabelSealEnvironment: envName,
 			types.LabelSealProject:     projectName,
 			types.LabelSealApplication: appName,
 		}
-		var err = op.Label(ctx, candidates[i], ls)
+		err := op.Label(ctx, candidates[i], ls)
 		if multierr.AppendInto(&berr, err) {
 			continue
 		}

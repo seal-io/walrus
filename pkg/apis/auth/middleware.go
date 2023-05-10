@@ -13,14 +13,14 @@ import (
 // which is used for authenticating and authorizing the incoming request.
 func Auth(enableAuthn bool, modelClient model.ClientSet) runtime.Handle {
 	type authFn func(*gin.Context, model.ClientSet) error
-	var authFns = []authFn{authn, authz}
+	authFns := []authFn{authn, authz}
 	if !enableAuthn {
 		authFns = []authFn{noAuth}
 	}
 
 	return func(c *gin.Context) {
 		for i := range authFns {
-			var err = authFns[i](c, modelClient)
+			err := authFns[i](c, modelClient)
 			if err != nil {
 				_ = c.Error(err)
 				c.Abort()
@@ -32,13 +32,13 @@ func Auth(enableAuthn bool, modelClient model.ClientSet) runtime.Handle {
 }
 
 func noAuth(c *gin.Context, _ model.ClientSet) error {
-	var roles = types.SubjectRoles{
+	roles := types.SubjectRoles{
 		{
 			Domain: "system",
 			Name:   "admin",
 		},
 	}
-	var policies = types.RolePolicies{
+	policies := types.RolePolicies{
 		types.RolePolicyResourceAdminFor("*"),
 	}
 

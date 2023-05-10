@@ -46,18 +46,18 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 }
 
 func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
-	var protoMajor, protoMinor = c.Request.ProtoMajor, c.Request.ProtoMinor
+	protoMajor, protoMinor := c.Request.ProtoMajor, c.Request.ProtoMinor
 	if protoMajor == 1 && protoMinor == 0 {
 		// Do not support http/1.0.
 		c.AbortWithStatus(http.StatusUpgradeRequired)
 		return
 	}
 
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 
-	var ctx, cancel = context.WithCancel(c.Request.Context())
+	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
-	var proxy = RequestUnidiStream{
+	proxy := RequestUnidiStream{
 		ctx:       ctx,
 		ctxCancel: cancel,
 		conn:      c.Writer,
@@ -71,13 +71,13 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	}
 	c.Writer.Flush()
 
-	var inputs = make([]reflect.Value, 0, 2)
+	inputs := make([]reflect.Value, 0, 2)
 	inputs = append(inputs, reflect.ValueOf(proxy))
 	inputs = append(inputs, ri)
-	var outputs = mr.Call(inputs)
-	var errInterface = outputs[len(outputs)-1].Interface()
+	outputs := mr.Call(inputs)
+	errInterface := outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
-		var err = errInterface.(error)
+		err := errInterface.(error)
 		if !isUnidiDownstreamCloseError(err) {
 			logger.Errorf("error processing unidirectional stream request: %v", err)
 		}
@@ -85,7 +85,7 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 }
 
 func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
-	var logger = log.WithName("api")
+	logger := log.WithName("api")
 
 	const (
 		// Time allowed to read the next pong message from the peer.
@@ -95,13 +95,13 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		pingPeriod = (pongWait * 9) / 10
 	)
 
-	var up = websocket.Upgrader{
+	up := websocket.Upgrader{
 		HandshakeTimeout: 5 * time.Second,
 		ReadBufferSize:   4096,
 		WriteBufferSize:  4096,
 	}
 
-	var conn, err = up.Upgrade(c.Writer, c.Request, nil)
+	conn, err := up.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		logger.Errorf("error upgrading bidirectional stream request: %v", err)
 		return
@@ -110,7 +110,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		_ = conn.Close()
 	}()
 
-	var ctx, cancel = context.WithCancel(c.Request.Context())
+	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 	var (
 		frc = make(chan struct {
@@ -152,7 +152,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 
 	// Ping downstream asynchronously.
 	gopool.Go(func() {
-		var ping = func() error {
+		ping := func() error {
 			_ = conn.SetReadDeadline(getDeadline(pongWait))
 			conn.SetPongHandler(func(string) error {
 				return conn.SetReadDeadline(getDeadline(pongWait))
@@ -161,7 +161,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 				[]byte{},
 				getDeadline(pingPeriod))
 		}
-		var t = time.NewTicker(pingPeriod)
+		t := time.NewTicker(pingPeriod)
 		defer t.Stop()
 		for {
 			select {
@@ -177,12 +177,12 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		}
 	})
 
-	var closeMsg = websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closed")
-	var inputs = make([]reflect.Value, 0, 2)
+	closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closed")
+	inputs := make([]reflect.Value, 0, 2)
 	inputs = append(inputs, reflect.ValueOf(proxy))
 	inputs = append(inputs, ri)
-	var outputs = mr.Call(inputs)
-	var errInterface = outputs[len(outputs)-1].Interface()
+	outputs := mr.Call(inputs)
+	errInterface := outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
 		err = errInterface.(error)
 		if !isBidiDownstreamCloseError(err) {
@@ -194,7 +194,8 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 				if ue := errors.Unwrap(err); ue != nil {
 					err = ue
 				}
-				closeMsg = websocket.FormatCloseMessage(websocket.CloseInternalServerErr, err.Error())
+				closeMsg = websocket.FormatCloseMessage(
+					websocket.CloseInternalServerErr, err.Error())
 			}
 		}
 	}
@@ -206,7 +207,7 @@ func isUnidiDownstreamCloseError(err error) bool {
 		errors.Is(err, context.DeadlineExceeded) {
 		return true
 	}
-	var errMsg = err.Error()
+	errMsg := err.Error()
 	return strings.Contains(errMsg, "client disconnected") ||
 		strings.Contains(errMsg, "stream closed")
 }

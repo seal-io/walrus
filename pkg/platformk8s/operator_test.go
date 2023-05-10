@@ -24,22 +24,22 @@ import (
 
 // TestOperator tests all actions of Operator if found a valid local kubeconfig.
 func TestOperator(t *testing.T) {
-	var k8sCfg, err = k8s.GetConfig("")
+	k8sCfg, err := k8s.GetConfig("")
 	if err != nil {
 		t.Logf("error getting kubeconfig: %v", err)
 		t.Skip("cannot get kubeconfig")
 		return
 	}
 
-	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	var op = Operator{
+	op := Operator{
 		Logger:     log.WithName("operator").WithName("k8s"),
 		RestConfig: k8sCfg,
 	}
 
 	t.Run("IsConnected", func(t *testing.T) {
-		var err = op.IsConnected(ctx)
+		err := op.IsConnected(ctx)
 		if err != nil {
 			t.Fatalf("error connecting kubernetes cluster: %v", err)
 		}
@@ -50,7 +50,7 @@ func TestOperator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error createing kubernetes client: %v", err)
 	}
-	var p = &core.Pod{
+	p := &core.Pod{
 		ObjectMeta: meta.ObjectMeta{
 			Namespace:    core.NamespaceDefault,
 			GenerateName: "nginx-",
@@ -73,7 +73,7 @@ func TestOperator(t *testing.T) {
 		return
 	}
 	for evt := range pw.ResultChan() {
-		var wp, ok = evt.Object.(*core.Pod)
+		wp, ok := evt.Object.(*core.Pod)
 		if !ok {
 			continue
 		}
@@ -91,14 +91,14 @@ func TestOperator(t *testing.T) {
 	}()
 
 	// Mock application resource.
-	var res = &model.ApplicationResource{
+	res := &model.ApplicationResource{
 		Type:         "kubernetes_pod",
 		Name:         p.Namespace + "/" + p.Name,
 		DeployerType: types.DeployerTypeTF,
 	}
 
 	t.Run("GetKeys", func(t *testing.T) {
-		var keys, err = op.GetKeys(ctx, res)
+		keys, err := op.GetKeys(ctx, res)
 		if err != nil {
 			t.Errorf("error getting keys: %v", err)
 		}
@@ -121,9 +121,9 @@ func TestOperator(t *testing.T) {
 	})
 
 	t.Run("Log", func(t *testing.T) {
-		var ctx, cancel = context.WithTimeout(ctx, 2*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
-		var err = op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.LogOptions{
+		err := op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.LogOptions{
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
 		})
@@ -136,12 +136,12 @@ func TestOperator(t *testing.T) {
 	})
 
 	t.Run("Exec", func(t *testing.T) {
-		var ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 
-		var r, w = io.Pipe()
+		r, w := io.Pipe()
 		go func() {
-			var tk = time.NewTicker(2 * time.Second)
+			tk := time.NewTicker(2 * time.Second)
 			defer tk.Stop()
 			for {
 				select {

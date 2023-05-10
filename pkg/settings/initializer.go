@@ -15,7 +15,7 @@ type initializer func(string) string
 // returns the default value if not found the specified environment.
 func initializeFromSpecifiedEnv(envName string, defValue string) initializer {
 	return func(id string) string {
-		var envValue = os.Getenv(envName)
+		envValue := os.Getenv(envName)
 		if envValue != "" {
 			logger.Debugf("loaded %s initial value from %s environment variable", id, envName)
 			return envValue
@@ -28,8 +28,8 @@ func initializeFromSpecifiedEnv(envName string, defValue string) initializer {
 // returns the default value if not found the environment.
 func initializeFromEnv(defValue string) initializer {
 	return func(id string) string {
-		var envName = "SERVER_SETTING_" + strs.UnderscoreUpper(id)
-		var envValue = os.Getenv(envName)
+		envName := "SERVER_SETTING_" + strs.UnderscoreUpper(id)
+		envValue := os.Getenv(envName)
 		if envValue != "" {
 			logger.Debugf("loaded %s initial value from %s environment variable", id, envName)
 			return envValue
@@ -48,7 +48,7 @@ func initializeFrom(defValue string) initializer {
 // initializeFromJSON initializes with the given val as JSON.
 func initializeFromJSON(defValue interface{}) initializer {
 	return func(id string) string {
-		var v, err = json.Marshal(defValue)
+		v, err := json.Marshal(defValue)
 		if err != nil {
 			panic(fmt.Errorf("error marshalling initialization value: %w", err))
 		}

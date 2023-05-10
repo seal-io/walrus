@@ -161,7 +161,6 @@ func (c *Config) initAttributes() error {
 
 // WriteTo writes the config to the writer.
 func (c *Config) WriteTo(w io.Writer) (int64, error) {
-
 	// Format the file.
 	formatted := hclwrite.Format(Format(c.file.Bytes()))
 
@@ -334,7 +333,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 
 // loadVariableBlocks returns config variables to get terraform variable config block.
 func loadVariableBlocks(opts *VariableOptions) block.Blocks {
-	var blocks = make(block.Blocks, 0, len(opts.SecretNames)+len(opts.VariableNameAndTypes))
+	blocks := make(block.Blocks, 0, len(opts.SecretNames)+len(opts.VariableNameAndTypes))
 
 	// Secret variables.
 	for i := range opts.SecretNames {
@@ -371,7 +370,7 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 	}
 
 	// Module output.
-	var blocks = make(block.Blocks, 0, len(opts))
+	blocks := make(block.Blocks, 0, len(opts))
 	for _, o := range opts {
 		label, value := blockConfig(o)
 		blocks = append(blocks, &block.Block{

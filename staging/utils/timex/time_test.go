@@ -74,7 +74,8 @@ func TestGetTimeUnitSeries(t *testing.T) {
 			assert.Errorf(t, err, "GetTimeSeries(%v, %v, %v, %v) error", tc.startTime, tc.endTime, tc.unit, time.UTC)
 		}
 		if !assert.Equal(t, tc.expected, got) {
-			t.Errorf("GetTimeSeries(%v, %v, %v, %v) = %v, want %v", tc.startTime, tc.endTime, tc.unit, time.UTC, got, tc.expected)
+			t.Errorf("GetTimeSeries(%v, %v, %v, %v) = %v, want %v", tc.startTime,
+				tc.endTime, tc.unit, time.UTC, got, tc.expected)
 		}
 	}
 }

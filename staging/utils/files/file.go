@@ -13,7 +13,7 @@ func Exists(path string) bool {
 }
 
 func TempFile(pattern string) string {
-	var f, err = os.CreateTemp("", pattern)
+	f, err := os.CreateTemp("", pattern)
 	if err != nil {
 		panic(fmt.Errorf("error creating temp file: %w", err))
 	}
@@ -22,7 +22,7 @@ func TempFile(pattern string) string {
 }
 
 func TempDir(pattern string) string {
-	var n, err = os.MkdirTemp("", pattern)
+	n, err := os.MkdirTemp("", pattern)
 	if err != nil {
 		panic(fmt.Errorf("error creating temp dir: %w", err))
 	}

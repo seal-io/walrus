@@ -24,8 +24,11 @@ import (
 )
 
 // GetKeys implements operator.Operator.
-func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) (*operator.Keys, error) {
-	var psp, err = op.getPods(ctx, res)
+func (op Operator) GetKeys(
+	ctx context.Context,
+	res *model.ApplicationResource,
+) (*operator.Keys, error) {
+	psp, err := op.getPods(ctx, res)
 	if err != nil {
 		return nil, err
 	}
@@ -44,22 +47,22 @@ func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) 
 	//          }
 	//      ]
 	// }.
-	var ks = operator.Keys{
+	ks := operator.Keys{
 		Labels: []string{"Pod", "Container"},
 		Keys:   make([]operator.Key, 0),
 	}
 	if psp == nil {
 		return &ks, nil
 	}
-	var ps = *psp
+	ps := *psp
 	sort.SliceStable(ps, func(i, j int) bool {
 		return ps[i].CreationTimestamp.Time.After(ps[j].CreationTimestamp.Time)
 	})
 	for i := 0; i < len(ps); i++ {
-		var running = kube.IsPodRunning(&ps[i])
-		var states = kube.GetContainerStates(&ps[i])
+		running := kube.IsPodRunning(&ps[i])
+		states := kube.GetContainerStates(&ps[i])
 
-		var k = operator.Key{
+		k := operator.Key{
 			Name: ps[i].Name, // Pod name.
 			Keys: make([]operator.Key, 0, len(states)),
 		}
@@ -76,13 +79,16 @@ func (op Operator) GetKeys(ctx context.Context, res *model.ApplicationResource) 
 	return &ks, nil
 }
 
-func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) (*[]core.Pod, error) {
+func (op Operator) getPods(
+	ctx context.Context,
+	res *model.ApplicationResource,
+) (*[]core.Pod, error) {
 	if res == nil {
 		return nil, nil
 	}
 
 	// Parse operable resources.
-	var rs, err = parseResources(ctx, op, res, intercept.Operable())
+	rs, err := parseResources(ctx, op, res, intercept.Operable())
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
@@ -97,7 +103,7 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 	for _, r := range rs {
 		switch r.Resource {
 		case "pods":
-			var p, err = op.getPod(ctx, r.Namespace, r.Name)
+			p, err := op.getPod(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -106,7 +112,7 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 			}
 			ps = append(ps, *p)
 		case "cronjobs":
-			var psp, err = op.getPodsOfCronJob(ctx, r.Namespace, r.Name)
+			psp, err := op.getPodsOfCronJob(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -115,7 +121,7 @@ func (op Operator) getPods(ctx context.Context, res *model.ApplicationResource) 
 			}
 			ps = append(ps, *psp...)
 		default:
-			var psp, err = op.getPodsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
+			psp, err := op.getPodsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -167,7 +173,7 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 
 	// Fetch jobs in pagination and filter out.
 	var js []*batch.Job
-	var jlo = meta.ListOptions{Limit: 100}
+	jlo := meta.ListOptions{Limit: 100}
 	for {
 		var jl *batch.JobList
 		jl, err = batchCli.Jobs(ns).List(ctx, jlo)
@@ -197,7 +203,7 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 	for i := 0; i < len(js); i++ {
-		var ss = labels.SelectorFromSet(labels.Set{
+		ss := labels.SelectorFromSet(labels.Set{
 			"controller-uid": string(js[i].UID),
 			"job-name":       js[i].Name,
 		}).String()
@@ -221,7 +227,11 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 	return &ps, nil
 }
 
-func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionResource, ns, n string) (*[]core.Pod, error) {
+func (op Operator) getPodsOfAny(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	ns, n string,
+) (*[]core.Pod, error) {
 	// Fetch label selector with dynamic client.
 	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)
 	if err != nil {
@@ -243,7 +253,7 @@ func (op Operator) getPodsOfAny(ctx context.Context, gvr schema.GroupVersionReso
 	}
 
 	// Fetch pods with label selector.
-	var ss = s.String()
+	ss := s.String()
 	coreCli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)

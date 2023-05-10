@@ -15,7 +15,7 @@ import (
 )
 
 func (r *Server) initConfigs(ctx context.Context, opts initOptions) error {
-	var err = configureDataEncryption(ctx, opts.ModelClient, r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey)
+	err := configureDataEncryption(ctx, opts.ModelClient, r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey)
 	if err != nil {
 		return err
 	}
@@ -48,19 +48,19 @@ func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string
 		enc = crypto.EncryptorConfig.Get()
 	}
 
-	var pt = "YOU CAN SEE ME"
+	pt := "YOU CAN SEE ME"
 	return settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
 		if ctb64 == "" {
 			// First time launching, just encrypt.
-			var ctbs, err = enc.Encrypt(strs.ToBytes(&pt), nil)
+			ctbs, err := enc.Encrypt(strs.ToBytes(&pt), nil)
 			if err != nil {
 				return "", err
 			}
 			return strs.EncodeBase64(strs.FromBytes(&ctbs)), nil
 		}
 		// Decrypt and compare.
-		var ct, _ = strs.DecodeBase64(ctb64)
-		var ptbs, _ = enc.Decrypt(strs.ToBytes(&ct), nil)
+		ct, _ := strs.DecodeBase64(ctb64)
+		ptbs, _ := enc.Decrypt(strs.ToBytes(&ct), nil)
 		if !bytes.Equal(strs.ToBytes(&pt), ptbs) {
 			return "", errors.New("inconsistent sentry")
 		}

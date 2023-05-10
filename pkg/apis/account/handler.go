@@ -30,7 +30,7 @@ func Login() runtime.ErrorHandle {
 		}
 
 		// Login.
-		var internalSessions, err = casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
+		internalSessions, err := casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 			input.Username, input.Password)
 		if err != nil {
 			return runtime.Error(http.StatusUnauthorized, err)
@@ -47,7 +47,7 @@ func Login() runtime.ErrorHandle {
 
 func Logout() runtime.Handle {
 	return func(ctx *gin.Context) {
-		var internalSession = casdoor.GetSession(ctx.Request.Cookies())
+		internalSession := casdoor.GetSession(ctx.Request.Cookies())
 		if internalSession == nil {
 			return
 		}
@@ -67,12 +67,12 @@ func Info(mc model.ClientSet) runtime.ErrorHandle {
 		default:
 			ctx.AbortWithStatus(http.StatusMethodNotAllowed)
 		case http.MethodPost:
-			var err = updateInfo(ctx, mc)
+			err := updateInfo(ctx, mc)
 			if err != nil {
 				return runtime.Errorw(err, "failed to update info")
 			}
 		case http.MethodGet:
-			var err = getInfo(ctx, mc)
+			err := getInfo(ctx, mc)
 			if err != nil {
 				return runtime.Errorw(err, "failed to get info")
 			}
@@ -82,7 +82,7 @@ func Info(mc model.ClientSet) runtime.ErrorHandle {
 }
 
 func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
-	var s = session.LoadSubject(ctx)
+	s := session.LoadSubject(ctx)
 
 	var r view.UpdateInfoRequest
 	if err := ctx.ShouldBindJSON(&r); err != nil {
@@ -93,7 +93,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 	}
 
 	if r.LoginGroup != nil {
-		var selves, err = modelClient.Subjects().Query().
+		selves, err := modelClient.Subjects().Query().
 			Where(
 				subject.Kind("user"),
 				subject.Name(s.Name),
@@ -117,7 +117,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 			}
 		}
 		err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
-			var updates, err = dao.SubjectUpdates(tx, selves...)
+			updates, err := dao.SubjectUpdates(tx, selves...)
 			if err != nil {
 				return err
 			}
@@ -136,7 +136,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 
 	if r.Password != nil {
 		var cred casdoor.ApplicationCredential
-		var err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, modelClient, &cred)
+		err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, modelClient, &cred)
 		if err != nil {
 			return err
 		}
@@ -159,17 +159,18 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 }
 
 func getInfo(ctx *gin.Context, modelClient model.ClientSet) error {
-	var s = session.LoadSubject(ctx)
-
-	var info = &view.GetInfoResponse{
-		Name:       s.Name,
-		Roles:      s.Roles,
-		Policies:   s.Policies,
-		LoginGroup: s.Group,
-	}
+	var (
+		s    = session.LoadSubject(ctx)
+		info = &view.GetInfoResponse{
+			Name:       s.Name,
+			Roles:      s.Roles,
+			Policies:   s.Policies,
+			LoginGroup: s.Group,
+		}
+	)
 
 	// Get belong groups.
-	var selves, err = modelClient.Subjects().Query().
+	selves, err := modelClient.Subjects().Query().
 		Where(
 			subject.Kind("user"),
 			subject.Name(s.Name),
@@ -181,7 +182,7 @@ func getInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 	}
 	info.Groups = make([]view.GetInfoGroup, 0, len(selves))
 	for i := 0; i < len(selves); i++ {
-		var u = selves[i]
+		u := selves[i]
 		info.Groups = append(info.Groups,
 			view.GetInfoGroup{
 				Name:  u.Group,

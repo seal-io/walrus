@@ -19,12 +19,12 @@ import (
 )
 
 func authn(c *gin.Context, modelClient model.ClientSet) error {
-	var token = casdoor.GetToken(c.Request.Header)
+	token := casdoor.GetToken(c.Request.Header)
 	if token != "" {
 		return authnWithToken(c, modelClient, token)
 	}
 
-	var internalSession = casdoor.GetSession(c.Request.Cookies())
+	internalSession := casdoor.GetSession(c.Request.Cookies())
 	if internalSession == nil {
 		// Anonymous.
 		return nil
@@ -33,14 +33,14 @@ func authn(c *gin.Context, modelClient model.ClientSet) error {
 }
 
 func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) error {
-	var logger = log.WithName("api").WithName("auth")
+	logger := log.WithName("api").WithName("auth")
 
 	if sj, active := cache.LoadTokenSubject(token); sj != nil {
 		if !active {
 			// Anonymous.
 			return nil
 		}
-		var g, n, err = session.ParseSubjectKey(*sj)
+		g, n, err := session.ParseSubjectKey(*sj)
 		if err != nil {
 			return fmt.Errorf("failed to parse subject key: %w", err)
 		}
@@ -56,7 +56,7 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 	if err := settings.CasdoorCred.ValueJSONUnmarshal(c, modelClient, &cred); err != nil {
 		return fmt.Errorf("failed to unmarshal casdoor secret: %w", err)
 	}
-	var r, err = casdoor.IntrospectToken(c, cred.ClientID, cred.ClientSecret, token)
+	r, err := casdoor.IntrospectToken(c, cred.ClientID, cred.ClientSecret, token)
 	if err != nil {
 		// Avoid d-dos.
 		logger.Errorf("error verifying user token: %v", err)
@@ -79,14 +79,14 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 }
 
 func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSession *req.HttpCookie) error {
-	var logger = log.WithName("api").WithName("auth")
+	logger := log.WithName("api").WithName("auth")
 
 	if sj, active := cache.LoadSessionSubject(string(internalSession.Value())); sj != nil {
 		if !active {
 			// Anonymous.
 			return nil
 		}
-		var g, n, err = session.ParseSubjectKey(*sj)
+		g, n, err := session.ParseSubjectKey(*sj)
 		if err != nil {
 			return fmt.Errorf("failed to parse subject key: %w", err)
 		}
@@ -98,7 +98,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 		return nil
 	}
 
-	var r, err = casdoor.GetUserInfo(c, []*req.HttpCookie{internalSession})
+	r, err := casdoor.GetUserInfo(c, []*req.HttpCookie{internalSession})
 	if err != nil {
 		// Avoid d-dos.
 		logger.Errorf("error getting user account: %v", err)
@@ -110,7 +110,8 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 	if err != nil {
 		return err
 	}
-	cache.StoreSessionSubject(string(internalSession.Value()), session.ToSubjectKey(groups[len(groups)-1], r.Name), true)
+	cache.StoreSessionSubject(string(internalSession.Value()),
+		session.ToSubjectKey(groups[len(groups)-1], r.Name), true)
 	session.StoreSubjectAuthnInfo(c, groups, r.Name)
 	return casdoor.HoldSession(c.Writer, []*req.HttpCookie{internalSession})
 }
@@ -118,7 +119,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 // getGroups returns the groups with the given user,
 // if not group is blank, retries the proper groups.
 func getGroups(ctx context.Context, modelClient model.ClientSet, group string, user string) ([]string, error) {
-	var query = modelClient.Subjects().Query().
+	query := modelClient.Subjects().Query().
 		Where(subject.Kind("user"), subject.Name(user))
 	if group == "" {
 		// Get specified login group(loginTo=true) or default login group(mountTo=false).
@@ -128,7 +129,7 @@ func getGroups(ctx context.Context, modelClient model.ClientSet, group string, u
 		query.Where(subject.Group(group))
 	}
 
-	var users, err = query.
+	users, err := query.
 		Select(
 			subject.FieldLoginTo,
 			subject.FieldMountTo,
@@ -140,7 +141,7 @@ func getGroups(ctx context.Context, modelClient model.ClientSet, group string, u
 
 	var groups []string
 	for i := 0; i < len(users); i++ {
-		var u = users[i]
+		u := users[i]
 		if *u.LoginTo {
 			return u.Paths[:len(u.Paths)-1], nil
 		}

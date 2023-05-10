@@ -21,8 +21,8 @@ func (i String) String() string {
 
 // Value implements driver.Valuer.
 func (i String) Value() (driver.Value, error) {
-	var v = string(i)
-	var enc = EncryptorConfig.Get()
+	v := string(i)
+	enc := EncryptorConfig.Get()
 	return enc.Encrypt(strs.ToBytes(&v), nil)
 }
 
@@ -32,8 +32,8 @@ func (i *String) Scan(src any) error {
 	case nil:
 		return nil
 	case []byte:
-		var enc = EncryptorConfig.Get()
-		var p, err = enc.Decrypt(v, nil)
+		enc := EncryptorConfig.Get()
+		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
@@ -53,8 +53,8 @@ func (i Bytes) String() string {
 
 // Value implements driver.Valuer.
 func (i Bytes) Value() (driver.Value, error) {
-	var v = i
-	var enc = EncryptorConfig.Get()
+	v := i
+	enc := EncryptorConfig.Get()
 	return enc.Encrypt(v, nil)
 }
 
@@ -64,8 +64,8 @@ func (i *Bytes) Scan(src any) error {
 	case nil:
 		return nil
 	case []byte:
-		var enc = EncryptorConfig.Get()
-		var p, err = enc.Decrypt(v, nil)
+		enc := EncryptorConfig.Get()
+		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
@@ -85,11 +85,11 @@ func (i Map[K, V]) String() string {
 
 // Value implements driver.Valuer.
 func (i Map[K, V]) Value() (driver.Value, error) {
-	var v, err = json.Marshal(i)
+	v, err := json.Marshal(i)
 	if err != nil {
 		return nil, err
 	}
-	var enc = EncryptorConfig.Get()
+	enc := EncryptorConfig.Get()
 	return enc.Encrypt(v, nil)
 }
 
@@ -99,8 +99,8 @@ func (i *Map[K, V]) Scan(src any) error {
 	case nil:
 		return nil
 	case []byte:
-		var enc = EncryptorConfig.Get()
-		var p, err = enc.Decrypt(v, nil)
+		enc := EncryptorConfig.Get()
+		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
@@ -119,11 +119,11 @@ func (i Slice[T]) String() string {
 
 // Value implements driver.Valuer.
 func (i Slice[T]) Value() (driver.Value, error) {
-	var v, err = json.Marshal(i)
+	v, err := json.Marshal(i)
 	if err != nil {
 		return nil, err
 	}
-	var enc = EncryptorConfig.Get()
+	enc := EncryptorConfig.Get()
 	return enc.Encrypt(v, nil)
 }
 
@@ -133,8 +133,8 @@ func (i *Slice[T]) Scan(src any) error {
 	case nil:
 		return nil
 	case []byte:
-		var enc = EncryptorConfig.Get()
-		var p, err = enc.Decrypt(v, nil)
+		enc := EncryptorConfig.Get()
+		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func (i Property) String() string {
 // impacts the response message.
 func (i Property) MarshalJSON() ([]byte, error) {
 	type Alias Property
-	var ia = (Alias)(i)
+	ia := (Alias)(i)
 	if !i.Visible {
 		ia.Value = nil
 	}
@@ -179,15 +179,15 @@ type Properties map[string]Property
 // Value implements driver.Valuer.
 func (i Properties) Value() (driver.Value, error) {
 	type Alias Property
-	var ia = make(map[string]Alias, len(i))
+	ia := make(map[string]Alias, len(i))
 	for k := range i {
 		ia[k] = (Alias)(i[k])
 	}
-	var v, err = json.Marshal(ia)
+	v, err := json.Marshal(ia)
 	if err != nil {
 		return nil, err
 	}
-	var enc = EncryptorConfig.Get()
+	enc := EncryptorConfig.Get()
 	return enc.Encrypt(v, nil)
 }
 
@@ -197,8 +197,8 @@ func (i *Properties) Scan(src any) error {
 	case nil:
 		return nil
 	case []byte:
-		var enc = EncryptorConfig.Get()
-		var p, err = enc.Decrypt(v, nil)
+		enc := EncryptorConfig.Get()
+		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
@@ -214,7 +214,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 		ov = make(map[string]cty.Value, len(i))
 	)
 	for x := range i {
-		var t, v, err = i[x].Cty()
+		t, v, err := i[x].Cty()
 		if err != nil {
 			return cty.NilType, cty.NilVal, err
 		}
@@ -226,7 +226,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 
 // Values returns a map stores the underlay value.
 func (i Properties) Values() property.Values {
-	var m = make(property.Values, len(i))
+	m := make(property.Values, len(i))
 	for x := range i {
 		m[x] = i[x].GetValue()
 	}
@@ -237,7 +237,7 @@ func (i Properties) Values() property.Values {
 func (i Properties) TypedValues() (m map[string]any, err error) {
 	m = make(map[string]any, len(i))
 	for x := range i {
-		var typ = i[x].GetType()
+		typ := i[x].GetType()
 		switch {
 		case typ == cty.Number:
 			m[x], _, err = i[x].GetNumber()

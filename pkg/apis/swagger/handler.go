@@ -18,25 +18,25 @@ var swaggerUI embed.FS
 
 func Index(openapiURL string) runtime.Handle {
 	const dir = "swagger-ui"
-	var fs = runtime.StaticHttpFileSystem{
+	fs := runtime.StaticHttpFileSystem{
 		FileSystem: http.FS(swaggerUI),
 		Embedded:   true,
 	}
-	var srv = http.FileServer(fs)
-	var index = fmt.Sprintf(indexTemplate, openapiURL)
+	srv := http.FileServer(fs)
+	index := fmt.Sprintf(indexTemplate, openapiURL)
 	return func(c *gin.Context) {
 		if len(c.Params) == 0 {
 			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		var p = path.Join(dir, c.Params[len(c.Params)-1].Value)
+		p := path.Join(dir, c.Params[len(c.Params)-1].Value)
 		if p == dir {
 			// Index.
 			_, _ = fmt.Fprint(c.Writer, index)
 			return
 		}
 		// Assets.
-		var req = c.Request.Clone(c.Request.Context())
+		req := c.Request.Clone(c.Request.Context())
 		req.URL.Path = p
 		req.URL.RawPath = p
 		srv.ServeHTTP(c.Writer, req)

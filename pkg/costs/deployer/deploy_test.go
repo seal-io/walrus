@@ -35,5 +35,4 @@ func TestHelm(t *testing.T) {
 
 	err = deployer.EnsureYaml(ctx, yaml)
 	assert.Nil(t, err, "error ensure opencost yaml")
-
 }

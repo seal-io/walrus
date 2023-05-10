@@ -32,11 +32,11 @@ var (
 )
 
 func JsonSerializer() runtime.Serializer {
-	var opts = serializerjson.SerializerOptions{Yaml: false, Pretty: false, Strict: false}
+	opts := serializerjson.SerializerOptions{Yaml: false, Pretty: false, Strict: false}
 	return serializerjson.NewSerializerWithOptions(mf, creator, typer, opts)
 }
 
 func YamlSerializer() runtime.Serializer {
-	var opts = serializerjson.SerializerOptions{Yaml: true, Pretty: false, Strict: false}
+	opts := serializerjson.SerializerOptions{Yaml: true, Pretty: false, Strict: false}
 	return serializerjson.NewSerializerWithOptions(mf, creator, typer, opts)
 }

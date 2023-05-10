@@ -222,7 +222,10 @@ var (
 	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ApplicationID(req.ApplicationID))
 	if queries, ok := req.Querying(queryFields); ok {
@@ -376,7 +379,10 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	return dp.Apply(ctx, entity, applyOpts)
 }
 
-func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (view.AccessEndpointResponse, error) {
+func (h Handler) RouteAccessEndpoints(
+	ctx *gin.Context,
+	req view.AccessEndpointRequest,
+) (view.AccessEndpointResponse, error) {
 	return h.accessEndpoints(ctx, req.ID)
 }
 
@@ -400,8 +406,9 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 		return nil, err
 	}
 	var (
-		invalidTypeErr = runtime.Error(http.StatusBadRequest, "element type of output endpoints should be string")
-		endpoints      = make([]view.Endpoint, 0, len(outputs))
+		invalidTypeErr = runtime.Error(http.StatusBadRequest,
+			"element type of output endpoints should be string")
+		endpoints = make([]view.Endpoint, 0, len(outputs))
 	)
 	for _, v := range outputs {
 		if !view.IsEndpointOuput(v.Name) {
@@ -507,7 +514,11 @@ func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.Ou
 	return h.getInstanceOutputs(ctx, req.ID, true)
 }
 
-func (h Handler) getInstanceOutputs(ctx context.Context, instanceID types.ID, onlySuccess bool) ([]types.OutputValue, error) {
+func (h Handler) getInstanceOutputs(
+	ctx context.Context,
+	instanceID types.ID,
+	onlySuccess bool,
+) ([]types.OutputValue, error) {
 	ar, err := h.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(instanceID)).
 		Select(
@@ -533,7 +544,10 @@ func (h Handler) getInstanceOutputs(ctx context.Context, instanceID types.ID, on
 	return o, nil
 }
 
-func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.ApplicationInstance) error {
+func (h Handler) updateInstanceStatus(
+	ctx context.Context,
+	entity *model.ApplicationInstance,
+) error {
 	update, err := dao.ApplicationInstanceStatusUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
@@ -546,7 +560,10 @@ func (h Handler) updateInstanceStatus(ctx context.Context, entity *model.Applica
 }
 
 // CreateClone creates a clone instance of the application instance.
-func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*model.ApplicationInstanceOutput, error) {
+func (h Handler) CreateClone(
+	ctx *gin.Context,
+	req view.CreateCloneRequest,
+) (*model.ApplicationInstanceOutput, error) {
 	applicationInstance, err := h.modelClient.ApplicationInstances().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -559,7 +576,10 @@ func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*mo
 	})
 }
 
-func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions) (*model.ApplicationInstanceOutput, error) {
+func (h Handler) createInstance(
+	ctx context.Context,
+	opts createInstanceOptions,
+) (*model.ApplicationInstanceOutput, error) {
 	logger := log.WithName("api").WithName("application-instance")
 
 	// Get deployer.
@@ -680,7 +700,8 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 
 			switch dm.Type {
 			case datamessage.EventCreate:
-				// While create new application revision, the previous endpoints from outputs and resources need to be deleted.
+				// While create new application revision,
+				// the previous endpoints from outputs and resources need to be deleted.
 				streamData = view.StreamAccessEndpointResponse{
 					Type:       datamessage.EventDelete,
 					Collection: eps,

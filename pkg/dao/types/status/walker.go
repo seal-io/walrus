@@ -27,7 +27,7 @@ func NewWalker[T ~string](stepsGroup [][]T, arranges ...func(Decision[T])) Walke
 		panic("empty steps group")
 	}
 
-	var fs = make(paths[T], 0, len(stepsGroup))
+	fs := make(paths[T], 0, len(stepsGroup))
 	for i := range stepsGroup {
 		fs = append(fs, newPath(stepsGroup[i], arranges...))
 	}
@@ -40,14 +40,14 @@ type paths[T ~string] []path[T]
 
 func (ps paths[T]) Walk(st *Status) (r *Summary) {
 	for i := range ps {
-		var l = ps[i].Walk(st)
+		l := ps[i].Walk(st)
 		if r == nil {
 			r = l
 			continue
 		}
 
 		// Accept the result that has a higher score.
-		var ls, rs = getSummaryScore(l), getSummaryScore(r)
+		ls, rs := getSummaryScore(l), getSummaryScore(r)
 		if ls <= rs {
 			continue
 		}
@@ -86,7 +86,7 @@ func newPath[T ~string](steps []T, arranges ...func(Decision[T])) path[T] {
 		panic("empty steps")
 	}
 
-	var p = path[T]{
+	p := path[T]{
 		steps:       steps,
 		stepsIndex:  make(map[T]int, len(steps)),
 		stepsDecide: make([]Decide, len(steps)),
@@ -121,7 +121,7 @@ func (f path[T]) Walk(st *Status) *Summary {
 	// Walk the status if condition list is not empty.
 	if len(st.Conditions) != 0 {
 		// Map conditions with the specified steps for quick indexing.
-		var stepsConditionIndex = make([]int, len(f.steps))
+		stepsConditionIndex := make([]int, len(f.steps))
 		for i, c := range st.Conditions {
 			// Plus 1 to avoid aligning not found item.
 			if idx, exist := f.stepsIndex[T(c.Type)]; exist {
@@ -135,7 +135,7 @@ func (f path[T]) Walk(st *Status) *Summary {
 				// Not found step in the given status's condition list.
 				continue
 			}
-			var c = &st.Conditions[stepsConditionIndex[i]-1]
+			c := &st.Conditions[stepsConditionIndex[i]-1]
 
 			// Get summary from display result.
 			s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[i](c.Status, c.Reason)
@@ -175,16 +175,16 @@ func (d Decision[T]) Make(step T, with Decide) Decision[T] {
 //   - marks step as transitioning if status is Unknown,
 //   - and moves to next step if status is True.
 func getGeneralDecide[T ~string](step T) Decide {
-	var s = string(step)
+	s := string(step)
 
 	// Pretty the display with some rules,
 	// most rules are for not present tense word.
-	var displays = [3]string{s, s, s} // Transitioning, Error, Done.
+	displays := [3]string{s, s, s} // Transitioning, Error, Done.
 	for m, r := range replacements {
 		if !strings.HasSuffix(s, m) {
 			continue
 		}
-		var p = s[:len(s)-len(m)]
+		p := s[:len(s)-len(m)]
 		displays[0], displays[1], displays[2] = p+r.T, p+r.E, p+r.D
 	}
 

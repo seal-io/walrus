@@ -55,11 +55,15 @@ var (
 		applicationresource.FieldMode,
 		applicationresource.FieldType,
 		applicationresource.FieldName,
-		applicationresource.FieldCreateTime}
+		applicationresource.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ApplicationResources().Query().
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.ApplicationResources().Query().
 		Where(
 			applicationresource.InstanceID(req.InstanceID),
 			applicationresource.ModeNEQ(types.ApplicationResourceModeDiscovered))
@@ -90,14 +94,17 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return resp, cnt, nil
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationResource)
+func (h Handler) CollectionStream(
+	ctx runtime.RequestUnidiStream,
+	req view.CollectionStreamRequest,
+) error {
+	t, err := topic.Subscribe(datamessage.ApplicationResource)
 	if err != nil {
 		return err
 	}
 	defer func() { t.Unsubscribe() }()
 
-	var query = h.modelClient.ApplicationResources().Query()
+	query := h.modelClient.ApplicationResources().Query()
 	if req.InstanceID != "" {
 		query.Where(applicationresource.InstanceID(req.InstanceID))
 	}
@@ -152,9 +159,9 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs.
 
 func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
-	var res = req.Entity
+	res := req.Entity
 
-	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
 		return nil, err
 	}
@@ -166,9 +173,9 @@ func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKey
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
-	var res = req.Entity
+	res := req.Entity
 
-	var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
 		return err
 	}
@@ -176,7 +183,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
-	var opts = operator.LogOptions{
+	opts := operator.LogOptions{
 		Out:          ctx,
 		Previous:     req.Previous,
 		Tail:         req.Tail,
@@ -187,7 +194,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 }
 
 func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRequest) error {
-	var res = req.Entity
+	res := req.Entity
 
 	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
@@ -197,9 +204,9 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
-	var ts = asTermStream(ctx, req.Width, req.Height)
+	ts := asTermStream(ctx, req.Width, req.Height)
 	defer func() { _ = ts.Close() }()
-	var opts = operator.ExecOptions{
+	opts := operator.ExecOptions{
 		Out:     ts,
 		In:      ts,
 		Shell:   req.Shell,
@@ -218,8 +225,12 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 	return nil
 }
 
-func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) (view.CollectionGetResponse, error) {
-	var logger = log.WithName("api").WithName("application-resource")
+func getCollection(
+	ctx context.Context,
+	query *model.ApplicationResourceQuery,
+	withoutKeys bool,
+) (view.CollectionGetResponse, error) {
+	logger := log.WithName("api").WithName("application-resource")
 
 	// Allow returning without sorting keys.
 	entities, err := query.Unique(false).
@@ -245,7 +256,7 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 	}
 
 	// Expose resources.
-	var resp = make(view.CollectionGetResponse, len(entities))
+	resp := make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
 		resp[i].Resource = model.ExposeApplicationResource(entities[i])
 	}
@@ -254,14 +265,14 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 	if !withoutKeys {
 		// NB(thxCode): we can safety index the connector with its pointer here,
 		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
-		var m = make(map[*model.Connector][]int)
+		m := make(map[*model.Connector][]int)
 		for i := 0; i < len(entities); i++ {
 			m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
 		}
 
 		for c, idxs := range m {
 			// Get operator by connector.
-			var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *c})
+			op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *c})
 			if err != nil {
 				logger.Warnf("cannot get operator of connector: %v", err)
 				continue

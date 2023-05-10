@@ -51,7 +51,7 @@ func (Embedded) Run(ctx context.Context) error {
 	if files.Exists("/sys/fs/cgroup/cgroup.controllers") {
 		// Move the processes from the root group to the /init group,
 		// otherwise writing subtree_control fails with EBUSY.
-		var err = files.Copy(
+		err := files.Copy(
 			"/sys/fs/cgroup/cgroup.procs",
 			"/sys/fs/cgroup/init/cgroup.procs")
 		if err != nil {
@@ -65,8 +65,8 @@ func (Embedded) Run(ctx context.Context) error {
 				if len(data) == 0 {
 					return data, nil
 				}
-				var cs = strings.Split(strs.FromBytes(&data), " ")
-				var s = "+" + strs.Join(" +", cs...)
+				cs := strings.Split(strs.FromBytes(&data), " ")
+				s := "+" + strs.Join(" +", cs...)
 				return strs.ToBytes(&s), nil
 			}))
 		if err != nil {
@@ -81,10 +81,10 @@ func (Embedded) Run(ctx context.Context) error {
 	)
 
 	// Link run data directory.
-	var err = files.Link(
+	err := files.Link(
 		runDataPath,
 		k3sServerDataDir,
-		files.LinkEvenIfNotFound(false, 0766),
+		files.LinkEvenIfNotFound(false, 0o766),
 		files.LinkInReplace())
 	if err != nil {
 		return fmt.Errorf("error link server data: %w", err)
@@ -93,7 +93,7 @@ func (Embedded) Run(ctx context.Context) error {
 	// Reset server data.
 	if files.Exists(filepath.Join(k3sServerDataDir, "db", "etcd")) {
 		_ = os.Remove(filepath.Join(k3sServerDataDir, "db", "reset-flag")) // Clean reset flag.
-		var cmdArgs = []string{
+		cmdArgs := []string{
 			"server",
 			"--cluster-reset",
 			"--data-dir=" + k3sDataDir,
@@ -103,7 +103,7 @@ func (Embedded) Run(ctx context.Context) error {
 		}
 	}
 
-	var cmdArgs = []string{
+	cmdArgs := []string{
 		"server",
 		"--cluster-init",
 		"--etcd-disable-snapshots",
@@ -125,7 +125,7 @@ func (Embedded) GetConfig(ctx context.Context) (string, *rest.Config, error) {
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 	defer cancel()
 
-	var err = wait.PollUntilWithContext(ctx, time.Second, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilWithContext(ctx, time.Second, func(ctx context.Context) (bool, error) {
 		return files.Exists(embeddedKubeConfigPath), nil
 	})
 	if err != nil {
@@ -146,13 +146,13 @@ func (Embedded) GetConfig(ctx context.Context) (string, *rest.Config, error) {
 
 func runK3sWith(ctx context.Context, cmdArgs []string) error {
 	const cmdName = "k3s"
-	var logger = log.WithName(cmdName)
+	logger := log.WithName(cmdName)
 	logger.Infof("run: %s %s", cmdName, strs.Join(" ", cmdArgs...))
-	var cmd = exec.CommandContext(ctx, cmdName, cmdArgs...)
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 	cmd.SysProcAttr = getSysProcAttr()
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
-	var err = cmd.Run()
+	err := cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}

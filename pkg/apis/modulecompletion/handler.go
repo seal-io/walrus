@@ -143,7 +143,8 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 		return "", err
 	}
 	if apiToken == "" {
-		return "", runtime.Error(http.StatusBadRequest, "invalid input: OpenAI API token is not configured")
+		return "", runtime.Error(http.StatusBadRequest,
+			"invalid input: OpenAI API token is not configured")
 	}
 
 	client := openai.NewClient(apiToken)
@@ -168,7 +169,6 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 			// Here's an Empirical value. Tunable.
 			Temperature: 0.2,
 		})
-
 	if err != nil {
 		return "", fmt.Errorf("failed to create completion: %w", err)
 	}
@@ -188,7 +188,8 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 	}
 
 	if conn.Category != types.ConnectorCategoryVersionControl {
-		return nil, runtime.Errorf(http.StatusBadRequest, "%q is not a supported version control driver", conn.Type)
+		return nil, runtime.Errorf(http.StatusBadRequest,
+			"%q is not a supported version control driver", conn.Type)
 	}
 
 	client, err := vcs.NewClient(conn)
@@ -198,11 +199,12 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 
 	ref, _, err := client.Git.FindBranch(ctx, req.Repository, req.Branch)
 	if err != nil {
-		return nil, runtime.Errorpf(http.StatusBadRequest, err, "error indexing branch %s from repository %s",
+		return nil, runtime.Errorpf(http.StatusBadRequest, err,
+			"error indexing branch %s from repository %s",
 			req.Branch, req.Repository)
 	}
 
-	var commitInput = &scm.CommitInput{
+	commitInput := &scm.CommitInput{
 		Message: "Module generated from Seal",
 		Base:    ref.Sha,
 	}
@@ -220,7 +222,7 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 	}
 
 	stagingBranch := fmt.Sprintf("seal/module-" + strs.String(5))
-	var refInput = &scm.ReferenceInput{
+	refInput := &scm.ReferenceInput{
 		Name: stagingBranch,
 		Sha:  commit.Sha,
 	}
@@ -231,7 +233,7 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 	}
 
 	// TODO more informative PR body. E.g., let chatGPT generate it.
-	var prInput = &scm.PullRequestInput{
+	prInput := &scm.PullRequestInput{
 		Title:  fmt.Sprintf("Add module %s", moduleName),
 		Body:   "This is a module proposed from Seal.",
 		Source: stagingBranch,

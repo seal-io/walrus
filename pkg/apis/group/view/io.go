@@ -22,7 +22,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if r.Group == "" {
 		return errors.New("invalid group: blank")
@@ -31,7 +31,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid name: blank")
 	}
 
-	var group, err = modelClient.Subjects().Query().
+	group, err := modelClient.Subjects().Query().
 		Where(
 			subject.Kind("group"),
 			subject.Name(r.Group),
@@ -52,24 +52,24 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
 	}
 
-	var confirmGroup = []predicate.Subject{
+	confirmGroup := []predicate.Subject{
 		subject.Kind("group"),
 		subject.Builtin(false),
 	}
 	if r.ID.IsNaive() {
 		confirmGroup = append(confirmGroup, subject.ID(r.ID))
 	} else {
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmGroup = append(confirmGroup, subject.Group(keys[0]))
 		confirmGroup = append(confirmGroup, subject.Name(keys[1]))
 	}
-	var groupEntity, err = modelClient.Subjects().Query().
+	groupEntity, err := modelClient.Subjects().Query().
 		Where(confirmGroup...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
 		Only(ctx)
@@ -90,23 +90,23 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
 	}
 
-	var confirmGroup = []predicate.Subject{
+	confirmGroup := []predicate.Subject{
 		subject.Kind("group"),
 	}
 	if r.ID.IsNaive() {
 		confirmGroup = append(confirmGroup, subject.ID(r.ID))
 	} else {
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmGroup = append(confirmGroup, subject.Group(keys[0]))
 		confirmGroup = append(confirmGroup, subject.Name(keys[1]))
 	}
-	var groupEntity, err = modelClient.Subjects().Query().
+	groupEntity, err := modelClient.Subjects().Query().
 		Where(confirmGroup...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
 		Only(ctx)

@@ -24,7 +24,7 @@ func (nullEncryptor) Encrypt(p []byte, _ []byte) ([]byte, error) {
 	if p == nil {
 		return p, nil
 	}
-	var c = make([]byte, len(p))
+	c := make([]byte, len(p))
 	copy(c, p)
 	return c, nil
 }
@@ -33,7 +33,7 @@ func (nullEncryptor) Decrypt(p []byte, _ []byte) ([]byte, error) {
 	if p == nil {
 		return p, nil
 	}
-	var c = make([]byte, len(p))
+	c := make([]byte, len(p))
 	copy(c, p)
 	return c, nil
 }

@@ -43,17 +43,17 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 	}
 
 	storeBaseDir := path.Join(pwd, "./.cache")
-	if err = os.MkdirAll(storeBaseDir, 0777); err != nil {
+	if err = os.MkdirAll(storeBaseDir, 0o777); err != nil {
 		return nil, err
 	}
 
 	repoPath := path.Join(storeBaseDir, "repository")
-	if err := os.MkdirAll(repoPath, 0777); err != nil {
+	if err := os.MkdirAll(repoPath, 0o777); err != nil {
 		return nil, err
 	}
 
 	repoCachePath := path.Join(storeBaseDir, "repository-cache")
-	if err := os.MkdirAll(repoCachePath, 0777); err != nil {
+	if err := os.MkdirAll(repoCachePath, 0o777); err != nil {
 		return nil, err
 	}
 
@@ -172,7 +172,8 @@ func isUnderway(res *release.Release) bool {
 		return false
 	}
 	status := res.Info.Status
-	return status == release.StatusUninstalling || status == release.StatusPendingInstall || status == release.StatusPendingUpgrade || status == release.StatusPendingRollback
+	return status == release.StatusUninstalling || status == release.StatusPendingInstall ||
+		status == release.StatusPendingUpgrade || status == release.StatusPendingRollback
 }
 
 func isFailed(res *release.Release) bool {

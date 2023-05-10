@@ -24,8 +24,14 @@ type Token struct {
 	ExpiresIn    int    `json:"expiresIn"`
 }
 
-func CreateToken(ctx context.Context, clientID, clientSecret string, usr string, expiryInSecondsPtr *int) (*Token, error) {
-	var createTokenURL = fmt.Sprintf("%s/api/login/oauth/access_token", endpoint.Get())
+func CreateToken(
+	ctx context.Context,
+	clientID,
+	clientSecret string,
+	usr string,
+	expiryInSecondsPtr *int,
+) (*Token, error) {
+	createTokenURL := fmt.Sprintf("%s/api/login/oauth/access_token", endpoint.Get())
 	var expiryInSeconds int
 	if expiryInSecondsPtr != nil {
 		expiryInSeconds = *expiryInSecondsPtr
@@ -33,7 +39,7 @@ func CreateToken(ctx context.Context, clientID, clientSecret string, usr string,
 	if expiryInSeconds <= 0 || expiryInSeconds > neverExpiresInSeconds {
 		expiryInSeconds = neverExpiresInSeconds
 	}
-	var createTokenReq = url.Values{
+	createTokenReq := url.Values{
 		"grant_type":        []string{"client_credentials"},
 		"username":          []string{usr},
 		"expiry_in_seconds": []string{strconv.Itoa(expiryInSeconds)},
@@ -45,7 +51,7 @@ func CreateToken(ctx context.Context, clientID, clientSecret string, usr string,
 		RefreshToken string `json:"refresh_token"`
 		ExpiresIn    int    `json:"expires_in"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyForm(createTokenReq).
 		PostWithContext(ctx, createTokenURL).
@@ -66,8 +72,8 @@ func CreateToken(ctx context.Context, clientID, clientSecret string, usr string,
 }
 
 func DeleteToken(ctx context.Context, clientID, clientSecret string, owner, name string) error {
-	var deleteTokenURL = fmt.Sprintf("%s/api/delete-token", endpoint.Get())
-	var deleteTokenReq = Token{
+	deleteTokenURL := fmt.Sprintf("%s/api/delete-token", endpoint.Get())
+	deleteTokenReq := Token{
 		Owner: owner,
 		Name:  name,
 	}
@@ -75,7 +81,7 @@ func DeleteToken(ctx context.Context, clientID, clientSecret string, owner, name
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyJSON(deleteTokenReq).
 		PostWithContext(ctx, deleteTokenURL).
@@ -97,8 +103,8 @@ type Introspection struct {
 }
 
 func IntrospectToken(ctx context.Context, clientID, clientSecret string, token string) (*Introspection, error) {
-	var introspectTokenURL = fmt.Sprintf("%s/api/login/oauth/introspect", endpoint.Get())
-	var introspectTokenReq = url.Values{
+	introspectTokenURL := fmt.Sprintf("%s/api/login/oauth/introspect", endpoint.Get())
+	introspectTokenReq := url.Values{
 		"token": []string{token},
 	}
 	var introspectTokenResp struct {
@@ -106,7 +112,7 @@ func IntrospectToken(ctx context.Context, clientID, clientSecret string, token s
 		Status        string `json:"status"`
 		Msg           string `json:"msg"`
 	}
-	var err = req.HTTPRequest().
+	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyForm(introspectTokenReq).
 		PostWithContext(ctx, introspectTokenURL).

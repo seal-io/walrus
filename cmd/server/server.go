@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	var cmd = server.Command()
-	var app = clis.AsApp(cmd)
+	cmd := server.Command()
+	app := clis.AsApp(cmd)
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}

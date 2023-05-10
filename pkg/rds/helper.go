@@ -49,7 +49,7 @@ func LoadDriver(dataSourceAddress string) (drvDialect string, drv *sql.DB, err e
 func Wait(ctx context.Context, drv *sql.DB) error {
 	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
-			var err = drv.PingContext(ctx)
+			err := drv.PingContext(ctx)
 			if err != nil {
 				log.Warnf("waiting for database to be ready: %v", err)
 			}

@@ -38,9 +38,9 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var creates, err = dao.PerspectiveCreates(h.modelClient, entity)
+	creates, err := dao.PerspectiveCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +57,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var update, err = dao.PerspectiveUpdate(h.modelClient, entity)
+	update, err := dao.PerspectiveUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.Perspectives().Get(ctx, req.ID)
+	entity, err := h.modelClient.Perspectives().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,11 +97,15 @@ var (
 	getFields  = perspective.Columns
 	sortFields = []string{
 		perspective.FieldName,
-		perspective.FieldCreateTime}
+		perspective.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Perspectives().Query().
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.Perspectives().Query().
 		Where(perspective.NameContains(req.Name))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -136,7 +140,10 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 
 // Extensional APIs.
 
-func (h Handler) CollectionRouteFields(ctx *gin.Context, req view.CollectionRouteFieldsRequest) (view.CollectionRouteFieldsResponse, int, error) {
+func (h Handler) CollectionRouteFields(
+	ctx *gin.Context,
+	req view.CollectionRouteFieldsRequest,
+) (view.CollectionRouteFieldsResponse, int, error) {
 	ps := []*sql.Predicate{
 		sqljson.ValueIsNotNull(allocationcost.FieldLabels),
 	}
@@ -175,7 +182,10 @@ func (h Handler) CollectionRouteFields(ctx *gin.Context, req view.CollectionRout
 	}
 }
 
-func (h Handler) CollectionRouteValues(ctx *gin.Context, req view.CollectionRouteFieldValuesRequest) (view.CollectionRouteValuesResponse, int, error) {
+func (h Handler) CollectionRouteValues(
+	ctx *gin.Context,
+	req view.CollectionRouteFieldValuesRequest,
+) (view.CollectionRouteValuesResponse, int, error) {
 	var ps []*sql.Predicate
 	if req.StartTime != nil {
 		ps = append(ps, sql.GTE(allocationcost.FieldStartTime, req.StartTime))
@@ -194,7 +204,8 @@ func (h Handler) CollectionRouteValues(ctx *gin.Context, req view.CollectionRout
 			s []struct {
 				Value string `json:"value"`
 			}
-			field = fmt.Sprintf(`labels ->> '%s'`, strings.TrimPrefix(fieldStr, types.LabelPrefix))
+			field = fmt.Sprintf(`labels ->> '%s'`,
+				strings.TrimPrefix(fieldStr, types.LabelPrefix))
 		)
 
 		ps = append(ps, sqljson.ValueIsNotNull(allocationcost.FieldLabels))

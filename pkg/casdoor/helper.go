@@ -13,10 +13,10 @@ import (
 
 func Wait(ctx context.Context, serverUrl string) error {
 	endpoint.Set(serverUrl)
-	var logoutURL = fmt.Sprintf("%s/api/logout", serverUrl)
+	logoutURL := fmt.Sprintf("%s/api/logout", serverUrl)
 	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
-			var err = req.HTTPRequest().
+			err := req.HTTPRequest().
 				Post(logoutURL).
 				Error()
 			if err != nil {

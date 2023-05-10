@@ -39,7 +39,7 @@ func parseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
 	if !strict && ce == "" {
 		return nil, nil
 	}
-	var cron, err = cronParser.Parse(ce)
+	cron, err := cronParser.Parse(ce)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cron expression: %w", err)
 	}
@@ -48,7 +48,7 @@ func parseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
 
 // ValidateCronExpr returns error if the given Expr is invalid.
 func ValidateCronExpr(ce string) error {
-	var _, err = parseCronExpr(ce, true)
+	_, err := parseCronExpr(ce, true)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ type timeoutTask struct {
 }
 
 func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
-	var logger = log.WithName("task")
+	logger := log.WithName("task")
 
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
@@ -120,7 +120,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 	if len(args) == 0 {
 		err = in.task.Process(ctx)
 	} else {
-		var t, ok = args[0].([]interface{})
+		t, ok := args[0].([]interface{})
 		if !ok {
 			err = in.task.Process(ctx)
 		} else {
@@ -140,7 +140,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 type emptyVariadicList struct{}
 
 func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) (err error) {
-	var ce = cron.String()
+	ce := cron.String()
 	ceParsed, err := parseCronExpr(ce, false)
 	if err != nil {
 		return
@@ -155,15 +155,17 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 	}
 
 	const atLeast = 5 * time.Minute
-	var now = time.Now()
-	var next = ceParsed.Next(now).Sub(now)
+	var (
+		now  = time.Now()
+		next = ceParsed.Next(now).Sub(now)
+	)
 	if next > atLeast {
 		next >>= 1
 	}
 	if next < atLeast {
 		next = atLeast
 	}
-	var tt = timeoutTask{
+	tt := timeoutTask{
 		timeout: next,
 		name:    name,
 		task:    task,
@@ -175,7 +177,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 		variadicArgs = taskArgs
 	}
 
-	var s = in.s.CronWithSeconds(ce).Tag(name)
+	s := in.s.CronWithSeconds(ce).Tag(name)
 	if cron.runImmediately() {
 		s.StartImmediately()
 	}
@@ -184,7 +186,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 }
 
 func (in *scheduler) Start(ctx context.Context) error {
-	var s = gocron.NewScheduler(time.Now().Location())
+	s := gocron.NewScheduler(time.Now().Location())
 	s.WaitForScheduleAll()
 	s.TagsUnique()
 	s.StartAsync()
@@ -224,7 +226,7 @@ func Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) error 
 
 // MustSchedule likes Schedule, but panic if error found.
 func MustSchedule(name string, cron Expr, task Task, taskArgs ...interface{}) {
-	var err = Schedule(name, cron, task, taskArgs...)
+	err := Schedule(name, cron, task, taskArgs...)
 	if err != nil {
 		panic(err)
 	}

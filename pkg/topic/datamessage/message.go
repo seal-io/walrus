@@ -53,7 +53,7 @@ func Publish[T any](ctx context.Context, mutationType string, op model.Op, ids [
 		return nil
 	}
 
-	var m = Message[T]{
+	m := Message[T]{
 		Type: EventTypeFor(op),
 		Data: ids,
 	}

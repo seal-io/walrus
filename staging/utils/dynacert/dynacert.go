@@ -142,7 +142,7 @@ func (s *certState) Get() (*tls.Certificate, error) {
 // The error is propagated back to the caller of GetCertificate and is user-visible.
 // This does not affect cached certs.
 func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	var name = hello.ServerName
+	name := hello.ServerName
 	if name != "" {
 		// Allow localhost hostname.
 		if name != "localhost" && !strings.Contains(strings.Trim(name, "."), ".") {
@@ -155,11 +155,11 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 			return nil, errors.New("dynacert: server name contains invalid character")
 		}
 	} else {
-		var addr = hello.Conn.LocalAddr()
+		addr := hello.Conn.LocalAddr()
 		if addr == nil {
 			return nil, errors.New("dynacert: missing local address")
 		}
-		var tcpAddr, ok = addr.(*net.TCPAddr)
+		tcpAddr, ok := addr.(*net.TCPAddr)
 		if !ok {
 			return nil, errors.New("dynacert: invalid local address")
 		}
@@ -167,7 +167,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	}
 
 	// Timeout needs to process the worst-case scenario.
-	var ctx, cancel = context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	// Get certificate by server.
@@ -201,13 +201,13 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 // If the server is already being verified, it waits for the existing verification to complete.
 // Either way, createCert blocks for the duration of the whole process.
 func (m *Manager) createCert(ctx context.Context, ck certKey) (*tls.Certificate, error) {
-	var s = &certState{c: sync.NewCond(&sync.Mutex{})}
+	s := &certState{c: sync.NewCond(&sync.Mutex{})}
 	if v, ok := m.state.LoadOrStore(ck, s); ok {
 		s = v.(*certState)
 	} else {
 		s.Generate(ctx, m.Cache, ck.server, ck.rsa)
 	}
-	var tlsCert, err = s.Get()
+	tlsCert, err := s.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -220,8 +220,8 @@ func (m *Manager) createCert(ctx context.Context, ck certKey) (*tls.Certificate,
 // with the cached value.
 func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, error) {
 	if v, ok := m.state.Load(ck); ok {
-		var s = v.(*certState)
-		var tlsCert, err = s.Get()
+		s := v.(*certState)
+		tlsCert, err := s.Get()
 		if err != nil {
 			return nil, err
 		}
@@ -234,7 +234,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 		}
 		return tlsCert, nil
 	}
-	var tlsCert, err = m.cacheGet(ctx, ck)
+	tlsCert, err := m.cacheGet(ctx, ck)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 		return nil, autocert.ErrCacheMiss
 	}
 
-	var bs, err = m.Cache.Get(ctx, ck.String())
+	bs, err := m.Cache.Get(ctx, ck.String())
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (m *Manager) cachePut(ctx context.Context, ck certKey, tlsCert *tls.Certifi
 		return
 	}
 
-	var bs, err = encodeTlsCertificate(tlsCert)
+	bs, err := encodeTlsCertificate(tlsCert)
 	if err != nil {
 		log.WithName("dynacert").Warnf("error encoding tls certificate: %v", err)
 		return

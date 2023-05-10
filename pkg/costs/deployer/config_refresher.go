@@ -53,7 +53,8 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 		if apierrors.IsNotFound(err) {
 			_, err = configMaps.Create(ctx, current, metav1.CreateOptions{})
 			if err != nil && apierrors.IsAlreadyExists(err) {
-				return fmt.Errorf("error create configmap %s:%s, %w", types.SealSystemNamespace, ConfigMapNameOpencost, err)
+				return fmt.Errorf("error create configmap %s:%s, %w",
+					types.SealSystemNamespace, ConfigMapNameOpencost, err)
 			}
 			return nil
 		}

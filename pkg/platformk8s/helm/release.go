@@ -30,26 +30,26 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 	// TODO(thxCode): there are several drivers of Operable backend,
 	//  https://registry.terraform.io/providers/hashicorp/helm/latest/docs#helm_driver,
 	//  get driver of the `helm` provider.
-	var dr = strings.ToLower(driver.SecretsDriverName)
+	dr := strings.ToLower(driver.SecretsDriverName)
 	if dr != strings.ToLower(driver.SecretsDriverName) &&
 		dr != strings.ToLower(driver.ConfigMapsDriverName) {
 		return nil, errors.New("unresolved helm driver: " + dr)
 	}
 
 	// Get helm release with namespace.
-	var hrns, hrn = kube.ParseNamespacedName(res.Name)
-	var restConfig, err = opts.RESTClientGetter.ToRESTConfig()
+	hrns, hrn := kube.ParseNamespacedName(res.Name)
+	restConfig, err := opts.RESTClientGetter.ToRESTConfig()
 	if err != nil {
 		return nil, fmt.Errorf("error getting helm rest config: %w", err)
 	}
 	if opts.KubeClient == nil || opts.Releases == nil {
-		var clientGetter = IncompleteRestClientGetter(*restConfig)
+		clientGetter := IncompleteRestClientGetter(*restConfig)
 		err = opts.Init(clientGetter, hrns, dr, opts.Log)
 		if err != nil {
 			return nil, fmt.Errorf("error initing helm config: %w", err)
 		}
 	}
-	var hg = action.NewGet(&opts)
+	hg := action.NewGet(&opts)
 	hr, err := hg.Run(hrn)
 	if err != nil {
 		return nil, fmt.Errorf("error getting helm release %q: %w", res.Name, err)
@@ -58,8 +58,12 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 	return hr, nil
 }
 
-func GetReleaseStatus(ctx context.Context, res *model.ApplicationResource, opts GetReleaseOptions) (*status.Status, error) {
-	var hr, err = GetRelease(ctx, res, opts)
+func GetReleaseStatus(
+	ctx context.Context,
+	res *model.ApplicationResource,
+	opts GetReleaseOptions,
+) (*status.Status, error) {
+	hr, err := GetRelease(ctx, res, opts)
 	if err != nil {
 		return kubestatus.StatusError(err.Error()), err
 	}
@@ -91,12 +95,13 @@ func GetReleaseStatus(ctx context.Context, res *model.ApplicationResource, opts 
 	}, nil
 }
 
-// IncompleteRestClientGetter doesn't completely implement the genericclioptions.RESTClientGetter below k8s.io/cli-runtime/pkg,
+// IncompleteRestClientGetter doesn't completely implement the genericclioptions.
+// RESTClientGetter below k8s.io/cli-runtime/pkg,
 // it looks like the ToRESTConfig function is enough for kube.Client below helm.sh/helm/v3/pkg.
 type IncompleteRestClientGetter rest.Config
 
 func (g IncompleteRestClientGetter) ToRESTConfig() (*rest.Config, error) {
-	var r = rest.Config(g)
+	r := rest.Config(g)
 	return &r, nil
 }
 

@@ -16,7 +16,7 @@ type initOptions struct {
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
 	// Create model schema.
-	var err = opts.ModelClient.Schema.Create(ctx)
+	err := opts.ModelClient.Schema.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("error creating model schemas: %w", err)
 	}
@@ -27,7 +27,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		init func(context.Context, initOptions) error
 	}
 
-	var inits = []initor{
+	inits := []initor{
 		{name: "settings", init: r.initSettings},
 		{name: "configs", init: r.initConfigs},
 		{name: "dispatches", init: r.initDispatches},

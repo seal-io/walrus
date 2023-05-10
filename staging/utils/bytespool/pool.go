@@ -10,7 +10,7 @@ const defaultBytesSliceSize = 32 * 1024
 
 var gp = sync.Pool{
 	New: func() any {
-		var bs = make([]byte, defaultBytesSliceSize)
+		bs := make([]byte, defaultBytesSliceSize)
 		return &bs
 	},
 }
@@ -23,8 +23,10 @@ func GetBytes(length int) []byte {
 	if length <= 0 {
 		length = defaultBytesSliceSize
 	}
-	var bsp = gp.Get().(*[]byte)
-	var bs = *bsp
+	var (
+		bsp = gp.Get().(*[]byte)
+		bs  = *bsp
+	)
 	if cap(bs) >= length {
 		return bs[:length]
 	}

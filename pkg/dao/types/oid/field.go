@@ -52,7 +52,7 @@ func (i ID) Valid(keyLength int) bool {
 
 // IsNaive returns true if the given ID is a naive ID, e.g. 440601964878987871.
 func (i ID) IsNaive() bool {
-	var l = len(i)
+	l := len(i)
 	if l < 18 {
 		return false
 	}

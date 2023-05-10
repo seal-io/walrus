@@ -211,7 +211,8 @@ func TestToModuleBlock(t *testing.T) {
 				t.Errorf("expected block label %s, got %s", tc.Expected.Labels[0], moduleBlock.Labels[0])
 			}
 			if reflect.DeepEqual(moduleBlock.Attributes, tc.Expected.Attributes) {
-				t.Errorf("expected block attributes %v, got %v", tc.Expected.Attributes, moduleBlock.Attributes)
+				t.Errorf("expected block attributes %v, got %v",
+					tc.Expected.Attributes, moduleBlock.Attributes)
 			}
 		})
 	}

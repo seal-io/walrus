@@ -6,7 +6,7 @@ import (
 
 func Command() *cli.Command {
 	var cmd cli.Command
-	var agent = New()
+	agent := New()
 	agent.Flags(&cmd)
 	agent.Before(&cmd)
 	agent.Action(&cmd)

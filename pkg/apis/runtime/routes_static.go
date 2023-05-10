@@ -37,7 +37,7 @@ func (f StaticHttpFile) Readdir(count int) ([]os.FileInfo, error) {
 }
 
 func (f StaticHttpFile) Stat() (fs.FileInfo, error) {
-	var i, err = f.File.Stat()
+	i, err := f.File.Stat()
 	if err != nil {
 		return nil, err
 	}

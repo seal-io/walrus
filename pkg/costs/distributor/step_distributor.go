@@ -21,7 +21,12 @@ type stepDistributor struct {
 	client model.ClientSet
 }
 
-func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
+func (r *stepDistributor) distribute(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) ([]view.Resource, int, error) {
 	allocationCosts, queriedCount, err := r.AllocationCosts(ctx, startTime, endTime, cond)
 	if err != nil {
 		return nil, 0, err
@@ -37,7 +42,7 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 		return nil, 0, err
 	}
 
-	var itemNameSet = sets.Set[string]{}
+	itemNameSet := sets.Set[string]{}
 	for i, item := range allocationCosts {
 		if item.ItemName == "" {
 			allocationCosts[i].ItemName = types.UnallocatedLabel
@@ -58,7 +63,12 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 	return allocationCosts, queriedCount, nil
 }
 
-func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
+func (r *stepDistributor) AllocationCosts(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.QueryCondition,
+) ([]view.Resource, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
@@ -71,7 +81,11 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		return nil, 0, err
 	}
 
-	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(cond.Step), offset)
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
+		allocationcost.FieldStartTime,
+		string(cond.Step),
+		offset,
+	)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -133,9 +147,10 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 				sql.Expr(model.As(model.Sum(allocationcost.FieldRamCost), "ramCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldPvCost), "pvCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldLoadBalancerCost), "loadBalancerCost")(s)),
-			).GroupBy(
-				groupBys...,
-			).OrderExpr(
+			).
+				GroupBy(
+					groupBys...,
+				).OrderExpr(
 				sql.Expr(orderBy),
 			)
 
@@ -162,18 +177,28 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 	return items, queriedCount, nil
 }
 
-func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime time.Time, conds types.ShareCosts, step types.Step) (map[string][]*SharedCost, error) {
+func (r *stepDistributor) SharedCosts(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	conds types.ShareCosts,
+	step types.Step,
+) (map[string][]*SharedCost, error) {
 	if len(conds) == 0 {
 		return nil, nil
 	}
 
 	_, offset := startTime.Zone()
-	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(allocationcost.FieldStartTime, string(step), offset)
+	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
+		allocationcost.FieldStartTime,
+		string(step),
+		offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	var sharedCosts = make(map[string][]*SharedCost)
+	sharedCosts := make(map[string][]*SharedCost)
 	for _, v := range conds {
 		saCosts, err := r.sharedAllocationCost(ctx, startTime, endTime, v, dateTrunc)
 		if err != nil {
@@ -198,12 +223,18 @@ func (r *stepDistributor) SharedCosts(ctx context.Context, startTime, endTime ti
 	return sharedCosts, nil
 }
 
-func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost, dateTrunc string) (map[string]*SharedCost, error) {
+func (r *stepDistributor) sharedAllocationCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+	dateTrunc string,
+) (map[string]*SharedCost, error) {
 	if len(cond.Filters) == 0 {
 		return nil, nil
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -240,12 +271,18 @@ func (r *stepDistributor) sharedAllocationCost(ctx context.Context, startTime, e
 	return bucket, nil
 }
 
-func (r *stepDistributor) sharedIdleCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost, dateTrunc string) (map[string]*SharedCost, error) {
+func (r *stepDistributor) sharedIdleCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+	dateTrunc string,
+) (map[string]*SharedCost, error) {
 	if len(cond.IdleCostFilters) == 0 {
 		return nil, nil
 	}
 
-	var timePs = []*sql.Predicate{
+	timePs := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -285,12 +322,18 @@ func (r *stepDistributor) sharedIdleCost(ctx context.Context, startTime, endTime
 	return bucket, nil
 }
 
-func (r *stepDistributor) sharedManagementCost(ctx context.Context, startTime, endTime time.Time, cond types.SharedCost, dateTrunc string) (map[string]*SharedCost, error) {
+func (r *stepDistributor) sharedManagementCost(
+	ctx context.Context,
+	startTime,
+	endTime time.Time,
+	cond types.SharedCost,
+	dateTrunc string,
+) (map[string]*SharedCost, error) {
 	if len(cond.ManagementCostFilters) == 0 {
 		return nil, nil
 	}
 
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, startTime),
 		sql.LTE(allocationcost.FieldEndTime, endTime),
 	}
@@ -337,7 +380,12 @@ func (r *stepDistributor) totalAllocationCosts(costs []view.Resource) map[string
 	return bucket
 }
 
-func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []view.Resource, groupBy types.GroupByField) error {
+func applyItemDisplayName(
+	ctx context.Context,
+	client model.ClientSet,
+	items []view.Resource,
+	groupBy types.GroupByField,
+) error {
 	if groupBy != types.GroupByFieldConnectorID {
 		return nil
 	}
@@ -367,7 +415,12 @@ func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []v
 	return nil
 }
 
-func applySharedCost(count int, allocationCost *view.Cost, shares []*SharedCost, totalAllocationCost float64) {
+func applySharedCost(
+	count int,
+	allocationCost *view.Cost,
+	shares []*SharedCost,
+	totalAllocationCost float64,
+) {
 	var coefficients float64
 	if allocationCost.TotalCost != 0 && totalAllocationCost != 0 {
 		coefficients = allocationCost.TotalCost / totalAllocationCost
@@ -387,7 +440,10 @@ func applySharedCost(count int, allocationCost *view.Cost, shares []*SharedCost,
 	}
 }
 
-func sharedCostBuckets(allocation, idle, management map[string]*SharedCost, cond types.SharedCost) map[string]*SharedCost {
+func sharedCostBuckets(
+	allocation, idle, management map[string]*SharedCost,
+	cond types.SharedCost,
+) map[string]*SharedCost {
 	grouped := make(map[string]*SharedCost)
 	for key, v := range allocation {
 		if _, ok := grouped[key]; !ok {

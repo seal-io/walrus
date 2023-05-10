@@ -28,7 +28,7 @@ func GetConfig(kubeconfigPath string) (*rest.Config, error) {
 	}
 
 	// Try the recommended config.
-	var loader = clientcmd.NewDefaultClientConfigLoadingRules()
+	loader := clientcmd.NewDefaultClientConfigLoadingRules()
 	loader.Precedence = append(loader.Precedence,
 		filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName))
 	return loadConfig(loader)
@@ -39,19 +39,19 @@ func LoadConfig(kubeconfigPath string) (*rest.Config, error) {
 		return nil, errors.New("blank kubeconfig path")
 	}
 
-	var loader = &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath}
+	loader := &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath}
 	return loadConfig(loader)
 }
 
 func loadConfig(loader clientcmd.ClientConfigLoader) (*rest.Config, error) {
-	var overrides = &clientcmd.ConfigOverrides{}
+	overrides := &clientcmd.ConfigOverrides{}
 	return clientcmd.
 		NewNonInteractiveDeferredLoadingClientConfig(loader, overrides).
 		ClientConfig()
 }
 
 func Wait(ctx context.Context, cfg *rest.Config) error {
-	var cli, err = discovery.NewDiscoveryClientForConfig(cfg)
+	cli, err := discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create client via cfg: %w", err)
 	}
@@ -73,7 +73,7 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 }
 
 func IsConnected(ctx context.Context, r rest.Interface) error {
-	var body, err = r.Get().
+	body, err := r.Get().
 		AbsPath("/version").
 		Do(ctx).
 		Raw()

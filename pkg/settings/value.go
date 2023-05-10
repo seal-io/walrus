@@ -81,7 +81,7 @@ func (v value) Name() string {
 
 // Value implements the Value interface.
 func (v value) Value(ctx context.Context, client model.ClientSet) (string, error) {
-	var cachedValue, err = cacher.Get(v.refer.Name)
+	cachedValue, err := cacher.Get(v.refer.Name)
 	if err == nil {
 		return string(cachedValue), nil
 	}
@@ -103,12 +103,16 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 
 // ShouldValue implements the Value interface.
 func (v value) ShouldValue(ctx context.Context, client model.ClientSet) string {
-	var r, _ = v.Value(ctx, client)
+	r, _ := v.Value(ctx, client)
 	return r
 }
 
 // ValueJSONUnmarshal implements the Value interface.
-func (v value) ValueJSONUnmarshal(ctx context.Context, client model.ClientSet, holder interface{}) error {
+func (v value) ValueJSONUnmarshal(
+	ctx context.Context,
+	client model.ClientSet,
+	holder interface{},
+) error {
 	val, err := v.Value(ctx, client)
 	if err != nil {
 		return err
@@ -140,7 +144,7 @@ func (v value) ValueBool(ctx context.Context, client model.ClientSet) (bool, err
 
 // ShouldValueBool implements the Value interface.
 func (v value) ShouldValueBool(ctx context.Context, client model.ClientSet) bool {
-	var r, _ = v.ValueBool(ctx, client)
+	r, _ := v.ValueBool(ctx, client)
 	return r
 }
 
@@ -163,7 +167,7 @@ func (v value) ValueInt64(ctx context.Context, client model.ClientSet) (int64, e
 
 // ShouldValueInt64 implements the Value interface.
 func (v value) ShouldValueInt64(ctx context.Context, client model.ClientSet) int64 {
-	var r, _ = v.ValueInt64(ctx, client)
+	r, _ := v.ValueInt64(ctx, client)
 	return r
 }
 
@@ -186,7 +190,7 @@ func (v value) ValueUint64(ctx context.Context, client model.ClientSet) (uint64,
 
 // ShouldValueUint64 implements the Value interface.
 func (v value) ShouldValueUint64(ctx context.Context, client model.ClientSet) uint64 {
-	var r, _ = v.ValueUint64(ctx, client)
+	r, _ := v.ValueUint64(ctx, client)
 	return r
 }
 
@@ -210,13 +214,17 @@ func (v value) ValueURL(ctx context.Context, client model.ClientSet) (*url.URL, 
 
 // ShouldValueURL implements the Value interface.
 func (v value) ShouldValueURL(ctx context.Context, client model.ClientSet) *url.URL {
-	var r, _ = v.ValueURL(ctx, client)
+	r, _ := v.ValueURL(ctx, client)
 	return r
 }
 
 // Set implements the Value interface.
-func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw interface{}) (bool, error) {
-	var oldVal, err = v.Value(ctx, client)
+func (v value) Set(
+	ctx context.Context,
+	client model.ClientSet,
+	newValueRaw interface{},
+) (bool, error) {
+	oldVal, err := v.Value(ctx, client)
 	if err != nil {
 		return false, err
 	}
@@ -248,7 +256,11 @@ func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw inte
 }
 
 // Cas implements the Value interface.
-func (v value) Cas(ctx context.Context, client model.ClientSet, op func(oldVal string) (newVal string, err error)) error {
+func (v value) Cas(
+	ctx context.Context,
+	client model.ClientSet,
+	op func(oldVal string) (newVal string, err error),
+) error {
 	if op == nil {
 		return nil
 	}
@@ -261,7 +273,7 @@ func (v value) Cas(ctx context.Context, client model.ClientSet, op func(oldVal s
 		if err != nil {
 			return err
 		}
-		var oldVal = dbValue.Value
+		oldVal := dbValue.Value
 		newVal, err := op(oldVal)
 		if err != nil {
 			return err

@@ -46,7 +46,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 	exist, err := modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.ID(r.ID)).
 		Exist(ctx)
@@ -123,7 +123,7 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if r.InstanceID != "" {
 		if !r.InstanceID.IsNaive() {
@@ -150,7 +150,7 @@ type CollectionStreamRequest struct {
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.InstanceID != "" {
-		var modelClient = input.(model.ClientSet)
+		modelClient := input.(model.ClientSet)
 		if r.InstanceID != "" {
 			if !r.InstanceID.IsNaive() {
 				return errors.New("invalid instance id")
@@ -208,7 +208,7 @@ func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) e
 	}
 
 	// Check latest revision if running.
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 	entity, err := modelClient.ApplicationRevisions().Get(ctx, r.ID)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application revision")

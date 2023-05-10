@@ -36,13 +36,14 @@ func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 		in.logger.Warn("previous processing is not finished")
 		return nil
 	}
-	var startTs = time.Now()
+	startTs := time.Now()
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.modelClient.Connectors().Query().Where(connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().Where(
+		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -54,7 +55,7 @@ func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 
 	wg := gopool.Group()
 	for i := range conns {
-		var conn = conns[i]
+		conn := conns[i]
 		if !conn.EnableFinOps {
 			continue
 		}

@@ -27,7 +27,7 @@ type RequestCollection[Q, S ~func(*sql.Selector)] struct {
 }
 
 func (r RequestCollection[Q, S]) Validate() (err error) {
-	var validates = []func() error{
+	validates := []func() error{
 		r.RequestQuerying.Validate,
 		r.RequestSorting.Validate,
 		r.RequestExtracting.Validate,
@@ -52,7 +52,7 @@ type RequestPagination struct {
 
 // Limit returns the limit of paging.
 func (r RequestPagination) Limit() int {
-	var limit = r.PerPage
+	limit := r.PerPage
 	if limit <= 0 {
 		limit = 100
 	}
@@ -61,7 +61,7 @@ func (r RequestPagination) Limit() int {
 
 // Offset returns the offset of paging.
 func (r RequestPagination) Offset() int {
-	var offset = r.Limit() * (r.Page - 1)
+	offset := r.Limit() * (r.Page - 1)
 	if offset < 0 {
 		offset = 0
 	}
@@ -124,13 +124,13 @@ func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T,
 		return defaultOrders, len(defaultOrders) != 0
 	}
 
-	var orders = make([]T, 0, len(allowKeys))
-	var allows = sets.NewString(allowKeys...)
+	orders := make([]T, 0, len(allowKeys))
+	allows := sets.NewString(allowKeys...)
 	for i := 0; i < len(r.Sorts); i++ {
 		if r.Sorts[i] == "" {
 			continue
 		}
-		var order = model.Asc
+		order := model.Asc
 		var key string
 		switch r.Sorts[i][0] {
 		case '-':
@@ -219,17 +219,17 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 		return defaultFields, len(defaultFields) != 0
 	}
 
-	var candidates = make([]string, len(r.Extracts)+len(defaultFields))
+	candidates := make([]string, len(r.Extracts)+len(defaultFields))
 	copy(candidates, r.Extracts)
 	copy(candidates[len(r.Extracts):], defaultFields)
 
-	var fields = make([]string, 0, len(candidates))
-	var allows = sets.NewString(allowFields...)
+	fields := make([]string, 0, len(candidates))
+	allows := sets.NewString(allowFields...)
 	for i := 0; i < len(candidates); i++ {
 		if candidates[i] == "" {
 			continue
 		}
-		var with = true
+		with := true
 		var key string
 		switch candidates[i][0] {
 		case '-':
@@ -262,7 +262,7 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 
 // ExtractingSet is similar to Extracting but returns a sets.Set[string] of fields.
 func (r RequestExtracting) ExtractingSet(allowFields []string, defaultFields ...string) sets.Set[string] {
-	var fields, ok = r.Extracting(allowFields, defaultFields...)
+	fields, ok := r.Extracting(allowFields, defaultFields...)
 	if !ok {
 		return sets.Set[string]{}
 	}
@@ -289,8 +289,8 @@ func (r RequestQuerying[T]) Querying(searchFields []string) (T, bool) {
 	if r.Query == nil || len(searchFields) == 0 {
 		return nil, false
 	}
-	var p = func(s *sql.Selector) {
-		var q = make([]*sql.Predicate, 0, len(searchFields))
+	p := func(s *sql.Selector) {
+		q := make([]*sql.Predicate, 0, len(searchFields))
 		for _, f := range searchFields {
 			q = append(q, sql.ContainsFold(s.C(f), *r.Query))
 		}
@@ -324,7 +324,7 @@ type RequestUnidiStream struct {
 
 // SendMsg sends the given data to client.
 func (r RequestUnidiStream) SendMsg(data []byte) error {
-	var _, err = r.Write(data)
+	_, err := r.Write(data)
 	return err
 }
 
@@ -386,7 +386,7 @@ type RequestBidiStream struct {
 
 // SendMsg sends the given data to client.
 func (r RequestBidiStream) SendMsg(data []byte) error {
-	var _, err = r.Write(data)
+	_, err := r.Write(data)
 	return err
 }
 
@@ -432,7 +432,7 @@ func (r RequestBidiStream) Read(p []byte) (n int, err error) {
 		msgReader io.Reader
 	)
 	r.firstReadOnce.Do(func() {
-		var fr, ok = <-r.firstReadChan
+		fr, ok := <-r.firstReadChan
 		if !ok {
 			return
 		}

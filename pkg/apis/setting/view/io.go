@@ -21,7 +21,7 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	var modelClient = input.(model.ClientSet)
+	modelClient := input.(model.ClientSet)
 
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
@@ -30,7 +30,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid input: nil value")
 	}
 
-	var confirmSetting = []predicate.Setting{
+	confirmSetting := []predicate.Setting{
 		setting.Private(false),
 		setting.Editable(true),
 	}
@@ -38,10 +38,10 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	case r.ID.IsNaive():
 		confirmSetting = append(confirmSetting, setting.ID(r.ID))
 	default:
-		var keys = r.ID.Split()
+		keys := r.ID.Split()
 		confirmSetting = append(confirmSetting, setting.Name(keys[0]))
 	}
-	var settingEntity, err = modelClient.Settings().Query().
+	settingEntity, err := modelClient.Settings().Query().
 		Where(confirmSetting...).
 		Select(setting.FieldName, setting.FieldValue).
 		Only(ctx)
@@ -75,7 +75,7 @@ func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) er
 		return errors.New("invalid input: empty list")
 	}
 	for _, i := range r {
-		var err = i.ValidateWith(ctx, input)
+		err := i.ValidateWith(ctx, input)
 		if err != nil {
 			return err
 		}

@@ -33,9 +33,8 @@ const (
 	defaultPrometheusRepo     = "https://prometheus-community.github.io/helm-charts"
 )
 
-var (
-	pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy", types.SealSystemNamespace, NameOpencost)
-)
+var pathServiceProxy = fmt.Sprintf("/api/v1/namespaces/%s/services/http:%s:9003/proxy",
+	types.SealSystemNamespace, NameOpencost)
 
 type input struct {
 	Name               string
@@ -92,7 +91,8 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 		}
 
 		if dep.Status.ReadyReplicas != *dep.Spec.Replicas {
-			return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details", namespace, name, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
+			return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details",
+				namespace, name, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
 		}
 		return nil
 	}
@@ -124,7 +124,7 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 }
 
 func opencost(clusterName string) ([]byte, error) {
-	var data = input{
+	data := input{
 		Name:               NameOpencost,
 		Namespace:          types.SealSystemNamespace,
 		ClusterID:          clusterName,
@@ -139,7 +139,7 @@ func opencost(clusterName string) ([]byte, error) {
 }
 
 func opencostScrape() (string, error) {
-	var data = input{
+	data := input{
 		Name:      NameOpencost,
 		Namespace: types.SealSystemNamespace,
 	}

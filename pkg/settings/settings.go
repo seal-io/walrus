@@ -28,17 +28,32 @@ var (
 	// FirstLogin indicates whether it's the first time to login.
 	FirstLogin = newValue("FirstLogin", hidden, initializeFromEnv("true"), nil)
 	// CasdoorCred keeps the AK/SK for accessing Casdoor server.
-	CasdoorCred = newValue("CasdoorCred", private, initializeFromJSON(casdoor.ApplicationCredential{}), modifyWith(once))
+	CasdoorCred = newValue(
+		"CasdoorCred",
+		private,
+		initializeFromJSON(casdoor.ApplicationCredential{}),
+		modifyWith(once),
+	)
 	// PrivilegeApiToken keeps the token for accessing server APIs.
 	PrivilegeApiToken = newValue("PrivilegeApiToken", private, nil, nil)
 	// ServeUrl keeps the URL for accessing server.
 	ServeUrl = newValue("ServeUrl", editable, nil, modifyWith(httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
-	ServeUiIndex = newValue("ServeUiIndex", editable|hidden, initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"), modifyWith(anyUrl))
+	ServeUiIndex = newValue(
+		"ServeUiIndex",
+		editable|hidden,
+		initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
+		modifyWith(anyUrl),
+	)
 	// ServeModuleRefer keeps the branch name of github.com/seal-io/modules repo for serving module.
 	ServeModuleRefer = newValue("ServeModuleRefer", private, initializeFromEnv("main"), nil)
 	// TerraformDeployerImage indicates the image for terraform deployment.
-	TerraformDeployerImage = newValue("TerraformDeployerImage", editable, initializeFrom("sealio/terraform-deployer:v0.1.2"), modifyWith(notBlank, containerImageReference))
+	TerraformDeployerImage = newValue(
+		"TerraformDeployerImage",
+		editable,
+		initializeFrom("sealio/terraform-deployer:v0.1.2"),
+		modifyWith(notBlank, containerImageReference),
+	)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
 	// OpenAiApiToken keeps the openAI API token for generating module completions.
@@ -51,19 +66,44 @@ var (
 	// ConnectorCostCollectCronExpr indicates the cron expression of collect cost data,
 	// default cron expression means executing collection per hour,
 	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
-	ConnectorCostCollectCronExpr = newValue("ConnectorCostCollectCronExpr", editable, initializeFrom("0 0 * ? * *"), modifyWith(notBlank, cronExpression))
+	ConnectorCostCollectCronExpr = newValue(
+		"ConnectorCostCollectCronExpr",
+		editable,
+		initializeFrom("0 0 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 	// ConnectorStatusSyncCronExpr indicates the cron expression of sync connector status,
 	// default cron expression means executing check every 5 minutes.
-	ConnectorStatusSyncCronExpr = newValue("ConnectorStatusSyncCronExpr", editable, initializeFrom("0 */5 * ? * *"), modifyWith(notBlank, cronExpression))
+	ConnectorStatusSyncCronExpr = newValue(
+		"ConnectorStatusSyncCronExpr",
+		editable,
+		initializeFrom("0 */5 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 	// ResourceStatusSyncCronExpr indicates the cron expression of sync application resource status,
 	// default cron expression means stating every 1 minute.
-	ResourceStatusSyncCronExpr = newValue("ResourceStatusSyncCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
+	ResourceStatusSyncCronExpr = newValue(
+		"ResourceStatusSyncCronExpr",
+		editable,
+		initializeFrom("0 */1 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to application resource,
 	// default cron expression means setting every 2 minute.
-	ResourceLabelApplyCronExpr = newValue("ResourceLabelApplyCronExpr", editable, initializeFrom("0 */2 * ? * *"), modifyWith(notBlank, cronExpression))
+	ResourceLabelApplyCronExpr = newValue(
+		"ResourceLabelApplyCronExpr",
+		editable,
+		initializeFrom("0 */2 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover application resource basics,
 	// default cron expression means discovering every 1 minute.
-	ResourceComponentsDiscoverCronExpr = newValue("ResourceComponentsDiscoverCronExpr", editable, initializeFrom("0 */1 * ? * *"), modifyWith(notBlank, cronExpression))
+	ResourceComponentsDiscoverCronExpr = newValue(
+		"ResourceComponentsDiscoverCronExpr",
+		editable,
+		initializeFrom("0 */1 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 )
 
 // setting property list.
@@ -74,8 +114,10 @@ const (
 	private
 )
 
-var valuesOrder []string
-var valuesIndex = map[string]value{}
+var (
+	valuesOrder []string
+	valuesIndex = map[string]value{}
+)
 
 // newValue creates a value with the given name and modifier,
 // then indexes the new value by its name.
@@ -89,7 +131,7 @@ func newValue(name string, property uint8, initialize initializer, modify modifi
 			initialize = initializeFrom("")
 		}
 	}
-	var v = value{
+	v := value{
 		refer: model.Setting{
 			Name:     name,
 			Value:    initialize(name),
@@ -111,7 +153,7 @@ func ForEach(input func(setting model.Setting) error) error {
 	}
 
 	for _, n := range valuesOrder {
-		var err = input(valuesIndex[n].refer)
+		err := input(valuesIndex[n].refer)
 		if err != nil {
 			return err
 		}

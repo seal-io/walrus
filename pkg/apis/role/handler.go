@@ -36,19 +36,23 @@ var (
 		role.FieldUpdateTime)
 	sortFields = []string{
 		role.FieldName,
-		role.FieldCreateTime}
+		role.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
 	// Do not export session level roles.
-	var input = []predicate.Role{
+	input := []predicate.Role{
 		role.Session(false),
 	}
 	if req.Domain != "" {
 		input = append(input, role.Domain(req.Domain))
 	}
 
-	var query = h.modelClient.Roles().Query().
+	query := h.modelClient.Roles().Query().
 		Where(input...)
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)

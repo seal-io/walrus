@@ -64,7 +64,7 @@ func (h Handler) Validating() any {
 // Basic APIs.
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
+	entity, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 }
 
 func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	t, err := topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
 	}
@@ -156,11 +156,15 @@ var (
 		applicationrevision.FieldSecrets,
 	)
 	sortFields = []string{
-		applicationrevision.FieldCreateTime}
+		applicationrevision.FieldCreateTime,
+	}
 )
 
-func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ApplicationRevisions().Query()
+func (h Handler) CollectionGet(
+	ctx *gin.Context,
+	req view.CollectionGetRequest,
+) (view.CollectionGetResponse, int, error) {
+	query := h.modelClient.ApplicationRevisions().Query()
 	if req.InstanceID != "" {
 		query.Where(applicationrevision.InstanceID(req.InstanceID))
 	}
@@ -210,8 +214,11 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeApplicationRevisions(entities), cnt, nil
 }
 
-func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+func (h Handler) CollectionStream(
+	ctx runtime.RequestUnidiStream,
+	req view.CollectionStreamRequest,
+) error {
+	t, err := topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
 	}
@@ -270,8 +277,11 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs.
 
 // GetTerraformStates get the terraform states of the application revision deployment.
-func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformStatesRequest) (view.GetTerraformStatesResponse, error) {
-	var entity, err = h.modelClient.ApplicationRevisions().Query().
+func (h Handler) GetTerraformStates(
+	ctx *gin.Context,
+	req view.GetTerraformStatesRequest,
+) (view.GetTerraformStatesResponse, error) {
+	entity, err := h.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.ID(req.ID)).
 		Select(applicationrevision.FieldOutput).
 		Only(ctx)
@@ -286,8 +296,11 @@ func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformState
 }
 
 // UpdateTerraformStates update the terraform states of the application revision deployment.
-func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerraformStatesRequest) (err error) {
-	var logger = log.WithName("api").WithName("application-revision")
+func (h Handler) UpdateTerraformStates(
+	ctx *gin.Context,
+	req view.UpdateTerraformStatesRequest,
+) (err error) {
+	logger := log.WithName("api").WithName("application-revision")
 
 	entity, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
@@ -341,13 +354,13 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 // and states/labels the resources within 3 minutes in the background.
 func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationRevision) error {
 	// TODO(thxCode): generate by entc.
-	var key = func(r *model.ApplicationResource) string {
+	key := func(r *model.ApplicationResource) string {
 		// Align to schema definition.
 		return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
 	}
 
 	var p platformtf.Parser
-	var observedRess, err = p.ParseAppRevision(entity)
+	observedRess, err := p.ParseAppRevision(entity)
 	if err != nil {
 		return err
 	}
@@ -364,21 +377,21 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	}
 
 	// Calculate creating list and deleting list.
-	var observedRessIndex = make(map[string]*model.ApplicationResource, len(observedRess))
+	observedRessIndex := make(map[string]*model.ApplicationResource, len(observedRess))
 	for j := range observedRess {
-		var c = observedRess[j]
+		c := observedRess[j]
 		observedRessIndex[key(c)] = c
 	}
-	var deleteRessIDs = make([]types.ID, 0, len(recordRess))
+	deleteRessIDs := make([]types.ID, 0, len(recordRess))
 	for _, c := range recordRess {
-		var k = key(c)
+		k := key(c)
 		if observedRessIndex[k] != nil {
 			delete(observedRessIndex, k)
 			continue
 		}
 		deleteRessIDs = append(deleteRessIDs, c.ID)
 	}
-	var createRess = make([]*model.ApplicationResource, 0, len(observedRessIndex))
+	createRess := make([]*model.ApplicationResource, 0, len(observedRessIndex))
 	for k := range observedRessIndex {
 		createRess = append(createRess, observedRessIndex[k])
 	}
@@ -416,20 +429,20 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	}
 
 	// State/label the new resources async.
-	var ids = make(map[types.ID][]types.ID)
+	ids := make(map[types.ID][]types.ID)
 	for i := range createRess {
 		// Group resources by connector.
 		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
 			createRess[i].ID)
 	}
 	gopool.Go(func() {
-		var logger = log.WithName("api").WithName("application-revision")
-		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
+		logger := log.WithName("api").WithName("application-revision")
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
 		// Fetch related connectors at once,
 		// and then index these connectors by its id.
-		var cs, err = h.modelClient.Connectors().Query().
+		cs, err := h.modelClient.Connectors().Query().
 			Select(
 				connector.FieldID,
 				connector.FieldName,
@@ -443,7 +456,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			logger.Errorf("cannot list connectors: %v", err)
 			return
 		}
-		var csidx = make(map[types.ID]*model.Connector, len(cs))
+		csidx := make(map[types.ID]*model.Connector, len(cs))
 		for i := range cs {
 			csidx[cs[i].ID] = cs[i]
 		}
@@ -459,7 +472,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				continue
 			}
 
-			var c, exist = csidx[cid]
+			c, exist := csidx[cid]
 			if !exist {
 				continue
 			}
@@ -527,9 +540,9 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once tracing,
 	// and rely on the session context timeout control,
 	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel.
-	var restConfig = *h.kubeConfig // Copy.
+	restConfig := *h.kubeConfig // Copy.
 	restConfig.Timeout = 0
-	var cli, err = coreclient.NewForConfig(&restConfig)
+	cli, err := coreclient.NewForConfig(&restConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
@@ -549,12 +562,13 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 		return err
 	}
 
-	applicationInstance, err := h.modelClient.ApplicationInstances().Get(ctx, applicationRevision.InstanceID)
+	applicationInstance, err := h.modelClient.ApplicationInstances().
+		Get(ctx, applicationRevision.InstanceID)
 	if err != nil {
 		return err
 	}
 
-	var createOpts = deployer.CreateOptions{
+	createOpts := deployer.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
@@ -564,7 +578,7 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 		return err
 	}
 
-	var rollbackOpts = deployer.RollbackOptions{
+	rollbackOpts := deployer.RollbackOptions{
 		SkipTLSVerify: !h.tlsCertified,
 		CloneFrom:     applicationRevision,
 	}
@@ -572,7 +586,10 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 }
 
 // CreateRollbackApplications rollback application to a specific revision.
-func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackApplicationRequest) error {
+func (h Handler) CreateRollbackApplications(
+	ctx *gin.Context,
+	req view.RollbackApplicationRequest,
+) error {
 	// Get application revision.
 	applicationRevision, err := h.modelClient.ApplicationRevisions().Query().
 		WithInstance(func(q *model.ApplicationInstanceQuery) {
@@ -587,7 +604,7 @@ func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackA
 		return err
 	}
 
-	var amr = make(model.ApplicationModuleRelationships, len(applicationRevision.Modules))
+	amr := make(model.ApplicationModuleRelationships, len(applicationRevision.Modules))
 	for k, m := range applicationRevision.Modules {
 		amr[k] = &model.ApplicationModuleRelationship{
 			Name:       m.Name,
@@ -607,7 +624,7 @@ func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackA
 	app.Variables = applicationRevision.Variables
 
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var updates, err = dao.ApplicationUpdates(tx, app)
+		updates, err := dao.ApplicationUpdates(tx, app)
 		if err != nil {
 			return err
 		}
@@ -616,13 +633,15 @@ func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackA
 }
 
 // GetRevisionDiff get the revision with the application instance latest revision diff.
-func (h Handler) GetRevisionDiff(ctx *gin.Context, req view.RevisionDiffRequest) (*view.RevisionDiffResponse, error) {
+func (h Handler) GetRevisionDiff(
+	ctx *gin.Context,
+	req view.RevisionDiffRequest,
+) (*view.RevisionDiffResponse, error) {
 	instance, err := h.modelClient.ApplicationInstances().Query().
 		WithApplication(func(q *model.ApplicationQuery) {
 			q.Select(
 				application.FieldID,
 				application.FieldVariables)
-
 		}).
 		Where(applicationinstance.ID(req.InstanceID)).
 		Only(ctx)

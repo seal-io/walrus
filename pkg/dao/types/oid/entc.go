@@ -34,7 +34,7 @@ func Hook() ent.Hook {
 	type setter interface {
 		SetID(ID)
 	}
-	var g = sonyflake.NewSonyflake(Config.Get())
+	g := sonyflake.NewSonyflake(Config.Get())
 	return func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
 			if !m.Op().Is(ent.OpCreate) {
@@ -45,7 +45,7 @@ func Hook() ent.Hook {
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation %T", m)
 			}
-			var id, err = g.NextID()
+			id, err := g.NextID()
 			if err != nil {
 				return "", fmt.Errorf("error generating id: %w", err)
 			}

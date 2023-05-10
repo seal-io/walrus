@@ -16,7 +16,7 @@ import (
 )
 
 func Index(authing bool, apiPrefix string) runtime.Handle {
-	var spec = runtime.OpenAPI(ogen.NewInfo().
+	spec := runtime.OpenAPI(ogen.NewInfo().
 		SetTitle("Seal APIs").
 		SetDescription("API to manage resources of Seal").
 		SetVersion(version.Version))
@@ -26,12 +26,12 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 	}
 
 	if authing {
-		var securities = ogen.SecurityRequirements{
+		securities := ogen.SecurityRequirements{
 			{"bearerAuth": {}},
 			{"cookieAuth": {}},
 		}
 		spec.Security = securities
-		var securitySchemes = make(map[string]*ogen.SecurityScheme, 2)
+		securitySchemes := make(map[string]*ogen.SecurityScheme, 2)
 		securitySchemes["bearerAuth"] = &ogen.SecurityScheme{
 			Type:         "http",
 			In:           "header",
@@ -45,7 +45,7 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 		}
 		spec.Components.SecuritySchemes = securitySchemes
 		for i := range spec.Paths {
-			var ops = []*ogen.Operation{
+			ops := []*ogen.Operation{
 				spec.Paths[i].Post,
 				spec.Paths[i].Delete,
 				spec.Paths[i].Put,
@@ -63,13 +63,13 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 	// Add named schemas.
 	spec.AddNamedSchemas()
 
-	var specBytes, err = json.Marshal(spec)
+	specBytes, err := json.Marshal(spec)
 	if err != nil {
 		panic(fmt.Errorf("error marshalling openapi spec: %w", err))
 	}
 
 	return func(c *gin.Context) {
-		var buff = bytespool.GetBytes(0)
+		buff := bytespool.GetBytes(0)
 		defer func() { bytespool.Put(buff) }()
 		_, _ = io.CopyBuffer(c.Writer, bytes.NewBuffer(specBytes), buff)
 	}

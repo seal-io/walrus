@@ -10,7 +10,7 @@ import (
 )
 
 func asTermStream(proxy runtime.RequestBidiStream, initWidth, initHeight int32) termStream {
-	var resizeCh = make(chan termSize, 2)
+	resizeCh := make(chan termSize, 2)
 	resizeCh <- termSize{Width: initWidth, Height: initHeight}
 	return termStream{
 		Context: context.Background(),
@@ -69,11 +69,11 @@ func (h termStream) Write(p []byte) (n int, err error) {
 }
 
 func (h termStream) Next() (uint16, uint16, bool) {
-	var t, ok = <-h.resize
+	t, ok := <-h.resize
 	return uint16(t.Width), uint16(t.Height), ok
 }
 
 func isUnexpectedError(err error) bool {
-	var errMsg = err.Error()
+	errMsg := err.Error()
 	return strings.Contains(errMsg, "use of closed network connection") // Terminated by destination.
 }

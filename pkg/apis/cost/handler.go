@@ -44,7 +44,10 @@ func (h Handler) Validating() any {
 
 // Extensional APIs.
 
-func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.AllocationCostRequest) (*runtime.ResponseCollection, error) {
+func (h Handler) CollectionRouteAllocationCost(
+	ctx *gin.Context,
+	req view.AllocationCostRequest,
+) (*runtime.ResponseCollection, error) {
 	items, count, err := h.distributor.Distribute(ctx, req.StartTime, req.EndTime, req.QueryCondition)
 	if err != nil {
 		return nil, runtime.Errorw(err, "error query allocation cost")
@@ -54,9 +57,12 @@ func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.Alloca
 	return &resp, nil
 }
 
-func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCostRequest) (*view.SummaryCostResponse, error) {
+func (h Handler) CollectionRouteSummaryCost(
+	ctx *gin.Context,
+	req view.SummaryCostRequest,
+) (*view.SummaryCostResponse, error) {
 	// Total.
-	var clusterCostPs = []*sql.Predicate{
+	clusterCostPs := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 	}
@@ -147,8 +153,11 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 	}, nil
 }
 
-func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.SummaryClusterCostRequest) (*view.SummaryClusterCostResponse, error) {
-	var ps = []*sql.Predicate{
+func (h Handler) CollectionRouteSummaryClusterCost(
+	ctx *gin.Context,
+	req view.SummaryClusterCostRequest,
+) (*view.SummaryClusterCostResponse, error) {
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 		sql.EQ(allocationcost.FieldConnectorID, req.ConnectorID),
@@ -199,8 +208,11 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 	return &summary, nil
 }
 
-func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.SummaryProjectCostRequest) (*view.SummaryCostCommonResponse, error) {
-	var ps = []*sql.Predicate{
+func (h Handler) CollectionRouteSummaryProjectCost(
+	ctx *gin.Context,
+	req view.SummaryProjectCostRequest,
+) (*view.SummaryCostCommonResponse, error) {
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 		sqljson.ValueEQ(allocationcost.FieldLabels, req.Project, sqljson.Path(types.LabelSealProject)),
@@ -248,7 +260,10 @@ func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.Su
 	return &summary, nil
 }
 
-func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.SummaryQueriedCostRequest) (*view.SummaryQueriedCostResponse, error) {
+func (h Handler) CollectionRouteSummaryQueriedCost(
+	ctx *gin.Context,
+	req view.SummaryQueriedCostRequest,
+) (*view.SummaryQueriedCostResponse, error) {
 	cond := types.QueryCondition{
 		Filters:     req.Filters,
 		GroupBy:     types.GroupByFieldConnectorID,
@@ -261,7 +276,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 	}
 
 	// Days.
-	var ps = []*sql.Predicate{
+	ps := []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
 	}
@@ -354,7 +369,11 @@ func (h Handler) allocationCostExistedDays(ctx *gin.Context, ps []*sql.Predicate
 	return days, nil
 }
 
-func (h Handler) clusterCostCollectedDataRange(ctx *gin.Context, loc *time.Location, ps ...*sql.Predicate) (*view.CollectedTimeRange, error) {
+func (h Handler) clusterCostCollectedDataRange(
+	ctx *gin.Context,
+	loc *time.Location,
+	ps ...*sql.Predicate,
+) (*view.CollectedTimeRange, error) {
 	modifier := func(s *sql.Selector) {
 		s.Select(
 			clustercost.FieldStartTime,
@@ -392,7 +411,11 @@ func (h Handler) clusterCostCollectedDataRange(ctx *gin.Context, loc *time.Locat
 	}, nil
 }
 
-func (h Handler) allocationCostCollectedDataRange(ctx *gin.Context, loc *time.Location, ps ...*sql.Predicate) (*view.CollectedTimeRange, error) {
+func (h Handler) allocationCostCollectedDataRange(
+	ctx *gin.Context,
+	loc *time.Location,
+	ps ...*sql.Predicate,
+) (*view.CollectedTimeRange, error) {
 	modifier := func(s *sql.Selector) {
 		s.Select(
 			clustercost.FieldStartTime,
