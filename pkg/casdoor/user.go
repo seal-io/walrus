@@ -30,7 +30,7 @@ func SignInUser(ctx context.Context, app, org, usr, pwd string) ([]*req.HttpCook
 	if err != nil {
 		return nil, fmt.Errorf("error signing in user %s/%s: %w", org, usr, err)
 	}
-	if loginRespBody.Status == "error" {
+	if loginRespBody.Status == statusError {
 		return nil, fmt.Errorf("failed to sign in user %s/%s: %s", org, usr, loginRespBody.Msg)
 	}
 	userSession := loginResp.Cookies()
@@ -76,7 +76,7 @@ func CreateUser(ctx context.Context, clientID, clientSecret string, app, org, us
 	if err != nil {
 		return fmt.Errorf("error creating user %s/%s: %w", org, usr, err)
 	}
-	if createUserResp.Status == "error" {
+	if createUserResp.Status == statusError {
 		return fmt.Errorf("failed to create the user %s/%s: %s", org, usr, createUserResp.Msg)
 	}
 	return nil

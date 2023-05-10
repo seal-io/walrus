@@ -11,12 +11,14 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
+const sensitive = "<sensitive>"
+
 // String shows the secret value in string but stores in byte array.
 type String string
 
 // String implements fmt.Stringer.
 func (i String) String() string {
-	return "<sensitive>"
+	return sensitive
 }
 
 // Value implements driver.Valuer.
@@ -48,7 +50,7 @@ type Bytes []byte
 
 // String implements fmt.Stringer.
 func (i Bytes) String() string {
-	return "<sensitive>"
+	return sensitive
 }
 
 // Value implements driver.Valuer.
@@ -80,7 +82,7 @@ type Map[K comparable, V any] map[K]V
 
 // String implements fmt.Stringer.
 func (i Map[K, V]) String() string {
-	return "<sensitive>"
+	return sensitive
 }
 
 // Value implements driver.Valuer.
@@ -114,7 +116,7 @@ type Slice[T any] []T
 
 // String implements fmt.Stringer.
 func (i Slice[T]) String() string {
-	return "<sensitive>"
+	return sensitive
 }
 
 // Value implements driver.Valuer.
@@ -155,7 +157,7 @@ type Property struct {
 // String implements fmt.Stringer.
 func (i Property) String() string {
 	if !i.Visible {
-		return "<sensitive>"
+		return sensitive
 	}
 	return string(i.Value)
 }

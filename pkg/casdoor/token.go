@@ -14,6 +14,7 @@ const (
 	// NeverExpiresInSeconds gives a large number to simulate "never expires",
 	// ref to https://github.com/casdoor/casdoor/issues/803.
 	neverExpiresInSeconds = 50 * 365 * 24 * 60 * 60
+	statusError           = "error"
 )
 
 type Token struct {
@@ -89,7 +90,7 @@ func DeleteToken(ctx context.Context, clientID, clientSecret string, owner, name
 	if err != nil {
 		return fmt.Errorf("error deleting token: %w", err)
 	}
-	if deleteTokenResp.Status == "error" {
+	if deleteTokenResp.Status == statusError {
 		return fmt.Errorf("failed to delete token: %s", deleteTokenResp.Msg)
 	}
 	return nil
@@ -120,7 +121,7 @@ func IntrospectToken(ctx context.Context, clientID, clientSecret string, token s
 	if err != nil {
 		return nil, fmt.Errorf("error introspecting token: %w", err)
 	}
-	if introspectTokenResp.Status == "error" {
+	if introspectTokenResp.Status == statusError {
 		return nil, fmt.Errorf("failed to introspect token: %s", introspectTokenResp.Msg)
 	}
 	return &introspectTokenResp.Introspection, nil

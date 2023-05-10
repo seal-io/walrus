@@ -7,6 +7,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+const actionUpdate = "update"
+
 func getInputFields(n *gen.Type, a string) []*gen.Field {
 	var fs []*gen.Field
 
@@ -34,7 +36,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 	}
 
 	// Append for update action.
-	if a == "update" {
+	if a == actionUpdate {
 		if n.HasOneFieldID() {
 			n.ID.StructTag = `uri:"id" json:"-"`
 			fs = append(fs, n.ID)
@@ -58,7 +60,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 			continue
 		case "create":
 			f.StructTag = getStructTag(f, false)
-		case "update":
+		case actionUpdate:
 			if f.Immutable {
 				continue
 			}
@@ -127,7 +129,7 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 			continue
 		case "create":
 			e.StructTag = getStructTag(e, false)
-		case "update":
+		case actionUpdate:
 			if !n.IsEdgeSchema() && e.Immutable {
 				continue
 			}
