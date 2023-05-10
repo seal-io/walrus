@@ -13,7 +13,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/operatorunknown"
@@ -58,16 +57,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 	// we can treat each connector as a task group,
 	// group 100 resources of each connector into one task unit,
 	// and then process sub resources syncing in task unit.
-	var cs, err = in.modelClient.Connectors().Query().
-		Select(
-			connector.FieldID,
-			connector.FieldName,
-			connector.FieldType,
-			connector.FieldCategory,
-			connector.FieldConfigVersion,
-			connector.FieldConfigData).
-		Where(connector.CategoryNEQ(types.ConnectorCategoryCustom)).
-		All(ctx)
+	var cs, err = listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
 		return fmt.Errorf("cannot list all connectors: %w", err)
 	}

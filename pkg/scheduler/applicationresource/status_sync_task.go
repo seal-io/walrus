@@ -13,7 +13,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operatorunknown"
@@ -65,16 +64,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		return nil
 	}
 	// index none custom connectors for reusing.
-	cs, err := in.modelClient.Connectors().Query().
-		Select(
-			connector.FieldID,
-			connector.FieldName,
-			connector.FieldType,
-			connector.FieldCategory,
-			connector.FieldConfigVersion,
-			connector.FieldConfigData).
-		Where(connector.CategoryNEQ(types.ConnectorCategoryCustom)).
-		All(ctx)
+	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
 		return fmt.Errorf("cannot list connectors: %w", err)
 	}
