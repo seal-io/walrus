@@ -175,6 +175,14 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
+	if req.Category != "" {
+		query.Where(connector.Category(req.Category))
+	}
+
+	if req.Type != "" {
+		query.Where(connector.Type(req.Type))
+	}
+
 	// get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -190,14 +198,6 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 	if orders, ok := req.Sorting(sortFields, model.Desc(connector.FieldCreateTime)); ok {
 		query.Order(orders...)
-	}
-
-	if req.Category != "" {
-		query.Where(connector.Category(req.Category))
-	}
-
-	if req.Type != "" {
-		query.Where(connector.Type(req.Type))
 	}
 
 	entities, err := query.
