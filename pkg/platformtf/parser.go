@@ -16,7 +16,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -131,7 +130,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 }
 
 func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue, error) {
-	if len(revision.Output) == 0 || revision.Status != status.ApplicationRevisionStatusSucceeded {
+	if len(revision.Output) == 0 {
 		return nil, nil
 	}
 
