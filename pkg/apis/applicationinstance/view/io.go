@@ -356,3 +356,13 @@ func validateRevisionStatus(ctx context.Context, modelClient model.ClientSet, id
 
 	return nil
 }
+
+type StreamAccessEndpointResponse struct {
+	Type       datamessage.EventType  `json:"type"`
+	Collection AccessEndpointResponse `json:"collection,omitempty"`
+}
+
+type StreamOutputResponse struct {
+	Type       datamessage.EventType `json:"type"`
+	Collection OutputResponse        `json:"collection,omitempty"`
+}

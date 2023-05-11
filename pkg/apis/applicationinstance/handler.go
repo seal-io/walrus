@@ -377,8 +377,12 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 }
 
 func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointRequest) (view.AccessEndpointResponse, error) {
+	return h.accessEndpoints(ctx, req.ID)
+}
+
+func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view.AccessEndpointResponse, error) {
 	// endpoints from output
-	endpoints, err := h.endpointsFromOutput(ctx, req)
+	endpoints, err := h.endpointsFromOutput(ctx, instanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -387,11 +391,11 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 	}
 
 	// endpoints from resources
-	return h.endpointsFromResources(ctx, req)
+	return h.endpointsFromResources(ctx, instanceID)
 }
 
-func (h Handler) endpointsFromOutput(ctx *gin.Context, req view.AccessEndpointRequest) (view.AccessEndpointResponse, error) {
-	outputs, err := h.getInstanceOutputs(ctx, req.ID)
+func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (view.AccessEndpointResponse, error) {
+	outputs, err := h.getInstanceOutputs(ctx, instanceID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -455,10 +459,10 @@ func (h Handler) endpointsFromOutput(ctx *gin.Context, req view.AccessEndpointRe
 	return endpoints, nil
 }
 
-func (h Handler) endpointsFromResources(ctx *gin.Context, req view.AccessEndpointRequest) ([]view.Endpoint, error) {
+func (h Handler) endpointsFromResources(ctx context.Context, instanceID types.ID) ([]view.Endpoint, error) {
 	res, err := h.modelClient.ApplicationResources().Query().
 		Where(
-			applicationresource.InstanceID(req.ID),
+			applicationresource.InstanceID(instanceID),
 			applicationresource.TypeIn(
 				intercept.TFEndpointsTypes...,
 			),
@@ -500,10 +504,10 @@ func (h Handler) endpointsFromResources(ctx *gin.Context, req view.AccessEndpoin
 }
 
 func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.OutputResponse, error) {
-	return h.getInstanceOutputs(ctx, req.ID)
+	return h.getInstanceOutputs(ctx, req.ID, true)
 }
 
-func (h Handler) getInstanceOutputs(ctx *gin.Context, instanceID types.ID) ([]types.OutputValue, error) {
+func (h Handler) getInstanceOutputs(ctx context.Context, instanceID types.ID, onlySuccess bool) ([]types.OutputValue, error) {
 	ar, err := h.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(instanceID)).
 		Select(
@@ -515,6 +519,10 @@ func (h Handler) getInstanceOutputs(ctx *gin.Context, instanceID types.ID) ([]ty
 		First(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error get latest application revision")
+	}
+
+	if onlySuccess && ar.Status != status.ApplicationRevisionStatusSucceeded {
+		return nil, nil
 	}
 
 	o, err := platformtf.ParseStateOutput(ar)
@@ -632,4 +640,134 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 
 func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInstance) error {
 	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{entity.ApplicationID})
+}
+
+func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	if err != nil {
+		return err
+	}
+	defer func() { t.Unsubscribe() }()
+
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamAccessEndpointResponse
+		for _, id := range dm.Data {
+			ar, err := h.getRevisionByID(ctx, id)
+			if err != nil {
+				return err
+			}
+			if ar.InstanceID != req.ID {
+				continue
+			}
+
+			eps, err := h.accessEndpoints(ctx, req.ID)
+			if err != nil {
+				return err
+			}
+			if len(eps) == 0 {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate:
+				// while create new application revision, the previous endpoints from outputs and resources need to be deleted.
+				streamData = view.StreamAccessEndpointResponse{
+					Type:       datamessage.EventDelete,
+					Collection: eps,
+				}
+			case datamessage.EventUpdate:
+				// while the application revision status is succeeded, the endpoints is updated to the current revision.
+				if ar.Status != status.ApplicationRevisionStatusSucceeded {
+					continue
+				}
+				streamData = view.StreamAccessEndpointResponse{
+					Type:       datamessage.EventUpdate,
+					Collection: eps,
+				}
+			}
+
+			err = ctx.SendJSON(streamData)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func (h Handler) getRevisionByID(ctx context.Context, id types.ID) (*model.ApplicationRevision, error) {
+	return h.modelClient.ApplicationRevisions().Query().
+		Where(applicationrevision.ID(id)).
+		Only(ctx)
+}
+
+func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
+	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	if err != nil {
+		return err
+	}
+	defer func() { t.Unsubscribe() }()
+
+	for {
+		var event topic.Event
+		event, err = t.Receive(ctx)
+		if err != nil {
+			return err
+		}
+		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		if !ok {
+			continue
+		}
+
+		var streamData view.StreamOutputResponse
+		for _, id := range dm.Data {
+			ar, err := h.getRevisionByID(ctx, id)
+			if err != nil {
+				return err
+			}
+			if ar.InstanceID != req.ID {
+				continue
+			}
+
+			op, err := h.getInstanceOutputs(ctx, ar.InstanceID, false)
+			if err != nil {
+				return err
+			}
+			if len(op) == 0 {
+				continue
+			}
+
+			switch dm.Type {
+			case datamessage.EventCreate:
+				// while create new application revision, the outputs of new revision is the previous outputs.
+				streamData = view.StreamOutputResponse{
+					Type:       datamessage.EventDelete,
+					Collection: op,
+				}
+			case datamessage.EventUpdate:
+				// while the application revision status is succeeded, the outputs is updated to the current revision.
+				if ar.Status != status.ApplicationRevisionStatusSucceeded {
+					continue
+				}
+				streamData = view.StreamOutputResponse{
+					Type:       datamessage.EventUpdate,
+					Collection: op,
+				}
+			}
+
+			err = ctx.SendJSON(streamData)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
