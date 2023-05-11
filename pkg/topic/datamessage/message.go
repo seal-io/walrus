@@ -44,12 +44,12 @@ var allowed = sets.New(
 	Module,
 )
 
-func Publish[T any](ctx context.Context, mutationType string, op model.Op, ids []T) error {
-	if len(ids) == 0 {
-		return nil
-	}
+func IsAllowed(mutationType string) bool {
+	return allowed.Has(topic.Topic(mutationType))
+}
 
-	if !allowed.Has(topic.Topic(mutationType)) {
+func Publish[T any](ctx context.Context, mutationType string, op model.Op, ids []T) error {
+	if len(ids) == 0 || !IsAllowed(mutationType) {
 		return nil
 	}
 

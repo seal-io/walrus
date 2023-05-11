@@ -36,6 +36,11 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			return nil, err
 		}
 
+		if !datamessage.IsAllowed(m.Type()) {
+			// return directly if not allowed.
+			return v, nil
+		}
+
 		// get ids notifier.
 		notify, err := getIdsNotifier(ctx, m)
 		if err != nil {
