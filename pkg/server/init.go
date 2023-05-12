@@ -43,6 +43,7 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "environments", init: r.initEnvironments},
 		initor{name: "deployer-runtime", init: r.initDeployerRuntime},
 	)
+
 	if r.EnableAuthn {
 		inits = append(inits,
 			initor{name: "casdoor", init: r.initCasdoor},
@@ -54,5 +55,6 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 			return fmt.Errorf("%s: %w", inits[i].name, err)
 		}
 	}
+
 	return nil
 }

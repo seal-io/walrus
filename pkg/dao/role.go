@@ -15,6 +15,7 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 	}
 
 	rrs := make([]*model.RoleCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -28,14 +29,17 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 		c.SetDescription(r.Description)
 		c.SetBuiltin(r.Builtin)
 		c.SetSession(r.Session)
+
 		if r.Domain != "" {
 			c.SetDomain(r.Domain)
 		}
+
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -45,6 +49,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 	}
 
 	rrs := make([]*model.RoleUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -52,6 +57,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 
 		// Predicated.
 		var ps []predicate.Role
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, role.ID(r.ID))
@@ -61,6 +67,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 				role.Name(r.Name),
 			))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -76,5 +83,6 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

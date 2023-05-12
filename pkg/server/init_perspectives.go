@@ -21,6 +21,7 @@ func (r *Server) initPerspectives(ctx context.Context, opts initOptions) error {
 	if err != nil {
 		return err
 	}
+
 	for i := range creates {
 		err = creates[i].OnConflictColumns(perspective.FieldName).
 			UpdateNewValues().
@@ -29,6 +30,7 @@ func (r *Server) initPerspectives(ctx context.Context, opts initOptions) error {
 			return err
 		}
 	}
+
 	return nil
 }
 

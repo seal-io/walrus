@@ -36,6 +36,7 @@ func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.En
 	// Construct relationships.
 	newRss := ec.entity.Edges.Connectors
 	createRss := make([]*model.EnvironmentConnectorRelationshipCreate, len(newRss))
+
 	for i, rs := range newRss {
 		if rs == nil {
 			return nil, errors.New("invalid input: nil relationship")
@@ -56,7 +57,8 @@ func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.En
 		return
 	}
 	created.Edges.Connectors = newRss
-	return
+
+	return created, nil
 }
 
 func (ec *WrappedEnvironmentCreate) Exec(ctx context.Context) error {
@@ -70,6 +72,7 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 	}
 
 	rrs := make([]*WrappedEnvironmentCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -81,6 +84,7 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 
 		// Optional.
 		c.SetDescription(r.Description)
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -89,6 +93,7 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			entity:            input[i],
 		}
 	}
+
 	return rrs, nil
 }
 
@@ -132,6 +137,7 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 	environmentID := oldEntity.ID
 	newRsKeys := sets.New[string]()
 	newRss := eu.entity.Edges.Connectors
+
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(environmentID), string(rs.ConnectorID)))
 
@@ -170,7 +176,7 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 		}
 	}
 
-	return
+	return updated, nil
 }
 
 func (eu *WrappedEnvironmentUpdate) Exec(ctx context.Context) error {
@@ -184,6 +190,7 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 	}
 
 	rrs := make([]*WrappedEnvironmentUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -191,12 +198,14 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 
 		// Predicated.
 		var ps []predicate.Environment
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, environment.ID(r.ID))
 		case r.Name != "":
 			ps = append(ps, environment.Name(r.Name))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -208,6 +217,7 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 		if r.Name != "" {
 			c.SetName(r.Name)
 		}
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
@@ -217,5 +227,6 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			entityPredicates:  ps,
 		}
 	}
+
 	return rrs, nil
 }

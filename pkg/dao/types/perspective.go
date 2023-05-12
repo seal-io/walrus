@@ -83,6 +83,7 @@ func (f *FilterField) IsLabel() bool {
 	if f == nil {
 		return false
 	}
+
 	return strings.HasPrefix(string(*f), LabelPrefix)
 }
 
@@ -117,6 +118,7 @@ func (f *GroupByField) IsLabel() bool {
 	if f == nil {
 		return false
 	}
+
 	return strings.HasPrefix(string(*f), LabelPrefix)
 }
 

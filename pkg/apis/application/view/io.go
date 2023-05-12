@@ -30,12 +30,15 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Project.ID == "" {
 		return errors.New("invalid project id: blank")
 	}
+
 	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
+
 	if len(r.Modules) != 0 {
 		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
 	}
+
 	return nil
 }
 
@@ -50,16 +53,20 @@ func validateModules(
 
 	moduleNames := sets.Set[string]{}
 	ps := make([]predicate.ModuleVersion, len(inputModules))
+
 	for i, m := range inputModules {
 		if m.ModuleID == "" {
 			return errors.New("invalid module id: blank")
 		}
+
 		if err := validation.IsDNSSubdomainName(m.Name); err != nil {
 			return fmt.Errorf("invalid module name %s: %w", m.Name, err)
 		}
+
 		if moduleNames.Has(m.Name) {
 			return fmt.Errorf("invalid module name %s: duplicated", m.Name)
 		}
+
 		moduleNames.Insert(m.Name)
 		ps[i] = moduleversion.And(moduleversion.ModuleID(m.ModuleID), moduleversion.Version(m.Version))
 	}
@@ -77,6 +84,7 @@ func validateModules(
 		return err
 	}
 	moduleSchemas := make(map[string]property.Schemas, len(moduleVersions))
+
 	for _, m := range moduleVersions {
 		if m.Schema == nil {
 			continue
@@ -97,6 +105,7 @@ func validateModules(
 				v.Name, v.ModuleID, err)
 		}
 	}
+
 	return nil
 }
 
@@ -114,12 +123,15 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
+
 	if len(r.Modules) != 0 {
 		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
 	}
+
 	return nil
 }
 
@@ -152,6 +164,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 	client := input.(model.ClientSet)
+
 	exist, err := client.Applications().Query().
 		Where(application.ID(r.ID)).
 		Exist(ctx)
@@ -170,11 +183,13 @@ func (r CollectionDeleteRequest) Validate() error {
 	if len(r) == 0 {
 		return errors.New("invalid input: empty")
 	}
+
 	for _, i := range r {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
 		}
 	}
+
 	return nil
 }
 
@@ -194,6 +209,7 @@ func (r *CollectionGetRequest) Validate() error {
 			return errors.New("invalid project id: blank")
 		}
 	}
+
 	return nil
 }
 
@@ -211,6 +227,7 @@ func (r *CollectionStreamRequest) Validate() error {
 			return errors.New("invalid project id: blank")
 		}
 	}
+
 	return nil
 }
 

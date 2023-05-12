@@ -10,31 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// Composite returns Enforcer to detect if the given Kubernetes GVK/GVR is composite enforcer.
-func Composite() Enforcer {
-	// Singleton pattern.
-	return compEnforcer
-}
-
-// compositeEnforcer implements Enforcer.
-type compositeEnforcer struct {
-	gvks sets.Set[schema.GroupVersionKind]
-	gvrs sets.Set[schema.GroupVersionResource]
-}
-
-func (e compositeEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
-	return e.gvks.Has(gvk)
-}
-
-func (e compositeEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
-	return e.gvrs.Has(gvr)
-}
-
-var compEnforcer = compositeEnforcer{
-	gvks: sets.Set[schema.GroupVersionKind]{},
-	gvrs: sets.Set[schema.GroupVersionResource]{},
-}
-
 func init() {
 	// Emit, transfer and record.
 	//
@@ -61,4 +36,29 @@ func init() {
 		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
 		compEnforcer.gvrs.Insert(gvr)
 	}
+}
+
+// Composite returns Enforcer to detect if the given Kubernetes GVK/GVR is composite enforcer.
+func Composite() Enforcer {
+	// Singleton pattern.
+	return compEnforcer
+}
+
+// compositeEnforcer implements Enforcer.
+type compositeEnforcer struct {
+	gvks sets.Set[schema.GroupVersionKind]
+	gvrs sets.Set[schema.GroupVersionResource]
+}
+
+func (e compositeEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
+	return e.gvks.Has(gvk)
+}
+
+func (e compositeEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
+	return e.gvrs.Has(gvr)
+}
+
+var compEnforcer = compositeEnforcer{
+	gvks: sets.Set[schema.GroupVersionKind]{},
+	gvrs: sets.Set[schema.GroupVersionResource]{},
 }

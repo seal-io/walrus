@@ -14,6 +14,7 @@ import (
 
 func NewManager(cfg *rest.Config) (*Manager, error) {
 	logger := log.WithName("k8sctrl")
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Logger:    log.AsLogr(logger),
@@ -22,6 +23,7 @@ func NewManager(cfg *rest.Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes controller manager: %w", err)
 	}
+
 	return &Manager{
 		logger: logger,
 		mgr:    mgr,
@@ -42,14 +44,17 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 
 	mgr := m.mgr
 	opts.SetupOptions.ReconcileHelper = mgr
+
 	reconcilers, err := m.Setup(ctx, opts.SetupOptions)
 	if err != nil {
 		return err
 	}
+
 	for i := 0; i < len(reconcilers); i++ {
 		if err = reconcilers[i].Setup(mgr); err != nil {
 			return fmt.Errorf("error setting up kubernetes controller: %w", err)
 		}
 	}
+
 	return mgr.Start(ctx)
 }

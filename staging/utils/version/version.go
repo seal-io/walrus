@@ -26,6 +26,7 @@ func Major() string {
 	if vX == "" {
 		return Version
 	}
+
 	return vX
 }
 
@@ -34,6 +35,7 @@ func MajorMinor() string {
 	if vXy == "" {
 		return Version
 	}
+
 	return vXy
 }
 
@@ -42,19 +44,24 @@ func Previous() string {
 	if vXy == Version {
 		return Version
 	}
+
 	v := strings.Split(vXy, ".")
 	if v[1] != "0" {
 		y, _ := strconv.ParseInt(v[1], 10, 64)
 		y--
+
 		if y >= 0 {
 			return v[0] + "." + strconv.FormatInt(y, 10)
 		}
 	}
+
 	x, _ := strconv.ParseInt(v[0][1:], 10, 64)
 	x--
+
 	if x < 0 {
 		return Version
 	}
+
 	return "v" + strconv.FormatInt(x, 10)
 }
 

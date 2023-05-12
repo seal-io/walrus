@@ -13,6 +13,7 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 	}
 
 	rrs := make([]*model.ModuleCreate, len(input))
+
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -28,11 +29,13 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 		// Optional.
 		c.SetDescription(r.Description)
 		c.SetIcon(r.Icon)
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -55,8 +58,10 @@ func ModuleUpdate(mc model.ClientSet, input *model.Module) (*model.ModuleUpdateO
 	if input.Labels != nil {
 		c.SetLabels(input.Labels)
 	}
+
 	if input.Source != "" {
 		c.SetSource(input.Source)
 	}
+
 	return c, nil
 }

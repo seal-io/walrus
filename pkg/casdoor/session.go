@@ -22,10 +22,12 @@ var (
 // GetSession converts external session(seal cookie) to internal session(casdoor cookie).
 func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 	var dst *req.HttpCookie
+
 	for i := range sealSessions {
 		if sealSessions[i] == nil || sealSessions[i].Name != ExternalSessionCookieKey {
 			continue
 		}
+
 		value := sealSessions[i].Value
 		if value == "" {
 			break
@@ -38,8 +40,10 @@ func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 		dst.SetDomain("")
 		dst.SetSecure(false) // Internal access.
 		dst.SetHTTPOnly(true)
+
 		break
 	}
+
 	return dst
 }
 
@@ -59,6 +63,7 @@ func GetToken(sealHeader http.Header) string {
 		if len(splits) != 2 {
 			return ""
 		}
+
 		return splits[1]
 	}
 
@@ -82,24 +87,30 @@ func manageSession(w http.ResponseWriter, sessions []*req.HttpCookie, interrupt 
 		if interrupt {
 			return nil
 		}
+
 		return errors.New("cannot get external session")
 	}
+
 	if interrupt {
 		s.Value = ""
 		s.MaxAge = -1
 		s.Expires = time.Time{}
 	}
+
 	http.SetCookie(w, s)
+
 	return nil
 }
 
 // getExternalSession converts internal session(casdoor cookie) to external session(seal cookie).
 func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 	var dst *http.Cookie
+
 	for i := range casdoorSessions {
 		if casdoorSessions[i] == nil || string(casdoorSessions[i].Key()) != InternalSessionCookieKey {
 			continue
 		}
+
 		value := string(casdoorSessions[i].Value())
 		if value == "" {
 			break
@@ -113,10 +124,13 @@ func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 		dst.Secure = SecureConfig.Get()
 		dst.HttpOnly = true
 		dst.MaxAge = int(MaxIdleDurationConfig.Get().Round(time.Second) / time.Second)
+
 		if dst.MaxAge > 0 {
 			dst.Expires = time.Now().Add(time.Duration(dst.MaxAge) * time.Second)
 		}
+
 		break
 	}
+
 	return dst
 }

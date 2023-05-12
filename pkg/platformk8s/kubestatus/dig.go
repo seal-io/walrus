@@ -10,7 +10,7 @@ import (
 // The following codes inspired by
 // https://github.com/kubernetes/kubernetes/blob/master/pkg/printers/internalversion/printers.go.
 
-func digPodErrorReason(status map[string]interface{}) (r string) {
+func digPodErrorReason(status map[string]interface{}) string {
 	initContainerStatuses, _, _ := unstructured.NestedSlice(status, "initContainerStatuses")
 	for i := range initContainerStatuses {
 		initContainerStatus, ok := initContainerStatuses[i].(map[string]interface{})
@@ -36,12 +36,15 @@ func digPodErrorReason(status map[string]interface{}) (r string) {
 				if signal == 0 {
 					return fmt.Sprintf("Init Container %q: exit code: %d", name, exitCode)
 				}
+
 				return fmt.Sprintf("Init Container %q: signal: %d", name, signal)
 			}
+
 			message, _, _ := unstructured.NestedString(terminated, "message")
 			if message == "" {
 				return fmt.Sprintf("Init Container %q: %s", name, reason)
 			}
+
 			return fmt.Sprintf("Init Container %q: %s, %s", name, reason, message)
 		}
 
@@ -51,10 +54,12 @@ func digPodErrorReason(status map[string]interface{}) (r string) {
 			if reason == "" {
 				return fmt.Sprintf("Init Container %q: Failed", name)
 			}
+
 			message, _, _ := unstructured.NestedString(waiting, "message")
 			if message == "" {
 				return fmt.Sprintf("Init Container %q: %s", name, reason)
 			}
+
 			return fmt.Sprintf("Init Container %q: %s, %s", name, reason, message)
 		}
 	}
@@ -79,6 +84,7 @@ func digPodErrorReason(status map[string]interface{}) (r string) {
 				if message == "" {
 					return fmt.Sprintf("Container %q: %s", name, reason)
 				}
+
 				return fmt.Sprintf("Container %q: %s, %s", name, reason, message)
 			}
 		}
@@ -91,6 +97,7 @@ func digPodErrorReason(status map[string]interface{}) (r string) {
 				if message == "" {
 					return fmt.Sprintf("Container %q: %s", name, reason)
 				}
+
 				return fmt.Sprintf("Container %q: %s, %s", name, reason, message)
 			}
 
@@ -100,9 +107,10 @@ func digPodErrorReason(status map[string]interface{}) (r string) {
 			}
 
 			exitCode, _, _ := unstructured.NestedInt64(terminated, "exitCode")
+
 			return fmt.Sprintf("Container %q: exit code: %d", name, exitCode)
 		}
 	}
 
-	return
+	return ""
 }

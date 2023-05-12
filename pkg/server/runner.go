@@ -338,12 +338,15 @@ func (r *Server) Run(c context.Context) error {
 	if err != nil {
 		// If not found, launch embedded kubernetes.
 		var e k8s.Embedded
+
 		g.Go(func() error {
 			log.Info("running embedded kubernetes")
+
 			err := e.Run(ctx)
 			if err != nil {
 				log.Errorf("error running embedded kubernetes: %v", err)
 			}
+
 			return err
 		})
 		// And get embedded kubernetes config.
@@ -356,6 +359,7 @@ func (r *Server) Run(c context.Context) error {
 	if err = k8s.Wait(ctx, k8sCfg); err != nil {
 		return fmt.Errorf("error waiting kubernetes cluster ready: %w", err)
 	}
+
 	r.setKubernetesConfig(k8sCfg)
 
 	// Load database driver.
@@ -363,12 +367,15 @@ func (r *Server) Run(c context.Context) error {
 	if err != nil {
 		// If not found, launch embedded database.
 		var e rds.Embedded
+
 		g.Go(func() error {
 			log.Info("running embedded database")
+
 			err := e.Run(ctx)
 			if err != nil {
 				log.Errorf("error running embedded database: %v", err)
 			}
+
 			return err
 		})
 		// And get embedded database driver.
@@ -381,6 +388,7 @@ func (r *Server) Run(c context.Context) error {
 	if err = rds.Wait(ctx, rdsDrv); err != nil {
 		return fmt.Errorf("error waiting database ready: %w", err)
 	}
+
 	r.setDataSourceDriver(rdsDrv)
 
 	if r.EnableAuthn {
@@ -388,12 +396,15 @@ func (r *Server) Run(c context.Context) error {
 		if r.CasdoorServer == "" {
 			// If not specified, launch embedded casdoor,.
 			var e casdoor.Embedded
+
 			g.Go(func() error {
 				log.Info("running embedded casdoor")
+
 				err := e.Run(ctx, r.DataSourceAddress)
 				if err != nil {
 					log.Errorf("error running embedded casdoor: %v", err)
 				}
+
 				return err
 			})
 			// And get embedded casdoor address.
@@ -411,6 +422,7 @@ func (r *Server) Run(c context.Context) error {
 	// Initialize some resources.
 	log.Info("initializing")
 	modelClient := getModelClient(rdsDrvDialect, rdsDrv)
+
 	initOpts := initOptions{
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
@@ -425,12 +437,15 @@ func (r *Server) Run(c context.Context) error {
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
 	}
+
 	g.Go(func() error {
 		log.Info("setting up kubernetes controller")
+
 		err := r.setupK8sCtrls(ctx, setupK8sCtrlsOpts)
 		if err != nil {
 			log.Errorf("error setting up kubernetes controller: %v", err)
 		}
+
 		return err
 	})
 
@@ -439,12 +454,15 @@ func (r *Server) Run(c context.Context) error {
 		ModelClient: modelClient,
 		K8sConfig:   k8sCfg,
 	}
+
 	g.Go(func() error {
 		log.Info("setting up apis")
+
 		err := r.setupApis(ctx, setupApisOpts)
 		if err != nil {
 			log.Errorf("error setting up apis: %v", err)
 		}
+
 		return err
 	})
 
@@ -466,6 +484,7 @@ func (r *Server) setDataSourceDriver(drv *sql.DB) {
 
 func getModelClient(drvDialect string, drv *sql.DB) *model.Client {
 	logger := log.WithName("model")
+
 	return model.NewClient(
 		model.Log(func(args ...interface{}) { logger.Debug(args...) }),
 		model.Driver(entsql.NewDriver(drvDialect, entsql.Conn{ExecQuerier: drv})),

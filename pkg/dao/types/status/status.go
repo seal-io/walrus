@@ -86,6 +86,7 @@ func (s Status) Equal(newStatue Status) bool {
 
 	sortConditions(s.Conditions)
 	sortConditions(newStatue.Conditions)
+
 	return reflect.DeepEqual(s.Conditions, newStatue.Conditions)
 }
 

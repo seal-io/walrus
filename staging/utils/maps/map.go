@@ -13,6 +13,7 @@ func RemoveNulls(m map[string]interface{}) {
 			delete(m, e.String())
 			continue
 		}
+
 		switch t := v.Interface().(type) {
 		case map[string]interface{}:
 			RemoveNulls(t)
@@ -39,6 +40,7 @@ func RemoveNullsCopy(m map[string]interface{}) map[string]interface{} {
 
 func CopyMap(m map[string]interface{}) map[string]interface{} {
 	cp := make(map[string]interface{})
+
 	for k, v := range m {
 		vm, ok := v.(map[string]interface{})
 		if ok {
@@ -57,9 +59,11 @@ func GetString(m map[string]interface{}, key string) string {
 	if !exist {
 		return ""
 	}
+
 	vs, ok := v.(string)
 	if !ok {
 		return ""
 	}
+
 	return vs
 }

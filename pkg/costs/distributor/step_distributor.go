@@ -38,15 +38,18 @@ func (r *stepDistributor) distribute(
 	}
 
 	totalAllocationCosts := r.totalAllocationCosts(allocationCosts)
+
 	if err != nil {
 		return nil, 0, err
 	}
 
 	itemNameSet := sets.Set[string]{}
+
 	for i, item := range allocationCosts {
 		if item.ItemName == "" {
 			allocationCosts[i].ItemName = types.UnallocatedLabel
 		}
+
 		var (
 			bucket              = item.StartTime.Format(time.RFC3339)
 			shares              = sharedCosts[bucket]
@@ -60,6 +63,7 @@ func (r *stepDistributor) distribute(
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
 		return nil, 0, err
 	}
+
 	return allocationCosts, queriedCount, nil
 }
 
@@ -71,6 +75,7 @@ func (r *stepDistributor) AllocationCosts(
 ) ([]view.Resource, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
+
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, err
@@ -163,6 +168,7 @@ func (r *stepDistributor) AllocationCosts(
 		page    = cond.Paging.Page
 		perPage = cond.Paging.PerPage
 	)
+
 	if page != 0 && perPage != 0 {
 		query = query.Modify(func(s *sql.Selector) {
 			s.Limit(perPage).Offset((page - 1) * perPage)
@@ -189,6 +195,7 @@ func (r *stepDistributor) SharedCosts(
 	}
 
 	_, offset := startTime.Zone()
+
 	dateTrunc, err := sqlx.DateTruncWithZoneOffsetSQL(
 		allocationcost.FieldStartTime,
 		string(step),
@@ -199,6 +206,7 @@ func (r *stepDistributor) SharedCosts(
 	}
 
 	sharedCosts := make(map[string][]*SharedCost)
+
 	for _, v := range conds {
 		saCosts, err := r.sharedAllocationCost(ctx, startTime, endTime, v, dateTrunc)
 		if err != nil {
@@ -220,6 +228,7 @@ func (r *stepDistributor) SharedCosts(
 			sharedCosts[key] = append(sharedCosts[key], sc)
 		}
 	}
+
 	return sharedCosts, nil
 }
 
@@ -244,6 +253,7 @@ func (r *stepDistributor) sharedAllocationCost(
 	}
 
 	var costs []SharedCost
+
 	err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -259,6 +269,7 @@ func (r *stepDistributor) sharedAllocationCost(
 	}
 
 	bucket := make(map[string]*SharedCost)
+
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
 		if _, ok := bucket[key]; !ok {
@@ -289,6 +300,7 @@ func (r *stepDistributor) sharedIdleCost(
 
 	var ps []*sql.Predicate
 	ps = append(ps, timePs...)
+
 	for _, v := range cond.IdleCostFilters {
 		if v.ConnectorID.IsNaive() {
 			ps = append(ps, sql.EQ("connector_id", v.ConnectorID))
@@ -296,6 +308,7 @@ func (r *stepDistributor) sharedIdleCost(
 	}
 
 	var costs []SharedCost
+
 	err := r.client.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -311,6 +324,7 @@ func (r *stepDistributor) sharedIdleCost(
 	}
 
 	bucket := make(map[string]*SharedCost)
+
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
 		if _, ok := bucket[key]; !ok {
@@ -319,6 +333,7 @@ func (r *stepDistributor) sharedIdleCost(
 		bucket[key].StartTime = v.StartTime
 		bucket[key].IdleCost += v.IdleCost
 	}
+
 	return bucket, nil
 }
 
@@ -345,6 +360,7 @@ func (r *stepDistributor) sharedManagementCost(
 	}
 
 	var costs []SharedCost
+
 	err := r.client.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -360,6 +376,7 @@ func (r *stepDistributor) sharedManagementCost(
 	}
 
 	bucket := make(map[string]*SharedCost)
+
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
 		if _, ok := bucket[key]; !ok {
@@ -368,15 +385,18 @@ func (r *stepDistributor) sharedManagementCost(
 		bucket[key].StartTime = v.StartTime
 		bucket[key].ManagementCost += v.ManagementCost
 	}
+
 	return bucket, nil
 }
 
 func (r *stepDistributor) totalAllocationCosts(costs []view.Resource) map[string]float64 {
 	bucket := make(map[string]float64)
+
 	for _, v := range costs {
 		key := v.StartTime.Format(time.RFC3339)
 		bucket[key] += v.TotalCost
 	}
+
 	return bucket
 }
 
@@ -412,6 +432,7 @@ func applyItemDisplayName(
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -425,8 +446,10 @@ func applySharedCost(
 	if allocationCost.TotalCost != 0 && totalAllocationCost != 0 {
 		coefficients = allocationCost.TotalCost / totalAllocationCost
 	}
+
 	for _, v := range shares {
 		var shared float64
+
 		switch v.Condition.SharingStrategy {
 		case types.SharingStrategyEqually:
 			if count != 0 {

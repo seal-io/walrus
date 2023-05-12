@@ -72,6 +72,7 @@ func (r *AllocationCostRequest) validateTimeRange() error {
 	case r.Step == types.StepMonth:
 		return validation.TimeRangeWithinDecade(r.StartTime, r.EndTime)
 	}
+
 	return nil
 }
 
@@ -116,6 +117,7 @@ func (r *SummaryClusterCostRequest) Validate() error {
 	if !r.ConnectorID.IsNaive() {
 		return errors.New("invalid connector id")
 	}
+
 	return nil
 }
 
@@ -145,6 +147,7 @@ func (r *SummaryProjectCostRequest) Validate() error {
 	if r.Project == "" {
 		return errors.New("invalid project: blank")
 	}
+
 	return nil
 }
 
@@ -172,6 +175,7 @@ func (r *SummaryQueriedCostRequest) Validate() error {
 	if len(r.Filters) == 0 {
 		return errors.New("invalid filters: blank")
 	}
+
 	if err := costvalidation.ValidateAllocationCostFilters(r.Filters); err != nil {
 		return err
 	}
@@ -181,6 +185,7 @@ func (r *SummaryQueriedCostRequest) Validate() error {
 			return err
 		}
 	}
+
 	return nil
 }
 

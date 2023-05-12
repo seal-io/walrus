@@ -338,10 +338,12 @@ func TestLoadTerraformModuleVersions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get pwd: %v", err)
 	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.input.Source = filepath.Join(pwd, tc.input.Source)
 			actualOutput, actualError := loadTerraformModuleVersions(tc.input)
+
 			if tc.expectedError {
 				assert.Error(t, actualError)
 			} else {
@@ -384,12 +386,14 @@ func TestOutputValueExpression(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			files := sets.Set[string]{}
 			files.Insert(tc.input)
+
 			actualOutput, actualError := getOutputValues(files)
 			if tc.expectedError {
 				assert.Error(t, actualError)
 			} else {
 				assert.NoError(t, actualError)
 			}
+
 			assert.Equal(t, tc.expectedOutput, actualOutput)
 		})
 	}

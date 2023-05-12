@@ -38,18 +38,22 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 
 	// Get helm release with namespace.
 	hrns, hrn := kube.ParseNamespacedName(res.Name)
+
 	restConfig, err := opts.RESTClientGetter.ToRESTConfig()
 	if err != nil {
 		return nil, fmt.Errorf("error getting helm rest config: %w", err)
 	}
+
 	if opts.KubeClient == nil || opts.Releases == nil {
 		clientGetter := IncompleteRestClientGetter(*restConfig)
+
 		err = opts.Init(clientGetter, hrns, dr, opts.Log)
 		if err != nil {
 			return nil, fmt.Errorf("error initing helm config: %w", err)
 		}
 	}
 	hg := action.NewGet(&opts)
+
 	hr, err := hg.Run(hrn)
 	if err != nil {
 		return nil, fmt.Errorf("error getting helm release %q: %w", res.Name, err)
@@ -67,11 +71,13 @@ func GetReleaseStatus(
 	if err != nil {
 		return kubestatus.StatusError(err.Error()), err
 	}
+
 	if hr.Info == nil {
 		return &kubestatus.GeneralStatusReadyTransitioning, nil
 	}
 
 	var isErr, isTransitioning bool
+
 	switch hr.Info.Status {
 	case release.StatusFailed:
 		isErr = true
@@ -86,6 +92,7 @@ func GetReleaseStatus(
 		// release.StatusUninstalled,
 		// release.StatusSuperseded.
 	}
+
 	return &status.Status{
 		Summary: status.Summary{
 			SummaryStatus: strs.Camelize(string(hr.Info.Status)),

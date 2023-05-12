@@ -141,10 +141,12 @@ func StringProperty(v string) Property {
 // SliceProperty wraps slice value into a property.
 func SliceProperty[T any](v []T) Property {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	return Property{
 		Type:  cty.List(ty),
 		Value: json.MustMarshal(v),
@@ -154,10 +156,12 @@ func SliceProperty[T any](v []T) Property {
 // SetProperty wraps set value into a property.
 func SetProperty[T comparable](v sets.Set[T]) Property {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	return Property{
 		Type:  cty.Set(ty),
 		Value: json.MustMarshal(v.UnsortedList()),
@@ -167,10 +171,12 @@ func SetProperty[T comparable](v sets.Set[T]) Property {
 // MapProperty wraps map value into a property.
 func MapProperty[T any](v map[string]T) Property {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	return Property{
 		Type:  cty.Map(ty),
 		Value: json.MustMarshal(v),
@@ -180,13 +186,16 @@ func MapProperty[T any](v map[string]T) Property {
 // ObjectProperty wraps object value into a property.
 func ObjectProperty[T any](v T) Property {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	if !ty.IsObjectType() {
 		panic(fmt.Errorf("implied type is not object: %s", ty.GoString()))
 	}
+
 	return Property{
 		Type:  ty,
 		Value: json.MustMarshal(v),
@@ -210,6 +219,7 @@ func Uint64Schema(n string, d *uint64) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -222,6 +232,7 @@ func Uint32Schema(n string, d *uint32) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -234,6 +245,7 @@ func Uint16Schema(n string, d *uint16) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -246,6 +258,7 @@ func Uint8Schema(n string, d *uint8) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -258,6 +271,7 @@ func UintSchema(n string, d *uint) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -270,6 +284,7 @@ func Int64Schema(n string, d *int64) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -282,6 +297,7 @@ func Int32Schema(n string, d *int32) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -294,6 +310,7 @@ func Int16Schema(n string, d *int16) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -306,6 +323,7 @@ func Int8Schema(n string, d *int8) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -318,6 +336,7 @@ func IntSchema(n string, d *int) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -330,6 +349,7 @@ func Float64Schema(n string, d *float64) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -342,6 +362,7 @@ func Float32Schema(n string, d *float32) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -354,6 +375,7 @@ func DurationSchema(n string, d *time.Duration) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -366,6 +388,7 @@ func BoolSchema(n string, d *bool) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -378,16 +401,19 @@ func StringSchema(n string, d *string) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
 // SliceSchema returns []T schema.
 func SliceSchema[T any](n string, d []T) Schema {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	s := Schema{
 		Type: cty.List(ty),
 		Name: n,
@@ -395,16 +421,19 @@ func SliceSchema[T any](n string, d []T) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
 // SetSchema returns sets.Set[T] schema.
 func SetSchema[T comparable](n string, d []T) Schema {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	s := Schema{
 		Type: cty.Set(ty),
 		Name: n,
@@ -412,16 +441,19 @@ func SetSchema[T comparable](n string, d []T) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
 // MapSchema returns map[string]T schema.
 func MapSchema[T any](n string, d map[string]T) Schema {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	s := Schema{
 		Type: cty.Map(ty),
 		Name: n,
@@ -429,19 +461,23 @@ func MapSchema[T any](n string, d map[string]T) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
 // ObjectSchema returns T schema.
 func ObjectSchema[T any](n string, d T) Schema {
 	var t T
+
 	ty, err := gocty.ImpliedType(t)
 	if err != nil {
 		panic(fmt.Errorf("error getting implied type: %w", err))
 	}
+
 	if !ty.IsObjectType() {
 		panic(fmt.Errorf("implied type is not object: %s", ty.GoString()))
 	}
+
 	s := Schema{
 		Type: ty,
 		Name: n,
@@ -449,6 +485,7 @@ func ObjectSchema[T any](n string, d T) Schema {
 	if !reflect.ValueOf(d).IsZero() {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -461,6 +498,7 @@ func AnySchema(n string, d any) Schema {
 	if d != nil {
 		s.Default = json.MustMarshal(d)
 	}
+
 	return s
 }
 
@@ -468,7 +506,7 @@ func AnySchema(n string, d any) Schema {
 // returns any schema if blank type and nil data(in fact, terraform validation must not let this pass),
 // returns implied type schema if data is not nil,
 // returns parsed type schema if type is not blank.
-func GuessSchema(n string, t string, d any) (Schema, error) {
+func GuessSchema(n, t string, d any) (Schema, error) {
 	if t == "" {
 		if d == nil {
 			// Return any schema.
@@ -480,6 +518,7 @@ func GuessSchema(n string, t string, d any) (Schema, error) {
 		if err != nil {
 			return Schema{}, err
 		}
+
 		return Schema{
 			Type:    ty,
 			Name:    n,
@@ -492,14 +531,17 @@ func GuessSchema(n string, t string, d any) (Schema, error) {
 	if diags.HasErrors() {
 		return Schema{}, fmt.Errorf("error parsing expression: %w", diags)
 	}
+
 	ty, _, diags := typeexpr.TypeConstraintWithDefaults(expr)
 	if diags.HasErrors() {
 		return Schema{}, fmt.Errorf("error getting type: %w", diags)
 	}
+
 	var s json.RawMessage
 	if d != nil {
 		s = json.MustMarshal(d)
 	}
+
 	return Schema{
 		Type:    ty,
 		Name:    n,

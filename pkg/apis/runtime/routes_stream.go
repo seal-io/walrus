@@ -33,7 +33,7 @@ func IsBidiStreamRequest(c *gin.Context) bool {
 		c.IsWebsocket()
 }
 
-func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+func doStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 	switch {
 	case IsUnidiStreamRequest(c):
 		doUnidiStreamRequest(c, mr, ri)
@@ -45,7 +45,7 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	}
 }
 
-func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+func doUnidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 	protoMajor, protoMinor := c.Request.ProtoMajor, c.Request.ProtoMinor
 	if protoMajor == 1 && protoMinor == 0 {
 		// Do not support http/1.0.
@@ -66,15 +66,18 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	c.Header("Cache-Control", "no-store")
 	c.Header("Content-Type", "application/octet-stream; charset=ISO-8859-1")
 	c.Header("X-Content-Type-Options", "nosniff")
+
 	if protoMajor == 1 {
 		c.Header("Transfer-Encoding", "chunked")
 	}
+
 	c.Writer.Flush()
 
 	inputs := make([]reflect.Value, 0, 2)
 	inputs = append(inputs, reflect.ValueOf(proxy))
 	inputs = append(inputs, ri)
 	outputs := mr.Call(inputs)
+
 	errInterface := outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
 		err := errInterface.(error)
@@ -84,7 +87,7 @@ func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	}
 }
 
-func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
+func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 	logger := log.WithName("api")
 
 	const (
@@ -106,12 +109,14 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		logger.Errorf("error upgrading bidirectional stream request: %v", err)
 		return
 	}
+
 	defer func() {
 		_ = conn.Close()
 	}()
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
+
 	var (
 		frc = make(chan struct {
 			t int
@@ -157,12 +162,15 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 			conn.SetPongHandler(func(string) error {
 				return conn.SetReadDeadline(getDeadline(pongWait))
 			})
+
 			return conn.WriteControl(websocket.PingMessage,
 				[]byte{},
 				getDeadline(pingPeriod))
 		}
+
 		t := time.NewTicker(pingPeriod)
 		defer t.Stop()
+
 		for {
 			select {
 			case <-t.C:
@@ -182,6 +190,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	inputs = append(inputs, reflect.ValueOf(proxy))
 	inputs = append(inputs, ri)
 	outputs := mr.Call(inputs)
+
 	errInterface := outputs[len(outputs)-1].Interface()
 	if errInterface != nil {
 		err = errInterface.(error)
@@ -208,6 +217,7 @@ func isUnidiDownstreamCloseError(err error) bool {
 		return true
 	}
 	errMsg := err.Error()
+
 	return strings.Contains(errMsg, "client disconnected") ||
 		strings.Contains(errMsg, "stream closed")
 }

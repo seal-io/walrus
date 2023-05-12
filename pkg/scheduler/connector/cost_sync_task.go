@@ -24,6 +24,7 @@ func NewCollectTask(mc model.ClientSet) (*CollectTask, error) {
 	in := &CollectTask{}
 	in.modelClient = mc
 	in.logger = log.WithName("task").WithName(in.Name())
+
 	return in, nil
 }
 
@@ -37,6 +38,7 @@ func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 		return nil
 	}
 	startTs := time.Now()
+
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -49,11 +51,13 @@ func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 	}
 
 	syncer := connectors.NewStatusSyncer(in.modelClient)
+
 	if err != nil {
 		return err
 	}
 
 	wg := gopool.Group()
+
 	for i := range conns {
 		conn := conns[i]
 		if !conn.EnableFinOps {

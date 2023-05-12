@@ -17,6 +17,7 @@ func StoreSessionSubject(sessionValue, subject string, active bool) {
 	if sessionValue == "" {
 		return
 	}
+
 	suffix := inactiveSuffix
 	if active {
 		suffix = activeSuffix
@@ -35,15 +36,19 @@ func LoadSessionSubject(sessionValue string) (*string, bool) {
 		if len(bs) < 7 {
 			return nil, false
 		}
+
 		if bytes.Equal(bs[len(bs)-7:], []byte(activeSuffix)) {
 			if len(bs[:len(bs)-7]) == 0 {
 				return nil, false
 			}
 			s := string(bs[:len(bs)-7])
+
 			return &s, true
 		}
 	}
+
 	var s string
+
 	return &s, false
 }
 
@@ -63,6 +68,7 @@ func CleanSessionSubjects() {
 		if err != nil {
 			break
 		}
+
 		key := e.Key()
 		if strings.HasPrefix(key, sessionKeyPrefix) {
 			_ = cacher.Delete(key)
@@ -77,6 +83,7 @@ func StoreTokenSubject(tokenValue, subject string, active bool) {
 	if tokenValue == "" {
 		return
 	}
+
 	suffix := inactiveSuffix
 	if active {
 		suffix = activeSuffix
@@ -95,15 +102,19 @@ func LoadTokenSubject(tokenValue string) (*string, bool) {
 		if len(bs) < 7 {
 			return nil, false
 		}
+
 		if bytes.Equal(bs[len(bs)-7:], []byte(activeSuffix)) {
 			if len(bs[:len(bs)-7]) == 0 {
 				return nil, false
 			}
 			s := string(bs[:len(bs)-7])
+
 			return &s, true
 		}
 	}
+
 	var s string
+
 	return &s, false
 }
 
@@ -123,6 +134,7 @@ func CleanTokenSubjects() {
 		if err != nil {
 			break
 		}
+
 		key := e.Key()
 		if strings.HasPrefix(key, tokenKeyPrefix) {
 			_ = cacher.Delete(key)

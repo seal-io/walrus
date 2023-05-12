@@ -44,6 +44,8 @@ type hub struct {
 	m sync.Map
 }
 
+var globalHub = New()
+
 func (h *hub) Subscribe(t Topic) (Subscriber, error) {
 	if t == "" {
 		// Topic scope.
@@ -51,12 +53,15 @@ func (h *hub) Subscribe(t Topic) (Subscriber, error) {
 			n = uuid.NewString()
 			c = make(chan Event, runtime.NumCPU()*2)
 		)
+
 		h.m.Store(n, c)
+
 		return subscriber{p: h, n: n, c: c}, nil
 	}
 	// Hub scope.
 	v, _ := h.m.LoadOrStore(t, &hub{p: h, t: t})
 	sh := v.(*hub)
+
 	return sh.Subscribe("")
 }
 
@@ -67,8 +72,10 @@ func (h *hub) Unsubscribe(t Topic) error {
 			c := v.(chan Event)
 			close(c)
 			h.m.Delete(n)
+
 			return true
 		})
+
 		return nil
 	}
 	// Hub scope.
@@ -76,8 +83,8 @@ func (h *hub) Unsubscribe(t Topic) error {
 	if !ok {
 		return nil
 	}
-	sh := v.(*hub)
-	return sh.Unsubscribe("")
+
+	return v.(*hub).Unsubscribe("")
 }
 
 func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
@@ -94,9 +101,11 @@ func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
 				// If chan is blocking.
 				close(c)
 				h.m.Delete(n)
+
 				return true
 			}
 		})
+
 		return nil
 	}
 	// Hub scope.
@@ -104,8 +113,8 @@ func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
 	if !ok {
 		return nil
 	}
-	sh := v.(*hub)
-	return sh.Publish(ctx, "", m)
+
+	return v.(*hub).Publish(ctx, "", m)
 }
 
 type subscriber struct {
@@ -122,6 +131,7 @@ func (s subscriber) Receive(ctx context.Context) (Event, error) {
 		if !ok {
 			return Event{}, errors.New("topic is closed")
 		}
+
 		return e, nil
 	}
 }
@@ -129,8 +139,6 @@ func (s subscriber) Receive(ctx context.Context) (Event, error) {
 func (s subscriber) Unsubscribe() {
 	s.p.m.Delete(s.n)
 }
-
-var globalHub = New()
 
 // New returns a new Hub.
 func New() Hub {
@@ -148,6 +156,7 @@ func MustSubscribe(n Topic) Subscriber {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 

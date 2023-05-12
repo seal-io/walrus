@@ -83,10 +83,12 @@ type copyOptions struct {
 
 func Copy(src, dst string, opts ...CopyOptions) error {
 	var o copyOptions
+
 	for i := range opts {
 		if opts[i] == nil {
 			continue
 		}
+
 		opts[i](&o)
 	}
 
@@ -95,10 +97,12 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 		if errors.Is(err, os.ErrNotExist) && o.ignore {
 			return nil
 		}
+
 		return err
 	}
 
 	var cp func(string, string, os.FileInfo, copyOptions) error
+
 	for {
 		switch m := srcInfo.Mode(); {
 		default:
@@ -107,38 +111,47 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 			if src, err = os.Readlink(src); err != nil {
 				return fmt.Errorf("failed to read origin of link src: %w", err)
 			}
+
 			if srcInfo, err = os.Lstat(src); err != nil {
 				return fmt.Errorf("failed to stat origin of link src: %w", err)
 			}
+
 			continue
 		case m.IsDir():
 			cp = copyFromDir
 		case m.IsRegular():
 			cp = copyFromFile
 		}
+
 		break
 	}
 
 	dstInfo := srcInfo
+
 	if s, err := os.Lstat(dst); err == nil {
 		if o.replace {
 			if err = os.RemoveAll(dst); err != nil {
 				return fmt.Errorf("cannot clean dst: %w", err)
 			}
 		}
+
 		dstInfo = s
 	}
+
 	if o.shadow {
 		if err = os.Symlink(src, dst); err != nil {
 			return fmt.Errorf("cannot shadow dst: %w", err)
 		}
+
 		return nil
 	}
+
 	defer func() {
 		m := dstInfo.Mode()
 		if o.perm != nil {
 			m = *o.perm
 		}
+
 		if err = os.Chmod(dst, m); err != nil {
 			err = fmt.Errorf("cannot change perm: %w", err)
 		}
@@ -154,12 +167,14 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 			return fmt.Errorf("cannot preserve times: %w", err)
 		}
 	}
+
 	if o.preserveOwner {
 		uid, gid := fileOwner(srcInfo)
 		if err = os.Lchown(dst, uid, gid); err != nil {
 			return fmt.Errorf("cannot preserve owner: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -169,6 +184,7 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 		if !os.IsExist(err) {
 			return err
 		}
+
 		if err = os.Chmod(dst, 0o666); err != nil {
 			return err
 		}
@@ -193,6 +209,7 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 			if srcSub, err = os.Readlink(srcSub); err != nil {
 				return err
 			}
+
 			if err = os.Symlink(srcSub, dstSub); err != nil {
 				return err
 			}
@@ -212,12 +229,14 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 				return err
 			}
 		}
+
 		if o.preserveOwner {
 			uid, gid := fileOwner(srcInfo)
 			if err = os.Lchown(dstSub, uid, gid); err != nil {
 				return err
 			}
 		}
+
 		if srcSubInfo.Mode()&os.ModeSymlink == 0 {
 			if err = os.Chmod(dstSub, srcSubInfo.Mode()); err != nil {
 				return err
@@ -242,13 +261,18 @@ func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
 		if err != nil {
 			return err
 		}
+
 		defer func() { _ = srcFile.Close() }()
+
 		dstFile, err := os.Create(dst)
 		if err != nil {
 			return err
 		}
+
 		defer func() { _ = dstFile.Close() }()
+
 		_, err = io.Copy(srcFile, dstFile)
+
 		return err
 	}
 
@@ -256,11 +280,13 @@ func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
 	if err != nil {
 		return err
 	}
+
 	if o.modify != nil {
 		content, err = o.modify(content)
 		if err != nil {
 			return err
 		}
 	}
+
 	return os.WriteFile(dst, content, 0o600)
 }

@@ -92,8 +92,10 @@ func (b *stringBuilder) MaxLen(i int) *stringBuilder {
 		if len(v) > i {
 			return errors.New("value is greater than the required length")
 		}
+
 		return nil
 	})
+
 	return b
 }
 
@@ -104,8 +106,10 @@ func (b *stringBuilder) MinLen(i int) *stringBuilder {
 		if len(v) < i {
 			return errors.New("value is less than the required length")
 		}
+
 		return nil
 	})
+
 	return b
 }
 
@@ -129,8 +133,10 @@ func (b *stringBuilder) Match(re *regexp.Regexp) *stringBuilder {
 		if !re.MatchString(v) {
 			return errors.New("value does not match validation")
 		}
+
 		return nil
 	})
+
 	return b
 }
 
@@ -218,8 +224,10 @@ func (b *bytesBuilder) MaxLen(i int) *bytesBuilder {
 		if len(buf) > i {
 			return errors.New("value is greater than the required length")
 		}
+
 		return nil
 	})
+
 	return b
 }
 
@@ -230,8 +238,10 @@ func (b *bytesBuilder) MinLen(i int) *bytesBuilder {
 		if len(b) < i {
 			return errors.New("value is less than the required length")
 		}
+
 		return nil
 	})
+
 	return b
 }
 

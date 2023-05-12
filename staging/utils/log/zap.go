@@ -18,6 +18,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 	if toStdout {
 		zapWriteSyncer = zapcore.AddSync(os.Stdout)
 	}
+
 	zapOptions := []zap.Option{
 		zap.AddCallerSkip(1),
 		zap.AddStacktrace(zap.ErrorLevel),
@@ -26,6 +27,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 
 	zapLevel := zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapEncoderConfig := zap.NewDevelopmentEncoderConfig()
+
 	if inProduction {
 		zapLevel.SetLevel(zap.InfoLevel)
 		zapEncoderConfig = zap.NewProductionEncoderConfig()
@@ -38,6 +40,7 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 
 	zapEncoderConfig.EncodeLevel = func(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 		s := "D"
+
 		switch l {
 		case zapcore.InfoLevel:
 			s = "I"
@@ -50,11 +53,13 @@ func NewZapper(asJSON, inProduction, toStdout bool) (*zap.Logger, zap.AtomicLeve
 		case zapcore.FatalLevel:
 			s = "F"
 		}
+
 		enc.AppendString(s)
 	}
 	if asJSON {
 		zapEncoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
 	}
+
 	zapEncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	if asJSON {
 		zapEncoderConfig.EncodeTime = zapcore.EpochTimeEncoder
@@ -96,6 +101,7 @@ func (z zapLogger) Write(p []byte) (int, error) {
 	for s.Scan() {
 		z.s.Info(s.Text())
 	}
+
 	return len(p), s.Err()
 }
 
@@ -166,6 +172,7 @@ func (z zapLogger) ErrorS(err error, msg string, keysAndValues ...interface{}) {
 		z.s.Errorw(msg, keysAndValues...)
 		return
 	}
+
 	z.s.With(zap.Error(err)).Errorw(msg, keysAndValues...)
 }
 
@@ -235,9 +242,12 @@ func handleFields(args ...interface{}) (fields []zap.Field) {
 	if argSize == 0 {
 		return
 	}
+
 	for i := 0; i < argSize; {
 		var field zap.Field
+
 		arg := args[i]
+
 		switch a := arg.(type) {
 		case zap.Field:
 			field = a
@@ -253,10 +263,12 @@ func handleFields(args ...interface{}) (fields []zap.Field) {
 		default:
 			field = zap.Any(fmt.Sprintf("#key%d", i+1), a)
 		}
+
 		fields = append(fields, field)
 		i++
 	}
-	return
+
+	return fields
 }
 
 func toZapLevel(l LoggingLevel) (lvl zapcore.Level) {
@@ -272,5 +284,6 @@ func toZapLevel(l LoggingLevel) (lvl zapcore.Level) {
 	case FatalLevel:
 		lvl = zapcore.FatalLevel
 	}
+
 	return
 }

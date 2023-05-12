@@ -30,6 +30,7 @@ func Error(c int, v any) error {
 			}
 		}
 	}
+
 	return Errorc(c)
 }
 
@@ -38,9 +39,11 @@ func Errorf(c int, format string, a ...any) error {
 	if format == "" {
 		return Errorc(c)
 	}
+
 	if len(a) == 0 {
 		return asGinErr(c, errors.New(format), gin.ErrorTypePublic)
 	}
+
 	return asGinErr(c, fmt.Errorf(format, a...), gin.ErrorTypePublic)
 }
 
@@ -50,6 +53,7 @@ func Errorp(c int, err error, msg string) error {
 	if msg == "" {
 		return Errorc(c)
 	}
+
 	return asGinErr(c, wrapError{internal: err, external: errors.New(msg)}, gin.ErrorTypePrivate)
 }
 
@@ -59,9 +63,11 @@ func Errorpf(c int, err error, format string, a ...any) error {
 	if format == "" {
 		return Errorc(c)
 	}
+
 	if len(a) == 0 {
 		return Errorp(c, err, format)
 	}
+
 	return asGinErr(c, wrapError{internal: err, external: fmt.Errorf(format, a...)}, gin.ErrorTypePrivate)
 }
 
@@ -73,6 +79,7 @@ func Errorw(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
+
 	return &gin.Error{
 		Err: wrapError{
 			internal: err,
@@ -90,9 +97,11 @@ func Errorwf(err error, format string, a ...any) error {
 	if err == nil {
 		return nil
 	}
+
 	if len(a) == 0 {
 		return Errorw(err, format)
 	}
+
 	return &gin.Error{
 		Err: wrapError{
 			internal: err,
@@ -106,6 +115,7 @@ func asGinErr(c int, err error, typ gin.ErrorType) error {
 	if c == http.StatusOK {
 		return nil
 	}
+
 	return &gin.Error{
 		Err: httpError{
 			code:  c,
@@ -119,7 +129,9 @@ func isGinError(err error) bool {
 	if err == nil {
 		return false
 	}
+
 	var ge *gin.Error
+
 	return errors.As(err, &ge)
 }
 
@@ -131,9 +143,11 @@ type httpError struct {
 
 func (e httpError) Error() string {
 	var sb strings.Builder
+
 	sb.WriteString(strconv.Itoa(e.code))
 	sb.WriteString(" ")
 	sb.WriteString(http.StatusText(e.code))
+
 	if e.cause != nil {
 		ev := reflect.ValueOf(e.cause)
 		switch ev.Kind() {
@@ -142,12 +156,14 @@ func (e httpError) Error() string {
 				return sb.String()
 			}
 		}
+
 		sb.WriteString(": ")
 		sb.WriteString(e.cause.Error())
 	} else if e.brief != "" {
 		sb.WriteString(": ")
 		sb.WriteString(e.brief)
 	}
+
 	return sb.String()
 }
 
@@ -155,6 +171,7 @@ func (e httpError) JSON() any {
 	jsonData := gin.H{}
 	jsonData["status"] = e.code
 	jsonData["statusText"] = http.StatusText(e.code)
+
 	if e.cause != nil {
 		ev := reflect.ValueOf(e.cause)
 		switch ev.Kind() {
@@ -167,6 +184,7 @@ func (e httpError) JSON() any {
 	} else if e.brief != "" {
 		jsonData["message"] = e.brief
 	}
+
 	return jsonData
 }
 

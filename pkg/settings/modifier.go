@@ -22,15 +22,18 @@ func modifyWith(validates ...modifyValidator) modifier {
 		if len(validates) == 0 {
 			validates = append(validates, many)
 		}
+
 		for i := range validates {
 			ok, err := validates[i](ctx, name, oldValue, newValue)
 			if err != nil {
 				return runtime.Errorf(http.StatusBadRequest, "invalid setting %q: %w", name, err)
 			}
+
 			if !ok {
 				return nil
 			}
 		}
+
 		err := client.Settings().Update().
 			SetValue(newValue).
 			Where(setting.Name(name)).
@@ -38,6 +41,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 		if err != nil {
 			return fmt.Errorf("error modify setting %s: %w", name, err)
 		}
+
 		return nil
 	}
 }
@@ -51,6 +55,7 @@ func notBlank(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if isBlankValue(newVal) {
 		return false, errors.New("blank value")
 	}
+
 	return true, nil
 }
 
@@ -66,6 +71,7 @@ func once(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if !isBlankValue(oldVal) {
 		return false, errors.New("already configured")
 	}
+
 	return true, nil
 }
 
@@ -76,6 +82,7 @@ func httpUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -86,6 +93,7 @@ func sockUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -96,6 +104,7 @@ func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -108,6 +117,7 @@ func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool,
 			return false, err
 		}
 	}
+
 	return true, nil
 }
 
@@ -120,5 +130,6 @@ func containerImageReference(ctx context.Context, name, oldValue, newValue strin
 			return false, err
 		}
 	}
+
 	return true, nil
 }

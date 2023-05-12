@@ -76,5 +76,6 @@ func State(
 			berr = multierr.Append(berr, err)
 		}
 	}
-	return
+
+	return sr, berr
 }

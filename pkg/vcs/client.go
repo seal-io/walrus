@@ -15,6 +15,7 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 		client *scm.Client
 		err    error
 	)
+
 	switch conn.Type {
 	case github.Driver:
 		client, err = github.NewClient(conn)
@@ -29,6 +30,7 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 	default:
 		return nil, fmt.Errorf("unsupported SCM driver %q", conn.Type)
 	}
+
 	if err != nil {
 		return nil, err
 	}

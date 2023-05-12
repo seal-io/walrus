@@ -11,6 +11,7 @@ func fileTimes(fi os.FileInfo) (aTime, mTime, cTime time.Time) {
 	aTime = time.Unix(s.Atim.Unix())
 	mTime = fi.ModTime()
 	cTime = time.Unix(s.Ctim.Unix())
+
 	return
 }
 

@@ -12,6 +12,7 @@ func ModuleVersionCreates(mc model.ClientSet, input ...*model.ModuleVersion) ([]
 	}
 
 	rrs := make([]*model.ModuleVersionCreate, len(input))
+
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -30,5 +31,6 @@ func ModuleVersionCreates(mc model.ClientSet, input ...*model.ModuleVersion) ([]
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

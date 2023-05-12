@@ -35,9 +35,11 @@ func (Logger) Before(cmd *Command) {
 		l := log.NewWrappedZapperAsLogger(ctx.Bool("log-json"), !ctx.Bool("log-debug"), ctx.Bool("log-stdout"))
 		log.SetLogger(l)
 		log.SetVerbosity(ctx.Uint64("log-verbosity"))
+
 		if pb != nil {
 			return pb(ctx)
 		}
+
 		return nil
 	}
 }

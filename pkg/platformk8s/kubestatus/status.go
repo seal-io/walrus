@@ -46,6 +46,7 @@ func StatusError(msg string) *typestatus.Status {
 	} else {
 		s = "Server Error: " + msg
 	}
+
 	return &typestatus.Status{
 		Summary: typestatus.Summary{
 			SummaryStatus:        typestatus.GeneralStatusError,
@@ -123,10 +124,12 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		if len(specExternalIPs) > 0 {
 			return &GeneralStatusReady, nil
 		}
+
 		statusLBIngresses, _, _ := unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 		if len(statusLBIngresses) > 0 {
 			return &GeneralStatusReady, nil
 		}
+
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
@@ -145,6 +148,7 @@ func getPod(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		statusConds, _, _ = unstructured.NestedSlice(status, "conditions")
 		st                = &typestatus.Status{}
 	)
+
 	st.SetConditions(toConditions(statusConds))
 	st.SetSummary(podStatusPaths.Walk(st))
 
@@ -175,6 +179,7 @@ func getPersistentVolume(o *unstructured.Unstructured) (*typestatus.Status, erro
 	case string(core.VolumeFailed):
 		isErr = true
 	}
+
 	return &typestatus.Status{
 		Summary: typestatus.Summary{
 			SummaryStatus:        phase,
@@ -197,6 +202,7 @@ func getReplicas(
 	if exist {
 		st.SetConditions(toConditions(statusConditions))
 		st.SetSummary(replicaSetStatusPaths.Walk(st))
+
 		return st, nil
 	}
 
@@ -207,6 +213,7 @@ func getReplicas(
 			o.GroupVersionKind(), o.GetNamespace(), o.GetName(), err)
 	}
 	ss := s.String()
+
 	pl, err := dynamicCli.Resource(core.SchemeGroupVersion.WithResource("pods")).
 		Namespace(ns).
 		List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss})
@@ -214,13 +221,16 @@ func getReplicas(
 		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
 			ns, ss, err)
 	}
+
 	for i := range pl.Items {
 		p := pl.Items[i]
+
 		ps, err := getPod(&p)
 		if err != nil {
 			return nil, fmt.Errorf("error stating kubernetes pod %s/%s: %w",
 				p.GetNamespace(), p.GetName(), err)
 		}
+
 		switch ps.Summary.SummaryStatus {
 		default:
 			return ps, nil
@@ -243,6 +253,7 @@ func getAPIService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(apiServiceStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -256,6 +267,7 @@ func getDeployment(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(deploymentStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -288,6 +300,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// If .status.desiredNumberScheduled != .status.updatedNumberScheduled, then unready.
 	statusDesiredNumberScheduled, _, _ := unstructured.NestedInt64(status, "desiredNumberScheduled")
 	statusUpdatedNumberScheduled, _, _ := unstructured.NestedInt64(status, "updatedNumberScheduled")
+
 	if statusDesiredNumberScheduled != statusUpdatedNumberScheduled {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -296,8 +309,10 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
 	// if .status.numberReady < expected replicas, then unready.
 	expectedReplicas := statusDesiredNumberScheduled
+
 	if statusDesiredNumberScheduled > 0 {
 		var maxUnavailable int64
+
 		specRollingUpdate, exist, _ := unstructured.NestedMap(
 			spec,
 			"strategy",
@@ -312,11 +327,13 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 			)
 			maxUnavailable = int64(maxUnavailableInt)
 		}
+
 		if maxUnavailable > statusDesiredNumberScheduled {
 			maxUnavailable = statusDesiredNumberScheduled
 		}
 		expectedReplicas = statusDesiredNumberScheduled - maxUnavailable
 	}
+
 	statusNumberReady, _, _ := unstructured.NestedInt64(status, "numberReady")
 	if statusNumberReady < expectedReplicas {
 		return &GeneralStatusReadyTransitioning, nil
@@ -358,6 +375,7 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	specPartition, _, _ := unstructured.NestedInt64(spec, "strategy", "rollingUpdate", "partition")
 	expectedReplicas := specReplicas - specPartition
 	statusUpdatedReplicas, _, _ := unstructured.NestedInt64(status, "updateReplicas")
+
 	if statusUpdatedReplicas < expectedReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -371,6 +389,7 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	// If .status.currentRevision != .status.updateRevision, then unready.
 	statusCurrentRevision, _, _ := unstructured.NestedString(status, "currentRevision")
 	statusUpdateRevision, _, _ := unstructured.NestedString(status, "updateRevision")
+
 	if statusCurrentRevision != statusUpdateRevision {
 		return &GeneralStatusReadyTransitioning, nil
 	}
@@ -389,6 +408,7 @@ func getJob(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(jobStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -402,6 +422,7 @@ func getHorizontalPodAutoscaler(o *unstructured.Unstructured) (*typestatus.Statu
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(hpaStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -415,6 +436,7 @@ func getCertificateSigningRequest(o *unstructured.Unstructured) (*typestatus.Sta
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(csrStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -441,6 +463,7 @@ func getNetworkPolicy(o *unstructured.Unstructured) (*typestatus.Status, error) 
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(networkPolicyStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -454,6 +477,7 @@ func getPodDisruptionBudget(o *unstructured.Unstructured) (*typestatus.Status, e
 	st := &typestatus.Status{}
 	st.SetConditions(toConditions(statusConditions))
 	st.SetSummary(pdbStatusPaths.Walk(st))
+
 	return st, nil
 }
 
@@ -470,15 +494,18 @@ func getWebhookConfiguration(
 		if !ok {
 			continue
 		}
+
 		webhookService, exist, _ := unstructured.NestedMap(webhook, "clientConfig", "service")
 		if !exist {
 			continue
 		}
+
 		svcName := webhookService["name"].(string)
 		if svcName == "" {
 			continue
 		}
 		svcNamespace := webhookService["namespace"].(string)
+
 		svc, err := dynamicCli.Resource(core.SchemeGroupVersion.WithResource("services")).
 			Namespace(svcNamespace).
 			Get(ctx, svcName, meta.GetOptions{ResourceVersion: "0"})
@@ -486,12 +513,15 @@ func getWebhookConfiguration(
 			if kerrors.IsNotFound(err) {
 				return &GeneralStatusReadyTransitioning, nil
 			}
+
 			return nil, err
 		}
+
 		svcState, err := getService(svc)
 		if err != nil {
 			return nil, fmt.Errorf("error stating kubernetes service: %w", err)
 		}
+
 		if svcState.SummaryStatus != GeneralStatusReady.SummaryStatus {
 			return svcState, nil
 		}
@@ -512,6 +542,7 @@ func toConditions(statusConds []interface{}) (conds []typestatus.Condition) {
 		if !ok {
 			continue
 		}
+
 		condTypeStatus, ok, _ := unstructured.NestedString(condition, "status")
 		if !ok {
 			continue
@@ -535,5 +566,6 @@ func toConditions(statusConds []interface{}) (conds []typestatus.Condition) {
 
 		conds = append(conds, cond)
 	}
-	return
+
+	return conds
 }

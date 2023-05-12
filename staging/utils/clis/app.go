@@ -29,5 +29,6 @@ func AsApp(cmd *Command) *App {
 	app.OnUsageError = cmd.OnUsageError
 	SortApp(app)
 	MutateAppEnvs(app)
+
 	return app
 }

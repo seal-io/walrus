@@ -10,31 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// Operable returns Enforcer to detect if the given Kubernetes GVK/GVR is operable enforcer.
-func Operable() Enforcer {
-	// Singleton pattern.
-	return opEnforcer
-}
-
-// operableEnforcer implements Enforcer.
-type operableEnforcer struct {
-	gvks sets.Set[schema.GroupVersionKind]
-	gvrs sets.Set[schema.GroupVersionResource]
-}
-
-func (e operableEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
-	return e.gvks.Has(gvk)
-}
-
-func (e operableEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
-	return e.gvrs.Has(gvr)
-}
-
-var opEnforcer = operableEnforcer{
-	gvks: sets.Set[schema.GroupVersionKind]{},
-	gvrs: sets.Set[schema.GroupVersionResource]{},
-}
-
 func init() {
 	// Emit, transfer and record.
 	//
@@ -61,4 +36,29 @@ func init() {
 		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
 		opEnforcer.gvrs.Insert(gvr)
 	}
+}
+
+// Operable returns Enforcer to detect if the given Kubernetes GVK/GVR is operable enforcer.
+func Operable() Enforcer {
+	// Singleton pattern.
+	return opEnforcer
+}
+
+// operableEnforcer implements Enforcer.
+type operableEnforcer struct {
+	gvks sets.Set[schema.GroupVersionKind]
+	gvrs sets.Set[schema.GroupVersionResource]
+}
+
+func (e operableEnforcer) AllowGVK(gvk schema.GroupVersionKind) bool {
+	return e.gvks.Has(gvk)
+}
+
+func (e operableEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
+	return e.gvrs.Has(gvr)
+}
+
+var opEnforcer = operableEnforcer{
+	gvks: sets.Set[schema.GroupVersionKind]{},
+	gvrs: sets.Set[schema.GroupVersionResource]{},
 }

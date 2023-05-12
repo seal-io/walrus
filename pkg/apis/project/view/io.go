@@ -22,6 +22,7 @@ func (r *CreateRequest) Validate() error {
 	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
+
 	return nil
 }
 
@@ -37,9 +38,11 @@ func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
+
 	return nil
 }
 
@@ -51,6 +54,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 
@@ -64,11 +68,13 @@ func (r CollectionDeleteRequest) Validate() error {
 	if len(r) == 0 {
 		return errors.New("invalid input: empty")
 	}
+
 	for _, i := range r {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
 		}
 	}
+
 	return nil
 }
 
@@ -89,6 +95,7 @@ func (r *GetSecretsRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
+
 	return nil
 }
 

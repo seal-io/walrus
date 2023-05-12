@@ -23,5 +23,6 @@ func Set(data []byte, path string, value []byte) ([]byte, error) {
 	if value == nil {
 		return sjson.DeleteBytes(data, path)
 	}
+
 	return sjson.SetRawBytes(data, path, value)
 }

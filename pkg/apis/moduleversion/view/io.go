@@ -19,6 +19,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 
@@ -42,6 +43,7 @@ func (r *CollectionGetRequest) Validate() error {
 			return errors.New("invalid module id: blank")
 		}
 	}
+
 	return nil
 }
 

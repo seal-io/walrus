@@ -29,11 +29,13 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
+
 	p, err := cli.Pods(ns).
 		Get(ctx, pn, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
+
 	if !kube.IsContainerExisted(p, kube.Container{Type: ct, Name: cn}) {
 		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
@@ -68,27 +70,35 @@ func GetPodLogs(
 	if err != nil {
 		return fmt.Errorf("failed to create log stream: %w", err)
 	}
+
 	defer func() { _ = stm.Close() }()
 	r := bufio.NewReader(stm)
+
 	for {
 		var bs []byte
+
 		bs, err = r.ReadBytes('\n')
 		if err != nil {
 			if isTrivialError(err) {
 				err = nil
 			}
+
 			break
 		}
+
 		_, err = w.Write(bs)
 		if err != nil {
 			if isTrivialError(err) {
 				err = nil
 			}
+
 			break
 		}
 	}
+
 	if err != nil {
 		return fmt.Errorf("error streaming log: %w", err)
 	}
+
 	return nil
 }

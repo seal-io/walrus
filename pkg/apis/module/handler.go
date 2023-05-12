@@ -41,6 +41,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	if err != nil {
 		return nil, err
 	}
+
 	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
@@ -78,6 +79,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	if err != nil {
 		return err
 	}
+
 	if _, err = update.Save(ctx); err != nil {
 		return err
 	}
@@ -94,6 +96,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	if err != nil {
 		return nil, err
 	}
+
 	return model.ExposeModule(entity), nil
 }
 
@@ -108,6 +111,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -143,12 +147,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(module.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).
@@ -165,6 +172,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.Modules().Query()
@@ -174,16 +182,19 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[string])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			entities, err := query.Clone().
@@ -204,9 +215,11 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 				IDs:  dm.Data,
 			}
 		}
+
 		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
 			continue
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -223,10 +236,12 @@ func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 	}
 	m.Status = status.ModuleStatusInitializing
 	m.StatusMessage = ""
+
 	update, err := dao.ModuleUpdate(h.modelClient, m)
 	if err != nil {
 		return err
 	}
+
 	if err = update.Exec(ctx); err != nil {
 		return err
 	}

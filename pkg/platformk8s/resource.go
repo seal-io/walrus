@@ -53,6 +53,7 @@ func parseResources(
 	if !ok {
 		return nil, nil
 	}
+
 	if !enforcer.AllowGVR(gvr) {
 		return nil, nil
 	}
@@ -64,5 +65,6 @@ func parseResources(
 		Namespace:            ns,
 		Name:                 n,
 	})
+
 	return rs, nil
 }

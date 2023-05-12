@@ -32,12 +32,14 @@ var (
 // schedules the returning task with the returning expression.
 func Register(ctx context.Context, mc model.ClientSet, cs JobCreators) (err error) {
 	err = errors.New("not allowed duplicated registering")
+
 	o.Do(func() {
 		for n, c := range cs {
 			js[n] = c
 		}
 		err = doRegister(ctx, mc)
 	})
+
 	return
 }
 
@@ -59,6 +61,7 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 		}
 		// Get cron expr of the job from global model client.
 		var v string
+
 		v, err = s.Value(ctx, mc)
 		if err != nil {
 			return fmt.Errorf("error gettting job cron expr: %w", err)
@@ -68,11 +71,13 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 		if err != nil {
 			return fmt.Errorf("error creating %s job: %w", n, err)
 		}
+
 		err = cron.Schedule(n, ce, ct)
 		if err != nil {
 			return fmt.Errorf("error scheduling %s job: %w", n, err)
 		}
 	}
+
 	return nil
 }
 
@@ -87,12 +92,14 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 	}
 
 	var jobs []job
+
 	for i := 0; i < len(m.Refers); i++ {
 		if m.Refers[i] == nil {
 			continue
 		}
 
 		n := m.Refers[i].Name
+
 		c, exist := js[n]
 		if !exist {
 			continue
@@ -109,15 +116,18 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 		}
 
 		j := job{Name: n}
+
 		j.Expr, j.Task, err = c(ctx, n, v)
 		if err != nil {
 			return fmt.Errorf("error creating %s job: %w", n, err)
 		}
+
 		jobs = append(jobs, j)
 	}
 
 	for i := 0; i < len(jobs); i++ {
 		j := jobs[i]
+
 		err := cron.Schedule(j.Name, j.Expr, j.Task)
 		if err != nil {
 			// NB(thxCode): raising error cannot roll back successfully scheduled job in the same for-loop,
@@ -126,5 +136,6 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 		}
 		// TODO(thxCode): support rolling back successfully scheduled job.
 	}
+
 	return nil
 }

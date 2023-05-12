@@ -14,6 +14,7 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 	}
 
 	rrs := make([]*model.SettingCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -30,6 +31,7 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 		c.SetNillablePrivate(r.Private)
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -39,6 +41,7 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 	}
 
 	rrs := make([]*model.SettingUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -46,12 +49,14 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 
 		// Predicated.
 		var ps []predicate.Setting
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, setting.ID(r.ID))
 		case r.Name != "":
 			ps = append(ps, setting.Name(r.Name))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -64,5 +69,6 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 			SetNillablePrivate(r.Private)
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

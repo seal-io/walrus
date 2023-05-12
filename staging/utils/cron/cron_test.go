@@ -27,6 +27,7 @@ func (in *testTask) Process(ctx context.Context, args ...interface{}) error {
 	if len(args) == 0 {
 		in.outputs = []interface{}{"testing"}
 	}
+
 	return nil
 }
 

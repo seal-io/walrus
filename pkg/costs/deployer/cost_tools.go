@@ -57,10 +57,12 @@ func DeployCostTools(ctx context.Context, conn *model.Connector, replace bool) e
 	}
 
 	clusterName := apiConfig.CurrentContext
+
 	yaml, err := opencost(clusterName)
 	if err != nil {
 		return err
 	}
+
 	if err = d.EnsureYaml(ctx, yaml); err != nil {
 		return err
 	}
@@ -94,6 +96,7 @@ func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
 			return fmt.Errorf("tool %s:%s, expected %d replica, actual ready %d replica, check deployment details",
 				namespace, name, *dep.Spec.Replicas, dep.Status.ReadyReplicas)
 		}
+
 		return nil
 	}
 
@@ -135,6 +138,7 @@ func opencost(clusterName string) ([]byte, error) {
 	if err := tmplOpencost.Execute(buf, data); err != nil {
 		return nil, fmt.Errorf("error excute template %s: %w", tmplOpencost.Name(), err)
 	}
+
 	return buf.Bytes(), nil
 }
 
@@ -148,6 +152,7 @@ func opencostScrape() (string, error) {
 	if err := tmplPrometheusScrapeJob.Execute(buf, data); err != nil {
 		return "", fmt.Errorf("error excute template %s: %w", tmplPrometheusScrapeJob.Name(), err)
 	}
+
 	return buf.String(), nil
 }
 
@@ -176,6 +181,7 @@ func opencostRefreshPricingURL(restCfg *rest.Config) (string, error) {
 	}
 
 	u.Path = path.Join(u.Path, pathServiceProxy, pathOpencostRefreshPricing)
+
 	return u.String(), nil
 }
 

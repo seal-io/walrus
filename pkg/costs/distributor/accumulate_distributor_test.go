@@ -36,6 +36,7 @@ const (
 
 func TestAccumulateDistribute(t *testing.T) {
 	ctx := context.Background()
+
 	client := enttest.Open(t, testDriverName, testDataSourceName)
 	defer client.Close()
 
@@ -198,6 +199,7 @@ func TestAccumulateDistribute(t *testing.T) {
 		items, count, err := dsb.distribute(ctx, v.inputStartTime, v.inputEndTime, v.inputCondition)
 		assert.Equal(t, v.outputTotalItemNum, count, "%s: total item count mismatch", v.name)
 		assert.Nil(t, err, "%s: error get distribute resource cost: %w", v.name, err)
+
 		if len(items) != 0 {
 			assert.Equal(t, v.outputItemCost, items[0].Cost.TotalCost,
 				"%s: first item total cost mismatch", v.name)
@@ -208,6 +210,7 @@ func TestAccumulateDistribute(t *testing.T) {
 func TestAllocationResourceCosts(t *testing.T) {
 	// Init data.
 	ctx := context.Background()
+
 	client := enttest.Open(t, testDriverName, testDataSourceName)
 	defer client.Close()
 
@@ -417,6 +420,7 @@ func testData(ctx context.Context, client *model.Client, startTime, endTime time
 	}
 
 	var ac []*model.AllocationCost
+
 	var cc []*model.ClusterCost
 
 	hours := endTime.Sub(startTime).Hours()
@@ -431,6 +435,7 @@ func testData(ctx context.Context, client *model.Client, startTime, endTime time
 	if err != nil {
 		return nil, err
 	}
+
 	err = client.AllocationCosts().CreateBulk(acs...).Exec(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error batch create allocation costs: %w", err)
@@ -445,6 +450,7 @@ func testData(ctx context.Context, client *model.Client, startTime, endTime time
 	if err != nil {
 		return nil, fmt.Errorf("error batch create cluster costs: %w", err)
 	}
+
 	return conn, nil
 }
 
@@ -509,5 +515,6 @@ func newTestConn(ctx context.Context, client *model.Client) (*model.Connector, e
 			"kubeconfig": crypto.StringProperty(""),
 		}).
 		Save(ctx)
+
 	return conn, err
 }

@@ -85,6 +85,7 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 	if err == nil {
 		return string(cachedValue), nil
 	}
+
 	dbValue, err := client.Settings().Query().
 		Select(setting.FieldValue).
 		Where(setting.Name(v.refer.Name)).
@@ -93,11 +94,13 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 		return "", fmt.Errorf("error getting %s: %w",
 			v.refer.Name, err)
 	}
+
 	err = cacher.Set(v.refer.Name, []byte(dbValue.Value))
 	if err != nil {
 		logger.Warnf("error caching %s: %v",
 			v.refer.Name, err)
 	}
+
 	return dbValue.Value, nil
 }
 
@@ -117,11 +120,13 @@ func (v value) ValueJSONUnmarshal(
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal([]byte(val), holder)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling %s: %w",
 			v.refer.Name, err)
 	}
+
 	return nil
 }
 
@@ -131,14 +136,17 @@ func (v value) ValueBool(ctx context.Context, client model.ClientSet) (bool, err
 	if err != nil {
 		return false, err
 	}
+
 	if val == "" {
 		return false, nil
 	}
+
 	r, err := strconv.ParseBool(val)
 	if err != nil {
 		return false, fmt.Errorf("error parsing %s: %w",
 			v.refer.Name, err)
 	}
+
 	return r, nil
 }
 
@@ -154,14 +162,17 @@ func (v value) ValueInt64(ctx context.Context, client model.ClientSet) (int64, e
 	if err != nil {
 		return 0, err
 	}
+
 	if val == "" {
 		return 0, err
 	}
+
 	r, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("error parsing %s: %w",
 			v.refer.Name, err)
 	}
+
 	return r, nil
 }
 
@@ -177,14 +188,17 @@ func (v value) ValueUint64(ctx context.Context, client model.ClientSet) (uint64,
 	if err != nil {
 		return 0, err
 	}
+
 	if val == "" {
 		return 0, nil
 	}
+
 	r, err := strconv.ParseUint(val, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("error parsing %s: %w",
 			v.refer.Name, err)
 	}
+
 	return r, nil
 }
 
@@ -200,15 +214,18 @@ func (v value) ValueURL(ctx context.Context, client model.ClientSet) (*url.URL, 
 	if err != nil {
 		return nil, err
 	}
+
 	if val == "" {
 		return nil, fmt.Errorf("invalid %s URL: blank",
 			v.refer.Name)
 	}
+
 	r, err := url.Parse(val)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing %s: %w",
 			v.refer.Name, err)
 	}
+
 	return r, nil
 }
 
@@ -247,11 +264,13 @@ func (v value) Set(
 	if err != nil {
 		return false, err
 	}
+
 	err = cacher.Delete(v.refer.Name)
 	if err != nil {
 		logger.Warnf("error discaching %s: %v",
 			v.refer.Name, err)
 	}
+
 	return true, nil
 }
 
@@ -264,6 +283,7 @@ func (v value) Cas(
 	if op == nil {
 		return nil
 	}
+
 	return client.WithTx(ctx, func(tx *model.Tx) error {
 		dbValue, err := tx.Settings().Query().
 			Select(setting.FieldValue).
@@ -274,19 +294,23 @@ func (v value) Cas(
 			return err
 		}
 		oldVal := dbValue.Value
+
 		newVal, err := op(oldVal)
 		if err != nil {
 			return err
 		}
+
 		err = v.modify(ctx, tx, v.refer.Name, oldVal, newVal)
 		if err != nil {
 			return err
 		}
+
 		err = cacher.Set(v.refer.Name, []byte(newVal))
 		if err != nil {
 			logger.Warnf("error caching %s: %v",
 				v.refer.Name, err)
 		}
+
 		return nil
 	})
 }

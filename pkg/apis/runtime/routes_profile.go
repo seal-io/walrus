@@ -91,21 +91,25 @@ type ProfileProperty struct {
 // State returns the state to describe what categories the ProfileProperty have.
 func (p ProfileProperty) State() map[ProfileCategory]bool {
 	l := make(map[string]bool)
+
 	for i := 0; i < len(p.Properties); i++ {
 		if p.Properties[i].Category == "" {
 			continue
 		}
 		l[p.Properties[i].Category] = true
+
 		for j := 0; j < len(p.Properties[i].Properties); j++ {
 			r := p.Properties[i].Properties[j].State()
 			for k := range r {
 				l[k] = r[k]
 			}
 		}
+
 		if len(l) == len(categories) {
 			break
 		}
 	}
+
 	return l
 }
 
@@ -115,26 +119,32 @@ func (p ProfileProperty) Flat(categories ...ProfileCategory) []ProfileProperty {
 	if len(categories) == 0 {
 		return nil
 	}
+
 	return p.flat(sets.New(categories...))
 }
 
 func (p ProfileProperty) flat(categories sets.Set[string]) []ProfileProperty {
 	var l []ProfileProperty
+
 	for i := 0; i < len(p.Properties); i++ {
 		if !categories.Has(p.Properties[i].Category) {
 			continue
 		}
+
 		if len(p.Properties[i].Properties) == 0 {
 			if p.Properties[i].Name != "" {
 				l = append(l, p.Properties[i])
 			}
+
 			continue
 		}
+
 		for j := 0; j < len(p.Properties[i].Properties); j++ {
 			r := p.Properties[i].Properties[j].flat(categories)
 			l = append(l, r...)
 		}
 	}
+
 	return l
 }
 
@@ -142,21 +152,27 @@ func (p ProfileProperty) flat(categories sets.Set[string]) []ProfileProperty {
 // all nodes only keep the same category children in the result.
 func (p ProfileProperty) Filter(category ProfileCategory) []ProfileProperty {
 	var root []ProfileProperty
+
 	for i := 0; i < len(p.Properties); i++ {
 		if p.Properties[i].Category != category {
 			continue
 		}
+
 		root = append(root, p.Properties[i])
+
 		var props []ProfileProperty
+
 		for j := 0; j < len(p.Properties[i].Properties); j++ {
 			if p.Properties[i].Properties[j].Category != category {
 				continue
 			}
+
 			props = append(props, p.Properties[i].Properties[j])
 			props[len(props)-1].Properties = p.Properties[i].Properties[j].Filter(category)
 		}
 		root[len(root)-1].Properties = props
 	}
+
 	return root
 }
 
@@ -173,6 +189,7 @@ func GetInputProfile(t reflect.Type) *InputProfile {
 	}
 	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
+
 	for _, category := range categories {
 		vs := sets.New[string]()
 		p.Properties = append(p.Properties, getProfileProperties(vs, category, t)...)
@@ -198,6 +215,7 @@ func GetOutputProfile(t reflect.Type) *OutputProfile {
 	}
 	t = decodeTypePointer(t)
 	p.ProfileProperty = getProfileProperty(sets.New[string](), "", "", nil, t)
+
 	for _, category := range categories {
 		vs := sets.New[string]()
 		p.Properties = append(p.Properties, getProfileProperties(vs, category, t)...)
@@ -216,26 +234,31 @@ func getProfileRouter(t reflect.Type) *ProfileRouter {
 	if t.Kind() != reflect.Struct {
 		return nil
 	}
+
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+
 		v := f.Tag.Get("route")
 		if !isTagBlank(v) {
 			m, sp := getTagAttribute(v)
 			if m == "" || sp == "" {
 				continue
 			}
+
 			m = strings.ToUpper(m)
 			switch m {
 			default:
 				continue
 			case http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodGet:
 			}
+
 			return &ProfileRouter{
 				Method:  m,
 				SubPath: path.Join("/", sp),
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -249,22 +272,27 @@ func getProfileProperties(vs sets.Set[string], category string, t reflect.Type) 
 	}
 
 	var ps []ProfileProperty
+
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		if f.PkgPath != "" && !f.Anonymous {
 			continue
 		}
+
 		v := f.Tag.Get(category)
 		if isTagBlank(v) {
 			continue
 		}
+
 		name, attrs := getTagNameAndAttributes(v)
 		if isTagInline(attrs) {
 			ps = append(ps, getProfileProperties(vs, category, f.Type)...)
 			continue
 		}
+
 		ps = append(ps, getProfileProperty(vs, category, name, attrs, f.Type))
 	}
+
 	return ps
 }
 
@@ -335,10 +363,12 @@ func getProfileProperty(
 		if t.ConvertibleTo(expected) {
 			p.Type = ProfileTypeBasic
 			p.TypeDescriptor = typeDescriptorRender
+
 			return p
 		}
 		p.Type = ProfileTypeObject
 		p.TypeRefer = vs.Has(p.TypeDescriptor + "." + p.Category)
+
 		if !p.TypeRefer {
 			vs.Insert(p.TypeDescriptor + "." + p.Category)
 			p.Properties = getProfileProperties(vs, p.Category, t)
@@ -351,12 +381,15 @@ func getProfileProperty(
 			p.TypeArrayLength = t.Len()
 		}
 		t = decodeTypePointer(t.Elem())
+
 		p.TypeDescriptor = t.String()
 		if p.TypeDescriptor == "byte" {
 			p.Type = ProfileTypeBasic
 			p.TypeDescriptor = "[]byte"
+
 			return p
 		}
+
 		switch t.Kind() {
 		case reflect.Bool:
 			p.TypeDescriptor = "bool"
@@ -407,6 +440,7 @@ func getProfileProperty(
 			p.TypeDescriptor = typeDescriptorString
 		}
 	}
+
 	return p
 }
 
@@ -417,12 +451,14 @@ func isTagBlank(tag string) bool {
 func getTagNameAndAttributes(tag string) (name string, attrs []string) {
 	ss := strings.SplitN(tag, ",", 2)
 	name = strings.TrimSpace(ss[0])
+
 	if len(ss) == 2 {
 		ss[1] = strings.TrimSpace(ss[1])
 		if ss[1] != "" {
 			attrs = strings.Split(ss[1], ",")
 		}
 	}
+
 	return
 }
 
@@ -432,6 +468,7 @@ func isTagInline(attrs []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -441,6 +478,7 @@ func isTagRequired(attrs []string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -451,6 +489,7 @@ func getTagAttributeValue(attrs []string, key string) string {
 			return v
 		}
 	}
+
 	return ""
 }
 
@@ -459,6 +498,7 @@ func getTagAttribute(attr string) (key, value string) {
 	if len(ss) == 1 {
 		return strings.TrimSpace(ss[0]), ""
 	}
+
 	return strings.TrimSpace(ss[0]), strings.TrimSpace(ss[1])
 }
 
@@ -466,5 +506,6 @@ func decodeTypePointer(t reflect.Type) reflect.Type {
 	for t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
+
 	return t
 }

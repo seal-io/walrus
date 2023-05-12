@@ -14,6 +14,7 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 	}
 
 	rrs := make([]*model.SubjectCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -31,17 +32,21 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		c.SetDescription(r.Description)
 		c.SetNillableMountTo(r.MountTo)
 		c.SetNillableLoginTo(r.LoginTo)
+
 		if r.Kind != "" {
 			c.SetKind(r.Kind)
 		}
+
 		if r.Group != "" {
 			c.SetGroup(r.Group)
 		}
+
 		if len(r.Roles) != 0 {
 			c.SetRoles(r.Roles.Deduplicate().Sort())
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -51,6 +56,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 	}
 
 	rrs := make([]*model.SubjectUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -58,6 +64,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 
 		// Predicated.
 		var ps []predicate.Subject
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, subject.ID(r.ID))
@@ -68,6 +75,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 				subject.Name(r.Name),
 			))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -79,16 +87,20 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 		if r.Group != "" {
 			c.SetGroup(r.Group)
 		}
+
 		if r.LoginTo != nil {
 			c.SetLoginTo(*r.LoginTo)
 		}
+
 		if len(r.Roles) != 0 {
 			c.SetRoles(r.Roles.Deduplicate().Sort())
 		}
+
 		if len(r.Paths) != 0 {
 			c.SetPaths(r.Paths)
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

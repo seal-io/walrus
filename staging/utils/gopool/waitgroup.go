@@ -47,12 +47,14 @@ func (g *waitGroup) Go(f func() error) {
 				log.WithName("gopool").Errorf("panic observing: %v", err)
 			}
 		}()
+
 		return f()
 	}
 
 	g.g.Add(1)
 	Go(func() {
 		defer g.g.Done()
+
 		err := wf()
 		if err != nil {
 			g.m.Lock()
@@ -99,6 +101,7 @@ func (g contextWaitGroup) Go(f func() error) {
 				log.WithName("gopool").Errorf("panic observing: %v", err)
 			}
 		}()
+
 		return f()
 	}
 

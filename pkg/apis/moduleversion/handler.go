@@ -33,6 +33,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	if err != nil {
 		return nil, err
 	}
+
 	return model.ExposeModuleVersion(entity), nil
 }
 
@@ -68,12 +69,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(moduleversion.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).

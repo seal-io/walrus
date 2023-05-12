@@ -24,7 +24,9 @@ func init() {
 		StatsEnabled:       false,
 		Verbose:            false,
 	}
+
 	var err error
+
 	cacher, err = cache.NewWithConfig(context.Background(), cfg)
 	if err != nil {
 		panic(fmt.Errorf("error creating cache: %w", err))

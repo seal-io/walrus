@@ -35,6 +35,7 @@ func Hook() ent.Hook {
 		SetID(ID)
 	}
 	g := sonyflake.NewSonyflake(Config.Get())
+
 	return func(n ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
 			if !m.Op().Is(ent.OpCreate) {
@@ -45,11 +46,14 @@ func Hook() ent.Hook {
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation %T", m)
 			}
+
 			id, err := g.NextID()
 			if err != nil {
 				return "", fmt.Errorf("error generating id: %w", err)
 			}
+
 			is.SetID(New(id))
+
 			return n.Mutate(ctx, m)
 		})
 	}

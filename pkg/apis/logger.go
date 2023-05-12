@@ -23,7 +23,9 @@ func (l logWriter) Write(p []byte) (int, error) {
 		if strings.HasSuffix(s.Text(), "tls: unknown certificate") {
 			continue
 		}
+
 		l.logger.Info(s.Text())
 	}
+
 	return len(p), s.Err()
 }

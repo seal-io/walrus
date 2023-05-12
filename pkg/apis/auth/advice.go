@@ -77,6 +77,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 	if err != nil {
 		return err
 	}
+
 	for i := range creates {
 		err = creates[i].
 			OnConflict(
@@ -93,5 +94,6 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			return err
 		}
 	}
+
 	return nil
 }

@@ -48,12 +48,14 @@ func (h Handler) Validating() any {
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
+
 	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		creates, err := dao.ApplicationCreates(tx, entity)
 		if err != nil {
 			return err
 		}
 		entity, err = creates[0].Save(ctx)
+
 		return err
 	})
 	if err != nil {
@@ -69,11 +71,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		updates, err := dao.ApplicationUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
+
 		return updates[0].Exec(ctx)
 	})
 }
@@ -113,19 +117,24 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
+
 		var streamData view.StreamResponse
+
 		for _, id := range dm.Data {
 			if id != req.ID {
 				continue
@@ -148,6 +157,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 				}
 			}
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -166,6 +176,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -201,12 +212,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(application.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := h.getCollectionQuery(query).All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -261,6 +275,7 @@ func (h Handler) CollectionStream(
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.Applications().Query().
@@ -270,22 +285,26 @@ func (h Handler) CollectionStream(
 	if len(req.ProjectIDs) != 0 {
 		query.Where(application.ProjectIDIn(req.ProjectIDs...))
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			entities, err := h.getCollectionQuery(query.Clone()).
@@ -304,9 +323,11 @@ func (h Handler) CollectionStream(
 				IDs:  dm.Data,
 			}
 		}
+
 		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
 			continue
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err

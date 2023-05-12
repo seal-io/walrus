@@ -14,8 +14,10 @@ func ToBytes(s *string) (bs []byte) {
 		slice = (*reflect.SliceHeader)(unsafe.Pointer(&bs))
 		str   = (*reflect.StringHeader)(unsafe.Pointer(s))
 	)
+
 	slice.Len = str.Len
 	slice.Cap = str.Len
 	slice.Data = str.Data
+
 	return
 }

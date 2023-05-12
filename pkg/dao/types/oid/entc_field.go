@@ -25,8 +25,10 @@ func (b *fieldBuilder) NotEmpty() *fieldBuilder {
 		if strings.TrimSpace(v) == "" {
 			return errors.New("value is blank")
 		}
+
 		return nil
 	})
+
 	return b
 }
 

@@ -20,12 +20,15 @@ func (r *CreateRequest) Validate() error {
 	if r.Project != nil && !r.Project.ID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
+
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
+
 	if r.Value == "" {
 		return errors.New("invalid value: blank")
 	}
+
 	return nil
 }
 
@@ -43,9 +46,11 @@ func (r *UpdateRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	if r.Value == "" {
 		return errors.New("invalid value: blank")
 	}
+
 	return nil
 }
 
@@ -57,11 +62,13 @@ func (r CollectionDeleteRequest) Validate() error {
 	if len(r) == 0 {
 		return errors.New("invalid input: empty")
 	}
+
 	for _, i := range r {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
 		}
 	}
+
 	return nil
 }
 
@@ -79,6 +86,7 @@ func (r *CollectionGetRequest) Validate() error {
 			return errors.New("invalid project id: blank")
 		}
 	}
+
 	return nil
 }
 

@@ -37,6 +37,7 @@ func (d *Distributor) Distribute(
 	cond types.QueryCondition,
 ) ([]view.Resource, int, error) {
 	cond = wrappedCondition(cond)
+
 	switch {
 	case cond.Step != "":
 		return d.sd.distribute(ctx, startTime, endTime, cond)

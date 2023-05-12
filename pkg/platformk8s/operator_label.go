@@ -37,6 +37,7 @@ func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, la
 	}
 
 	ns, n := kube.ParseNamespacedName(res.Name)
+
 	obj, err := client.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"})
 	if err != nil {
@@ -44,7 +45,9 @@ func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, la
 			return fmt.Errorf("error getting kubernetes %s %s/%s: %w",
 				gvr.Resource, ns, n, err)
 		}
+
 		return nil
 	}
+
 	return kubelabel.Apply(ctx, client, obj, labels)
 }

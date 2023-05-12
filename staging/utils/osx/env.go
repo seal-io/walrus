@@ -7,5 +7,6 @@ func Getenv(key string, def ...string) string {
 	if e == "" && len(def) != 0 {
 		return def[0]
 	}
+
 	return e
 }

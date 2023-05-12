@@ -19,6 +19,7 @@ func (fs StaticHttpFileSystem) Open(name string) (http.File, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return StaticHttpFile{File: f, Listable: fs.Listable, Embedded: fs.Embedded}, nil
 }
 
@@ -33,6 +34,7 @@ func (f StaticHttpFile) Readdir(count int) ([]os.FileInfo, error) {
 	if f.Listable {
 		return f.File.Readdir(count)
 	}
+
 	return nil, nil
 }
 
@@ -41,9 +43,11 @@ func (f StaticHttpFile) Stat() (fs.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if f.Embedded {
 		return embeddedFileInfo{FileInfo: i}, nil
 	}
+
 	return i, nil
 }
 

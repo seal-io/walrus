@@ -30,6 +30,7 @@ func (r *CreateRequest) Validate() error {
 func (r *CreateRequest) Model() *model.Module {
 	entity := r.ModuleCreateInput.Model()
 	entity.ID = r.ID
+
 	return entity
 }
 
@@ -49,14 +50,17 @@ func validate(m *model.Module) error {
 	if err := validation.IsQualifiedName(m.ID); err != nil {
 		return err
 	}
+
 	if _, err := getter.Detect(m.Source, "", getter.Detectors); err != nil {
 		return fmt.Errorf("invalid source: %w", err)
 	}
+
 	if m.Icon != "" {
 		if _, err := url.ParseRequestURI(m.Icon); err != nil {
 			return fmt.Errorf("invalid icon URL: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -84,11 +88,13 @@ func (r CollectionDeleteRequest) Validate() error {
 	if len(r) == 0 {
 		return errors.New("invalid input: empty")
 	}
+
 	for _, i := range r {
 		if err := validation.IsQualifiedName(i.ID); err != nil {
 			return fmt.Errorf("invalid id: %w", err)
 		}
 	}
+
 	return nil
 }
 

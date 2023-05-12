@@ -52,10 +52,12 @@ func WrapErrorHandler(h ErrorHandler) gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		err := h.Handle(c)
 		if err != nil {
 			_ = c.Error(err).
 				SetType(gin.ErrorTypePublic)
+
 			c.Abort()
 		}
 	}
@@ -69,10 +71,12 @@ func WrapErrorHandle(f ErrorHandle) gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		err := f(c)
 		if err != nil {
 			_ = c.Error(err).
 				SetType(gin.ErrorTypePublic)
+
 			c.Abort()
 		}
 	}
@@ -88,6 +92,7 @@ func WrapHandler(h Handler) gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		h.Handle(c)
 	}
 }

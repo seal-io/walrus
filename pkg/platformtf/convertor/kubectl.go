@@ -18,6 +18,7 @@ func (m KubectlConvertor) IsSupported(connector *model.Connector) bool {
 
 func (m KubectlConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
 	var blocks block.Blocks
+
 	for _, c := range connectors {
 		if !m.IsSupported(c) {
 			continue

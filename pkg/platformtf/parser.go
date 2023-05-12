@@ -54,6 +54,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 	}
 
 	applicationResources := make(model.ApplicationResources, 0)
+
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
 		default:
@@ -68,6 +69,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 			logger.Errorf("invalid provider format: %s", rs.Provider)
 			continue
 		}
+
 		if connector == "" {
 			logger.Warnf("connector is empty, provider: %v", rs.Provider)
 			continue
@@ -87,6 +89,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 					err, is)
 				continue
 			}
+
 			if instanceID == "" {
 				logger.Errorf("instance id is empty, instance: %v", is)
 				continue
@@ -144,11 +147,13 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 	for i, v := range revision.Modules {
 		moduleNames[i] = v.Name
 	}
+
 	sort.SliceStable(moduleNames, func(i, j int) bool {
 		return len(moduleNames[i]) > len(moduleNames[j])
 	})
 
 	var outputs []types.OutputValue
+
 	for n, o := range revisionState.Outputs {
 		for _, mn := range moduleNames {
 			if strings.Index(n, mn) == 0 {
@@ -156,6 +161,7 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 				if o.Sensitive {
 					val = []byte(`"<sensitive>"`)
 				}
+
 				outputs = append(outputs, types.OutputValue{
 					Name:       strings.TrimPrefix(n, mn+"_"), // Name format is moduleName_outputName.
 					Value:      val,
@@ -163,10 +169,12 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 					Sensitive:  o.Sensitive,
 					ModuleName: mn,
 				})
+
 				break
 			}
 		}
 	}
+
 	return outputs, nil
 }
 
@@ -182,6 +190,7 @@ func ParseInstanceModuleName(str string) (string, error) {
 	}
 
 	var names []string
+
 	for len(traversal) > 0 {
 		var next string
 		switch tt := traversal[0].(type) {
@@ -191,6 +200,7 @@ func ParseInstanceModuleName(str string) (string, error) {
 			next = tt.Name
 		}
 		traversal = traversal[1:]
+
 		if next != "module" {
 			continue
 		}
@@ -207,6 +217,7 @@ func ParseInstanceModuleName(str string) (string, error) {
 			return "", errors.New("prefix \"module.\" must be followed by a module name")
 		}
 		traversal = traversal[1:]
+
 		names = append(names, moduleName)
 	}
 
@@ -240,6 +251,7 @@ func ParseInstanceID(is instanceObjectState) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		val, err := ctyjson.Unmarshal(is.Attributes, ty)
 		if err != nil {
 			return "", err
@@ -279,6 +291,7 @@ func ParseInstanceMetadata(is instanceObjectState) ([]byte, error) {
 	}
 
 	arr := json.Get(is.Attributes, "metadata").Array()
+
 	switch l := len(arr); {
 	case l == 0:
 		return nil, errors.New("not found metadata")
@@ -289,6 +302,7 @@ func ParseInstanceMetadata(is instanceObjectState) ([]byte, error) {
 	if !arr[0].IsObject() {
 		return nil, errors.New("metadata is not an object")
 	}
+
 	return strs.ToBytes(&arr[0].Raw), nil
 }
 
@@ -299,6 +313,7 @@ func ParseStateProviders(s string) ([]string, error) {
 	}
 
 	providers := sets.NewString()
+
 	var revisionState state
 	if err := json.Unmarshal([]byte(s), &revisionState); err != nil {
 		return nil, err
@@ -309,6 +324,7 @@ func ParseStateProviders(s string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		providers.Insert(pAddr.Provider.Type)
 	}
 
@@ -338,6 +354,7 @@ func parseAbsProvider(traversal hcl.Traversal) (hcl.Traversal, error) {
 		if len(remain) > 0 {
 			retRemain = make(hcl.Traversal, len(remain))
 			copy(retRemain, remain)
+
 			if tt, ok := retRemain[0].(hcl.TraverseAttr); ok {
 				retRemain[0] = hcl.TraverseRoot{
 					Name:     tt.Name,
@@ -358,18 +375,22 @@ func ParseAbsProviderConfig(traversal hcl.Traversal) (*AbsProviderConfig, error)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(remain) < 2 || remain.RootName() != "provider" {
 		return nil, errors.New("provider address must begin with \"provider.\", followed by a provider type name")
 	}
+
 	if len(remain) > 3 {
 		return nil, errors.New("extraneous operators after provider configuration alias")
 	}
 
 	ret := &AbsProviderConfig{}
+
 	if tt, ok := remain[1].(hcl.TraverseIndex); ok {
 		if !tt.Key.Type().Equals(cty.String) {
 			return nil, errors.New("the prefix \"provider.\" must be followed by a provider type name")
 		}
+
 		p, err := tfaddr.ParseProviderSource(tt.Key.AsString())
 		if err != nil {
 			return nil, err

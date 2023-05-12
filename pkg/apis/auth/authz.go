@@ -21,6 +21,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 	permission, cached := cache.LoadSubjectPermission(s.Key())
 	if !cached {
 		permission = &cache.SubjectPermission{}
+
 		var err error
 		roles := types.SubjectRoles{
 			{
@@ -28,17 +29,20 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 				Name:   "anonymity",
 			},
 		}
+
 		if !s.IsAnonymous() {
 			permission.Roles, err = getRoles(c, modelClient, s.Group, s.Name)
 			if err != nil {
 				return err
 			}
+
 			roles = append(roles, types.SubjectRole{
 				Domain: "system",
 				Name:   "user",
 			})
 			roles = append(roles, permission.Roles...)
 		}
+
 		permission.Policies, err = getPolicies(c, modelClient, roles)
 		if err != nil {
 			return err
@@ -49,6 +53,7 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 
 	// Validate.
 	session.StoreSubjectAuthzInfo(c, permission.Roles, permission.Policies)
+
 	return nil
 }
 
@@ -68,6 +73,7 @@ func getRoles(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get roles: %w", err)
 	}
+
 	return s.Roles, nil
 }
 
@@ -84,6 +90,7 @@ func getPolicies(
 				role.Name(roles[i].Name),
 			))
 	}
+
 	entities, err := modelClient.Roles().Query().
 		Where(role.Or(predicates...)).
 		Select(role.FieldPolicies).
@@ -97,5 +104,6 @@ func getPolicies(
 		policies = append(policies, entities[i].Policies...)
 	}
 	policies = policies.Deduplicate().Sort()
+
 	return policies, nil
 }

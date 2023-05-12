@@ -27,6 +27,7 @@ func NewLabelApplyTask(mc model.ClientSet) (*LabelApplyTask, error) {
 	in := &LabelApplyTask{}
 	in.modelClient = mc
 	in.logger = log.WithName("task").WithName(in.Name())
+
 	return in, nil
 }
 
@@ -40,6 +41,7 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 		return nil
 	}
 	startTs := time.Now()
+
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -54,14 +56,17 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 	if err != nil {
 		return fmt.Errorf("cannot list all connectors: %w", err)
 	}
+
 	if len(cs) == 0 {
 		return nil
 	}
 	wg := gopool.Group()
+
 	for i := range cs {
 		at := in.buildApplyTasks(ctx, cs[i])
 		wg.Go(at)
 	}
+
 	return wg.Wait()
 }
 
@@ -73,6 +78,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 		if err != nil {
 			return err
 		}
+
 		if err = op.IsConnected(ctx); err != nil {
 			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", c.ID)
@@ -85,20 +91,25 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 		if err != nil {
 			return fmt.Errorf("cannot count resources of connector %q: %w", c.ID, err)
 		}
+
 		if cnt == 0 {
 			return nil
 		}
+
 		const bks = 100
+
 		bkc := cnt/bks + 1
 		if bkc == 1 {
 			at := in.buildApplyTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
 		wg := gopool.Group()
+
 		for bk := 0; bk < bkc; bk++ {
 			at := in.buildApplyTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
+
 		return wg.Wait()
 	}
 }
@@ -116,6 +127,7 @@ func (in *LabelApplyTask) buildApplyTask(
 		if err != nil {
 			return fmt.Errorf("error listing label candidates: %w", err)
 		}
+
 		return applicationresources.Label(ctx, op, entities)
 	}
 }

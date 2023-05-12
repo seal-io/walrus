@@ -17,6 +17,7 @@ func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Ope
 	if opts.Connector.Category != types.ConnectorCategoryCustom {
 		return nil, errors.New("not custom connector")
 	}
+
 	return Operator{}, nil
 }
 

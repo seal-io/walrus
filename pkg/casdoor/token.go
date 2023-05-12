@@ -33,10 +33,12 @@ func CreateToken(
 	expiryInSecondsPtr *int,
 ) (*Token, error) {
 	createTokenURL := fmt.Sprintf("%s/api/login/oauth/access_token", endpoint.Get())
+
 	var expiryInSeconds int
 	if expiryInSecondsPtr != nil {
 		expiryInSeconds = *expiryInSecondsPtr
 	}
+
 	if expiryInSeconds <= 0 || expiryInSeconds > neverExpiresInSeconds {
 		expiryInSeconds = neverExpiresInSeconds
 	}
@@ -45,6 +47,7 @@ func CreateToken(
 		"username":          []string{usr},
 		"expiry_in_seconds": []string{strconv.Itoa(expiryInSeconds)},
 	}
+
 	var createTokenResp struct {
 		Owner        string `json:"owner"`
 		Name         string `json:"name"`
@@ -52,6 +55,7 @@ func CreateToken(
 		RefreshToken string `json:"refresh_token"`
 		ExpiresIn    int    `json:"expires_in"`
 	}
+
 	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyForm(createTokenReq).
@@ -60,9 +64,11 @@ func CreateToken(
 	if err != nil {
 		return nil, fmt.Errorf("error creating token: %w", err)
 	}
+
 	if createTokenResp.AccessToken == "" {
 		return nil, errors.New("failed to create token: blank access token")
 	}
+
 	return &Token{
 		Owner:        createTokenResp.Owner,
 		Name:         createTokenResp.Name,
@@ -72,16 +78,18 @@ func CreateToken(
 	}, nil
 }
 
-func DeleteToken(ctx context.Context, clientID, clientSecret string, owner, name string) error {
+func DeleteToken(ctx context.Context, clientID, clientSecret, owner, name string) error {
 	deleteTokenURL := fmt.Sprintf("%s/api/delete-token", endpoint.Get())
 	deleteTokenReq := Token{
 		Owner: owner,
 		Name:  name,
 	}
+
 	var deleteTokenResp struct {
 		Status string `json:"status"`
 		Msg    string `json:"msg"`
 	}
+
 	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyJSON(deleteTokenReq).
@@ -90,9 +98,11 @@ func DeleteToken(ctx context.Context, clientID, clientSecret string, owner, name
 	if err != nil {
 		return fmt.Errorf("error deleting token: %w", err)
 	}
+
 	if deleteTokenResp.Status == statusError {
 		return fmt.Errorf("failed to delete token: %s", deleteTokenResp.Msg)
 	}
+
 	return nil
 }
 
@@ -103,16 +113,18 @@ type Introspection struct {
 	Exp          int64  `json:"exp"`
 }
 
-func IntrospectToken(ctx context.Context, clientID, clientSecret string, token string) (*Introspection, error) {
+func IntrospectToken(ctx context.Context, clientID, clientSecret, token string) (*Introspection, error) {
 	introspectTokenURL := fmt.Sprintf("%s/api/login/oauth/introspect", endpoint.Get())
 	introspectTokenReq := url.Values{
 		"token": []string{token},
 	}
+
 	var introspectTokenResp struct {
 		Introspection `json:",inline"`
 		Status        string `json:"status"`
 		Msg           string `json:"msg"`
 	}
+
 	err := req.HTTPRequest().
 		WithBasicAuth(clientID, clientSecret).
 		WithBodyForm(introspectTokenReq).
@@ -121,8 +133,10 @@ func IntrospectToken(ctx context.Context, clientID, clientSecret string, token s
 	if err != nil {
 		return nil, fmt.Errorf("error introspecting token: %w", err)
 	}
+
 	if introspectTokenResp.Status == statusError {
 		return nil, fmt.Errorf("failed to introspect token: %s", introspectTokenResp.Msg)
 	}
+
 	return &introspectTokenResp.Introspection, nil
 }

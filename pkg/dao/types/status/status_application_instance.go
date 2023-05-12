@@ -31,7 +31,7 @@ var applicationInstanceStatusPaths = NewWalker(
 	},
 	func(d Decision[ConditionType]) {
 		d.Make(ApplicationInstanceStatusDeleted,
-			func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case ConditionStatusUnknown:
 					return "Deleting", false, true

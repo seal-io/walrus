@@ -77,6 +77,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.ApplicationRevisions().Query().
@@ -84,16 +85,19 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		for _, id := range dm.Data {
 			if id != req.ID {
 				continue
@@ -123,6 +127,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 				}
 			}
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -141,6 +146,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -179,9 +185,11 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationrevision.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
@@ -203,6 +211,7 @@ func (h Handler) CollectionGet(
 			})
 		})
 	}
+
 	entities, err := query.WithEnvironment(
 		func(eq *model.EnvironmentQuery) { eq.Select(environment.FieldID, environment.FieldName) }).
 		Unique(false). // Allow returning without sorting keys.
@@ -222,28 +231,33 @@ func (h Handler) CollectionStream(
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.ApplicationRevisions().Query()
 	if req.InstanceID != "" {
 		query.Where(applicationrevision.InstanceID(req.InstanceID))
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			revisions, err := query.Clone().
@@ -267,6 +281,7 @@ func (h Handler) CollectionStream(
 				IDs:  dm.Data,
 			}
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -292,6 +307,7 @@ func (h Handler) GetTerraformStates(
 	if entity.Output == "" {
 		return nil, nil
 	}
+
 	return view.GetTerraformStatesResponse(entity.Output), nil
 }
 
@@ -307,10 +323,12 @@ func (h Handler) UpdateTerraformStates(
 		return err
 	}
 	entity.Output = string(req.RawMessage)
+
 	update, err := dao.ApplicationRevisionUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
+
 	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
@@ -327,11 +345,13 @@ func (h Handler) UpdateTerraformStates(
 
 		entity.Status = status.ApplicationRevisionStatusFailed
 		entity.StatusMessage = err.Error()
+
 		revisionUpdate, updateErr := dao.ApplicationRevisionUpdate(h.modelClient, entity)
 		if updateErr != nil {
 			logger.Error(updateErr)
 			return
 		}
+
 		updateRevision, updateErr := revisionUpdate.Save(updateCtx)
 		if updateErr != nil {
 			logger.Errorf("update status failed: %v", err)
@@ -360,10 +380,12 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	}
 
 	var p platformtf.Parser
+
 	observedRess, err := p.ParseAppRevision(entity)
 	if err != nil {
 		return err
 	}
+
 	if observedRess == nil {
 		return nil
 	}
@@ -378,19 +400,23 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 
 	// Calculate creating list and deleting list.
 	observedRessIndex := make(map[string]*model.ApplicationResource, len(observedRess))
+
 	for j := range observedRess {
 		c := observedRess[j]
 		observedRessIndex[key(c)] = c
 	}
 	deleteRessIDs := make([]types.ID, 0, len(recordRess))
+
 	for _, c := range recordRess {
 		k := key(c)
 		if observedRessIndex[k] != nil {
 			delete(observedRessIndex, k)
 			continue
 		}
+
 		deleteRessIDs = append(deleteRessIDs, c.ID)
 	}
+
 	createRess := make([]*model.ApplicationResource, 0, len(observedRessIndex))
 	for k := range observedRessIndex {
 		createRess = append(createRess, observedRessIndex[k])
@@ -404,6 +430,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			if err != nil {
 				return err
 			}
+
 			createRess, err = tx.ApplicationResources().CreateBulk(creates...).
 				Save(ctx)
 			if err != nil {
@@ -419,11 +446,13 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				return err
 			}
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	if len(createRess) == 0 {
 		return nil
 	}
@@ -435,8 +464,10 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
 			createRess[i].ID)
 	}
+
 	gopool.Go(func() {
 		logger := log.WithName("api").WithName("application-revision")
+
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
@@ -456,18 +487,21 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			logger.Errorf("cannot list connectors: %v", err)
 			return
 		}
+
 		csidx := make(map[types.ID]*model.Connector, len(cs))
 		for i := range cs {
 			csidx[cs[i].ID] = cs[i]
 		}
 
 		var sr applicationresources.StateResult
+
 		for cid, crids := range ids {
 			entities, err := applicationresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
 			if err != nil {
 				logger.Errorf("error listing candidates: %v", err)
 				continue
 			}
+
 			if len(entities) == 0 {
 				continue
 			}
@@ -493,7 +527,9 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				// which doesn't flip the status.
 				nsr.Transitioning = true
 			}
+
 			sr.Merge(nsr)
+
 			err = applicationresources.Label(ctx, op, entities)
 			if err != nil {
 				logger.Errorf("error labeling entities: %v", err)
@@ -511,10 +547,12 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			logger.Errorf("cannot get application instance: %v", err)
 			return
 		}
+
 		if status.ApplicationInstanceStatusDeleted.Exist(i) {
 			// Skip if the instance is on deleting.
 			return
 		}
+
 		switch {
 		case sr.Error:
 			status.ApplicationInstanceStatusReady.False(i, "")
@@ -523,6 +561,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		default:
 			status.ApplicationInstanceStatusReady.True(i, "")
 		}
+
 		update, err := dao.ApplicationInstanceStatusUpdate(h.modelClient, i)
 		if err != nil {
 			logger.Errorf("cannot update application instance: %v", err)
@@ -533,6 +572,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			logger.Errorf("cannot update application instance: %v", err)
 		}
 	})
+
 	return nil
 }
 
@@ -542,6 +582,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel.
 	restConfig := *h.kubeConfig // Copy.
 	restConfig.Timeout = 0
+
 	cli, err := coreclient.NewForConfig(&restConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
@@ -573,6 +614,7 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
+
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
 		return err
@@ -582,6 +624,7 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 		SkipTLSVerify: !h.tlsCertified,
 		CloneFrom:     applicationRevision,
 	}
+
 	return dp.Rollback(ctx, applicationInstance, rollbackOpts)
 }
 
@@ -628,6 +671,7 @@ func (h Handler) CreateRollbackApplications(
 		if err != nil {
 			return err
 		}
+
 		return updates[0].Exec(ctx)
 	})
 }
@@ -662,6 +706,7 @@ func (h Handler) GetRevisionDiff(
 	if err != nil {
 		return nil, err
 	}
+
 	compareRevision, err := h.modelClient.ApplicationRevisions().Query().
 		Select(
 			applicationrevision.FieldID,

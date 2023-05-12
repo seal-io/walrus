@@ -81,16 +81,20 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationresource.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	resp, err := getCollection(ctx, query, req.WithoutKeys)
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return resp, cnt, nil
 }
 
@@ -102,6 +106,7 @@ func (h Handler) CollectionStream(
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.ApplicationResources().Query()
@@ -118,16 +123,19 @@ func (h Handler) CollectionStream(
 			event topic.Event
 			resp  view.CollectionGetResponse
 		)
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			resp, err = getCollection(ctx,
@@ -146,9 +154,11 @@ func (h Handler) CollectionStream(
 				IDs:  dm.Data,
 			}
 		}
+
 		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
 			continue
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -165,6 +175,7 @@ func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKey
 	if err != nil {
 		return nil, err
 	}
+
 	if err = op.IsConnected(ctx); err != nil {
 		return nil, fmt.Errorf("unreachable connector: %w", err)
 	}
@@ -179,6 +190,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	if err != nil {
 		return err
 	}
+
 	if err = op.IsConnected(ctx); err != nil {
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
@@ -190,6 +202,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 		SinceSeconds: req.SinceSeconds,
 		Timestamps:   req.Timestamps,
 	}
+
 	return op.Log(ctx, req.Key, opts)
 }
 
@@ -200,6 +213,7 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 	if err != nil {
 		return err
 	}
+
 	if err = op.IsConnected(ctx); err != nil {
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
@@ -212,6 +226,7 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 		Shell:   req.Shell,
 		Resizer: ts,
 	}
+
 	err = op.Exec(ts, req.Key, opts)
 	if err != nil {
 		if strings.Contains(err.Error(), "OCI runtime exec failed: exec failed:") {
@@ -220,8 +235,10 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 				Text: "unresolved exec shell: " + req.Shell,
 			}
 		}
+
 		return err
 	}
+
 	return nil
 }
 
@@ -277,6 +294,7 @@ func getCollection(
 				logger.Warnf("cannot get operator of connector: %v", err)
 				continue
 			}
+
 			if err = op.IsConnected(ctx); err != nil {
 				logger.Warnf("unreachable connector: %v", err)
 				continue

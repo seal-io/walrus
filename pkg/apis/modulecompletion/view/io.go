@@ -20,6 +20,7 @@ func (r *GenerateRequest) Validate() error {
 	if r.Text == "" {
 		return errors.New("invalid input: blank")
 	}
+
 	return nil
 }
 
@@ -35,6 +36,7 @@ func (r *ExplainRequest) Validate() error {
 	if r.Text == "" {
 		return errors.New("invalid input: blank")
 	}
+
 	return nil
 }
 
@@ -50,6 +52,7 @@ func (r *CorrectRequest) Validate() error {
 	if r.Text == "" {
 		return errors.New("invalid input: blank")
 	}
+
 	return nil
 }
 
@@ -83,18 +86,23 @@ func (r *CreatePrRequest) Validate() error {
 	if !r.ConnectorID.Valid(0) {
 		return errors.New("invalid connector id: blank")
 	}
+
 	if r.Repository == "" {
 		return errors.New("invalid repository: blank")
 	}
+
 	if r.Branch == "" {
 		return errors.New("invalid branch: blank")
 	}
+
 	if r.Path == "" {
 		return errors.New("invalid path: blank")
 	}
+
 	if r.Content == "" {
 		return errors.New("invalid content: blank")
 	}
+
 	return nil
 }
 

@@ -14,6 +14,7 @@ import (
 func Wait(ctx context.Context, serverUrl string) error {
 	endpoint.Set(serverUrl)
 	logoutURL := fmt.Sprintf("%s/api/logout", serverUrl)
+
 	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
 			err := req.HTTPRequest().
@@ -22,6 +23,7 @@ func Wait(ctx context.Context, serverUrl string) error {
 			if err != nil {
 				log.Warnf("waiting for casdoor to be ready: %v", err)
 			}
+
 			return err == nil, ctx.Err()
 		},
 	)

@@ -13,6 +13,7 @@ func main() {
 		cmd = agent.Command()
 		app = clis.AsApp(cmd)
 	)
+
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}

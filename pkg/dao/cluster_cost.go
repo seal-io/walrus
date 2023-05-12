@@ -12,6 +12,7 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 	}
 
 	rrs := make([]*model.ClusterCostCreate, len(input))
+
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -34,5 +35,6 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

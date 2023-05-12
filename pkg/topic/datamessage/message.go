@@ -57,5 +57,6 @@ func Publish[T any](ctx context.Context, mutationType string, op model.Op, ids [
 		Type: EventTypeFor(op),
 		Data: ids,
 	}
+
 	return topic.Publish(ctx, topic.Topic(mutationType), m)
 }

@@ -125,6 +125,7 @@ func newValue(name string, property uint8, initialize initializer, modify modifi
 	if modify == nil {
 		modify = modifyWith(many)
 	}
+
 	if initialize == nil {
 		initialize = initializeFromEnv("")
 		if property&private == private {
@@ -141,8 +142,10 @@ func newValue(name string, property uint8, initialize initializer, modify modifi
 		},
 		modify: modify,
 	}
+
 	valuesOrder = append(valuesOrder, name)
 	valuesIndex[name] = v
+
 	return v
 }
 
@@ -158,6 +161,7 @@ func ForEach(input func(setting model.Setting) error) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -167,6 +171,7 @@ func All() (r model.Settings) {
 		r = append(r, &s)
 		return nil
 	})
+
 	return
 }
 

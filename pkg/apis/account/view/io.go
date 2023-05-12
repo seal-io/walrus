@@ -14,27 +14,33 @@ type UpdateInfoRequest struct {
 
 func (r *UpdateInfoRequest) Validate() error {
 	var needUpdate bool
+
 	if r.LoginGroup != nil {
 		if *r.LoginGroup == "" {
 			return errors.New("invalid group: blank")
 		}
 		needUpdate = true
 	}
+
 	if r.Password != nil {
 		if *r.Password == "" {
 			return errors.New("invalid password: blank")
 		}
+
 		if r.OldPassword == nil || *r.OldPassword == "" {
 			return errors.New("invalid old password: blank")
 		}
+
 		if *r.OldPassword == *r.Password {
 			return errors.New("invalid password: the same")
 		}
 		needUpdate = true
 	}
+
 	if !needUpdate {
 		return errors.New("invalid input: nothing update")
 	}
+
 	return nil
 }
 

@@ -28,6 +28,7 @@ var (
 
 func init() {
 	var err error
+
 	home, err = os.UserHomeDir()
 	if err != nil {
 		panic(fmt.Errorf("failed to get home dir: %w", err))
@@ -43,6 +44,7 @@ func (Embedded) Run(ctx context.Context) error {
 		if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 			return errors.New(`require "securityContext.privileged" feature of seal pod`)
 		}
+
 		return errors.New(`require "--privileged" flag to run seal container`)
 	}
 
@@ -67,6 +69,7 @@ func (Embedded) Run(ctx context.Context) error {
 				}
 				cs := strings.Split(strs.FromBytes(&data), " ")
 				s := "+" + strs.Join(" +", cs...)
+
 				return strs.ToBytes(&s), nil
 			}))
 		if err != nil {
@@ -93,6 +96,7 @@ func (Embedded) Run(ctx context.Context) error {
 	// Reset server data.
 	if files.Exists(filepath.Join(k3sServerDataDir, "db", "etcd")) {
 		_ = os.Remove(filepath.Join(k3sServerDataDir, "db", "reset-flag")) // Clean reset flag.
+
 		cmdArgs := []string{
 			"server",
 			"--cluster-reset",
@@ -118,6 +122,7 @@ func (Embedded) Run(ctx context.Context) error {
 		"--kubelet-arg=system-reserved=cpu=300m,memory=256Mi",
 		"--kubelet-arg=kube-reserved=cpu=200m,memory=256Mi",
 	}
+
 	return runK3sWith(ctx, cmdArgs)
 }
 
@@ -141,6 +146,7 @@ func (Embedded) GetConfig(ctx context.Context) (string, *rest.Config, error) {
 	if err != nil {
 		return "", nil, err
 	}
+
 	return embeddedKubeConfigPath, cfg, err
 }
 
@@ -152,9 +158,11 @@ func runK3sWith(ctx context.Context, cmdArgs []string) error {
 	cmd.SysProcAttr = getSysProcAttr()
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
+
 	err := cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
+
 	return nil
 }

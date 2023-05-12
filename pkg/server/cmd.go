@@ -11,5 +11,6 @@ func Command() *cli.Command {
 	server.Before(&cmd)
 	server.Action(&cmd)
 	cmd.Name = "server"
+
 	return &cmd
 }

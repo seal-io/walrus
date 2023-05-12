@@ -129,19 +129,24 @@ func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		block.Body().AppendBlock(cb)
+
 		if i != len(b.childBlocks)-1 {
 			block.Body().AppendNewline()
 		}
 	}
+
 	attributes, err := ConvertToCtyWithJson(b.Attributes)
 	if err != nil {
 		return nil, err
 	}
+
 	attrKeys := SortValueKeys(attributes)
 	if len(attrKeys) == 0 {
 		return block, nil
 	}
+
 	attrMap := attributes.AsValueMap()
 	for _, attr := range attrKeys {
 		block.Body().SetAttributeValue(attr, attrMap[attr])
@@ -162,14 +167,17 @@ func (bs *Blocks) Remove(block *Block) {
 
 func (bs *Blocks) GetProviderNames() ([]string, error) {
 	names := make([]string, 0)
+
 	for _, b := range *bs {
 		if b.Type == TypeProvider {
 			if len(b.Labels) == 0 {
 				return nil, fmt.Errorf("provider block should have a label")
 			}
+
 			names = append(names, b.Labels[0])
 		}
 	}
+
 	return names, nil
 }
 
@@ -179,6 +187,7 @@ func SortValueKeys(val cty.Value) []string {
 		return nil
 	}
 	keys := make([]string, 0, val.LengthInt())
+
 	for it := val.ElementIterator(); it.Next(); {
 		k, _ := it.Element()
 		keys = append(keys, k.AsString())
@@ -195,10 +204,12 @@ func ConvertToCtyWithJson(val interface{}) (cty.Value, error) {
 	if err != nil {
 		return cty.NilVal, fmt.Errorf("failed to marshal value to json: %w", err)
 	}
+
 	var ctyJsonVal ctyjson.SimpleJSONValue
 	if err := ctyJsonVal.UnmarshalJSON(jsonBytes); err != nil {
 		return cty.NilVal, fmt.Errorf("failed to unmarshal json to cty value: %w", err)
 	}
+
 	return ctyJsonVal.Value, nil
 }
 
@@ -211,6 +222,7 @@ func removeRing(root *Block, stack []*Block) {
 				return
 			}
 		}
+
 		stack = append(stack, child)
 		removeRing(child, stack)
 		stack = stack[:len(stack)-1]

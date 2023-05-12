@@ -17,6 +17,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	if err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, opts.ModelClient, &cred); err != nil {
 		return err
 	}
+
 	if cred.ClientID != "" && cred.ClientSecret != "" {
 		return nil
 	}
@@ -45,6 +46,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		// NB(thxCode): revert the token if occurs error,
 		// make the `initCasdoor` idempotent.
@@ -59,11 +61,13 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	if adminPassword == "" {
 		adminPassword = strs.Hex(16)
 	}
+
 	err = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret, casdoor.BuiltinOrg, casdoor.BuiltinAdmin,
 		"", adminPassword)
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		// NB(thxCode): revert the password if occurs error,
 		// make the `initCasdoor` idempotent.
@@ -79,14 +83,17 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 		if _, err = settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
 			return err
 		}
+
 		if _, err = settings.PrivilegeApiToken.Set(ctx, tx, token.AccessToken); err != nil {
 			return err
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	if r.BootstrapPassword == "" {
 		log.Infof("!!! Bootstrap Admin Password: %s !!!", adminPassword)
 	}

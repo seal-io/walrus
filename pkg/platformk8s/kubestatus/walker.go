@@ -50,7 +50,7 @@ var podStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[core.PodConditionType]) {
 		d.Make(core.DisruptionTarget,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case status.ConditionStatusTrue:
 					return "Evicted", true, false
@@ -78,7 +78,7 @@ var replicaSetStatusPaths = status.NewWalker(
 	func(d status.Decision[apps.ReplicaSetConditionType]) {
 		d.Make(
 			apps.ReplicaSetReplicaFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case status.ConditionStatusFalse:
 					return "ReplicaDeployed", false, false
@@ -131,7 +131,7 @@ var deploymentStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[apps.DeploymentConditionType]) {
 		d.Make(apps.DeploymentProgressing,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue && reason != "ReplicaSetUpdated" {
 					return "Progressed", false, false
 				}
@@ -142,7 +142,7 @@ var deploymentStatusPaths = status.NewWalker(
 			})
 
 		d.Make(apps.DeploymentReplicaFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case status.ConditionStatusFalse:
 					return "ReplicaDeployed", false, false
@@ -182,7 +182,7 @@ var jobStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[batch.JobConditionType]) {
 		d.Make(batch.JobSuspended,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case status.ConditionStatusTrue:
 					return "Suspending", false, true
@@ -195,7 +195,7 @@ var jobStatusPaths = status.NewWalker(
 			})
 
 		d.Make(batch.JobFailureTarget,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return displayFailed, true, false
 				}
@@ -203,7 +203,7 @@ var jobStatusPaths = status.NewWalker(
 			})
 
 		d.Make(batch.JobFailed,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return displayFailed, true, false
 				}
@@ -211,7 +211,7 @@ var jobStatusPaths = status.NewWalker(
 			})
 
 		d.Make(batch.JobComplete,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return "Completed", false, false
 				}
@@ -244,7 +244,7 @@ var hpaStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[autoscaling.HorizontalPodAutoscalerConditionType]) {
 		d.Make(autoscaling.ScalingLimited,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return "ScalingLimited", true, false
 				}
@@ -252,7 +252,7 @@ var hpaStatusPaths = status.NewWalker(
 			})
 
 		d.Make(autoscaling.AbleToScale,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue && reason == "SucceededRescale" {
 					return "Scaled", false, false
 				}
@@ -284,7 +284,7 @@ var csrStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[certificates.RequestConditionType]) {
 		d.Make(certificates.CertificateFailed,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return displayFailed, true, false
 				}
@@ -292,7 +292,7 @@ var csrStatusPaths = status.NewWalker(
 			})
 
 		d.Make(certificates.CertificateDenied,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return "Denied", true, false
 				}
@@ -300,7 +300,7 @@ var csrStatusPaths = status.NewWalker(
 			})
 
 		d.Make(certificates.CertificateApproved,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return "Approved", false, false
 				}
@@ -332,7 +332,7 @@ var networkPolicyStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[networking.NetworkPolicyConditionType]) {
 		d.Make(networking.NetworkPolicyConditionStatusPartialFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return "PartialFailed", true, false
 				}
@@ -340,7 +340,7 @@ var networkPolicyStatusPaths = status.NewWalker(
 			})
 
 		d.Make(networking.NetworkPolicyConditionStatusFailure,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				if st == status.ConditionStatusTrue {
 					return displayFailed, true, false
 				}
@@ -365,7 +365,7 @@ var pdbStatusPaths = status.NewWalker(
 	},
 	func(d status.Decision[string]) {
 		d.Make(policy.DisruptionAllowedCondition,
-			func(st status.ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+			func(st status.ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 				switch st {
 				case status.ConditionStatusTrue:
 					return "Active", false, false

@@ -67,6 +67,7 @@ output "test-module_test-output-sensitive" {
 		if err != nil {
 			assert.Errorf(t, err, "unexpected error: %v", err)
 		}
+
 		if !assert.Equal(t, string(tt.expected), string(got)) {
 			assert.Errorf(t, err, "name: %s", tt.name)
 		}
@@ -207,9 +208,11 @@ func TestToModuleBlock(t *testing.T) {
 			if err != nil {
 				t.Errorf("unexpected error: %s", err)
 			}
+
 			if moduleBlock.Labels[0] != tc.Expected.Labels[0] {
 				t.Errorf("expected block label %s, got %s", tc.Expected.Labels[0], moduleBlock.Labels[0])
 			}
+
 			if reflect.DeepEqual(moduleBlock.Attributes, tc.Expected.Attributes) {
 				t.Errorf("expected block attributes %v, got %v",
 					tc.Expected.Attributes, moduleBlock.Attributes)

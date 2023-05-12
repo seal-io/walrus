@@ -38,6 +38,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	if err != nil {
 		return nil, err
 	}
+
 	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
@@ -57,6 +58,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	if err != nil {
 		return err
 	}
+
 	return updates[0].Exec(ctx)
 }
 
@@ -80,6 +82,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -115,12 +118,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(project.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).
@@ -148,6 +154,7 @@ func (h Handler) GetSecrets(
 	}
 
 	var entities model.Secrets
+
 	err := query.
 		Where(secret.Or(
 			secret.ProjectIDIsNil(),

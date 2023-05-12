@@ -19,6 +19,7 @@ func ValidateAllocationQueries(queries []types.QueryCondition) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -27,6 +28,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 	if len(query.Filters) == 0 {
 		return errors.New("invalid filter: blank")
 	}
+
 	err := ValidateAllocationCostFilters(query.Filters)
 	if err != nil {
 		return err
@@ -36,6 +38,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 	if query.GroupBy == "" {
 		return errors.New("invalid group by: blank")
 	}
+
 	if !slice.ContainsAny([]types.GroupByField{
 		types.GroupByFieldConnectorID,
 		types.GroupByFieldNamespace,
@@ -89,9 +92,11 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 	if query.Paging.Page < 0 {
 		return fmt.Errorf("invalid page: negtive value")
 	}
+
 	if query.Paging.PerPage < 0 {
 		return fmt.Errorf("invalid per page: negtive value")
 	}
+
 	return nil
 }
 
@@ -131,6 +136,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 			return fmt.Errorf("invalid share strategy: unsupported")
 		}
 	}
+
 	return nil
 }
 
@@ -139,6 +145,7 @@ func ValidateAllocationCostFilters(filters types.AllocationCostFilters) error {
 		if len(condOr) == 0 {
 			return errors.New("invalid filter: blank")
 		}
+
 		for _, condAnd := range condOr {
 			// Include all.
 			if condAnd.IncludeAll {
@@ -164,5 +171,6 @@ func ValidateAllocationCostFilters(filters types.AllocationCostFilters) error {
 			}
 		}
 	}
+
 	return nil
 }

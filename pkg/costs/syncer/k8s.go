@@ -35,6 +35,7 @@ func NewK8sCostSyncer(client model.ClientSet, logger log.Logger) *K8sCostSyncer 
 	if logger == nil {
 		logger = log.WithName("cost")
 	}
+
 	return &K8sCostSyncer{
 		client: client,
 		logger: logger,
@@ -52,6 +53,7 @@ func (in *K8sCostSyncer) Sync(ctx context.Context, conn *model.Connector, startT
 
 func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, startTime, endTime *time.Time) error {
 	in.logger.Debugf("collect cost for connector: %s", conn.Name)
+
 	apiConfig, _, err := platformk8s.LoadApiConfig(*conn)
 	if err != nil {
 		return err
@@ -66,6 +68,7 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 	}
 
 	clusterName := apiConfig.CurrentContext
+
 	collect, err := collector.NewCollector(restCfg, conn, clusterName)
 	if err != nil {
 		return err
@@ -75,10 +78,12 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 	if err != nil {
 		return err
 	}
+
 	in.logger.Debugf("connector: %s, current sync costs within %s, %s", conn.Name, startTime, endTime)
 
 	curTimeRange := endTime.Sub(*startTime)
 	maxTimeRange := maxCollectTimeRange
+
 	if curTimeRange < maxTimeRange {
 		maxTimeRange = curTimeRange
 	}
@@ -112,6 +117,7 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 		)
 		stepStart = stepEnd
 	}
+
 	return nil
 }
 
@@ -132,6 +138,7 @@ func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*m
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("error batch create cluster costs: %w", err)
 	}
+
 	return nil
 }
 
@@ -153,6 +160,7 @@ func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs [
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("error batch create allocation costs: %w", err)
 	}
+
 	return nil
 }
 
@@ -199,6 +207,7 @@ func (in *K8sCostSyncer) timeRange(
 		if model.IsNotFound(err) {
 			return startTime, endTime, nil
 		}
+
 		return nil, nil, err
 	}
 

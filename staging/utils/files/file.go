@@ -9,6 +9,7 @@ func Exists(path string) bool {
 	if _, err := os.Lstat(path); err != nil {
 		return !os.IsNotExist(err)
 	}
+
 	return true
 }
 
@@ -17,7 +18,9 @@ func TempFile(pattern string) string {
 	if err != nil {
 		panic(fmt.Errorf("error creating temp file: %w", err))
 	}
+
 	defer func() { _ = f.Close() }()
+
 	return f.Name()
 }
 
@@ -26,5 +29,6 @@ func TempDir(pattern string) string {
 	if err != nil {
 		panic(fmt.Errorf("error creating temp dir: %w", err))
 	}
+
 	return n
 }

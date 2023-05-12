@@ -17,8 +17,10 @@ import (
 // which converts the chain calling error into response.
 func Erroring() Handle {
 	logger := log.WithName("api")
+
 	return func(c *gin.Context) {
 		c.Next()
+
 		if len(c.Errors) == 0 {
 			if c.Writer.Status() >= 400 && c.Writer.Written() && c.Writer.Size() == 0 {
 				_ = c.Error(Errorc(c.Writer.Status())).
@@ -34,6 +36,7 @@ func Erroring() Handle {
 			if raw := c.Request.URL.RawQuery; raw != "" {
 				reqPath = reqPath + "?" + raw
 			}
+
 			logger.Errorf("error requesting %s: %v", reqPath, me[len(me)-1])
 		}
 
@@ -78,6 +81,7 @@ func diagnoseError(ge *gin.Error) (int, string) {
 	}
 
 	var b strings.Builder
+
 	if ge.Meta != nil {
 		m, ok := ge.Meta.(RouteResourceHandleErrorMetadata)
 		if ok {
@@ -89,18 +93,23 @@ func diagnoseError(ge *gin.Error) (int, string) {
 	if ue := errors.Unwrap(err); ue != nil {
 		err = ue
 	}
+
 	for i := range diagnosis {
 		s := diagnosis[i].probe(err)
 		if s == "" {
 			continue
 		}
 		c = diagnosis[i].code
+
 		if b.Len() != 0 {
 			b.WriteString(": ")
 		}
+
 		b.WriteString(s)
+
 		break
 	}
+
 	return c, b.String()
 }
 
@@ -134,9 +143,11 @@ func isBadRequestError(err error) string {
 	if model.IsValidationError(err) {
 		return "datasource: violates validity detecting"
 	}
+
 	if strings.Contains(err.Error(), "sql: converting argument") {
 		return "datasource: invalid field parsing"
 	}
+
 	return ""
 }
 
@@ -147,6 +158,7 @@ func isNotFoundError(err error) string {
 	case model.IsNotSingular(err):
 		return "datasource: found more than one"
 	}
+
 	return ""
 }
 
@@ -157,6 +169,7 @@ func isConflictError(err error) string {
 	case sqlgraph.IsForeignKeyConstraintError(err):
 		return "datasource: be depended on other resources"
 	}
+
 	return ""
 }
 
@@ -167,6 +180,7 @@ func isUnprocessableEntityError(err error) string {
 	case errors.Is(err, sql.ErrNoRows):
 		return "datasource: no changed"
 	}
+
 	return ""
 }
 
@@ -177,5 +191,6 @@ func isInternalServerError(err error) string {
 	case errors.Is(err, sql.ErrTxDone):
 		return "datasource: transaction closed"
 	}
+
 	return ""
 }

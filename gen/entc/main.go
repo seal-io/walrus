@@ -39,6 +39,7 @@ func generate() (err error) {
 	schemaDir := filepath.Join(workingDir, "/pkg/dao/schema")
 	templateDir := filepath.Join(workingDir, "/pkg/dao/template")
 	generatingDir := files.TempDir("seal-dao-generated-*")
+
 	defer func() {
 		_ = os.RemoveAll(generatingDir)
 	}()
@@ -67,6 +68,7 @@ func generate() (err error) {
 		Schema:   "github.com/seal-io/seal/pkg/dao/schema",
 		Package:  "github.com/seal-io/seal/pkg/dao/model",
 	}
+
 	err = entc.Generate(schemaDir, &cfg, entc.TemplateDir(templateDir))
 	if err != nil {
 		return err
@@ -79,17 +81,19 @@ func generate() (err error) {
 			return fmt.Errorf("error cleaning stale generated files: %w", err)
 		}
 	}
+
 	defer func() {
 		if err != nil {
 			_ = os.Rename(oldGeneratedDir, targetDir)
 		}
 	}()
+
 	err = os.Rename(newGeneratedDir, targetDir)
 	if err != nil {
 		return fmt.Errorf("error move new generated files to %s: %w", targetDir, err)
 	}
 
-	return
+	return nil
 }
 
 // configStyle configures the style of generation.
