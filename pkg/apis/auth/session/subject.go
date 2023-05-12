@@ -46,6 +46,7 @@ func ParseSubjectKey(s string) (group, name string, err error) {
 	if len(ss) != 2 {
 		return "", "", fmt.Errorf("invalid cached subject: %s", s)
 	}
+
 	return ss[0], ss[1], nil
 }
 
@@ -58,12 +59,15 @@ func LoadSubject(c *gin.Context) (s Subject) {
 	s.Groups = c.GetStringSlice(authnSubjectGroupsKey)
 	s.Group = c.GetString(authnSubjectGroupKey)
 	s.Name = c.GetString(authnSubjectNameKey)
+
 	if v, exist := c.Get(authzSubjectRolesKey); exist {
 		s.Roles = v.(types.SubjectRoles)
 	}
+
 	if v, exist := c.Get(authzSubjectPoliciesKey); exist {
 		s.Policies = v.(types.RolePolicies)
 	}
+
 	return
 }
 
@@ -72,6 +76,7 @@ func LoadSubjectCurrentOperation(c *gin.Context) (o Operation) {
 	if v, exist := c.Get(authzSubjectCurrentOperationKey); exist {
 		return v.(Operation)
 	}
+
 	return
 }
 
@@ -104,12 +109,14 @@ func (s Subject) Enforce(c *gin.Context, resource string) bool {
 	action := c.Request.Method
 	id := c.Param("id")
 	url := c.FullPath()
+
 	for i := 0; i < len(s.Policies); i++ {
 		rp := &s.Policies[i]
 		if enforce(rp, action, resource, id, url) {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -142,6 +149,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 			// Unexpected resource.
 			return
 		}
+
 		return true
 	case 1:
 		if rp.Resources[0] == "*" {
@@ -173,6 +181,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 			}
 		case 0:
 		}
+
 		return true
 	case 0:
 	}
@@ -185,6 +194,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 func (s Subject) Give(resource string) (p Permission) {
 	for i := 0; i < len(s.Policies); i++ {
 		rp := &s.Policies[i]
+
 		pk, pv := getPermission(rp, resource)
 		for k, idx := range getOperators() {
 			if pk&k == 0 {
@@ -192,10 +202,12 @@ func (s Subject) Give(resource string) (p Permission) {
 			}
 			p[idx] = p[idx].merge(pv)
 		}
+
 		if pk == operatingAny {
 			return
 		}
 	}
+
 	return
 }
 
@@ -262,5 +274,6 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 
 	// Check scope.
 	pv.scope = rp.Scope
-	return
+
+	return pk, pv
 }

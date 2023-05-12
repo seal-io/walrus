@@ -15,6 +15,7 @@ func ApplicationResourceCreates(
 	}
 
 	rrs := make([]*model.ApplicationResourceCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -37,5 +38,6 @@ func ApplicationResourceCreates(
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

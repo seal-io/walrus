@@ -20,6 +20,7 @@ const (
 // Time zone Asia/Shanghai in posix is UTC-8.
 func TimezoneInPosix(offset int) string {
 	timeZone := "UTC"
+
 	if offset != 0 {
 		utcOffSig := "-"
 		utcOffHrs := offset / 60 / 60
@@ -31,6 +32,7 @@ func TimezoneInPosix(offset int) string {
 
 		timeZone = fmt.Sprintf("UTC%s%d", utcOffSig, utcOffHrs)
 	}
+
 	return timeZone
 }
 
@@ -68,15 +70,18 @@ func StartOfYear(t time.Time, loc *time.Location) time.Time {
 // return the time series.
 func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]time.Time, error) {
 	var timeSeries []time.Time
+
 	switch step {
 	case Day:
 		start = StartOfDay(start, loc)
 		startTimeOfEnd := StartOfDay(end, loc)
+
 		if !startTimeOfEnd.Equal(end) {
 			end = startTimeOfEnd
 		} else {
 			end = startTimeOfEnd.AddDate(0, 0, -1)
 		}
+
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfDay(start, loc))
 			start = start.AddDate(0, 0, 1)
@@ -84,11 +89,13 @@ func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]tim
 	case Week:
 		start = StartOfWeek(start, loc)
 		startTimeOfEnd := StartOfWeek(end, loc)
+
 		if !startTimeOfEnd.Equal(end) {
 			end = startTimeOfEnd
 		} else {
 			end = startTimeOfEnd.AddDate(0, 0, -7)
 		}
+
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfWeek(start, loc))
 			start = start.AddDate(0, 0, 7)
@@ -96,11 +103,13 @@ func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]tim
 	case Month:
 		start = StartOfMonth(start, loc)
 		startTimeOfEnd := StartOfMonth(end, loc)
+
 		if !startTimeOfEnd.Equal(end) {
 			end = startTimeOfEnd
 		} else {
 			end = startTimeOfEnd.AddDate(0, -1, 0)
 		}
+
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfMonth(start, loc))
 			start = start.AddDate(0, 1, 0)
@@ -108,11 +117,13 @@ func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]tim
 	case Quarter:
 		start = StartOfQuarter(start, loc)
 		startTimeOfEnd := StartOfQuarter(end, loc)
+
 		if !startTimeOfEnd.Equal(end) {
 			end = startTimeOfEnd
 		} else {
 			end = startTimeOfEnd.AddDate(0, -3, 0)
 		}
+
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfQuarter(start, loc))
 			start = start.AddDate(0, 3, 0)
@@ -120,11 +131,13 @@ func GetTimeSeries(start, end time.Time, step string, loc *time.Location) ([]tim
 	case Year:
 		start = StartOfYear(start, loc)
 		startTimeOfEnd := StartOfYear(end, loc)
+
 		if !startTimeOfEnd.Equal(end) {
 			end = startTimeOfEnd
 		} else {
 			end = startTimeOfEnd.AddDate(-1, 0, 0)
 		}
+
 		for !start.After(end) {
 			timeSeries = append(timeSeries, StartOfYear(start, loc))
 			start = start.AddDate(1, 0, 0)

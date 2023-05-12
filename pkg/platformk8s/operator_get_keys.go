@@ -58,6 +58,7 @@ func (op Operator) GetKeys(
 	sort.SliceStable(ps, func(i, j int) bool {
 		return ps[i].CreationTimestamp.Time.After(ps[j].CreationTimestamp.Time)
 	})
+
 	for i := 0; i < len(ps); i++ {
 		running := kube.IsPodRunning(&ps[i])
 		states := kube.GetContainerStates(&ps[i])
@@ -74,8 +75,10 @@ func (op Operator) GetKeys(
 				Executable: pointer.Bool(running && states[j].State == kube.ContainerStateRunning),
 			})
 		}
+
 		ks.Keys = append(ks.Keys, k)
 	}
+
 	return &ks, nil
 }
 
@@ -95,11 +98,13 @@ func (op Operator) getPods(
 		}
 		// Warn out if got above errors.
 		op.Logger.Warn(err)
+
 		return nil, nil
 	}
 
 	// Get pods of resources.
 	var ps []core.Pod
+
 	for _, r := range rs {
 		switch r.Resource {
 		case "pods":
@@ -107,33 +112,41 @@ func (op Operator) getPods(
 			if err != nil {
 				return nil, err
 			}
+
 			if p == nil {
 				continue
 			}
+
 			ps = append(ps, *p)
 		case "cronjobs":
 			psp, err := op.getPodsOfCronJob(ctx, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
+
 			if psp == nil {
 				continue
 			}
+
 			ps = append(ps, *psp...)
 		default:
 			psp, err := op.getPodsOfAny(ctx, r.GroupVersionResource, r.Namespace, r.Name)
 			if err != nil {
 				return nil, err
 			}
+
 			if psp == nil {
 				continue
 			}
+
 			ps = append(ps, *psp...)
 		}
 	}
+
 	if len(ps) == 0 {
 		return nil, nil
 	}
+
 	return &ps, nil
 }
 
@@ -143,6 +156,7 @@ func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) 
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
+
 	p, err := coreCli.Pods(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
@@ -150,8 +164,10 @@ func (op Operator) getPod(ctx context.Context, ns, n string) (*core.Pod, error) 
 			return nil, fmt.Errorf("error getting kubernetes %s/%s pod: %w",
 				ns, n, err)
 		}
+
 		return nil, nil
 	}
+
 	return p, nil
 }
 
@@ -161,6 +177,7 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 	if err != nil {
 		return nil, fmt.Errorf("error creating kuberentes batch client: %w", err)
 	}
+
 	cj, err := batchCli.CronJobs(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
@@ -168,46 +185,57 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 			return nil, fmt.Errorf("error getting kubernetes %s/%s cronjob: %w",
 				ns, n, err)
 		}
+
 		return nil, nil
 	}
 
 	// Fetch jobs in pagination and filter out.
 	var js []*batch.Job
 	jlo := meta.ListOptions{Limit: 100}
+
 	for {
 		var jl *batch.JobList
+
 		jl, err = batchCli.Jobs(ns).List(ctx, jlo)
 		if err != nil {
 			return nil, fmt.Errorf("error listing kubernetes %s jobs: %w",
 				ns, err)
 		}
+
 		for i := 0; i < len(jl.Items); i++ {
 			if !meta.IsControlledBy(&jl.Items[i], cj) {
 				continue
 			}
+
 			js = append(js, &jl.Items[i])
 		}
+
 		jlo.Continue = jl.Continue
 		if jlo.Continue == "" {
 			break
 		}
 	}
+
 	if len(js) == 0 {
 		return nil, nil
 	}
 
 	// Fetch pods with job label.
 	var ps []core.Pod
+
 	coreCli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
+
 	for i := 0; i < len(js); i++ {
 		ss := labels.SelectorFromSet(labels.Set{
 			"controller-uid": string(js[i].UID),
 			"job-name":       js[i].Name,
 		}).String()
+
 		var pl *core.PodList
+
 		pl, err = coreCli.Pods(ns).
 			List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // Non quorum read.
 		if err != nil {
@@ -215,15 +243,19 @@ func (op Operator) getPodsOfCronJob(ctx context.Context, ns, n string) (*[]core.
 				return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
 					ns, ss, err)
 			}
+
 			continue
 		}
+
 		for j := 0; j < len(pl.Items); j++ {
 			ps = append(ps, pl.Items[j])
 		}
 	}
+
 	if len(ps) == 0 {
 		return nil, nil
 	}
+
 	return &ps, nil
 }
 
@@ -237,6 +269,7 @@ func (op Operator) getPodsOfAny(
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes dynamic client: %w", err)
 	}
+
 	o, err := dynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
@@ -244,8 +277,10 @@ func (op Operator) getPodsOfAny(
 			return nil, fmt.Errorf("error getting kubernetes %s %s/%s: %w",
 				gvr.Resource, ns, n, err)
 		}
+
 		return nil, nil
 	}
+
 	_, s, err := polymorphic.SelectorsForObject(o)
 	if err != nil {
 		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w",
@@ -254,15 +289,18 @@ func (op Operator) getPodsOfAny(
 
 	// Fetch pods with label selector.
 	ss := s.String()
+
 	coreCli, err := coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
+
 	pl, err := coreCli.Pods(ns).
 		List(ctx, meta.ListOptions{ResourceVersion: "0", LabelSelector: ss}) // Non quorum read.
 	if err != nil {
 		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w",
 			ns, ss, err)
 	}
+
 	return &pl.Items, nil
 }

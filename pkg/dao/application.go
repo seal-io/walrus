@@ -35,6 +35,7 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 	// Construct relationships.
 	newRss := ac.entity.Edges.Modules
 	createRss := make([]*model.ApplicationModuleRelationshipCreate, len(newRss))
+
 	for i, rs := range newRss {
 		if rs == nil {
 			return nil, errors.New("invalid input: nil relationship")
@@ -61,7 +62,8 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 		return
 	}
 	created.Edges.Modules = newRss
-	return
+
+	return created, nil
 }
 
 func (ac *WrappedApplicationCreate) Exec(ctx context.Context) error {
@@ -75,6 +77,7 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 	}
 
 	rrs := make([]*WrappedApplicationCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -87,9 +90,11 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 
 		// Optional.
 		c.SetDescription(r.Description)
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
+
 		if r.Variables != nil {
 			c.SetVariables(r.Variables)
 		}
@@ -98,6 +103,7 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			entity:            input[i],
 		}
 	}
+
 	return rrs, nil
 }
 
@@ -143,6 +149,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	applicationID := oldEntity.ID
 	newRsKeys := sets.New[string]()
 	newRss := au.entity.Edges.Modules
+
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(applicationID), rs.ModuleID, rs.Name))
 
@@ -195,7 +202,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 		}
 	}
 
-	return
+	return updated, nil
 }
 
 func (au *WrappedApplicationUpdate) Exec(ctx context.Context) error {
@@ -209,6 +216,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 	}
 
 	rrs := make([]*WrappedApplicationUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -216,6 +224,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 
 		// Predicated.
 		var ps []predicate.Application
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, application.ID(r.ID))
@@ -225,6 +234,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 				application.Name(r.Name),
 			))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -236,9 +246,11 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 		if r.Name != "" {
 			c.SetName(r.Name)
 		}
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
+
 		if r.Variables != nil {
 			c.SetVariables(r.Variables)
 		}
@@ -248,5 +260,6 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			entityPredicates:  ps,
 		}
 	}
+
 	return rrs, nil
 }

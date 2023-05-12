@@ -28,6 +28,7 @@ func TestStepDistribute(t *testing.T) {
 	}
 	ctx := context.Background()
 	client := enttest.Open(t, "postgres", dsa)
+
 	defer func() {
 		err := client.Close()
 		if err != nil {

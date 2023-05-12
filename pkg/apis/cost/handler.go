@@ -54,6 +54,7 @@ func (h Handler) CollectionRouteAllocationCost(
 	}
 
 	resp := runtime.GetResponseCollection(ctx, items, count)
+
 	return &resp, nil
 }
 
@@ -106,6 +107,7 @@ func (h Handler) CollectionRouteSummaryCost(
 			Value string `json:"value"`
 		}
 	)
+
 	err = h.modelClient.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -119,6 +121,7 @@ func (h Handler) CollectionRouteSummaryCost(
 	}
 
 	var projectCount int
+
 	for _, v := range projects {
 		if v.Value != "" {
 			projectCount += 1
@@ -127,6 +130,7 @@ func (h Handler) CollectionRouteSummaryCost(
 
 	// Days.
 	_, offset := req.StartTime.Zone()
+
 	days, err := h.clusterCostExistedDays(ctx, clusterCostPs, offset)
 	if err != nil {
 		return nil, err
@@ -164,6 +168,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(
 	}
 
 	var s []view.SummaryClusterCostResponse
+
 	err := h.modelClient.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -186,6 +191,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(
 
 	// Days.
 	_, offset := req.StartTime.Zone()
+
 	days, err := h.clusterCostExistedDays(ctx, ps, offset)
 	if err != nil {
 		return nil, err
@@ -205,6 +211,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(
 	summary := s[0]
 	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
+
 	return &summary, nil
 }
 
@@ -219,6 +226,7 @@ func (h Handler) CollectionRouteSummaryProjectCost(
 	}
 
 	var s []view.SummaryCostCommonResponse
+
 	err := h.modelClient.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -238,6 +246,7 @@ func (h Handler) CollectionRouteSummaryProjectCost(
 
 	// Days.
 	_, offset := req.StartTime.Zone()
+
 	days, err := h.allocationCostExistedDays(ctx, ps, offset)
 	if err != nil {
 		return nil, err
@@ -257,6 +266,7 @@ func (h Handler) CollectionRouteSummaryProjectCost(
 	summary := s[0]
 	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, s[0].TotalCost)
+
 	return &summary, nil
 }
 
@@ -286,6 +296,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(
 	}
 
 	_, offset := req.StartTime.Zone()
+
 	days, err := h.allocationCostExistedDays(ctx, ps, offset)
 	if err != nil {
 		return nil, err
@@ -316,6 +327,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(
 	summary.CollectedTimeRange = timeRange
 	summary.AverageDailyCost = averageDaily(days, summary.TotalCost)
 	summary.ConnectorCount = count
+
 	return summary, nil
 }
 

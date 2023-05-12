@@ -44,6 +44,7 @@ func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 	if err != nil {
 		return err
 	}
+
 	for i := range creates {
 		err = creates[i].
 			OnConflict(
@@ -62,5 +63,6 @@ func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 			return err
 		}
 	}
+
 	return nil
 }

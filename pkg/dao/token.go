@@ -12,6 +12,7 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 	}
 
 	rrs := make([]*model.TokenCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -27,5 +28,6 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 		c.SetNillableExpiration(r.Expiration)
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

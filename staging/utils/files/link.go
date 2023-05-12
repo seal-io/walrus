@@ -15,6 +15,7 @@ func LinkEvenIfNotFound(isFile bool, perm os.FileMode) LinkOptions {
 	return func(o *linkOptions) {
 		o.create = true
 		o.createFile = isFile
+
 		if perm != 0 {
 			o.createPerm = &perm
 		}
@@ -61,10 +62,12 @@ type linkOptions struct {
 
 func Link(src, dst string, opts ...LinkOptions) error {
 	var o linkOptions
+
 	for i := range opts {
 		if opts[i] == nil {
 			continue
 		}
+
 		opts[i](&o)
 	}
 
@@ -74,9 +77,11 @@ func Link(src, dst string, opts ...LinkOptions) error {
 			return err
 		}
 		m := os.FileMode(0o666)
+
 		if o.createPerm != nil {
 			m = *o.createPerm
 		}
+
 		if !o.createFile {
 			if err = os.MkdirAll(src, m); err != nil {
 				return fmt.Errorf("cannot create src dir: %w", err)
@@ -102,6 +107,7 @@ func Link(src, dst string, opts ...LinkOptions) error {
 		if !o.replace {
 			return errors.New("dst is not empty")
 		}
+
 		if err = os.Remove(dst); err != nil {
 			return fmt.Errorf("cannot clean dst: %w", err)
 		}
@@ -119,9 +125,11 @@ func Link(src, dst string, opts ...LinkOptions) error {
 			if srcInfo.Mode()&os.ModeSymlink == 0 {
 				break
 			}
+
 			if src, err = os.Readlink(src); err != nil {
 				return fmt.Errorf("failed to read origin of link src: %w", err)
 			}
+
 			if srcInfo, err = os.Lstat(src); err != nil {
 				return fmt.Errorf("failed to stat origin of link src: %w", err)
 			}
@@ -138,11 +146,13 @@ func Link(src, dst string, opts ...LinkOptions) error {
 			return fmt.Errorf("cannot preserve times: %w", err)
 		}
 	}
+
 	if o.preserveOwner {
 		uid, gid := fileOwner(srcInfo)
 		if err = os.Lchown(dst, uid, gid); err != nil {
 			return fmt.Errorf("cannot preserve owner: %w", err)
 		}
 	}
+
 	return nil
 }

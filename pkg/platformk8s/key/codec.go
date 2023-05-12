@@ -11,6 +11,7 @@ import (
 // Valid container types have `initContainer`, `ephemeralContainer`, `container`.
 func Decode(s string) (podNamespace, podName, containerType, containerName string, ok bool) {
 	ss := strings.SplitN(s, "/", 4)
+
 	ok = len(ss) == 4
 	if !ok {
 		return
@@ -19,6 +20,7 @@ func Decode(s string) (podNamespace, podName, containerType, containerName strin
 	podName = ss[1]
 	containerType = ss[2]
 	containerName = ss[3]
+
 	return
 }
 

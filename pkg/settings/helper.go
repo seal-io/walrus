@@ -18,6 +18,7 @@ func httpSchemeUrlOnly(scheme string) bool {
 	case "http", "https":
 		return true
 	}
+
 	return false
 }
 
@@ -26,6 +27,7 @@ func sockSchemeUrlOnly(scheme string) bool {
 	case "socks4", "socks5":
 		return true
 	}
+
 	return false
 }
 
@@ -37,22 +39,26 @@ func parseUrl(str string, check urlSchemeChecker) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s is illegal URL format: %w", str, err)
 	}
+
 	scheme := v.Scheme
 	if check != nil {
 		if !check(scheme) {
 			return nil, fmt.Errorf("invalid scheme: %s", scheme)
 		}
 	}
+
 	port := v.Port()
 	if port != "" {
 		p, err := strconv.ParseUint(port, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing given port: %w", err)
 		}
+
 		if p > 65535 {
 			return nil, fmt.Errorf("error given port %d: exceeded upper limit", p)
 		}
 	}
+
 	return v, nil
 }
 

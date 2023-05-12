@@ -30,38 +30,44 @@ func parseResourcesOfHelm(
 		RESTClientGetter: helm.IncompleteRestClientGetter(*op.RestConfig),
 		Log:              op.Logger.Debugf,
 	}
+
 	hr, err := helm.GetRelease(ctx, res, opts)
 	if err != nil {
 		return nil, resourceParsingError("error parsing helm release: " + err.Error())
 	}
 
-	// Parse helm release.
-	var rs []resource
 	hms := releaseutil.SplitManifests(hr.Manifest)
 	if len(hms) == 0 {
 		return nil, nil
 	}
 	hs := polymorphic.YamlSerializer()
+	// Parse helm release.
+	rs := make([]resource, 0, len(hms))
+
 	for k := range hms {
 		var (
 			obj unstructured.Unstructured
 			gvk *schema.GroupVersionKind
 		)
 		ms := hms[k]
+
 		_, gvk, err = hs.Decode(strs.ToBytes(&ms), nil, &obj)
 		if err != nil {
 			op.Logger.Warnf("error decoding helm release resource: %v", err)
 			continue
 		}
+
 		if !match(*gvk) {
 			continue
 		}
 		gvr, _ := meta.UnsafeGuessKindToResource(*gvk)
+
 		rs = append(rs, resource{
 			GroupVersionResource: gvr,
 			Namespace:            obj.GetNamespace(),
 			Name:                 obj.GetName(),
 		})
 	}
+
 	return rs, nil
 }

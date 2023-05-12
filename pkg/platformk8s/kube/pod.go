@@ -11,10 +11,12 @@ func IsPodReady(pod *core.Pod) bool {
 	if !IsPodRunning(pod) {
 		return false
 	}
+
 	c, exist := GetPodCondition(&pod.Status, core.PodReady)
 	if exist {
 		return c.Status == core.ConditionTrue
 	}
+
 	return false
 }
 
@@ -23,6 +25,7 @@ func IsPodRunning(pod *core.Pod) bool {
 	if !IsPodAssigned(pod) {
 		return false
 	}
+
 	return pod.Status.Phase == core.PodRunning
 }
 
@@ -31,6 +34,7 @@ func IsPodAssigned(pod *core.Pod) bool {
 	if pod == nil {
 		return false
 	}
+
 	return pod.Spec.NodeName != ""
 }
 
@@ -39,11 +43,13 @@ func GetPodCondition(status *core.PodStatus, conditionType core.PodConditionType
 	if status == nil {
 		return
 	}
+
 	for i := range status.Conditions {
 		if status.Conditions[i].Type == conditionType {
 			return &status.Conditions[i], true
 		}
 	}
+
 	return
 }
 
@@ -70,6 +76,7 @@ func IsContainerRunning(pod *core.Pod, c Container) bool {
 	}
 
 	css := make([]*[]core.ContainerStatus, 0, 3)
+
 	switch c.Type {
 	case ContainerRun:
 		css = append(css, &pod.Status.ContainerStatuses)
@@ -91,9 +98,11 @@ func IsContainerRunning(pod *core.Pod, c Container) bool {
 			if cs[j].Name != c.Name {
 				continue
 			}
+
 			return cs[j].State.Running != nil
 		}
 	}
+
 	return false
 }
 
@@ -128,17 +137,20 @@ func IsContainerExisted(pod *core.Pod, c Container) bool {
 				return true
 			}
 		}
+
 		for i := range pod.Spec.InitContainers {
 			if pod.Spec.InitContainers[i].Name == c.Name {
 				return true
 			}
 		}
+
 		for i := range pod.Spec.EphemeralContainers {
 			if pod.Spec.EphemeralContainers[i].Name == c.Name {
 				return true
 			}
 		}
 	}
+
 	return false
 }
 
@@ -164,6 +176,7 @@ func GetContainerStateType(s core.ContainerState) ContainerStateType {
 	case s.Terminated != nil:
 		return ContainerStateTerminated
 	}
+
 	return ContainerStateUnknown
 }
 
@@ -207,6 +220,7 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 		cs := *css[i].Statuses
 		for j := 0; j < len(cs); j++ {
 			s := &cs[j]
+
 			r = append(r, ContainerState{
 				Type:      css[i].Type,
 				Namespace: pod.Namespace,
@@ -217,5 +231,6 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 			})
 		}
 	}
-	return
+
+	return r
 }

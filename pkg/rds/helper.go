@@ -20,6 +20,7 @@ func GetDriverAndName(dataSourceAddress string) (dsd, dsn string, err error) {
 		err = errors.New("blank data source address")
 		return
 	}
+
 	switch {
 	case strings.HasPrefix(dataSourceAddress, "postgres://"):
 		dsd = "postgres"
@@ -31,9 +32,11 @@ func GetDriverAndName(dataSourceAddress string) (dsd, dsn string, err error) {
 		dsd = "mysql"
 		dsn = strings.TrimPrefix(dataSourceAddress, "mysql://")
 	}
+
 	if dsd == "" {
 		err = errors.New("cannot recognize driver from data source address")
 	}
+
 	return
 }
 
@@ -43,6 +46,7 @@ func LoadDriver(dataSourceAddress string) (drvDialect string, drv *sql.DB, err e
 		return
 	}
 	drv, err = sql.Open(drvDialect, drvSource)
+
 	return
 }
 
@@ -53,6 +57,7 @@ func Wait(ctx context.Context, drv *sql.DB) error {
 			if err != nil {
 				log.Warnf("waiting for database to be ready: %v", err)
 			}
+
 			return err == nil, ctx.Err()
 		},
 	)

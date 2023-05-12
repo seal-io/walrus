@@ -14,6 +14,7 @@ func DateTruncWithZoneOffsetSQL(field, step string, offset int) (string, error) 
 	}
 
 	timezone := timex.TimezoneInPosix(offset)
+
 	switch step {
 	case timex.Day, timex.Week, timex.Month, timex.Quarter, timex.Year:
 		return fmt.Sprintf(`date_trunc('%s', (%s AT TIME ZONE '%s'))`, step, field, timezone), nil

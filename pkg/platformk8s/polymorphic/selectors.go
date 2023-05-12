@@ -19,6 +19,7 @@ func SelectorsForObject(obj *unstructured.Unstructured) (ns string, s labels.Sel
 		"StatefulSet", "DaemonSet", "Deployment",
 		"Job":
 		ns = obj.GetNamespace()
+
 		lso, exist, _ := unstructured.NestedFieldNoCopy(obj.Object, "spec", "selector")
 		if !exist {
 			return "", nil, fmt.Errorf("%s defined without a selector",
@@ -30,18 +31,22 @@ func SelectorsForObject(obj *unstructured.Unstructured) (ns string, s labels.Sel
 			return "", nil, fmt.Errorf("failed %s marshall, %w",
 				obj.GetKind(), err)
 		}
+
 		var ls meta.LabelSelector
+
 		err = json.Unmarshal(lsob, &ls)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed %s unmarshall, %w",
 				obj.GetKind(), err)
 		}
+
 		s, err = meta.LabelSelectorAsSelector(&ls)
 		if err != nil {
 			return "", nil, fmt.Errorf("invalid label selector, %w", err)
 		}
 	case "ReplicationController", "Service":
 		ns = obj.GetNamespace()
+
 		ss, exist, _ := unstructured.NestedStringMap(obj.Object, "spec", "selector")
 		if !exist {
 			return "", nil, fmt.Errorf("%s defined without a selector",
@@ -49,5 +54,6 @@ func SelectorsForObject(obj *unstructured.Unstructured) (ns string, s labels.Sel
 		}
 		s = labels.SelectorFromSet(ss)
 	}
-	return
+
+	return ns, s, nil
 }

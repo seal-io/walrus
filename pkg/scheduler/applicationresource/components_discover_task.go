@@ -34,6 +34,7 @@ func NewComponentsDiscoverTask(mc model.ClientSet) (*ComponentsDiscoverTask, err
 	in := &ComponentsDiscoverTask{}
 	in.modelClient = mc
 	in.logger = log.WithName("task").WithName(in.Name())
+
 	return in, nil
 }
 
@@ -47,6 +48,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 		return nil
 	}
 	startTs := time.Now()
+
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -61,14 +63,17 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 	if err != nil {
 		return fmt.Errorf("cannot list all connectors: %w", err)
 	}
+
 	if len(cs) == 0 {
 		return nil
 	}
 	wg := gopool.Group()
+
 	for i := range cs {
 		st := in.buildSyncTasks(ctx, cs[i])
 		wg.Go(st)
 	}
+
 	return wg.Wait()
 }
 
@@ -80,6 +85,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 		if err != nil {
 			return err
 		}
+
 		if err = op.IsConnected(ctx); err != nil {
 			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", c.ID)
@@ -93,20 +99,25 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 		if err != nil {
 			return fmt.Errorf("cannot count not discovered resources of connector %q: %w", c.ID, err)
 		}
+
 		if cnt == 0 {
 			return nil
 		}
+
 		const bks = 100
+
 		bkc := cnt/bks + 1
 		if bkc == 1 {
 			at := in.buildSyncTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
 		wg := gopool.Group()
+
 		for bk := 0; bk < bkc; bk++ {
 			at := in.buildSyncTask(ctx, op, c.ID, bk*bks, bks)
 			wg.Go(at)
 		}
+
 		return wg.Wait()
 	}
 }
@@ -146,6 +157,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			if multierr.AppendInto(&berr, err) {
 				continue
 			}
+
 			if observedComps == nil {
 				continue
 			}
@@ -160,19 +172,23 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 
 			// Calculate creating list and deleting list.
 			observedCompsIndex := make(map[string]*model.ApplicationResource, len(observedComps))
+
 			for j := range observedComps {
 				c := observedComps[j]
 				observedCompsIndex[strs.Join("/", c.Type, c.Name)] = c
 			}
 			deleteCompIDs := make([]oid.ID, 0, len(recordComps))
+
 			for _, c := range recordComps {
 				k := strs.Join("/", c.Type, c.Name)
 				if observedCompsIndex[k] != nil {
 					delete(observedCompsIndex, k)
 					continue
 				}
+
 				deleteCompIDs = append(deleteCompIDs, c.ID)
 			}
+
 			createComps := make([]*model.ApplicationResource, 0, len(observedCompsIndex))
 			for k := range observedCompsIndex {
 				createComps = append(createComps, observedCompsIndex[k])

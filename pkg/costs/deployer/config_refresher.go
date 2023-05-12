@@ -37,6 +37,7 @@ func UpdateCustomPricing(ctx context.Context, conn *model.Connector) error {
 	if err = refreshCustomPricing(conn, restCfg); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -48,6 +49,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 
 	configMaps := corev1Client.ConfigMaps(types.SealSystemNamespace)
 	current := opencostCustomPricingConfigMap(conn)
+
 	existed, err := configMaps.Get(ctx, ConfigMapNameOpencost, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -56,6 +58,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 				return fmt.Errorf("error create configmap %s:%s, %w",
 					types.SealSystemNamespace, ConfigMapNameOpencost, err)
 			}
+
 			return nil
 		}
 
@@ -67,6 +70,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 	}
 
 	existed.Data = current.Data
+
 	_, err = configMaps.Update(ctx, existed, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("error update configmap %s:%s, %w", types.SealSystemNamespace, ConfigMapNameOpencost, err)
@@ -96,5 +100,6 @@ func refreshCustomPricing(conn *model.Connector, restCfg *rest.Config) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error response from %s, expected %d but get code: %d", url, http.StatusOK, resp.StatusCode)
 	}
+
 	return nil
 }

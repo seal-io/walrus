@@ -51,6 +51,7 @@ func RoutePost(r gin.IRoutes, p string, h any) error {
 	case HTTPHandler:
 		r.POST(p, WrapHTTPHandler(t))
 	}
+
 	return nil
 }
 
@@ -81,6 +82,7 @@ func RouteDelete(r gin.IRoutes, p string, h any) error {
 	case HTTPHandler:
 		r.DELETE(p, WrapHTTPHandler(t))
 	}
+
 	return nil
 }
 
@@ -111,6 +113,7 @@ func RoutePut(r gin.IRoutes, p string, h any) error {
 	case HTTPHandler:
 		r.PUT(p, WrapHTTPHandler(t))
 	}
+
 	return nil
 }
 
@@ -141,6 +144,7 @@ func RouteGet(r gin.IRoutes, p string, h any) error {
 	case HTTPHandler:
 		r.GET(p, WrapHTTPHandler(t))
 	}
+
 	return nil
 }
 
@@ -171,6 +175,7 @@ func RouteHead(r gin.IRoutes, p string, h any) error {
 	case HTTPHandler:
 		r.HEAD(p, WrapHTTPHandler(t))
 	}
+
 	return nil
 }
 
@@ -189,10 +194,12 @@ func RouteStatic(r gin.IRoutes, p string, h any) error {
 	if err != nil {
 		return err
 	}
+
 	err = RouteGet(r, p, h)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -227,6 +234,7 @@ type RouteResourceHandleErrorMetadata struct {
 //	            failed to stream log application instance
 func (m RouteResourceHandleErrorMetadata) String() string {
 	var sb strings.Builder
+
 	sb.WriteString("failed to ")
 
 	n := m.Name
@@ -235,11 +243,13 @@ func (m RouteResourceHandleErrorMetadata) String() string {
 	rn := strings.TrimPrefix(n, "Route")
 	n, isCustomized := rn, rn != n
 	sb.WriteString(strings.ReplaceAll(strs.Dasherize(n), "-", " "))
+
 	if !isCustomized {
 		r := m.Resource
 		if !isPlural {
 			r = strs.Singularize(r)
 		}
+
 		sb.WriteString(" ")
 		sb.WriteString(strings.ReplaceAll(strs.Dasherize(r), "-", " "))
 	}
@@ -323,6 +333,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 
 	k := h.Kind()
 	resource, resourcePath := getResourceAndResourcePath(k)
+
 	rhs := getRouteHandlers(h, resourcePath)
 	for i := range rhs {
 		rh := rhs[i]
@@ -335,6 +346,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			ip      *InputProfile
 			ipState map[ProfileCategory]bool
 		)
+
 		if rh.refs[0].IsValid() {
 			mr = rh.refs[0]
 			mrt = mr.Type()
@@ -351,6 +363,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			sip      *InputProfile
 			sipState map[ProfileCategory]bool
 		)
+
 		if len(rh.refs) == 2 && rh.refs[1].IsValid() {
 			smr = rh.refs[1]
 			smrt = smr.Type()
@@ -373,12 +386,15 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				} else {
 					c.AbortWithStatus(http.StatusForbidden)
 				}
+
 				return
 			}
+
 			session.StoreSubjectCurrentOperation(c, s.Give(resource).If(c.Request.Method))
 
 			// Check request whether to stream.
 			var withStream bool
+
 			if isStreamRequest(c) {
 				if !smr.IsValid() {
 					c.AbortWithStatus(http.StatusBadRequest)
@@ -396,33 +412,39 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				rit      = it
 				ripState = ipState
 			)
+
 			if withStream {
 				rmr = smr
 				rit = sit
 				ripState = sipState
 			}
+
 			var ri reflect.Value
 			if rit.Kind() == reflect.Pointer {
 				ri = reflect.New(rit.Elem())
 			} else {
 				ri = reflect.New(rit)
 			}
+
 			if ripState[ProfileCategoryHeader] {
 				if err := c.BindHeader(ri.Interface()); err != nil {
 					return
 				}
 			}
+
 			if ripState[ProfileCategoryUri] {
 				if err := c.BindUri(ri.Interface()); err != nil {
 					return
 				}
 			}
+
 			if ripState[ProfileCategoryQuery] {
 				if err := binding.MapFormWithTag(ri.Interface(),
 					c.Request.URL.Query(), "query"); err != nil {
 					return
 				}
 			}
+
 			if c.Request.ContentLength != 0 {
 				switch c.ContentType() {
 				case binding.MIMEPOSTForm:
@@ -445,14 +467,17 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 					}
 				}
 			}
+
 			if rv, ok := ri.Interface().(Validator); ok {
 				if err := rv.Validate(); err != nil {
 					_ = c.Error(err).
 						SetType(gin.ErrorTypeBind).
 						SetMeta(vhm)
+
 					return
 				}
 			}
+
 			if rv, ok := ri.Interface().(ValidatorWithInput); ok {
 				hv, ok := h.(ValidatingInput)
 				if ok {
@@ -460,10 +485,12 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 						_ = c.Error(err).
 							SetType(gin.ErrorTypeBind).
 							SetMeta(vhm)
+
 						return
 					}
 				}
 			}
+
 			if rit.Kind() != reflect.Pointer {
 				ri = ri.Elem()
 			}
@@ -487,46 +514,57 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				// Already render inside the above processing.
 				return
 			}
+
 			errInterface := outputs[len(outputs)-1].Interface()
 			if errInterface != nil {
 				err := errInterface.(error)
 				ge := c.Error(err)
+
 				if !isGinError(err) {
 					_ = ge.SetType(gin.ErrorTypePrivate).
 						SetMeta(vhm)
 				}
+
 				return
 			}
 			code := http.StatusOK
+
 			switch len(outputs) {
 			case 1:
 				if rh.method == http.MethodPost {
 					code = http.StatusNoContent
 				}
+
 				c.Writer.WriteHeader(code)
 			case 2:
 				if outputs[0].IsZero() {
 					if rh.method == http.MethodPost {
 						code = http.StatusNoContent
 					}
+
 					c.Writer.WriteHeader(code)
+
 					return
 				}
+
 				if rh.method == http.MethodPost {
 					code = http.StatusCreated
 				}
+
 				obj := outputs[0].Interface()
 				switch ot := obj.(type) {
 				case rendCloser:
 					if ot == nil {
 						return
 					}
+
 					defer func() { _ = ot.Close() }()
 					c.Render(code, ot)
 				case render.Render:
 					if ot == nil {
 						return
 					}
+
 					c.Render(code, ot)
 				default:
 					c.JSON(code, obj) // TODO negotiate.
@@ -546,6 +584,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			rip  = ip
 			rmrt = mrt
 		)
+
 		if rip == nil {
 			rip = sip
 			rmrt = smrt
@@ -591,6 +630,7 @@ const (
 func getRouteHandlers(h Resource, p string) []routeHandler {
 	logger := log.WithName("api")
 
+	//nolint:prealloc
 	var list []routeHandler
 	index := map[string]int{}
 
@@ -622,6 +662,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			forStream = true
 			rh.method = http.MethodGet
 			rh.refs = []reflect.Value{{}, mr}
+
 			if mn == streamPrefix {
 				rh.path = path.Join("/", p, ":id")
 			} else {
@@ -633,6 +674,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			forCollection = true
 			rh.method = http.MethodGet
 			rh.refs = []reflect.Value{{}, mr}
+
 			if mn == collectionStreamPrefix {
 				rh.path = path.Join("/", p)
 			} else {
@@ -647,6 +689,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			}
 		case strings.HasPrefix(mn, collectionCreatePrefix):
 			forCollection = true
+
 			rh.method = http.MethodPost
 			if mn == collectionCreatePrefix {
 				rh.path = path.Join("/", p, "_", "batch")
@@ -662,6 +705,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			}
 		case strings.HasPrefix(mn, collectionDeletePrefix):
 			forCollection = true
+
 			rh.method = http.MethodDelete
 			if mn == collectionDeletePrefix {
 				rh.path = path.Join("/", p)
@@ -677,6 +721,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			}
 		case strings.HasPrefix(mn, collectionUpdatePrefix):
 			forCollection = true
+
 			rh.method = http.MethodPut
 			if mn == collectionUpdatePrefix {
 				rh.path = path.Join("/", p)
@@ -692,6 +737,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			}
 		case strings.HasPrefix(mn, collectionGetPrefix):
 			forCollection = true
+
 			rh.method = http.MethodGet
 			if mn == collectionGetPrefix {
 				rh.path = path.Join("/", p)
@@ -699,6 +745,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				rh.path = path.Join("/", p, "_", strs.Dasherize(mn[len(collectionGetPrefix):]))
 			}
 		}
+
 		ms.Delete(mn)
 
 		// Validate.
@@ -718,6 +765,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						return fmt.Errorf("illegal first input type of '%s': expected *gin.Context", mn)
 					}
 				}
+
 				if !forCollection {
 					switch mrt.In(1).Kind() {
 					default:
@@ -748,9 +796,11 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						mrt.NumOut(),
 					)
 				}
+
 				if !isTypeOfInt(mrt.Out(1)) {
 					return fmt.Errorf("illegal second output type of '%s': expected int", mn)
 				}
+
 				if !isImplementationOfError(mrt.Out(2)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
@@ -762,6 +812,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						mrt.NumOut(),
 					)
 				}
+
 				if !isImplementationOfError(mrt.Out(1)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
@@ -773,10 +824,12 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						mrt.NumOut(),
 					)
 				}
+
 				if !isImplementationOfError(mrt.Out(0)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
 			}
+
 			return nil
 		}()
 		if err != nil {
@@ -794,8 +847,10 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 					list[idx].refs[0] = mr
 					list[idx].name = mn // Rename to GET handler.
 				}
+
 				continue
 			}
+
 			if forStream { // Attach to GET handler.
 				rh.refs = []reflect.Value{{}, mr}
 			}
@@ -824,6 +879,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			forCollection = true
 			rh.path = path.Join("/", p, "_") // Part.
 		}
+
 		ms.Delete(mn)
 
 		// Validate and complete.
@@ -836,6 +892,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				if !isTypeOfGinContext(mrt.In(0)) {
 					return fmt.Errorf("illegal first input type of '%s': expected *gin.Context", mn)
 				}
+
 				switch mrt.In(1).Kind() {
 				default:
 					return fmt.Errorf("illegal last input type of '%s': expected struct or pointer type", mn)
@@ -848,6 +905,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				}
 				rh.method = rp.Method
 				rh.path = path.Join(rh.path, rp.SubPath)
+
 				if _, exist := index[rh.method+":"+rh.path]; exist {
 					return fmt.Errorf("invalid subpath definition of '%s': conflict", mn)
 				}
@@ -868,9 +926,11 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						mrt.NumOut(),
 					)
 				}
+
 				if !isTypeOfInt(mrt.Out(1)) {
 					return fmt.Errorf("illegal second output type of '%s': expected int", mn)
 				}
+
 				if !isImplementationOfError(mrt.Out(2)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
@@ -886,10 +946,12 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 						mrt.NumOut(),
 					)
 				}
+
 				if !isImplementationOfError(mrt.Out(0)) {
 					return fmt.Errorf("illegal last output type of '%s': expected error", mn)
 				}
 			}
+
 			return nil
 		}()
 		if err != nil {
@@ -903,6 +965,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			if exist {
 				list[idx].refs[0] = mr
 				list[idx].name = mn // Rename to the GET handler.
+
 				continue
 			}
 		}
@@ -920,6 +983,7 @@ type rendCloser interface {
 
 func isImplementationOfError(r reflect.Type) bool {
 	expected := reflect.TypeOf((*error)(nil)).Elem()
+
 	switch r.Kind() {
 	default:
 		return false
@@ -933,6 +997,7 @@ func isTypeOfRequestStream(r reflect.Type) bool {
 		expectedUnidi = reflect.TypeOf(RequestUnidiStream{}).String()
 		expectedBidi  = reflect.TypeOf(RequestBidiStream{}).String()
 	)
+
 	switch r.Kind() {
 	default:
 		return false
@@ -944,6 +1009,7 @@ func isTypeOfRequestStream(r reflect.Type) bool {
 
 func isTypeOfGinContext(r reflect.Type) bool {
 	expected := reflect.TypeOf(gin.Context{}).String()
+
 	switch r.Kind() {
 	default:
 		return false
@@ -960,6 +1026,7 @@ func isTypeOfInt(r reflect.Type) bool {
 func getResourceAndResourcePath(k string) (rk, rp string) {
 	rk = strs.CamelizeDownFirst(strs.Pluralize(k))
 	rp = strings.ToLower(strs.Pluralize(strs.Dasherize(rk)))
+
 	return
 }
 

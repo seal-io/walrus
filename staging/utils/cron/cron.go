@@ -23,15 +23,32 @@ type Task interface {
 // TaskFunc implements the Task interface to provide a convenient wrapper.
 type TaskFunc func(ctx context.Context, args ...interface{}) error
 
+// Expr holds the definition of cron expression.
+type Expr interface {
+	fmt.Stringer
+
+	runImmediately() bool
+}
+
+var (
+	globalScheduler = New()
+	cronParser      = cronlib.NewParser(
+		cronlib.Second | cronlib.Minute | cronlib.Hour | cronlib.Dom | cronlib.Month | cronlib.Dow | cronlib.Descriptor)
+)
+
+func init() {
+	gocron.SetPanicHandler(func(jobName string, recoverData interface{}) {
+		log.WithName("task").Errorf("panic in job: %s, recover data: %v", jobName, recoverData)
+	})
+}
+
 func (fn TaskFunc) Process(ctx context.Context, args ...interface{}) error {
 	if fn == nil {
 		return nil
 	}
+
 	return fn(ctx, args...)
 }
-
-var cronParser = cronlib.NewParser(
-	cronlib.Second | cronlib.Minute | cronlib.Hour | cronlib.Dom | cronlib.Month | cronlib.Dow | cronlib.Descriptor)
 
 // parseCronExpr parses the given string as cronlib.Schedule,
 // returns nil in none strict mode if passing blank string.
@@ -39,10 +56,12 @@ func parseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
 	if !strict && ce == "" {
 		return nil, nil
 	}
+
 	cron, err := cronParser.Parse(ce)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cron expression: %w", err)
 	}
+
 	return cron, nil
 }
 
@@ -52,14 +71,8 @@ func ValidateCronExpr(ce string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
-}
-
-// Expr holds the definition of cron expression.
-type Expr interface {
-	fmt.Stringer
-
-	runImmediately() bool
 }
 
 type scheduleCronExpr struct {
@@ -127,6 +140,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 			err = in.task.Process(ctx, t...)
 		}
 	}
+
 	if err != nil {
 		logger.Errorf("error executing task: %s: %v", in.task.Name(), err)
 	} else {
@@ -141,6 +155,7 @@ type emptyVariadicList struct{}
 
 func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) (err error) {
 	ce := cron.String()
+
 	ceParsed, err := parseCronExpr(ce, false)
 	if err != nil {
 		return
@@ -150,18 +165,22 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 	if err != nil && !errors.Is(err, gocron.ErrJobNotFoundWithTag) {
 		return
 	}
+
 	if ceParsed == nil {
 		return
 	}
 
 	const atLeast = 5 * time.Minute
+
 	var (
 		now  = time.Now()
 		next = ceParsed.Next(now).Sub(now)
 	)
+
 	if next > atLeast {
 		next >>= 1
 	}
+
 	if next < atLeast {
 		next = atLeast
 	}
@@ -170,6 +189,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 		name:    name,
 		task:    task,
 	}
+
 	var variadicArgs interface{}
 	if len(taskArgs) == 0 {
 		variadicArgs = emptyVariadicList{}
@@ -182,7 +202,8 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 		s.StartImmediately()
 	}
 	_, err = s.Do(tt.Process, in.c, variadicArgs)
-	return
+
+	return err
 }
 
 func (in *scheduler) Start(ctx context.Context) error {
@@ -192,6 +213,7 @@ func (in *scheduler) Start(ctx context.Context) error {
 	s.StartAsync()
 	in.c = ctx
 	in.s = s
+
 	return nil
 }
 
@@ -199,16 +221,9 @@ func (in *scheduler) Stop() error {
 	if in.s != nil {
 		in.s.Stop()
 	}
+
 	return nil
 }
-
-func init() {
-	gocron.SetPanicHandler(func(jobName string, recoverData interface{}) {
-		log.WithName("task").Errorf("panic in job: %s, recover data: %v", jobName, recoverData)
-	})
-}
-
-var globalScheduler = New()
 
 // New returns a new Scheduler.
 func New() Scheduler {

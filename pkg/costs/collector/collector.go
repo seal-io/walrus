@@ -60,6 +60,7 @@ func NewCollector(
 	if err != nil {
 		return nil, err
 	}
+
 	return &Collector{
 		clusterName:   clusterName,
 		clusterClient: client,
@@ -87,6 +88,7 @@ func (c *Collector) K8sCosts(
 	}
 
 	c.applyExtraCostInfo(cc, ac)
+
 	return cc, ac, nil
 }
 
@@ -125,6 +127,7 @@ func (c *Collector) allocationResourceCosts(
 	}
 
 	var costs []*model.AllocationCost
+
 	for _, data := range ac.Data {
 		for _, v := range data {
 			ka := v.kubecostAllocation()
@@ -163,6 +166,7 @@ func (c *Collector) allocationResourceCosts(
 			costs = append(costs, cost)
 		}
 	}
+
 	return costs, nil
 }
 
@@ -172,9 +176,11 @@ func (c *Collector) clusterCosts(
 	step time.Duration,
 ) ([]*model.ClusterCost, error) {
 	var costs []*model.ClusterCost
+
 	stepStart := *startTime
 	for endTime.After(stepStart) {
 		stepEnd := stepStart.Add(step)
+
 		cc, err := c.clusterCostsWithinRange(&stepStart, &stepEnd)
 		if err != nil {
 			return nil, err
@@ -186,6 +192,7 @@ func (c *Collector) clusterCosts(
 		}
 
 		stepStart = stepStart.Add(step)
+
 		switch {
 		case cc == nil:
 			continue
@@ -195,6 +202,7 @@ func (c *Collector) clusterCosts(
 			costs = append(costs, cc)
 		}
 	}
+
 	return costs, nil
 }
 
@@ -228,10 +236,12 @@ func (c *Collector) clusterCostsWithinRange(
 	}
 
 	var clusterCost *costmodel.ClusterCosts
+
 	for _, v := range cc.Data {
 		if v != nil {
 			clusterCost = v
 		}
+
 		break
 	}
 
@@ -251,6 +261,7 @@ func (c *Collector) clusterCostsWithinRange(
 
 func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.AllocationCost) {
 	allocationCosts := make(map[string]*model.AllocationCost)
+
 	for _, v := range acs {
 		key := fmt.Sprintf(
 			"%s-%s",
@@ -275,6 +286,7 @@ func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.Al
 			ccs[i].TotalCost += ac.LoadBalancerCost
 			ccs[i].AllocationCost = ac.TotalCost
 			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ccs[i].AllocationCost
+
 			if idleCost > 0 {
 				ccs[i].IdleCost = idleCost
 			}
@@ -315,10 +327,12 @@ func (c *Collector) clusterManagementCost(startTime, endTime *time.Time) (float6
 	}
 
 	value := obj.Data.Result[0].Values[0][1]
+
 	mgntCost, err := strconv.ParseFloat(fmt.Sprintf("%v", value), 64)
 	if err != nil {
 		return 0, err
 	}
+
 	return mgntCost, nil
 }
 
@@ -346,6 +360,7 @@ func (c *Collector) getRequest(url string, obj interface{}) error {
 	if err = json.Unmarshal(body, obj); err != nil {
 		return fmt.Errorf("decode response from %s: %w", url, err)
 	}
+
 	return nil
 }
 
@@ -361,16 +376,19 @@ func toPVs(pvAlloc kubecost.PVAllocations) map[string]types.PVCost {
 			Bytes: v.ByteHours,
 		}
 	}
+
 	return pvs
 }
 
 func toLabels(origin map[string]string) map[string]string {
 	labels := origin
+
 	for k, v := range origin {
 		mapping, ok := labelMapping[k]
 		if ok {
 			labels[mapping] = v
 		}
 	}
+
 	return labels
 }

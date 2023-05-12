@@ -104,6 +104,7 @@ func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deplo
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubernetes client set: %w", err)
 	}
+
 	return &Deployer{
 		modelClient: opts.ModelClient,
 		clientSet:   clientSet,
@@ -161,6 +162,7 @@ func (d Deployer) Destroy(
 	if err != nil {
 		return err
 	}
+
 	ar, err := d.CreateApplicationRevision(ctx, CreateRevisionOptions{
 		JobType:             JobTypeDestroy,
 		Application:         app,
@@ -185,6 +187,7 @@ func (d Deployer) Destroy(
 	if err != nil {
 		return err
 	}
+
 	if !exist {
 		return d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusSucceeded, ar.StatusMessage)
 	}
@@ -214,10 +217,12 @@ func (d Deployer) Rollback(
 	}
 
 	status.ApplicationInstanceStatusDeployed.Reset(ai, "Rolling back")
+
 	update, err := dao.ApplicationInstanceUpdate(d.modelClient, ai)
 	if err != nil {
 		return err
 	}
+
 	ai, err = update.Save(ctx)
 	if err != nil {
 		return err
@@ -234,21 +239,26 @@ func (d Deployer) Rollback(
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err == nil {
 			return
 		}
+
 		if ar != nil {
 			// Report to application revision.
 			_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 			return
 		}
+
 		status.ApplicationInstanceStatusDeployed.False(ai, err.Error())
+
 		instanceUpdate, updateErr := dao.ApplicationInstanceUpdate(d.modelClient, ai)
 		if updateErr != nil {
 			d.logger.Error(err)
 			return
 		}
+
 		updateErr = instanceUpdate.Exec(ctx)
 		if updateErr != nil {
 			d.logger.Errorf("update application instance status failed: %v", updateErr)
@@ -310,6 +320,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		ApplicationRevisionID: opts.ApplicationRevision.ID.String(),
 		Image:                 jobImage,
 	}
+
 	return CreateJob(ctx, d.clientSet, jobOpts)
 }
 
@@ -317,6 +328,7 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.Applicatio
 	// Report to application revision.
 	ar.Status = s
 	ar.StatusMessage = m
+
 	update, err := dao.ApplicationRevisionUpdate(d.modelClient, ar)
 	if err != nil {
 		return err
@@ -347,6 +359,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	if err != nil {
 		return err
 	}
+
 	for k, v := range terraformData {
 		secretData[k] = v
 	}
@@ -356,6 +369,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 	if err != nil {
 		return err
 	}
+
 	for k, v := range providerData {
 		secretData[k] = v
 	}
@@ -423,12 +437,14 @@ func (d Deployer) CreateApplicationRevision(
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
+
 	if prevEntity != nil {
 		if prevEntity.Status == status.ApplicationRevisionStatusRunning {
 			return nil, errors.New("application deployment is running")
 		}
 		// Inherit the output of previous revision.
 		entity.Output = prevEntity.Output
+
 		requiredProviders, err := d.getRequiredProviders(ctx, opts.ApplicationInstance.ID, entity.Output)
 		if err != nil {
 			return nil, err
@@ -451,6 +467,7 @@ func (d Deployer) CreateApplicationRevision(
 	if err != nil {
 		return nil, err
 	}
+
 	return creates[0].Save(ctx)
 }
 
@@ -460,22 +477,27 @@ func (d Deployer) getRequiredProviders(
 	previousOutput string,
 ) ([]types.ProviderRequirement, error) {
 	stateRequiredProviderSet := sets.NewString()
+
 	previousRequiredProviders, err := d.getPreviousRequiredProviders(ctx, instanceID)
 	if err != nil {
 		return nil, err
 	}
+
 	stateRequiredProviders, err := ParseStateProviders(previousOutput)
 	if err != nil {
 		return nil, err
 	}
+
 	stateRequiredProviderSet.Insert(stateRequiredProviders...)
 
 	requiredProviders := make([]types.ProviderRequirement, 0, len(previousRequiredProviders))
+
 	for _, p := range previousRequiredProviders {
 		if stateRequiredProviderSet.Has(p.Name) {
 			requiredProviders = append(requiredProviders, p)
 		}
 	}
+
 	return requiredProviders, nil
 }
 
@@ -512,6 +534,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	if err != nil {
 		return nil, err
 	}
+
 	if serverAddress == "" {
 		return nil, errors.New("server address is empty")
 	}
@@ -528,6 +551,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, p := range providerRequirements {
 		requiredProviderNames = requiredProviderNames.Insert(p.Name)
 	}
+
 	secretNames := make([]string, 0, len(secrets))
 	for _, s := range secrets {
 		secretNames = append(secretNames, s.Name)
@@ -538,6 +562,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	for _, v := range moduleConfigs {
 		outputCount += len(v.Outputs)
 	}
+
 	outputs := make([]config.Output, 0, outputCount)
 	for _, v := range moduleConfigs {
 		outputs = append(outputs, v.Outputs...)
@@ -571,6 +596,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		config.FileVars: getVarConfigOptions(secrets, opts.ApplicationRevision.InputVariables),
 	}
 	secretMaps := make(map[string][]byte, 0)
+
 	for k, v := range secretOptionMaps {
 		secretMaps[k], err = config.CreateConfigToBytes(v)
 		if err != nil {
@@ -589,10 +615,12 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		}
 		opts.ApplicationRevision.Secrets = secretMap
 	}
+
 	update, err := dao.ApplicationRevisionUpdate(d.modelClient, opts.ApplicationRevision)
 	if err != nil {
 		return nil, err
 	}
+
 	revision, err := update.Save(ctx)
 	if err != nil {
 		return nil, err
@@ -608,10 +636,12 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 // GetProviderSecretData returns provider kubeconfig secret data mount into terraform container.
 func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string][]byte, error) {
 	secretData := make(map[string][]byte)
+
 	for _, c := range connectors {
 		if c.Type != types.ConnectorTypeK8s {
 			continue
 		}
+
 		_, s, err := platformk8s.LoadApiConfig(*c)
 		if err != nil {
 			return nil, err
@@ -622,6 +652,7 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 		secretFileName := util.GetK8sSecretName(c.ID.String())
 		secretData[secretFileName] = []byte(s)
 	}
+
 	return secretData, nil
 }
 
@@ -632,12 +663,12 @@ func (d Deployer) GetModuleConfigs(
 	opts CreateSecretsOptions,
 ) ([]*config.ModuleConfig, []types.ProviderRequirement, error) {
 	var (
-		moduleConfigs     []*config.ModuleConfig
 		requiredProviders = make([]types.ProviderRequirement, 0)
 		// Module id -> module source.
 		moduleVersionMap = make(map[string]*model.ModuleVersion, 0)
 		predicates       = make([]predicate.ModuleVersion, 0)
 		ar               = opts.ApplicationRevision
+		moduleConfigs    = make([]*config.ModuleConfig, 0, len(ar.Modules))
 	)
 
 	for _, m := range ar.Modules {
@@ -646,6 +677,7 @@ func (d Deployer) GetModuleConfigs(
 			moduleversion.Version(m.Version),
 		))
 	}
+
 	moduleVersions, err := d.modelClient.ModuleVersions().
 		Query().
 		Select(
@@ -668,6 +700,7 @@ func (d Deployer) GetModuleConfigs(
 	for _, m := range moduleVersions {
 		moduleVersionMap[moduleVersionKey(m.ModuleID, m.Version)] = m
 	}
+
 	for _, m := range ar.Modules {
 		modVer, ok := moduleVersionMap[moduleVersionKey(m.ModuleID, m.Version)]
 		if !ok {
@@ -675,10 +708,12 @@ func (d Deployer) GetModuleConfigs(
 		}
 
 		var mc *config.ModuleConfig
+
 		mc, err = getModuleConfig(m, modVer, opts)
 		if err != nil {
 			return nil, nil, err
 		}
+
 		moduleConfigs = append(moduleConfigs, mc)
 
 		if modVer.Schema != nil {
@@ -710,6 +745,7 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.ApplicationInstan
 	for i := range rs {
 		cs = append(cs, rs[i].Edges.Connector)
 	}
+
 	return cs, nil
 }
 
@@ -738,6 +774,7 @@ func (d Deployer) parseModuleSecrets(
 
 		return secrets, nil
 	}
+
 	nameIn := make([]interface{}, len(moduleSecrets))
 	for i, name := range moduleSecrets {
 		nameIn[i] = name
@@ -796,6 +833,7 @@ func (d Deployer) parseModuleSecrets(
 		foundSecretSet.Insert(s.Name)
 	}
 	requiredSecretSet := sets.NewString(moduleSecrets...)
+
 	missingSecretSet := requiredSecretSet.Difference(foundSecretSet)
 	if missingSecretSet.Len() > 0 {
 		return nil, fmt.Errorf("missing secrets: %s", missingSecretSet.List())
@@ -810,10 +848,7 @@ func (d Deployer) getPreviousRequiredProviders(
 	ctx context.Context,
 	instanceID types.ID,
 ) ([]types.ProviderRequirement, error) {
-	var (
-		prevRequiredProviders = make([]types.ProviderRequirement, 0)
-		predicates            []predicate.ModuleVersion
-	)
+	prevRequiredProviders := make([]types.ProviderRequirement, 0)
 
 	entity, err := d.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.InstanceID(instanceID)).
@@ -822,10 +857,12 @@ func (d Deployer) getPreviousRequiredProviders(
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
+
 	if entity == nil {
 		return prevRequiredProviders, nil
 	}
 
+	predicates := make([]predicate.ModuleVersion, 0, len(entity.Modules))
 	for _, m := range entity.Modules {
 		predicates = append(predicates, moduleversion.And(
 			moduleversion.ModuleID(m.ModuleID),
@@ -844,9 +881,11 @@ func (d Deployer) getPreviousRequiredProviders(
 			if mv.Schema == nil {
 				continue
 			}
+
 			prevRequiredProviders = append(prevRequiredProviders, mv.Schema.RequiredProviders...)
 		}
 	}
+
 	prevRequiredProviders = append(prevRequiredProviders, entity.PreviousRequiredProviders...)
 
 	return prevRequiredProviders, nil
@@ -869,7 +908,9 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 	if err != nil {
 		return err
 	}
+
 	var instanceUpdate *model.ApplicationInstanceUpdateOne
+
 	switch revision.Status {
 	case status.ApplicationRevisionStatusSucceeded:
 		if status.ApplicationInstanceStatusDeleted.IsUnknown(appInstance) {
@@ -891,12 +932,14 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 			status.ApplicationInstanceStatusDeployed.False(appInstance, "")
 		}
 		appInstance.Status.SummaryStatusMessage = revision.StatusMessage
+
 		instanceUpdate, err = dao.ApplicationInstanceUpdate(mc, appInstance)
 		if err != nil {
 			return err
 		}
 		err = instanceUpdate.Exec(ctx)
 	}
+
 	if err != nil {
 		return err
 	}
@@ -930,12 +973,15 @@ func parseAttributeReplace(
 		case reflect.String:
 			str := value.(string)
 			matches := _secretReg.FindAllStringSubmatch(str, -1)
+
 			var matched []string
+
 			for _, match := range matches {
 				if len(match) > 1 {
 					matched = append(matched, match[1])
 				}
 			}
+
 			secretNames = append(secretNames, matched...)
 			varRepl := "${var." + _varPrefix + "${1}}"
 			str = _varReg.ReplaceAllString(str, varRepl)
@@ -955,6 +1001,7 @@ func parseAttributeReplace(
 			}
 		}
 	}
+
 	return secretNames
 }
 
@@ -984,6 +1031,7 @@ func getModuleConfig(
 		typesWith          = appMod.Attributes.TypesWith(modVer.Schema.Variables)
 		sensitiveVariables = sets.Set[string]{}
 	)
+
 	for k, v := range appMod.Attributes {
 		props[k] = property.Property{
 			Type:  typesWith[k],
@@ -1000,6 +1048,7 @@ func getModuleConfig(
 			sensitiveVariables.Insert(k)
 		}
 	}
+
 	attrs, err := props.TypedValues()
 	if err != nil {
 		return nil, err
@@ -1023,6 +1072,7 @@ func getModuleConfig(
 
 		// Add seal metadata.
 		var attrValue string
+
 		switch v.Name {
 		case SealMetadataProjectName:
 			attrValue = ops.ProjectName
@@ -1059,18 +1109,24 @@ func getModuleConfig(
 			mc.Outputs[i].Sensitive = true
 		}
 	}
+
 	return mc, nil
 }
 
 func matchAnyRegex(list []string) (*regexp.Regexp, error) {
 	var sb strings.Builder
+
 	sb.WriteString("(")
+
 	for i, v := range list {
 		sb.WriteString(fmt.Sprintf(`var\.%s`, v))
+
 		if i < len(list)-1 {
 			sb.WriteString("|")
 		}
 	}
+
 	sb.WriteString(")")
+
 	return regexp.Compile(sb.String())
 }

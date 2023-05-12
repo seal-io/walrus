@@ -25,9 +25,11 @@ func (r *Server) setupK8sCtrls(ctx context.Context, opts setupK8sCtrlsOptions) e
 			ModelClient: opts.ModelClient,
 		},
 	}
+
 	err = mgr.Start(ctx, startOpts)
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
+
 	return nil
 }

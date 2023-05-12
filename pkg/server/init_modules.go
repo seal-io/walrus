@@ -54,6 +54,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 	if err != nil {
 		return err
 	}
+
 	for i := range creates {
 		// Do nothing if the module has been created.
 		err = creates[i].
@@ -65,6 +66,7 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 				// No rows error is reasonable for nothing updating.
 				continue
 			}
+
 			return err
 		}
 
@@ -73,5 +75,6 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 			return err
 		}
 	}
+
 	return nil
 }

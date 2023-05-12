@@ -10,6 +10,7 @@ import (
 const actionUpdate = "update"
 
 func getInputFields(n *gen.Type, a string) []*gen.Field {
+	//nolint:prealloc
 	var fs []*gen.Field
 
 	// Append for query action.
@@ -23,10 +24,12 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 				fs = append(fs, f)
 			}
 		}
+
 		return fs
 	}
 
 	ignoreSet := sets.New[string]("createTime", "updateTime")
+
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
@@ -41,6 +44,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 			n.ID.StructTag = `uri:"id" json:"-"`
 			fs = append(fs, n.ID)
 		}
+
 		for _, f := range n.EdgeSchema.ID {
 			if f == nil || ignoreSet.Has(f.Name) {
 				continue
@@ -55,6 +59,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		if f == nil || ignoreSet.Has(f.Name) {
 			continue
 		}
+
 		switch a {
 		default:
 			continue
@@ -66,24 +71,29 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 			}
 			f.StructTag = getStructTag(f, true)
 		}
+
 		fs = append(fs, f)
 	}
 
 	// Distinct.
-	var nfs []*gen.Field
+	nfs := make([]*gen.Field, 0, len(fs))
 	fdSet := sets.New[string]()
+
 	for i := range fs {
 		if fdSet.Has(fs[i].Name) {
 			continue
 		}
+
 		fdSet.Insert(fs[i].Name)
 		nfs = append(nfs, fs[i])
 	}
+
 	return nfs
 }
 
 func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 	ignoreSet := sets.New[string]()
+
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
@@ -93,7 +103,7 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 		ignoreSet.Insert(fk.Edge.Ref.Name)
 	}
 
-	var es []*gen.Edge
+	es := make([]*gen.Edge, 0, len(n.Edges))
 
 	// Append.
 	for _, e := range n.Edges {
@@ -101,6 +111,7 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 			// NB(thxCode): cannot process edges that defining without `.Field()`.
 			continue
 		}
+
 		switch {
 		default:
 			continue
@@ -124,6 +135,7 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 			//      [entity a] *-1 [relationship] 1-* [entity b],
 			// generate [relationship] into [entity b].
 		}
+
 		switch a {
 		default:
 			continue
@@ -135,13 +147,16 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 			}
 			e.StructTag = getStructTag(e, true)
 		}
+
 		es = append(es, e)
 	}
+
 	return es
 }
 
 func getOutputFields(n *gen.Type) []*gen.Field {
 	ignoreSet := sets.New[string]()
+
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
@@ -149,6 +164,7 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 		// Ignore defined foreign key.
 		ignoreSet.Insert(fk.Field.Name)
 	}
+
 	for _, f := range n.Fields {
 		if f == nil || !f.Sensitive() {
 			continue
@@ -158,7 +174,9 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 	}
 
 	// Append.
+	//nolint:prealloc
 	var fs []*gen.Field
+
 	if n.HasOneFieldID() {
 		n.ID.StructTag = `json:"id,omitempty"`
 		fs = append(fs, n.ID)
@@ -171,6 +189,7 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 			fs = append(fs, f)
 		}
 	}
+
 	for _, f := range n.Fields {
 		if f == nil || ignoreSet.Has(f.Name) {
 			continue
@@ -180,20 +199,24 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 	}
 
 	// Distinct.
-	var nfs []*gen.Field
+	nfs := make([]*gen.Field, 0, len(fs))
 	fdSet := sets.New[string]()
+
 	for i := range fs {
 		if fdSet.Has(fs[i].Name) {
 			continue
 		}
+
 		fdSet.Insert(fs[i].Name)
 		nfs = append(nfs, fs[i])
 	}
+
 	return nfs
 }
 
 func getOutputEdges(n *gen.Type) []*gen.Edge {
 	ignoreSet := sets.New[string]()
+
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
@@ -204,7 +227,8 @@ func getOutputEdges(n *gen.Type) []*gen.Edge {
 	}
 
 	// Append.
-	var es []*gen.Edge
+	es := make([]*gen.Edge, 0, len(n.Edges))
+
 	for _, e := range n.Edges {
 		if e == nil || ignoreSet.Has(e.Name) {
 			continue
@@ -213,22 +237,27 @@ func getOutputEdges(n *gen.Type) []*gen.Edge {
 		e.StructTag = getStructTag(e, true)
 		es = append(es, e)
 	}
+
 	return es
 }
 
 func getStructTag(v any, mustOmit bool) string {
 	camel := gen.Funcs["camel"].(func(string) string)
+
 	switch f := v.(type) {
 	case *gen.Field:
 		if mustOmit || f.Nillable || f.Optional || f.Default || f.UpdateDefault || f.Validators == 0 || f.Sensitive() {
 			return fmt.Sprintf(`json:"%s,omitempty"`, camel(f.Name))
 		}
+
 		return fmt.Sprintf(`json:"%s"`, camel(f.Name))
 	case *gen.Edge:
 		if mustOmit || f.Optional || !f.Unique {
 			return fmt.Sprintf(`json:"%s,omitempty"`, camel(f.Name))
 		}
+
 		return fmt.Sprintf(`json:"%s"`, camel(f.Name))
 	}
+
 	return `json:"-"`
 }

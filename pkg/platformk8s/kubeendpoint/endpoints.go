@@ -32,12 +32,14 @@ func GetServiceEndpoints(
 		resourceSubKind = string(svc.Spec.Type)
 		endpoints       []string
 	)
+
 	switch svc.Spec.Type {
 	case apicorev1.ServiceTypeNodePort:
 		accessIP, err := nodeIP(ctx, kubeCli, svc)
 		if err != nil {
 			return nil, err
 		}
+
 		for _, port := range svc.Spec.Ports {
 			nodePort := strconv.FormatInt(int64(port.NodePort), 10)
 			endpoints = append(endpoints, net.JoinHostPort(accessIP, nodePort))
@@ -55,6 +57,7 @@ func GetServiceEndpoints(
 	if len(endpoints) == 0 {
 		return nil, nil
 	}
+
 	return []types.ApplicationResourceEndpoint{
 		{
 			EndpointType: resourceSubKind,
@@ -75,6 +78,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 	}
 
 	nodes := list.Items
+
 	if svc.Spec.ExternalTrafficPolicy == apicorev1.ServiceExternalTrafficPolicyTypeLocal {
 		k8sEndpoints, err := kubeCli.CoreV1().Endpoints(svc.Namespace).
 			Get(ctx, svc.Name, metav1.GetOptions{ResourceVersion: "0"})
@@ -83,6 +87,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 		}
 
 		nameSet := sets.Set[string]{}
+
 		for _, v := range k8sEndpoints.Subsets {
 			for _, addr := range v.Addresses {
 				nameSet.Insert(*addr.NodeName)
@@ -90,6 +95,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 		}
 
 		var filtered []apicorev1.Node
+
 		for _, node := range nodes {
 			if nameSet.Has(node.Name) {
 				filtered = append(filtered, node)
@@ -117,6 +123,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 				internalIP = ip.Address
 			}
 		}
+
 		if externalIP != "" {
 			return externalIP, nil
 		}
@@ -130,6 +137,7 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 		if ing.Hostname != "" {
 			return ing.Hostname
 		}
+
 		if ing.IP != "" {
 			return ing.IP
 		}
@@ -146,6 +154,7 @@ func GetIngressEndpoints(
 	if err != nil {
 		return nil, err
 	}
+
 	return []types.ApplicationResourceEndpoint{
 		{
 			Endpoints: ingressEndpoints(*ing),
@@ -168,6 +177,7 @@ func ingressEndpoints(ing apinetworkingv1.Ingress) []string {
 	}
 
 	var endpoints []string
+
 	for _, v := range ing.Spec.Rules {
 		scheme := "http"
 		if tlsHostSet.Has(v.Host) {
@@ -178,6 +188,7 @@ func ingressEndpoints(ing apinetworkingv1.Ingress) []string {
 		if v.Host != "" {
 			host = v.Host
 		}
+
 		if host == "" {
 			continue
 		}
@@ -193,5 +204,6 @@ func ingressEndpoints(ing apinetworkingv1.Ingress) []string {
 			}
 		}
 	}
+
 	return endpoints
 }

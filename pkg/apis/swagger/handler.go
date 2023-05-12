@@ -24,11 +24,13 @@ func Index(openapiURL string) runtime.Handle {
 	}
 	srv := http.FileServer(fs)
 	index := fmt.Sprintf(indexTemplate, openapiURL)
+
 	return func(c *gin.Context) {
 		if len(c.Params) == 0 {
 			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
+
 		p := path.Join(dir, c.Params[len(c.Params)-1].Value)
 		if p == dir {
 			// Index.

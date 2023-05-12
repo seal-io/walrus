@@ -59,10 +59,12 @@ func GetConfig(conn model.Connector, opts ...ConfigOption) (restConfig *rest.Con
 	restConfig.QPS = 16
 	restConfig.Burst = 64
 	restConfig.UserAgent = version.GetUserAgent()
+
 	for i := range opts {
 		if opts[i] == nil {
 			continue
 		}
+
 		opts[i](restConfig)
 	}
 
@@ -91,6 +93,7 @@ func LoadApiConfig(conn model.Connector) (apiConfig *api.Config, raw string, err
 			return nil, "", fmt.Errorf("error load version %s config: %w", conn.ConfigVersion, err)
 		}
 	}
+
 	return
 }
 
@@ -102,9 +105,11 @@ func loadRawConfigV1(data crypto.Properties) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf(`failed to get "kubeconfig": %w`, err)
 	}
+
 	if !exist {
 		return "", fmt.Errorf(`not found "kubeconfig"`)
 	}
+
 	return kubeconfigText, nil
 }
 
@@ -118,5 +123,6 @@ func loadApiConfigV1(kubeconfigText string) (*api.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error validate api config: %w", err)
 	}
+
 	return config, nil
 }

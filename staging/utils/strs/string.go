@@ -24,9 +24,13 @@ func Indent(spaces int, v string) string {
 //
 // The resulting byte slice is converted back to a string and returned.
 func NormalizeSpecialChars(s string) string {
-	sbs := []byte(s)
-	var buf bytes.Buffer
-	var lastChar byte
+	var (
+		buf      bytes.Buffer
+		lastChar byte
+
+		sbs = []byte(s)
+	)
+
 	for i := 0; i < len(sbs); i++ {
 		switch sbs[i] {
 		default:
@@ -38,11 +42,14 @@ func NormalizeSpecialChars(s string) string {
 			} else {
 				buf.WriteByte(sbs[i])
 			}
+
 			lastChar = 0x20
 		case 0x00:
 			buf.Write([]byte{0x4e, 0x55, 0x4c})
+
 			lastChar = 0x4c
 		}
 	}
+
 	return buf.String()
 }

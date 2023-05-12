@@ -25,6 +25,7 @@ func Login() runtime.ErrorHandle {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}
+
 		if err := ctx.Bind(&input); err != nil {
 			return err
 		}
@@ -41,6 +42,7 @@ func Login() runtime.ErrorHandle {
 		if err != nil {
 			return runtime.Errorw(err, "failed to login")
 		}
+
 		return nil
 	}
 }
@@ -77,6 +79,7 @@ func Info(mc model.ClientSet) runtime.ErrorHandle {
 				return runtime.Errorw(err, "failed to get info")
 			}
 		}
+
 		return nil
 	}
 }
@@ -88,6 +91,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 	if err := ctx.ShouldBindJSON(&r); err != nil {
 		return runtime.Error(http.StatusBadRequest, err)
 	}
+
 	if err := r.Validate(); err != nil {
 		return runtime.Error(http.StatusBadRequest, err)
 	}
@@ -110,23 +114,28 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 					return runtime.Error(http.StatusBadRequest, "invalid group: the same")
 				}
 				selves[i].LoginTo = pointer.Bool(false)
+
 				continue
 			}
+
 			if selves[i].Group == *r.LoginGroup {
 				selves[i].LoginTo = pointer.Bool(true)
 			}
 		}
+
 		err = modelClient.WithTx(ctx, func(tx *model.Tx) error {
 			updates, err := dao.SubjectUpdates(tx, selves...)
 			if err != nil {
 				return err
 			}
+
 			for i := range updates {
 				err = updates[i].Exec(ctx)
 				if err != nil {
 					return err
 				}
 			}
+
 			return nil
 		})
 		if err != nil {
@@ -136,10 +145,12 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 
 	if r.Password != nil {
 		var cred casdoor.ApplicationCredential
+
 		err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, modelClient, &cred)
 		if err != nil {
 			return err
 		}
+
 		err = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinOrg, s.Name, *r.OldPassword, *r.Password)
 		if err != nil {
@@ -147,6 +158,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 				return runtime.Error(http.StatusNotFound,
 					"not found user")
 			}
+
 			return runtime.Error(http.StatusBadRequest, err)
 		}
 		// Update setting to indicate the initialized password has been changed.
@@ -155,6 +167,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -181,8 +194,10 @@ func getInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 		return err
 	}
 	info.Groups = make([]view.GetInfoGroup, 0, len(selves))
+
 	for i := 0; i < len(selves); i++ {
 		u := selves[i]
+
 		info.Groups = append(info.Groups,
 			view.GetInfoGroup{
 				Name:  u.Group,

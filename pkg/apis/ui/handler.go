@@ -18,6 +18,7 @@ import (
 
 func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 	defaultUiIndex, _ := url.Parse("file:///var/lib/seal/ui")
+
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 
@@ -26,11 +27,13 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 		case "":
 			http.Redirect(c.Writer, c.Request, "/", http.StatusMovedPermanently)
 			c.Abort()
+
 			return
 		case "/verify-auth":
 			http.Redirect(c.Writer, c.Request, "/#/integration/oauth?"+
 				c.Request.URL.RawQuery, http.StatusFound)
 			c.Abort()
+
 			return
 		}
 
@@ -39,6 +42,7 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 		if uiIndex == nil {
 			uiIndex = defaultUiIndex
 		}
+
 		switch path {
 		case "/":
 			uiSrv(uiIndex).ServeHTTP(c.Writer, c.Request)
@@ -48,8 +52,10 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 				// Assets.
 				uiSrv(uiIndex).ServeHTTP(c.Writer, c.Request)
 				c.Abort()
+
 				return
 			}
+
 			c.Next()
 		}
 	}
@@ -68,6 +74,7 @@ func local(dir string) http.Handler {
 	fs := runtime.StaticHttpFileSystem{
 		FileSystem: http.FS(os.DirFS(dir)),
 	}
+
 	return http.FileServer(fs)
 }
 
@@ -75,6 +82,7 @@ func remote(uri string) http.HandlerFunc {
 	httpClient := req.HTTP().
 		WithMaxConnDuration(0).
 		Request()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := httpClient.GetWithContext(r.Context(), uri).
 			Body()

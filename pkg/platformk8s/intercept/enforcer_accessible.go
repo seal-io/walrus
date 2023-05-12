@@ -9,6 +9,22 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+func init() {
+	// Emit, transfer and record.
+	//
+	// Only consider accessible types.
+	//
+	for _, gvk := range []schema.GroupVersionKind{
+		corev1.SchemeGroupVersion.WithKind("Service"),
+		networkingv1.SchemeGroupVersion.WithKind("Ingress"),
+		extensionsv1beta1.SchemeGroupVersion.WithKind("Ingress"),
+	} {
+		acEnforcer.gvks.Insert(gvk)
+		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
+		acEnforcer.gvrs.Insert(gvr)
+	}
+}
+
 // Accessible returns Enforcer to detect if the given Kubernetes GVK/GVR is accessible enforcer.
 func Accessible() Enforcer {
 	// Singleton pattern.
@@ -32,20 +48,4 @@ func (e accessibleEnforcer) AllowGVR(gvr schema.GroupVersionResource) bool {
 var acEnforcer = accessibleEnforcer{
 	gvks: sets.Set[schema.GroupVersionKind]{},
 	gvrs: sets.Set[schema.GroupVersionResource]{},
-}
-
-func init() {
-	// Emit, transfer and record.
-	//
-	// Only consider accessible types.
-	//
-	for _, gvk := range []schema.GroupVersionKind{
-		corev1.SchemeGroupVersion.WithKind("Service"),
-		networkingv1.SchemeGroupVersion.WithKind("Ingress"),
-		extensionsv1beta1.SchemeGroupVersion.WithKind("Ingress"),
-	} {
-		acEnforcer.gvks.Insert(gvk)
-		gvr, _ := meta.UnsafeGuessKindToResource(gvk)
-		acEnforcer.gvrs.Insert(gvr)
-	}
 }

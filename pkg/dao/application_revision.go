@@ -16,6 +16,7 @@ func ApplicationRevisionCreates(
 	}
 
 	rrs := make([]*model.ApplicationRevisionCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -31,30 +32,38 @@ func ApplicationRevisionCreates(
 		// Optional.
 		c.SetStatus(r.Status)
 		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
+
 		if r.Modules != nil {
 			c.SetModules(r.Modules)
 		}
+
 		if r.Secrets != nil {
 			c.SetSecrets(r.Secrets)
 		}
+
 		if r.Variables != nil {
 			c.SetVariables(r.Variables)
 		}
+
 		if r.InputVariables != nil {
 			c.SetInputVariables(r.InputVariables)
 		}
+
 		if r.DeployerType != "" {
 			c.SetDeployerType(r.DeployerType)
 		}
+
 		if r.Duration != 0 {
 			c.SetDuration(r.Duration)
 		}
+
 		if len(r.PreviousRequiredProviders) != 0 {
 			c.SetPreviousRequiredProviders(r.PreviousRequiredProviders)
 		}
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -75,15 +84,19 @@ func ApplicationRevisionUpdate(
 	if input.Status != "" {
 		c.SetStatus(input.Status)
 	}
+
 	if input.InputPlan != "" {
 		c.SetInputPlan(input.InputPlan)
 	}
+
 	if input.Output != "" {
 		c.SetOutput(input.Output)
 	}
+
 	if input.Duration != 0 {
 		c.SetDuration(input.Duration)
 	}
+
 	if input.Secrets != nil {
 		c.SetSecrets(input.Secrets)
 	}

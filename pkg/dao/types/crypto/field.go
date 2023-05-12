@@ -25,6 +25,7 @@ func (i String) String() string {
 func (i String) Value() (driver.Value, error) {
 	v := string(i)
 	enc := EncryptorConfig.Get()
+
 	return enc.Encrypt(strs.ToBytes(&v), nil)
 }
 
@@ -35,13 +36,16 @@ func (i *String) Scan(src any) error {
 		return nil
 	case []byte:
 		enc := EncryptorConfig.Get()
+
 		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
 		*i = String(strs.FromBytes(&p))
+
 		return nil
 	}
+
 	return errors.New("not a valid crypto string")
 }
 
@@ -57,6 +61,7 @@ func (i Bytes) String() string {
 func (i Bytes) Value() (driver.Value, error) {
 	v := i
 	enc := EncryptorConfig.Get()
+
 	return enc.Encrypt(v, nil)
 }
 
@@ -67,13 +72,16 @@ func (i *Bytes) Scan(src any) error {
 		return nil
 	case []byte:
 		enc := EncryptorConfig.Get()
+
 		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
 		*i = p
+
 		return nil
 	}
+
 	return errors.New("not a valid crypto bytes")
 }
 
@@ -92,6 +100,7 @@ func (i Map[K, V]) Value() (driver.Value, error) {
 		return nil, err
 	}
 	enc := EncryptorConfig.Get()
+
 	return enc.Encrypt(v, nil)
 }
 
@@ -102,12 +111,15 @@ func (i *Map[K, V]) Scan(src any) error {
 		return nil
 	case []byte:
 		enc := EncryptorConfig.Get()
+
 		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(p, i)
 	}
+
 	return errors.New("not a valid crypto map")
 }
 
@@ -126,6 +138,7 @@ func (i Slice[T]) Value() (driver.Value, error) {
 		return nil, err
 	}
 	enc := EncryptorConfig.Get()
+
 	return enc.Encrypt(v, nil)
 }
 
@@ -136,12 +149,15 @@ func (i *Slice[T]) Scan(src any) error {
 		return nil
 	case []byte:
 		enc := EncryptorConfig.Get()
+
 		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(p, i)
 	}
+
 	return errors.New("not a valid crypto slice")
 }
 
@@ -159,6 +175,7 @@ func (i Property) String() string {
 	if !i.Visible {
 		return sensitive
 	}
+
 	return string(i.Value)
 }
 
@@ -166,10 +183,12 @@ func (i Property) String() string {
 // impacts the response message.
 func (i Property) MarshalJSON() ([]byte, error) {
 	type Alias Property
+
 	ia := (Alias)(i)
 	if !i.Visible {
 		ia.Value = nil
 	}
+
 	return json.Marshal(ia)
 }
 
@@ -181,15 +200,18 @@ type Properties map[string]Property
 // Value implements driver.Valuer.
 func (i Properties) Value() (driver.Value, error) {
 	type Alias Property
+
 	ia := make(map[string]Alias, len(i))
 	for k := range i {
 		ia[k] = (Alias)(i[k])
 	}
+
 	v, err := json.Marshal(ia)
 	if err != nil {
 		return nil, err
 	}
 	enc := EncryptorConfig.Get()
+
 	return enc.Encrypt(v, nil)
 }
 
@@ -200,12 +222,15 @@ func (i *Properties) Scan(src any) error {
 		return nil
 	case []byte:
 		enc := EncryptorConfig.Get()
+
 		p, err := enc.Decrypt(v, nil)
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(p, i)
 	}
+
 	return errors.New("not a valid crypto properties")
 }
 
@@ -215,6 +240,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 		ot = make(map[string]cty.Type, len(i))
 		ov = make(map[string]cty.Value, len(i))
 	)
+
 	for x := range i {
 		t, v, err := i[x].Cty()
 		if err != nil {
@@ -223,6 +249,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 		ot[x] = t
 		ov[x] = v
 	}
+
 	return cty.Object(ot), cty.ObjectVal(ov), nil
 }
 
@@ -232,14 +259,17 @@ func (i Properties) Values() property.Values {
 	for x := range i {
 		m[x] = i[x].GetValue()
 	}
+
 	return m
 }
 
 // TypedValues returns a map stores the typed value.
 func (i Properties) TypedValues() (m map[string]any, err error) {
 	m = make(map[string]any, len(i))
+
 	for x := range i {
 		typ := i[x].GetType()
+
 		switch {
 		case typ == cty.Number:
 			m[x], _, err = i[x].GetNumber()
@@ -254,9 +284,11 @@ func (i Properties) TypedValues() (m map[string]any, err error) {
 		default:
 			m[x], _, err = property.GetAny[any](i[x])
 		}
+
 		if err != nil {
 			return
 		}
 	}
+
 	return
 }

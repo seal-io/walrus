@@ -16,6 +16,7 @@ func MustNew(ctx context.Context) *bigcache.BigCache {
 	if err != nil {
 		panic(fmt.Errorf("error creating cache: %w", err))
 	}
+
 	return n
 }
 
@@ -33,6 +34,7 @@ func New(ctx context.Context) (*bigcache.BigCache, error) {
 		StatsEnabled:       false,
 		Verbose:            false,
 	}
+
 	return NewWithConfig(ctx, cfg)
 }
 
@@ -40,9 +42,11 @@ func NewWithConfig(ctx context.Context, cfg bigcache.Config) (*bigcache.BigCache
 	if cfg.Logger == nil {
 		cfg.Logger = log.WithName("cache")
 	}
+
 	if cfg.OnRemoveWithReason == nil {
 		cfg.OnRemoveWithReason = func(key string, entry []byte, reason bigcache.RemoveReason) {
 			desc := "unknown"
+
 			switch reason {
 			case bigcache.Deleted:
 				desc = "deleted"
@@ -51,6 +55,7 @@ func NewWithConfig(ctx context.Context, cfg bigcache.Config) (*bigcache.BigCache
 			case bigcache.NoSpace:
 				desc = "nospace"
 			}
+
 			size := humanize.IBytes(uint64(len(entry)))
 			cfg.Logger.Printf("%s: %10s | %s", desc, size, key)
 		}

@@ -126,8 +126,6 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 	var (
 		// StatMap map of statistics.
 		statMap = make(map[string]*view.RevisionStatusStats, 0)
-		// StatusStatistics statistics of revision status.
-		statusStatistics []*view.RevisionStatusStats
 		// Counts count of each status.
 		counts []struct {
 			Count      int       `json:"count"`
@@ -142,6 +140,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 
 	// Format.
 	var format string
+
 	switch req.Step {
 	case timex.Month:
 		format = "2006-01"
@@ -154,6 +153,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 	// Days.
 	_, offset := req.StartTime.Zone()
 	loc := req.StartTime.Location()
+
 	timeSeries, err := timex.GetTimeSeries(req.StartTime, req.EndTime, req.Step, loc)
 	if err != nil {
 		return nil, err
@@ -192,6 +192,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		if _, ok := statMap[t]; !ok {
 			statMap[t] = &view.RevisionStatusStats{}
 		}
+
 		switch c.Status {
 		case status.ApplicationRevisionStatusFailed:
 			statMap[t].Failed = c.Count
@@ -202,6 +203,8 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		}
 	}
 
+	// StatusStatistics statistics of revision status.
+	statusStatistics := make([]*view.RevisionStatusStats, 0, len(statMap))
 	for k, sm := range statMap {
 		statusStatistics = append(statusStatistics, &view.RevisionStatusStats{
 			RevisionStatusCount: view.RevisionStatusCount{

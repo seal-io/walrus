@@ -19,6 +19,8 @@ const (
 	maxLevel
 )
 
+var verbosity = atomic.NewUint64(^uint64(0) >> 1)
+
 func (l LoggingLevel) String() string {
 	if minLevel < l && l < maxLevel {
 		switch l {
@@ -34,6 +36,7 @@ func (l LoggingLevel) String() string {
 			return "fatal"
 		}
 	}
+
 	return "unknown level " + strconv.FormatUint(uint64(l), 10)
 }
 
@@ -269,8 +272,6 @@ func GetLogger() Logger {
 func SetLogger(delegate Logger) {
 	logger.Delegate = delegate
 }
-
-var verbosity = atomic.NewUint64(^uint64(0) >> 1)
 
 // GetVerbosity returns the verbosity of the global Logger.
 func GetVerbosity() uint64 {

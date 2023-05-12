@@ -35,5 +35,6 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	if err != nil {
 		return
 	}
+
 	return
 }

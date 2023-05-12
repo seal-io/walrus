@@ -32,23 +32,28 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) error {
 // and enables encrypting data.
 func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string, key []byte) error {
 	var enc cryptox.Encryptor
+
 	if key != nil {
 		var err error
+
 		switch alg {
 		default:
 			err = fmt.Errorf("unknown data encryptor algorithm: %s", alg)
 		case "aesgcm":
 			enc, err = cryptox.AesGcm(key)
 		}
+
 		if err != nil {
 			return fmt.Errorf("error gaining data encryptor: %w", err)
 		}
+
 		crypto.EncryptorConfig.Set(enc)
 	} else {
 		enc = crypto.EncryptorConfig.Get()
 	}
 
 	pt := "YOU CAN SEE ME"
+
 	return settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
 		if ctb64 == "" {
 			// First time launching, just encrypt.
@@ -56,14 +61,17 @@ func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string
 			if err != nil {
 				return "", err
 			}
+
 			return strs.EncodeBase64(strs.FromBytes(&ctbs)), nil
 		}
 		// Decrypt and compare.
 		ct, _ := strs.DecodeBase64(ctb64)
+
 		ptbs, _ := enc.Decrypt(strs.ToBytes(&ct), nil)
 		if !bytes.Equal(strs.ToBytes(&pt), ptbs) {
 			return "", errors.New("inconsistent sentry")
 		}
+
 		return ctb64, nil
 	})
 }

@@ -16,6 +16,7 @@ func ApplicationInstanceCreates(
 	}
 
 	rrs := make([]*model.ApplicationInstanceCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -35,6 +36,7 @@ func ApplicationInstanceCreates(
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -52,7 +54,9 @@ func ApplicationInstanceUpdate(
 
 	c := mc.ApplicationInstances().UpdateOne(input).
 		SetVariables(input.Variables)
+
 	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
+
 	if input.Status.Changed() {
 		c.SetStatus(input.Status)
 	}
@@ -76,6 +80,7 @@ func ApplicationInstanceStatusUpdate(
 
 	c := mc.ApplicationInstances().UpdateOne(input)
 	input.Status.SetSummary(status.WalkApplicationInstance(&input.Status))
+
 	if input.Status.Changed() {
 		c.SetStatus(input.Status)
 	}

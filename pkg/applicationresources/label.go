@@ -23,6 +23,7 @@ func Label(ctx context.Context, op operator.Operator, candidates []*model.Applic
 			projectName string
 			envName     string
 		)
+
 		if ins := candidates[i].Edges.Instance; ins == nil {
 			continue
 		} else {
@@ -45,10 +46,12 @@ func Label(ctx context.Context, op operator.Operator, candidates []*model.Applic
 			types.LabelSealProject:     projectName,
 			types.LabelSealApplication: appName,
 		}
+
 		err := op.Label(ctx, candidates[i], ls)
 		if multierr.AppendInto(&berr, err) {
 			continue
 		}
 	}
-	return
+
+	return berr
 }

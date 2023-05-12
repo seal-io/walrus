@@ -81,6 +81,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
+
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
 		return err
@@ -108,10 +109,12 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 
 	// Mark status to deleting.
 	status.ApplicationInstanceStatusDeleted.Reset(entity, "Deleting")
+
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
+
 	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
@@ -123,6 +126,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		}
 		// Update a failure status.
 		status.ApplicationInstanceStatusDeleted.False(entity, err.Error())
+
 		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
@@ -138,6 +142,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	destroyOpts := deployer.DestroyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
+
 	return dp.Destroy(ctx, entity, destroyOpts)
 }
 
@@ -164,20 +169,24 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		for _, id := range dm.Data {
 			if id != req.ID {
 				continue
@@ -200,6 +209,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 				}
 			}
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -242,12 +252,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(applicationinstance.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).
@@ -269,28 +282,33 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.ApplicationInstances().Query()
 	if req.ApplicationID != "" {
 		query.Where(applicationinstance.ApplicationID(req.ApplicationID))
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamResponse
+
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			entities, err := query.Clone().
@@ -316,9 +334,11 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 				IDs:  dm.Data,
 			}
 		}
+
 		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
 			continue
 		}
+
 		err = ctx.SendJSON(streamData)
 		if err != nil {
 			return err
@@ -338,6 +358,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
+
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
 		return err
@@ -346,10 +367,12 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	// Update instance, mark status from deploying.
 	entity.Variables = req.Variables
 	status.ApplicationInstanceStatusDeployed.Reset(entity, "Upgrading")
+
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
+
 	entity, err = update.Save(ctx)
 	if err != nil {
 		return err
@@ -361,6 +384,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		}
 		// Update a failure status.
 		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
+
 		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
@@ -376,6 +400,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	applyOpts := deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
+
 	return dp.Apply(ctx, entity, applyOpts)
 }
 
@@ -392,6 +417,7 @@ func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view
 	if err != nil {
 		return nil, err
 	}
+
 	if len(endpoints) != 0 {
 		return endpoints, nil
 	}
@@ -405,11 +431,13 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 	if err != nil {
 		return nil, err
 	}
+
 	var (
 		invalidTypeErr = runtime.Error(http.StatusBadRequest,
 			"element type of output endpoints should be string")
 		endpoints = make([]view.Endpoint, 0, len(outputs))
 	)
+
 	for _, v := range outputs {
 		if !view.IsEndpointOuput(v.Name) {
 			continue
@@ -419,12 +447,14 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 			Type:  v.Type,
 			Value: v.Value,
 		}
+
 		switch {
 		case v.Type == cty.String:
 			ep, _, err := prop.GetString()
 			if err != nil {
 				return nil, err
 			}
+
 			if err := validation.IsValidEndpoint(ep); err != nil {
 				return nil, runtime.Error(http.StatusBadRequest, err)
 			}
@@ -451,6 +481,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 			if err != nil {
 				return nil, err
 			}
+
 			if err := validation.IsValidEndpoints(eps); err != nil {
 				return nil, runtime.Error(http.StatusBadRequest, err)
 			}
@@ -485,6 +516,7 @@ func (h Handler) endpointsFromResources(ctx context.Context, instanceID types.ID
 	if err != nil {
 		return nil, err
 	}
+
 	if len(res) == 0 {
 		return nil, nil
 	}
@@ -493,12 +525,15 @@ func (h Handler) endpointsFromResources(ctx context.Context, instanceID types.ID
 		if arr := strings.Split(origin, "/"); len(arr) >= 1 {
 			return arr[0]
 		}
+
 		return ""
 	}
 
 	var endpoints []view.Endpoint
+
 	for _, v := range res {
 		mn := getModuleName(v.Module)
+
 		for _, eps := range v.Status.ResourceEndpoints {
 			endpoints = append(endpoints, view.Endpoint{
 				ModuleName: mn,
@@ -507,6 +542,7 @@ func (h Handler) endpointsFromResources(ctx context.Context, instanceID types.ID
 			})
 		}
 	}
+
 	return endpoints, nil
 }
 
@@ -552,10 +588,12 @@ func (h Handler) updateInstanceStatus(
 	if err != nil {
 		return err
 	}
+
 	err = update.Exec(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return err
 	}
+
 	return nil
 }
 
@@ -588,6 +626,7 @@ func (h Handler) createInstance(
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
+
 	dp, err := platform.GetDeployer(ctx, createOpts)
 	if err != nil {
 		return nil, err
@@ -598,6 +637,7 @@ func (h Handler) createInstance(
 	if err != nil {
 		return nil, err
 	}
+
 	entity, err := creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
@@ -609,6 +649,7 @@ func (h Handler) createInstance(
 		}
 		// Update a failure status.
 		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
+
 		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
@@ -619,10 +660,12 @@ func (h Handler) createInstance(
 	// ClonedInstanceRevision is the latest application revision
 	// of the cloned application instance.
 	var clonedInstanceRevision *model.ApplicationRevision
+
 	if opts.Clone {
 		if opts.ApplicationInstance.ID == "" {
 			return nil, errors.New("application instance id is empty")
 		}
+
 		clonedInstanceRevision, err = h.modelClient.ApplicationRevisions().Query().
 			Where(applicationrevision.InstanceID(opts.ApplicationInstance.ID)).
 			Order(model.Desc(applicationrevision.FieldCreateTime)).
@@ -637,6 +680,7 @@ func (h Handler) createInstance(
 		SkipTLSVerify: !h.tlsCertified,
 		CloneFrom:     clonedInstanceRevision,
 	}
+
 	err = dp.Apply(ctx, entity, applyOpts)
 	if err != nil {
 		// NB(thxCode): a better approach is to use transaction,
@@ -648,6 +692,7 @@ func (h Handler) createInstance(
 		if derr != nil {
 			logger.Errorf("error deleting: %v", derr)
 		}
+
 		return nil, err
 	}
 
@@ -667,25 +712,30 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamAccessEndpointResponse
+
 		for _, id := range dm.Data {
 			ar, err := h.getRevisionByID(ctx, id)
 			if err != nil {
 				return err
 			}
+
 			if ar.InstanceID != req.ID {
 				continue
 			}
@@ -694,6 +744,7 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 			if err != nil {
 				return err
 			}
+
 			if len(eps) == 0 {
 				continue
 			}
@@ -736,25 +787,30 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 	if err != nil {
 		return err
 	}
+
 	defer func() { t.Unsubscribe() }()
 
 	for {
 		var event topic.Event
+
 		event, err = t.Receive(ctx)
 		if err != nil {
 			return err
 		}
+
 		dm, ok := event.Data.(datamessage.Message[oid.ID])
 		if !ok {
 			continue
 		}
 
 		var streamData view.StreamOutputResponse
+
 		for _, id := range dm.Data {
 			ar, err := h.getRevisionByID(ctx, id)
 			if err != nil {
 				return err
 			}
+
 			if ar.InstanceID != req.ID {
 				continue
 			}
@@ -763,6 +819,7 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 			if err != nil {
 				return err
 			}
+
 			if len(op) == 0 {
 				continue
 			}

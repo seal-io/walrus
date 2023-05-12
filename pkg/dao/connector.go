@@ -14,6 +14,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 	}
 
 	rrs := make([]*model.ConnectorCreate, len(input))
+
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -31,15 +32,18 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 
 		// Optional.
 		c.SetDescription(r.Description)
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
+
 		if !r.FinOpsCustomPricing.IsZero() {
 			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
 		} else if r.Type == types.ConnectorTypeK8s {
 			// Set default pricing for Kubernetes connector.
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
+
 		if r.Type == types.ConnectorTypeK8s {
 			if r.EnableFinOps {
 				status.ConnectorStatusCostToolsDeployed.Unknown(r, "Deploying cost tools")
@@ -47,10 +51,12 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 					"It takes about an hour to generate hour-level cost data")
 			}
 		}
+
 		r.Status.SetSummary(status.WalkConnector(&r.Status))
 		c.SetStatus(r.Status)
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -80,17 +86,22 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 	if !input.FinOpsCustomPricing.IsZero() {
 		c.SetFinOpsCustomPricing(input.FinOpsCustomPricing)
 	}
+
 	if input.Name != "" {
 		c.SetName(input.Name)
 	}
+
 	if input.Labels != nil {
 		c.SetLabels(input.Labels)
 	}
+
 	if input.ConfigVersion != "" {
 		c.SetConfigVersion(input.ConfigVersion)
 	}
+
 	if input.ConfigData != nil {
 		c.SetConfigData(input.ConfigData)
 	}
+
 	return c, nil
 }

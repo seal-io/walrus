@@ -158,6 +158,7 @@ func delCondStatus(obj interface{}, condType ConditionType) {
 		// NB(thxCode): do not skip this loop until we check all condition items,
 		// which can avoid duplicate items in condition list.
 	}
+
 	stField.Set(reflect.ValueOf(*st))
 }
 
@@ -194,6 +195,7 @@ func getCondStatus(obj interface{}, condType ConditionType) (ConditionStatus, bo
 	if cond == nil {
 		return "", false
 	}
+
 	return cond.Status, true
 }
 
@@ -225,6 +227,7 @@ func getCondMessage(obj interface{}, condType ConditionType) string {
 	if cond != nil {
 		return ""
 	}
+
 	return cond.Message
 }
 
@@ -239,10 +242,12 @@ func getStatus(obj interface{}) (reflect.Value, *Status) {
 	}
 
 	field := v.FieldByName("Status")
+
 	st, ok := field.Interface().(Status)
 	if !ok {
 		return reflect.Value{}, nil
 	}
+
 	return field, &st
 }
 
@@ -252,6 +257,7 @@ func getCond(st *Status, condType ConditionType) *Condition {
 			return &st.Conditions[i]
 		}
 	}
+
 	return nil
 }
 
@@ -273,6 +279,7 @@ func applyCondStatusAndMessage(st *Status, condType ConditionType, status Condit
 	}
 
 	var existed bool
+
 	for i, v := range condSlice {
 		if v.Type == condType {
 			if v.Status != status || v.Message != message {
@@ -309,6 +316,7 @@ func applyCondStatus(st *Status, condType ConditionType, status ConditionStatus)
 	}
 
 	var existed bool
+
 	for i, v := range condSlice {
 		if v.Type == condType {
 			if v.Status != status {

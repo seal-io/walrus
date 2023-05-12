@@ -13,6 +13,7 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 	}
 
 	rrs := make([]*model.AllocationCostCreate, len(input))
+
 	for i := range input {
 		r := input[i]
 		if r == nil {
@@ -62,6 +63,7 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 

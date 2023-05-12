@@ -25,6 +25,7 @@ func (m K8sConvertor) IsSupported(connector *model.Connector) bool {
 
 func (m K8sConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
 	var blocks block.Blocks
+
 	for _, c := range connectors {
 		if !m.IsSupported(c) {
 			continue

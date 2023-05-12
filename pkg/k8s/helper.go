@@ -31,6 +31,7 @@ func GetConfig(kubeconfigPath string) (*rest.Config, error) {
 	loader := clientcmd.NewDefaultClientConfigLoadingRules()
 	loader.Precedence = append(loader.Precedence,
 		filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName))
+
 	return loadConfig(loader)
 }
 
@@ -40,11 +41,13 @@ func LoadConfig(kubeconfigPath string) (*rest.Config, error) {
 	}
 
 	loader := &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath}
+
 	return loadConfig(loader)
 }
 
 func loadConfig(loader clientcmd.ClientConfigLoader) (*rest.Config, error) {
 	overrides := &clientcmd.ConfigOverrides{}
+
 	return clientcmd.
 		NewNonInteractiveDeferredLoadingClientConfig(loader, overrides).
 		ClientConfig()
@@ -57,18 +60,21 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 	}
 
 	var lastErr error
+
 	err = wait.PollImmediateUntilWithContext(ctx, 1*time.Second,
 		func(ctx context.Context) (bool, error) {
 			lastErr = IsConnected(ctx, cli.RESTClient())
 			if lastErr != nil {
 				log.Warnf("waiting for apiserver to be ready: %v", lastErr)
 			}
+
 			return lastErr == nil, ctx.Err()
 		},
 	)
 	if err != nil && lastErr != nil {
 		err = lastErr // Use last error to overwrite context error while existed.
 	}
+
 	return err
 }
 
@@ -80,15 +86,18 @@ func IsConnected(ctx context.Context, r rest.Interface) error {
 	if err != nil {
 		return err
 	}
+
 	var info struct {
 		Major    string `json:"major"`
 		Minor    string `json:"minor"`
 		Compiler string `json:"compiler"`
 		Platform string `json:"platform"`
 	}
+
 	err = json.Unmarshal(body, &info)
 	if err != nil {
 		return fmt.Errorf("unable to parse the server version: %w", err)
 	}
+
 	return nil
 }

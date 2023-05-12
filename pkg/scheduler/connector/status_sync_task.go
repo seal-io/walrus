@@ -25,6 +25,7 @@ func NewStatusSyncTask(mc model.ClientSet) (*StatusSyncTask, error) {
 	in := &StatusSyncTask{}
 	in.modelClient = mc
 	in.logger = log.WithName("task").WithName(in.Name())
+
 	return in, nil
 }
 
@@ -38,6 +39,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		return nil
 	}
 	startTs := time.Now()
+
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -53,6 +55,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		syncer = connectors.NewStatusSyncer(in.modelClient)
 		wg     = gopool.Group()
 	)
+
 	for i := range conns {
 		conn := conns[i]
 		in.logger.Debugf("sync status for connector: %s", conn.Name)
@@ -60,8 +63,10 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 			if err := syncer.SyncStatus(ctx, conn); err != nil {
 				return fmt.Errorf("error sync connector %s: %w", conn.Name, err)
 			}
+
 			return nil
 		})
 	}
+
 	return wg.Wait()
 }

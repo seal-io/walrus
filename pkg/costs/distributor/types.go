@@ -34,6 +34,7 @@ func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) 
 	}
 
 	timezone := timex.TimezoneInPosix(offset)
+
 	switch field {
 	case types.GroupByFieldDay, types.GroupByFieldWeek, types.GroupByFieldMonth:
 		return fmt.Sprintf(
@@ -56,6 +57,7 @@ func groupByWithZoneOffsetSQL(field types.GroupByField, offset int) (string, err
 		groupBy  string
 		timeZone = timex.TimezoneInPosix(offset)
 	)
+
 	switch {
 	case field.IsLabel():
 		label := strings.TrimPrefix(string(field), types.LabelPrefix)
@@ -75,6 +77,7 @@ END`, types.UnallocatedLabel, types.UnallocatedLabel, types.UnallocatedLabel)
 	default:
 		groupBy = strs.Underscore(string(field))
 	}
+
 	return groupBy, nil
 }
 
@@ -88,6 +91,7 @@ func wrappedCondition(cond types.QueryCondition) types.QueryCondition {
 	case types.GroupByFieldMonth:
 		cond.Step = types.StepMonth
 	}
+
 	return cond
 }
 
@@ -102,11 +106,13 @@ func havingSQL(
 	if query == "" {
 		return nil, fmt.Errorf("invalid query: blank")
 	}
+
 	if groupBy == "" || groupBySQL == "" {
 		return nil, fmt.Errorf("invalid group by: blank")
 	}
 
 	var having *sql.Predicate
+
 	switch {
 	case groupBy == types.GroupByFieldConnectorID:
 		connIDs, err := client.Connectors().Query().
@@ -129,14 +135,17 @@ func havingSQL(
 		pattern := fmt.Sprintf("%%%s%%", query)
 		having = sql.Like(col, pattern)
 	}
+
 	return having, nil
 }
 
 // FilterToSQLPredicates create sql predicate from filters.
 func FilterToSQLPredicates(filters types.AllocationCostFilters) *sql.Predicate {
 	var or []*sql.Predicate
+
 	for _, cond := range filters {
 		var and []*sql.Predicate
+
 		for _, andCond := range cond {
 			if ps := ruleToSQLPredicates(andCond); ps != nil {
 				and = append(and, ps)
@@ -151,6 +160,7 @@ func FilterToSQLPredicates(filters types.AllocationCostFilters) *sql.Predicate {
 	if len(or) == 0 {
 		return nil
 	}
+
 	return sql.Or(or...)
 }
 
@@ -164,6 +174,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 		for _, v := range cond.Values {
 			args = append(args, v)
 		}
+
 		return args
 	}
 
@@ -171,6 +182,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 	// Label query.
 	if strings.HasPrefix(string(cond.FieldName), types.LabelPrefix) {
 		labelName := strings.TrimPrefix(string(cond.FieldName), types.LabelPrefix)
+
 		switch cond.Operator {
 		case types.OperatorIn:
 			pred = sqljson.ValueIn(
@@ -185,11 +197,13 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 				sqljson.Path(labelName),
 			)
 		}
+
 		return pred
 	}
 
 	// Other field query.
 	fieldName := strs.Underscore(string(cond.FieldName))
+
 	switch cond.Operator {
 	case types.OperatorIn:
 		pred = sql.In(fieldName, toArgs(cond.Values)...)

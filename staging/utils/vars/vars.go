@@ -39,5 +39,6 @@ func (i *SetMany[T]) Set(v T) {
 func (i *SetMany[T]) Get() T {
 	i.m.RLock()
 	defer i.m.RUnlock()
+
 	return i.v
 }

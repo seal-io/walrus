@@ -28,6 +28,7 @@ func MutateCommandsEnvs(prefix string, cmds Commands) Commands {
 		}
 		cmds[i].Flags = MutateFlagsEnvs(prefix, cmds[i].Flags)
 	}
+
 	return cmds
 }
 
@@ -41,31 +42,38 @@ func MutateFlagsEnvs(prefix string, flags Flags) Flags {
 		for fv.Kind() == reflect.Pointer || fv.Kind() == reflect.Interface {
 			fv = fv.Elem()
 		}
+
 		fvf := fv.FieldByName("EnvVars")
 		if !fvf.IsValid() || fvf.Kind() != reflect.Slice {
 			continue
 		}
+
 		n := flags[i].Names()[0]
 		if prefix != "" {
 			n = prefix + "-" + n
 		}
 		n = strs.UnderscoreUpper(n)
+
 		var (
 			fvt = fv.Type()
 			cfv = reflect.New(fvt)
 		)
+
 		for k := 0; k < fv.NumField(); k++ {
 			cfvf := cfv.Elem().Field(k)
 			if !cfvf.CanSet() {
 				continue
 			}
+
 			if fvt.Field(k).Name != "EnvVars" || !fv.Field(k).IsZero() {
 				cfvf.Set(fv.Field(k))
 				continue
 			}
+
 			cfvf.Set(reflect.ValueOf([]string{n}))
 		}
 		flags[i] = cfv.Interface().(cli.Flag)
 	}
+
 	return flags
 }

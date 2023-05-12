@@ -31,15 +31,18 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Group == "" {
 		return errors.New("invalid group: blank")
 	}
+
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
+
 	r.Roles = r.Roles.Deduplicate().Sort()
 	for i := range r.Roles {
 		if r.Roles[i].IsZero() {
 			return errors.New("invalid role")
 		}
 	}
+
 	if r.Password == "" {
 		return errors.New("invalid password: blank")
 	}
@@ -55,6 +58,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 	r.Paths = group.Paths
 	r.Paths = append(r.Paths, r.Name)
+
 	return nil
 }
 
@@ -85,6 +89,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
+
 	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo, subject.FieldLoginTo).
@@ -96,9 +101,11 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	r.Group = userEntity.Group
 	r.MountTo = *userEntity.MountTo
 	r.LoginTo = *userEntity.LoginTo
+
 	if !r.MountTo {
 		r.Group = ""
 	}
+
 	return nil
 }
 
@@ -128,6 +135,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
+
 	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
@@ -139,16 +147,19 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	r.Name = userEntity.Name
 
 	var needUpdate bool
+
 	if r.Description != "" {
 		if *userEntity.MountTo {
 			return errors.New("invalid user: mounting user cannot update description")
 		}
+
 		if r.Description == userEntity.Description {
 			r.Description = ""
 		} else {
 			needUpdate = true
 		}
 	}
+
 	r.Roles = r.Roles.Deduplicate().Sort()
 	if len(r.Roles) != 0 {
 		for i := range r.Roles {
@@ -156,18 +167,21 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 				return errors.New("invalid role")
 			}
 		}
+
 		if reflect.DeepEqual(r.Roles, userEntity.Roles) {
 			r.Roles = nil
 		} else {
 			needUpdate = true
 		}
 	}
+
 	if r.Password != "" {
 		if *userEntity.MountTo {
 			return errors.New("invalid user: mounting user cannot update password")
 		}
 		needUpdate = true
 	}
+
 	if !needUpdate {
 		return errors.New("invalid input: nothing update")
 	}
@@ -204,9 +218,11 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(2) {
 		return errors.New("invalid id: blank")
 	}
+
 	if r.Group == "" {
 		return errors.New("invalid group: blank")
 	}
+
 	r.Roles = r.Roles.Deduplicate().Sort()
 	for i := range r.Roles {
 		if r.Roles[i].IsZero() {
@@ -225,6 +241,7 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 		confirmUser = append(confirmUser, subject.Group(keys[0]))
 		confirmUser = append(confirmUser, subject.Name(keys[1]))
 	}
+
 	userEntity, err := modelClient.Subjects().Query().
 		Where(confirmUser...).
 		Select(subject.FieldGroup, subject.FieldName, subject.FieldMountTo).
@@ -232,6 +249,7 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return runtime.Errorw(err, "failed to get user")
 	}
+
 	if *userEntity.MountTo {
 		return runtime.Error(http.StatusBadRequest, "invalid user: already mounting")
 	} else if userEntity.Group == r.Group {
@@ -250,5 +268,6 @@ func (r *RouteMountRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 	r.Paths = groupEntity.Paths
 	r.Paths = append(r.Paths, r.Name)
+
 	return nil
 }

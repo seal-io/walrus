@@ -73,11 +73,13 @@ func NewHelm(namespace, kubeconfig string) (*Helm, error) {
 
 	config := action.Configuration{}
 	logger := log.WithName("cost")
+
 	if err = config.Init(settings.RESTClientGetter(), namespace, "secrets", func(format string, v ...interface{}) {
 		logger.WithName("helm").Debugf(format, v...)
 	}); err != nil {
 		return nil, err
 	}
+
 	return &Helm{
 		settings:     settings,
 		actionConfig: &config,
@@ -102,6 +104,7 @@ func (h *Helm) Download(repoURL, chartName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error download chart %s:%s, %w", repoURL, chartName, err)
 	}
+
 	return outputPath, nil
 }
 
@@ -128,6 +131,7 @@ func (h *Helm) Install(name, chartPath string, values map[string]interface{}) er
 	}
 
 	h.logger.Infof("finished chart install %s:%s, status: %s", h.namespace, name, rel.Info.Status.String())
+
 	return nil
 }
 
@@ -135,20 +139,25 @@ func (h *Helm) Uninstall(name string) error {
 	uninstall := action.NewUninstall(h.actionConfig)
 	uninstall.Wait = true
 	uninstall.Timeout = timeout
+
 	_, err := uninstall.Run(name)
 	if err != nil {
 		return fmt.Errorf("error uninstall %s:%s, %w", h.namespace, name, err)
 	}
+
 	h.logger.Infof("finished chart uninstall %s:%s", h.namespace, name)
+
 	return nil
 }
 
 func (h *Helm) GetRelease(name string) (*release.Release, error) {
 	get := action.NewGet(h.actionConfig)
+
 	rel, err := get.Run(name)
 	if err != nil {
 		return nil, fmt.Errorf("error get release %s:%s, %w", h.namespace, name, err)
 	}
+
 	return rel, nil
 }
 
@@ -164,6 +173,7 @@ func isSucceed(res *release.Release) bool {
 		return false
 	}
 	status := res.Info.Status
+
 	return status == release.StatusDeployed || status == release.StatusSuperseded
 }
 
@@ -172,6 +182,7 @@ func isUnderway(res *release.Release) bool {
 		return false
 	}
 	status := res.Info.Status
+
 	return status == release.StatusUninstalling || status == release.StatusPendingInstall ||
 		status == release.StatusPendingUpgrade || status == release.StatusPendingRollback
 }
@@ -181,5 +192,6 @@ func isFailed(res *release.Release) bool {
 		return false
 	}
 	status := res.Info.Status
+
 	return status == release.StatusFailed
 }

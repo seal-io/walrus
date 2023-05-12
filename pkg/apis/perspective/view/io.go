@@ -30,6 +30,7 @@ func (r *CreateRequest) Validate() error {
 	if r.StartTime == "" {
 		return errors.New("invalid start time: blank")
 	}
+
 	if r.EndTime == "" {
 		return errors.New("invalid end time: blank")
 	}
@@ -51,6 +52,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.IsNaive() {
 		return errors.New("invalid id: blank")
 	}
+
 	if err := validation.ValidateAllocationQueries(r.AllocationQueries); err != nil {
 		return err
 	}
@@ -80,6 +82,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.IsNaive() {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 
@@ -93,11 +96,13 @@ func (r CollectionDeleteRequest) Validate() error {
 	if len(r) == 0 {
 		return errors.New("invalid input: empty")
 	}
+
 	for _, i := range r {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
 		}
 	}
+
 	return nil
 }
 
@@ -131,9 +136,11 @@ func (r *CollectionRouteFieldsRequest) Validate() error {
 	if r.FieldType == "" {
 		return errors.New("invalid field type: blank")
 	}
+
 	if r.FieldType != FieldTypeFilter && r.FieldType != FieldTypeGroupBy && r.FieldType != FieldTypeStep {
 		return errors.New("invalid field type: not support")
 	}
+
 	return nil
 }
 
@@ -152,23 +159,29 @@ func (r *CollectionRouteFieldValuesRequest) Validate() error {
 	if r.StartTime != nil && r.EndTime != nil && r.EndTime.Before(*r.StartTime) {
 		return errors.New("invalid time range: end time is early than start time")
 	}
+
 	if r.FieldName == "" {
 		return errors.New("invalid field name: blank")
 	}
+
 	if r.FieldType == "" {
 		return errors.New("invalid field type: blank")
 	}
+
 	if r.FieldType != FieldTypeFilter {
 		return errors.New("invalid field type: not support")
 	}
+
 	if !strings.HasPrefix(string(r.FieldName), types.LabelPrefix) {
 		for _, v := range BuiltInPerspectiveFilterFields {
 			if v.FieldName == string(r.FieldName) {
 				return nil
 			}
 		}
+
 		return errors.New("invalid field name: unsupported")
 	}
+
 	return nil
 }
 

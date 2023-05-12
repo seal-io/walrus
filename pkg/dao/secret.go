@@ -14,6 +14,7 @@ func SecretCreates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretC
 	}
 
 	rrs := make([]*model.SecretCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -30,6 +31,7 @@ func SecretCreates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretC
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -39,6 +41,7 @@ func SecretUpdates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretU
 	}
 
 	rrs := make([]*model.SecretUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -46,6 +49,7 @@ func SecretUpdates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretU
 
 		// Predicated.
 		var ps []predicate.Secret
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, secret.ID(r.ID))
@@ -57,6 +61,7 @@ func SecretUpdates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretU
 				ps = append(ps, secret.ProjectIDIsNil())
 			}
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -66,5 +71,6 @@ func SecretUpdates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretU
 			SetValue(r.Value)
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

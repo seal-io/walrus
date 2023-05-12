@@ -46,6 +46,7 @@ func (h Handler) RouteGetRepositories(
 	if err != nil {
 		return nil, err
 	}
+
 	return repositories, nil
 }
 
@@ -81,5 +82,6 @@ func (h Handler) RouteGetRepositoryBranches(
 	if err != nil {
 		return nil, err
 	}
+
 	return branches, nil
 }

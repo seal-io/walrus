@@ -28,6 +28,7 @@ func (op Operator) GetEndpoints(
 		}
 		// Warn out if got above errors.
 		op.Logger.Warn(err)
+
 		return nil, nil
 	}
 
@@ -37,6 +38,7 @@ func (op Operator) GetEndpoints(
 	}
 
 	var eps []types.ApplicationResourceEndpoint
+
 	for _, r := range rs {
 		switch r.Resource {
 		case "services":
@@ -50,6 +52,7 @@ func (op Operator) GetEndpoints(
 				return nil, fmt.Errorf("error getting kubernetes service endpoints %s/%s: %w",
 					r.Namespace, r.Name, err)
 			}
+
 			eps = append(eps, endpoints...)
 		case "ingresses":
 			endpoints, err := kubeendpoint.GetIngressEndpoints(
@@ -62,8 +65,10 @@ func (op Operator) GetEndpoints(
 				return nil, fmt.Errorf("error getting kubernetes ingress endpoints %s/%s: %w",
 					r.Namespace, r.Name, err)
 			}
+
 			eps = append(eps, endpoints...)
 		}
 	}
+
 	return eps, nil
 }

@@ -26,6 +26,7 @@ func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Ope
 		Logger:     log.WithName("operator").WithName("k8s"),
 		RestConfig: restConfig,
 	}
+
 	return op, nil
 }
 
@@ -43,5 +44,6 @@ func (Operator) Type() operator.Type {
 func (op Operator) IsConnected(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	return k8s.Wait(ctx, op.RestConfig)
 }

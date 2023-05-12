@@ -56,22 +56,27 @@ func (a ApplicationResourceEndpoints) Equal(eps ApplicationResourceEndpoints) bo
 		for i := range eps {
 			sort.Strings(eps[i].Endpoints)
 		}
+
 		sort.SliceStable(eps, func(i, j int) bool {
 			if eps[i].EndpointType != eps[j].EndpointType {
 				return eps[i].EndpointType < eps[j].EndpointType
 			}
+
 			if len(eps[i].Endpoints) != len(eps[j].Endpoints) {
 				return len(eps[i].Endpoints) < len(eps[j].Endpoints)
 			}
+
 			if len(eps[i].Endpoints) != len(eps[j].Endpoints) {
 				return len(eps[i].Endpoints) < len(eps[j].Endpoints)
 			}
+
 			return hashAddrs(eps[i].Endpoints) < hashAddrs(eps[j].Endpoints)
 		})
 	}
 
 	sortEndpoints(a)
 	sortEndpoints(eps)
+
 	return reflect.DeepEqual(a, eps)
 }
 
@@ -80,5 +85,6 @@ func hashAddrs(addrs []string) string {
 	for _, v := range addrs {
 		h.Write([]byte(v))
 	}
+
 	return hex.EncodeToString(h.Sum(nil))
 }

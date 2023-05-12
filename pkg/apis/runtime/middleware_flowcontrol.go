@@ -22,6 +22,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 	}
 
 	limiter := make(chan struct{}, max)
+
 	var token struct{}
 
 	if wait <= 0 {
@@ -32,6 +33,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 					c.AbortWithStatus(http.StatusTooManyRequests)
 					return
 				}
+
 				c.Abort()
 			case limiter <- token:
 				defer func() { <-limiter }()
@@ -49,6 +51,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 				c.AbortWithStatus(http.StatusTooManyRequests)
 				return
 			}
+
 			c.Abort()
 		case limiter <- token:
 			defer func() { <-limiter }()
@@ -59,7 +62,7 @@ func RequestCounting(max int, wait time.Duration) Handle {
 
 // RequestThrottling controls the request count per second and allows bursting,
 // returns 429 if the new request is not allowed.
-func RequestThrottling(qps int, burst int) Handle {
+func RequestThrottling(qps, burst int) Handle {
 	if qps <= 0 || burst <= 0 {
 		return func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusTooManyRequests)
@@ -67,15 +70,19 @@ func RequestThrottling(qps int, burst int) Handle {
 	}
 
 	limiter := rate.NewLimiter(rate.Limit(qps), burst)
+
 	return func(c *gin.Context) {
 		if !limiter.Allow() {
 			if c.Err() == nil {
 				c.AbortWithStatus(http.StatusTooManyRequests)
 				return
 			}
+
 			c.Abort()
+
 			return
 		}
+
 		c.Next()
 	}
 }
@@ -83,7 +90,7 @@ func RequestThrottling(qps int, burst int) Handle {
 // RequestShaping arranges all requests to be received on the given qps,
 // returns 429 if the new request can be allowed within the given latency,
 // if the given latency is not positive, RequestShaping will never return 429.
-func RequestShaping(qps int, slack int, latency time.Duration) Handle {
+func RequestShaping(qps, slack int, latency time.Duration) Handle {
 	if qps <= 0 {
 		return func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusTooManyRequests)
@@ -100,6 +107,7 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 		var s state
 		return unsafe.Pointer(&s)
 	}()
+
 	return func(c *gin.Context) {
 		for {
 			select {
@@ -125,6 +133,7 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 				}
 				// Allow it immediately.
 				c.Next()
+
 				return
 			}
 
@@ -133,15 +142,19 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 			if currState.sleep < maxSleep {
 				currState.sleep = maxSleep
 			}
+
 			var wait time.Duration
+
 			if currState.sleep > 0 {
 				currState.arrival = currState.arrival.Add(currState.sleep)
 				wait, currState.sleep = currState.sleep, 0
 			}
+
 			if latency > 0 && wait > latency {
 				c.AbortWithStatus(http.StatusTooManyRequests)
 				return
 			}
+
 			taken := atomic.CompareAndSwapPointer(&statePointer, prevStatePointer, unsafe.Pointer(&currState))
 			if !taken {
 				continue
@@ -156,6 +169,7 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 				t.Stop()
 				c.Abort()
 			}
+
 			return
 		}
 	}

@@ -26,6 +26,7 @@ func (i ID) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return r, nil
 }
 
@@ -38,6 +39,7 @@ func (i *ID) Scan(src any) error {
 		*i = ID(strconv.FormatInt(v, 10))
 		return nil
 	}
+
 	return errors.New("not a valid ID")
 }
 
@@ -47,6 +49,7 @@ func (i ID) Valid(keyLength int) bool {
 	if i.IsNaive() {
 		return true
 	}
+
 	return i.matchKeyLength(keyLength)
 }
 
@@ -56,10 +59,12 @@ func (i ID) IsNaive() bool {
 	if l < 18 {
 		return false
 	}
+
 	var j int
 	for j < l && '0' <= i[j] && i[j] <= '9' {
 		j++
 	}
+
 	return j == l
 }
 
@@ -70,6 +75,7 @@ func (i ID) IsComposited(keyLength int) bool {
 	if i.IsNaive() {
 		return false
 	}
+
 	return i.matchKeyLength(keyLength)
 }
 
@@ -80,6 +86,7 @@ func (i ID) matchKeyLength(l int) bool {
 	case 1:
 		return true
 	}
+
 	return strings.Count(string(i), defaultSeparator)+1 == l
 }
 

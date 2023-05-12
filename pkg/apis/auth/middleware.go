@@ -13,6 +13,7 @@ import (
 // which is used for authenticating and authorizing the incoming request.
 func Auth(enableAuthn bool, modelClient model.ClientSet) runtime.Handle {
 	type authFn func(*gin.Context, model.ClientSet) error
+
 	authFns := []authFn{authn, authz}
 	if !enableAuthn {
 		authFns = []authFn{noAuth}
@@ -24,9 +25,11 @@ func Auth(enableAuthn bool, modelClient model.ClientSet) runtime.Handle {
 			if err != nil {
 				_ = c.Error(err)
 				c.Abort()
+
 				return
 			}
 		}
+
 		c.Next()
 	}
 }
@@ -44,5 +47,6 @@ func noAuth(c *gin.Context, _ model.ClientSet) error {
 
 	session.StoreSubjectAuthnInfo(c, []string{"default"}, "admin")
 	session.StoreSubjectAuthzInfo(c, roles, policies)
+
 	return nil
 }

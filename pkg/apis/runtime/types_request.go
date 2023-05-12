@@ -37,6 +37,7 @@ func (r RequestCollection[Q, S]) Validate() (err error) {
 			return
 		}
 	}
+
 	return
 }
 
@@ -56,6 +57,7 @@ func (r RequestPagination) Limit() int {
 	if limit <= 0 {
 		limit = 100
 	}
+
 	return limit
 }
 
@@ -65,6 +67,7 @@ func (r RequestPagination) Offset() int {
 	if offset < 0 {
 		offset = 0
 	}
+
 	return offset
 }
 
@@ -77,6 +80,7 @@ func (r RequestPagination) Paging() (limit, offset int, request bool) {
 	}
 	limit = r.Limit()
 	offset = r.Offset()
+
 	return
 }
 
@@ -92,6 +96,7 @@ func (r RequestSorting[T]) Validate() error {
 			return errors.New("blank sort value is not allowed")
 		}
 	}
+
 	return nil
 }
 
@@ -101,8 +106,10 @@ func (r RequestSorting[T]) WithAsc(fields ...string) RequestSorting[T] {
 		if fields[i] == "" {
 			continue
 		}
+
 		r.Sorts = append(r.Sorts, fields[i])
 	}
+
 	return r
 }
 
@@ -112,8 +119,10 @@ func (r RequestSorting[T]) WithDesc(fields ...string) RequestSorting[T] {
 		if fields[i] == "" {
 			continue
 		}
+
 		r.Sorts = append(r.Sorts, "-"+fields[i])
 	}
+
 	return r
 }
 
@@ -126,12 +135,15 @@ func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T,
 
 	orders := make([]T, 0, len(allowKeys))
 	allows := sets.NewString(allowKeys...)
+
 	for i := 0; i < len(r.Sorts); i++ {
 		if r.Sorts[i] == "" {
 			continue
 		}
 		order := model.Asc
+
 		var key string
+
 		switch r.Sorts[i][0] {
 		case '-':
 			order = model.Desc
@@ -141,6 +153,7 @@ func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T,
 		default:
 			key = r.Sorts[i]
 		}
+
 		if allows.Has(key) {
 			allows.Delete(key) // Not allow duplicate inputs.
 			orders = append(orders, order(key))
@@ -151,9 +164,11 @@ func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T,
 			}
 		}
 	}
+
 	if len(orders) == 0 {
 		return defaultOrders, len(defaultOrders) != 0
 	}
+
 	return orders, true
 }
 
@@ -167,11 +182,13 @@ func (r RequestGrouping) Validate() error {
 	if len(r.Groups) > 3 {
 		return errors.New("too deep in group levels")
 	}
+
 	for i := 0; i < len(r.Groups); i++ {
 		if strings.TrimSpace(r.Groups[i]) == "" {
 			return errors.New("blank group value is not allowed")
 		}
 	}
+
 	return nil
 }
 
@@ -187,6 +204,7 @@ func (r RequestExtracting) Validate() error {
 			return errors.New("blank extract value is not allowed")
 		}
 	}
+
 	return nil
 }
 
@@ -196,8 +214,10 @@ func (r RequestExtracting) With(fields ...string) RequestExtracting {
 		if fields[i] == "" {
 			continue
 		}
+
 		r.Extracts = append(r.Extracts, fields[i])
 	}
+
 	return r
 }
 
@@ -207,8 +227,10 @@ func (r RequestExtracting) Without(fields ...string) RequestExtracting {
 		if fields[i] == "" {
 			continue
 		}
+
 		r.Extracts = append(r.Extracts, "-"+fields[i])
 	}
+
 	return r
 }
 
@@ -225,12 +247,15 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 
 	fields := make([]string, 0, len(candidates))
 	allows := sets.NewString(allowFields...)
+
 	for i := 0; i < len(candidates); i++ {
 		if candidates[i] == "" {
 			continue
 		}
 		with := true
+
 		var key string
+
 		switch candidates[i][0] {
 		case '-':
 			with = false
@@ -240,8 +265,10 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 		default:
 			key = candidates[i]
 		}
+
 		if allows.Has(key) {
 			allows.Delete(key) // Not allow duplicate inputs.
+
 			if with {
 				fields = append(fields, key)
 			}
@@ -254,9 +281,11 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 			}
 		}
 	}
+
 	if len(fields) == 0 {
 		return defaultFields, len(defaultFields) != 0
 	}
+
 	return fields, true
 }
 
@@ -266,6 +295,7 @@ func (r RequestExtracting) ExtractingSet(allowFields []string, defaultFields ...
 	if !ok {
 		return sets.Set[string]{}
 	}
+
 	return sets.New[string](fields...)
 }
 
@@ -280,6 +310,7 @@ func (r RequestQuerying[T]) Validate() error {
 	if r.Query != nil && strings.TrimSpace(*r.Query) == "" {
 		return errors.New("blank query value is not allowed")
 	}
+
 	return nil
 }
 
@@ -294,12 +325,14 @@ func (r RequestQuerying[T]) Querying(searchFields []string) (T, bool) {
 		for _, f := range searchFields {
 			q = append(q, sql.ContainsFold(s.C(f), *r.Query))
 		}
+
 		if len(q) == 1 {
 			s.Where(q[0])
 		} else {
 			s.Where(sql.Or(q...))
 		}
 	}
+
 	return p, true
 }
 
@@ -313,6 +346,7 @@ func (r RequestOperating) Validate() error {
 	if r.Action != nil && strings.TrimSpace(*r.Action) == "" {
 		return errors.New("blank action value is not allowed")
 	}
+
 	return nil
 }
 
@@ -334,6 +368,7 @@ func (r RequestUnidiStream) SendJSON(i any) error {
 	if err != nil {
 		return err
 	}
+
 	return r.SendMsg(bs)
 }
 
@@ -343,7 +378,9 @@ func (r RequestUnidiStream) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return
 	}
+
 	r.conn.Flush()
+
 	return
 }
 
@@ -396,6 +433,7 @@ func (r RequestBidiStream) SendJSON(i any) error {
 	if err != nil {
 		return err
 	}
+
 	return r.SendMsg(bs)
 }
 
@@ -420,7 +458,9 @@ func (r RequestBidiStream) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return
 	}
+
 	defer func() { _ = msgWriter.Close() }()
+
 	return msgWriter.Write(p)
 }
 
@@ -431,6 +471,7 @@ func (r RequestBidiStream) Read(p []byte) (n int, err error) {
 		msgType   int
 		msgReader io.Reader
 	)
+
 	r.firstReadOnce.Do(func() {
 		fr, ok := <-r.firstReadChan
 		if !ok {
@@ -439,21 +480,26 @@ func (r RequestBidiStream) Read(p []byte) (n int, err error) {
 		firstRead = true
 		msgType, msgReader, err = fr.t, fr.r, fr.e
 	})
+
 	if !firstRead {
 		msgType, msgReader, err = r.conn.NextReader()
 	}
+
 	if err != nil {
 		return
 	}
+
 	switch msgType {
 	default:
 		err = &websocket.CloseError{
 			Code: websocket.CloseUnsupportedData,
 			Text: "unresolved message type: binary",
 		}
+
 		return
 	case websocket.TextMessage:
 	}
+
 	return msgReader.Read(p)
 }
 

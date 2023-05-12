@@ -7,5 +7,6 @@ func Hostname(def ...string) string {
 	if h == "" && len(def) != 0 {
 		return def[0]
 	}
+
 	return h
 }

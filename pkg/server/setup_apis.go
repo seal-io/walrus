@@ -20,6 +20,7 @@ func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
 	if err != nil {
 		return err
 	}
+
 	serveOpts := apis.ServeOptions{
 		SetupOptions: apis.SetupOptions{
 			EnableAuthn: r.EnableAuthn,
@@ -30,6 +31,7 @@ func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
 		},
 		BindAddress: r.BindAddress,
 	}
+
 	switch {
 	default:
 		serveOpts.TlsMode = apis.TlsModeSelfGenerated
@@ -46,9 +48,11 @@ func (r *Server) setupApis(ctx context.Context, opts setupApisOptions) error {
 		serveOpts.TlsCertDir = r.TlsCertDir
 		serveOpts.TlsAutoCertDomains = r.TlsAutoCertDomains
 	}
+
 	err = srv.Serve(ctx, serveOpts)
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
+
 	return nil
 }

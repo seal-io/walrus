@@ -11,5 +11,6 @@ func Command() *cli.Command {
 	agent.Before(&cmd)
 	agent.Action(&cmd)
 	cmd.Name = "agent"
+
 	return &cmd
 }

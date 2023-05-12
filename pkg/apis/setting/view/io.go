@@ -26,6 +26,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
 	}
+
 	if r.Value == nil {
 		return errors.New("invalid input: nil value")
 	}
@@ -34,6 +35,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		setting.Private(false),
 		setting.Editable(true),
 	}
+
 	switch {
 	case r.ID.IsNaive():
 		confirmSetting = append(confirmSetting, setting.ID(r.ID))
@@ -41,6 +43,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		keys := r.ID.Split()
 		confirmSetting = append(confirmSetting, setting.Name(keys[0]))
 	}
+
 	settingEntity, err := modelClient.Settings().Query().
 		Where(confirmSetting...).
 		Select(setting.FieldName, setting.FieldValue).
@@ -61,6 +64,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 
@@ -74,12 +78,14 @@ func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) er
 	if len(r) == 0 {
 		return errors.New("invalid input: empty list")
 	}
+
 	for _, i := range r {
 		err := i.ValidateWith(ctx, input)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -95,6 +101,7 @@ func (r *CollectionGetRequest) Validate() error {
 			return errors.New("invalid id: blank")
 		}
 	}
+
 	return nil
 }
 

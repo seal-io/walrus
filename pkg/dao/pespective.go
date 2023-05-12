@@ -14,6 +14,7 @@ func PerspectiveCreates(mc model.ClientSet, input ...*model.Perspective) ([]*mod
 	}
 
 	rrs := make([]*model.PerspectiveCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -33,6 +34,7 @@ func PerspectiveCreates(mc model.ClientSet, input ...*model.Perspective) ([]*mod
 
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -44,19 +46,24 @@ func PerspectiveUpdate(mc model.ClientSet, input *model.Perspective) (*model.Per
 	ps := []predicate.Perspective{
 		perspective.ID(input.ID),
 	}
+
 	c := mc.Perspectives().UpdateOne(input).
 		Where(ps...)
 	if input.Name != "" {
 		c.SetName(input.Name)
 	}
+
 	if input.StartTime != "" {
 		c.SetStartTime(input.StartTime)
 	}
+
 	if input.EndTime != "" {
 		c.SetEndTime(input.EndTime)
 	}
+
 	if len(input.AllocationQueries) != 0 {
 		c.SetAllocationQueries(input.AllocationQueries)
 	}
+
 	return c, nil
 }

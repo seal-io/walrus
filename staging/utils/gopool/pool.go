@@ -17,6 +17,7 @@ func printState() {
 	if !log.Enabled(log.DebugLevel) {
 		return
 	}
+
 	log.WithName("gopool").Debugf("state: tasks %d/%d workers %d/%d",
 		gp.WaitingTasks(), gp.SubmittedTasks(),
 		gp.IdleWorkers(), gp.RunningWorkers())
@@ -28,12 +29,15 @@ func Go(f func()) {
 		log.WithName("gopool").Warn("goroutine pool full")
 		gp.Submit(f)
 	}
+
 	printState()
 }
 
 // TryGo tries to submit a task as goroutine.
 func TryGo(f func()) bool {
 	r := gp.TrySubmit(f)
+
 	printState()
+
 	return r
 }

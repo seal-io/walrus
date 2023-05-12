@@ -26,6 +26,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 
@@ -47,6 +48,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	modelClient := input.(model.ClientSet)
+
 	exist, err := modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.ID(r.ID)).
 		Exist(ctx)
@@ -70,10 +72,12 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 		ids         = make([]types.ID, 0, len(r))
 		modelClient = input.(model.ClientSet)
 	)
+
 	for _, i := range r {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid ids: blank")
 		}
+
 		ids = append(ids, i.ID)
 	}
 
@@ -84,6 +88,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application revisions")
 	}
+
 	if len(revisions) != len(r) {
 		return errors.New("invalid ids: some revisions are not found")
 	}
@@ -129,6 +134,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		if !r.InstanceID.IsNaive() {
 			return errors.New("invalid instance id")
 		}
+
 		_, err := modelClient.ApplicationInstances().Query().
 			Where(applicationinstance.ID(r.InstanceID)).
 			OnlyID(ctx)
@@ -151,10 +157,12 @@ type CollectionStreamRequest struct {
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.InstanceID != "" {
 		modelClient := input.(model.ClientSet)
+
 		if r.InstanceID != "" {
 			if !r.InstanceID.IsNaive() {
 				return errors.New("invalid instance id")
 			}
+
 			_, err := modelClient.ApplicationInstances().Query().
 				Where(applicationinstance.ID(r.InstanceID)).
 				OnlyID(ctx)
@@ -191,6 +199,7 @@ func (r *StreamLogRequest) Validate() error {
 	if r.JobType == "" {
 		r.JobType = platformtf.JobTypeApply
 	}
+
 	if r.JobType != platformtf.JobTypeApply && r.JobType != platformtf.JobTypeDestroy {
 		return errors.New("invalid job type")
 	}
@@ -209,6 +218,7 @@ func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) e
 
 	// Check latest revision if running.
 	modelClient := input.(model.ClientSet)
+
 	entity, err := modelClient.ApplicationRevisions().Get(ctx, r.ID)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application revision")
@@ -222,6 +232,7 @@ func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) e
 	if err != nil && !model.IsNotFound(err) {
 		return runtime.Errorw(err, "failed to get latest revision")
 	}
+
 	if latestRevision.Status == status.ApplicationRevisionStatusRunning {
 		return errors.New("latest revision is running")
 	}

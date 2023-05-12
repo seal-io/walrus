@@ -62,6 +62,7 @@ type Embedded struct{}
 
 func (Embedded) Run(ctx context.Context, dataSourceAddress string) error {
 	runDataPath := filepath.Join(consts.DataDir, "casdoor")
+
 	configPath, err := writeConfig(dataSourceAddress, runDataPath)
 	if err != nil {
 		return err
@@ -74,13 +75,16 @@ func (Embedded) Run(ctx context.Context, dataSourceAddress string) error {
 	}
 	logger.Infof("run: %s %s", cmdName, strs.Join(" ", cmdArgs...))
 	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
+
 	cmd.Env = append(os.Environ(), casdoorConfigPathEnvName+"="+configPath)
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
+
 	err = cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
+
 	return nil
 }
 
@@ -110,6 +114,7 @@ func writeConfig(dataSourceAddress, dataDir string) (string, error) {
 
 	buf := bytespool.GetBuffer()
 	defer func() { bytespool.Put(buf) }()
+
 	err = tmpl.Execute(buf, map[string]string{
 		"DataSourceDriver": dsd,
 		"DataSourceName":   dsn,
@@ -123,5 +128,6 @@ func writeConfig(dataSourceAddress, dataDir string) (string, error) {
 	if configPath == "" {
 		configPath = files.TempFile("")
 	}
+
 	return configPath, os.WriteFile(configPath, buf.Bytes(), 0o600)
 }

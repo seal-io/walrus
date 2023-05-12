@@ -27,32 +27,6 @@ import (
 	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 )
 
-// Terraform returns Converter to convert Terraform provider resource type to raw Kubernetes GVK/GVR.
-func Terraform() Converter {
-	// Singleton pattern.
-	return tfConvert
-}
-
-type terraformConvert struct {
-	gvkm map[string]schema.GroupVersionKind
-	gvrm map[string]schema.GroupVersionResource
-}
-
-func (c terraformConvert) GetGVK(alias string) (gvk schema.GroupVersionKind, ok bool) {
-	gvk, ok = c.gvkm[alias]
-	return
-}
-
-func (c terraformConvert) GetGVR(alias string) (gvr schema.GroupVersionResource, ok bool) {
-	gvr, ok = c.gvrm[alias]
-	return
-}
-
-var tfConvert = terraformConvert{
-	gvkm: map[string]schema.GroupVersionKind{},
-	gvrm: map[string]schema.GroupVersionResource{},
-}
-
 func init() {
 	// Emit, transfer and record.
 	//
@@ -168,4 +142,30 @@ func init() {
 		tfConvert.gvkm[alias] = gvk
 		tfConvert.gvrm[alias], _ = meta.UnsafeGuessKindToResource(gvk)
 	}
+}
+
+// Terraform returns Converter to convert Terraform provider resource type to raw Kubernetes GVK/GVR.
+func Terraform() Converter {
+	// Singleton pattern.
+	return tfConvert
+}
+
+type terraformConvert struct {
+	gvkm map[string]schema.GroupVersionKind
+	gvrm map[string]schema.GroupVersionResource
+}
+
+func (c terraformConvert) GetGVK(alias string) (gvk schema.GroupVersionKind, ok bool) {
+	gvk, ok = c.gvkm[alias]
+	return
+}
+
+func (c terraformConvert) GetGVR(alias string) (gvr schema.GroupVersionResource, ok bool) {
+	gvr, ok = c.gvrm[alias]
+	return
+}
+
+var tfConvert = terraformConvert{
+	gvkm: map[string]schema.GroupVersionKind{},
+	gvrm: map[string]schema.GroupVersionResource{},
 }

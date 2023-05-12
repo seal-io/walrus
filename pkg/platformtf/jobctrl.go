@@ -79,11 +79,13 @@ const (
 
 func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	job := &batchv1.Job{}
+
 	err := r.KubeClient.Get(ctx, req.NamespacedName, job)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
+
 		return ctrl.Result{}, err
 	}
 
@@ -145,6 +147,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	if job.Status.Succeeded > 0 {
 		r.Logger.Info("succeed", "application-revision", appRevisionID)
 	}
+
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "application-revision", appRevisionID)
 		revisionStatus = status.ApplicationRevisionStatusFailed
@@ -154,10 +157,12 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	appRevision.Status = revisionStatus
 	appRevision.StatusMessage = revisionStatusMessage
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
+
 	update, err := dao.ApplicationRevisionUpdate(r.ModelClient, appRevision)
 	if err != nil {
 		return err
 	}
+
 	appRevision, err = update.Save(ctx)
 	if err != nil {
 		return err
@@ -173,6 +178,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 		return "", err
 	}
 	ls := "job-name=" + jobName
+
 	pods, err := clientSet.CoreV1().Pods(types.SealSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: ls})
 	if err != nil {
@@ -180,8 +186,10 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	}
 
 	var logs string
+
 	for _, pod := range pods.Items {
 		var podLogs []byte
+
 		podLogs, err = clientSet.CoreV1().Pods(types.SealSystemNamespace).
 			GetLogs(pod.Name, &corev1.PodLogOptions{}).
 			DoRaw(ctx)
@@ -199,6 +207,7 @@ func (r JobReconciler) deleteSecret(ctx context.Context, secretName string) erro
 	if err != nil {
 		return err
 	}
+
 	err = clientSet.CoreV1().Secrets(types.SealSystemNamespace).Delete(ctx, secretName, metav1.DeleteOptions{})
 	if err != nil && !kerrors.IsNotFound(err) {
 		return err
@@ -237,6 +246,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 			return err
 		}
 	}
+
 	logger.Debugf("k8s job %s created", name)
 
 	return nil
@@ -248,6 +258,7 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 		ObjectMeta: metav1.ObjectMeta{Name: name},
 		Data:       data,
 	}
+
 	_, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil && !kerrors.IsAlreadyExists(err) {
 		return err
@@ -263,12 +274,14 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
 		varfile       = fmt.Sprintf(" -var-file=%s/terraform.tfvars", _secretMountPath)
 	)
+
 	switch opts.Type {
 	case JobTypeApply:
 		deployCommand += _applyCommands + varfile
 	case JobTypeDestroy:
 		deployCommand += _destroyCommands + varfile
 	}
+
 	command = append(command, deployCommand)
 
 	return corev1.PodTemplateSpec{
@@ -329,11 +342,13 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 	if err != nil {
 		return err
 	}
+
 	if len(podList.Items) == 0 {
 		return nil
 	}
 
 	jobPod := podList.Items[0]
+
 	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
 		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
 			ResourceVersion: "0",
@@ -341,11 +356,13 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		if getErr != nil {
 			return false, getErr
 		}
+
 		return kube.IsPodReady(pod), nil
 	})
 	if err != nil {
 		return err
 	}
+
 	states := kube.GetContainerStates(&jobPod)
 	if len(states) == 0 {
 		return nil

@@ -44,6 +44,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 	if err != nil {
 		return nil, err
 	}
+
 	entity, err = creates[0].Save(ctx)
 	if err != nil {
 		return nil, err
@@ -63,6 +64,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	if err != nil {
 		return err
 	}
+
 	return update.Exec(ctx)
 }
 
@@ -86,6 +88,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -121,12 +124,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields, model.Desc(perspective.FieldCreateTime)); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).
@@ -150,6 +156,7 @@ func (h Handler) CollectionRouteFields(
 	if req.StartTime != nil {
 		ps = append(ps, sql.GTE(allocationcost.FieldStartTime, req.StartTime))
 	}
+
 	if req.EndTime != nil {
 		ps = append(ps, sql.LTE(allocationcost.FieldEndTime, req.EndTime))
 	}
@@ -178,6 +185,7 @@ func (h Handler) CollectionRouteFields(
 			fields = append(fields, view.LabelKeyToPerspectiveField(v))
 		}
 		count := len(fields)
+
 		return fields, count, nil
 	}
 }
@@ -190,12 +198,13 @@ func (h Handler) CollectionRouteValues(
 	if req.StartTime != nil {
 		ps = append(ps, sql.GTE(allocationcost.FieldStartTime, req.StartTime))
 	}
+
 	if req.EndTime != nil {
 		ps = append(ps, sql.LTE(allocationcost.FieldEndTime, req.EndTime))
 	}
 
 	var (
-		pvalues  []view.PerspectiveValue
+		pvalues  = make([]view.PerspectiveValue, 0)
 		fieldStr = string(req.FieldName)
 	)
 
@@ -209,6 +218,7 @@ func (h Handler) CollectionRouteValues(
 		)
 
 		ps = append(ps, sqljson.ValueIsNotNull(allocationcost.FieldLabels))
+
 		err := h.modelClient.AllocationCosts().Query().
 			Modify(func(s *sql.Selector) {
 				s.Where(
@@ -225,11 +235,13 @@ func (h Handler) CollectionRouteValues(
 			if v.Value == "" {
 				continue
 			}
+
 			pvalues = append(pvalues, view.PerspectiveValue{
 				Label: v.Value,
 				Value: v.Value,
 			})
 		}
+
 		return pvalues, len(pvalues), nil
 	}
 
@@ -262,6 +274,7 @@ func (h Handler) CollectionRouteValues(
 		if err != nil {
 			return nil, 0, err
 		}
+
 		return pvalues, len(pvalues), nil
 	}
 
@@ -269,10 +282,12 @@ func (h Handler) CollectionRouteValues(
 		if v == "" {
 			continue
 		}
+
 		pvalues = append(pvalues, view.PerspectiveValue{
 			Label: v,
 			Value: v,
 		})
 	}
+
 	return pvalues, len(pvalues), nil
 }

@@ -13,10 +13,12 @@ func DecodeBase64(str string) (string, error) {
 	str = strings.ReplaceAll(str, "_", "/")
 	// Normalizes to no padding format.
 	str = strings.TrimRight(str, "=")
+
 	bs, err := base64.RawStdEncoding.DecodeString(str)
 	if err != nil {
 		return "", err
 	}
+
 	return FromBytes(&bs), nil
 }
 
@@ -27,6 +29,8 @@ func EncodeBase64(src string) string {
 		enc = base64.StdEncoding
 		ret = make([]byte, enc.EncodedLen(len(src)))
 	)
+
 	enc.Encode(ret, ToBytes(&src))
+
 	return FromBytes(&ret)
 }

@@ -49,6 +49,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 		return err
 	}
 	_, err = creates[0].Save(ctx)
+
 	return err
 }
 
@@ -73,6 +74,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 			subject.Kind("group"),
 		},
 	}
+
 	for i := 0; i < len(subres); i++ {
 		switch subres[i].Kind {
 		case "group":
@@ -85,14 +87,17 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 				inputs = append(inputs, []predicate.Subject{
 					subject.ID(subres[i].ID),
 				})
+
 				continue
 			}
+
 			inputs = append(inputs, []predicate.Subject{
 				subject.Kind("user"),
 				subject.Name(req.Name),
 			})
 		}
 	}
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		for i := range inputs {
 			_, err = tx.Subjects().Delete().
@@ -102,6 +107,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 				return err
 			}
 		}
+
 		return nil
 	})
 	// TODO clean cache.
@@ -118,6 +124,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	if err != nil {
 		return err
 	}
+
 	return updates[0].Exec(ctx)
 }
 
@@ -163,12 +170,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		All(ctx)
 	if err != nil {

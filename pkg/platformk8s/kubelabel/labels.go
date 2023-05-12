@@ -43,6 +43,7 @@ func Apply(
 		"ReplicationController", "ReplicaSet":
 		return p.applyLabelsToWorkloads(ctx, o, labels)
 	}
+
 	return nil
 }
 
@@ -61,10 +62,12 @@ func (p *patcher) applyLabelsToWorkloads(
 	}
 
 	var berr error
+
 	for i := range pods {
 		err = p.applyLabels(ctx, &pods[i], labels)
 		multierr.AppendInto(&berr, err)
 	}
+
 	return berr
 }
 
@@ -75,12 +78,14 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 		gvk    = o.GetObjectKind().GroupVersionKind()
 		gvr, _ = meta.UnsafeGuessKindToResource(gvk)
 	)
+
 	metadata, err := meta.Accessor(o)
 	if err != nil {
 		return fmt.Errorf("error get metadata for %s %s/%s: %w", gvr.Resource, ns, name, err)
 	}
 
 	origin := metadata.GetLabels()
+
 	update := metadata.GetLabels()
 	for k, v := range labels {
 		update[k] = v
@@ -111,6 +116,7 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 	if err != nil {
 		return fmt.Errorf("error patch labels to %s %s/%s: %w", gvr.Resource, ns, name, err)
 	}
+
 	return nil
 }
 
@@ -120,12 +126,14 @@ func (p *patcher) selectPods(ctx context.Context, o *unstructured.Unstructured) 
 		gvk    = o.GetObjectKind().GroupVersionKind()
 		gvr, _ = meta.UnsafeGuessKindToResource(gvk)
 	)
+
 	ns, s, err := polymorphic.SelectorsForObject(o)
 	if err != nil {
 		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w", gvr.Resource, ns, name, err)
 	}
 
 	ss := s.String()
+
 	pl, err := p.dynamicCli.
 		Resource(core.SchemeGroupVersion.WithResource("pods")).
 		Namespace(ns).
@@ -133,5 +141,6 @@ func (p *patcher) selectPods(ctx context.Context, o *unstructured.Unstructured) 
 	if err != nil {
 		return nil, fmt.Errorf("error listing kubernetes %s pods with %s: %w", ns, ss, err)
 	}
+
 	return pl.Items, nil
 }

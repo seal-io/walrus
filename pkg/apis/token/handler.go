@@ -36,7 +36,9 @@ func (h Handler) Kind() string {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
 	entity := req.Model()
 	s := session.LoadSubject(ctx)
+
 	var cred casdoor.ApplicationCredential
+
 	err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
 	if err != nil {
 		return nil, err
@@ -57,10 +59,12 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 		}
 		_ = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret, t.Owner, t.Name)
 	}()
+
 	creates, cerr := dao.TokenCreates(h.modelClient, entity)
 	if cerr != nil {
 		return nil, cerr
 	}
+
 	entity, cerr = creates[0].Save(ctx)
 	if cerr != nil {
 		return nil, cerr
@@ -89,6 +93,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	if err != nil {
 		return runtime.Errorw(err, "failed to get token")
 	}
+
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		_, err := tx.Tokens().Delete().
 			Where(input...).
@@ -98,15 +103,18 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		}
 		// Remove token value from casdoor.
 		var cred casdoor.ApplicationCredential
+
 		err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
 		if err != nil {
 			return err
 		}
+
 		err = casdoor.DeleteToken(ctx, cred.ClientID, cred.ClientSecret,
 			entity.CasdoorTokenOwner, entity.CasdoorTokenName)
 		if err != nil {
 			return fmt.Errorf("failed to delete token from casdoor: %w", err)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -115,6 +123,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 	// Clean cache.
 	cache.CleanTokenSubjects()
+
 	return nil
 }
 

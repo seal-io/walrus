@@ -47,6 +47,7 @@ func setLanguageTag(c *gin.Context) {
 func getLanguageTag(c *gin.Context) language.Tag {
 	defaultLanguage := language.English
 	v, exist := c.Get(languageContextKey)
+
 	if !exist {
 		return defaultLanguage
 	}
@@ -61,5 +62,6 @@ func getLanguageTag(c *gin.Context) language.Tag {
 func Translate(c *gin.Context, s string) string {
 	tag := getLanguageTag(c)
 	p := message.NewPrinter(tag)
+
 	return p.Sprintf(s)
 }

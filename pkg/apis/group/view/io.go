@@ -27,6 +27,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Group == "" {
 		return errors.New("invalid group: blank")
 	}
+
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
@@ -42,6 +43,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 	r.Paths = group.Paths
 	r.Paths = append(r.Paths, r.Name)
+
 	return nil
 }
 
@@ -69,6 +71,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		confirmGroup = append(confirmGroup, subject.Group(keys[0]))
 		confirmGroup = append(confirmGroup, subject.Name(keys[1]))
 	}
+
 	groupEntity, err := modelClient.Subjects().Query().
 		Where(confirmGroup...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
@@ -106,6 +109,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		confirmGroup = append(confirmGroup, subject.Group(keys[0]))
 		confirmGroup = append(confirmGroup, subject.Name(keys[1]))
 	}
+
 	groupEntity, err := modelClient.Subjects().Query().
 		Where(confirmGroup...).
 		Select(subject.FieldID, subject.FieldGroup, subject.FieldName).
@@ -117,6 +121,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	r.Name = groupEntity.Name
 
 	var needUpdate bool
+
 	if r.Description != "" {
 		if r.Description == groupEntity.Description {
 			r.Description = ""
@@ -124,6 +129,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 			needUpdate = true
 		}
 	}
+
 	if !needUpdate {
 		return errors.New("invalid input: nothing update")
 	}

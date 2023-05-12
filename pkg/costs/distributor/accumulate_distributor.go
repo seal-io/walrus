@@ -40,6 +40,7 @@ func (r *accumulateDistributor) distribute(
 	}
 
 	totalAllocationCosts := r.totalAllocationCosts(allocationCosts)
+
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,12 +50,14 @@ func (r *accumulateDistributor) distribute(
 		if item.ItemName == "" {
 			item.ItemName = types.UnallocatedLabel
 		}
+
 		applySharedCost(totalCount, &item.Cost, sharedCosts, totalAllocationCosts)
 	}
 
 	if err = applyItemDisplayName(ctx, r.client, allocationCosts, cond.GroupBy); err != nil {
 		return nil, 0, err
 	}
+
 	return allocationCosts, queriedCount, nil
 }
 
@@ -66,6 +69,7 @@ func (r *accumulateDistributor) allocationResourceCosts(
 ) ([]view.Resource, int, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
+
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
 		return nil, 0, 0, err
@@ -151,6 +155,7 @@ func (r *accumulateDistributor) allocationResourceCosts(
 		page    = cond.Paging.Page
 		perPage = cond.Paging.PerPage
 	)
+
 	if page != 0 && perPage != 0 {
 		query = query.Modify(func(s *sql.Selector) {
 			s.Limit(perPage).Offset((page - 1) * perPage)
@@ -161,6 +166,7 @@ func (r *accumulateDistributor) allocationResourceCosts(
 	if err = query.Scan(ctx, &items); err != nil {
 		return nil, 0, 0, fmt.Errorf("error query allocation cost: %w", err)
 	}
+
 	return items, totalCount, queriedCount, nil
 }
 
@@ -174,7 +180,8 @@ func (r *accumulateDistributor) sharedCosts(
 		return nil, nil
 	}
 
-	var sharedCosts []*SharedCost
+	sharedCosts := make([]*SharedCost, 0, len(conds))
+
 	for _, v := range conds {
 		saCost, err := r.sharedAllocationCost(ctx, startTime, endTime, v)
 		if err != nil {
@@ -199,6 +206,7 @@ func (r *accumulateDistributor) sharedCosts(
 			Condition:      v,
 		})
 	}
+
 	return sharedCosts, nil
 }
 
@@ -322,5 +330,6 @@ func (r *accumulateDistributor) totalAllocationCosts(cost []view.Resource) float
 	for _, v := range cost {
 		total += v.TotalCost
 	}
+
 	return total
 }

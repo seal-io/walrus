@@ -39,27 +39,34 @@ func Logging(ignorePaths ...string) Handle {
 
 	skipPaths := sets.Set[string]{}
 	skipPrefixPaths := sets.Set[string]{}
+
 	for i := range ignorePaths {
 		skipPaths.Insert(ignorePaths[i])
+
 		lastIdx := strings.LastIndex(ignorePaths[i], "/") + 1
 		if lastIdx <= 0 {
 			continue
 		}
+
 		lastSeg := ignorePaths[i][lastIdx:]
 		if !strings.HasPrefix(lastSeg, "*") {
 			continue
 		}
+
 		skipPrefixPaths.Insert(ignorePaths[i][:lastIdx])
 	}
+
 	return func(c *gin.Context) {
 		path := pointer.String(c.FullPath())
 		if *path == "" {
 			path = &c.Request.URL.Path
 		}
+
 		if skipPaths.Has(*path) {
 			c.Next()
 			return
 		}
+
 		if lastIdx := strings.LastIndex(*path, "/") + 1; lastIdx > 0 {
 			if skipPrefixPaths.Has((*path)[:lastIdx]) {
 				c.Next()
@@ -77,23 +84,27 @@ func Logging(ignorePaths ...string) Handle {
 			reqLatency -= reqLatency % time.Second
 		}
 		respStatus := c.Writer.Status()
+
 		respSize := "0 B"
 		if c.Writer.Written() {
 			respSize = humanize.IBytes(uint64(c.Writer.Size()))
 		}
 		reqClientIP := c.ClientIP()
+
 		reqMethod := c.Request.Method
+
 		switch {
 		case IsUnidiStreamRequest(c):
 			reqMethod = "US"
 		case IsBidiStreamRequest(c):
 			reqMethod = "BS"
 		}
+
 		reqPath := c.Request.URL.Path
 		if raw := c.Request.URL.RawQuery; raw != "" {
 			reqPath = reqPath + "?" + raw
 		}
-		var reqProto = c.Request.Proto
+		reqProto := c.Request.Proto
 		logger.Debugf("%d | %8s | %10s | %13v | %15s | %-7s %s",
 			respStatus,
 			reqProto,

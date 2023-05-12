@@ -27,6 +27,7 @@ type Permission [4]Operation
 // If returns the Operation with the given operator.
 func (p Permission) If(s string) (pv Operation) {
 	var pk operator
+
 	switch s {
 	case http.MethodPost:
 		pk = operatingPost
@@ -37,10 +38,12 @@ func (p Permission) If(s string) (pv Operation) {
 	case http.MethodGet:
 		pk = operatingGet
 	}
+
 	if pk == 0 {
 		return
 	}
 	idx := getOperators()[pk]
+
 	return p[idx]
 }
 
@@ -73,6 +76,7 @@ func (p Operation) Then() (OperateTarget, []string, []string) {
 	if !p.work {
 		return None, nil, nil
 	}
+
 	switch p.scope {
 	case "private":
 		return Private, nil, nil
@@ -80,9 +84,11 @@ func (p Operation) Then() (OperateTarget, []string, []string) {
 		return Shared, nil, nil
 	default:
 	}
+
 	if len(p.includes) != 0 || len(p.excludes) != 0 {
 		return Something, p.includes, p.excludes
 	}
+
 	return Any, nil, nil
 }
 
@@ -127,5 +133,6 @@ func (p Operation) merge(v Operation) (o Operation) {
 			o.includes = append(o.includes, vi...)
 		}
 	}
-	return
+
+	return o
 }

@@ -50,6 +50,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 		err = fmt.Errorf("error creating kubernetes dynamic client: %w", err)
 		return kubestatus.StatusError(err.Error()), err
 	}
+
 	o, err := dynamicCli.Resource(gvr).Namespace(ns).
 		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
@@ -65,7 +66,7 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 	if err != nil {
 		err = fmt.Errorf("error stating status of kubernetes %s %s/%s: %w", gvr.Resource, ns, n, err)
 		return kubestatus.StatusError(err.Error()), err
-
 	}
+
 	return os, nil
 }

@@ -35,12 +35,14 @@ var queryFields = []string{
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
+
 	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		creates, err := dao.SecretCreates(tx, entity)
 		if err != nil {
 			return err
 		}
 		entity, err = creates[0].Save(ctx)
+
 		return err
 	})
 	if err != nil {
@@ -56,11 +58,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		updates, err := dao.SecretUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
+
 		return updates[0].Exec(ctx)
 	})
 }
@@ -76,6 +80,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -95,6 +100,7 @@ func (h Handler) CollectionGet(
 		// Global scope.
 		query.Where(secret.ProjectIDIsNil())
 	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -109,6 +115,7 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); !ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	entities, err := query.
 		Order(model.Desc(secret.FieldCreateTime)).
 		Select(getFields...).

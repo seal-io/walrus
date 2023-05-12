@@ -12,6 +12,7 @@ import (
 func asTermStream(proxy runtime.RequestBidiStream, initWidth, initHeight int32) termStream {
 	resizeCh := make(chan termSize, 2)
 	resizeCh <- termSize{Width: initWidth, Height: initHeight}
+
 	return termStream{
 		Context: context.Background(),
 		once:    &sync.Once{},
@@ -49,6 +50,7 @@ func (h termStream) Read(p []byte) (n int, err error) {
 					err = nil
 				})
 			}
+
 			return
 		}
 		// Resize command is something like `#{"width":100,"height":100}#`
@@ -58,8 +60,10 @@ func (h termStream) Read(p []byte) (n int, err error) {
 			if err = json.Unmarshal(p[1:n-1], &ts); err == nil && ts.Width > 0 && ts.Height > 0 {
 				h.resize <- ts
 			}
+
 			continue
 		}
+
 		return
 	}
 }

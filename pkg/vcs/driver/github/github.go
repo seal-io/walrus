@@ -33,6 +33,7 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get base url: %w", err)
 	}
+
 	if url == "" || !ok {
 		client = github.NewDefault()
 	} else {
@@ -46,6 +47,7 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
+
 	if token == "" || !ok {
 		return nil, errors.New("token not found")
 	}
@@ -55,5 +57,6 @@ func NewClient(conn *model.Connector) (*scm.Client, error) {
 			Token: token,
 		},
 	}
+
 	return client, nil
 }

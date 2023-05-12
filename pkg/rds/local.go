@@ -48,10 +48,12 @@ func (Embedded) Run(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "gosu", cmdArgs...)
 	cmd.Stdout = logger.V(5)
 	cmd.Stderr = logger.V(5)
+
 	err := cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
+
 	return nil
 }
 

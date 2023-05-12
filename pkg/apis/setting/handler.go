@@ -38,9 +38,11 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		if err != nil {
 			return err
 		}
+
 		if !changed {
 			return nil
 		}
+
 		return settingbus.Notify(ctx, tx, model.Settings{
 			&model.Setting{
 				Name:  req.Name,
@@ -81,22 +83,27 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 	// Bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		list := make(model.Settings, 0, len(req))
+
 		for i := range req {
 			changed, err := settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
 			if err != nil {
 				return err
 			}
+
 			if !changed {
 				continue
 			}
+
 			list = append(list, &model.Setting{
 				Name:  req[i].Name,
 				Value: *req[i].Value,
 			})
 		}
+
 		if len(list) == 0 {
 			return nil
 		}
+
 		return settingbus.Notify(ctx, tx, list)
 	})
 }
@@ -141,6 +148,7 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); !ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	entities, err := query.
 		Order(model.Desc(setting.FieldCreateTime)).
 		Select(getFields...).

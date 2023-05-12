@@ -58,9 +58,9 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 	}
 
 	var (
-		objs    []*unstructured.Unstructured
 		decoder = scheme.Codecs.UniversalDeserializer()
 		yamls   = bytes.Split(yamlContent, []byte("\n---\n"))
+		objs    = make([]*unstructured.Unstructured, 0, len(yamls))
 	)
 
 	for _, v := range yamls {
@@ -93,6 +93,7 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 				if err != nil {
 					return fmt.Errorf("error update namespaced resource %v from yaml: %w", resource, err)
 				}
+
 				continue
 			}
 
@@ -112,6 +113,7 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 				if err != nil {
 					return fmt.Errorf("error update resource %v from yaml: %w", resource, err)
 				}
+
 				continue
 			}
 
@@ -120,7 +122,6 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 				return fmt.Errorf("error create resource %v from yaml: %w", resource, err)
 			}
 		}
-
 	}
 
 	return nil
@@ -133,6 +134,7 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 	if err != nil {
 		return err
 	}
+
 	defer helm.Clean()
 
 	res, err := helm.GetRelease(app.Name)
@@ -141,7 +143,6 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 		if !strings.Contains(err.Error(), "not found") {
 			return fmt.Errorf("error get release %s:%s, %w", app.Namespace, app.Name, err)
 		}
-
 		// Error is not found, continue to install.
 	} else {
 		switch {
@@ -172,5 +173,6 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 	if err = helm.Install(app.Name, chartTgzPath, app.Values); err != nil {
 		return err
 	}
+
 	return nil
 }

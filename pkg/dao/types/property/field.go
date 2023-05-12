@@ -170,14 +170,17 @@ func (i Property) GetNumber() (any, bool, error) {
 	if ok {
 		return iv, ok, nil
 	}
+
 	uiv, ok, _ := i.GetUint64()
 	if ok {
 		return uiv, ok, nil
 	}
+
 	fv, ok, err := i.GetFloat64()
 	if ok {
 		return fv, ok, nil
 	}
+
 	return 0, false, err
 }
 
@@ -185,8 +188,10 @@ func (i Property) GetUint64() (uint64, bool, error) {
 	if i.Type == cty.Number && i.Value != nil {
 		var v uint64
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return 0, false, nil
 }
 
@@ -195,6 +200,7 @@ func (i Property) GetUint32() (uint32, bool, error) {
 	if err == nil && ok {
 		return uint32(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -203,6 +209,7 @@ func (i Property) GetUint16() (uint16, bool, error) {
 	if err == nil && ok {
 		return uint16(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -211,6 +218,7 @@ func (i Property) GetUint8() (uint8, bool, error) {
 	if err == nil && ok {
 		return uint8(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -219,6 +227,7 @@ func (i Property) GetUint() (uint, bool, error) {
 	if err == nil && ok {
 		return uint(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -226,8 +235,10 @@ func (i Property) GetInt64() (int64, bool, error) {
 	if i.Type == cty.Number && i.Value != nil {
 		var v int64
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return 0, false, nil
 }
 
@@ -236,6 +247,7 @@ func (i Property) GetInt32() (int32, bool, error) {
 	if err == nil && ok {
 		return int32(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -244,6 +256,7 @@ func (i Property) GetInt16() (int16, bool, error) {
 	if err == nil && ok {
 		return int16(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -252,6 +265,7 @@ func (i Property) GetInt8() (int8, bool, error) {
 	if err == nil && ok {
 		return int8(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -260,6 +274,7 @@ func (i Property) GetInt() (int, bool, error) {
 	if err == nil && ok {
 		return int(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -267,8 +282,10 @@ func (i Property) GetFloat64() (float64, bool, error) {
 	if i.Type == cty.Number && i.Value != nil {
 		var v float64
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return 0, false, nil
 }
 
@@ -277,6 +294,7 @@ func (i Property) GetFloat32() (float32, bool, error) {
 	if err == nil && ok {
 		return float32(v), true, nil
 	}
+
 	return 0, ok, err
 }
 
@@ -284,8 +302,10 @@ func (i Property) GetDuration() (time.Duration, bool, error) {
 	if i.Type == cty.String && i.Value != nil {
 		var v time.Duration
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return 0, false, nil
 }
 
@@ -293,8 +313,10 @@ func (i Property) GetBool() (bool, bool, error) {
 	if i.Type == cty.Bool && i.Value != nil {
 		var v bool
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return false, false, nil
 }
 
@@ -302,8 +324,10 @@ func (i Property) GetString() (string, bool, error) {
 	if i.Type == cty.String && i.Value != nil {
 		var v string
 		err := json.Unmarshal(i.Value, &v)
+
 		return v, err == nil, err
 	}
+
 	return "", false, nil
 }
 
@@ -315,9 +339,11 @@ func GetSlice[T any](i IProperty) ([]T, bool, error) {
 		if (typ.IsListType() || typ.IsTupleType() || typ.IsSetType()) && val != nil {
 			var v []T
 			err := json.Unmarshal(val, &v)
+
 			return v, err == nil, err
 		}
 	}
+
 	return nil, false, nil
 }
 
@@ -328,13 +354,16 @@ func GetSet[T comparable](i IProperty) (sets.Set[T], bool, error) {
 		typ, val := i.GetType(), i.GetValue()
 		if (typ.IsListType() || typ.IsSetType()) && val != nil {
 			var v []T
+
 			err := json.Unmarshal(val, &v)
 			if err != nil {
 				return nil, false, err
 			}
+
 			return sets.New[T](v...), true, nil
 		}
 	}
+
 	return nil, false, nil
 }
 
@@ -346,9 +375,11 @@ func GetMap[T any](i IProperty) (map[string]T, bool, error) {
 		if (typ.IsMapType() || typ.IsObjectType()) && val != nil {
 			var v map[string]T
 			err := json.Unmarshal(val, &v)
+
 			return v, err == nil, err
 		}
 	}
+
 	return nil, false, nil
 }
 
@@ -356,6 +387,7 @@ func GetMap[T any](i IProperty) (map[string]T, bool, error) {
 // if not found or parse error, returns false.
 func GetObject[T any](i IProperty) (T, bool, error) {
 	var v T
+
 	if i != nil {
 		typ, val := i.GetType(), i.GetValue()
 		if (typ.IsMapType() || typ.IsObjectType()) && val != nil {
@@ -363,6 +395,7 @@ func GetObject[T any](i IProperty) (T, bool, error) {
 			return v, err == nil, err
 		}
 	}
+
 	return v, false, nil
 }
 
@@ -370,6 +403,7 @@ func GetObject[T any](i IProperty) (T, bool, error) {
 // if not found or parse error, returns false.
 func GetAny[T any](i IProperty) (T, bool, error) {
 	var v T
+
 	if i != nil {
 		val := i.GetValue()
 		if val != nil {
@@ -377,6 +411,7 @@ func GetAny[T any](i IProperty) (T, bool, error) {
 			return v, err == nil, err
 		}
 	}
+
 	return v, false, nil
 }
 
@@ -391,10 +426,12 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 		if err := json.Unmarshal(i.Value, &v); err != nil {
 			return i.Type, cty.NilVal, err
 		}
+
 		return v.Type(), v.Value, nil
 	}
 
 	v, err := ctyjson.Unmarshal(i.Value, i.Type)
+
 	return i.Type, v, err
 }
 
@@ -416,6 +453,7 @@ func (i *Properties) Scan(src any) error {
 	case []byte:
 		return json.Unmarshal(v, i)
 	}
+
 	return errors.New("not a valid properties")
 }
 
@@ -425,6 +463,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 		ot = make(map[string]cty.Type, len(i))
 		ov = make(map[string]cty.Value, len(i))
 	)
+
 	for x := range i {
 		t, v, err := i[x].Cty()
 		if err != nil {
@@ -433,6 +472,7 @@ func (i Properties) Cty() (cty.Type, cty.Value, error) {
 		ot[x] = t
 		ov[x] = v
 	}
+
 	return cty.Object(ot), cty.ObjectVal(ov), nil
 }
 
@@ -442,14 +482,17 @@ func (i Properties) Values() Values {
 	for x := range i {
 		m[x] = i[x].GetValue()
 	}
+
 	return m
 }
 
 // TypedValues returns a map stores the typed value.
 func (i Properties) TypedValues() (m map[string]any, err error) {
 	m = make(map[string]any, len(i))
+
 	for x := range i {
 		typ := i[x].GetType()
+
 		switch {
 		case typ == cty.Number:
 			m[x], _, err = i[x].GetNumber()
@@ -464,10 +507,12 @@ func (i Properties) TypedValues() (m map[string]any, err error) {
 		default:
 			m[x], _, err = GetAny[any](i[x])
 		}
+
 		if err != nil {
 			return
 		}
 	}
+
 	return
 }
 
@@ -489,6 +534,7 @@ func (i *Values) Scan(src any) error {
 	case []byte:
 		return json.Unmarshal(v, i)
 	}
+
 	return errors.New("not a valid property values")
 }
 
@@ -498,12 +544,14 @@ func (i Values) TypesWith(schemas Schemas) map[string]Type {
 	for k := range i {
 		m[k] = cty.DynamicPseudoType
 	}
+
 	for idx := range schemas {
 		if _, exist := m[schemas[idx].Name]; !exist {
 			continue
 		}
 		m[schemas[idx].Name] = schemas[idx].Type
 	}
+
 	return m
 }
 
@@ -512,9 +560,11 @@ func (i Values) TypesWith(schemas Schemas) map[string]Type {
 func (i Values) StringTypesWith(schemas Schemas) map[string]string {
 	m := make(map[string]string, len(i))
 	t := i.TypesWith(schemas)
+
 	for k := range t {
 		m[k] = typeexpr.TypeString(t[k])
 	}
+
 	return m
 }
 
@@ -522,6 +572,7 @@ func (i Values) StringTypesWith(schemas Schemas) map[string]string {
 func (i Values) ValidateWith(schemas Schemas) error {
 	// Convert values to properties with the schemas.
 	props := Properties{}
+
 	for _, s := range schemas {
 		v, exist := i[s.Name]
 		if s.Required {
@@ -530,6 +581,7 @@ func (i Values) ValidateWith(schemas Schemas) error {
 				return fmt.Errorf("not found required value %s", s.Name)
 			}
 		}
+
 		if !exist {
 			// Ignore unspecified value.
 			continue
@@ -552,6 +604,7 @@ func (i Values) ValidateWith(schemas Schemas) error {
 	if err != nil {
 		return fmt.Errorf("unexpected value parsed: %w", err)
 	}
+
 	return nil
 }
 
@@ -657,5 +710,6 @@ func (i *Schemas) Scan(src any) error {
 	case []byte:
 		return json.Unmarshal(v, i)
 	}
+
 	return errors.New("not a valid named properties")
 }

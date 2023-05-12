@@ -87,6 +87,7 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 	if err = c.initAttributes(); err != nil {
 		return nil, err
 	}
+
 	if err = c.initBlocks(); err != nil {
 		return nil, err
 	}
@@ -107,10 +108,12 @@ func (c *Config) validate() error {
 // AddBlocks adds a block to the configuration.
 func (c *Config) AddBlocks(blocks block.Blocks) error {
 	var mu sync.Mutex
+
 	mu.Lock()
 	defer mu.Unlock()
 
 	c.Blocks = append(c.Blocks, blocks...)
+
 	for _, b := range blocks {
 		tBlock, err := b.ToHCLBlock()
 		if err != nil {
@@ -130,6 +133,7 @@ func (c *Config) initBlocks() error {
 		if err != nil {
 			return err
 		}
+
 		c.file.Body().AppendBlock(childBlock)
 		c.file.Body().AppendNewline()
 	}
@@ -147,10 +151,12 @@ func (c *Config) initAttributes() error {
 	if err != nil {
 		return err
 	}
+
 	attrKeys := block.SortValueKeys(attributes)
 	if len(attrKeys) == 0 {
 		return nil
 	}
+
 	attrMap := attributes.AsValueMap()
 	for _, attr := range attrKeys {
 		c.file.Body().SetAttributeValue(attr, attrMap[attr])
@@ -219,7 +225,7 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 	blocks = make(block.Blocks, 0, block.CountLen(tfBlocks, providerBlocks, moduleBlocks, variableBlocks, outputBlocks))
 	blocks = block.AppendBlocks(blocks, tfBlocks, providerBlocks, moduleBlocks, variableBlocks, outputBlocks)
 
-	return
+	return blocks, nil
 }
 
 // loadTerraformBlock loads the terraform block.
@@ -242,16 +248,19 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 				continue
 			}
 			pr := make(map[string]interface{})
+
 			if requirement != nil {
 				if requirement != nil && len(requirement.VersionConstraints) != 0 {
 					pr["version"] = strs.Join(",", requirement.VersionConstraints...)
 				}
+
 				if requirement != nil && requirement.Source != "" {
 					pr["source"] = requirement.Source
 				}
 			}
 			requiredProviders.Attributes[provider] = pr
 		}
+
 		terraformBlock.AppendBlock(requiredProviders)
 	}
 	backendBlock := &block.Block{
@@ -307,6 +316,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 		// Template "{{xxx}}" will be replaced by xxx, the quote will be removed.
 		providersMap[name] = fmt.Sprintf("{{%s.%s}}", name, alias)
 	}
+
 	for _, mc := range moduleConfigs {
 		mb, err := ToModuleBlock(mc)
 		if err != nil {
@@ -316,6 +326,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 		// Inject providers alias to the module.
 		if mc.ModuleVersion.Schema != nil {
 			moduleProviders := map[string]interface{}{}
+
 			for _, p := range mc.ModuleVersion.Schema.RequiredProviders {
 				if _, ok := providersMap[p.Name]; !ok {
 					logger.Warnf("provider not found, skip provider: %s", p.Name)
@@ -325,6 +336,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			}
 			mb.Attributes["providers"] = moduleProviders
 		}
+
 		blocks = append(blocks, mb)
 	}
 
@@ -366,13 +378,16 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 	blockConfig := func(output Output) (string, string) {
 		label := fmt.Sprintf("%s_%s", output.ModuleName, output.Name)
 		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ModuleName, output.Name)
+
 		return label, value
 	}
 
 	// Module output.
 	blocks := make(block.Blocks, 0, len(opts))
+
 	for _, o := range opts {
 		label, value := blockConfig(o)
+
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeOutput,
 			Labels: []string{label},
@@ -389,6 +404,7 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 // ToModuleBlock returns module block for the given module and variables.
 func ToModuleBlock(mc *ModuleConfig) (*block.Block, error) {
 	var b block.Block
+
 	if mc == nil || mc.ModuleVersion == nil {
 		return nil, fmt.Errorf("invalid module config: blank")
 	}

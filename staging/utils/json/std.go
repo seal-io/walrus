@@ -24,6 +24,7 @@ func MustMarshal(v interface{}) []byte {
 	if err != nil {
 		panic(fmt.Errorf("error marshalling json: %w", err))
 	}
+
 	return bs
 }
 
@@ -43,6 +44,7 @@ func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
 	if err != nil {
 		panic(fmt.Errorf("error marshalling indent json: %w", err))
 	}
+
 	return bs
 }
 

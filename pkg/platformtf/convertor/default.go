@@ -24,16 +24,20 @@ func (m DefaultConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 	}
 
 	var blocks block.Blocks
+
 	for _, conn := range connectors {
 		if !m.IsSupported(conn) {
 			continue
 		}
+
 		b, err := m.toBlock(conn, toBlockOpts)
 		if err != nil {
 			return nil, err
 		}
+
 		blocks = append(blocks, b)
 	}
+
 	return blocks, nil
 }
 
@@ -45,6 +49,7 @@ func (m DefaultConvertor) toBlock(connector *model.Connector, opts ConvertOption
 
 	attributes := customConfig.Attributes
 	attributes["alias"] = opts.ConnSeparator + connector.ID.String()
+
 	return &block.Block{
 		Type:       block.TypeProvider,
 		Labels:     []string{string(m)},

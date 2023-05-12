@@ -14,11 +14,13 @@ func Only(match func(*gin.Context) bool) Handle {
 	if match == nil {
 		return next()
 	}
+
 	return func(c *gin.Context) {
 		if !match(c) {
 			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
+
 		c.Next()
 	}
 }
@@ -32,8 +34,10 @@ func OnlyLocalIP() Handle {
 			ip := c.RemoteIP()
 			return ip == "::1" || host == ip
 		}
+
 		return false
 	}
+
 	return Only(isLocalIP)
 }
 
@@ -44,6 +48,7 @@ func If(match func(*gin.Context) bool, then Handle) Handle {
 	if match == nil || then == nil {
 		return next()
 	}
+
 	return func(c *gin.Context) {
 		if match(c) {
 			then(c)
@@ -57,10 +62,14 @@ func Per(hashRequest func(*gin.Context) string, provideHandler func() Handle) Ha
 	if hashRequest == nil || provideHandler == nil {
 		return next()
 	}
+
 	var m sync.Map
+
 	return func(c *gin.Context) {
 		k := hashRequest(c)
+
 		var h Handle
+
 		v, ok := m.LoadOrStore(k, nil)
 		if !ok {
 			h = provideHandler()
@@ -68,6 +77,7 @@ func Per(hashRequest func(*gin.Context) string, provideHandler func() Handle) Ha
 		} else {
 			h = v.(Handle)
 		}
+
 		h(c)
 	}
 }
@@ -77,6 +87,7 @@ func PerIP(provideHandler func() Handle) Handle {
 	hashRequestByIP := func(c *gin.Context) string {
 		return c.ClientIP()
 	}
+
 	return Per(hashRequestByIP, provideHandler)
 }
 

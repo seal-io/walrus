@@ -11,7 +11,7 @@ type (
 
 	// Decide returns readable and sensible status by the given condition status and reason,
 	// and moves to next path step if both returning `isError` and `isTransitioning` are false.
-	Decide func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool)
+	Decide func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool)
 )
 
 // NewWalker creates a stacking walker by the given steps group,
@@ -31,6 +31,7 @@ func NewWalker[T ~string](stepsGroup [][]T, arranges ...func(Decision[T])) Walke
 	for i := range stepsGroup {
 		fs = append(fs, newPath(stepsGroup[i], arranges...))
 	}
+
 	return fs
 }
 
@@ -58,6 +59,7 @@ func (ps paths[T]) Walk(st *Status) (r *Summary) {
 			break
 		}
 	}
+
 	return
 }
 
@@ -77,6 +79,7 @@ func getSummaryScore(s *Summary) int {
 	case s.Transitioning:
 		return summaryScoreTransitioning
 	}
+
 	return summaryScoreDone
 }
 
@@ -122,6 +125,7 @@ func (f path[T]) Walk(st *Status) *Summary {
 	if len(st.Conditions) != 0 {
 		// Map conditions with the specified steps for quick indexing.
 		stepsConditionIndex := make([]int, len(f.steps))
+
 		for i, c := range st.Conditions {
 			// Plus 1 to avoid aligning not found item.
 			if idx, exist := f.stepsIndex[T(c.Type)]; exist {
@@ -153,6 +157,7 @@ func (f path[T]) Walk(st *Status) *Summary {
 		s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[len(f.steps)-1]("", "")
 		s.SummaryStatusMessage = ""
 	}
+
 	return &s
 }
 
@@ -166,6 +171,7 @@ func (d Decision[T]) Make(step T, with Decide) Decision[T] {
 			d.stepsDecide[idx] = with
 		}
 	}
+
 	return d
 }
 
@@ -180,6 +186,7 @@ func getGeneralDecide[T ~string](step T) Decide {
 	// Pretty the display with some rules,
 	// most rules are for not present tense word.
 	displays := [3]string{s, s, s} // Transitioning, Error, Done.
+
 	for m, r := range replacements {
 		if !strings.HasSuffix(s, m) {
 			continue
@@ -195,6 +202,7 @@ func getGeneralDecide[T ~string](step T) Decide {
 		case ConditionStatusFalse:
 			return displays[1], true, false
 		}
+
 		return displays[2], false, false
 	}
 }

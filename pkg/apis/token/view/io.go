@@ -18,11 +18,13 @@ func (r *CreateRequest) Validate() error {
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
 	}
+
 	if r.Expiration != nil {
 		if *r.Expiration < 0 {
 			return errors.New("invalid expiration: negative")
 		}
 	}
+
 	return nil
 }
 
@@ -44,6 +46,7 @@ func (r *GetRequest) Validate() error {
 	if !r.ID.Valid(1) {
 		return errors.New("invalid id: blank")
 	}
+
 	return nil
 }
 

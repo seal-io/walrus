@@ -20,6 +20,7 @@ import (
 
 func NewServer() (*Server, error) {
 	logger := log.WithName("api")
+
 	return &Server{
 		logger: logger,
 	}, nil
@@ -69,15 +70,18 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 
 		h := handler
 		lg := newStdLogger(s.logger.WithName("https"))
+
 		ls, err := newTcpListener(ctx, opts.BindAddress, 443)
 		if err != nil {
 			return err
 		}
+
 		defer func() { _ = ls.Close() }()
 		tlsConfig := &tls.Config{
 			NextProtos: []string{"h2", "http/1.1"},
 			MinVersion: tls.VersionTLS12,
 		}
+
 		switch opts.TlsMode {
 		default: // TlsModeSelfGenerated.
 			mgr := &dynacert.Manager{
@@ -92,13 +96,16 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 				Cache:      autocert.DirCache(opts.TlsCertDir),
 				HostPolicy: autocert.HostWhitelist(opts.TlsAutoCertDomains...),
 			}
+
 			tlsConfig.NextProtos = append(tlsConfig.NextProtos, acme.ALPNProto)
 			tlsConfig.GetCertificate = func(i *tls.ClientHelloInfo) (*tls.Certificate, error) {
 				if i.ServerName == "localhost" || i.ServerName == "" {
 					ni := *i
 					ni.ServerName = opts.TlsAutoCertDomains[0]
+
 					return mgr.GetCertificate(&ni)
 				}
+
 				return mgr.GetCertificate(i)
 			}
 			ls = tls.NewListener(ls, tlsConfig)
@@ -111,7 +118,9 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 			tlsConfig.Certificates = []tls.Certificate{cert}
 			httpHandler <- http.HandlerFunc(redirectHandler)
 		}
+
 		s.logger.Info("serving https")
+
 		return serve(ctx, h, lg, ls)
 	})
 
@@ -119,12 +128,15 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 	g.Go(func(ctx context.Context) error {
 		h := <-httpHandler
 		lg := newStdLogger(s.logger.WithName("http"))
+
 		ls, err := newTcpListener(ctx, opts.BindAddress, 80)
 		if err != nil {
 			return err
 		}
+
 		defer func() { _ = ls.Close() }()
 		s.logger.Info("serving http")
+
 		return serve(ctx, h, lg, ls)
 	})
 
@@ -142,10 +154,12 @@ func serve(ctx context.Context, handler http.Handler, errorLog *stdlog.Logger, l
 		defer sCancel()
 		_ = s.Shutdown(sCtx)
 	}()
+
 	err := s.Serve(listener)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
+
 	return nil
 }
 
@@ -154,10 +168,12 @@ func newTcpListener(ctx context.Context, ip string, port int) (net.Listener, err
 	lc := net.ListenConfig{
 		KeepAlive: 3 * time.Minute,
 	}
+
 	ls, err := lc.Listen(ctx, "tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("error creating tcp listener for %s: %w", address, err)
 	}
+
 	return ls, nil
 }
 
@@ -168,8 +184,10 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	host := r.Host
 	rawHost, _, err := net.SplitHostPort(host)
+
 	if err == nil {
 		host = net.JoinHostPort(rawHost, "443")
 	}
+
 	http.Redirect(w, r, "https://"+host+r.URL.RequestURI(), http.StatusFound)
 }

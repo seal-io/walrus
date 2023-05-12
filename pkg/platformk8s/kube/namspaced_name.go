@@ -22,5 +22,6 @@ func NamespacedName(ns, n string) string {
 	if ns == "" {
 		return n
 	}
+
 	return strs.Join("/", ns, n)
 }

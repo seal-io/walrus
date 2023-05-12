@@ -23,26 +23,32 @@ func (l *Lines) Read() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	stat, err := f.Stat()
 	if err != nil {
 		return nil, err
 	}
+
 	if stat.Size() == 0 {
 		return []string{}, nil
 	}
+
 	defer func() {
 		_ = f.Close()
 	}()
+
 	return l.extract(f)
 }
 
 func (l *Lines) extract(r io.Reader) ([]string, error) {
 	bf := bufio.NewReader(r)
 	lines := make([]string, 0)
+
 	for lnum := 0; ; lnum++ {
 		if lnum >= l.LineNum-1 {
 			break
 		}
+
 		line, err := bf.ReadString('\n')
 		if errors.Is(err, io.EOF) && line == "" {
 			switch lnum {
@@ -63,5 +69,6 @@ func (l *Lines) extract(r io.Reader) ([]string, error) {
 			lines = nil
 		}
 	}
+
 	return lines, nil
 }

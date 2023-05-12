@@ -8,6 +8,7 @@ func ContainsAny[T comparable](slice []T, items ...T) bool {
 			}
 		}
 	}
+
 	return false
 }
 
@@ -17,5 +18,6 @@ func ContainsAll[T comparable](slice []T, items ...T) bool {
 			return false
 		}
 	}
+
 	return true
 }

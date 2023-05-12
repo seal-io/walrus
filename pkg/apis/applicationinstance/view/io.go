@@ -37,9 +37,11 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.Application.ID.Valid(0) {
 		return errors.New("invalid application id: blank")
 	}
+
 	if !r.Environment.ID.Valid(0) {
 		return errors.New("invalid environment id: blank")
 	}
+
 	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
@@ -54,6 +56,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application")
 	}
+
 	count, _ := modelClient.ApplicationModuleRelationships().Query().
 		Where(applicationmodulerelationship.ApplicationID(r.Application.ID)).
 		Count(ctx)
@@ -68,6 +71,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return runtime.Errorw(err, "failed to get environment")
 	}
+
 	count, _ = modelClient.EnvironmentConnectorRelationships().Query().
 		Where(environmentconnectorrelationship.EnvironmentID(r.Environment.ID)).
 		Count(ctx)
@@ -104,6 +108,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 
 	if *r.Force {
 		modelClient := input.(model.ClientSet)
+
 		err := validateRevisionStatus(ctx, modelClient, r.ID, "delete")
 		if err != nil {
 			return err
@@ -142,12 +147,14 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 	modelClient := input.(model.ClientSet)
+
 	exist, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.ID)).
 		Exist(ctx)
 	if err != nil || !exist {
 		return runtime.Errorw(err, "invalid id: not found")
 	}
+
 	return nil
 }
 
@@ -165,12 +172,14 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	if !r.ApplicationID.Valid(0) {
 		return errors.New("invalid application id: blank")
 	}
+
 	_, err := modelClient.Applications().Query().
 		Where(application.ID(r.ApplicationID)).
 		OnlyID(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application")
 	}
+
 	return nil
 }
 
@@ -185,9 +194,11 @@ type CollectionStreamRequest struct {
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.ApplicationID != "" {
 		modelClient := input.(model.ClientSet)
+
 		if !r.ApplicationID.Valid(0) {
 			return errors.New("invalid application id: blank")
 		}
+
 		_, err := modelClient.Applications().Query().
 			Where(application.ID(r.ApplicationID)).
 			OnlyID(ctx)
@@ -264,6 +275,7 @@ func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) err
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application instance")
 	}
+
 	return nil
 }
 
@@ -297,6 +309,7 @@ func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application instance")
 	}
+
 	return nil
 }
 
@@ -352,6 +365,7 @@ func validateRevisionStatus(
 			if err != nil {
 				return err
 			}
+
 			if resourceExist {
 				return runtime.Error(
 					http.StatusBadRequest,

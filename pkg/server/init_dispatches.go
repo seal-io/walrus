@@ -50,12 +50,14 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			logger.Errorf("error getting ids notifier: %v", err)
 			return v, nil //nolint: nilerr
 		}
+
 		if notify == nil {
 			// Return directly if not found.
 			return v, nil
 		}
 
 		// Wrap the notifier to warn out if error raising.
+		//nolint:unparam
 		notifyOnly := func() error {
 			// NB(thxCode): in order to keep final state of operating,
 			// e.g. a deletion is main process, after main process is completed without error,
@@ -64,6 +66,7 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			if err = notify(); err != nil {
 				logger.Errorf("error notifying id list: %v", err)
 			}
+
 			return nil
 		}
 
@@ -78,12 +81,15 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 						if err := n.Commit(ctx, tx); err != nil {
 							return err
 						}
+
 						return notifyOnly()
 					})
 				})
+
 				return v, nil
 			}
 		}
+
 		return v, notifyOnly()
 	})
 }
@@ -98,10 +104,12 @@ func getIdsNotifier(ctx context.Context, m model.Mutation) (notify func() error,
 	if err != nil {
 		return
 	}
+
 	if ok {
 		if len(oids) != 0 {
 			notify = func() error { return datamessage.Publish(ctx, typ, op, oids) }
 		}
+
 		return
 	}
 
@@ -110,14 +118,17 @@ func getIdsNotifier(ctx context.Context, m model.Mutation) (notify func() error,
 	if err != nil {
 		return
 	}
+
 	if ok {
 		if len(sids) != 0 {
 			notify = func() error { return datamessage.Publish(ctx, typ, op, sids) }
 		}
+
 		return
 	}
 
 	err = errors.New("unknown id type")
+
 	return
 }
 
@@ -142,5 +153,6 @@ func getIds[T any](ctx context.Context, m model.Mutation) (r []T, ok bool, err e
 		// Create ops.
 		r = []T{v}
 	}
+
 	return
 }

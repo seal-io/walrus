@@ -118,6 +118,7 @@ func (ApplicationResource) Interceptors() []ent.Interceptor {
 				sql.FieldNEQ("type", "kubectl_manifest"),
 			)
 		}
+
 		return nil
 	})
 

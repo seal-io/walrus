@@ -61,6 +61,7 @@ func (in *HttpClient) WithIf(fn func(cli *HttpClient)) *HttpClient {
 	if fn != nil {
 		fn(in)
 	}
+
 	return in
 }
 
@@ -107,7 +108,9 @@ func (in *HttpClient) WithInsecureSkipVerifyEnabled() *HttpClient {
 			MinVersion: tls.VersionTLS12,
 		}
 	}
+
 	in.client.TLSConfig.InsecureSkipVerify = true
+
 	return in
 }
 
@@ -153,6 +156,7 @@ func (in *HttpRequest) WithIf(fn func(cli *HttpRequest)) *HttpRequest {
 	if fn != nil {
 		fn(in)
 	}
+
 	return in
 }
 
@@ -163,6 +167,7 @@ func (in *HttpRequest) WithIf(fn func(cli *HttpRequest)) *HttpRequest {
 func (in *HttpRequest) WithBody(r io.Reader) *HttpRequest {
 	in.request.SetBodyStream(r, -1)
 	in.request.Header.SetContentType("application/octet-stream; charset=ISO-8859-1")
+
 	return in
 }
 
@@ -173,6 +178,7 @@ func (in *HttpRequest) WithBody(r io.Reader) *HttpRequest {
 func (in *HttpRequest) WithBodyString(s string) *HttpRequest {
 	in.request.SetBodyString(s)
 	in.request.Header.SetContentType("text/plain; charset=UTF-8")
+
 	return in
 }
 
@@ -183,6 +189,7 @@ func (in *HttpRequest) WithBodyString(s string) *HttpRequest {
 func (in *HttpRequest) WithBodyBytes(bs []byte) *HttpRequest {
 	in.request.SetBody(bs)
 	in.request.Header.SetContentType("application/octet-stream; charset=ISO-8859-1")
+
 	return in
 }
 
@@ -197,8 +204,10 @@ func (in *HttpRequest) WithBodyJSON(object interface{}) *HttpRequest {
 		in.err = err
 		return in
 	}
+
 	in.request.SetBody(bs)
 	in.request.Header.SetContentType("application/json; charset=UTF-8")
+
 	return in
 }
 
@@ -214,6 +223,7 @@ func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
 	)
 
 	var err error
+
 	for k, v := range formParams {
 		for _, iv := range v {
 			if strings.HasPrefix(k, "@") { // File.
@@ -221,12 +231,14 @@ func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
 			} else { // Form value.
 				err = w.WriteField(k, iv)
 			}
+
 			if err != nil {
 				in.err = err
 				return in
 			}
 		}
 	}
+
 	err = w.Close()
 	if err != nil {
 		in.err = err
@@ -235,6 +247,7 @@ func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
 
 	in.request.SetBody(buff.Bytes())
 	in.request.Header.SetContentType(w.FormDataContentType())
+
 	return in
 }
 
@@ -243,12 +256,16 @@ func addFile(w *multipart.Writer, fieldName, path string) error {
 	if err != nil {
 		return err
 	}
+
 	defer func() { _ = file.Close() }()
+
 	part, err := w.CreateFormFile(fieldName, filepath.Base(path))
 	if err != nil {
 		return err
 	}
+
 	_, err = io.Copy(part, file)
+
 	return err
 }
 
@@ -259,10 +276,12 @@ type HttpCookie = fasthttp.Cookie
 func (in *HttpRequest) WithCookies(cs ...*HttpCookie) *HttpRequest {
 	for i := 0; i < len(cs); i++ {
 		var c fasthttp.Cookie
+
 		c.CopyTo(cs[i])
 		c.SetKeyBytes([]byte{}) // Clean key to make a correct bytes.
 		in.request.Header.SetCookieBytesKV(cs[i].Key(), c.Cookie())
 	}
+
 	return in
 }
 
@@ -307,6 +326,7 @@ func (in *HttpRequest) WithHeaders(hs map[string]string) *HttpRequest {
 	for k, v := range hs {
 		in.request.Header.Set(k, v)
 	}
+
 	return in
 }
 
@@ -365,7 +385,7 @@ func (in *HttpRequest) WithInsight() *HttpRequest {
 }
 
 // Response do actual requesting.
-func (in *HttpRequest) Response(ctx context.Context, url string, method string) *HttpResponse {
+func (in *HttpRequest) Response(ctx context.Context, url, method string) *HttpResponse {
 	request := fasthttp.AcquireRequest()
 	in.request.CopyTo(request)
 	request.SetRequestURI(url)
@@ -379,24 +399,30 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 			response: response,
 		}
 	)
+
 	if in.err != nil {
 		return resp
 	}
+
 	for i := 0; ; i++ {
 		if ctx.Err() != nil {
 			// Allow faster failure.
 			resp.err = ctx.Err()
 			break
 		}
+
 		if in.insight {
 			log.Debugf("requesting %s", request.Header.String())
 		}
+
 		respErrChan := make(chan error)
+
 		gopool.Go(func() {
 			if in.redirect {
 				respErrChan <- in.client.DoRedirects(request, response, 16)
 				return
 			}
+
 			if deadline, ok := ctx.Deadline(); ok {
 				respErrChan <- in.client.DoDeadline(request, response, deadline)
 			} else {
@@ -411,25 +437,31 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		case err := <-respErrChan:
 			resp.err = err
 		}
+
 		if in.requestRetryIf == nil || !in.requestRetryIf(response.StatusCode(), resp.err) {
 			break
 		}
+
 		waitDuration, shouldWait := in.requestRetryBackoff(i+1, response)
 		if !shouldWait {
 			log.Warnf("reached limitation of retry requesting %s %s", method, url)
 			break
 		}
+
 		log.Debugf("retry requesting %s %s after %v", method, url, waitDuration)
 		waitTimer := time.NewTimer(waitDuration)
 		select {
 		case <-ctx.Done():
 			// Allow canceling from retry waiting.
 			waitTimer.Stop()
+
 			resp.err = ctx.Err()
+
 			break
 		case <-waitTimer.C:
 		}
 	}
+
 	return resp
 }
 
@@ -516,6 +548,7 @@ func defaultHttpRequestRetryIf(statusCode int, respErr error) bool {
 	if statusCode == 0 || (statusCode >= 500 && statusCode != fasthttp.StatusNotImplemented) {
 		return true
 	}
+
 	return false
 }
 
@@ -524,6 +557,7 @@ func createHttpRequestRetryBackoff(waitMin, waitMax time.Duration, attemptMax in
 		if attemptNum > attemptMax {
 			return 0, false
 		}
+
 		if resp != nil {
 			switch resp.StatusCode() {
 			case fasthttp.StatusTooManyRequests, fasthttp.StatusServiceUnavailable:
@@ -534,13 +568,16 @@ func createHttpRequestRetryBackoff(waitMin, waitMax time.Duration, attemptMax in
 				}
 			}
 		}
+
 		var (
 			v     = math.Pow(2, float64(attemptNum)) * float64(waitMin)
 			sleep = time.Duration(v)
 		)
+
 		if sleep > waitMax {
 			sleep = waitMax
 		}
+
 		return sleep, true
 	}
 }
@@ -560,12 +597,15 @@ func (in *HttpResponse) Error() error {
 			sc := in.StatusCode()
 			if !(199 < sc && sc < 300) {
 				var msg strings.Builder
+
 				msg.WriteString(strconv.FormatInt(int64(sc), 10))
+
 				message := in.StatusMessage()
 				if message != "" {
 					msg.WriteString(" ")
 					msg.WriteString(message)
 				}
+
 				body := in.BodyStringOnly()
 				if body != "" {
 					msg.WriteString(": ")
@@ -580,6 +620,7 @@ func (in *HttpResponse) Error() error {
 			fasthttp.ReleaseResponse(in.response)
 		}
 	})
+
 	return in.err
 }
 
@@ -596,6 +637,7 @@ func (in *HttpResponse) StatusMessage() string {
 	if len(m) == 0 {
 		return ""
 	}
+
 	return string(m)
 }
 
@@ -606,7 +648,9 @@ type ResponseHeader = fasthttp.ResponseHeader
 // it must call before Release called.
 func (in *HttpResponse) Headers() *ResponseHeader {
 	var header ResponseHeader
+
 	in.response.Header.CopyTo(&header)
+
 	return &header
 }
 
@@ -625,19 +669,24 @@ func (in *HttpResponse) Cookies(ks ...string) (cs []*HttpCookie) {
 			if len(cbytes) == 0 {
 				continue
 			}
+
 			var c HttpCookie
+
 			if err := c.ParseBytes(cbytes); err == nil {
 				cs = append(cs, &c)
 			}
 		}
+
 		return
 	}
+
 	in.response.Header.VisitAllCookie(func(key, cbytes []byte) {
 		var c HttpCookie
 		if err := c.ParseBytes(cbytes); err == nil {
 			cs = append(cs, &c)
 		}
 	})
+
 	return
 }
 
@@ -654,6 +703,7 @@ func (in *HttpResponse) BodyBytes() ([]byte, error) {
 	if err := in.Error(); err != nil {
 		return nil, err
 	}
+
 	return in.BodyBytesOnly(), nil
 }
 
@@ -668,6 +718,7 @@ func (in *HttpResponse) BodyString() (string, error) {
 	if err := in.Error(); err != nil {
 		return "", err
 	}
+
 	return in.BodyStringOnly(), nil
 }
 
@@ -682,6 +733,7 @@ func (in *HttpResponse) Body() (io.Reader, error) {
 	if err := in.Error(); err != nil {
 		return nil, err
 	}
+
 	return in.BodyOnly(), nil
 }
 
@@ -692,5 +744,6 @@ func (in *HttpResponse) BodyJSON(ptr interface{}) error {
 	if err := in.Error(); err != nil {
 		return err
 	}
+
 	return json.Unmarshal(in.response.Body(), ptr)
 }

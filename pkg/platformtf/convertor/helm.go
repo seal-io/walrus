@@ -20,6 +20,7 @@ func (m HelmConvertor) IsSupported(connector *model.Connector) bool {
 
 func (m HelmConvertor) ToBlocks(connectors model.Connectors, opts Options) (block.Blocks, error) {
 	var blocks block.Blocks
+
 	for _, c := range connectors {
 		if !m.IsSupported(c) {
 			continue
@@ -45,6 +46,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 	if connector.Type != types.ConnectorTypeK8s {
 		return nil, fmt.Errorf("connector type is not k8s, connector: %s", connector.ID)
 	}
+
 	var (
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
 		configPath = k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
@@ -82,6 +84,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 			},
 		}
 	)
+
 	helmBlock.AppendBlock(k8sBlock)
 
 	return helmBlock, nil

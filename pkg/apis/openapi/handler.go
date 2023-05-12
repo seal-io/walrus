@@ -43,6 +43,7 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 			In:   "cookie",
 			Name: casdoor.ExternalSessionCookieKey,
 		}
+
 		spec.Components.SecuritySchemes = securitySchemes
 		for i := range spec.Paths {
 			ops := []*ogen.Operation{

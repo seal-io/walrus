@@ -54,6 +54,7 @@ func GetTerraformModuleFiles(name, content string) (map[string]string, error) {
 	if err := os.WriteFile(filepath.Join(modDir, fileNameMainTf), []byte(content), 0o600); err != nil {
 		return nil, err
 	}
+
 	defer os.RemoveAll(modDir)
 
 	mod, diags := tfconfig.LoadModule(modDir)
@@ -86,6 +87,7 @@ func GetModuleNameByPath(path string) string {
 
 	// LastPart is a version, get the.
 	nonVersionPath := strings.TrimSuffix(path, lastPart)
+
 	return filepath.Base(nonVersionPath)
 }
 
@@ -108,6 +110,7 @@ func (s schemaSyncer) Do(_ context.Context, message module.BusMessage) error {
 		m := message.Refer
 
 		logger.Debugf("syncing schema for module %s", m.ID)
+
 		err := syncSchema(ctx, s.mc, m)
 		if err == nil {
 			return
@@ -116,11 +119,13 @@ func (s schemaSyncer) Do(_ context.Context, message module.BusMessage) error {
 		logger.Warnf("recording syncing module %s schema failed: %v", m.ID, err)
 		m.Status = status.ModuleStatusError
 		m.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
+
 		update, err := dao.ModuleUpdate(s.mc, m)
 		if err != nil {
 			logger.Errorf("failed to prepare module %s update: %v", m.ID, err)
 			return
 		}
+
 		err = update.Exec(ctx)
 		if err != nil {
 			logger.Errorf("failed to update module %s: %v", m.ID, err)
@@ -150,6 +155,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 		if err != nil {
 			return err
 		}
+
 		for _, c := range creates {
 			_, err = c.Save(ctx)
 			if err != nil {
@@ -159,6 +165,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 
 		// State module.
 		m.Status = status.ModuleStatusReady
+
 		update, err := dao.ModuleUpdate(tx, m)
 		if err != nil {
 			return err
@@ -193,6 +200,7 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 		if err != nil {
 			return nil, err
 		}
+
 		v := u.Query().Get("ref")
 		if v == "" {
 			v = defaultModuleVersion
@@ -209,7 +217,8 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 	}
 
 	// Support reading different module versions in subdirectory.
-	var mvs []*model.ModuleVersion
+	mvs := make([]*model.ModuleVersion, 0, len(versions))
+
 	for _, v := range versions {
 		schema, err := loadTerraformModuleSchema(filepath.Join(mRoot, v))
 		if err != nil {
@@ -218,6 +227,7 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 
 		// ModuleVersion.Source is the concatenation of Module.Source and Version.
 		versionedSource := getVersionedSource(m.Source, v)
+
 		mvs = append(mvs, &model.ModuleVersion{
 			ModuleID: m.ID,
 			Source:   versionedSource,
@@ -230,11 +240,13 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 }
 
 func getVersionsFromRoot(root string) ([]string, error) {
-	var versions []string
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return nil, err
 	}
+
+	versions := make([]string, 0, len(entries))
+
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
@@ -246,6 +258,7 @@ func getVersionsFromRoot(root string) ([]string, error) {
 
 		versions = append(versions, entry.Name())
 	}
+
 	return versions, nil
 }
 
@@ -255,9 +268,11 @@ func getVersionedSource(source, version string) string {
 	if strings.Contains(base, "?") {
 		base, query, _ = strings.Cut(base, "?")
 	}
+
 	if strings.Contains(base, "://") {
 		protocol, base, _ = strings.Cut(base, "://")
 	}
+
 	if strings.Contains(base, "//") {
 		base, subdir, _ = strings.Cut(base, "//")
 	}
@@ -267,6 +282,7 @@ func getVersionedSource(source, version string) string {
 	if protocol != "" {
 		result = fmt.Sprintf("%s://%s", protocol, result)
 	}
+
 	if query != "" {
 		result = fmt.Sprintf("%s?%s", result, query)
 	}
@@ -294,6 +310,7 @@ func loadTerraformModuleSchema(path string) (*types.ModuleSchema, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		moduleSchema.Variables = append(moduleSchema.Variables, s)
 	}
 
@@ -313,6 +330,7 @@ func getReadme(dir string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		return string(content), nil
 	}
 
@@ -324,9 +342,11 @@ func sortVariables(m map[string]*tfconfig.Variable) (s []*tfconfig.Variable) {
 	for k := range m {
 		s = append(s, m[k])
 	}
+
 	sort.SliceStable(s, func(i, j int) bool {
 		return judgeSourcePos(&s[i].Pos, &s[j].Pos)
 	})
+
 	return
 }
 
@@ -335,9 +355,11 @@ func sortOutput(m map[string]*tfconfig.Output) (s []*tfconfig.Output) {
 	for k := range m {
 		s = append(s, m[k])
 	}
+
 	sort.SliceStable(s, func(i, j int) bool {
 		return judgeSourcePos(&s[i].Pos, &s[j].Pos)
 	})
+
 	return
 }
 
@@ -345,15 +367,18 @@ func getRequiredProviders(m map[string]*tfconfig.ProviderRequirement) (s []types
 	if len(m) == 0 {
 		return
 	}
+
 	for k, v := range m {
 		s = append(s, types.ProviderRequirement{
 			Name:                k,
 			ProviderRequirement: v,
 		})
 	}
+
 	sort.SliceStable(s, func(i, j int) bool {
 		return s[i].Name < s[j].Name
 	})
+
 	return
 }
 
@@ -364,6 +389,7 @@ func judgeSourcePos(i, j *tfconfig.SourcePos) bool {
 	case i.Filename > j.Filename:
 		return true
 	}
+
 	return i.Line < j.Line
 }
 
@@ -372,9 +398,11 @@ func getVariableSchema(v *tfconfig.Variable) (property.Schema, error) {
 	if err != nil {
 		return property.Schema{}, fmt.Errorf("unresolved variable %s schema: %w", v.Name, err)
 	}
+
 	if v.Required {
 		variable = variable.WithRequired()
 	}
+
 	if v.Sensitive {
 		variable = variable.WithSensitive()
 	}
@@ -384,6 +412,7 @@ func getVariableSchema(v *tfconfig.Variable) (property.Schema, error) {
 		log.Warnf("failed to load terraform comments for var %s, error: %v", v.Name, err)
 		return variable, nil
 	}
+
 	extendVariableSchema(&variable, comments)
 
 	return variable, nil
@@ -404,6 +433,7 @@ func loadComments(filename string, lineNum int) ([]string, error) {
 			return line, true
 		},
 	}
+
 	return lines.Read()
 }
 
@@ -421,7 +451,9 @@ func extendVariableSchema(variable *property.Schema, comments []string) {
 				continue
 			}
 			key, value := splits[0], strings.TrimSpace(splits[1])
+
 			var attr any
+
 			switch key {
 			case attributeLabel:
 				attr = &variable.Label
@@ -435,6 +467,7 @@ func extendVariableSchema(variable *property.Schema, comments []string) {
 				log.Warnf("unrecognized variable attribute %q in comment: %s", key, comment)
 				continue
 			}
+
 			if err := json.Unmarshal([]byte(value), attr); err != nil {
 				log.Warnf("failed to unmarshal schema in hcl comment: %s, %v", comment, err)
 				continue
@@ -448,9 +481,11 @@ func getOutputsSchema(outputs map[string]*tfconfig.Output) (property.Schemas, er
 		filenames     = sets.Set[string]{}
 		outputsSchema property.Schemas
 	)
+
 	for _, v := range outputs {
 		filenames.Insert(v.Pos.Filename)
 	}
+
 	values, err := getOutputValues(filenames)
 	if err != nil {
 		return nil, err
@@ -462,9 +497,11 @@ func getOutputsSchema(outputs map[string]*tfconfig.Output) (property.Schemas, er
 		if v.Sensitive {
 			s = s.WithSensitive()
 		}
+
 		if ov, ok := values[v.Name]; ok {
 			s = s.WithValue(ov)
 		}
+
 		outputsSchema = append(outputsSchema, s)
 	}
 
@@ -478,6 +515,7 @@ func getOutputValues(filenames sets.Set[string]) (map[string][]byte, error) {
 		wg      = gopool.Group()
 		outputs = make(map[string][]byte)
 	)
+
 	for _, filename := range filenames.UnsortedList() {
 		wg.Go(func() error {
 			b, err := os.ReadFile(filename)
@@ -490,25 +528,30 @@ func getOutputValues(filenames sets.Set[string]) (map[string][]byte, error) {
 				diag   hcl.Diagnostics
 				parser = hclparse.NewParser()
 			)
+
 			if strings.HasSuffix(filename, ".json") {
 				file, diag = parser.ParseJSON(b, filename)
 			} else {
 				file, diag = parser.ParseHCL(b, filename)
 			}
+
 			if diag.HasErrors() {
 				logger.Warnf("error parse output configuration file %s: %s", filename, diag.Error())
 				return nil
 			}
+
 			if file == nil {
 				return nil
 			}
 
 			o := getOutputValueFromFile(file)
+
 			mu.Lock()
 			for on, oe := range o {
 				outputs[on] = oe
 			}
 			mu.Unlock()
+
 			return nil
 		})
 	}
@@ -543,10 +586,12 @@ func getOutputValueFromFile(file *hcl.File) map[string][]byte {
 		outputs       = make(map[string][]byte)
 		content, _, _ = file.Body.PartialContent(rootSchema)
 	)
+
 	for _, block := range content.Blocks {
 		if block.Type == "output" {
 			ct, _, _ := block.Body.PartialContent(outputSchema)
 			name := block.Labels[0]
+
 			if attr, defined := ct.Attributes["value"]; defined {
 				outputs[name] = attr.Expr.Range().SliceBytes(file.Bytes)
 			}

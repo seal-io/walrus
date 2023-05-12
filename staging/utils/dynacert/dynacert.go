@@ -67,6 +67,7 @@ func (c certKey) String() string {
 	if c.rsa {
 		return c.server + "+rsa"
 	}
+
 	return c.server
 }
 
@@ -92,6 +93,7 @@ func (s *certState) Generate(ctx context.Context, cache Cache, server string, is
 		caKey      crypto.Signer
 		caX509Cert *x509.Certificate
 	)
+
 	caKey, caX509Cert, s.err = LoadOrGenSelfSignedCA(ctx, cache)
 	if s.err != nil {
 		return
@@ -103,11 +105,13 @@ func (s *certState) Generate(ctx context.Context, cache Cache, server string, is
 	} else {
 		key, s.err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	}
+
 	if s.err != nil {
 		return
 	}
 
 	var x509Cert *x509.Certificate
+
 	x509Cert, s.err = GenServerCert(caKey, caX509Cert, key, server)
 	if s.err != nil {
 		return
@@ -130,6 +134,7 @@ func (s *certState) Get() (*tls.Certificate, error) {
 		}
 		s.c.L.Unlock()
 	}
+
 	return s.tlsCert, s.err
 }
 
@@ -150,6 +155,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		}
 		// Validate invalid character.
 		var err error
+
 		name, err = idna.Lookup.ToASCII(name)
 		if err != nil {
 			return nil, errors.New("dynacert: server name contains invalid character")
@@ -175,10 +181,12 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		server: strings.TrimSuffix(name, "."),
 		rsa:    !requestECDSA(hello),
 	}
+
 	tlsCert, err := m.getCert(ctx, ck)
 	if err == nil {
 		return tlsCert, nil
 	}
+
 	if !errors.Is(err, autocert.ErrCacheMiss) {
 		return nil, fmt.Errorf("dynacert: error getting cert: %w", err)
 	}
@@ -188,10 +196,12 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	if err != nil {
 		return nil, fmt.Errorf("dynacert: disallowed host: %s", name)
 	}
+
 	tlsCert, err = m.createCert(ctx, ck)
 	if err != nil {
 		return nil, fmt.Errorf("dynacert: error creating cert: %w", err)
 	}
+
 	return tlsCert, nil
 }
 
@@ -207,11 +217,14 @@ func (m *Manager) createCert(ctx context.Context, ck certKey) (*tls.Certificate,
 	} else {
 		s.Generate(ctx, m.Cache, ck.server, ck.rsa)
 	}
+
 	tlsCert, err := s.Get()
 	if err != nil {
 		return nil, err
 	}
+
 	m.cachePut(ctx, ck, tlsCert)
+
 	return tlsCert, nil
 }
 
@@ -221,10 +234,12 @@ func (m *Manager) createCert(ctx context.Context, ck certKey) (*tls.Certificate,
 func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, error) {
 	if v, ok := m.state.Load(ck); ok {
 		s := v.(*certState)
+
 		tlsCert, err := s.Get()
 		if err != nil {
 			return nil, err
 		}
+
 		err = verifyCert(tlsCert.Leaf, ck.server)
 		if err != nil {
 			log.WithName("dynacert").Warn(err)
@@ -232,14 +247,18 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 			// so the GetCertificate will regenerate.
 			return nil, autocert.ErrCacheMiss
 		}
+
 		return tlsCert, nil
 	}
+
 	tlsCert, err := m.cacheGet(ctx, ck)
 	if err != nil {
 		return nil, err
 	}
+
 	log.WithName("dynacert").Debugf("loaded %q certificate from cache", ck.server)
 	m.state.Store(ck, &certState{tlsCert: tlsCert})
+
 	return tlsCert, nil
 }
 
@@ -254,6 +273,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 	if err != nil {
 		return nil, err
 	}
+
 	tlsCert, err := decodeTlsCertificate(bs, ck.server)
 	if err != nil {
 		log.WithName("dynacert").Warnf("error decoding tls certificate: %v", err)
@@ -261,6 +281,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 		// so the GetCertificate will regenerate.
 		return nil, autocert.ErrCacheMiss
 	}
+
 	return tlsCert, nil
 }
 
@@ -276,6 +297,7 @@ func (m *Manager) cachePut(ctx context.Context, ck certKey, tlsCert *tls.Certifi
 		log.WithName("dynacert").Warnf("error encoding tls certificate: %v", err)
 		return
 	}
+
 	err = m.Cache.Put(ctx, ck.String(), bs)
 	if err != nil {
 		log.WithName("dynacert").Warnf("error caching tls certificate bytes: %v", err)
@@ -287,6 +309,7 @@ func (m *Manager) allowHost(ctx context.Context, hostname string) error {
 	if m.HostPolicy != nil {
 		return m.HostPolicy(ctx, hostname)
 	}
+
 	return nil
 }
 
@@ -303,6 +326,7 @@ func requestECDSA(hello *tls.ClientHelloInfo) bool {
 				break schemeLoop
 			}
 		}
+
 		if !ecdsaOK {
 			return false
 		}
@@ -310,12 +334,14 @@ func requestECDSA(hello *tls.ClientHelloInfo) bool {
 
 	if hello.SupportedCurves != nil {
 		var ecdsaOK bool
+
 		for _, curve := range hello.SupportedCurves {
 			if curve == tls.CurveP256 {
 				ecdsaOK = true
 				break
 			}
 		}
+
 		if !ecdsaOK {
 			return false
 		}
@@ -333,5 +359,6 @@ func requestECDSA(hello *tls.ClientHelloInfo) bool {
 			return true
 		}
 	}
+
 	return false
 }

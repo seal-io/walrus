@@ -18,10 +18,12 @@ func (metaFactory) Interpret(data []byte) (*schema.GroupVersionKind, error) {
 	if err := json.Unmarshal(data, &gvk); err != nil {
 		return nil, fmt.Errorf("error unmarsalling runtime type meta: %w", err)
 	}
+
 	gv, err := schema.ParseGroupVersion(gvk.APIVersion)
 	if err != nil {
 		return nil, fmt.Errorf("error pasring runtime group version: %w", err)
 	}
+
 	return &schema.GroupVersionKind{Group: gv.Group, Version: gv.Version, Kind: gvk.Kind}, nil
 }
 

@@ -20,17 +20,21 @@ func GetBuffer() *bytebufferpool.ByteBuffer {
 }
 
 func GetBytes(length int) []byte {
-	if length <= 0 {
-		length = defaultBytesSliceSize
-	}
 	var (
 		bsp = gp.Get().(*[]byte)
 		bs  = *bsp
 	)
+
+	if length <= 0 {
+		length = defaultBytesSliceSize
+	}
+
 	if cap(bs) >= length {
 		return bs[:length]
 	}
+
 	gp.Put(bsp)
+
 	return make([]byte, length)
 }
 

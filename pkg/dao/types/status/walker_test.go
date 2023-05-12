@@ -50,24 +50,27 @@ func TestWalker_sxs(t *testing.T) {
 		// Arrange the default step decision logic.
 		func(d Decision[ConditionType]) {
 			d.Make(ExampleResourceStatusProgressing,
-				func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 					if st == ConditionStatusTrue && reason != "ReplicaSetUpdated" {
 						return "Progressed", false, false
 					}
+
 					if st == ConditionStatusUnknown && reason == "DeploymentPaused" {
 						return "Pausing", false, true
 					}
+
 					return "Progressing", st == ConditionStatusFalse, st != ConditionStatusFalse
 				})
 
 			d.Make(ExampleResourceStatusReplicaFailure,
-				func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 					switch st {
 					case ConditionStatusFalse:
 						return "ReplicaDeployed", false, false
 					case ConditionStatusTrue:
 						return "ReplicaDeployFailed", true, false
 					}
+
 					return "ReplicaDeploying", false, true
 				})
 		},
@@ -145,13 +148,14 @@ func TestWalker_multiple(t *testing.T) {
 		},
 		func(d Decision[ConditionType]) {
 			d.Make(ApplicationInstanceStatusDeleted,
-				func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
+				func(st ConditionStatus, reason string) (display string, isError, isTransitioning bool) {
 					switch st {
 					case ConditionStatusUnknown:
 						return "Deleting", false, true
 					case ConditionStatusFalse:
 						return "DeleteFailed", true, false
 					}
+
 					return "Deleted", false, false
 				})
 		},
@@ -163,6 +167,7 @@ func TestWalker_multiple(t *testing.T) {
 			Before func(*input)
 		}
 	)
+
 	testCases := []struct {
 		name     string
 		given    input

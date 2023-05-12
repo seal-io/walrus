@@ -54,21 +54,25 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = creates[0].Save(ctx)
 		if err != nil {
 			return err
 		}
 		// Create user from casdoor.
 		var cred casdoor.ApplicationCredential
+
 		err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, tx, &cred)
 		if err != nil {
 			return err
 		}
+
 		err = casdoor.CreateUser(ctx, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinApp, casdoor.BuiltinOrg, req.Name, req.Password)
 		if err != nil {
 			return fmt.Errorf("failed to create user to casdoor: %w", err)
 		}
+
 		return nil
 	})
 }
@@ -79,6 +83,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		subject.Group(req.Group),
 		subject.Name(req.Name),
 	}
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// TODO cascade delete token.
 		_, err := tx.Subjects().Delete().
@@ -87,13 +92,16 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		if err != nil {
 			return err
 		}
+
 		switch {
 		case !req.MountTo: // Created user.
 			var cred casdoor.ApplicationCredential
+
 			err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, tx, &cred)
 			if err != nil {
 				return err
 			}
+
 			err = casdoor.DeleteUser(ctx, cred.ClientID, cred.ClientSecret,
 				casdoor.BuiltinOrg, req.Name)
 			if err != nil {
@@ -101,6 +109,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 					return fmt.Errorf("failed to delete user from casdoor: %w", err)
 				}
 			}
+
 			return nil
 		case req.LoginTo: // Mounted user but login on.
 			return tx.Subjects().Update().
@@ -112,6 +121,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 				).
 				Exec(ctx)
 		}
+
 		return nil
 	})
 	// TODO clean cache.
@@ -130,6 +140,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		if err != nil {
 			return err
 		}
+
 		err = updates[0].Exec(ctx)
 		if err != nil {
 			return err
@@ -138,16 +149,20 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		if req.Password == "" {
 			return nil
 		}
+
 		var cred casdoor.ApplicationCredential
+
 		err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, tx, &cred)
 		if err != nil {
 			return err
 		}
+
 		err = casdoor.UpdateUserPassword(ctx, cred.ClientID, cred.ClientSecret,
 			casdoor.BuiltinOrg, req.Name, "", req.Password)
 		if err != nil {
 			return fmt.Errorf("failed to update user password to casdoor: %w", err)
 		}
+
 		return nil
 	})
 	// TODO clean cache.
@@ -197,12 +212,15 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(sortFields); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		All(ctx)
 	if err != nil {
@@ -231,5 +249,6 @@ func (h Handler) RouteMount(ctx *gin.Context, req view.RouteMountRequest) error 
 		return err
 	}
 	_, err = creates[0].Save(ctx)
+
 	return err
 }

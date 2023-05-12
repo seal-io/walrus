@@ -48,6 +48,7 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 		return runtime.Errorw(err, "failed to get application resource")
 	}
 	r.Entity = entity
+
 	return nil
 }
 
@@ -67,6 +68,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	modelClient := input.(model.ClientSet)
+
 	exist, err := modelClient.ApplicationResources().Query().
 		Where(applicationresource.ID(r.ID)).
 		Exist(ctx)
@@ -94,12 +96,14 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	if !r.InstanceID.Valid(0) {
 		return errors.New("invalid instance id: blank")
 	}
+
 	_, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.InstanceID)).
 		OnlyID(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get application instance")
 	}
+
 	return nil
 }
 
@@ -117,6 +121,7 @@ func (in ApplicationResource) MarshalJSON() ([]byte, error) {
 			Keys           *operator.Keys `json:"keys"`
 		}
 	)
+
 	return json.Marshal(&Alias{
 		AliasResource: (*AliasResource)(in.Resource.Normalize()),
 		Keys:          in.Keys,
@@ -135,9 +140,11 @@ type CollectionStreamRequest struct {
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.InstanceID != "" {
 		modelClient := input.(model.ClientSet)
+
 		if !r.InstanceID.Valid(0) {
 			return errors.New("invalid instance id: blank")
 		}
+
 		_, err := modelClient.ApplicationInstances().Query().
 			Where(applicationinstance.ID(r.InstanceID)).
 			OnlyID(ctx)
@@ -169,11 +176,13 @@ func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Key == "" {
 		return errors.New("invalid key: blank")
 	}
+
 	if r.SinceSeconds != nil {
 		if *r.SinceSeconds <= 0 {
 			return errors.New("invalid since seconds: illegal")
 		}
 	}
+
 	return r.ApplicationResourceQuery.ValidateWith(ctx, input)
 }
 
@@ -190,18 +199,22 @@ func (r *StreamExecRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Key == "" {
 		return errors.New("invalid key: blank")
 	}
+
 	if r.Shell == "" {
 		r.Shell = "sh"
 	}
+
 	if r.Width < 0 {
 		return errors.New("invalid width: negative")
 	} else if r.Width == 0 {
 		r.Width = 100
 	}
+
 	if r.Height < 0 {
 		return errors.New("invalid height: negative")
 	} else if r.Height == 0 {
 		r.Height = 100
 	}
+
 	return r.ApplicationResourceQuery.ValidateWith(ctx, input)
 }

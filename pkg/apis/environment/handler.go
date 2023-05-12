@@ -33,12 +33,14 @@ func (h Handler) Validating() any {
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
+
 	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		creates, err := dao.EnvironmentCreates(tx, entity)
 		if err != nil {
 			return err
 		}
 		entity, err = creates[0].Save(ctx)
+
 		return err
 	})
 	if err != nil {
@@ -54,11 +56,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		updates, err := dao.EnvironmentUpdates(tx, entity)
 		if err != nil {
 			return err
 		}
+
 		return updates[0].Exec(ctx)
 	})
 }
@@ -99,6 +103,7 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 				return err
 			}
 		}
+
 		return
 	})
 }
@@ -134,15 +139,18 @@ func (h Handler) CollectionGet(
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
+
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
+
 	if orders, ok := req.Sorting(
 		sortFields,
 		model.Desc(environment.FieldCreateTime),
 	); ok {
 		query.Order(orders...)
 	}
+
 	entities, err := query.
 		// Allow returning without sorting keys.
 		Unique(false).

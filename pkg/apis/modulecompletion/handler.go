@@ -66,8 +66,7 @@ func (h Handler) Validating() any {
 // Extensional APIs.
 
 func (h Handler) CollectionRouteExamples(c *gin.Context, _ view.ExampleRequest) (view.ExampleResponse, error) {
-	var translated []view.ModuleCompletionPromptExample
-
+	translated := make([]view.ModuleCompletionPromptExample, 0, len(examples))
 	for _, e := range examples {
 		translated = append(translated, view.ModuleCompletionPromptExample{
 			Name:   runtime.Translate(c, e.Name),
@@ -80,6 +79,7 @@ func (h Handler) CollectionRouteExamples(c *gin.Context, _ view.ExampleRequest) 
 
 func (h Handler) CollectionRouteGenerate(ctx *gin.Context, req view.GenerateRequest) (*view.GenerateResponse, error) {
 	prompt := runtime.Translate(ctx, text.TerraformModuleGenerateSystemMessage)
+
 	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
@@ -97,21 +97,25 @@ func trimMarkdownCodeBlock(s string) string {
 		codeAnnotation = "```"
 		newline        = "\n"
 	)
+
 	if strings.HasPrefix(s, codeAnnotation) && strings.HasSuffix(s, codeAnnotation) {
 		s = strings.TrimPrefix(s, codeAnnotation)
 		s = strings.TrimSuffix(s, codeAnnotation)
 		s = strings.TrimPrefix(s, newline)
 		s = strings.TrimSuffix(s, newline)
 	}
+
 	return s
 }
 
 func (h Handler) CollectionRouteExplain(ctx *gin.Context, req view.ExplainRequest) (*view.ExplainResponse, error) {
 	prompt := runtime.Translate(ctx, text.TerraformModuleExplainSystemMessage)
+
 	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
 	}
+
 	return &view.ExplainResponse{
 		Text: result,
 	}, nil
@@ -124,10 +128,12 @@ func (h Handler) CollectionRouteCorrect(ctx *gin.Context, req view.CorrectReques
 	correctedDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageCorrectedDesc)
 	explanationDesc := runtime.Translate(ctx, text.TerraformModuleCorrectSystemMessageExplanationDesc)
 	prompt := fmt.Sprintf(`%s\n{\n"corrected": "%s", "explanation": "%s"\n}\n`, desc, correctedDesc, explanationDesc)
+
 	result, err := h.createCompletion(ctx, prompt, req.Text)
 	if err != nil {
 		return nil, err
 	}
+
 	correctResp := &view.CorrectResponse{}
 	if err := json.Unmarshal([]byte(result), correctResp); err != nil {
 		log.Debugf("correction message is not in the format requested by the prompt. output:\n%v", result)
@@ -142,6 +148,7 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 	if err != nil {
 		return "", err
 	}
+
 	if apiToken == "" {
 		return "", runtime.Error(http.StatusBadRequest,
 			"invalid input: OpenAI API token is not configured")
@@ -178,10 +185,12 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 
 func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequest) (*view.CreatePrResponse, error) {
 	moduleName := modules.GetModuleNameByPath(req.Path)
+
 	moduleFiles, err := modules.GetTerraformModuleFiles(moduleName, req.Content)
 	if err != nil {
 		return nil, runtime.Error(http.StatusBadRequest, err)
 	}
+
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ConnectorID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting connector: %w", err)
@@ -215,6 +224,7 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 			Content: content,
 		})
 	}
+
 	commit, _, err := client.Git.CreateCommit(ctx, req.Repository, commitInput)
 	if err != nil {
 		return nil, runtime.Errorwf(err, "error creating new commit for repository %s",
@@ -227,6 +237,7 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 		Sha:  commit.Sha,
 	}
 	_, err = client.Git.CreateBranch(ctx, req.Repository, refInput)
+
 	if err != nil {
 		return nil, runtime.Errorwf(err, "error creating new branch %s for repository %s",
 			refInput.Name, req.Repository)
@@ -239,11 +250,13 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 		Source: stagingBranch,
 		Target: req.Branch,
 	}
+
 	pr, _, err := client.PullRequests.Create(ctx, req.Repository, prInput)
 	if err != nil {
 		return nil, runtime.Errorwf(err, "error creating pull request from branch %s for repository %s",
 			prInput.Source, req.Repository)
 	}
+
 	return &view.CreatePrResponse{
 		Link: pr.Link,
 	}, nil

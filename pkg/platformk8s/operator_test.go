@@ -28,6 +28,7 @@ func TestOperator(t *testing.T) {
 	if err != nil {
 		t.Logf("error getting kubeconfig: %v", err)
 		t.Skip("cannot get kubeconfig")
+
 		return
 	}
 
@@ -64,27 +65,33 @@ func TestOperator(t *testing.T) {
 			},
 		},
 	}
+
 	p, err = cli.Pods(core.NamespaceDefault).Create(ctx, p, meta.CreateOptions{})
 	if err != nil {
 		t.Fatalf("error applying kubernetes pod: %v", err)
 	}
+
 	pw, err := cli.Pods(p.Namespace).Watch(ctx, meta.ListOptions{Watch: true, ResourceVersion: "0"})
 	if err != nil {
 		return
 	}
+
 	for evt := range pw.ResultChan() {
 		wp, ok := evt.Object.(*core.Pod)
 		if !ok {
 			continue
 		}
+
 		if wp.Name != p.Name {
 			continue
 		}
+
 		if wp.Status.Phase == core.PodRunning {
 			pw.Stop()
 			break
 		}
 	}
+
 	defer func() {
 		// Clean testing pod.
 		_ = cli.Pods(p.Namespace).Delete(ctx, p.Name, meta.DeleteOptions{})
@@ -102,6 +109,7 @@ func TestOperator(t *testing.T) {
 		if err != nil {
 			t.Errorf("error getting keys: %v", err)
 		}
+
 		assert.Equalf(t, keys, &operator.Keys{
 			Labels: []string{"Pod", "Container"},
 			Keys: []operator.Key{
@@ -123,6 +131,7 @@ func TestOperator(t *testing.T) {
 	t.Run("Log", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
+
 		err := op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.LogOptions{
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
@@ -131,6 +140,7 @@ func TestOperator(t *testing.T) {
 			if !errors.Is(err, context.DeadlineExceeded) {
 				t.Errorf("error logging: %v", err)
 			}
+
 			t.Log("finished")
 		}
 	})
@@ -140,14 +150,17 @@ func TestOperator(t *testing.T) {
 		defer cancel()
 
 		r, w := io.Pipe()
+
 		go func() {
 			tk := time.NewTicker(2 * time.Second)
 			defer tk.Stop()
+
 			for {
 				select {
 				case <-ctx.Done():
 					_ = r.Close()
 					_ = w.Close()
+
 					return
 				case <-tk.C:
 					_, _ = w.Write([]byte(fmt.Sprintf("echo %q \n", rand.String(16))))
@@ -164,6 +177,7 @@ func TestOperator(t *testing.T) {
 			if !errors.Is(err, context.DeadlineExceeded) {
 				t.Errorf("error execing: %v", err)
 			}
+
 			t.Log("finished")
 		}
 	})

@@ -18,6 +18,7 @@ func OpenAPI(i *ogen.Info) ogen.Spec {
 	if i != nil {
 		sc.SetInfo(i)
 	}
+
 	return sc
 }
 
@@ -53,6 +54,7 @@ func getSchemaResponseHTTPs() []int {
 func getSchemaHTTPResponses() []*ogen.NamedResponse {
 	httpc := getSchemaResponseHTTPs()
 	resps := make([]*ogen.NamedResponse, 0, len(httpc))
+
 	for i := range httpc {
 		c := strconv.Itoa(httpc[i])
 		t := http.StatusText(httpc[i])
@@ -73,10 +75,11 @@ func getSchemaHTTPResponses() []*ogen.NamedResponse {
 				),
 		))
 	}
+
 	return resps
 }
 
-func schemeRoute(resource, handle string, method, path string, ip *InputProfile, op *OutputProfile) {
+func schemeRoute(resource, handle, method, path string, ip *InputProfile, op *OutputProfile) {
 	switch method {
 	case http.MethodPost:
 		toSchemaPath(path).Post = toSchemaOperation(resource, handle, method, path, ip, op)
@@ -102,9 +105,11 @@ func toSchemaPath(path string) *ogen.PathItem {
 	if spec.Paths == nil {
 		spec.Paths = make(ogen.Paths)
 	}
+
 	if _, ok := spec.Paths[path]; !ok {
 		spec.Paths[path] = ogen.NewPathItem()
 	}
+
 	return spec.Paths[path]
 }
 
@@ -126,7 +131,9 @@ func toSchemaOperation(
 	for _, c := range getSchemaResponseHTTPs() {
 		o.AddNamedResponses(spec.RefResponse(strconv.Itoa(c)))
 	}
+
 	o.AddNamedResponses(toSchemaResponses(r, op)...)
+
 	return o
 }
 
@@ -138,8 +145,10 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 	props := ip.Flat(ProfileCategoryHeader, ProfileCategoryUri, ProfileCategoryQuery)
 
 	var params []*ogen.Parameter
+
 	for i := 0; i < len(props); i++ {
 		var in string
+
 		switch props[i].Category {
 		default:
 			continue
@@ -147,11 +156,13 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 			in = "header"
 		case ProfileCategoryUri:
 			in = "path"
+
 			if !r.pathParams.Has(props[i].Name) {
 				continue
 			}
 		case ProfileCategoryQuery:
 			in = "query"
+
 			if r.pathParams.Has(props[i].Name) {
 				continue
 			}
@@ -164,6 +175,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 		}
 		params = append(params, param)
 	}
+
 	return params
 }
 
@@ -181,11 +193,13 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 	}
 
 	content := make(map[string]ogen.Media, len(categoryContentTypes))
+
 	for category, contentType := range categoryContentTypes {
 		props := ip.Filter(category)
 		if len(props) == 0 {
 			continue
 		}
+
 		if _, exist := content[contentType]; !exist {
 			schema := basicSchemas[ip.TypeDescriptor]
 			if schema == nil {
@@ -196,6 +210,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 				Schema: schema,
 			}
 		}
+
 		if len(props) == 1 && ip.Type == ProfileTypeArray {
 			schema := toSchemaSchema(category, &props[0])
 			if schema != nil {
@@ -203,18 +218,22 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 					Schema: schema,
 				}
 			}
+
 			continue
 		}
+
 		for i := 0; i < len(props); i++ {
 			if r.pathParams.Has(props[i].Name) {
 				continue
 			}
+
 			var add func(...*ogen.Property) *ogen.Schema
 			if props[i].Required {
 				add = content[contentType].Schema.AddRequiredProperties
 			} else {
 				add = content[contentType].Schema.AddOptionalProperties
 			}
+
 			add(toSchemaProperty(category, &props[i]))
 		}
 	}
@@ -225,6 +244,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 	req := ogen.NewRequestBody().
 		SetRequired(true).
 		SetContent(content)
+
 	return req
 }
 
@@ -242,6 +262,7 @@ func toSchemaResponses(r route, op *OutputProfile) []*ogen.NamedResponse {
 		resp = ogen.NewResponse().
 			SetDescription(http.StatusText(c))
 	}
+
 	return []*ogen.NamedResponse{
 		ogen.NewNamedResponse(strconv.Itoa(c), resp),
 	}
@@ -257,8 +278,10 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 	}
 
 	content := make(map[string]ogen.Media, 1)
+
 	for category, contentType := range categoryContentTypes {
 		props := op.Filter(category)
+
 		if _, exist := content[contentType]; !exist {
 			schema := basicSchemas[op.TypeDescriptor]
 			if schema == nil {
@@ -269,12 +292,15 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 				Schema: schema,
 			}
 		}
+
 		if len(props) == 1 && (op.Type == ProfileTypeArray || op.TypeDescriptor == "render.Render") {
 			content[contentType] = ogen.Media{
 				Schema: toSchemaSchema(category, &props[0]),
 			}
+
 			continue
 		}
+
 		for i := 0; i < len(props); i++ {
 			var add func(...*ogen.Property) *ogen.Schema
 			if props[i].Required {
@@ -282,9 +308,11 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 			} else {
 				add = content[contentType].Schema.AddOptionalProperties
 			}
+
 			add(toSchemaProperty(category, &props[i]))
 		}
 	}
+
 	if op.Page {
 		for c := range content {
 			media := content[c]
@@ -312,12 +340,14 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 	if len(content) == 0 {
 		return nil
 	}
+
 	if op.Type == ProfileTypeBasic && op.TypeDescriptor == "render.Render" {
 		content["application/octet-stream"] = content[binding.MIMEJSON]
 		delete(content, binding.MIMEJSON)
 	}
 	resp := ogen.NewResponse().
 		SetContent(content)
+
 	return resp
 }
 
@@ -325,6 +355,7 @@ func toSchemaProperty(category string, prop *ProfileProperty) *ogen.Property {
 	if prop == nil || prop.Name == "" {
 		return nil
 	}
+
 	return toSchemaSchema(category, prop).ToProperty(prop.Name)
 }
 
@@ -367,11 +398,13 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		schema, exist := basicSchemas[prop.TypeDescriptor]
 		if exist {
 			schema = schema.AsArray()
+
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
+
 			return schema
 		}
 	case ProfileTypeObject:
@@ -383,12 +416,14 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 			SetType(string(jsonschema.Object))
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
+
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
 		}
+
 		return schema
 	case "array":
 		schema := ogen.NewSchema().
@@ -396,13 +431,16 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		if len(prop.Properties) == 1 {
 			schema = toSchemaSchema(category, &prop.Properties[0])
 		}
+
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
+
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
+
 			return schema
 		}
 	}
@@ -411,22 +449,26 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 	if category != "" {
 		schemaID += "." + category
 	}
+
 	if prop.TypeRefer {
 		schema := ogen.NewSchema().
 			SetRef("#/components/schemas/" + schemaID)
 		if prop.Type == ProfileTypeArray {
 			schema = schema.AsArray()
+
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
 				schema.SetMinItems(&items)
 				schema.SetMaxItems(&items)
 			}
 		}
+
 		return schema
 	}
 
 	namedSchema := ogen.NewNamedSchema(schemaID,
 		ogen.NewSchema().SetType(string(jsonschema.Object)))
+
 	for i := 0; i < len(prop.Properties); i++ {
 		var add func(...*ogen.Property) *ogen.Schema
 		if prop.Properties[i].Required {
@@ -434,29 +476,36 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 		} else {
 			add = namedSchema.Schema.AddOptionalProperties
 		}
+
 		add(toSchemaProperty(category, &prop.Properties[i]))
 	}
 	spec.AddNamedSchemas(namedSchema)
+
 	schema := namedSchema.AsLocalRef()
 	if prop.Type == ProfileTypeArray {
 		schema = schema.AsArray()
+
 		if prop.TypeArrayLength != 0 {
 			items := uint64(prop.TypeArrayLength)
 			schema.SetMinItems(&items)
 			schema.SetMaxItems(&items)
 		}
 	}
+
 	return schema
 }
 
 func getRoute(method, path string) route {
 	pathParams := sets.Set[string]{}
+
 	for _, sg := range strings.Split(path, "/") {
 		if sg == "" || sg[0] != ':' {
 			continue
 		}
+
 		pathParams.Insert(sg[1:])
 	}
+
 	return route{
 		method:     method,
 		path:       path,

@@ -23,12 +23,14 @@ func GetResponseCollection(c *gin.Context, data any, totalSize int) ResponseColl
 	_ = binding.MapFormWithTag(&req, c.Request.URL.Query(), "query")
 
 	var currentSize int
+
 	dataRef := reflect.ValueOf(data)
 	if dataRef.Kind() == reflect.Slice {
 		currentSize = dataRef.Len()
 	}
 
 	var totalPage int
+
 	if req.Page > 0 {
 		if req.PerPage <= 0 {
 			req.PerPage = 100
@@ -88,12 +90,14 @@ type ResponseStream struct {
 
 func (r ResponseStream) Render(w http.ResponseWriter) (err error) {
 	r.WriteContentType(w)
+
 	if r.ContentLength > 0 {
 		if r.Headers == nil {
 			r.Headers = map[string]string{}
 		}
 		r.Headers["Content-Length"] = strconv.FormatInt(r.ContentLength, 10)
 	}
+
 	header := w.Header()
 	for k, v := range r.Headers {
 		if header.Get(k) == "" {
@@ -101,6 +105,7 @@ func (r ResponseStream) Render(w http.ResponseWriter) (err error) {
 		}
 	}
 	_, err = io.Copy(w, r.Reader)
+
 	return
 }
 
@@ -119,5 +124,6 @@ func (r ResponseStream) Close() error {
 	if r.Reader == nil {
 		return nil
 	}
+
 	return r.Reader.Close()
 }

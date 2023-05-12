@@ -14,6 +14,7 @@ func ProjectCreates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 	}
 
 	rrs := make([]*model.ProjectCreate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -25,11 +26,13 @@ func ProjectCreates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 
 		// Optional.
 		c.SetDescription(r.Description)
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }
 
@@ -39,6 +42,7 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 	}
 
 	rrs := make([]*model.ProjectUpdate, len(input))
+
 	for i, r := range input {
 		if r == nil {
 			return nil, errors.New("invalid input: nil entity")
@@ -46,12 +50,14 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 
 		// Predicated.
 		var ps []predicate.Project
+
 		switch {
 		case r.ID.IsNaive():
 			ps = append(ps, project.ID(r.ID))
 		case r.Name != "":
 			ps = append(ps, project.Name(r.Name))
 		}
+
 		if len(ps) == 0 {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
@@ -63,10 +69,12 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 		if r.Name != "" {
 			c.SetName(r.Name)
 		}
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}
 		rrs[i] = c
 	}
+
 	return rrs, nil
 }

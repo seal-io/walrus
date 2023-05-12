@@ -67,8 +67,10 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 		if err != nil {
 			sc.status.Status(conn, status.ConditionStatusFalse)
 			sc.status.Message(conn, err.Error())
+
 			break
 		}
+
 		sc.status.Status(conn, status.ConditionStatusTrue)
 		sc.status.Message(conn, successMsg)
 	}
@@ -99,6 +101,7 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 			sc.status.False(conn, err.Error())
 			break
 		}
+
 		sc.status.True(conn, successMsg)
 	}
 
@@ -116,6 +119,7 @@ func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector
 	}
 
 	k8sSyncer := syncer.NewK8sCostSyncer(in.client, nil)
+
 	err := k8sSyncer.Sync(ctx, &conn, nil, nil)
 	if err != nil {
 		return "", err
@@ -147,9 +151,11 @@ func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector
 	if err != nil {
 		return fmt.Errorf("invalid connector config: %w", err)
 	}
+
 	if err = op.IsConnected(ctx); err != nil {
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
+
 	return nil
 }
 
@@ -162,15 +168,18 @@ func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector)
 	if err != nil {
 		return fmt.Errorf("error check cost tools: %w", err)
 	}
+
 	return nil
 }
 
 // UpdateStatus set summary and update the connector with locked.
 func UpdateStatus(ctx context.Context, client model.ClientSet, conn *model.Connector) error {
 	conn.Status.SetSummary(status.WalkConnector(&conn.Status))
+
 	if !conn.Status.Changed() {
 		return nil
 	}
+
 	return client.WithTx(ctx, func(tx *model.Tx) error {
 		_, err := client.Connectors().Query().
 			Where(connector.ID(conn.ID)).
@@ -184,6 +193,7 @@ func UpdateStatus(ctx context.Context, client model.ClientSet, conn *model.Conne
 		if err != nil {
 			return err
 		}
+
 		return update.Exec(ctx)
 	})
 }

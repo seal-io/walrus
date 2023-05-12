@@ -18,6 +18,7 @@ func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error
 		settings.ResourceLabelApplyCronExpr.Name():         buildResourceLabelApplyJobCreator(opts.ModelClient),
 		settings.ResourceComponentsDiscoverCronExpr.Name(): buildResourceComponentsDiscoverJobCreator(opts.ModelClient),
 	}
+
 	return cron.Register(ctx, opts.ModelClient, cs)
 }
 
@@ -27,6 +28,7 @@ func buildConnectorCostCollectJobCreator(mc model.ClientSet) cron.JobCreator {
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return cron.ImmediateExpr(expr), task, nil
 	}
 }
@@ -37,6 +39,7 @@ func buildConnectorStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return cron.ImmediateExpr(expr), task, nil
 	}
 }
@@ -47,6 +50,7 @@ func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return cron.ImmediateExpr(expr), task, nil
 	}
 }
@@ -57,6 +61,7 @@ func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return cron.ImmediateExpr(expr), task, nil
 	}
 }
@@ -67,6 +72,7 @@ func buildResourceComponentsDiscoverJobCreator(mc model.ClientSet) cron.JobCreat
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return cron.ImmediateExpr(expr), task, nil
 	}
 }

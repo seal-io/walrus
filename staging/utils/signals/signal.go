@@ -31,9 +31,9 @@ func TerminateIfCatch() context.Context {
 	close(onlyOneSignalHandler) // Panics when called twice.
 
 	ctx, cancel := context.WithCancel(context.Background())
-
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, shutdownSignals...)
+
 	go func() {
 		<-c
 		cancel()

@@ -34,24 +34,31 @@ type namedHandler struct {
 	h Handler
 }
 
+var globalBus = New()
+
 // Subscribe implements the Bus interface.
 func (b bus) Subscribe(n string, h Handler) error {
 	if b == nil {
 		return errors.New("nil bus")
 	}
+
 	ht := reflect.TypeOf(h)
 	if ht.NumIn() != 2 {
 		return errors.New("handler must has two parameters")
 	}
+
 	if ht.In(0).String() != "context.Context" {
 		return errors.New("handler must uses 'context.Context' as the first parameter")
 	}
+
 	if ht.NumOut() != 1 {
 		return errors.New("handler must has one result")
 	}
+
 	if ht.Out(0).String() != "error" {
 		return errors.New("handler must uses 'error' as the only result")
 	}
+
 	switch ht.In(1).Kind() {
 	case reflect.Chan, reflect.Interface, reflect.UnsafePointer, reflect.Uintptr, reflect.Func, reflect.Invalid:
 		return errors.New("the second parameter of handler is invalid")
@@ -60,6 +67,7 @@ func (b bus) Subscribe(n string, h Handler) error {
 
 	mt := getTypeSymbol(ht.In(1))
 	b[mt] = append(b[mt], namedHandler{n: n, h: h})
+
 	return nil
 }
 
@@ -70,6 +78,7 @@ func (b bus) Publish(ctx context.Context, m Message) error {
 	}
 
 	mt := getTypeSymbol(reflect.TypeOf(m))
+
 	hs, exist := b[mt]
 	if !exist {
 		return nil
@@ -81,30 +90,35 @@ func (b bus) Publish(ctx context.Context, m Message) error {
 	}
 	for i := range hs {
 		r := reflect.ValueOf(hs[i].h).Call(in)
+
 		err := r[0].Interface()
 		if err != nil {
 			return fmt.Errorf("error calling %q handler: %v", hs[i].n, err)
 		}
 	}
+
 	return nil
 }
 
 func getTypeSymbol(t reflect.Type) string {
-	s := t.String()
-	var p string
+	var (
+		p string
+		s = t.String()
+	)
+
 	switch t.Kind() {
 	default:
 		p = t.PkgPath()
 	case reflect.Interface, reflect.Pointer:
 		p = t.Elem().PkgPath()
 	}
+
 	if p != "" {
 		s = p + "/" + s
 	}
+
 	return s
 }
-
-var globalBus = New()
 
 // New returns a new Bus.
 func New() Bus {

@@ -49,13 +49,16 @@ func ToProvidersBlocks(
 
 	for _, p := range providers {
 		var convertBlocks block.Blocks
+
 		convertBlocks, err = ToProviderBlocks(p, connectors, opts)
 		if err != nil {
 			return nil, err
 		}
+
 		if convertBlocks == nil {
 			continue
 		}
+
 		blocks = append(blocks, convertBlocks...)
 	}
 
@@ -65,6 +68,7 @@ func ToProvidersBlocks(
 	if err != nil {
 		return nil, err
 	}
+
 	if !ok {
 		return nil, fmt.Errorf("failed to validate providers: %v, current blockProviders: %v", providers, blocks)
 	}
@@ -75,6 +79,7 @@ func ToProvidersBlocks(
 // ToProviderBlocks converts the connectors to blocks with provider name.
 func ToProviderBlocks(provider string, connectors model.Connectors, opts ConvertOptions) (block.Blocks, error) {
 	var toBlockOpts Options
+
 	switch provider {
 	case TypeKubernetes, TypeHelm, TypeKubectl:
 		toBlockOpts = K8sConvertorOptions{
