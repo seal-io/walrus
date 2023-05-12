@@ -1,7 +1,6 @@
 run:
   timeout: 10m
   tests: true
-  allow-parallel-runners: true
   skip-files:
     - "doc.go"
   modules-download-mode: readonly
@@ -39,7 +38,6 @@ linters:
   enable:
     - asciicheck
     - bidichk
-    - bodyclose
     - decorder
     - durationcheck
     - errcheck
@@ -49,7 +47,6 @@ linters:
     - godot
     - goconst
     - gofumpt
-    - goimports
     - gocritic
     - gosimple
     - gosec
@@ -71,10 +68,8 @@ linters:
     - unconvert
     - unparam
     - unused
-    - unused
     - usestdlibvars
     - whitespace
-    - wsl
 
     # enable complexity linters
     # - dupl
@@ -133,11 +128,6 @@ linters-settings:
     # Minimum occurrences of constant string count to trigger issue.
     # Default: 3
     min-occurrences: 3
-  goimports:
-    # A comma-separated list of prefixes, which, if set, checks import paths
-    # with the given prefixes are grouped after 3rd-party packages.
-    # Default: ""
-    local-prefixes: github.com/seal-io/seal
   misspell:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
@@ -159,28 +149,6 @@ linters-settings:
     # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
     # with golangci-lint call it on a directory with the changed file.
     check-exported: true
-  wsl:
-    # See https://github.com/bombsimon/wsl/blob/master/doc/configuration.md
-
-    # If true append is only allowed to be cuddled if appending value is
-    # matching variables, fields or types on line above. Default is true.
-    strict-append: true
-    # Allow calls and assignments to be cuddled as long as the lines have any
-    # matching variables, fields or types. Default is true.
-    allow-assign-and-call: true
-    # Allow declarations (var) to be cuddled.
-    allow-cuddle-declarations: false
-    # Allow trailing comments in ending of blocks
-    allow-trailing-comment: true
-    # Allows assignments to be cuddled with anything. Default is false.
-    allow-assign-and-anything: true
-    # Force newlines in end of case at this limit (0 = never).
-    force-case-trailing-whitespace: 0
-    # Causes an error if a short declaration (:=) cuddles with anything other than
-    # another short declaration.
-    # This logic overrides force-err-cuddling among others.
-    force-short-decl-cuddling: false
-    force-err-cuddling: false
   errorlint:
     # Check whether fmt.Errorf uses the %w verb for formatting errors. See the readme for caveats
     errorf: true

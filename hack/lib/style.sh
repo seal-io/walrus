@@ -62,7 +62,7 @@ function seal::lint::run() {
   fi
 
   seal::log::debug "golangci-lint $*"
-  $(seal::lint::golangci_lint::bin) run "$@"
+  $(seal::lint::golangci_lint::bin) run --fix "$@"
 }
 
 function seal::format::goimports::install() {
@@ -91,6 +91,86 @@ function seal::format::goimports::bin() {
   echo -n "${bin}"
 }
 
+function seal::format::gofumpt::install() {
+  GOBIN="${ROOT_DIR}/.sbin" go install mvdan.cc/gofumpt@latest
+}
+
+function seal::format::gofumpt::validate() {
+  # shellcheck disable=SC2046
+  if [[ -n "$(command -v $(seal::format::gofumpt::bin))" ]]; then
+    return 0
+  fi
+
+  seal::log::info "installing gofumpt"
+  if seal::format::gofumpt::install; then
+    return 0
+  fi
+  seal::log::error "no gofumpt available"
+  return 1
+}
+
+function seal::format::gofumpt::bin() {
+  local bin="gofumpt"
+  if [[ -f "${ROOT_DIR}/.sbin/gofumpt" ]]; then
+    bin="${ROOT_DIR}/.sbin/gofumpt"
+  fi
+  echo -n "${bin}"
+}
+
+# install golines
+function seal::format::golines::install() {
+  GOBIN="${ROOT_DIR}/.sbin" go install github.com/segmentio/golines@latest
+}
+
+function seal::format::golines::validate() {
+  # shellcheck disable=SC2046
+  if [[ -n "$(command -v $(seal::format::golines::bin))" ]]; then
+    return 0
+  fi
+
+  seal::log::info "installing golines"
+  if seal::format::golines::install; then
+    return 0
+  fi
+  seal::log::error "no golines available"
+  return 1
+}
+
+function seal::format::golines::bin() {
+  local bin="golines"
+  if [[ -f "${ROOT_DIR}/.sbin/golines" ]]; then
+    bin="${ROOT_DIR}/.sbin/golines"
+  fi
+  echo -n "${bin}"
+}
+
+# install wsl(Whitespace Linter)
+function seal::format::wsl::install() {
+  GOBIN="${ROOT_DIR}/.sbin" go install github.com/bombsimon/wsl/v4/cmd...@master
+}
+
+function seal::format::wsl::validate() {
+  # shellcheck disable=SC2046
+  if [[ -n "$(command -v $(seal::format::wsl::bin))" ]]; then
+    return 0
+  fi
+
+  seal::log::info "installing wsl"
+  if seal::format::wsl::install; then
+    return 0
+  fi
+  seal::log::error "no wsl available"
+  return 1
+}
+
+function seal::format::wsl::bin() {
+  local bin="wsl"
+  if [[ -f "${ROOT_DIR}/.sbin/wsl" ]]; then
+    bin="${ROOT_DIR}/.sbin/wsl"
+  fi
+  echo -n "${bin}"
+}
+
 function seal::format::run() {
   if ! seal::format::goimports::validate; then
     seal::log::fatal "cannot execute goimports as client is not found"
@@ -98,6 +178,36 @@ function seal::format::run() {
 
   seal::log::debug "goimports $*"
   $(seal::format::goimports::bin) "$@"
+
+  # format go files
+  set +e
+  local path=$4
+  
+  if ! seal::format::gofumpt::validate; then
+    seal::log::fatal "cannot execute gofumpt as client is not found"
+  fi
+
+  seal::log::debug "gofumpt -extra -l -w  $path"
+  $(seal::format::gofumpt::bin) -extra -l -w "$path"
+
+  if ! seal::format::golines::validate; then
+    seal::log::fatal "cannot execute golines as client is not found"
+  fi
+
+  local golines_opts="-w -m 120 --no-reformat-tags --base-formatter=$(seal::format::gofumpt::bin)"
+  seal::log::debug "golines $golines_opts $path"
+  $(seal::format::golines::bin) $golines_opts "$path"
+
+  if ! seal::format::wsl::validate; then
+    seal::log::fatal "cannot execute wsl as client is not found"
+  fi
+
+  local generated_pkg="pkg/dao/model"
+  local wsl_opts="--allow-assign-and-anything --allow-trailing-comment --force-short-decl-cuddling=false --fix"
+  seal::log::debug "wsl $wsl_opts $path/..."
+  go list $path/... | grep -v $generated_pkg | xargs $(seal::format::wsl::bin) $wsl_opts
+
+  set -e
 }
 
 function seal::commit::commitsar::install() {
