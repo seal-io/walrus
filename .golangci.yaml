@@ -1,6 +1,33 @@
 run:
   timeout: 10m
   tests: true
+  allow-parallel-runners: true
+
+# output configuration options
+output:
+  # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
+  #
+  # Multiple can be specified by separating them by comma, output can be provided
+  # for each of them by separating format name and path by colon symbol.
+  # Output path can be either `stdout`, `stderr` or path to the file to write to.
+  # Example: "checkstyle:report.json,colored-line-number"
+  #
+  # Default: colored-line-number
+  format: colored-line-number
+  # Print lines of code with issue.
+  # Default: true
+  print-issued-lines: true
+  # Print linter name in the end of issue text.
+  # Default: true
+  print-linter-name: true
+  # Make issues output unique by line.
+  # Default: true
+  uniq-by-line: true
+  # Add a prefix to the output file references.
+  # Default is no prefix.
+  path-prefix: ""
+  # Sort results by: filepath, line and column.
+  sort-results: true
 
 linters:
   disable-all: true
@@ -13,8 +40,6 @@ linters:
     - asciicheck
     - errcheck
     - bidichk
-    - durationcheck
-    - errcheck
     - unused
     - nilerr
     - gocritic
@@ -25,6 +50,7 @@ linters:
     - errname
     - errorlint
     - misspell
+    - godot
 
 linters-settings:
   staticcheck:
@@ -43,7 +69,22 @@ linters-settings:
         disabled: true
         arguments:
           - [ "HTTP", "ID", "TLS", "TCP", "UDP", "API", "CA", "URL", "DNS" ]
-
+  godot:
+    # Comments to be checked: `declarations`, `toplevel`, or `all`.
+    # Default: declarations
+    scope: all
+    # List of regexps for excluding particular comment lines from check.
+    # Default: []
+    exclude:
+      # Exclude todo and fixme comments.
+      - "^fixme:"
+      - "^todo:"
+    # Check that each sentence ends with a period.
+    # Default: true
+    period: true
+    # Check that each sentence starts with a capital letter.
+    # Default: false
+    capital: true
 issues:
   exclude-rules:
     - path: _test\.go
