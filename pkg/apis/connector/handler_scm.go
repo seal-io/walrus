@@ -14,7 +14,7 @@ import (
 
 // Extensional APIs for SCM connectors.
 
-func (h Handler) RouteGetRepositories(
+func (h Handler) RouteRepositories(
 	ctx *gin.Context,
 	req view.GetRepositoriesRequest,
 ) (view.GetRepositoriesResponse, error) {
@@ -50,7 +50,7 @@ func (h Handler) RouteGetRepositories(
 	return repositories, nil
 }
 
-func (h Handler) RouteGetRepositoryBranches(
+func (h Handler) RouteRepositoryBranches(
 	ctx *gin.Context,
 	req view.GetBranchesRequest,
 ) (view.GetBranchesResponse, error) {

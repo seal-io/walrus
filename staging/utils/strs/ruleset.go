@@ -2,7 +2,9 @@ package strs
 
 import (
 	"strings"
+	"unicode"
 
+	"github.com/akerl/go-indefinite-article/indefinite"
 	"github.com/go-openapi/inflect"
 )
 
@@ -18,6 +20,12 @@ func init() {
 	} {
 		globalRuleset.AddAcronym(w)
 	}
+
+	for s, p := range map[string]string{
+		"exec": "exec",
+	} {
+		globalRuleset.AddIrregular(s, p)
+	}
 }
 
 // Pluralize returns the plural form of a word.
@@ -30,6 +38,11 @@ func Singularize(word string) string {
 	return globalRuleset.Singularize(word)
 }
 
+// SingularizeWithArticle returns the singular form of a word and prepends the article to it, "dogs" -> "a dog".
+func SingularizeWithArticle(word string) string {
+	return indefinite.AddArticle(globalRuleset.Singularize(word))
+}
+
 // Camelize returns the string in camel case, "dino_party" -> "DinoParty".
 func Camelize(word string) string {
 	return globalRuleset.Camelize(word)
@@ -38,6 +51,31 @@ func Camelize(word string) string {
 // CamelizeDownFirst is the same as Camelize but with first lowercase char.
 func CamelizeDownFirst(word string) string {
 	return globalRuleset.CamelizeDownFirst(word)
+}
+
+// Decamelize converts camel-case words to space-split words, "DinoParty" -> "Dino Party".
+// If lowercase is true, convert the first letter of each word to lowercase, "DinoParty" -> "dino party".
+func Decamelize(s string, lowercase bool) string {
+	var (
+		b          strings.Builder
+		splittable = false
+	)
+
+	for _, v := range s {
+		if splittable && unicode.IsUpper(v) {
+			b.WriteByte(' ')
+		}
+
+		if lowercase {
+			b.WriteString(strings.ToLower(string(v)))
+		} else {
+			b.WriteRune(v)
+		}
+
+		splittable = unicode.IsLower(v) || unicode.IsNumber(v)
+	}
+
+	return b.String()
 }
 
 // Underscore returns the string in snake case, "BigBen" -> "big_ben".

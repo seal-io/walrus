@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -127,7 +128,8 @@ func toSchemaOperation(
 		SetTags([]string{strs.Camelize(resource)}).
 		SetOperationID(handle).
 		SetParameters(toSchemaParameters(r, ip)).
-		SetRequestBody(toSchemaRequestBody(r, ip))
+		SetRequestBody(toSchemaRequestBody(r, ip)).
+		SetSummary(toSchemaSummary(resource, handle, method))
 	for _, c := range getSchemaResponseHTTPs() {
 		o.AddNamedResponses(spec.RefResponse(strconv.Itoa(c)))
 	}
@@ -357,6 +359,81 @@ func toSchemaProperty(category string, prop *ProfileProperty) *ogen.Property {
 	}
 
 	return toSchemaSchema(category, prop).ToProperty(prop.Name)
+}
+
+func toSchemaSummary(resource, handle, method string) string {
+	var summary, subresource, handleName string
+
+	_, handleName, _ = strings.Cut(handle, ".")
+	resource = strs.Decamelize(resource, true)
+
+	switch {
+	case handleName == createPrefix:
+		summary = fmt.Sprintf("Create %s", strs.SingularizeWithArticle(resource))
+	case handleName == updatePrefix:
+		summary = fmt.Sprintf("Update %s", strs.SingularizeWithArticle(resource))
+	case handleName == deletePrefix:
+		summary = fmt.Sprintf("Delete %s", strs.SingularizeWithArticle(resource))
+	case handleName == getPrefix:
+		summary = fmt.Sprintf("Get %s by ID", strs.Singularize(resource))
+	case handleName == collectionGetPrefix:
+		summary = fmt.Sprintf("Get %s", resource)
+	case handleName == collectionCreatePrefix:
+		summary = fmt.Sprintf("Create %s", resource)
+	case handleName == collectionUpdatePrefix:
+		summary = fmt.Sprintf("Update %s", resource)
+	case handleName == collectionDeletePrefix:
+		summary = fmt.Sprintf("Delete %s", resource)
+	case handleName == collectionStreamPrefix:
+		summary = fmt.Sprintf("Stream %s", resource)
+	case strings.HasPrefix(handleName, getPrefix):
+		subresource = strings.TrimPrefix(handleName, getPrefix)
+		summary = fmt.Sprintf("Get %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, createPrefix):
+		subresource = strings.TrimPrefix(handleName, createPrefix)
+		summary = fmt.Sprintf("Create %s", strs.SingularizeWithArticle(subresource))
+	case strings.HasPrefix(handleName, updatePrefix):
+		subresource = strings.TrimPrefix(handleName, updatePrefix)
+		summary = fmt.Sprintf("Update %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, deletePrefix):
+		subresource = strings.TrimPrefix(handleName, deletePrefix)
+		summary = fmt.Sprintf("Delete %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, streamPrefix):
+		subresource = strings.TrimPrefix(handleName, streamPrefix)
+		summary = fmt.Sprintf("Stream %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionGetPrefix):
+		subresource = strings.TrimPrefix(handleName, collectionGetPrefix)
+		summary = fmt.Sprintf("Get %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionCreatePrefix):
+		subresource = strings.TrimPrefix(handleName, collectionCreatePrefix)
+		summary = fmt.Sprintf("Create %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionUpdatePrefix):
+		subresource = strings.TrimPrefix(handleName, collectionUpdatePrefix)
+		summary = fmt.Sprintf("Update %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionDeletePrefix):
+		subresource = strings.TrimPrefix(handleName, collectionDeletePrefix)
+		summary = fmt.Sprintf("Delete %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionStreamPrefix):
+		subresource = strings.TrimPrefix(handleName, collectionStreamPrefix)
+		summary = fmt.Sprintf("Stream %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	// Conversion over configuration for route handlers:
+	// - GET method expects the handle name to be subresource/link name
+	// - Other methods expect the handle name to be the descriptive action name.
+	case strings.HasPrefix(handleName, routePrefix) && method == http.MethodGet:
+		subresource = strings.TrimPrefix(handleName, routePrefix)
+		summary = fmt.Sprintf("Get %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, routePrefix) && method != http.MethodGet:
+		subresource = strings.TrimPrefix(handleName, routePrefix)
+		summary = strs.Capitalize(strs.Decamelize(subresource, true))
+	case strings.HasPrefix(handleName, collectionRoutePrefix) && method == http.MethodGet:
+		subresource = strings.TrimPrefix(handleName, collectionRoutePrefix)
+		summary = fmt.Sprintf("Get %s", strs.Pluralize(strs.Decamelize(subresource, true)))
+	case strings.HasPrefix(handleName, collectionRoutePrefix) && method != http.MethodGet:
+		subresource = strings.TrimPrefix(handleName, collectionRoutePrefix)
+		summary = strs.Capitalize(strs.Decamelize(subresource, true))
+	}
+
+	return summary
 }
 
 var basicSchemas = map[string]*ogen.Schema{

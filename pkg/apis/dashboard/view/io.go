@@ -45,6 +45,8 @@ type BasicInfoRequest struct {
 type BasicInfoResponse = BasicInformation
 
 type ApplicationRevisionStatisticsRequest struct {
+	_ struct{} `route:"POST=/application-revision-statistics"`
+
 	Step      string    `json:"step"`
 	StartTime time.Time `json:"startTime"`
 	EndTime   time.Time `json:"endTime"`
