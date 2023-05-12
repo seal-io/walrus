@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -53,8 +53,8 @@ func loadConfig(loader clientcmd.ClientConfigLoader) (*rest.Config, error) {
 		ClientConfig()
 }
 
-func Wait(ctx context.Context, cfg *rest.Config) error {
-	cli, err := discovery.NewDiscoveryClientForConfig(cfg)
+func Wait(ctx context.Context, cfg *rest.Config, callback ...func(context.Context, *kubernetes.Clientset) error) error {
+	cli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create client via cfg: %w", err)
 	}
@@ -71,11 +71,23 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 			return lastErr == nil, ctx.Err()
 		},
 	)
-	if err != nil && lastErr != nil {
-		err = lastErr // Use last error to overwrite context error while existed.
+	if err != nil {
+		if lastErr != nil {
+			err = lastErr // Use last error to overwrite context error while existed.
+		}
+
+		return err
 	}
 
-	return err
+	// Execute callbacks.
+	for i := range callback {
+		err = callback[i](ctx, cli)
+		if err != nil {
+			return fmt.Errorf("failed to execute callback: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func IsConnected(ctx context.Context, r rest.Interface) error {

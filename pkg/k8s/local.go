@@ -10,11 +10,18 @@ import (
 	"strings"
 	"time"
 
+	batch "k8s.io/api/batch/v1"
+	core "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/seal-io/seal/pkg/consts"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/osx"
@@ -142,7 +149,9 @@ func (Embedded) GetConfig(ctx context.Context) (string, *rest.Config, error) {
 		return "", nil, err
 	}
 
-	err = Wait(ctx, cfg)
+	err = Wait(ctx, cfg,
+		prepareDeployWorkspace,
+		prepareDeployPermission)
 	if err != nil {
 		return "", nil, err
 	}
@@ -161,6 +170,97 @@ func runK3sWith(ctx context.Context, cmdArgs []string) error {
 
 	err := cmd.Run()
 	if err != nil && !errors.Is(err, context.Canceled) {
+		return err
+	}
+
+	return nil
+}
+
+// prepareDeployWorkspace creates the kubernetes namespace to run deployer at next.
+func prepareDeployWorkspace(ctx context.Context, cli *kubernetes.Clientset) error {
+	ns := core.Namespace{
+		ObjectMeta: meta.ObjectMeta{
+			Name: types.SealSystemNamespace,
+		},
+	}
+
+	_, err := cli.CoreV1().
+		Namespaces().
+		Create(ctx, &ns, meta.CreateOptions{})
+	if err != nil && !kerrors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return nil
+}
+
+// prepareDeployPermission creates the kubernetes rbac resources for deployer running.
+func prepareDeployPermission(ctx context.Context, cli *kubernetes.Clientset) error {
+	// FIXME(thxCode): Remove this later,
+	//  we should not use the same permission for deployer running,
+	//  deployer should use the permission of the configured connectors.
+	sa := core.ServiceAccount{
+		ObjectMeta: meta.ObjectMeta{
+			Namespace: types.SealSystemNamespace,
+			Name:      types.DeployerServiceAccountName,
+		},
+	}
+
+	_, err := cli.CoreV1().
+		ServiceAccounts(sa.Namespace).
+		Create(ctx, &sa, meta.CreateOptions{})
+	if err != nil && !kerrors.IsAlreadyExists(err) {
+		return err
+	}
+
+	r := rbac.Role{
+		ObjectMeta: meta.ObjectMeta{
+			Namespace: types.SealSystemNamespace,
+			Name:      types.DeployerServiceAccountName,
+		},
+		Rules: []rbac.PolicyRule{
+			{
+				APIGroups: []string{batch.GroupName},
+				Resources: []string{"jobs"},
+				Verbs:     []string{rbac.VerbAll},
+			},
+			{
+				APIGroups: []string{core.GroupName},
+				Resources: []string{"secrets", "pods"},
+				Verbs:     []string{rbac.VerbAll},
+			},
+		},
+	}
+
+	_, err = cli.RbacV1().
+		Roles(r.Namespace).
+		Create(ctx, &r, meta.CreateOptions{})
+	if err != nil && !kerrors.IsAlreadyExists(err) {
+		return err
+	}
+
+	rb := rbac.RoleBinding{
+		ObjectMeta: meta.ObjectMeta{
+			Namespace: types.SealSystemNamespace,
+			Name:      types.DeployerServiceAccountName,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Kind: rbac.ServiceAccountKind,
+				Name: types.DeployerServiceAccountName,
+			},
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: rbac.GroupName,
+			Kind:     "Role",
+			Name:     types.DeployerServiceAccountName,
+		},
+	}
+
+	_, err = cli.RbacV1().
+		RoleBindings(r.Namespace).
+		Create(ctx, &rb, meta.CreateOptions{})
+	if err != nil && !kerrors.IsAlreadyExists(err) {
 		return err
 	}
 
