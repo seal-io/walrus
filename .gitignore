@@ -12,6 +12,8 @@
 *.so
 *.dylib
 *.log
+go.work
+go.work.sum
 
 # Dirs
 /.idea
