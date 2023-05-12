@@ -55,7 +55,7 @@ func GetToken(sealHeader http.Header) string {
 			return ""
 		}
 		// Get token.
-		splits := strings.SplitN(string(data), ":", 2)
+		splits := strings.SplitN(data, ":", 2)
 		if len(splits) != 2 {
 			return ""
 		}

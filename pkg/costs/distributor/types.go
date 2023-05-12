@@ -159,7 +159,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 		return nil
 	}
 
-	toArgs := func(values []string) []any {
+	toArgs := func(_ []string) []any {
 		var args []any
 		for _, v := range cond.Values {
 			args = append(args, v)

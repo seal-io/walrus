@@ -405,7 +405,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		})
 		select {
 		case <-ctx.Done():
-			// Allow cancelling from requesting.
+			// Allow canceling from requesting.
 			resp.err = ctx.Err()
 			break
 		case err := <-respErrChan:
@@ -423,7 +423,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		waitTimer := time.NewTimer(waitDuration)
 		select {
 		case <-ctx.Done():
-			// Allow cancelling from retry waiting.
+			// Allow canceling from retry waiting.
 			waitTimer.Stop()
 			resp.err = ctx.Err()
 			break

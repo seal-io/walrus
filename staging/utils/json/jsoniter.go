@@ -27,7 +27,7 @@ type RawMessage = stdjson.RawMessage
 func MustMarshal(v interface{}) []byte {
 	bs, err := Marshal(v)
 	if err != nil {
-		panic(fmt.Errorf("error marshalling json: %w", err))
+		panic(fmt.Errorf("error marshaling json: %w", err))
 	}
 	return bs
 }
@@ -37,7 +37,7 @@ func MustMarshal(v interface{}) []byte {
 func MustUnmarshal(data []byte, v interface{}) {
 	err := Unmarshal(data, v)
 	if err != nil {
-		panic(fmt.Errorf("error unmarshalling json: %w", err))
+		panic(fmt.Errorf("error unmarshaling json: %w", err))
 	}
 }
 
@@ -46,7 +46,7 @@ func MustUnmarshal(data []byte, v interface{}) {
 func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
 	bs, err := MarshalIndent(v, prefix, indent)
 	if err != nil {
-		panic(fmt.Errorf("error marshalling indent json: %w", err))
+		panic(fmt.Errorf("error marshaling indent json: %w", err))
 	}
 	return bs
 }
