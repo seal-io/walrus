@@ -2,6 +2,8 @@ run:
   timeout: 10m
   tests: true
   allow-parallel-runners: true
+  skip-files:
+    - "doc.go"
 
 # output configuration options
 output:
@@ -51,12 +53,14 @@ linters:
     - errorlint
     - misspell
     - godot
+    - lll
+    - nolintlint
 
 linters-settings:
   staticcheck:
-    checks: [ "all","-SA1019","-SA2002" ]
+    checks: ["all", "-SA1019", "-SA2002"]
   stylecheck:
-    checks: [ "all","-ST1003" ]
+    checks: ["all", "-ST1003"]
   gosec:
     severity: "low"
     confidence: "low"
@@ -68,7 +72,7 @@ linters-settings:
       - name: var-naming
         disabled: true
         arguments:
-          - [ "HTTP", "ID", "TLS", "TCP", "UDP", "API", "CA", "URL", "DNS" ]
+          - ["HTTP", "ID", "TLS", "TCP", "UDP", "API", "CA", "URL", "DNS"]
   godot:
     # Comments to be checked: `declarations`, `toplevel`, or `all`.
     # Default: declarations
@@ -85,6 +89,18 @@ linters-settings:
     # Check that each sentence starts with a capital letter.
     # Default: false
     capital: true
+  lll:
+    # max line length, lines longer will be reported. Default is 120.
+    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+    line-length: 120
+    # tab width in spaces. Default to 1.
+    tab-width: 4
+  nolintlint:
+    allow-unused: false
+    allow-no-explanation: []
+    require-explanation: false
+    require-specific: true
+
 issues:
   exclude-rules:
     - path: _test\.go
@@ -93,4 +109,4 @@ issues:
         - gosec
         - rowserrcheck
         - makezero
-
+        - lll
