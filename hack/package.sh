@@ -13,7 +13,7 @@ PACKAGE_TMP_DIR="${PACKAGE_DIR}/tmp"
 mkdir -p "${PACKAGE_TMP_DIR}"
 
 function download_ui() {
-  local default_tag="v0.1.1"
+  local default_tag="v0.1.2"
   local path="${1}"
   local tag="${2}"
 

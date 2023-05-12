@@ -13,7 +13,7 @@ services:
       - "15432:5432"
 
   postgres:
-    image: "postgres:14.6"
+    image: "postgres:14.8"
     restart: always
     privileged: true
     container_name: postgres
