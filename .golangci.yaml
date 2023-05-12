@@ -4,6 +4,9 @@ run:
   allow-parallel-runners: true
   skip-files:
     - "doc.go"
+  modules-download-mode: readonly
+  skip-dirs:
+    - pkg/dao/model
 
 # output configuration options
 output:
@@ -34,35 +37,50 @@ output:
 linters:
   disable-all: true
   enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - decorder
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exportloopref
+    - godot
+    - goconst
+    - gofumpt
+    - goimports
+    - gocritic
+    - gosimple
+    - gosec
+    - govet
     - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - misspell
+    - nakedret
+    - nilerr
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
     - staticcheck
     - stylecheck
     - typecheck
-    - durationcheck
-    - asciicheck
-    - errcheck
-    - bidichk
-    - unused
-    - nilerr
-    - gocritic
-    - gosimple
-    - govet
-    - gosec
-    - revive
-    - errname
-    - errorlint
-    - misspell
-    - godot
-    - lll
-    - nolintlint
-    - goconst
-    - makezero
-    - goimports
-    - predeclared
-    - misspell
-    - unparam
     - unconvert
+    - unparam
     - unused
+    - unused
+    - usestdlibvars
+    - whitespace
+    - wsl
+
+    # enable complexity linters
+    # - dupl
+    # - gocognit
+    # - gocyclo
+    # - funlen
 
 linters-settings:
   staticcheck:
@@ -140,7 +158,69 @@ linters-settings:
     # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
     # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
     # with golangci-lint call it on a directory with the changed file.
-    check-exported: false
+    check-exported: true
+  wsl:
+    # See https://github.com/bombsimon/wsl/blob/master/doc/configuration.md
+
+    # If true append is only allowed to be cuddled if appending value is
+    # matching variables, fields or types on line above. Default is true.
+    strict-append: true
+    # Allow calls and assignments to be cuddled as long as the lines have any
+    # matching variables, fields or types. Default is true.
+    allow-assign-and-call: true
+    # Allow declarations (var) to be cuddled.
+    allow-cuddle-declarations: false
+    # Allow trailing comments in ending of blocks
+    allow-trailing-comment: true
+    # Allows assignments to be cuddled with anything. Default is false.
+    allow-assign-and-anything: true
+    # Force newlines in end of case at this limit (0 = never).
+    force-case-trailing-whitespace: 0
+    # Causes an error if a short declaration (:=) cuddles with anything other than
+    # another short declaration.
+    # This logic overrides force-err-cuddling among others.
+    force-short-decl-cuddling: false
+    force-err-cuddling: false
+  errorlint:
+    # Check whether fmt.Errorf uses the %w verb for formatting errors. See the readme for caveats
+    errorf: true
+    # Check for plain type assertions and type switches
+    asserts: true
+    # Check for plain error comparisons
+    comparison: true
+  makezero:
+    always: false
+  gosimple:
+    go: "1.19"
+    checks: ["all"]
+  nakedret:
+    max-func-lines: 60
+  usestdlibvars:
+    # Suggest the use of http.MethodXX
+    # Default: true
+    http-method: true
+    # Suggest the use of http.StatusXX
+    # Default: true
+    http-status-code: true
+    # Suggest the use of time.Weekday
+    # Default: true
+    time-weekday: true
+    # Suggest the use of time.Month
+    # Default: false
+    time-month: true
+    # Suggest the use of time.Layout
+    # Default: false
+    time-layout: true
+    # Suggest the use of crypto.Hash
+    # Default: false
+    crypto-hash: true
+  decorder:
+    dec-order:
+      - const
+      - var
+      - func
+    disable-init-func-first-check: false
+    disable-dec-order-check: true
 
 issues:
   exclude-rules:
@@ -152,3 +232,4 @@ issues:
         - makezero
         - lll
         - funlen
+        - wsl

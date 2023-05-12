@@ -13,7 +13,7 @@
 *.dylib
 *.log
 go.work
-go.work.sum
+go.work.*
 
 # Dirs
 /.idea
