@@ -41,7 +41,6 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		initor{name: "perspective", init: r.initPerspectives},
 		initor{name: "projects", init: r.initProjects},
 		initor{name: "environments", init: r.initEnvironments},
-		initor{name: "deployer-runtime", init: r.initDeployerRuntime},
 	)
 
 	if r.EnableAuthn {
