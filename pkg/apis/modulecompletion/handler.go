@@ -183,7 +183,10 @@ func (h Handler) createCompletion(ctx *gin.Context, systemMessage, userMessage s
 	return resp.Choices[0].Message.Content, nil
 }
 
-func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequest) (*view.CreatePrResponse, error) {
+func (h Handler) CollectionRouteCreatePullRequest(
+	ctx *gin.Context,
+	req view.CreatePrRequest,
+) (*view.CreatePrResponse, error) {
 	moduleName := modules.GetModuleNameByPath(req.Path)
 
 	moduleFiles, err := modules.GetTerraformModuleFiles(moduleName, req.Content)

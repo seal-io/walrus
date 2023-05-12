@@ -208,6 +208,8 @@ func (r *StreamLogRequest) Validate() error {
 }
 
 type RollbackInstanceRequest struct {
+	_ struct{} `route:"POST=/rollback-instances"`
+
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
 }
 
@@ -241,6 +243,8 @@ func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) e
 }
 
 type RollbackApplicationRequest struct {
+	_ struct{} `route:"POST=/rollback-applications"`
+
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
 }
 

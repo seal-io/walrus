@@ -3,6 +3,7 @@ module github.com/seal-io/seal/utils
 go 1.19
 
 require (
+	github.com/akerl/go-indefinite-article v0.0.2-0.20221219154354-6280c92263d6
 	github.com/alitto/pond v1.8.3
 	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -31,6 +32,7 @@ require (
 )
 
 require (
+	github.com/akerl/timber v0.0.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

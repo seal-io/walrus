@@ -596,8 +596,8 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	})
 }
 
-// CreateRollbackInstances rollback instance to a specific revision.
-func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInstanceRequest) error {
+// RouteRollbackInstances rollback instance to a specific revision.
+func (h Handler) RouteRollbackInstances(ctx *gin.Context, req view.RollbackInstanceRequest) error {
 	applicationRevision, err := h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
 	if err != nil {
 		return err
@@ -628,8 +628,8 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 	return dp.Rollback(ctx, applicationInstance, rollbackOpts)
 }
 
-// CreateRollbackApplications rollback application to a specific revision.
-func (h Handler) CreateRollbackApplications(
+// RouteRollbackApplications rollback application to a specific revision.
+func (h Handler) RouteRollbackApplications(
 	ctx *gin.Context,
 	req view.RollbackApplicationRequest,
 ) error {
