@@ -56,7 +56,7 @@ func (ApplicationInstance) Fields() []ent.Field {
 
 func (ApplicationInstance) Edges() []ent.Edge {
 	return []ent.Edge{
-		// application 1-* application instances.
+		// Application 1-* application instances.
 		edge.From("application", Application.Type).
 			Ref("instances").
 			Field("applicationID").
@@ -64,7 +64,7 @@ func (ApplicationInstance) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// environment 1-* application instances.
+		// Environment 1-* application instances.
 		edge.From("environment", Environment.Type).
 			Ref("instances").
 			Field("environmentID").
@@ -72,13 +72,13 @@ func (ApplicationInstance) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// application instance 1-* application revisions.
+		// Application instance 1-* application revisions.
 		edge.To("revisions", ApplicationRevision.Type).
 			Comment("Application revisions that belong to this instance.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
-		// application instance 1-* application resources.
+		// Application instance 1-* application resources.
 		edge.To("resources", ApplicationResource.Type).
 			Comment("Application resources that belong to the instance.").
 			Annotations(entsql.Annotation{

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/lib/pq"           // db = postgres
-	_ "github.com/mattn/go-sqlite3" // db = sqlite3
+	_ "github.com/lib/pq"           // Db = postgres.
+	_ "github.com/mattn/go-sqlite3" // Db = sqlite3.
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -26,7 +26,7 @@ import (
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/consts"
 	"github.com/seal-io/seal/pkg/dao/model"
-	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // default = ent
+	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // Default = ent.
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/rds"
 	"github.com/seal-io/seal/utils/clis"
@@ -305,7 +305,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 
 func (r *Server) Before(cmd *cli.Command) {
 	r.Logger.Before(cmd)
-	// compatible with other loggers.
+	// Compatible with other loggers.
 	var logger = log.GetLogger()
 	stdlog.SetOutput(logger)
 	logrus.SetOutput(logger)
@@ -322,10 +322,10 @@ func (r *Server) Action(cmd *cli.Command) {
 func (r *Server) Run(c context.Context) error {
 	var g, ctx = gopool.GroupWithContext(c)
 
-	// get kubernetes config.
+	// Get kubernetes config.
 	var k8sCfg, err = k8s.GetConfig(r.KubeConfig)
 	if err != nil {
-		// if not found, launch embedded kubernetes
+		// If not found, launch embedded kubernetes.
 		var e k8s.Embedded
 		g.Go(func() error {
 			log.Info("running embedded kubernetes")
@@ -335,22 +335,22 @@ func (r *Server) Run(c context.Context) error {
 			}
 			return err
 		})
-		// and get embedded kubernetes config.
+		// And get embedded kubernetes config.
 		r.KubeConfig, k8sCfg, err = e.GetConfig(ctx)
 		if err != nil {
 			return fmt.Errorf("error getting embedded kubernetes config: %w", err)
 		}
 	}
-	// wait kubernetes to be ready.
+	// Wait kubernetes to be ready.
 	if err = k8s.Wait(ctx, k8sCfg); err != nil {
 		return fmt.Errorf("error waiting kubernetes cluster ready: %w", err)
 	}
 	r.setKubernetesConfig(k8sCfg)
 
-	// load database driver.
+	// Load database driver.
 	rdsDrvDialect, rdsDrv, err := rds.LoadDriver(r.DataSourceAddress)
 	if err != nil {
-		// if not found, launch embedded database
+		// If not found, launch embedded database.
 		var e rds.Embedded
 		g.Go(func() error {
 			log.Info("running embedded database")
@@ -360,22 +360,22 @@ func (r *Server) Run(c context.Context) error {
 			}
 			return err
 		})
-		// and get embedded database driver.
+		// And get embedded database driver.
 		r.DataSourceAddress, rdsDrvDialect, rdsDrv, err = e.GetDriver(ctx)
 		if err != nil {
 			return fmt.Errorf("error getting embedded database driver: %w", err)
 		}
 	}
-	// wait database to be ready.
+	// Wait database to be ready.
 	if err = rds.Wait(ctx, rdsDrv); err != nil {
 		return fmt.Errorf("error waiting database ready: %w", err)
 	}
 	r.setDataSourceDriver(rdsDrv)
 
 	if r.EnableAuthn {
-		// enable authentication.
+		// Enable authentication.
 		if r.CasdoorServer == "" {
-			// if not specified, launch embedded casdoor,
+			// If not specified, launch embedded casdoor,.
 			var e casdoor.Embedded
 			g.Go(func() error {
 				log.Info("running embedded casdoor")
@@ -385,19 +385,19 @@ func (r *Server) Run(c context.Context) error {
 				}
 				return err
 			})
-			// and get embedded casdoor address.
+			// And get embedded casdoor address.
 			r.CasdoorServer, err = e.GetAddress(ctx)
 			if err != nil {
 				return fmt.Errorf("error getting embedded casdor: %w", err)
 			}
 		}
-		// wait casdoor to be ready.
+		// Wait casdoor to be ready.
 		if err = casdoor.Wait(ctx, r.CasdoorServer); err != nil {
 			return fmt.Errorf("error waiting casdoor ready: %w", err)
 		}
 	}
 
-	// initialize some resources.
+	// Initialize some resources.
 	log.Info("initializing")
 	var modelClient = getModelClient(rdsDrvDialect, rdsDrv)
 	var initOpts = initOptions{
@@ -409,7 +409,7 @@ func (r *Server) Run(c context.Context) error {
 		return fmt.Errorf("error initializing: %w", err)
 	}
 
-	// setup k8s controllers.
+	// Setup k8s controllers.
 	var setupK8sCtrlsOpts = setupK8sCtrlsOptions{
 		K8sConfig:   k8sCfg,
 		ModelClient: modelClient,
@@ -423,7 +423,7 @@ func (r *Server) Run(c context.Context) error {
 		return err
 	})
 
-	// setup apis.
+	// Setup apis.
 	var setupApisOpts = setupApisOptions{
 		ModelClient: modelClient,
 		K8sConfig:   k8sCfg,

@@ -23,7 +23,7 @@ func ValidateAllocationQueries(queries []types.QueryCondition) error {
 }
 
 func ValidateAllocationQuery(query types.QueryCondition) error {
-	// filter
+	// Filter.
 	if len(query.Filters) == 0 {
 		return errors.New("invalid filter: blank")
 	}
@@ -32,7 +32,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		return err
 	}
 
-	// group by
+	// Group by.
 	if query.GroupBy == "" {
 		return errors.New("invalid group by: blank")
 	}
@@ -56,9 +56,9 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		return errors.New("invalid group by: unsupported")
 	}
 
-	// step
+	// Step.
 	if query.Step != "" {
-		// check support
+		// Check support.
 		if !slice.ContainsAny([]types.Step{
 			types.StepDay,
 			types.StepWeek,
@@ -67,7 +67,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 			return fmt.Errorf("invalid step: unsupported")
 		}
 
-		// check conflict with group by day bucket
+		// Check conflict with group by day bucket.
 		if slice.ContainsAny([]types.GroupByField{
 			types.GroupByFieldDay,
 			types.GroupByFieldWeek,
@@ -77,7 +77,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		}
 	}
 
-	// share cost
+	// Share cost.
 	if len(query.SharedCosts) != 0 {
 		err = ValidateShareCostFilters(query.SharedCosts)
 		if err != nil {
@@ -85,7 +85,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		}
 	}
 
-	// page
+	// Page.
 	if query.Paging.Page < 0 {
 		return fmt.Errorf("invalid page: negtive value")
 	}
@@ -97,7 +97,7 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 
 func ValidateShareCostFilters(filters types.ShareCosts) error {
 	for _, v := range filters {
-		// allocation resource
+		// Allocation resource.
 		if len(v.Filters) != 0 {
 			err := ValidateAllocationCostFilters(v.Filters)
 			if err != nil {
@@ -105,7 +105,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 			}
 		}
 
-		// management
+		// Management.
 		if len(v.ManagementCostFilters) != 0 {
 			for _, mf := range v.ManagementCostFilters {
 				if !mf.IncludeAll && !mf.ConnectorID.IsNaive() {
@@ -114,7 +114,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 			}
 		}
 
-		// idle cost
+		// Idle cost.
 		if len(v.IdleCostFilters) != 0 {
 			for _, idf := range v.IdleCostFilters {
 				if !idf.IncludeAll && !idf.ConnectorID.IsNaive() {
@@ -123,7 +123,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 			}
 		}
 
-		// share strategy
+		// Share strategy.
 		if !slice.ContainsAny([]types.SharingStrategy{
 			types.SharingStrategyProportionally,
 			types.SharingStrategyEqually,
@@ -140,17 +140,17 @@ func ValidateAllocationCostFilters(filters types.AllocationCostFilters) error {
 			return errors.New("invalid filter: blank")
 		}
 		for _, condAnd := range condOr {
-			// include all
+			// Include all.
 			if condAnd.IncludeAll {
 				continue
 			}
 
-			// field name
+			// Field name.
 			if condAnd.FieldName == "" {
 				return errors.New("invalid filter: blank field name")
 			}
 
-			// operator
+			// Operator.
 			if !slice.ContainsAny([]types.Operator{
 				types.OperatorIn,
 				types.OperatorNotIn,
@@ -158,7 +158,7 @@ func ValidateAllocationCostFilters(filters types.AllocationCostFilters) error {
 				return errors.New("invalid filter: unsupported operator")
 			}
 
-			// values
+			// Values.
 			if len(condAnd.Values) == 0 {
 				return errors.New("invalid filter: blank field values")
 			}

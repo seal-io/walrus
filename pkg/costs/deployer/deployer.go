@@ -87,7 +87,7 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 				return fmt.Errorf("error get namespaced resource %v from yaml: %w", resource, err)
 			}
 
-			// update
+			// Update.
 			if exist != nil {
 				_, err = dynamicClient.Resource(resource).Namespace(ns).Update(ctx, obj, metav1.UpdateOptions{})
 				if err != nil {
@@ -96,7 +96,7 @@ func (d *Deployer) EnsureYaml(ctx context.Context, yamlContent []byte) error {
 				continue
 			}
 
-			// create
+			// Create.
 			_, err = dynamicClient.Resource(resource).Namespace(ns).Create(ctx, obj, metav1.CreateOptions{})
 			if err != nil && !apierrors.IsAlreadyExists(err) {
 				return fmt.Errorf("error create namespaced resource %v from yaml: %w", resource, err)
@@ -137,12 +137,12 @@ func (d *Deployer) EnsureChart(app *ChartApp, replace bool) error {
 
 	res, err := helm.GetRelease(app.Name)
 	if err != nil {
-		// error isn't found
+		// Error isn't found.
 		if !strings.Contains(err.Error(), "not found") {
 			return fmt.Errorf("error get release %s:%s, %w", app.Namespace, app.Name, err)
 		}
 
-		// error is not found, continue to install
+		// Error is not found, continue to install.
 	} else {
 		switch {
 		case isSucceed(res) && !replace:

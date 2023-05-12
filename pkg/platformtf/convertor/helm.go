@@ -59,20 +59,20 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 		return nil, err
 	}
 
-	// helm provider need a kubernetes block.
-	// it is not a regular attribute of the helm provider.
-	// e.g.
-	// provider "helm" {
+	// Helm provider need a kubernetes block.
+	// It is not a regular attribute of the helm provider.
+	// E.g.
+	// Provider "helm" {
 	// 	kubernetes {
 	// 		config_path = "xxx"
 	// 	}
-	// }
+	// }.
 
 	var (
 		helmBlock = &block.Block{
 			Type:       block.TypeProvider,
 			Attributes: attributes,
-			// convert the connector type to provider type.
+			// Convert the connector type to provider type.
 			Labels: []string{string(m)},
 		}
 		k8sBlock = &block.Block{

@@ -10,11 +10,11 @@ import (
 	"github.com/seal-io/seal/utils/validation"
 )
 
-// Basic APIs
+// Basic APIs.
 
-// Batch APIs
+// Batch APIs.
 
-// Extensional APIs
+// Extensional APIs.
 
 type (
 	Resources []Resource

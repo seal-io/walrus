@@ -10,7 +10,7 @@ import (
 func getInputFields(n *gen.Type, a string) []*gen.Field {
 	var fs []*gen.Field
 
-	// append for query action.
+	// Append for query action.
 	if a == "query" {
 		if n.HasOneFieldID() {
 			n.ID.StructTag = `uri:"id,omitempty" json:"id,omitempty"`
@@ -29,11 +29,11 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		if fk == nil || !fk.UserDefined {
 			continue
 		}
-		// ignore defined foreign key.
+		// Ignore defined foreign key.
 		ignoreSet.Insert(fk.Field.Name)
 	}
 
-	// append for update action.
+	// Append for update action.
 	if a == "update" {
 		if n.HasOneFieldID() {
 			n.ID.StructTag = `uri:"id" json:"-"`
@@ -48,7 +48,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		}
 	}
 
-	// append continually.
+	// Append continually.
 	for _, f := range n.Fields {
 		if f == nil || ignoreSet.Has(f.Name) {
 			continue
@@ -67,7 +67,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		fs = append(fs, f)
 	}
 
-	// distinct.
+	// Distinct.
 	var nfs []*gen.Field
 	var fdSet = sets.New[string]()
 	for i := range fs {
@@ -86,14 +86,14 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 		if fk == nil || fk.UserDefined {
 			continue
 		}
-		// ignore undefined foreign key.
+		// Ignore undefined foreign key.
 		ignoreSet.Insert(fk.Edge.Name)
 		ignoreSet.Insert(fk.Edge.Ref.Name)
 	}
 
 	var es []*gen.Edge
 
-	// append.
+	// Append.
 	for _, e := range n.Edges {
 		if e == nil || ignoreSet.Has(e.Name) {
 			// NB(thxCode): cannot process edges that defining without `.Field()`.
@@ -103,22 +103,22 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 		default:
 			continue
 		case e.O2O() && e.IsInverse():
-			// e.g.       from 1-1 to
+			// E.g.       From 1-1 to
 			//      [entity a] 1-1 [entity b],
 			// generate [entity a] into [entity b].
 		case e.M2M() && e.IsInverse():
-			// e.g.       from *-* to
+			// E.g.       From *-* to
 			//      [entity a] *-* [entity b],
 			// generate [entity a] into [entity b].
-		case e.M2O(): // inversion.
-			// e.g.      from  *-* to          to 1-* from
+		case e.M2O(): // Inversion.
+			// E.g.      From  *-* to          to 1-* from
 			//      [entity a] *-1 [relationship] 1-* [entity b],
 			// generate [entity a], [entity b] into [relationship]
 			// e.g.      from  1-* to
 			//      [entity a] 1-* [entity b]
-			// generate [entity a] into [entity b]
+			// generate [entity a] into [entity b].
 		case e.O2M() && (e.Through != nil && e == e.Through.EdgeSchema.To):
-			// e.g.                          from 1-* to
+			// E.g.                          From 1-* to
 			//      [entity a] *-1 [relationship] 1-* [entity b],
 			// generate [relationship] into [entity b].
 		}
@@ -144,18 +144,18 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 		if fk == nil || !fk.UserDefined {
 			continue
 		}
-		// ignore defined foreign key.
+		// Ignore defined foreign key.
 		ignoreSet.Insert(fk.Field.Name)
 	}
 	for _, f := range n.Fields {
 		if f == nil || !f.Sensitive() {
 			continue
 		}
-		// ignore sensitive field.
+		// Ignore sensitive field.
 		ignoreSet.Insert(f.Name)
 	}
 
-	// append.
+	// Append.
 	var fs []*gen.Field
 	if n.HasOneFieldID() {
 		n.ID.StructTag = `json:"id,omitempty"`
@@ -177,7 +177,7 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 		fs = append(fs, f)
 	}
 
-	// distinct.
+	// Distinct.
 	var nfs []*gen.Field
 	var fdSet = sets.New[string]()
 	for i := range fs {
@@ -196,12 +196,12 @@ func getOutputEdges(n *gen.Type) []*gen.Edge {
 		if fk == nil || fk.UserDefined {
 			continue
 		}
-		// ignore undefined foreign key.
+		// Ignore undefined foreign key.
 		ignoreSet.Insert(fk.Edge.Name)
 		ignoreSet.Insert(fk.Edge.Ref.Name)
 	}
 
-	// append.
+	// Append.
 	var es []*gen.Edge
 	for _, e := range n.Edges {
 		if e == nil || ignoreSet.Has(e.Name) {

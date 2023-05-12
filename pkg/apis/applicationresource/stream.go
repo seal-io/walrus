@@ -43,7 +43,7 @@ func (h termStream) Read(p []byte) (n int, err error) {
 		n, err = h.proxy.Read(p)
 		if err != nil {
 			if !isUnexpectedError(err) {
-				// send exit to upstream if proxy exit unexpectedly.
+				// Send exit to upstream if proxy exit unexpectedly.
 				h.once.Do(func() {
 					n = copy(p, "exit 0\n")
 					err = nil
@@ -51,7 +51,7 @@ func (h termStream) Read(p []byte) (n int, err error) {
 			}
 			return
 		}
-		// resize command is something like `#{"width":100,"height":100}#`
+		// Resize command is something like `#{"width":100,"height":100}#`
 		// without ending \n(line feed) and \r(carriage return) chars.
 		if n >= 24 && p[0] == '#' && p[1] == '{' && p[n-2] == '}' && p[n-1] == '#' {
 			var ts termSize
@@ -75,5 +75,5 @@ func (h termStream) Next() (uint16, uint16, bool) {
 
 func isUnexpectedError(err error) bool {
 	var errMsg = err.Error()
-	return strings.Contains(errMsg, "use of closed network connection") // terminated by destination.
+	return strings.Contains(errMsg, "use of closed network connection") // Terminated by destination.
 }

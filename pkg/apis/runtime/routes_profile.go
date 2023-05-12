@@ -271,7 +271,7 @@ func getProfileProperty(vs sets.Set[string], category string, name string, attrs
 		TypeDescriptor: t.String(),
 	}
 
-	// well known basic type
+	// Well known basic type.
 	if _, exist := basicSchemas[p.TypeDescriptor]; exist {
 		return p
 	}

@@ -17,7 +17,7 @@ func Label(ctx context.Context, op operator.Operator, candidates []*model.Applic
 	}
 
 	for i := range candidates {
-		// get label values.
+		// Get label values.
 		var (
 			appName     string
 			projectName string
@@ -26,15 +26,15 @@ func Label(ctx context.Context, op operator.Operator, candidates []*model.Applic
 		if ins := candidates[i].Edges.Instance; ins == nil {
 			continue
 		} else {
-			// application name
+			// Application name.
 			if app := ins.Edges.Application; app != nil {
 				appName = app.Name
-				// project name
+				// Project name.
 				if proj := app.Edges.Project; proj != nil {
 					projectName = proj.Name
 				}
 			}
-			// environment name
+			// Environment name.
 			if env := ins.Edges.Environment; env != nil {
 				envName = env.Name
 			}

@@ -15,9 +15,9 @@ func (in SubjectRoles) Len() int {
 var builtinNames = []string{"admin", "edit", "view"}
 
 func (in SubjectRoles) Less(i, j int) bool {
-	// 1. the less, the priority is higher.
-	// 2. the roles of "system" domain have higher priority.
-	// 3. with the same domain, order by name as the below rule:
+	// 1. The less, the priority is higher.
+	// 2. The roles of "system" domain have higher priority.
+	// 3. With the same domain, order by name as the below rule:
 	//    "admin" / "edit" / "view" / <others>...
 	switch {
 	case in[i].Domain == "system":

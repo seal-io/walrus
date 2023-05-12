@@ -64,7 +64,7 @@ func (ClusterCost) Fields() []ent.Field {
 
 func (ClusterCost) Edges() []ent.Edge {
 	return []ent.Edge{
-		// connector 1-* cluster costs.
+		// Connector 1-* cluster costs.
 		edge.From("connector", Connector.Type).
 			Comment("Connector current cost linked.").
 			Ref("clusterCosts").

@@ -471,11 +471,11 @@ func AnySchema(n string, d any) Schema {
 func GuessSchema(n string, t string, d any) (Schema, error) {
 	if t == "" {
 		if d == nil {
-			// return any schema.
+			// Return any schema.
 			return AnySchema(n, d), nil
 		}
 
-		// guess schema from data.
+		// Guess schema from data.
 		var ty, err = gocty.ImpliedType(d)
 		if err != nil {
 			return Schema{}, err
@@ -487,7 +487,7 @@ func GuessSchema(n string, t string, d any) (Schema, error) {
 		}, nil
 	}
 
-	// parse type from type.
+	// Parse type from type.
 	var expr, diags = hclsyntax.ParseExpression(strs.ToBytes(&t), "", hcl.Pos{Line: 1, Column: 1})
 	if diags.HasErrors() {
 		return Schema{}, fmt.Errorf("error parsing expression: %w", diags)

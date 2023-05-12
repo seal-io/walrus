@@ -22,19 +22,19 @@ type RevisionStatusStats struct {
 }
 
 type BasicInformation struct {
-	// application number
+	// Application number.
 	Application int `json:"application"`
 	//  module number
 	Module int `json:"module"`
-	// instance number
+	// Instance number.
 	Instance int `json:"instance"`
-	// application resource number
+	// Application resource number.
 	Resource int `json:"resource"`
-	// application revision number
+	// Application revision number.
 	Revision int `json:"revision"`
-	// environment number
+	// Environment number.
 	Environment int `json:"environment"`
-	// connector number
+	// Connector number.
 	Connector int `json:"connector"`
 }
 

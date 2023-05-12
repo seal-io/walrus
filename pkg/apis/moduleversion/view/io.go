@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type GetRequest struct {
 	*model.ModuleVersionQueryInput `uri:",inline"`
@@ -24,7 +24,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ModuleVersionOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ModuleVersion, moduleversion.OrderOption] `query:",inline"`
@@ -47,4 +47,4 @@ func (r *CollectionGetRequest) Validate() error {
 
 type CollectionGetResponse = []*model.ModuleVersionOutput
 
-// Extensional APIs
+// Extensional APIs.

@@ -30,13 +30,13 @@ func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 		if value == "" {
 			break
 		}
-		// request Cookie header
+		// Request Cookie header.
 		dst = &req.HttpCookie{}
 		dst.SetKey(InternalSessionCookieKey)
 		dst.SetValue(value)
 		dst.SetPath("/")
 		dst.SetDomain("")
-		dst.SetSecure(false) // internal access
+		dst.SetSecure(false) // Internal access.
 		dst.SetHTTPOnly(true)
 		break
 	}
@@ -45,16 +45,16 @@ func GetSession(sealSessions []*http.Cookie) *req.HttpCookie {
 
 // GetToken extracts token(casdoor token) from header.
 func GetToken(sealHeader http.Header) string {
-	// get basic auth
+	// Get basic auth.
 	authorization := sealHeader.Get("Authorization")
 	if strings.Contains(authorization, "Basic") {
 		basicAuth := strings.TrimSpace(strings.TrimPrefix(authorization, "Basic "))
-		// decode basic auth
+		// Decode basic auth.
 		data, err := strs.DecodeBase64(basicAuth)
 		if err != nil {
 			return ""
 		}
-		// get token
+		// Get token.
 		splits := strings.SplitN(string(data), ":", 2)
 		if len(splits) != 2 {
 			return ""
@@ -104,7 +104,7 @@ func getExternalSession(casdoorSessions []*req.HttpCookie) *http.Cookie {
 		if value == "" {
 			break
 		}
-		// response Set-Cookie header
+		// Response Set-Cookie header.
 		dst = &http.Cookie{}
 		dst.Name = ExternalSessionCookieKey
 		dst.Value = value

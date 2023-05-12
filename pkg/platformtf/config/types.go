@@ -53,7 +53,7 @@ type (
 		// ConnectorSeparator is the separator of the terraform provider alias name and id.
 		ConnectorSeparator string
 		// RequiredProviderNames is the required providers of the terraform config.
-		// e.g. ["kubernetes", "helm"]
+		// E.g. ["kubernetes", "helm"].
 		RequiredProviderNames []string
 		Connectors            model.Connectors
 	}
@@ -78,7 +78,7 @@ type (
 
 	// OutputOptions is the options to create outputs blocks.
 	OutputOptions []Output
-	// Output indicate the output name and module
+	// Output indicate the output name and module.
 	Output struct {
 		ModuleName string
 		Name       string

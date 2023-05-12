@@ -45,12 +45,12 @@ func (Module) Fields() []ent.Field {
 
 func (Module) Edges() []ent.Edge {
 	return []ent.Edge{
-		// applications *-* modules.
+		// Applications *-* modules.
 		edge.From("applications", Application.Type).
 			Ref("modules").
 			Comment("Applications to which the module configures.").
 			Through("applicationModuleRelationships", ApplicationModuleRelationship.Type),
-		// module 1-* module versions.
+		// Module 1-* module versions.
 		edge.To("versions", ModuleVersion.Type).
 			Comment("versions of the module.").
 			Annotations(entsql.Annotation{

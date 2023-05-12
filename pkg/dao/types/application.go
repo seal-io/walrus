@@ -12,6 +12,6 @@ type ApplicationModule struct {
 	Version string `json:"version"`
 	// Name of the module customized to the application.
 	Name string `json:"name"`
-	// attributes to configure the module.
+	// Attributes to configure the module.
 	Attributes property.Values `json:"attributes,omitempty"`
 }

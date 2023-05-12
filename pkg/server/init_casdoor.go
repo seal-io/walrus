@@ -12,7 +12,7 @@ import (
 )
 
 func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
-	// short circuit for none first-login.
+	// Short circuit for none first-login.
 	var cred casdoor.ApplicationCredential
 	if err := settings.CasdoorCred.ValueJSONUnmarshal(ctx, opts.ModelClient, &cred); err != nil {
 		return err
@@ -21,15 +21,15 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 		return nil
 	}
 
-	// login the builtin admin with initialized password.
+	// Login the builtin admin with initialized password.
 	adminSessions, err := casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 		casdoor.BuiltinAdmin, casdoor.BuiltinAdminInitPwd)
 	if err != nil {
-		// nothing to do if failed login the builtin admin at bootstrap phase.
+		// Nothing to do if failed login the builtin admin at bootstrap phase.
 		return fmt.Errorf("cannot login the builtin admin with init password: %w", err)
 	}
 
-	// get the credential of the builtin application,
+	// Get the credential of the builtin application,
 	// so that boot the system token creation at below.
 	appCred, err := casdoor.GetApplicationCredential(ctx, adminSessions,
 		casdoor.BuiltinApp)
@@ -38,7 +38,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	}
 	cred.ClientID, cred.ClientSecret = appCred.ClientID, appCred.ClientSecret
 
-	// create a "never expires" user demand token as system token,
+	// Create a "never expires" user demand token as system token,
 	// the system token is used for internal interaction and password reset.
 	token, err := casdoor.CreateToken(ctx, cred.ClientID, cred.ClientSecret,
 		casdoor.BuiltinAdmin, nil)
@@ -54,7 +54,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 		}
 	}()
 
-	// set bootstrap password.
+	// Set bootstrap password.
 	var adminPassword = r.BootstrapPassword
 	if adminPassword == "" {
 		adminPassword = strs.Hex(16)
@@ -73,7 +73,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 		}
 	}()
 
-	// record the application credential.
+	// Record the application credential.
 	err = opts.ModelClient.WithTx(ctx, func(tx *model.Tx) error {
 		if _, err = settings.CasdoorCred.Set(ctx, tx, cred); err != nil {
 			return err

@@ -100,20 +100,20 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return nil, errors.New("not found 'service' spec")
 	}
 
-	// if .spec.type == ExternalName, then ready.
+	// If .spec.type == ExternalName, then ready.
 	var specType, _, _ = unstructured.NestedString(spec, "type")
 	if core.ServiceType(specType) == core.ServiceTypeExternalName {
 		return &GeneralStatusReady, nil
 	}
 
-	// if .spec.clusterIP == "", then unready.
+	// If .spec.clusterIP == "", then unready.
 	var specClusterIP, _, _ = unstructured.NestedString(spec, "clusterIP")
 	if specClusterIP == "" {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// if .spec.type == LoadBalancer && len(.spec.externalIPs) > 0, then ready.
-	// if .spec.type == LoadBalancer && len(.status.loadBalancer.ingress) > 0, then ready.
+	// If .spec.type == LoadBalancer && len(.spec.externalIPs) > 0, then ready.
+	// If .spec.type == LoadBalancer && len(.status.loadBalancer.ingress) > 0, then ready.
 	if core.ServiceType(specType) == core.ServiceTypeLoadBalancer {
 		var specExternalIPs, _, _ = unstructured.NestedStringSlice(spec, "externalIPs")
 		if len(specExternalIPs) > 0 {
@@ -126,7 +126,7 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// otherwise, ready.
+	// Otherwise, ready.
 	return &GeneralStatusReady, nil
 }
 
@@ -144,7 +144,7 @@ func getPod(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	st.SetConditions(toConditions(statusConds))
 	st.SetSummary(podStatusPaths.Walk(st))
 
-	// dig clearer error message from status.
+	// Dig clearer error message from status.
 	if st.Error {
 		st.SummaryStatusMessage = digPodErrorReason(status)
 	}
@@ -152,7 +152,7 @@ func getPod(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	return st, nil
 }
 
-// getPersistentVolume returns the status of kubernetes persistent volume(claim) resource,
+// getPersistentVolume returns the status of kubernetes persistent volume(claim) resource,.
 func getPersistentVolume(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
@@ -181,10 +181,10 @@ func getPersistentVolume(o *unstructured.Unstructured) (*typestatus.Status, erro
 	}, nil
 }
 
-// getReplicas returns the status of kubernetes replica set resource
+// getReplicas returns the status of kubernetes replica set resource.
 func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
 	st := &typestatus.Status{}
-	// use conditions to generate status while it existed
+	// Use conditions to generate status while it existed.
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if exist {
 		st.SetConditions(toConditions(statusConditions))
@@ -192,7 +192,7 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 		return st, nil
 	}
 
-	// if getPod(all pod) == Running|Succeeded, then ready.
+	// If getPod(all pod) == Running|Succeeded, then ready.
 	var ns, s, err = polymorphic.SelectorsForObject(o)
 	if err != nil {
 		return nil, fmt.Errorf("error gettting selector of kubernetes %s %s/%s: %w",
@@ -217,15 +217,15 @@ func getReplicas(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unst
 		default:
 			return ps, nil
 		case string(core.PodReady):
-			// expected pod phase.
+			// Expected pod phase.
 		}
 	}
 
-	// otherwise, unready.
+	// Otherwise, unready.
 	return &GeneralStatusReady, nil
 }
 
-// getAPIService returns the status of kubernetes api service resource,
+// getAPIService returns the status of kubernetes api service resource,.
 func getAPIService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	statusConditions, exist, _ := unstructured.NestedSlice(o.Object, "status", "conditions")
 	if !exist {
@@ -252,14 +252,14 @@ func getDeployment(o *unstructured.Unstructured) (*typestatus.Status, error) {
 }
 
 // getDaemonSet returns the status of kubernetes daemon set resource,
-// daemonSet status condition is empty, judge the summary based on other fields
+// daemonSet status condition is empty, judge the summary based on other fields.
 func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'daemonSet' status")
 	}
 
-	// if .status.observedGeneration < .metadata.generation, then unready.
+	// If .status.observedGeneration < .metadata.generation, then unready.
 	var statusObservedGeneration, _, _ = unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
@@ -270,20 +270,20 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return nil, errors.New("not found 'daemonSet' spec")
 	}
 
-	// if .spec.strategy.type != RollingUpdate, then ready.
+	// If .spec.strategy.type != RollingUpdate, then ready.
 	var specStrategyType, _, _ = unstructured.NestedString(spec, "strategy", "type")
 	if apps.DaemonSetUpdateStrategyType(specStrategyType) != apps.RollingUpdateDaemonSetStrategyType {
 		return &GeneralStatusReady, nil
 	}
 
-	// if .status.desiredNumberScheduled != .status.updatedNumberScheduled, then unready.
+	// If .status.desiredNumberScheduled != .status.updatedNumberScheduled, then unready.
 	var statusDesiredNumberScheduled, _, _ = unstructured.NestedInt64(status, "desiredNumberScheduled")
 	var statusUpdatedNumberScheduled, _, _ = unstructured.NestedInt64(status, "updatedNumberScheduled")
 	if statusDesiredNumberScheduled != statusUpdatedNumberScheduled {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// expected replicas = .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
+	// Expected replicas = .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
 	// if .status.numberReady < expected replicas, then unready.
 	var expectedReplicas = statusDesiredNumberScheduled
 	if statusDesiredNumberScheduled > 0 {
@@ -304,19 +304,19 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// otherwise, ready.
+	// Otherwise, ready.
 	return &GeneralStatusReady, nil
 }
 
 // getStatefulSet returns the status of kubernetes stateful set resource,
-// daemonSet status condition is empty, judge the summary based on other fields
+// daemonSet status condition is empty, judge the summary based on other fields.
 func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	status, exist, _ := unstructured.NestedMap(o.Object, "status")
 	if !exist {
 		return nil, errors.New("not found 'statefulSet' status")
 	}
 
-	// if .status.observedGeneration < .metadata.generation, then unready.
+	// If .status.observedGeneration < .metadata.generation, then unready.
 	var statusObservedGeneration, _, _ = unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
@@ -327,14 +327,14 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return nil, errors.New("not found 'statefulSet' spec")
 	}
 
-	// if .status.strategy.type != RollingUpdate, then ready.
+	// If .status.strategy.type != RollingUpdate, then ready.
 	var specStrategyType, _, _ = unstructured.NestedString(spec, "strategy", "type")
 	if apps.StatefulSetUpdateStrategyType(specStrategyType) != apps.RollingUpdateStatefulSetStrategyType {
 		return &GeneralStatusReady, nil
 	}
 
-	// expected replicas = .spec.replicas - .spec.strategy.rollingUpdate.partition.
-	// if .status.updateReplicas < expected replicas, then unready.
+	// Expected replicas = .spec.replicas - .spec.strategy.rollingUpdate.partition.
+	// If .status.updateReplicas < expected replicas, then unready.
 	var specReplicas, _, _ = unstructured.NestedInt64(spec, "replicas")
 	var specPartition, _, _ = unstructured.NestedInt64(spec, "strategy", "rollingUpdate", "partition")
 	var expectedReplicas = specReplicas - specPartition
@@ -343,20 +343,20 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// if .status.readyReplicas != .spec.replicas, then unready.
+	// If .status.readyReplicas != .spec.replicas, then unready.
 	var statusReadyReplicas, _, _ = unstructured.NestedInt64(status, "readyReplicas")
 	if statusReadyReplicas != specReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// if .status.currentRevision != .status.updateRevision, then unready.
+	// If .status.currentRevision != .status.updateRevision, then unready.
 	var statusCurrentRevision, _, _ = unstructured.NestedString(status, "currentRevision")
 	var statusUpdateRevision, _, _ = unstructured.NestedString(status, "updateRevision")
 	if statusCurrentRevision != statusUpdateRevision {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// otherwise, ready.
+	// Otherwise, ready.
 	return &GeneralStatusReady, nil
 }
 
@@ -402,13 +402,13 @@ func getCertificateSigningRequest(o *unstructured.Unstructured) (*typestatus.Sta
 // getIngress returns the status of kubernetes ingress resource,
 // ingress status isn't contain conditions, judge the summary based on other fields.
 func getIngress(o *unstructured.Unstructured) (*typestatus.Status, error) {
-	// if len(.status.loadBalancer.ingress) != 0, then ready.
+	// If len(.status.loadBalancer.ingress) != 0, then ready.
 	var statusLBIngresses, _, _ = unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 	if len(statusLBIngresses) > 0 {
 		return &GeneralStatusReady, nil
 	}
 
-	// otherwise, unready.
+	// Otherwise, unready.
 	return &GeneralStatusReadyTransitioning, nil
 }
 
@@ -440,7 +440,7 @@ func getPodDisruptionBudget(o *unstructured.Unstructured) (*typestatus.Status, e
 
 // getWebhookConfiguration returns the status of kubernetes webhook configuration resource.
 func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicClient, o *unstructured.Unstructured) (*typestatus.Status, error) {
-	// if getService(.spec.webhooks[.clientConfig.service?]) == Unready, then unready.
+	// If getService(.spec.webhooks[.clientConfig.service?]) == Unready, then unready.
 	var specWebhooks, _, _ = unstructured.NestedSlice(o.Object, "spec", "webhooks")
 	for i := range specWebhooks {
 		var webhook, ok = specWebhooks[i].(map[string]interface{})
@@ -474,7 +474,7 @@ func getWebhookConfiguration(ctx context.Context, dynamicCli *dynamic.DynamicCli
 		}
 	}
 
-	// otherwise, ready.
+	// Otherwise, ready.
 	return &GeneralStatusReady, nil
 }
 

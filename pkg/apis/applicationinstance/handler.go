@@ -61,10 +61,10 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
-	var entity = req.Model()
+	entity := req.Model()
 
 	return h.createInstance(ctx, createInstanceOptions{
 		ApplicationInstance: entity,
@@ -72,11 +72,11 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
-	var logger = log.WithName("api").WithName("application-instance")
-	var entity = req.Model()
+	logger := log.WithName("api").WithName("application-instance")
+	entity := req.Model()
 
-	// get deployer.
-	var createOpts = deployer.CreateOptions{
+	// Get deployer.
+	createOpts := deployer.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
@@ -87,7 +87,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	if req.Force != nil && !*req.Force {
-		// get application instance with application id.
+		// Get application instance with application id.
 		entity, err = h.modelClient.ApplicationInstances().Query().
 			Select(applicationinstance.FieldID, applicationinstance.FieldApplicationID).
 			Where(applicationinstance.IDEQ(entity.ID)).
@@ -96,7 +96,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 			return err
 		}
 
-		// do not clean deployed native resources.
+		// Do not clean deployed native resources.
 		err = h.modelClient.ApplicationInstances().DeleteOne(entity).
 			Exec(ctx)
 		if err != nil {
@@ -106,7 +106,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		return publishApplicationUpdate(ctx, entity)
 	}
 
-	// mark status to deleting.
+	// Mark status to deleting.
 	status.ApplicationInstanceStatusDeleted.Reset(entity, "Deleting")
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
 	if err != nil {
@@ -121,9 +121,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		if err == nil {
 			return
 		}
-		// update a failure status.
+		// Update a failure status.
 		status.ApplicationInstanceStatusDeleted.False(entity, err.Error())
-		var uerr = h.updateInstanceStatus(ctx, entity)
+		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
 				entity.ID, uerr)
@@ -134,8 +134,8 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		return err
 	}
 
-	// destroy instance.
-	var destroyOpts = deployer.DestroyOptions{
+	// Destroy instance.
+	destroyOpts := deployer.DestroyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
 	return dp.Destroy(ctx, entity, destroyOpts)
@@ -146,7 +146,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 }
 
 func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.ApplicationInstanceOutput, error) {
-	var entity, err = h.modelClient.ApplicationInstances().Query().
+	entity, err := h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(id)).
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
 			eq.Select(environment.FieldName)
@@ -160,7 +160,7 @@ func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.Appli
 }
 
 func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
+	t, err := topic.Subscribe(datamessage.ApplicationInstance)
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	}
 }
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -218,23 +218,24 @@ var (
 		applicationinstance.FieldUpdateTime)
 	sortFields = []string{
 		applicationinstance.FieldName,
-		applicationinstance.FieldCreateTime}
+		applicationinstance.FieldCreateTime,
+	}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.ApplicationInstances().Query().
+	query := h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ApplicationID(req.ApplicationID))
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -245,9 +246,9 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
-		// must extract environment.
+		// Must extract environment.
 		Select(applicationinstance.FieldEnvironmentID).
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
 			eq.Select(environment.FieldName)
@@ -261,13 +262,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationInstance)
+	t, err := topic.Subscribe(datamessage.ApplicationInstance)
 	if err != nil {
 		return err
 	}
 	defer func() { t.Unsubscribe() }()
 
-	var query = h.modelClient.ApplicationInstances().Query()
+	query := h.modelClient.ApplicationInstances().Query()
 	if req.ApplicationID != "" {
 		query.Where(applicationinstance.ApplicationID(req.ApplicationID))
 	}
@@ -290,16 +291,15 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			entities, err := query.Clone().
-				// allow returning without sorting keys.
+				// Allow returning without sorting keys.
 				Unique(false).
-				// must extract environment.
+				// Must extract environment.
 				Select(applicationinstance.FieldEnvironmentID).
 				Where(applicationinstance.IDIn(dm.Data...)).
 				WithEnvironment(func(eq *model.EnvironmentQuery) {
 					eq.Select(environment.FieldName)
 				}).
 				All(ctx)
-
 			if err != nil {
 				return err
 			}
@@ -323,14 +323,14 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
-	var logger = log.WithName("api").WithName("application-instance")
-	var entity = req.Model()
+	logger := log.WithName("api").WithName("application-instance")
+	entity := req.Model()
 
-	// get deployer.
-	var createOpts = deployer.CreateOptions{
+	// Get deployer.
+	createOpts := deployer.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
@@ -340,7 +340,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		return err
 	}
 
-	// update instance, mark status from deploying.
+	// Update instance, mark status from deploying.
 	entity.Variables = req.Variables
 	status.ApplicationInstanceStatusDeployed.Reset(entity, "Upgrading")
 	update, err := dao.ApplicationInstanceUpdate(h.modelClient, entity)
@@ -356,9 +356,9 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		if err == nil {
 			return
 		}
-		// update a failure status.
+		// Update a failure status.
 		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
-		var uerr = h.updateInstanceStatus(ctx, entity)
+		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
 				entity.ID, uerr)
@@ -369,8 +369,8 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 		return err
 	}
 
-	// apply instance.
-	var applyOpts = deployer.ApplyOptions{
+	// Apply instance.
+	applyOpts := deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
 	return dp.Apply(ctx, entity, applyOpts)
@@ -381,7 +381,7 @@ func (h Handler) RouteAccessEndpoints(ctx *gin.Context, req view.AccessEndpointR
 }
 
 func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view.AccessEndpointResponse, error) {
-	// endpoints from output
+	// Endpoints from output.
 	endpoints, err := h.endpointsFromOutput(ctx, instanceID)
 	if err != nil {
 		return nil, err
@@ -390,7 +390,7 @@ func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view
 		return endpoints, nil
 	}
 
-	// endpoints from resources
+	// Endpoints from resources.
 	return h.endpointsFromResources(ctx, instanceID)
 }
 
@@ -429,14 +429,14 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 			})
 		case v.Type.IsListType() || v.Type.IsSetType() || v.Type.IsTupleType():
 			if v.Type.IsTupleType() {
-				// for tuple: each element has its own type
+				// For tuple: each element has its own type.
 				for _, tp := range v.Type.TupleElementTypes() {
 					if tp != cty.String {
 						return nil, invalidTypeErr
 					}
 				}
 			} else if v.Type.ElementType() != cty.String {
-				// for list and set: all elements are the same type
+				// For list and set: all elements are the same type.
 				return nil, invalidTypeErr
 			}
 
@@ -560,10 +560,10 @@ func (h Handler) CreateClone(ctx *gin.Context, req view.CreateCloneRequest) (*mo
 }
 
 func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions) (*model.ApplicationInstanceOutput, error) {
-	var logger = log.WithName("api").WithName("application-instance")
+	logger := log.WithName("api").WithName("application-instance")
 
-	// get deployer.
-	var createOpts = deployer.CreateOptions{
+	// Get deployer.
+	createOpts := deployer.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
@@ -573,7 +573,7 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 		return nil, err
 	}
 
-	// create instance, mark status to deploying.
+	// Create instance, mark status to deploying.
 	creates, err := dao.ApplicationInstanceCreates(h.modelClient, opts.ApplicationInstance)
 	if err != nil {
 		return nil, err
@@ -587,16 +587,16 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 		if err == nil {
 			return
 		}
-		// update a failure status.
+		// Update a failure status.
 		status.ApplicationInstanceStatusDeployed.False(entity, err.Error())
-		var uerr = h.updateInstanceStatus(ctx, entity)
+		uerr := h.updateInstanceStatus(ctx, entity)
 		if uerr != nil {
 			logger.Errorf("error updating status of instance %s: %v",
 				entity.ID, uerr)
 		}
 	}()
 
-	// clonedInstanceRevision is the latest application revision
+	// ClonedInstanceRevision is the latest application revision
 	// of the cloned application instance.
 	var clonedInstanceRevision *model.ApplicationRevision
 	if opts.Clone {
@@ -612,8 +612,8 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 		}
 	}
 
-	// apply instance.
-	var applyOpts = deployer.ApplyOptions{
+	// Apply instance.
+	applyOpts := deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 		CloneFrom:     clonedInstanceRevision,
 	}
@@ -622,8 +622,8 @@ func (h Handler) createInstance(ctx context.Context, opts createInstanceOptions)
 		// NB(thxCode): a better approach is to use transaction,
 		// however, building the application deployment process is a time-consuming task,
 		// to prevent long-time transaction, we use a deletion to achieve this.
-		// usually, the probability of this delete operation failing is very low.
-		var derr = h.modelClient.ApplicationInstances().DeleteOne(entity).
+		// Usually, the probability of this delete operation failing is very low.
+		derr := h.modelClient.ApplicationInstances().DeleteOne(entity).
 			Exec(ctx)
 		if derr != nil {
 			logger.Errorf("error deleting: %v", derr)
@@ -643,7 +643,7 @@ func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInst
 }
 
 func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	t, err := topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
 	}
@@ -680,13 +680,13 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 
 			switch dm.Type {
 			case datamessage.EventCreate:
-				// while create new application revision, the previous endpoints from outputs and resources need to be deleted.
+				// While create new application revision, the previous endpoints from outputs and resources need to be deleted.
 				streamData = view.StreamAccessEndpointResponse{
 					Type:       datamessage.EventDelete,
 					Collection: eps,
 				}
 			case datamessage.EventUpdate:
-				// while the application revision status is succeeded, the endpoints is updated to the current revision.
+				// While the application revision status is succeeded, the endpoints is updated to the current revision.
 				if ar.Status != status.ApplicationRevisionStatusSucceeded {
 					continue
 				}
@@ -711,7 +711,7 @@ func (h Handler) getRevisionByID(ctx context.Context, id types.ID) (*model.Appli
 }
 
 func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
-	var t, err = topic.Subscribe(datamessage.ApplicationRevision)
+	t, err := topic.Subscribe(datamessage.ApplicationRevision)
 	if err != nil {
 		return err
 	}
@@ -748,13 +748,13 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 
 			switch dm.Type {
 			case datamessage.EventCreate:
-				// while create new application revision, the outputs of new revision is the previous outputs.
+				// While create new application revision, the outputs of new revision is the previous outputs.
 				streamData = view.StreamOutputResponse{
 					Type:       datamessage.EventDelete,
 					Collection: op,
 				}
 			case datamessage.EventUpdate:
-				// while the application revision status is succeeded, the outputs is updated to the current revision.
+				// While the application revision status is succeeded, the outputs is updated to the current revision.
 				if ar.Status != status.ApplicationRevisionStatusSucceeded {
 					continue
 				}

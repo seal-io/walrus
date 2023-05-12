@@ -28,50 +28,50 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 		Tx() (*model.Tx, error)
 	}
 
-	var logger = log.WithName("dispatch").WithName("model")
+	logger := log.WithName("dispatch").WithName("model")
 
 	return model.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-		var v, err = n.Mutate(ctx, m)
+		v, err := n.Mutate(ctx, m)
 		if err != nil {
 			return nil, err
 		}
 
 		if !datamessage.IsAllowed(m.Type()) {
-			// return directly if not allowed.
+			// Return directly if not allowed.
 			return v, nil
 		}
 
-		// get ids notifier.
+		// Get ids notifier.
 		notify, err := getIdsNotifier(ctx, m)
 		if err != nil {
 			// NB(thxCode): in order to keep consistency of operating,
 			// e.g. delete error is still a write error, not a read error.
-			// we only warn out the error to prevent change watching breaking the default behavior.
+			// We only warn out the error to prevent change watching breaking the default behavior.
 			logger.Errorf("error getting ids notifier: %v", err)
 			return v, nil // nolint: nilerr
 		}
 		if notify == nil {
-			// return directly if not found.
+			// Return directly if not found.
 			return v, nil
 		}
 
-		// wrap the notifier to warn out if error raising.
-		var notifyOnly = func() error {
+		// Wrap the notifier to warn out if error raising.
+		notifyOnly := func() error {
 			// NB(thxCode): in order to keep final state of operating,
 			// e.g. a deletion is main process, after main process is completed without error,
 			// any other branch processes cannot change the main process.
-			// we only warn out the error to prevent change watching breaking the final state.
+			// We only warn out the error to prevent change watching breaking the final state.
 			if err = notify(); err != nil {
 				logger.Errorf("error notifying id list: %v", err)
 			}
 			return nil
 		}
 
-		// notify after committed if processing in transactional session,
+		// Notify after committed if processing in transactional session,
 		// otherwise, execute immediately.
-		var t, ok = m.(txer)
+		t, ok := m.(txer)
 		if ok {
-			var tx, _ = t.Tx()
+			tx, _ := t.Tx()
 			if tx != nil {
 				tx.OnCommit(func(n model.Committer) model.Committer {
 					return model.CommitFunc(func(ctx context.Context, tx *model.Tx) error {
@@ -91,9 +91,9 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 // getIdsNotifier is a facade function to try the known types one-by-one via getIds function until matching,
 // raises an `unknown id type` error after iterated all types.
 func getIdsNotifier(ctx context.Context, m model.Mutation) (notify func() error, err error) {
-	var typ, op = m.Type(), m.Op()
+	typ, op := m.Type(), m.Op()
 
-	// models used oid.ID as ID type.
+	// Models used oid.ID as ID type.
 	oids, ok, err := getIds[oid.ID](ctx, m)
 	if err != nil {
 		return
@@ -105,7 +105,7 @@ func getIdsNotifier(ctx context.Context, m model.Mutation) (notify func() error,
 		return
 	}
 
-	// models used string as ID type.
+	// Models used string as ID type.
 	sids, ok, err := getIds[string](ctx, m)
 	if err != nil {
 		return
@@ -133,13 +133,13 @@ func getIds[T any](ctx context.Context, m model.Mutation) (r []T, ok bool, err e
 	}
 
 	if !m.Op().Is(ent.OpCreate) {
-		// delete/update ops.
+		// Delete/update ops.
 		r, err = t.IDs(ctx)
 		return
 	}
 
 	if v, exist := t.ID(); exist {
-		// create ops.
+		// Create ops.
 		r = []T{v}
 	}
 	return

@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/utils/json"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type GetRequest struct {
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
@@ -57,7 +57,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.ApplicationRevisionQueryInput
 
@@ -105,7 +105,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	for _, revision := range revisions {
-		// prevent deleting the latest revision.
+		// Prevent deleting the latest revision.
 		if revision.ID == latestRevision.ID {
 			return errors.New("invalid ids: can not delete latest revision")
 		}
@@ -167,7 +167,7 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 	return nil
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 type GetTerraformStatesRequest = GetRequest
 
@@ -207,7 +207,7 @@ func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) e
 		return errors.New("invalid id: blank")
 	}
 
-	// check latest revision if running.
+	// Check latest revision if running.
 	var modelClient = input.(model.ClientSet)
 	entity, err := modelClient.ApplicationRevisions().Get(ctx, r.ID)
 	if err != nil {

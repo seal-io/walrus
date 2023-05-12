@@ -28,7 +28,7 @@ var onlyOneSignalHandler = make(chan struct{})
 // which is canceled on one of these signals. If a second signal is caught, the program
 // is terminated with exit code 1.
 func TerminateIfCatch() context.Context {
-	close(onlyOneSignalHandler) // panics when called twice
+	close(onlyOneSignalHandler) // Panics when called twice.
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -38,7 +38,7 @@ func TerminateIfCatch() context.Context {
 		<-c
 		cancel()
 		<-c
-		os.Exit(1) // second signal. Exit directly.
+		os.Exit(1) // Second signal. Exit directly.
 	}()
 
 	return ctx

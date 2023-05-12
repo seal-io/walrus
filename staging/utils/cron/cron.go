@@ -14,7 +14,7 @@ import (
 
 // Task defines the interface to hold the job executing main logic.
 type Task interface {
-	// Name return name for task
+	// Name return name for task.
 	Name() string
 	// Process executes the task main logic.
 	Process(ctx context.Context, args ...interface{}) error

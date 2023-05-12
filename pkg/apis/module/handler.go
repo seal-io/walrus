@@ -32,12 +32,12 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var creates, err = dao.ModuleCreates(h.modelClient, entity)
+	creates, err := dao.ModuleCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 
 	var (
 		entity = req.Model()
-		// sync schema on source/version updates
+		// Sync schema on source/version updates.
 		shouldSyncSchema = prev.Source != entity.Source
 	)
 
@@ -90,14 +90,14 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.Modules().Get(ctx, req.ID)
+	entity, err := h.modelClient.Modules().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
 	return model.ExposeModule(entity), nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -120,22 +120,23 @@ var (
 	sortFields = []string{
 		module.FieldID,
 		module.FieldStatus,
-		module.FieldCreateTime}
+		module.FieldCreateTime,
+	}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Modules().Query()
+	query := h.modelClient.Modules().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -146,7 +147,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
 		All(ctx)
 	if err != nil {
@@ -157,13 +158,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.Module)
+	t, err := topic.Subscribe(datamessage.Module)
 	if err != nil {
 		return err
 	}
 	defer func() { t.Unsubscribe() }()
 
-	var query = h.modelClient.Modules().Query()
+	query := h.modelClient.Modules().Query()
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
@@ -183,11 +184,10 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
 			entities, err := query.Clone().
-				// allow returning without sorting keys.
+				// Allow returning without sorting keys.
 				Unique(false).
 				Where(module.IDIn(dm.Data...)).
 				All(ctx)
-
 			if err != nil {
 				return err
 			}
@@ -211,7 +211,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
 	m, err := h.modelClient.Modules().Get(ctx, req.ID)

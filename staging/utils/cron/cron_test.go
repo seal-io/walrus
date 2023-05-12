@@ -49,13 +49,13 @@ func TestScheduler_Schedule(t *testing.T) {
 	actual = testTask{}
 	err = Schedule("test", ImmediateExpr("* * * ? * *"), &actual)
 	assert.Nil(t, err, "error none variables scheduling")
-	time.Sleep(3 * time.Second) // give an enough range to execute scheduling
+	time.Sleep(3 * time.Second) // Give an enough range to execute scheduling.
 	assert.Equal(t, []interface{}{"testing"}, actual.Outputs(), "invalid output of none variables scheduling")
 
 	actual = testTask{}
 	err = Schedule("test", AwaitedExpr("* * * ? * *"), &actual, "test", "with", "variables")
 	assert.Nil(t, err, "error variables scheduling")
-	time.Sleep(5 * time.Second) // give an enough range to execute scheduling
+	time.Sleep(5 * time.Second) // Give an enough range to execute scheduling.
 	assert.Equal(t, []interface{}{"test", "with", "variables"}, actual.Outputs(), "invalid output of variables scheduling")
 
 	err = Stop()

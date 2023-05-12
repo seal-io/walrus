@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.SecretCreateInput `json:",inline"`
@@ -49,7 +49,7 @@ func (r *UpdateRequest) Validate() error {
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.SecretQueryInput
 
@@ -72,7 +72,7 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) Validate() error {
-	// query global scope secret if the given `ProjectIDs` is empty,
+	// Query global scope secret if the given `ProjectIDs` is empty,
 	// otherwise, query project scope secret.
 	for i := range r.ProjectIDs {
 		if !r.ProjectIDs[i].Valid(0) {
@@ -84,4 +84,4 @@ func (r *CollectionGetRequest) Validate() error {
 
 type CollectionGetResponse = []*model.SecretOutput
 
-// Extensional APIs
+// Extensional APIs.

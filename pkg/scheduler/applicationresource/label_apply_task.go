@@ -74,7 +74,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 			return err
 		}
 		if err = op.IsConnected(ctx); err != nil {
-			// warn out without breaking the whole syncing.
+			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", c.ID)
 			// NB(thxCode): replace disconnected connector with unknown connector.
 			op = operatorunknown.Operator{}

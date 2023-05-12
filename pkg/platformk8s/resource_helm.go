@@ -30,7 +30,7 @@ func parseResourcesOfHelm(ctx context.Context, op Operator, res *model.Applicati
 		return nil, resourceParsingError("error parsing helm release: " + err.Error())
 	}
 
-	// parse helm release.
+	// Parse helm release.
 	var rs []resource
 	var hms = releaseutil.SplitManifests(hr.Manifest)
 	if len(hms) == 0 {

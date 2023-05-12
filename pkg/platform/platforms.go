@@ -27,7 +27,7 @@ func GetDeployer(ctx context.Context, opts deployer.CreateOptions) (deployer.Dep
 var dpCreators map[deployer.Type]deployer.Creator
 
 func init() {
-	// register deployer creators as below.
+	// Register deployer creators as below.
 	dpCreators = map[deployer.Type]deployer.Creator{
 		platformtf.DeployerType: platformtf.NewDeployer,
 	}
@@ -37,7 +37,7 @@ func init() {
 func GetOperator(ctx context.Context, opts operator.CreateOptions) (op operator.Operator, err error) {
 	var f, exist = opCreators[opts.Connector.Type]
 	if !exist {
-		// try to create an any operator.
+		// Try to create an any operator.
 		op, err = operatorany.NewOperator(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("unknown operator: %s", opts.Connector.Type)
@@ -54,7 +54,7 @@ func GetOperator(ctx context.Context, opts operator.CreateOptions) (op operator.
 var opCreators map[operator.Type]operator.Creator
 
 func init() {
-	// register operator creators as below.
+	// Register operator creators as below.
 	opCreators = map[operator.Type]operator.Creator{
 		platformk8s.OperatorType: platformk8s.NewOperator,
 	}

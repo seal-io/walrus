@@ -74,7 +74,7 @@ func (ApplicationResource) Fields() []ent.Field {
 
 func (ApplicationResource) Edges() []ent.Edge {
 	return []ent.Edge{
-		// application instance 1-* application resources.
+		// Application instance 1-* application resources.
 		edge.From("instance", ApplicationInstance.Type).
 			Ref("resources").
 			Field("instanceID").
@@ -82,7 +82,7 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// connector 1-* application resources.
+		// Connector 1-* application resources.
 		edge.From("connector", Connector.Type).
 			Ref("resources").
 			Field("connectorID").
@@ -90,7 +90,7 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// application resource(!discovered) 1-* application resources(discovered).
+		// Application resource(!discovered) 1-* application resources(discovered).
 		edge.To("components", ApplicationResource.Type).
 			Comment("Application resources that make up this resource.").
 			Annotations(entsql.Annotation{
@@ -109,7 +109,7 @@ func (ApplicationResource) Interceptors() []ent.Interceptor {
 		WhereP(...func(*sql.Selector))
 	}
 
-	// filters out not "data" mode and "kubectl_manifest" type resources.
+	// Filters out not "data" mode and "kubectl_manifest" type resources.
 	var filter = ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
 		var t, ok = query.(target)
 		if ok {

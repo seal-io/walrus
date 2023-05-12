@@ -164,7 +164,7 @@ func Copy(src, dst string, opts ...CopyOptions) error {
 }
 
 func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
-	// switch directory permission for copying.
+	// Switch directory permission for copying.
 	if err := os.Mkdir(dst, 0666); err != nil {
 		if !os.IsExist(err) {
 			return err
@@ -187,7 +187,7 @@ func copyFromDir(src, dst string, srcInfo os.FileInfo, o copyOptions) error {
 
 		switch m := srcSubInfo.Mode(); {
 		default:
-			// unsupported src mode
+			// Unsupported src mode.
 			return nil
 		case m&os.ModeSymlink != 0:
 			if srcSub, err = os.Readlink(srcSub); err != nil {
@@ -237,7 +237,7 @@ func copyFromFile(src, dst string, scrInfo os.FileInfo, o copyOptions) error {
 	}
 
 	if o.buffer {
-		// copy with buffer.
+		// Copy with buffer.
 		var srcFile, err = os.Open(src)
 		if err != nil {
 			return err

@@ -40,12 +40,12 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var creates, err = dao.ConnectorCreates(h.modelClient, entity)
+	creates, err := dao.ConnectorCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -67,9 +67,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	var entity = req.Model()
+	entity := req.Model()
 
-	var update, err = dao.ConnectorUpdate(h.modelClient, entity)
+	update, err := dao.ConnectorUpdate(h.modelClient, entity)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	var entity, err = h.modelClient.Connectors().Get(ctx, req.ID)
+	entity, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 }
 
 func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.Connector)
+	t, err := topic.Subscribe(datamessage.Connector)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	}
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -166,11 +166,12 @@ var (
 	sortFields = []string{
 		connector.FieldName,
 		connector.FieldType,
-		connector.FieldCreateTime}
+		connector.FieldCreateTime,
+	}
 )
 
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
-	var query = h.modelClient.Connectors().Query()
+	query := h.modelClient.Connectors().Query()
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -183,13 +184,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(connector.Type(req.Type))
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -201,7 +202,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 
 	entities, err := query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
 		All(ctx)
 	if err != nil {
@@ -212,7 +213,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
-	var t, err = topic.Subscribe(datamessage.Connector)
+	t, err := topic.Subscribe(datamessage.Connector)
 	if err != nil {
 		return err
 	}
@@ -241,7 +242,6 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 				Where(connector.IDIn(dm.Data...)).
 				Unique(false).
 				All(ctx)
-
 			if err != nil {
 				return err
 			}
@@ -265,7 +265,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRequest) error {
 	entity, err := h.modelClient.Connectors().Get(ctx, req.ID)
@@ -304,35 +304,35 @@ func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataReq
 // applyFinOps updates custom pricing and (re)installs cost tools if needed,
 // within 3 minutes in the background.
 func (h Handler) applyFinOps(conn *model.Connector, reinstall bool) error {
-	// skip non-k8s connectors.
+	// Skip non-k8s connectors.
 	if conn.Category != types.ConnectorCategoryKubernetes {
 		return nil
 	}
-	// skip finops disabling connectors.
+	// Skip finops disabling connectors.
 	if !conn.EnableFinOps {
 		return nil
 	}
 
 	gopool.Go(func() {
-		var logger = log.WithName("api").WithName("connector")
-		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
+		logger := log.WithName("api").WithName("connector")
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		// update pricing.
-		var err = deployer.UpdateCustomPricing(ctx, conn)
+		// Update pricing.
+		err := deployer.UpdateCustomPricing(ctx, conn)
 		if err != nil {
 			logger.Errorf("error updating custom pricing to connector %q: %v", conn.ID, err)
 		}
 
-		// deploy tools.
+		// Deploy tools.
 		err = deployer.DeployCostTools(ctx, conn, reinstall)
 		if err != nil {
-			// log instead of return error, then continue to sync the final status to connector
+			// Log instead of return error, then continue to sync the final status to connector.
 			logger.Errorf("error ensuring cost tools for connector %q: %v", conn.ID, err)
 		}
 
-		// sync status.
-		var syncer = pkgconn.NewStatusSyncer(h.modelClient)
+		// Sync status.
+		syncer := pkgconn.NewStatusSyncer(h.modelClient)
 		err = syncer.SyncStatus(ctx, conn)
 		if err != nil {
 			logger.Errorf("error syncing status of connector %q: %v", conn.ID, err)

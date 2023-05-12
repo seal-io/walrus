@@ -36,7 +36,7 @@ const (
 type (
 	// Block represents to terraform config block like terraform block, provider block, module block, etc.
 	// Block.Print() will generate the config string of the block.
-	// e.g. provider block:
+	// E.g. Provider block:
 	/**
 	  block1 = &Block{
 	  	Type: "provider",
@@ -75,7 +75,7 @@ type (
 
 		hclBlock *hclwrite.Block
 
-		// childBlocks holds information about any child Blocks that the Block may have. This can be empty.
+		// ChildBlocks holds information about any child Blocks that the Block may have. This can be empty.
 		childBlocks Blocks
 	}
 
@@ -109,9 +109,9 @@ func (b *Block) AppendBlock(block *Block) {
 	}
 
 	b.childBlocks = append(b.childBlocks, block)
-	// remove ring
+	// Remove ring.
 	b.removeRing()
-	// append block will cause the tree structure change,
+	// Append block will cause the tree structure change,
 	// so we need to reset the hclBlock.
 	b.hclBlock = nil
 }
@@ -123,7 +123,7 @@ func (b *Block) ToHCLBlock() (*hclwrite.Block, error) {
 	}
 
 	block := hclwrite.NewBlock(b.Type, b.Labels)
-	// append child blocks.
+	// Append child blocks.
 	for i := 0; i < len(b.childBlocks); i++ {
 		cb, err := b.childBlocks[i].ToHCLBlock()
 		if err != nil {

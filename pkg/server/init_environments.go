@@ -12,7 +12,7 @@ import (
 
 func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
 	var builtin = []*model.Environment{
-		// default environment
+		// Default environment.
 		{
 			Name:        "default",
 			Description: "Default environment",
@@ -30,7 +30,7 @@ func (r *Server) initEnvironments(ctx context.Context, opts initOptions) error {
 			Exec(ctx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				// no rows error is reasonable for nothing updating.
+				// No rows error is reasonable for nothing updating.
 				continue
 			}
 			return err

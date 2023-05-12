@@ -13,7 +13,7 @@ import (
 var cacher *bigcache.BigCache
 
 func init() {
-	// narrow the expiry form default cache creator.
+	// Narrow the expiry form default cache creator.
 	var cfg = bigcache.Config{
 		LifeWindow:         5 * time.Minute,
 		CleanWindow:        2 * time.Minute,

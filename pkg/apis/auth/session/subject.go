@@ -114,61 +114,61 @@ func (s Subject) Enforce(c *gin.Context, resource string) bool {
 }
 
 func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool) {
-	// check actions
+	// Check actions.
 	switch len(rp.Actions) {
 	case 0:
 		return
 	case 1:
 		if rp.Actions[0] == "*" {
 			if slice.ContainsAny[string](rp.ActionExcludes, action) {
-				// excluded action
+				// Excluded action.
 				return
 			}
 		} else if rp.Actions[0] != action {
-			// unexpected action
+			// Unexpected action.
 			return
 		}
 	default:
 		if !slice.ContainsAny[string](rp.Actions, action) {
-			// unexpected action
+			// Unexpected action.
 			return
 		}
 	}
 
-	// check resources
+	// Check resources.
 	switch len(rp.Resources) {
 	default:
 		if !slice.ContainsAny[string](rp.Resources, resource) {
-			// unexpected resource
+			// Unexpected resource.
 			return
 		}
 		return true
 	case 1:
 		if rp.Resources[0] == "*" {
 			if slice.ContainsAny[string](rp.ResourceExcludes, resource) {
-				// excluded resource
+				// Excluded resource.
 				return
 			}
 		} else if rp.Resources[0] != resource {
-			// unexpected resource
+			// Unexpected resource.
 			return
 		}
 
-		// check resource ids
+		// Check resource ids.
 		switch len(rp.ObjectIDs) {
 		default:
 			if !slice.ContainsAny[string](rp.ObjectIDs, id) {
-				// unexpected resource id
+				// Unexpected resource id.
 				return
 			}
 		case 1:
 			if rp.ObjectIDs[0] == "*" {
 				if slice.ContainsAny[string](rp.ObjectIDExcludes, id) {
-					// excluded resource id
+					// Excluded resource id.
 					return
 				}
 			} else if rp.ObjectIDs[0] != id {
-				// unexpected resource id
+				// Unexpected resource id.
 				return
 			}
 		case 0:
@@ -177,7 +177,7 @@ func enforce(rp *types.RolePolicy, action, resource, id, url string) (allow bool
 	case 0:
 	}
 
-	// check none resource urls
+	// Check none resource urls.
 	return slice.ContainsAny[string](rp.Paths, url)
 }
 
@@ -200,28 +200,28 @@ func (s Subject) Give(resource string) (p Permission) {
 }
 
 func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Operation) {
-	// check resources
+	// Check resources.
 	switch len(rp.Resources) {
 	case 0:
 		return
 	case 1:
 		if rp.Resources[0] == "*" {
 			if slice.ContainsAny[string](rp.ResourceExcludes, resource) {
-				// excluded resource
+				// Excluded resource.
 				return
 			}
 		} else if rp.Resources[0] != resource {
-			// unexpected resource
+			// Unexpected resource.
 			return
 		}
 	default:
 		if !slice.ContainsAny[string](rp.Resources, resource) {
-			// unexpected resource
+			// Unexpected resource.
 			return
 		}
 	}
 
-	// check actions
+	// Check actions.
 	switch len(rp.Actions) {
 	case 0:
 		return
@@ -242,14 +242,14 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 		}
 	}
 
-	// check resource ids
+	// Check resource ids.
 	switch len(rp.ObjectIDs) {
 	default:
 		pv.includes = rp.ObjectIDs
 		return
 	case 1:
 		if rp.ObjectIDs[0] == "*" {
-			// checkout resource exclude ids
+			// Checkout resource exclude ids.
 			if len(rp.ObjectIDExcludes) != 0 {
 				pv.excludes = rp.ObjectIDExcludes
 				return
@@ -260,7 +260,7 @@ func getPermission(rp *types.RolePolicy, resource string) (pk operator, pv Opera
 	case 0:
 	}
 
-	// check scope
+	// Check scope.
 	pv.scope = rp.Scope
 	return
 }

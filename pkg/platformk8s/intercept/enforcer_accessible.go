@@ -11,7 +11,7 @@ import (
 
 // Accessible returns Enforcer to detect if the given Kubernetes GVK/GVR is accessible enforcer.
 func Accessible() Enforcer {
-	// singleton pattern.
+	// Singleton pattern.
 	return acEnforcer
 }
 
@@ -35,9 +35,9 @@ var acEnforcer = accessibleEnforcer{
 }
 
 func init() {
-	// emit, transfer and record.
+	// Emit, transfer and record.
 	//
-	// only consider accessible types.
+	// Only consider accessible types.
 	//
 	for _, gvk := range []schema.GroupVersionKind{
 		corev1.SchemeGroupVersion.WithKind("Service"),

@@ -49,7 +49,7 @@ func (r *accumulateDistributor) distribute(ctx context.Context, startTime, endTi
 }
 
 func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, int, error) {
-	// condition
+	// Condition.
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
@@ -84,7 +84,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		From(sql.Table(allocationcost.Table)).
 		As("subQuery")
 
-	// total count
+	// Total count.
 	totalCount, err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Count().From(countSubQuery)
@@ -94,7 +94,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		return nil, 0, 0, err
 	}
 
-	// queried count
+	// Queried count.
 	queriedCount, err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			if havingPs != nil {
@@ -108,7 +108,7 @@ func (r *accumulateDistributor) allocationResourceCosts(ctx context.Context, sta
 		return nil, 0, 0, err
 	}
 
-	// queried items
+	// Queried items.
 	query := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(

@@ -333,7 +333,7 @@ func TestLoadTerraformModuleVersions(t *testing.T) {
 		},
 	}
 
-	// Absolute path is required for getter.Get(dest, local_source)
+	// Absolute path is required for getter.Get(dest, local_source).
 	pwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("failed to get pwd: %v", err)

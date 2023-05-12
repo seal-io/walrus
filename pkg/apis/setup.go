@@ -39,11 +39,11 @@ import (
 )
 
 type SetupOptions struct {
-	// configure from launching.
+	// Configure from launching.
 	EnableAuthn bool
 	ConnQPS     int
 	ConnBurst   int
-	// derived from configuration.
+	// Derived from configuration.
 	K8sConfig    *rest.Config
 	ModelClient  *model.Client
 	TlsCertified bool
@@ -57,9 +57,9 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	var throttler = runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
 	var rectifier = runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
 	var wsCounter = runtime.If(
-		// validate websocket connection.
+		// Validate websocket connection.
 		runtime.IsBidiStreamRequest,
-		// maximum 10 connection per ip.
+		// Maximum 10 connection per ip.
 		runtime.PerIP(func() runtime.Handle {
 			return runtime.RequestCounting(10, 5*time.Second)
 		}),

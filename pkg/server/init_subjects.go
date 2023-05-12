@@ -14,7 +14,7 @@ import (
 
 func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 	var builtin = []*model.Subject{
-		// group default
+		// Group default.
 		{
 			Kind:        "group",
 			Group:       "default",
@@ -25,7 +25,7 @@ func (r *Server) initSubjects(ctx context.Context, opts initOptions) error {
 			Paths:       []string{"default"},
 		},
 
-		// user admin
+		// User admin.
 		{
 			Kind:        "user",
 			Group:       "default",

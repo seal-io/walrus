@@ -27,7 +27,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 var (
 	queryFields = []string{
@@ -67,7 +67,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	})
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -90,30 +90,30 @@ var (
 func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) (view.CollectionGetResponse, int, error) {
 	var query = h.modelClient.Secrets().Query()
 	if len(req.ProjectIDs) != 0 {
-		// project scope
+		// Project scope.
 		query.Where(secret.ProjectIDIn(req.ProjectIDs...))
 	} else {
-		// global scope
+		// Global scope.
 		query.Where(secret.ProjectIDIsNil())
 	}
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); !ok {
 		query.Limit(limit).Offset(offset)
 	}
 	entities, err := query.
 		Order(model.Desc(secret.FieldCreateTime)).
 		Select(getFields...).
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
 		All(ctx)
 	if err != nil {
@@ -123,4 +123,4 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeSecrets(entities), cnt, nil
 }
 
-// Extensional APIs
+// Extensional APIs.

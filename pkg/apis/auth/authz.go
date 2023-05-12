@@ -43,11 +43,11 @@ func authz(c *gin.Context, modelClient model.ClientSet) error {
 		if err != nil {
 			return err
 		}
-		// cache
+		// Cache.
 		cache.StoreSubjectPermission(s.Key(), *permission)
 	}
 
-	// validate
+	// Validate.
 	session.StoreSubjectAuthzInfo(c, permission.Roles, permission.Policies)
 	return nil
 }

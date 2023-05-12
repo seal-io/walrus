@@ -19,7 +19,7 @@ func (Time) Indexes() []ent.Index {
 }
 
 func (Time) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		field.Time("createTime").
 			Comment("Describe creation time.").
@@ -39,7 +39,7 @@ type CreateTime struct {
 }
 
 func (CreateTime) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		field.Time("createTime").
 			Comment("Describe creation time.").
@@ -60,7 +60,7 @@ func (UpdateTime) Indexes() []ent.Index {
 }
 
 func (UpdateTime) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		field.Time("updateTime").
 			Comment("Describe modification time.").

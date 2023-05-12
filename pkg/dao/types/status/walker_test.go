@@ -9,12 +9,12 @@ import (
 )
 
 func TestWalker_sxs(t *testing.T) {
-	// 1. define resource with status.
+	// 1. Define resource with status.
 	type ExampleResource struct {
 		Status Status
 	}
 
-	// 2. define the condition types of ExampleResource,
+	// 2. Define the condition types of ExampleResource,
 	// condition type can be past tense or present tense.
 	const (
 		ExampleResourceStatusProgressing    ConditionType = "Progressing"
@@ -37,9 +37,9 @@ func TestWalker_sxs(t *testing.T) {
 	//      | Available      | False                   | Unavailable           | Error                 |
 	//      | Available      | True                    | Available             | Done                  |
 
-	// 3. create a flow to connect the above condition types.
+	// 3. Create a flow to connect the above condition types.
 	var f = NewWalker(
-		// define paths.
+		// Define paths.
 		[][]ConditionType{
 			{
 				ExampleResourceStatusProgressing,
@@ -47,7 +47,7 @@ func TestWalker_sxs(t *testing.T) {
 				ExampleResourceStatusAvailable,
 			},
 		},
-		// arrange the default step decision logic.
+		// Arrange the default step decision logic.
 		func(d Decision[ConditionType]) {
 			d.Make(ExampleResourceStatusProgressing,
 				func(st ConditionStatus, reason string) (display string, isError bool, isTransitioning bool) {
@@ -75,7 +75,7 @@ func TestWalker_sxs(t *testing.T) {
 
 	var p printer
 
-	// 4. create an instance of ExampleResource.
+	// 4. Create an instance of ExampleResource.
 	var r ExampleResource
 	// 4.1  at beginning, the status is empty(we haven't configured any conditions or summary result),
 	//      the path will walk to the end step and display the info of the last step,
@@ -329,7 +329,7 @@ func TestWalker_multiple(t *testing.T) {
 					},
 				},
 				Before: func(i *input) {
-					// remove deleted status and mark deployed status.
+					// Remove deleted status and mark deployed status.
 					ExampleResourceStatusDeployed.Reset(i, "")
 				},
 			},

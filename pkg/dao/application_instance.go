@@ -18,13 +18,13 @@ func ApplicationInstanceCreates(mc model.ClientSet, input ...*model.ApplicationI
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.ApplicationInstances().Create().
 			SetApplicationID(r.ApplicationID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetVariables(r.Variables)
 		status.ApplicationInstanceStatusDeployed.Unknown(r, "Deploying instance")
 		r.Status.SetSummary(status.WalkApplicationInstance(&r.Status))

@@ -65,7 +65,7 @@ type CreateSecretsOptions struct {
 	ApplicationRevision *model.ApplicationRevision
 	Connectors          model.Connectors
 	ProjectID           types.ID
-	// metadata
+	// Metadata.
 	ProjectName             string
 	ApplicationName         string
 	ApplicationInstanceName string
@@ -83,7 +83,7 @@ type CreateJobOptions struct {
 }
 
 // _backendAPI the API path to terraform deploy backend.
-// terraform will get and update deployment states from this API.
+// Terraform will get and update deployment states from this API.
 const _backendAPI = "/v1/application-revisions/%s/terraform-states"
 
 // _varPrefix the prefix of the variable name.
@@ -136,7 +136,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts
 		if err == nil {
 			return
 		}
-		// report to application revision.
+		// Report to application revision.
 		_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 	}()
 
@@ -150,8 +150,8 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts
 }
 
 // Destroy will destroy the resource of the application.
-// 1. get the latest revision, and checkAppRevision it if it is running.
-// 2. if not running, then destroy resources.
+// 1. Get the latest revision, and checkAppRevision it if it is running.
+// 2. If not running, then destroy resources.
 func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, destroyOpts deployer.DestroyOptions) (err error) {
 	app, err := d.getApplication(ctx, ai.ApplicationID)
 	if err != nil {
@@ -170,11 +170,11 @@ func (d Deployer) Destroy(ctx context.Context, ai *model.ApplicationInstance, de
 		if err == nil {
 			return
 		}
-		// report to application revision.
+		// Report to application revision.
 		_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 	}()
 
-	// if no resource exists, skip job and set revision status succeed.
+	// If no resource exists, skip job and set revision status succeed.
 	exist, err := d.modelClient.ApplicationResources().Query().
 		Where(applicationresource.InstanceID(ai.ID)).
 		Exist(ctx)
@@ -231,7 +231,7 @@ func (d Deployer) Rollback(ctx context.Context, ai *model.ApplicationInstance, o
 			return
 		}
 		if ar != nil {
-			// report to application revision.
+			// Report to application revision.
 			_ = d.updateRevisionStatus(ctx, ar, status.ApplicationRevisionStatusFailed, err.Error())
 			return
 		}
@@ -276,13 +276,13 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
-	// prepare tfConfig for deployment.
+	// Prepare tfConfig for deployment.
 	secretOpts := CreateSecretsOptions{
 		SkipTLSVerify:       opts.SkipTLSVerify,
 		ApplicationRevision: opts.ApplicationRevision,
 		Connectors:          connectors,
 		ProjectID:           opts.Application.ProjectID,
-		// metadata
+		// Metadata.
 		ProjectName:             opts.Application.Edges.Project.Name,
 		ApplicationName:         opts.Application.Name,
 		ApplicationInstanceName: opts.ApplicationInstance.Name,
@@ -296,7 +296,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
-	// create deployment job.
+	// Create deployment job.
 	jobOpts := JobCreateOptions{
 		Type:                  opts.Type,
 		ApplicationRevisionID: opts.ApplicationRevision.ID.String(),
@@ -306,7 +306,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 }
 
 func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ApplicationRevision, s, m string) error {
-	// report to application revision.
+	// Report to application revision.
 	ar.Status = s
 	ar.StatusMessage = m
 	update, err := dao.ApplicationRevisionUpdate(d.modelClient, ar)
@@ -331,10 +331,10 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.Applicatio
 // createK8sSecrets will create the k8s secrets for deployment.
 func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOptions) error {
 	var secretData = make(map[string][]byte)
-	// secretName terraform tfConfig name
+	// SecretName terraform tfConfig name.
 	secretName := _jobSecretPrefix + string(opts.ApplicationRevision.ID)
 
-	// prepare terraform config files bytes for deployment.
+	// Prepare terraform config files bytes for deployment.
 	terraformData, err := d.LoadConfigsBytes(ctx, opts)
 	if err != nil {
 		return err
@@ -343,7 +343,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 		secretData[k] = v
 	}
 
-	// mount the provider configs(e.g. kubeconfig) to secret.
+	// Mount the provider configs(e.g. kubeconfig) to secret.
 	providerData, err := d.GetProviderSecretData(opts.Connectors)
 	if err != nil {
 		return err
@@ -352,7 +352,7 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 		secretData[k] = v
 	}
 
-	// create deployment secret
+	// Create deployment secret.
 	if err = CreateSecret(ctx, d.clientSet, secretName, secretData); err != nil {
 		return err
 	}
@@ -361,9 +361,9 @@ func (d Deployer) createK8sSecrets(ctx context.Context, opts CreateSecretsOption
 }
 
 // CreateApplicationRevision will create a new application revision.
-// get the latest revision, and check it if it is running.
-// if not running, then apply the latest revision.
-// if running, then wait for the latest revision to be applied.
+// Get the latest revision, and check it if it is running.
+// If not running, then apply the latest revision.
+// If running, then wait for the latest revision to be applied.
 func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevisionOptions) (*model.ApplicationRevision, error) {
 	var entity *model.ApplicationRevision
 	if opts.CloneFrom != nil {
@@ -378,7 +378,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 			Variables:      opts.Application.Variables,
 			InputVariables: opts.ApplicationInstance.Variables,
 		}
-		// get modules for new revision.
+		// Get modules for new revision.
 		amrs, err := d.modelClient.ApplicationModuleRelationships().Query().
 			Where(applicationmodulerelationship.ApplicationID(opts.Application.ID)).
 			All(ctx)
@@ -401,7 +401,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 	entity.InstanceID = opts.ApplicationInstance.ID
 	entity.EnvironmentID = opts.ApplicationInstance.EnvironmentID
 
-	// output of the previous revision should be inherited to the new one
+	// Output of the previous revision should be inherited to the new one
 	// when creating a new revision.
 	var prevEntity, err = d.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.And(
@@ -416,7 +416,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 		if prevEntity.Status == status.ApplicationRevisionStatusRunning {
 			return nil, errors.New("application deployment is running")
 		}
-		// inherit the output of previous revision.
+		// Inherit the output of previous revision.
 		entity.Output = prevEntity.Output
 		requiredProviders, err := d.getRequiredProviders(ctx, opts.ApplicationInstance.ID, entity.Output)
 		if err != nil {
@@ -435,7 +435,7 @@ func (d Deployer) CreateApplicationRevision(ctx context.Context, opts CreateRevi
 		entity.PreviousRequiredProviders = prevEntity.PreviousRequiredProviders
 	}
 
-	// create revision, mark status to running.
+	// Create revision, mark status to running.
 	creates, err := dao.ApplicationRevisionCreates(d.modelClient, entity)
 	if err != nil {
 		return nil, err
@@ -467,13 +467,13 @@ func (d Deployer) getRequiredProviders(ctx context.Context, instanceID types.ID,
 // LoadConfigsBytes returns terraform main.tf and terraform.tfvars for deployment.
 func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOptions) (map[string][]byte, error) {
 	var logger = log.WithName("deployer").WithName("tf")
-	// prepare terraform tfConfig.
+	// Prepare terraform tfConfig.
 	//  get module configs from app revision.
 	moduleConfigs, providerRequirements, err := d.GetModuleConfigs(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	// merge current and previous required providers.
+	// Merge current and previous required providers.
 	providerRequirements = append(providerRequirements, opts.ApplicationRevision.PreviousRequiredProviders...)
 
 	requiredProviders := make(map[string]*tfconfig.ProviderRequirement, 0)
@@ -485,13 +485,13 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		}
 	}
 
-	// parse module secrets
+	// Parse module secrets.
 	secrets, err := d.parseModuleSecrets(ctx, moduleConfigs, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	// prepare address for terraform backend.
+	// Prepare address for terraform backend.
 	serverAddress, err := settings.ServeUrl.Value(ctx, d.modelClient)
 	if err != nil {
 		return nil, err
@@ -500,13 +500,13 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		return nil, errors.New("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress, fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
-	// prepare API token for terraform backend.
+	// Prepare API token for terraform backend.
 	token, err := settings.PrivilegeApiToken.Value(ctx, d.modelClient)
 	if err != nil {
 		return nil, err
 	}
 
-	// prepare terraform config files to be mounted to secret.
+	// Prepare terraform config files to be mounted to secret.
 	var requiredProviderNames = sets.NewString()
 	for _, p := range providerRequirements {
 		requiredProviderNames = requiredProviderNames.Insert(p.Name)
@@ -516,7 +516,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		secretNames = append(secretNames, s.Name)
 	}
 
-	// prepare outputs
+	// Prepare outputs.
 	var outputCount int
 	for _, v := range moduleConfigs {
 		outputCount += len(v.Outputs)
@@ -561,9 +561,9 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		}
 	}
 
-	// save input plan to app revision.
+	// Save input plan to app revision.
 	opts.ApplicationRevision.InputPlan = string(secretMaps[config.FileMain])
-	// if application revision does not inherit secrets from cloned revision,
+	// If application revision does not inherit secrets from cloned revision,
 	// then save the parsed secrets to app revision.
 	if len(opts.ApplicationRevision.Secrets) == 0 {
 		secretMap := make(crypto.Map[string, string], len(secrets))
@@ -612,7 +612,7 @@ func (d Deployer) GetModuleConfigs(ctx context.Context, opts CreateSecretsOption
 	var (
 		moduleConfigs     []*config.ModuleConfig
 		requiredProviders = make([]types.ProviderRequirement, 0)
-		// module id -> module source
+		// Module id -> module source.
 		moduleVersionMap = make(map[string]*model.ModuleVersion, 0)
 		predicates       = make([]predicate.ModuleVersion, 0)
 		ar               = opts.ApplicationRevision
@@ -698,7 +698,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 	for _, moduleConfig := range moduleConfigs {
 		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
 	}
-	// if application revision has secrets that inherit from cloned revision, use them directly.
+	// If application revision has secrets that inherit from cloned revision, use them directly.
 	if len(opts.ApplicationRevision.Secrets) > 0 {
 		for k, v := range opts.ApplicationRevision.Secrets {
 			secrets = append(secrets, &model.Secret{
@@ -713,7 +713,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 	for i, name := range moduleSecrets {
 		nameIn[i] = name
 	}
-	// this query is used to distinct the secrets with the same name.
+	// This query is used to distinct the secrets with the same name.
 	//  SELECT
 	//    "id",
 	//    "name",
@@ -738,7 +738,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 	//    AND NAME IN (moduleSecrets)
 	err := d.modelClient.Secrets().Query().
 		Modify(func(s *sql.Selector) {
-			// select secrets without project id or not in project.
+			// Select secrets without project id or not in project.
 			subQuery := sql.Select(secret.FieldName).
 				From(sql.Table(secret.Table)).
 				Where(sql.EQ(secret.FieldProjectID, opts.ProjectID))
@@ -761,7 +761,7 @@ func (d Deployer) parseModuleSecrets(ctx context.Context, moduleConfigs []*confi
 		return nil, err
 	}
 
-	// validate module secret are all exist.
+	// Validate module secret are all exist.
 	foundSecretSet := sets.NewString()
 	for _, s := range secrets {
 		foundSecretSet.Insert(s.Name)
@@ -826,7 +826,7 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 		revision = bm.Refer
 	)
 
-	// report to application instance.
+	// Report to application instance.
 	appInstance, err := mc.ApplicationInstances().Query().
 		Where(applicationinstance.ID(revision.InstanceID)).
 		Select(
@@ -949,7 +949,7 @@ func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion
 			Value: v,
 		}
 
-		// add sensitive from app attributes.
+		// Add sensitive from app attributes.
 		val, err := v.MarshalJSON()
 		if err != nil {
 			return nil, err
@@ -975,12 +975,12 @@ func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion
 	}
 
 	for _, v := range modVer.Schema.Variables {
-		// add sensitive from schema variable.
+		// Add sensitive from schema variable.
 		if v.Sensitive {
 			sensitiveVariables.Insert(v.Name)
 		}
 
-		// add seal metadata.
+		// Add seal metadata.
 		var attrValue string
 		switch v.Name {
 		case SealMetadataProjectName:
@@ -1013,7 +1013,7 @@ func getModuleConfig(appMod types.ApplicationModule, modVer *model.ModuleVersion
 			continue
 		}
 
-		// update sensitive while output is from sensitive data, like secret.
+		// Update sensitive while output is from sensitive data, like secret.
 		if sensitiveVariables.Len() != 0 && sensitiveVariableRegex.Match(v.Value) {
 			mc.Outputs[i].Sensitive = true
 		}

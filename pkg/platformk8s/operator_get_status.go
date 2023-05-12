@@ -39,25 +39,25 @@ func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource
 
 	var gvr, ok = intercept.Terraform().GetGVR(res.Type)
 	if !ok {
-		// mark ready if it's unresolved type.
+		// Mark ready if it's unresolved type.
 		return &kubestatus.GeneralStatusReady, nil
 	}
 	var ns, n = kube.ParseNamespacedName(res.Name)
 
-	// fetch label selector with dynamic client.
+	// Fetch label selector with dynamic client.
 	dynamicCli, err := dynamicclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		err = fmt.Errorf("error creating kubernetes dynamic client: %w", err)
 		return kubestatus.StatusError(err.Error()), err
 	}
 	o, err := dynamicCli.Resource(gvr).Namespace(ns).
-		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
 			err = fmt.Errorf("error getting kubernetes %s %s/%s: %w", gvr.Resource, ns, n, err)
 			return kubestatus.StatusError(err.Error()), err
 		}
-		// mark unknown if not found.
+		// Mark unknown if not found.
 		return kubestatus.StatusError("resource not found"), nil
 	}
 

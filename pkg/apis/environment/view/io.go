@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.EnvironmentCreateInput `json:",inline"`
@@ -50,7 +50,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.EnvironmentOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.EnvironmentQueryInput
 
@@ -72,4 +72,4 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.EnvironmentOutput
 
-// Extensional APIs
+// Extensional APIs.

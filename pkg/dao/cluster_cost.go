@@ -19,7 +19,7 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 		}
 
 		c := mc.ClusterCosts().Create().
-			// required.
+			// Required.
 			SetStartTime(r.StartTime).
 			SetEndTime(r.EndTime).
 			SetMinutes(r.Minutes).
@@ -27,7 +27,7 @@ func ClusterCostCreates(mc model.ClientSet, input ...*model.ClusterCost) ([]*mod
 			SetConnectorID(r.ConnectorID).
 			SetTotalCost(r.TotalCost).
 			SetCurrency(r.Currency).
-			// optional.
+			// Optional.
 			SetManagementCost(r.ManagementCost).
 			SetIdleCost(r.IdleCost).
 			SetAllocationCost(r.AllocationCost)

@@ -57,9 +57,9 @@ type Manager struct {
 
 // certKey is the key by which certificates are tracked in state and cache.
 type certKey struct {
-	// server indicates the server for generating.
+	// Server indicates the server for generating.
 	server string
-	// rsa indicates to use RSA algorithm, default is to use ECDSA.
+	// Rsa indicates to use RSA algorithm, default is to use ECDSA.
 	rsa bool
 }
 
@@ -144,11 +144,11 @@ func (s *certState) Get() (*tls.Certificate, error) {
 func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	var name = hello.ServerName
 	if name != "" {
-		// allow localhost hostname.
+		// Allow localhost hostname.
 		if name != "localhost" && !strings.Contains(strings.Trim(name, "."), ".") {
 			return nil, errors.New("dynacert: server name component count invalid")
 		}
-		// validate invalid character.
+		// Validate invalid character.
 		var err error
 		name, err = idna.Lookup.ToASCII(name)
 		if err != nil {
@@ -166,11 +166,11 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		name = tcpAddr.IP.String()
 	}
 
-	// timeout needs to process the worst-case scenario.
+	// Timeout needs to process the worst-case scenario.
 	var ctx, cancel = context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	// get certificate by server.
+	// Get certificate by server.
 	ck := certKey{
 		server: strings.TrimSuffix(name, "."),
 		rsa:    !requestECDSA(hello),
@@ -183,7 +183,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		return nil, fmt.Errorf("dynacert: error getting cert: %w", err)
 	}
 
-	// create certificate to server.
+	// Create certificate to server.
 	err = m.allowHost(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("dynacert: disallowed host: %s", name)
@@ -228,7 +228,7 @@ func (m *Manager) getCert(ctx context.Context, ck certKey) (*tls.Certificate, er
 		err = verifyCert(tlsCert.Leaf, ck.server)
 		if err != nil {
 			log.WithName("dynacert").Warn(err)
-			// treat as miss cache,
+			// Treat as miss cache,
 			// so the GetCertificate will regenerate.
 			return nil, autocert.ErrCacheMiss
 		}
@@ -257,7 +257,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 	tlsCert, err := decodeTlsCertificate(bs, ck.server)
 	if err != nil {
 		log.WithName("dynacert").Warnf("error decoding tls certificate: %v", err)
-		// treat as miss cache,
+		// Treat as miss cache,
 		// so the GetCertificate will regenerate.
 		return nil, autocert.ErrCacheMiss
 	}

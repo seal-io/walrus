@@ -19,7 +19,7 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		if len(r.Paths) == 0 {
 			return nil, errors.New("invalid input: empty paths")
 		}
@@ -27,7 +27,7 @@ func SubjectCreates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 			SetName(r.Name).
 			SetPaths(r.Paths)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		c.SetNillableMountTo(r.MountTo)
 		c.SetNillableLoginTo(r.LoginTo)
@@ -56,7 +56,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Subject
 		switch {
 		case r.ID.IsNaive():
@@ -72,7 +72,7 @@ func SubjectUpdates(mc model.ClientSet, input ...*model.Subject) ([]*model.Subje
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		// conditional.
+		// Conditional.
 		var c = mc.Subjects().Update().
 			Where(ps...).
 			SetDescription(r.Description)

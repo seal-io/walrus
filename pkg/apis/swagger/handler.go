@@ -31,11 +31,11 @@ func Index(openapiURL string) runtime.Handle {
 		}
 		var p = path.Join(dir, c.Params[len(c.Params)-1].Value)
 		if p == dir {
-			// index
+			// Index.
 			_, _ = fmt.Fprint(c.Writer, index)
 			return
 		}
-		// assets
+		// Assets.
 		var req = c.Request.Clone(c.Request.Context())
 		req.URL.Path = p
 		req.URL.RawPath = p

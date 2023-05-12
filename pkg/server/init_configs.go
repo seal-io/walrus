@@ -20,9 +20,9 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) error {
 		return err
 	}
 
-	// configures casdoor cookie max idle duration.
+	// Configures casdoor cookie max idle duration.
 	casdoor.MaxIdleDurationConfig.Set(r.AuthnSessionMaxIdle)
-	// configures casdoor securing cookie.
+	// Configures casdoor securing cookie.
 	casdoor.SecureConfig.Set(r.EnableTls)
 
 	return nil
@@ -51,14 +51,14 @@ func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string
 	var pt = "YOU CAN SEE ME"
 	return settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
 		if ctb64 == "" {
-			// first time launching, just encrypt.
+			// First time launching, just encrypt.
 			var ctbs, err = enc.Encrypt(strs.ToBytes(&pt), nil)
 			if err != nil {
 				return "", err
 			}
 			return strs.EncodeBase64(strs.FromBytes(&ctbs)), nil
 		}
-		// decrypt and compare.
+		// Decrypt and compare.
 		var ct, _ = strs.DecodeBase64(ctb64)
 		var ptbs, _ = enc.Decrypt(strs.ToBytes(&ct), nil)
 		if !bytes.Equal(strs.ToBytes(&pt), ptbs) {

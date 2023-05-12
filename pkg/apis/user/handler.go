@@ -34,7 +34,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 	var input = &model.Subject{
@@ -58,7 +58,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 		if err != nil {
 			return err
 		}
-		// create user from casdoor.
+		// Create user from casdoor.
 		var cred casdoor.ApplicationCredential
 		err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, tx, &cred)
 		if err != nil {
@@ -88,7 +88,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 			return err
 		}
 		switch {
-		case !req.MountTo: // created user.
+		case !req.MountTo: // Created user.
 			var cred casdoor.ApplicationCredential
 			err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, tx, &cred)
 			if err != nil {
@@ -102,7 +102,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 				}
 			}
 			return nil
-		case req.LoginTo: // mounted user but login on.
+		case req.LoginTo: // Mounted user but login on.
 			return tx.Subjects().Update().
 				SetLoginTo(true).
 				Where(
@@ -114,7 +114,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		}
 		return nil
 	})
-	// TODO clean cache
+	// TODO clean cache.
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
@@ -134,7 +134,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		if err != nil {
 			return err
 		}
-		// update password.
+		// Update password.
 		if req.Password == "" {
 			return nil
 		}
@@ -150,10 +150,10 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		}
 		return nil
 	})
-	// TODO clean cache
+	// TODO clean cache.
 }
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -172,9 +172,9 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		subject.Kind("user"),
 	}
 	if req.Group != "" {
-		input = append(input, subject.Group(req.Group)) // include mounted user.
+		input = append(input, subject.Group(req.Group)) // Include mounted user.
 	} else {
-		input = append(input, subject.MountTo(false)) // created user.
+		input = append(input, subject.MountTo(false)) // Created user.
 	}
 
 	var query = h.modelClient.Subjects().Query().
@@ -183,13 +183,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -208,7 +208,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeSubjects(entities), cnt, nil
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) RouteMount(ctx *gin.Context, req view.RouteMountRequest) error {
 	var input = &model.Subject{

@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/utils/validation"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.ProjectCreateInput `json:",inline"`
@@ -56,7 +56,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ProjectOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.ProjectQueryInput
 
@@ -78,7 +78,7 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.ProjectOutput
 
-// Extensional APIs
+// Extensional APIs.
 
 type GetSecretsRequest struct {
 	*model.ProjectQueryInput                                        `uri:",inline"`

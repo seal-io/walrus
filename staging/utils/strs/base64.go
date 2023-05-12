@@ -8,10 +8,10 @@ import (
 // DecodeBase64 decodes the given string, which can
 // accept padded or none padded format.
 func DecodeBase64(str string) (string, error) {
-	// normalizes to std encoding format
+	// Normalizes to std encoding format.
 	str = strings.ReplaceAll(str, "-", "+")
 	str = strings.ReplaceAll(str, "_", "/")
-	// normalizes to no padding format
+	// Normalizes to no padding format.
 	str = strings.TrimRight(str, "=")
 	var bs, err = base64.RawStdEncoding.DecodeString(str)
 	if err != nil {

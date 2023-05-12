@@ -12,7 +12,7 @@ import (
 
 // Composite returns Enforcer to detect if the given Kubernetes GVK/GVR is composite enforcer.
 func Composite() Enforcer {
-	// singleton pattern.
+	// Singleton pattern.
 	return compEnforcer
 }
 
@@ -36,20 +36,20 @@ var compEnforcer = compositeEnforcer{
 }
 
 func init() {
-	// emit, transfer and record.
+	// Emit, transfer and record.
 	//
-	// only consider composite types.
+	// Only consider composite types.
 	//
 	for _, gvk := range []schema.GroupVersionKind{
-		// select generated job list by the cronjob label selector,
+		// Select generated job list by the cronjob label selector,
 		// then select pod list by the job label selector.
 		batchv1.SchemeGroupVersion.WithKind("CronJob"),
 		batchv1beta1.SchemeGroupVersion.WithKind("CronJob"),
 
-		// select related persistent volume by the persistent volume claim.
+		// Select related persistent volume by the persistent volume claim.
 		corev1.SchemeGroupVersion.WithKind("PersistentVolumeClaim"),
 
-		// select generated pod list by the following kinds' label selector.
+		// Select generated pod list by the following kinds' label selector.
 		appsv1.SchemeGroupVersion.WithKind("DaemonSet"),
 		appsv1.SchemeGroupVersion.WithKind("Deployment"),
 		appsv1.SchemeGroupVersion.WithKind("StatefulSet"),

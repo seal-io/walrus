@@ -44,7 +44,7 @@ func (AllocationCost) Fields() []ent.Field {
 		field.String("fingerprint").
 			Comment("String generated from resource properties, used to identify this cost.").
 			Immutable(),
-		// for k8s
+		// For k8s.
 		field.String("clusterName").
 			Comment("Cluster name for current cost.").
 			Optional().
@@ -81,7 +81,7 @@ func (AllocationCost) Fields() []ent.Field {
 			Comment("Labels for the cost linked resource.").
 			Default(map[string]string{}).
 			Immutable(),
-		// cost
+		// Cost.
 		field.Float("totalCost").
 			Comment("Cost number.").
 			Default(0).
@@ -128,7 +128,7 @@ func (AllocationCost) Fields() []ent.Field {
 			Comment("LoadBalancer cost for current cost linked.").
 			Default(0).
 			Min(0),
-		// usage
+		// Usage.
 		field.Float("cpuCoreUsageAverage").
 			Comment("CPU core average usage.").
 			Default(0).
@@ -150,7 +150,7 @@ func (AllocationCost) Fields() []ent.Field {
 
 func (AllocationCost) Edges() []ent.Edge {
 	return []ent.Edge{
-		// connector 1-* allocation cost.
+		// Connector 1-* allocation cost.
 		edge.From("connector", Connector.Type).
 			Comment("Connector current cost linked.").
 			Ref("allocationCosts").

@@ -23,12 +23,12 @@ func IsNeutralWidth(r rune) bool {
 	return runewidth.IsNeutralWidth(r)
 }
 
-// StringWidth return width as you can see
+// StringWidth return width as you can see.
 func StringWidth(s string) int {
 	return runewidth.StringWidth(s)
 }
 
-// Truncate return string truncated with w cells
+// Truncate return string truncated with w cells.
 func Truncate(s string, w int, tail string) string {
 	return runewidth.Truncate(s, w, tail)
 }
@@ -38,17 +38,17 @@ func TruncateLeft(s string, w int, prefix string) string {
 	return runewidth.TruncateLeft(s, w, prefix)
 }
 
-// Wrap return string wrapped with w cells
+// Wrap return string wrapped with w cells.
 func Wrap(s string, w int) string {
 	return runewidth.Wrap(s, w)
 }
 
-// FillLeft return string filled in left by spaces in w cells
+// FillLeft return string filled in left by spaces in w cells.
 func FillLeft(s string, w int) string {
 	return runewidth.FillLeft(s, w)
 }
 
-// FillRight return string filled in left by spaces in w cells
+// FillRight return string filled in left by spaces in w cells.
 func FillRight(s string, w int) string {
 	return runewidth.FillRight(s, w)
 }

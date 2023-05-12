@@ -1,6 +1,6 @@
 package platformtf
 
-// seal metadata indicate seal will set value to these attribute while user module include these attribute
+// seal metadata indicate seal will set value to these attribute while user module include these attribute.
 const (
 	SealMetadataProjectName             = "seal_metadata_project_name"
 	SealMetadataApplicationName         = "seal_metadata_application_name"

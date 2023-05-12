@@ -61,7 +61,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	var entity, err = h.modelClient.ApplicationRevisions().Get(ctx, req.ID)
@@ -130,7 +130,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	}
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -165,13 +165,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(applicationrevision.InstanceID(req.InstanceID))
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -201,7 +201,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	}
 	entities, err := query.WithEnvironment(
 		func(eq *model.EnvironmentQuery) { eq.Select(environment.FieldID, environment.FieldName) }).
-		Unique(false). // allow returning without sorting keys.
+		Unique(false). // Allow returning without sorting keys.
 		All(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -267,7 +267,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 // GetTerraformStates get the terraform states of the application revision deployment.
 func (h Handler) GetTerraformStates(ctx *gin.Context, req view.GetTerraformStatesRequest) (view.GetTerraformStatesResponse, error) {
@@ -308,7 +308,7 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 			return
 		}
 
-		// timeout context
+		// Timeout context.
 		updateCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
@@ -342,7 +342,7 @@ func (h Handler) UpdateTerraformStates(ctx *gin.Context, req view.UpdateTerrafor
 func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationRevision) error {
 	// TODO(thxCode): generate by entc.
 	var key = func(r *model.ApplicationResource) string {
-		// align to schema definition.
+		// Align to schema definition.
 		return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
 	}
 
@@ -355,7 +355,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		return nil
 	}
 
-	// get record resources from local.
+	// Get record resources from local.
 	recordRess, err := h.modelClient.ApplicationResources().Query().
 		Where(applicationresource.InstanceID(entity.InstanceID)).
 		All(ctx)
@@ -363,7 +363,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		return err
 	}
 
-	// calculate creating list and deleting list.
+	// Calculate creating list and deleting list.
 	var observedRessIndex = make(map[string]*model.ApplicationResource, len(observedRess))
 	for j := range observedRess {
 		var c = observedRess[j]
@@ -383,9 +383,9 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		createRess = append(createRess, observedRessIndex[k])
 	}
 
-	// diff by transactional session.
+	// Diff by transactional session.
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		// create new resources.
+		// Create new resources.
 		if len(createRess) != 0 {
 			creates, err := dao.ApplicationResourceCreates(tx, createRess...)
 			if err != nil {
@@ -397,7 +397,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				return err
 			}
 		}
-		// delete stale resources.
+		// Delete stale resources.
 		if len(deleteRessIDs) != 0 {
 			_, err = tx.ApplicationResources().Delete().
 				Where(applicationresource.IDIn(deleteRessIDs...)).
@@ -415,10 +415,10 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		return nil
 	}
 
-	// state/label the new resources async.
+	// State/label the new resources async.
 	var ids = make(map[types.ID][]types.ID)
 	for i := range createRess {
-		// group resources by connector.
+		// Group resources by connector.
 		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
 			createRess[i].ID)
 	}
@@ -427,7 +427,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		// fetch related connectors at once,
+		// Fetch related connectors at once,
 		// and then index these connectors by its id.
 		var cs, err = h.modelClient.Connectors().Query().
 			Select(
@@ -476,7 +476,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			nsr, err := applicationresources.State(ctx, op, h.modelClient, entities)
 			if err != nil {
 				logger.Errorf("error stating entities: %v", err)
-				// mark error as transitioning,
+				// Mark error as transitioning,
 				// which doesn't flip the status.
 				nsr.Transitioning = true
 			}
@@ -487,7 +487,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			}
 		}
 
-		// state application instance.
+		// State application instance.
 		i, err := h.modelClient.ApplicationInstances().Query().
 			Where(applicationinstance.ID(entity.InstanceID)).
 			Select(
@@ -499,7 +499,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			return
 		}
 		if status.ApplicationInstanceStatusDeleted.Exist(i) {
-			// skip if the instance is on deleting.
+			// Skip if the instance is on deleting.
 			return
 		}
 		switch {
@@ -527,7 +527,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once tracing,
 	// and rely on the session context timeout control,
 	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel.
-	var restConfig = *h.kubeConfig // copy
+	var restConfig = *h.kubeConfig // Copy.
 	restConfig.Timeout = 0
 	var cli, err = coreclient.NewForConfig(&restConfig)
 	if err != nil {
@@ -573,7 +573,7 @@ func (h Handler) CreateRollbackInstances(ctx *gin.Context, req view.RollbackInst
 
 // CreateRollbackApplications rollback application to a specific revision.
 func (h Handler) CreateRollbackApplications(ctx *gin.Context, req view.RollbackApplicationRequest) error {
-	// get application revision
+	// Get application revision.
 	applicationRevision, err := h.modelClient.ApplicationRevisions().Query().
 		WithInstance(func(q *model.ApplicationInstanceQuery) {
 			q.Select(

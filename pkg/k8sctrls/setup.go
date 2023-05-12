@@ -17,9 +17,9 @@ import (
 )
 
 func init() {
-	// register none native kubernetes resource scheme below.
+	// Register none native kubernetes resource scheme below.
 
-	// utilruntime.Must(something.AddToScheme(scheme.Scheme))
+	// Utilruntime.Must(something.AddToScheme(scheme.Scheme)).
 }
 
 type SetupOptions struct {
@@ -57,7 +57,7 @@ type Reconciler interface {
 }
 
 func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, error) {
-	// setup reconciler below.
+	// Setup reconciler below.
 	return []Reconciler{
 		platformtf.JobReconciler{
 			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),

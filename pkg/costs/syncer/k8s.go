@@ -157,12 +157,12 @@ func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs [
 }
 
 func (in *K8sCostSyncer) timeRange(ctx context.Context, restCfg *rest.Config, conn *model.Connector, startTime, endTime *time.Time) (*time.Time, *time.Time, error) {
-	// time range existed.
+	// Time range existed.
 	if startTime != nil && endTime != nil {
 		return startTime, endTime, nil
 	}
 
-	// time range from cluster.
+	// Time range from cluster.
 	clientSet, err := kubernetes.NewForConfig(restCfg)
 	if err != nil {
 		return nil, nil, err

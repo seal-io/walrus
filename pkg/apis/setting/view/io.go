@@ -11,7 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type UpdateRequest struct {
 	ID    types.ID `uri:"id"`
@@ -66,7 +66,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.SettingOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionUpdateRequest []*UpdateRequest
 
@@ -100,4 +100,4 @@ func (r *CollectionGetRequest) Validate() error {
 
 type CollectionGetResponse = []*model.SettingOutput
 
-// Extensional APIs
+// Extensional APIs.

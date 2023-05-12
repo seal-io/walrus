@@ -116,18 +116,18 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 				sleep:   prevState.sleep,
 			}
 
-			// for first request
+			// For first request.
 			if prevState.arrival.IsZero() {
 				var taken = atomic.CompareAndSwapPointer(&statePointer, prevStatePointer, unsafe.Pointer(&currState))
 				if !taken {
 					continue
 				}
-				// allow it immediately
+				// Allow it immediately.
 				c.Next()
 				return
 			}
 
-			// for subsequent requests
+			// For subsequent requests.
 			currState.sleep += window - currState.arrival.Sub(prevState.arrival)
 			if currState.sleep < maxSleep {
 				currState.sleep = maxSleep
@@ -145,7 +145,7 @@ func RequestShaping(qps int, slack int, latency time.Duration) Handle {
 			if !taken {
 				continue
 			}
-			// allow it after waiting
+			// Allow it after waiting.
 			var t = time.NewTimer(wait)
 			select {
 			case <-t.C:

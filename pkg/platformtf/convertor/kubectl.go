@@ -58,7 +58,7 @@ func (m KubectlConvertor) toBlock(connector *model.Connector, opts interface{}) 
 	return &block.Block{
 		Type:       block.TypeProvider,
 		Attributes: attributes,
-		// convert the connector type to provider type.
+		// Convert the connector type to provider type.
 		Labels: []string{string(m)},
 	}, nil
 }

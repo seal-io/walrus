@@ -81,7 +81,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 			return err
 		}
 		if err = op.IsConnected(ctx); err != nil {
-			// warn out without breaking the whole syncing.
+			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", c.ID)
 			// NB(thxCode): replace disconnected connector with unknown connector.
 			op = operatorunknown.Operator{}
@@ -135,7 +135,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 		}
 
 		for i := range entities {
-			// get observed components from remote.
+			// Get observed components from remote.
 			var observedComps, err = op.GetComponents(ctx, entities[i])
 			if multierr.AppendInto(&berr, err) {
 				continue
@@ -144,7 +144,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 				continue
 			}
 
-			// get record components from local.
+			// Get record components from local.
 			recordComps, err := in.modelClient.ApplicationResources().Query().
 				Where(applicationresource.CompositionID(entities[i].ID)).
 				All(ctx)
@@ -152,7 +152,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 				return
 			}
 
-			// calculate creating list and deleting list.
+			// Calculate creating list and deleting list.
 			var observedCompsIndex = make(map[string]*model.ApplicationResource, len(observedComps))
 			for j := range observedComps {
 				var c = observedComps[j]
@@ -172,7 +172,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 				createComps = append(createComps, observedCompsIndex[k])
 			}
 
-			// create new components.
+			// Create new components.
 			if len(createComps) != 0 {
 				creates, err := dao.ApplicationResourceCreates(in.modelClient, createComps...)
 				if !multierr.AppendInto(&berr, err) {
@@ -184,7 +184,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(ctx context.Context, op operator
 				}
 			}
 
-			// delete stale components.
+			// Delete stale components.
 			if len(deleteCompIDs) != 0 {
 				_, err = in.modelClient.ApplicationResources().Delete().
 					Where(applicationresource.IDIn(deleteCompIDs...)).

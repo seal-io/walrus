@@ -41,7 +41,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 	}
 
 	var builtin = []*model.Role{
-		// resource admin
+		// Resource admin.
 		{
 			Domain:      resourcePath,
 			Name:        "admin",
@@ -51,7 +51,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			},
 			Builtin: true,
 		},
-		// resource edit
+		// Resource edit.
 		{
 			Domain:      resourcePath,
 			Name:        "edit",
@@ -61,7 +61,7 @@ func (g generator) AfterAdvice(h runtime.AdviceResource) error {
 			},
 			Builtin: true,
 		},
-		// resource view
+		// Resource view.
 		{
 			Domain:      resourcePath,
 			Name:        "view",

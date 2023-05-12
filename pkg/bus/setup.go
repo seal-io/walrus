@@ -17,19 +17,19 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
-	// application revision
+	// Application revision.
 	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status", platformtf.SyncApplicationRevisionStatus)
 	if err != nil {
 		return
 	}
 
-	// module
+	// Module.
 	err = module.AddSubscriber("module-sync-schema", modules.SchemaSync(opts.ModelClient).Do)
 	if err != nil {
 		return
 	}
 
-	// setting
+	// Setting.
 	err = setting.AddSubscriber("cron-sync", cron.Sync)
 	if err != nil {
 		return

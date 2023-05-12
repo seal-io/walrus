@@ -13,7 +13,7 @@ func ParseNamespacedName(s string) (ns, n string) {
 	if len(ss) == 2 {
 		return ss[0], ss[1]
 	}
-	// use default namespace provided by kubeconfig.
+	// Use default namespace provided by kubeconfig.
 	return "", s
 }
 

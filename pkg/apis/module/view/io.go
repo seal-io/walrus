@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/seal/utils/validation"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.ModuleCreateInput `json:",inline"`
@@ -28,7 +28,7 @@ func (r *CreateRequest) Validate() error {
 }
 
 func (r *CreateRequest) Model() *model.Module {
-	var entity = r.ModuleCreateInput.Model()
+	entity := r.ModuleCreateInput.Model()
 	entity.ID = r.ID
 	return entity
 }
@@ -76,7 +76,7 @@ type StreamResponse struct {
 	Collection []*model.ModuleOutput `json:"collection,omitempty"`
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.ModuleQueryInput
 
@@ -102,7 +102,7 @@ type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 type RefreshRequest struct {
 	_ struct{} `route:"POST=/refresh"`

@@ -9,7 +9,7 @@ import (
 
 // CustomConfig is the config of a custom connector.
 // It is used to generate the custom connector config.
-// e.g. a custom helm connector
+// E.g. A custom helm connector
 //
 //	configData := CustomConfig{
 //		Attributes: map[string]interface{}{

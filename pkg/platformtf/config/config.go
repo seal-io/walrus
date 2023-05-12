@@ -16,14 +16,14 @@ import (
 
 // Config handles the configuration of application to terraform config.
 type Config struct {
-	// file is the hclwrite.File of the Config.
+	// File is the hclwrite.File of the Config.
 	file *hclwrite.File
 
 	// Attributes is the attributes of the Config.
-	// e.g.
-	// attr1 = "xxx"
+	// E.g.
+	// Attr1 = "xxx"
 	// attr2 = 1
-	// attr3 = true
+	// attr3 = true.
 	Attributes map[string]interface{}
 
 	// Blocks blocks like terraform, provider, module, etc.
@@ -56,7 +56,7 @@ const (
 
 // NewConfig returns a new Config.
 func NewConfig(opts CreateOptions) (*Config, error) {
-	// terraform block
+	// Terraform block.
 	var (
 		err        error
 		attributes map[string]interface{}
@@ -83,7 +83,7 @@ func NewConfig(opts CreateOptions) (*Config, error) {
 		return nil, err
 	}
 
-	// init the config.
+	// Init the config.
 	if err = c.initAttributes(); err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (c *Config) initAttributes() error {
 // WriteTo writes the config to the writer.
 func (c *Config) WriteTo(w io.Writer) (int64, error) {
 
-	// format the file
+	// Format the file.
 	formatted := hclwrite.Format(Format(c.file.Bytes()))
 
 	return io.Copy(w, bytes.NewReader(formatted))
@@ -192,23 +192,23 @@ func loadBlocks(opts CreateOptions) (blocks block.Blocks, err error) {
 		variableBlocks block.Blocks
 		outputBlocks   block.Blocks
 	)
-	// load terraform block
+	// Load terraform block.
 	if opts.TerraformOptions != nil {
 		tfBlocks = block.Blocks{loadTerraformBlock(opts.TerraformOptions)}
 	}
-	// other blocks like provider, module, etc.
-	// load provider blocks
+	// Other blocks like provider, module, etc.
+	// load provider blocks.
 	if opts.ProviderOptions != nil {
 		providerBlocks, err = loadProviderBlocks(opts.ProviderOptions)
 		if err != nil {
 			return nil, err
 		}
 	}
-	// load module blocks
+	// Load module blocks.
 	if opts.ModuleOptions != nil {
 		moduleBlocks = loadModuleBlocks(opts.ModuleOptions.ModuleConfigs, providerBlocks)
 	}
-	// load variable blocks
+	// Load variable blocks.
 	if opts.VariableOptions != nil {
 		variableBlocks = loadVariableBlocks(opts.VariableOptions)
 	}
@@ -260,13 +260,13 @@ func loadTerraformBlock(opts *TerraformOptions) *block.Block {
 		Labels: []string{"http"},
 		Attributes: map[string]interface{}{
 			"address": opts.Address,
-			// since the seal server using bearer token and
+			// Since the seal server using bearer token and
 			// terraform backend only support basic auth.
-			// we use the token as the password, and let the username be default.
+			// We use the token as the password, and let the username be default.
 			"username":               _defaultUsername,
 			"password":               opts.Token,
 			"skip_cert_verification": opts.SkipTLSVerify,
-			// use PUT method to update the state
+			// Use PUT method to update the state.
 			"update_method":  _updateMethod,
 			"retry_max":      10,
 			"retry_wait_max": 5,
@@ -305,7 +305,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			continue
 		}
 		name := p.Labels[0]
-		// template "{{xxx}}" will be replaced by xxx, the quote will be removed.
+		// Template "{{xxx}}" will be replaced by xxx, the quote will be removed.
 		providersMap[name] = fmt.Sprintf("{{%s.%s}}", name, alias)
 	}
 	for _, mc := range moduleConfigs {
@@ -314,7 +314,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			logger.Warnf("get module mb failed, %w", mc)
 			continue
 		}
-		// inject providers alias to the module
+		// Inject providers alias to the module.
 		if mc.ModuleVersion.Schema != nil {
 			moduleProviders := map[string]interface{}{}
 			for _, p := range mc.ModuleVersion.Schema.RequiredProviders {
@@ -336,7 +336,7 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 	var blocks = make(block.Blocks, 0, len(opts.SecretNames)+len(opts.VariableNameAndTypes))
 
-	// secret variables.
+	// Secret variables.
 	for i := range opts.SecretNames {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
@@ -348,7 +348,7 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 		})
 	}
 
-	// application variables.
+	// Application variables.
 	for n, t := range opts.VariableNameAndTypes {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
@@ -370,7 +370,7 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 		return label, value
 	}
 
-	// module output.
+	// Module output.
 	var blocks = make(block.Blocks, 0, len(opts))
 	for _, o := range opts {
 		label, value := blockConfig(o)

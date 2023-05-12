@@ -23,7 +23,7 @@ func Version() runtime.Handle {
 }
 
 func PProf() runtime.HTTPHandler {
-	// NB(thxCode): init from net/http/pprof
+	// NB(thxCode): init from net/http/pprof.
 	var m = http.NewServeMux()
 	m.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
 	m.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
@@ -35,7 +35,7 @@ func PProf() runtime.HTTPHandler {
 
 func SetFlags() runtime.ErrorHandle {
 	return func(ctx *gin.Context) error {
-		// support set flags log-debug and log-verbosity.
+		// Support set flags log-debug and log-verbosity.
 		var input struct {
 			LogDebug     *bool   `query:"log-debug"`
 			LogVerbosity *uint64 `query:"log-verbosity"`

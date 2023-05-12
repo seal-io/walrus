@@ -45,7 +45,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Warn("previous processing is not finished")
 		return nil
 	}
-	var startTs = time.Now()
+	startTs := time.Now()
 	defer func() {
 		in.mu.Unlock()
 		in.logger.Debugf("processed in %v", time.Since(startTs))
@@ -55,7 +55,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	// we group 10 application instances into one task group,
 	// treat each application instance as a task unit,
 	// and then process resources stating in task unit.
-	var cnt, err = in.modelClient.ApplicationInstances().Query().
+	cnt, err := in.modelClient.ApplicationInstances().Query().
 		Count(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot count application instances: %w", err)
@@ -63,7 +63,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if cnt == 0 {
 		return nil
 	}
-	// index none custom connectors for reusing.
+	// Index none custom connectors for reusing.
 	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
 		return fmt.Errorf("cannot list connectors: %w", err)
@@ -71,34 +71,34 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if len(cs) == 0 {
 		return nil
 	}
-	var ops = make(map[types.ID]operator.Operator, len(cs))
+	ops := make(map[types.ID]operator.Operator, len(cs))
 	for i := range cs {
-		var op, err = platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := platform.GetOperator(ctx, operator.CreateOptions{
 			Connector: *cs[i],
 		})
 		if err != nil {
-			// warn out without breaking the whole syncing.
+			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("cannot get operator of connector %q: %v", cs[i].ID, err)
 			continue
 		}
 		if err = op.IsConnected(ctx); err != nil {
-			// warn out without breaking the whole syncing.
+			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", cs[i].ID)
 			// NB(thxCode): replace disconnected connector with unknown connector.
 			op = operatorunknown.Operator{}
 		}
 		ops[cs[i].ID] = op
 	}
-	// execute tasks.
+	// Execute tasks.
 	const bks = 10
-	var bkc = cnt/bks + 1
+	bkc := cnt/bks + 1
 	if bkc == 1 {
-		var st = in.buildStateTasks(ctx, 0, bks, ops)
+		st := in.buildStateTasks(ctx, 0, bks, ops)
 		return st()
 	}
-	var wg = gopool.Group()
+	wg := gopool.Group()
 	for bk := 0; bk < bkc; bk++ {
-		var st = in.buildStateTasks(ctx, bk*bks, bks, ops)
+		st := in.buildStateTasks(ctx, bk*bks, bks, ops)
 		wg.Go(st)
 	}
 	return wg.Wait()
@@ -106,7 +106,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 
 func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int, ops map[types.ID]operator.Operator) func() error {
 	return func() error {
-		var is, err = in.modelClient.ApplicationInstances().Query().
+		is, err := in.modelClient.ApplicationInstances().Query().
 			Order(model.Desc(applicationinstance.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -119,9 +119,9 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 			return fmt.Errorf("error listing application instances in pagination %d,%d: %w",
 				offset, limit, err)
 		}
-		var wg = gopool.Group()
+		wg := gopool.Group()
 		for i := range is {
-			var at = in.buildStateTask(ctx, is[i], ops)
+			at := in.buildStateTask(ctx, is[i], ops)
 			wg.Go(at)
 		}
 		return wg.Wait()
@@ -130,7 +130,7 @@ func (in *StatusSyncTask) buildStateTasks(ctx context.Context, offset, limit int
 
 func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.ApplicationInstance, ops map[types.ID]operator.Operator) func() error {
 	return func() (berr error) {
-		var rs, err = i.QueryResources().
+		rs, err := i.QueryResources().
 			Order(model.Desc(applicationresource.FieldCreateTime)).
 			Unique(false).
 			Select(
@@ -146,32 +146,32 @@ func (in *StatusSyncTask) buildStateTask(ctx context.Context, i *model.Applicati
 			return fmt.Errorf("error listing application resources: %w", err)
 		}
 
-		var ids = make(map[types.ID][]*model.ApplicationResource)
+		ids := make(map[types.ID][]*model.ApplicationResource)
 		for y := range rs {
-			// group resources by connector.
+			// Group resources by connector.
 			ids[rs[y].ConnectorID] = append(ids[rs[y].ConnectorID],
 				rs[y])
 		}
 
 		var sr applicationresources.StateResult
 		for cid, crs := range ids {
-			var op, exist = ops[cid]
+			op, exist := ops[cid]
 			if !exist {
-				// ignore if not found operator.
+				// Ignore if not found operator.
 				continue
 			}
 			nsr, err := applicationresources.State(ctx, op, in.modelClient, crs)
 			if multierr.AppendInto(&berr, err) {
-				// mark error as transitioning,
+				// Mark error as transitioning,
 				// which doesn't flip the status.
 				nsr.Transitioning = true
 			}
 			sr.Merge(nsr)
 		}
 
-		// state application instance.
+		// State application instance.
 		if status.ApplicationInstanceStatusDeleted.Exist(i) {
-			// skip if the instance is on deleting.
+			// Skip if the instance is on deleting.
 			return
 		}
 		switch {

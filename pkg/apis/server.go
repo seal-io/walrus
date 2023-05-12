@@ -60,7 +60,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 
 	var g = gopool.GroupWithContextIn(c)
 
-	// serve https.
+	// Serve https.
 	g.Go(func(ctx context.Context) error {
 		if opts.TlsMode == TlsModeDisabled {
 			httpHandler <- handler
@@ -79,7 +79,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 			MinVersion: tls.VersionTLS12,
 		}
 		switch opts.TlsMode {
-		default: // TlsModeSelfGenerated
+		default: // TlsModeSelfGenerated.
 			var mgr = &dynacert.Manager{
 				Cache: dynacert.DirCache(opts.TlsCertDir),
 			}
@@ -115,7 +115,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 		return serve(ctx, h, lg, ls)
 	})
 
-	// serve http.
+	// Serve http.
 	g.Go(func(ctx context.Context) error {
 		var h = <-httpHandler
 		var lg = newStdLogger(s.logger.WithName("http"))

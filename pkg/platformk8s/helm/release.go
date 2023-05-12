@@ -36,7 +36,7 @@ func GetRelease(ctx context.Context, res *model.ApplicationResource, opts GetRel
 		return nil, errors.New("unresolved helm driver: " + dr)
 	}
 
-	// get helm release with namespace.
+	// Get helm release with namespace.
 	var hrns, hrn = kube.ParseNamespacedName(res.Name)
 	var restConfig, err = opts.RESTClientGetter.ToRESTConfig()
 	if err != nil {
@@ -78,9 +78,9 @@ func GetReleaseStatus(ctx context.Context, res *model.ApplicationResource, opts 
 		release.StatusPendingRollback:
 		isTransitioning = true
 	default:
-		// release.StatusDeployed,
+		// Release.StatusDeployed,
 		// release.StatusUninstalled,
-		// release.StatusSuperseded
+		// release.StatusSuperseded.
 	}
 	return &status.Status{
 		Summary: status.Summary{

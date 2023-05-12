@@ -44,7 +44,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var entity = req.Model()
@@ -85,7 +85,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.ApplicationOutput, error) {
 	var entity, err = h.modelClient.Applications().Query().
 		Where(application.ID(id)).
-		// must extract modules.
+		// Must extract modules.
 		WithModules(func(rq *model.ApplicationModuleRelationshipQuery) {
 			rq.Order(model.Asc(applicationmodulerelationship.FieldCreateTime)).
 				Select(
@@ -94,7 +94,7 @@ func (h Handler) getApplicationOutput(ctx context.Context, id types.ID) (*model.
 					applicationmodulerelationship.FieldModuleID,
 					applicationmodulerelationship.FieldVersion,
 					applicationmodulerelationship.FieldAttributes).
-				// allow returning without sorting keys.
+				// Allow returning without sorting keys.
 				Unique(false)
 		}).
 		Only(ctx)
@@ -152,7 +152,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 	}
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -184,13 +184,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -209,11 +209,11 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 }
 
 func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.ApplicationQuery {
-	// get application with instances and environments
+	// Get application with instances and environments.
 	return query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
-		// must extract application instances.
+		// Must extract application instances.
 		WithInstances(func(iq *model.ApplicationInstanceQuery) {
 			iq.Select(
 				applicationinstance.FieldApplicationID,
@@ -221,7 +221,7 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 				applicationinstance.FieldName,
 				applicationinstance.FieldStatus).
 				Where(func(s *sql.Selector) {
-					// sq generate instance with row number.
+					// Sq generate instance with row number.
 					var sq = s.Clone().
 						AppendSelectExprAs(
 							sql.RowNumber().
@@ -233,12 +233,12 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 						From(s.Table()).
 						As(applicationinstance.Table)
 
-					// query latest 5 instances.
+					// Query latest 5 instances.
 					s.Where(sql.LTE(s.C("row_number"), 5)).
 						From(sq)
 				}).
 				Select(
-					applicationinstance.FieldEnvironmentID, // must extract environment.
+					applicationinstance.FieldEnvironmentID, // Must extract environment.
 				).
 				WithEnvironment(func(eq *model.EnvironmentQuery) {
 					eq.Select(environment.FieldName)
@@ -304,4 +304,4 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.

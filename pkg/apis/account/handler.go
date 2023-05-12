@@ -29,14 +29,14 @@ func Login() runtime.ErrorHandle {
 			return err
 		}
 
-		// login
+		// Login.
 		var internalSessions, err = casdoor.SignInUser(ctx, casdoor.BuiltinApp, casdoor.BuiltinOrg,
 			input.Username, input.Password)
 		if err != nil {
 			return runtime.Error(http.StatusUnauthorized, err)
 		}
 
-		// hold session
+		// Hold session.
 		err = casdoor.HoldSession(ctx.Writer, internalSessions)
 		if err != nil {
 			return runtime.Errorw(err, "failed to login")
@@ -52,10 +52,10 @@ func Logout() runtime.Handle {
 			return
 		}
 
-		// logout
+		// Logout.
 		_ = casdoor.SignOutUser(ctx, []*req.HttpCookie{internalSession})
 
-		// interrupt session
+		// Interrupt session.
 		_ = casdoor.InterruptSession(ctx.Writer, []*req.HttpCookie{internalSession})
 		cache.CleanSessionSubject(string(internalSession.Value()))
 	}
@@ -103,7 +103,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 		if err != nil {
 			return err
 		}
-		// switch login group.
+		// Switch login group.
 		for i := range selves {
 			if *selves[i].LoginTo {
 				if selves[i].Group == *r.LoginGroup {
@@ -149,7 +149,7 @@ func updateInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 			}
 			return runtime.Error(http.StatusBadRequest, err)
 		}
-		// update setting to indicate the initialized password has been changed.
+		// Update setting to indicate the initialized password has been changed.
 		if settings.FirstLogin.ShouldValueBool(ctx, modelClient) {
 			_, err = settings.FirstLogin.Set(ctx, modelClient, "false")
 			return err
@@ -168,7 +168,7 @@ func getInfo(ctx *gin.Context, modelClient model.ClientSet) error {
 		LoginGroup: s.Group,
 	}
 
-	// get belong groups.
+	// Get belong groups.
 	var selves, err = modelClient.Subjects().Query().
 		Where(
 			subject.Kind("user"),

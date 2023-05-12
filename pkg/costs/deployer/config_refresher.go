@@ -75,7 +75,7 @@ func updateCustomPricingConfigMap(ctx context.Context, conn *model.Connector, re
 }
 
 func refreshCustomPricing(conn *model.Connector, restCfg *rest.Config) error {
-	// call opencost API to refresh pricing
+	// Call opencost API to refresh pricing.
 	url, err := opencostRefreshPricingURL(restCfg)
 	if err != nil {
 		return fmt.Errorf("error get refresh princing url for connector: %s: %w", conn.Name, err)

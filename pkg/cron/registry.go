@@ -57,7 +57,7 @@ func doRegister(ctx context.Context, mc model.ClientSet) error {
 		if s == nil {
 			continue
 		}
-		// get cron expr of the job from global model client.
+		// Get cron expr of the job from global model client.
 		var v string
 		v, err = s.Value(ctx, mc)
 		if err != nil {
@@ -102,7 +102,7 @@ func Sync(ctx context.Context, m settingbus.BusMessage) error {
 		if s == nil {
 			continue
 		}
-		// get cron expr of the job from transactional model client.
+		// Get cron expr of the job from transactional model client.
 		var v, err = s.Value(ctx, m.TransactionalModelClient)
 		if err != nil {
 			return fmt.Errorf("error gettting job cron expr: %w", err)

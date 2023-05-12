@@ -69,6 +69,7 @@ const (
 	// _workdir the working directory of the job.
 	_workdir = "/seal/deployment"
 )
+
 const (
 	// _applyCommands the commands to apply deployment of the application.
 	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
@@ -104,7 +105,7 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
 	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
 	if !ok {
-		// not a deployer job
+		// Not a deployer job.
 		return nil
 	}
 
@@ -113,7 +114,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 			return
 		}
 
-		// delete the secret of the job.
+		// Delete the secret of the job.
 		derr := r.deleteSecret(ctx, job.Name)
 		if derr != nil {
 			r.Logger.Error(err, "failed to delete secret", "application-revision", appRevisionID)
@@ -124,7 +125,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	if err != nil {
 		return err
 	}
-	// if the application revision status is not running, then skip it.
+	// If the application revision status is not running, then skip it.
 	if appRevision.Status != status.ApplicationRevisionStatusRunning {
 		return nil
 	}
@@ -149,7 +150,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		revisionStatus = status.ApplicationRevisionStatusFailed
 	}
 
-	// report to application revision.
+	// Report to application revision.
 	appRevision.Status = revisionStatus
 	appRevision.StatusMessage = revisionStatusMessage
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
@@ -171,7 +172,7 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	if err != nil {
 		return "", err
 	}
-	var ls = "job-name=" + jobName
+	ls := "job-name=" + jobName
 	pods, err := clientSet.CoreV1().Pods(types.SealSystemNamespace).
 		List(ctx, metav1.ListOptions{LabelSelector: ls})
 	if err != nil {
@@ -330,7 +331,7 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		return nil
 	}
 
-	var jobPod = podList.Items[0]
+	jobPod := podList.Items[0]
 	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
 		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{ResourceVersion: "0"})
 		if getErr != nil {
@@ -341,7 +342,7 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 	if err != nil {
 		return err
 	}
-	var states = kube.GetContainerStates(&jobPod)
+	states := kube.GetContainerStates(&jobPod)
 	if len(states) == 0 {
 		return nil
 	}

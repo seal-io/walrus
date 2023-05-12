@@ -45,7 +45,7 @@ func TestOperator(t *testing.T) {
 		}
 	})
 
-	// start testing pod.
+	// Start testing pod.
 	cli, err := coreclient.NewForConfig(k8sCfg)
 	if err != nil {
 		t.Fatalf("error createing kubernetes client: %v", err)
@@ -86,11 +86,11 @@ func TestOperator(t *testing.T) {
 		}
 	}
 	defer func() {
-		// clean testing pod.
+		// Clean testing pod.
 		_ = cli.Pods(p.Namespace).Delete(ctx, p.Name, meta.DeleteOptions{})
 	}()
 
-	// mock application resource.
+	// Mock application resource.
 	var res = &model.ApplicationResource{
 		Type:         "kubernetes_pod",
 		Name:         p.Namespace + "/" + p.Name,

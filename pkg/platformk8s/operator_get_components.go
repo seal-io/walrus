@@ -21,18 +21,18 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 		return nil, nil
 	}
 
-	// parse composite resources.
+	// Parse composite resources.
 	var rs, err = parseResources(ctx, op, res, intercept.Composite())
 	if err != nil {
 		if !isResourceParsingError(err) {
 			return nil, err
 		}
-		// warn out if got above errors.
+		// Warn out if got above errors.
 		op.Logger.Warn(err)
 		return nil, nil
 	}
 
-	// get components of resources.
+	// Get components of resources.
 	var comps = make([]*model.ApplicationResource, 0)
 	for _, r := range rs {
 		switch r.Resource {
@@ -60,7 +60,7 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 		}
 	}
 	for i := range comps {
-		// copy required field from composition resource.
+		// Copy required field from composition resource.
 		comps[i].CompositionID = res.ID
 		comps[i].InstanceID = res.InstanceID
 		comps[i].ConnectorID = res.ConnectorID
@@ -72,13 +72,13 @@ func (op Operator) GetComponents(ctx context.Context, res *model.ApplicationReso
 }
 
 func (op Operator) getComponentOfPersistentVolumeClaim(ctx context.Context, ns, n string) (*model.ApplicationResource, error) {
-	// fetch controlled persistent volume claim.
+	// Fetch controlled persistent volume claim.
 	var coreCli, err = coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 	pvc, err := coreCli.PersistentVolumeClaims(ns).
-		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+		Get(ctx, n, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
 			return nil, fmt.Errorf("error getting kubernetes %s/%s persistent volume claim: %w",
@@ -87,7 +87,7 @@ func (op Operator) getComponentOfPersistentVolumeClaim(ctx context.Context, ns, 
 		return nil, nil
 	}
 
-	// get persistent volume.
+	// Get persistent volume.
 	if pvc.Spec.VolumeName == "" {
 		return nil, nil
 	}
@@ -106,7 +106,7 @@ func (op Operator) getComponentsOfCronJob(ctx context.Context, ns, n string) ([]
 		return nil, nil
 	}
 
-	// convert pod to application resource.
+	// Convert pod to application resource.
 	var ps = *psp
 	var rs []*model.ApplicationResource
 	for i := 0; i < len(ps); i++ {
@@ -127,7 +127,7 @@ func (op Operator) getComponentsOfAny(ctx context.Context, gvr schema.GroupVersi
 		return nil, nil
 	}
 
-	// convert pod to application resource.
+	// Convert pod to application resource.
 	var ps = *psp
 	var rs []*model.ApplicationResource
 	for i := 0; i < len(ps); i++ {

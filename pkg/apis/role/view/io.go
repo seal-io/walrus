@@ -7,9 +7,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 )
 
-// Basic APIs
+// Basic APIs.
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Role, role.OrderOption] `query:",inline"`
@@ -19,4 +19,4 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.RoleOutput
 
-// Extensional APIs
+// Extensional APIs.

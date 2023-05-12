@@ -39,7 +39,7 @@ func perspectiveAll() *model.Perspective {
 		EndTime:   "now",
 		Builtin:   true,
 		AllocationQueries: []types.QueryCondition{
-			// daily cost
+			// Daily cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -69,7 +69,7 @@ func perspectiveAll() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// per project cost
+			// Per project cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -99,7 +99,7 @@ func perspectiveAll() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// per cluster cost
+			// Per cluster cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -140,7 +140,7 @@ func perspectiveCluster() *model.Perspective {
 		EndTime:   "now",
 		Builtin:   true,
 		AllocationQueries: []types.QueryCondition{
-			// daily cost
+			// Daily cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -173,7 +173,7 @@ func perspectiveCluster() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// per namespace cost
+			// Per namespace cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -205,7 +205,7 @@ func perspectiveCluster() *model.Perspective {
 					PerPage: 10,
 				},
 			},
-			// workload per day cost
+			// Workload per day cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -249,7 +249,7 @@ func perspectiveProject() *model.Perspective {
 		EndTime:   "now",
 		Builtin:   true,
 		AllocationQueries: []types.QueryCondition{
-			// app cost
+			// App cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{

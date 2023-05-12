@@ -8,7 +8,7 @@ const (
 	ConnectorCategoryVersionControl string = "VersionControl"
 )
 
-// FinOpsCustomPricing used to config opencost
+// FinOpsCustomPricing used to config opencost.
 type FinOpsCustomPricing struct {
 	// CPU describing cost per core-month of CPU.
 	CPU string `json:"cpu"`
@@ -36,7 +36,7 @@ func (c *FinOpsCustomPricing) IsZero() bool {
 }
 
 func DefaultFinOpsCustomPricing() *FinOpsCustomPricing {
-	// opencost will treat custom price from configMap as month cost, and divide / 730 to calculate hourly cost,
+	// Opencost will treat custom price from configMap as month cost, and divide / 730 to calculate hourly cost,
 	// the default pricing from opencost is hourly cost, so we multiply by 730 and place here.
 	// https://github.com/opencost/opencost/blob/d7958021bff300610b4585de0fac4e7289d3b5b9/pkg/cloud/providerconfig.go#L214
 	return &FinOpsCustomPricing{

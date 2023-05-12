@@ -46,14 +46,14 @@ func (ps paths[T]) Walk(st *Status) (r *Summary) {
 			continue
 		}
 
-		// accept the result that has a higher score.
+		// Accept the result that has a higher score.
 		var ls, rs = getSummaryScore(l), getSummaryScore(r)
 		if ls <= rs {
 			continue
 		}
 		r, rs = l, ls
 
-		// quit soon if found one highest result.
+		// Quit soon if found one highest result.
 		if rs == highestSummaryScore {
 			break
 		}
@@ -92,7 +92,7 @@ func newPath[T ~string](steps []T, arranges ...func(Decision[T])) path[T] {
 		stepsDecide: make([]Decide, len(steps)),
 	}
 	for i := range steps {
-		// loop check, panic if found.
+		// Loop check, panic if found.
 		if _, exist := p.stepsIndex[steps[i]]; exist {
 			panic("found loop")
 		}
@@ -100,7 +100,7 @@ func newPath[T ~string](steps []T, arranges ...func(Decision[T])) path[T] {
 		p.stepsDecide[i] = getGeneralDecide(steps[i])
 	}
 
-	// change the default decide logic after arranging.
+	// Change the default decide logic after arranging.
 	for i := range arranges {
 		arranges[i](Decision[T](p))
 	}
@@ -118,37 +118,37 @@ type path[T ~string] struct {
 func (f path[T]) Walk(st *Status) *Summary {
 	var s Summary
 
-	// walk the status if condition list is not empty.
+	// Walk the status if condition list is not empty.
 	if len(st.Conditions) != 0 {
-		// map conditions with the specified steps for quick indexing.
+		// Map conditions with the specified steps for quick indexing.
 		var stepsConditionIndex = make([]int, len(f.steps))
 		for i, c := range st.Conditions {
-			// plus 1 to avoid aligning not found item.
+			// Plus 1 to avoid aligning not found item.
 			if idx, exist := f.stepsIndex[T(c.Type)]; exist {
 				stepsConditionIndex[idx] = i + 1
 			}
 		}
 
-		// walk the path to configure the summary.
+		// Walk the path to configure the summary.
 		for i := range f.steps {
 			if stepsConditionIndex[i] == 0 {
-				// not found step in the given status's condition list.
+				// Not found step in the given status's condition list.
 				continue
 			}
 			var c = &st.Conditions[stepsConditionIndex[i]-1]
 
-			// get summary from display result.
+			// Get summary from display result.
 			s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[i](c.Status, c.Reason)
 			s.SummaryStatusMessage = c.Message
 
-			// quit from the walk if still error or being transitioning.
+			// Quit from the walk if still error or being transitioning.
 			if s.Error || s.Transitioning {
 				break
 			}
 		}
 	}
 
-	// default summary if it hasn't been configured.
+	// Default summary if it hasn't been configured.
 	if s.SummaryStatus == "" {
 		s.SummaryStatus, s.Error, s.Transitioning = f.stepsDecide[len(f.steps)-1]("", "")
 		s.SummaryStatusMessage = ""
@@ -177,9 +177,9 @@ func (d Decision[T]) Make(step T, with Decide) Decision[T] {
 func getGeneralDecide[T ~string](step T) Decide {
 	var s = string(step)
 
-	// pretty the display with some rules,
+	// Pretty the display with some rules,
 	// most rules are for not present tense word.
-	var displays = [3]string{s, s, s} // Transitioning, Error, Done
+	var displays = [3]string{s, s, s} // Transitioning, Error, Done.
 	for m, r := range replacements {
 		if !strings.HasSuffix(s, m) {
 			continue

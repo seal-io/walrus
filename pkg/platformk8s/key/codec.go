@@ -8,7 +8,7 @@ import (
 
 // Decode parses the given string into {pod namespace, pod name, container type, container name},
 // returns false if not a valid key, e.g. default/coredns-64897985d-6x2jm/container/coredns.
-// valid container types have `initContainer`, `ephemeralContainer`, `container`.
+// Valid container types have `initContainer`, `ephemeralContainer`, `container`.
 func Decode(s string) (podNamespace, podName, containerType, containerName string, ok bool) {
 	var ss = strings.SplitN(s, "/", 4)
 	ok = len(ss) == 4

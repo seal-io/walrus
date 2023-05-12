@@ -28,13 +28,13 @@ func Recovering() Handle {
 				var cs = callstack(3)
 				logger.Errorf("panic observing: %v, callstack: \n%s", e, cs)
 				if isStreamRequest(c) {
-					// stream request always send header at first,
+					// Stream request always send header at first,
 					// so we don't need to rewrite.
 					return
 				}
 				c.AbortWithStatusJSON(http.StatusInternalServerError, httpError{
 					code: http.StatusInternalServerError,
-				}) // TODO negotiate
+				}) // TODO negotiate.
 			}
 		}()
 

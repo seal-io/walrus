@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/utils/validation"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.ApplicationCreateInput `json:",inline"`
@@ -85,7 +85,7 @@ func validateModules(ctx context.Context, modelClient model.ClientSet, inputModu
 		if !ok {
 			return fmt.Errorf("invalid module %s: empty schema", v.Name)
 		}
-		// verify attributes with attributes schema that defined on versioned module.
+		// Verify attributes with attributes schema that defined on versioned module.
 		err = v.Attributes.ValidateWith(moduleSchema)
 		if err != nil {
 			return fmt.Errorf("invalid module %s, "+
@@ -158,7 +158,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.ApplicationQueryInput
 
@@ -210,4 +210,4 @@ func (r *CollectionStreamRequest) Validate() error {
 	return nil
 }
 
-// Extensional APIs
+// Extensional APIs.

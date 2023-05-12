@@ -18,19 +18,19 @@ import (
 
 // Log implements operator.Operator.
 func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) error {
-	// parse key.
+	// Parse key.
 	ns, pn, ct, cn, ok := key.Decode(k)
 	if !ok {
 		return fmt.Errorf("failed to parse given key: %q", k)
 	}
 
-	// confirm.
+	// Confirm.
 	var cli, err = coreclient.NewForConfig(op.RestConfig)
 	if err != nil {
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
 	p, err := cli.Pods(ns).
-		Get(ctx, pn, meta.GetOptions{ResourceVersion: "0"}) // non quorum read
+		Get(ctx, pn, meta.GetOptions{ResourceVersion: "0"}) // Non quorum read.
 	if err != nil {
 		return fmt.Errorf("error getting kubernetes pod %s/%s: %w", ns, pn, err)
 	}
@@ -38,7 +38,7 @@ func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) 
 		return fmt.Errorf("given %s container %s is not ownered by %s/%s pod", ct, cn, ns, pn)
 	}
 
-	// stream.
+	// Stream.
 	var stmOpts = &core.PodLogOptions{
 		Container:    cn,
 		Follow:       kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}),

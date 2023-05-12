@@ -59,7 +59,7 @@ func (r *stepDistributor) distribute(ctx context.Context, startTime, endTime tim
 }
 
 func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTime time.Time, cond types.QueryCondition) ([]view.Resource, int, error) {
-	// condition
+	// Condition.
 	_, offset := startTime.Zone()
 	orderBy, err := orderByWithOffsetSQL(cond.GroupBy, offset)
 	if err != nil {
@@ -105,7 +105,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		From(sql.Table(allocationcost.Table)).
 		As("subQuery")
 
-	// queried count
+	// Queried count.
 	queriedCount, err := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			if havingPs != nil {
@@ -119,7 +119,7 @@ func (r *stepDistributor) AllocationCosts(ctx context.Context, startTime, endTim
 		return nil, 0, err
 	}
 
-	// query
+	// Query.
 	query := r.client.AllocationCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -342,7 +342,7 @@ func applyItemDisplayName(ctx context.Context, client model.ClientSet, items []v
 		return nil
 	}
 
-	// group by connector id
+	// Group by connector id.
 	conns, err := client.Connectors().Query().
 		Where(
 			connector.TypeEQ(types.ConnectorTypeK8s),

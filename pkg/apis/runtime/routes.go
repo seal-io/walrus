@@ -20,7 +20,7 @@ import (
 )
 
 func init() {
-	// disable gin default binding
+	// Disable gin default binding.
 	binding.Validator = nil
 }
 
@@ -214,7 +214,7 @@ type RouteResourceHandleErrorMetadata struct {
 
 // String implements the fmt.Stringer,
 // outputs example as below.
-// e.g.
+// E.g.
 //
 //	Resource:   applicationInstances
 //	Name:       Get
@@ -327,7 +327,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 	for i := range rhs {
 		var rh = rhs[i]
 
-		// normal request caller.
+		// Normal request caller.
 		var (
 			mr      reflect.Value
 			mrt     reflect.Type
@@ -343,7 +343,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			ipState = ip.State()
 		}
 
-		// stream request caller.
+		// Stream request caller.
 		var (
 			smr      reflect.Value
 			smrt     reflect.Type
@@ -359,13 +359,13 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			sipState = sip.State()
 		}
 
-		// construct virtual handler.
+		// Construct virtual handler.
 		var vhm = RouteResourceHandleErrorMetadata{
 			Resource: resource,
 			Name:     rh.name,
 		}
 		var vh = func(c *gin.Context) {
-			// auth request.
+			// Auth request.
 			var s = session.LoadSubject(c)
 			if !s.Enforce(c, resource) {
 				if s.IsAnonymous() {
@@ -377,7 +377,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			}
 			session.StoreSubjectCurrentOperation(c, s.Give(resource).If(c.Request.Method))
 
-			// check request whether to stream.
+			// Check request whether to stream.
 			var withStream bool
 			if isStreamRequest(c) {
 				if !smr.IsValid() {
@@ -390,7 +390,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				return
 			}
 
-			// bind input.
+			// Bind input.
 			var (
 				rmr      = mr
 				rit      = it
@@ -467,23 +467,23 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 				ri = ri.Elem()
 			}
 
-			// process as stream request.
+			// Process as stream request.
 			if withStream {
 				doStreamRequest(c, rmr, ri)
 				return
 			}
 
-			// process as normal request.
+			// Process as normal request.
 			var inputs = make([]reflect.Value, 0, 2)
 			inputs = append(inputs, reflect.ValueOf(c))
 			inputs = append(inputs, ri)
 			var outputs = rmr.Call(inputs)
 
-			// render response
+			// Render response.
 			if c.Request.Context().Err() != nil ||
 				c.Writer.Size() >= 0 ||
 				len(c.Errors) != 0 {
-				// already render inside the above processing
+				// Already render inside the above processing.
 				return
 			}
 			var errInterface = outputs[len(outputs)-1].Interface()
@@ -528,18 +528,18 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 					}
 					c.Render(code, ot)
 				default:
-					c.JSON(code, obj) // TODO negotiate
+					c.JSON(code, obj) // TODO negotiate.
 				}
 			case 3:
 				var obj = GetResponseCollection(c, outputs[0].Interface(), int(outputs[1].Int()))
-				c.JSON(code, obj) // TODO negotiate
+				c.JSON(code, obj) // TODO negotiate.
 			}
 		}
 
-		// register router.
+		// Register router.
 		r.Handle(rh.method, rh.path, vh)
 
-		// register schema.
+		// Register schema.
 		// TODO(thxCode) scheming Websocket.
 		var (
 			rip  = ip
@@ -612,12 +612,12 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		)
 		rh.name = mn
 
-		// filter
+		// Filter.
 		switch {
 		default:
 			continue
 		case strings.HasPrefix(mn, streamPrefix):
-			// attach to GET method.
+			// Attach to GET method.
 			forStream = true
 			rh.method = http.MethodGet
 			rh.refs = []reflect.Value{{}, mr}
@@ -627,7 +627,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 				rh.path = path.Join("/", p, ":id", strs.Dasherize(mn[len(streamPrefix):]))
 			}
 		case strings.HasPrefix(mn, collectionStreamPrefix):
-			// attach to GET method.
+			// Attach to GET method.
 			forStream = true
 			forCollection = true
 			rh.method = http.MethodGet
@@ -700,9 +700,9 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		}
 		ms.Delete(mn)
 
-		// validate
+		// Validate.
 		var err = func() error {
-			// validate input arguments.
+			// Validate input arguments.
 			switch mrt.NumIn() {
 			default:
 				return fmt.Errorf("invalid input number of '%s': got %d but expected 2", mn, mrt.NumIn())
@@ -730,7 +730,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 					}
 				}
 			}
-			// validate output arguments.
+			// Validate output arguments.
 			switch mrt.NumOut() {
 			default:
 				return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 3", mn, mrt.NumOut())
@@ -770,15 +770,15 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		if rh.method == http.MethodGet {
 			var idx, exist = index[rh.method+":"+rh.path]
 			if exist {
-				if forStream { // attach to GET handler.
+				if forStream { // Attach to GET handler.
 					list[idx].refs = append(list[idx].refs, mr)
 				} else {
 					list[idx].refs[0] = mr
-					list[idx].name = mn // rename to GET handler.
+					list[idx].name = mn // Rename to GET handler.
 				}
 				continue
 			}
-			if forStream { // attach to GET handler.
+			if forStream { // Attach to GET handler.
 				rh.refs = []reflect.Value{{}, mr}
 			}
 		}
@@ -796,21 +796,21 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 		)
 		rh.name = mn
 
-		// filter
+		// Filter.
 		switch {
 		default:
 			continue
 		case strings.HasPrefix(mn, routePrefix):
-			rh.path = path.Join("/", p, ":id") // part
+			rh.path = path.Join("/", p, ":id") // Part.
 		case strings.HasPrefix(mn, collectionRoutePrefix):
 			forCollection = true
-			rh.path = path.Join("/", p, "_") // part
+			rh.path = path.Join("/", p, "_") // Part.
 		}
 		ms.Delete(mn)
 
-		// validate and complete
+		// Validate and complete.
 		var err = func() error {
-			// validate input arguments.
+			// Validate input arguments.
 			switch mrt.NumIn() {
 			default:
 				return fmt.Errorf("invalid input number of '%s': got %d but expected 2", mn, mrt.NumIn())
@@ -834,7 +834,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 					return fmt.Errorf("invalid subpath definition of '%s': conflict", mn)
 				}
 			}
-			// validate output arguments.
+			// Validate output arguments.
 			switch mrt.NumOut() {
 			default:
 				return fmt.Errorf("invalid output number of '%s': got %d but expected not more than 3", mn, mrt.NumOut())
@@ -872,7 +872,7 @@ func getRouteHandlers(h Resource, p string) []routeHandler {
 			var idx, exist = index[rh.method+":"+rh.path]
 			if exist {
 				list[idx].refs[0] = mr
-				list[idx].name = mn // rename to the GET handler.
+				list[idx].name = mn // Rename to the GET handler.
 				continue
 			}
 		}
