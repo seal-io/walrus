@@ -1,6 +1,6 @@
 package strs
 
-// borrowed from github.com/thanhpk/randstr.
+// Borrowed from github.com/thanhpk/randstr.
 
 import (
 	"bytes"
@@ -45,7 +45,7 @@ func String(n int, letters ...string) string {
 	var bb bytes.Buffer
 	bb.Grow(n)
 	l := uint32(len(letterRunes))
-	// on each loop, generate one random rune and append to output.
+	// On each loop, generate one random rune and append to output.
 	for i := 0; i < n; i++ {
 		bb.WriteRune(letterRunes[binary.BigEndian.Uint32(Bytes(4))%l])
 	}

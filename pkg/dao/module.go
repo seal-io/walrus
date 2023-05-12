@@ -19,13 +19,13 @@ func ModuleCreates(mc model.ClientSet, input ...*model.Module) ([]*model.ModuleC
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Modules().Create().
 			SetID(r.ID).
 			SetSource(r.Source).
 			SetStatus(status.ModuleStatusInitializing)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		c.SetIcon(r.Icon)
 		if r.Labels != nil {
@@ -41,12 +41,12 @@ func ModuleUpdate(mc model.ClientSet, input *model.Module) (*model.ModuleUpdateO
 		return nil, errors.New("invalid input: nil entity")
 	}
 
-	// predicated.
+	// Predicated.
 	if input.ID == "" {
 		return nil, errors.New("invalid input: illegal predicates")
 	}
 
-	// conditional.
+	// Conditional.
 	var c = mc.Modules().UpdateOne(input).
 		SetDescription(input.Description).
 		SetIcon(input.Icon).

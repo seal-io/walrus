@@ -26,7 +26,7 @@ func authn(c *gin.Context, modelClient model.ClientSet) error {
 
 	var internalSession = casdoor.GetSession(c.Request.Cookies())
 	if internalSession == nil {
-		// anonymous
+		// Anonymous.
 		return nil
 	}
 	return authnWithSession(c, modelClient, internalSession)
@@ -37,7 +37,7 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 
 	if sj, active := cache.LoadTokenSubject(token); sj != nil {
 		if !active {
-			// anonymous
+			// Anonymous.
 			return nil
 		}
 		var g, n, err = session.ParseSubjectKey(*sj)
@@ -58,17 +58,17 @@ func authnWithToken(c *gin.Context, modelClient model.ClientSet, token string) e
 	}
 	var r, err = casdoor.IntrospectToken(c, cred.ClientID, cred.ClientSecret, token)
 	if err != nil {
-		// avoid d-dos
+		// Avoid d-dos.
 		logger.Errorf("error verifying user token: %v", err)
 		cache.StoreTokenSubject(token, "", false)
 		return nil
 	}
 	if !r.Active || r.Exp < time.Now().Unix() {
-		// expired
+		// Expired.
 		cache.StoreTokenSubject(token, "", false)
 		return nil
 	}
-	// cache
+	// Cache.
 	groups, err := getGroups(c, modelClient, "", r.UserName)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 
 	if sj, active := cache.LoadSessionSubject(string(internalSession.Value())); sj != nil {
 		if !active {
-			// anonymous
+			// Anonymous.
 			return nil
 		}
 		var g, n, err = session.ParseSubjectKey(*sj)
@@ -100,12 +100,12 @@ func authnWithSession(c *gin.Context, modelClient model.ClientSet, internalSessi
 
 	var r, err = casdoor.GetUserInfo(c, []*req.HttpCookie{internalSession})
 	if err != nil {
-		// avoid d-dos
+		// Avoid d-dos.
 		logger.Errorf("error getting user account: %v", err)
 		cache.StoreSessionSubject(string(internalSession.Value()), "", false)
 		return casdoor.InterruptSession(c.Writer, []*req.HttpCookie{internalSession})
 	}
-	// cache
+	// Cache.
 	groups, err := getGroups(c, modelClient, "", r.Name)
 	if err != nil {
 		return err
@@ -121,10 +121,10 @@ func getGroups(ctx context.Context, modelClient model.ClientSet, group string, u
 	var query = modelClient.Subjects().Query().
 		Where(subject.Kind("user"), subject.Name(user))
 	if group == "" {
-		// get specified login group(loginTo=true) or default login group(mountTo=false)
+		// Get specified login group(loginTo=true) or default login group(mountTo=false).
 		query.Where(subject.Or(subject.LoginTo(true), subject.MountTo(false)))
 	} else {
-		// specified group.
+		// Specified group.
 		query.Where(subject.Group(group))
 	}
 

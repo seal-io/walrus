@@ -19,12 +19,12 @@ func SecretCreates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretC
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Secrets().Create().
 			SetName(r.Name).
 			SetValue(r.Value)
 
-		// optional.
+		// Optional.
 		if r.ProjectID != "" {
 			c.SetProjectID(r.ProjectID)
 		}
@@ -44,7 +44,7 @@ func SecretUpdates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretU
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Secret
 		switch {
 		case r.ID.IsNaive():

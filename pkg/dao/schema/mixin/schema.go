@@ -11,7 +11,7 @@ type schema struct {
 }
 
 func (schema) Annotations() []entschema.Annotation {
-	// tag edges field with omitempty.
+	// Tag edges field with omitempty.
 	return []entschema.Annotation{
 		edge.Annotation{
 			StructTag: `json:"edges,omitempty"`,

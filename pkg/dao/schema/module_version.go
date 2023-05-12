@@ -46,7 +46,7 @@ func (ModuleVersion) Fields() []ent.Field {
 
 func (ModuleVersion) Edges() []ent.Edge {
 	return []ent.Edge{
-		// module 1-* module versions.
+		// Module 1-* module versions.
 		edge.From("module", Module.Type).
 			Ref("versions").
 			Field("moduleID").

@@ -17,17 +17,17 @@ import (
 )
 
 func GetConfig(kubeconfigPath string) (*rest.Config, error) {
-	// use the specified config.
+	// Use the specified config.
 	if kubeconfigPath != "" {
 		return LoadConfig(kubeconfigPath)
 	}
 
-	// try the in-cluster config.
+	// Try the in-cluster config.
 	if c, err := rest.InClusterConfig(); err == nil {
 		return c, nil
 	}
 
-	// try the recommended config.
+	// Try the recommended config.
 	var loader = clientcmd.NewDefaultClientConfigLoadingRules()
 	loader.Precedence = append(loader.Precedence,
 		filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName))
@@ -67,7 +67,7 @@ func Wait(ctx context.Context, cfg *rest.Config) error {
 		},
 	)
 	if err != nil && lastErr != nil {
-		err = lastErr // use last error to overwrite context error while existed
+		err = lastErr // Use last error to overwrite context error while existed.
 	}
 	return err
 }

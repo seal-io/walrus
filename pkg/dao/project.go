@@ -19,11 +19,11 @@ func ProjectCreates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Projects().Create().
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
@@ -44,7 +44,7 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Project
 		switch {
 		case r.ID.IsNaive():
@@ -56,7 +56,7 @@ func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.Proje
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		// conditional.
+		// Conditional.
 		var c = mc.Projects().Update().
 			Where(ps...).
 			SetDescription(r.Description)

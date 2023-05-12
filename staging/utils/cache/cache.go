@@ -20,7 +20,7 @@ func MustNew(ctx context.Context) *bigcache.BigCache {
 }
 
 func New(ctx context.Context) (*bigcache.BigCache, error) {
-	// each shard initializes with `(MaxEntriesInWindows / Shards) * MaxEntrySize` = 300 * 512 = 150kb
+	// Each shard initializes with `(MaxEntriesInWindows / Shards) * MaxEntrySize` = 300 * 512 = 150kb
 	// each shard limits in `(HardMaxCacheSize * 1024 * 1024) / Shards` = 64 * 1024 * 1024 / 64 = 1mb
 	// initializes with 64 * 150kb = 9mb, limits with 64 * 1mb = 64mb.
 	var cfg = bigcache.Config{

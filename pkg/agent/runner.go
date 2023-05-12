@@ -30,7 +30,7 @@ func (r *Agent) Flags(cmd *cli.Command) {
 
 func (r *Agent) Before(cmd *cli.Command) {
 	r.Logger.Before(cmd)
-	// compatible with other loggers.
+	// Compatible with other loggers.
 	var logger = log.GetLogger()
 	stdlog.SetOutput(logger)
 	logrus.SetOutput(logger)

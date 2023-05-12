@@ -102,7 +102,7 @@ func nodeIP(ctx context.Context, kubeCli *kubernetes.Clientset, svc *apicorev1.S
 		internalIP string
 	)
 
-	// prefer external ip.
+	// Prefer external ip.
 	for _, node := range nodes {
 		for _, ip := range node.Status.Addresses {
 			if ip.Type == "ExternalIP" && ip.Address != "" {

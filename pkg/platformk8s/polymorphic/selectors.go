@@ -24,7 +24,7 @@ func SelectorsForObject(obj *unstructured.Unstructured) (ns string, s labels.Sel
 			return "", nil, fmt.Errorf("%s defined without a selector",
 				obj.GetKind())
 		}
-		// any -> bs -> structure.
+		// Any -> bs -> structure.
 		lsob, err := json.Marshal(lso)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed %s marshall, %w",

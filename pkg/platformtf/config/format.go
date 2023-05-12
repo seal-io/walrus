@@ -11,24 +11,24 @@ var (
 		replaceFn func([]byte) []byte
 	}{
 		{
-			// used for interpolation
+			// Used for interpolation
 			// replace all the `"key" = "$${a.b.c}` for `"key" = a.b.c`.
 			match:   regexp.MustCompile(`"\$\${([^$}{]+)\.([^$}{]+)\.([^$}{]+)}"`),
 			replace: []byte(`$1.$2.$3`),
 		},
 		{
-			// used for variables
+			// Used for variables
 			// replace all the `"key" = "$${a.b}` for `"key" = a.b`.
 			match:   regexp.MustCompile(`"\$\${([^$}{]+)\.([^$}{]+)}"`),
 			replace: []byte(`$1.$2`),
 		},
 		{
-			// replace `$${xxx}` with `xxx`.
+			// Replace `$${xxx}` with `xxx`.
 			match:   regexp.MustCompile(`\$\${([^}]+)}`),
 			replace: []byte(`${$1}`),
 		},
 		{
-			// replace "{{xxx}}" with xxx. quote will be removed.
+			// Replace "{{xxx}}" with xxx. Quote will be removed.
 			match:   regexp.MustCompile(`"{{([^}]+)}}"`),
 			replace: []byte(`$1`),
 		},

@@ -67,7 +67,7 @@ func Logging(ignorePaths ...string) Handle {
 			}
 		}
 
-		// start timer
+		// Start timer.
 		var start = time.Now()
 
 		c.Next()

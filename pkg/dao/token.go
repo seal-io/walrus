@@ -17,13 +17,13 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Tokens().Create().
 			SetCasdoorTokenName(r.CasdoorTokenName).
 			SetCasdoorTokenOwner(r.CasdoorTokenOwner).
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetNillableExpiration(r.Expiration)
 		rrs[i] = c
 	}

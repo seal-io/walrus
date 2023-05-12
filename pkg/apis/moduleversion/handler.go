@@ -26,7 +26,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	var entity, err = h.modelClient.ModuleVersions().Get(ctx, req.ID)
@@ -36,7 +36,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return model.ExposeModuleVersion(entity), nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -54,13 +54,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -71,7 +71,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
 		All(ctx)
 	if err != nil {
@@ -81,4 +81,4 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeModuleVersions(entities), cnt, nil
 }
 
-// Extensional APIs
+// Extensional APIs.

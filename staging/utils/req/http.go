@@ -39,7 +39,7 @@ func HTTP() *HttpClient {
 			MaxIdleConnDuration:      10 * time.Second,
 			Dial:                     fasthttpproxy.FasthttpProxyHTTPDialerTimeout(5 * time.Second),
 			DisablePathNormalizing:   true,
-			// respect the request retry backoff of HttpRequest
+			// Respect the request retry backoff of HttpRequest.
 			MaxIdemponentCallAttempts: 1,
 		},
 	}
@@ -214,9 +214,9 @@ func (in *HttpRequest) WithBodyForm(formParams url.Values) *HttpRequest {
 	var err error
 	for k, v := range formParams {
 		for _, iv := range v {
-			if strings.HasPrefix(k, "@") { // file
+			if strings.HasPrefix(k, "@") { // File.
 				err = addFile(w, k[1:], iv)
-			} else { // form value
+			} else { // Form value.
 				err = w.WriteField(k, iv)
 			}
 			if err != nil {
@@ -258,7 +258,7 @@ func (in *HttpRequest) WithCookies(cs ...*HttpCookie) *HttpRequest {
 	for i := 0; i < len(cs); i++ {
 		var c fasthttp.Cookie
 		c.CopyTo(cs[i])
-		c.SetKeyBytes([]byte{}) // clean key to make a correct bytes
+		c.SetKeyBytes([]byte{}) // Clean key to make a correct bytes.
 		in.request.Header.SetCookieBytesKV(cs[i].Key(), c.Cookie())
 	}
 	return in
@@ -380,7 +380,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 	}
 	for i := 0; ; i++ {
 		if ctx.Err() != nil {
-			// allow faster failure
+			// Allow faster failure.
 			resp.err = ctx.Err()
 			break
 		}
@@ -401,7 +401,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		})
 		select {
 		case <-ctx.Done():
-			// allow cancelling from requesting
+			// Allow cancelling from requesting.
 			resp.err = ctx.Err()
 			break
 		case err := <-respErrChan:
@@ -419,7 +419,7 @@ func (in *HttpRequest) Response(ctx context.Context, url string, method string) 
 		var waitTimer = time.NewTimer(waitDuration)
 		select {
 		case <-ctx.Done():
-			// allow cancelling from retry waiting
+			// Allow cancelling from retry waiting.
 			waitTimer.Stop()
 			resp.err = ctx.Err()
 			break
@@ -487,28 +487,28 @@ func (in *HttpRequest) Options(url string) *HttpResponse {
 
 func defaultHttpRequestRetryIf(statusCode int, respErr error) bool {
 	if respErr != nil {
-		// retry if receiving TLS handshake timeout.
+		// Retry if receiving TLS handshake timeout.
 		if errors.Is(respErr, fasthttp.ErrTLSHandshakeTimeout) {
 			return true
 		}
-		// retry if receiving dialing timeout.
+		// Retry if receiving dialing timeout.
 		if errors.Is(respErr, fasthttp.ErrDialTimeout) {
 			return true
 		}
-		// retry if receiving connection closed.
+		// Retry if receiving connection closed.
 		if errors.Is(respErr, fasthttp.ErrConnectionClosed) {
 			return true
 		}
 		var respErrMsg = respErr.Error()
-		// retry if receiving requesting timeout (tcp connected but failed to send header),
+		// Retry if receiving requesting timeout (tcp connected but failed to send header),
 		// it can cause by DNS error, server resource exhausted.
 		return strings.Contains(respErrMsg, "Client.Timeout exceeded while awaiting headers")
 	}
-	// retry if receiving rate-limited of server.
+	// Retry if receiving rate-limited of server.
 	if statusCode == fasthttp.StatusTooManyRequests {
 		return true
 	}
-	// retry if receiving unexpected responses.
+	// Retry if receiving unexpected responses.
 	if statusCode == 0 || (statusCode >= 500 && statusCode != fasthttp.StatusNotImplemented) {
 		return true
 	}
@@ -568,7 +568,7 @@ func (in *HttpResponse) Error() error {
 				in.err = errors.New(msg.String())
 			}
 		}
-		// releases the underlay request and response
+		// Releases the underlay request and response.
 		if in.err != nil {
 			fasthttp.ReleaseRequest(in.request)
 			fasthttp.ReleaseResponse(in.response)

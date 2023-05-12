@@ -30,9 +30,9 @@ func (h Handler) Kind() string {
 	return "Dashboard"
 }
 
-// Basic APIs
+// Basic APIs.
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) CollectionRouteBasicInformation(ctx *gin.Context, _ view.BasicInfoRequest) (*view.BasicInfoResponse, error) {
 	applicationNum, err := h.modelClient.Applications().Query().Count(ctx)
@@ -122,11 +122,11 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 	req view.ApplicationRevisionStatisticsRequest,
 ) (*view.ApplicationRevisionStatisticsResponse, error) {
 	var (
-		// statMap map of statistics.
+		// StatMap map of statistics.
 		statMap = make(map[string]*view.RevisionStatusStats, 0)
-		// statusStatistics statistics of revision status.
+		// StatusStatistics statistics of revision status.
 		statusStatistics []*view.RevisionStatusStats
-		// counts count of each status.
+		// Counts count of each status.
 		counts []struct {
 			Count      int       `json:"count"`
 			CreateTime time.Time `json:"create_time"`
@@ -138,7 +138,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		}
 	)
 
-	// format
+	// Format.
 	var format string
 	switch req.Step {
 	case timex.Month:
@@ -149,7 +149,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		format = "2006-01-02"
 	}
 
-	// days
+	// Days.
 	_, offset := req.StartTime.Zone()
 	loc := req.StartTime.Location()
 	timeSeries, err := timex.GetTimeSeries(req.StartTime, req.EndTime, req.Step, loc)
@@ -167,11 +167,11 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		return nil, err
 	}
 
-	// group by
+	// Group by.
 	err = h.modelClient.ApplicationRevisions().Query().
 		Where(ps...).
 		Modify(func(q *sql.Selector) {
-			// count
+			// Count.
 			q.Select(
 				sql.As(sql.Count(applicationrevision.FieldStatus), "count"),
 				sql.As(groupBy, applicationrevision.FieldCreateTime),
@@ -212,7 +212,7 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 	}
 
 	sort.Slice(statusStatistics, func(i, j int) bool {
-		// sort by start time
+		// Sort by start time.
 		return statusStatistics[i].StartTime < statusStatistics[j].StartTime
 	})
 

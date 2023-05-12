@@ -61,7 +61,7 @@ func (Secret) Fields() []ent.Field {
 
 func (Secret) Edges() []ent.Edge {
 	return []ent.Edge{
-		// project 1-* secrets.
+		// Project 1-* secrets.
 		edge.From("project", Project.Type).
 			Ref("secrets").
 			Field("projectID").

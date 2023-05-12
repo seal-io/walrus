@@ -18,14 +18,14 @@ func ApplicationRevisionCreates(mc model.ClientSet, input ...*model.ApplicationR
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.ApplicationRevisions().Create().
 			SetInstanceID(r.InstanceID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetInputPlan(r.InputPlan).
 			SetOutput(r.Output)
 
-		// optional.
+		// Optional.
 		c.SetStatus(r.Status)
 		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
 		if r.Modules != nil {

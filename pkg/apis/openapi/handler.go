@@ -60,7 +60,7 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 		}
 	}
 
-	// add named schemas.
+	// Add named schemas.
 	spec.AddNamedSchemas()
 
 	var specBytes, err = json.Marshal(spec)

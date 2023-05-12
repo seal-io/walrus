@@ -40,7 +40,7 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	case IsBidiStreamRequest(c):
 		doBidiStreamRequest(c, mr, ri)
 	default:
-		// unreachable
+		// Unreachable.
 		panic("cannot process as stream request")
 	}
 }
@@ -48,7 +48,7 @@ func doStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 func doUnidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 	var protoMajor, protoMinor = c.Request.ProtoMajor, c.Request.ProtoMinor
 	if protoMajor == 1 && protoMinor == 0 {
-		// do not support http/1.0.
+		// Do not support http/1.0.
 		c.AbortWithStatus(http.StatusUpgradeRequired)
 		return
 	}
@@ -127,9 +127,9 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		}
 	)
 
-	// in order to avoid downstream connection leaking,
+	// In order to avoid downstream connection leaking,
 	// we need configuring a handler to close the upstream context.
-	// to trigger the close handler,
+	// To trigger the close handler,
 	// we have to cut out a goroutine to received downstream,
 	// if downstream closes, the close handler will be triggered.
 	conn.SetCloseHandler(func(int, string) (err error) {
@@ -150,7 +150,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 		}
 	})
 
-	// ping downstream asynchronously.
+	// Ping downstream asynchronously.
 	gopool.Go(func() {
 		var ping = func() error {
 			_ = conn.SetReadDeadline(getDeadline(pongWait))
@@ -167,7 +167,7 @@ func doBidiStreamRequest(c *gin.Context, mr reflect.Value, ri reflect.Value) {
 			select {
 			case <-t.C:
 				if ping() != nil {
-					// cancel upstream if failed to touch downstream.
+					// Cancel upstream if failed to touch downstream.
 					cancel()
 					return
 				}

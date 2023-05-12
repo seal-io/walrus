@@ -30,17 +30,17 @@ func (Environment) Indexes() []ent.Index {
 
 func (Environment) Edges() []ent.Edge {
 	return []ent.Edge{
-		// environments *-* connectors.
+		// Environments *-* connectors.
 		edge.To("connectors", Connector.Type).
 			Comment("Connectors that configure to the environment.").
 			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type),
-		// environment 1-* application instances.
+		// Environment 1-* application instances.
 		edge.To("instances", ApplicationInstance.Type).
 			Comment("Application instances that belong to the environment.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
-		// environment 1-* application revisions.
+		// Environment 1-* application revisions.
 		edge.To("revisions", ApplicationRevision.Type).
 			Comment("Application revisions that belong to the environment.").
 			Annotations(entsql.Annotation{

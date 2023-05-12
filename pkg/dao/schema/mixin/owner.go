@@ -17,7 +17,7 @@ func (Owner) Indexes() []ent.Index {
 }
 
 func (Owner) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		field.String("ownerGroup").
 			Comment("Describe group of the owner.").
@@ -39,7 +39,7 @@ func (OwnerOrg) Indexes() []ent.Index {
 }
 
 func (OwnerOrg) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		field.String("ownerGroup").
 			Comment("Describe group of the owner.").

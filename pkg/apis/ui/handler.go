@@ -21,7 +21,7 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 	return func(c *gin.Context) {
 		var path = c.Request.URL.Path
 
-		// redirect.
+		// Redirect.
 		switch path {
 		case "":
 			http.Redirect(c.Writer, c.Request, "/", http.StatusMovedPermanently)
@@ -33,7 +33,7 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 			return
 		}
 
-		// ui handle.
+		// Ui handle.
 		var uiIndex = settings.ServeUiIndex.ShouldValueURL(ctx, modelClient)
 		if uiIndex == nil {
 			uiIndex = defaultUiIndex
@@ -44,7 +44,7 @@ func Index(ctx context.Context, modelClient model.ClientSet) runtime.Handle {
 			c.Abort()
 		default:
 			if strings.HasPrefix(path, "/assets/") {
-				// assets
+				// Assets.
 				uiSrv(uiIndex).ServeHTTP(c.Writer, c.Request)
 				c.Abort()
 				return

@@ -40,9 +40,9 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -67,13 +67,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -149,7 +149,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 	}
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
 	var res = req.Entity
@@ -221,9 +221,9 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, withoutKeys bool) (view.CollectionGetResponse, error) {
 	var logger = log.WithName("api").WithName("application-resource")
 
-	// allow returning without sorting keys.
+	// Allow returning without sorting keys.
 	entities, err := query.Unique(false).
-		// must extract connector.
+		// Must extract connector.
 		Select(applicationresource.FieldConnectorID).
 		WithConnector(func(cq *model.ConnectorQuery) {
 			cq.Select(
@@ -233,7 +233,7 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 				connector.FieldConfigVersion,
 				connector.FieldConfigData)
 		}).
-		// must extract components.
+		// Must extract components.
 		WithComponents(func(rq *model.ApplicationResourceQuery) {
 			rq.Select(getFields...).
 				Order(model.Desc(applicationresource.FieldCreateTime)).
@@ -244,13 +244,13 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 		return nil, err
 	}
 
-	// expose resources.
+	// Expose resources.
 	var resp = make(view.CollectionGetResponse, len(entities))
 	for i := 0; i < len(entities); i++ {
 		resp[i].Resource = model.ExposeApplicationResource(entities[i])
 	}
 
-	// fetch keys for each resource without error returning.
+	// Fetch keys for each resource without error returning.
 	if !withoutKeys {
 		// NB(thxCode): we can safety index the connector with its pointer here,
 		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
@@ -260,7 +260,7 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 		}
 
 		for c, idxs := range m {
-			// get operator by connector.
+			// Get operator by connector.
 			var op, err = platform.GetOperator(ctx, operator.CreateOptions{Connector: *c})
 			if err != nil {
 				logger.Warnf("cannot get operator of connector: %v", err)
@@ -270,7 +270,7 @@ func getCollection(ctx context.Context, query *model.ApplicationResourceQuery, w
 				logger.Warnf("unreachable connector: %v", err)
 				continue
 			}
-			// fetch keys for the resources that related to same connector.
+			// Fetch keys for the resources that related to same connector.
 			for _, i := range idxs {
 				resp[i].Keys, err = op.GetKeys(ctx, entities[i])
 				if err != nil {

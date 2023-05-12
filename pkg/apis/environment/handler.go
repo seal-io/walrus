@@ -29,7 +29,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	var entity = req.Model()
@@ -69,7 +69,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
 				Select(environmentconnectorrelationship.FieldEnvironmentID).
-				// allow returning without sorting keys.
+				// Allow returning without sorting keys.
 				Unique(false).
 				Select(environmentconnectorrelationship.FieldConnectorID).
 				WithConnector(
@@ -88,7 +88,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return model.ExposeEnvironment(entity), nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
@@ -120,13 +120,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -137,12 +137,12 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Order(orders...)
 	}
 	entities, err := query.
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
-		// must extract connectors.
+		// Must extract connectors.
 		Select(environment.FieldID).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
-			// includes connectors.
+			// Includes connectors.
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
 				WithConnector(func(cq *model.ConnectorQuery) {
 					cq.Select(
@@ -159,4 +159,4 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeEnvironments(entities), cnt, nil
 }
 
-// Extensional APIs
+// Extensional APIs.

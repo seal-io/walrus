@@ -37,12 +37,12 @@ type ApplicationResourceStatus struct {
 }
 
 func (a ApplicationResourceStatus) Equal(newArs ApplicationResourceStatus) bool {
-	// status
+	// Status.
 	if !a.Status.Equal(newArs.Status) {
 		return false
 	}
 
-	// endpoints
+	// Endpoints.
 	return a.ResourceEndpoints.Equal(newArs.ResourceEndpoints)
 }
 

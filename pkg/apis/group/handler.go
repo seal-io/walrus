@@ -32,7 +32,7 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 	var input = &model.Subject{
@@ -53,7 +53,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) error {
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	// get sub subjects.
+	// Get sub subjects.
 	var subres, err = h.modelClient.Subjects().Query().
 		Where(func(s *sql.Selector) {
 			s.Where(sql.And(
@@ -104,7 +104,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		}
 		return nil
 	})
-	// TODO clean cache
+	// TODO clean cache.
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
@@ -121,7 +121,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	return updates[0].Exec(ctx)
 }
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -149,13 +149,13 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 		query.Where(queries)
 	}
 
-	// get count.
+	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	// get entities.
+	// Get entities.
 	if limit, offset, ok := req.Paging(); ok {
 		query.Limit(limit).Offset(offset)
 	}
@@ -174,4 +174,4 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeSubjects(entities), cnt, nil
 }
 
-// Extensional APIs
+// Extensional APIs.

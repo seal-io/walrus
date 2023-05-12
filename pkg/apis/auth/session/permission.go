@@ -105,23 +105,23 @@ func (p Operation) merge(v Operation) (o Operation) {
 	}
 
 	if len(pi) == 0 {
-		// excludes in p
+		// Excludes in p.
 		if len(vi) == 0 {
-			// excludes in v, merge both
+			// Excludes in v, merge both.
 			o.excludes = make([]string, 0, len(pe)+len(ve))
 			o.excludes = append(o.excludes, pe...)
 			o.excludes = append(o.excludes, ve...)
 		} else {
-			// includes in v, excludes get higher priority
+			// Includes in v, excludes get higher priority.
 			o.excludes = pe
 		}
 	} else {
-		// includes in p
+		// Includes in p.
 		if len(vi) == 0 {
-			// excludes in v, excludes get higher priority
+			// Excludes in v, excludes get higher priority.
 			o.excludes = ve
 		} else {
-			// includes in v, merge both
+			// Includes in v, merge both.
 			o.includes = make([]string, 0, len(pi)+len(vi))
 			o.includes = append(o.includes, pi...)
 			o.includes = append(o.includes, vi...)

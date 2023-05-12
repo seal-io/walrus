@@ -30,7 +30,7 @@ func main() {
 
 // generate produces DAO APIs in a safer and cleaner way.
 func generate() (err error) {
-	// prepare
+	// Prepare.
 	workingDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("error getting working directory: %w", err)
@@ -50,7 +50,7 @@ func generate() (err error) {
 		return err
 	}
 
-	// generate
+	// Generate.
 	var feats = []gen.Feature{
 		gen.FeatureSnapshot,
 		gen.FeatureSchemaConfig,
@@ -72,7 +72,7 @@ func generate() (err error) {
 		return err
 	}
 
-	// save new generated
+	// Save new generated.
 	err = os.Rename(targetDir, oldGeneratedDir)
 	if err != nil {
 		if !strings.Contains(err.Error(), "no such file or directory") {
@@ -94,17 +94,17 @@ func generate() (err error) {
 
 // configStyle configures the style of generation.
 func configStyle() {
-	// goimports prefix.
+	// Goimports prefix.
 	imports.LocalPrefix = "github.com/seal-io/seal"
 }
 
 // configTemplateFuncs configures the functions of template generation.
 func configTemplateFuncs() {
-	// override.
+	// Override.
 	gen.Funcs["camel"] = strs.CamelizeDownFirst
 	gen.Funcs["snake"] = strs.Underscore
 	gen.Funcs["pascal"] = strs.Camelize
-	// extend.
+	// Extend.
 	gen.Funcs["getInputFields"] = getInputFields
 	gen.Funcs["getInputEdges"] = getInputEdges
 	gen.Funcs["getOutputFields"] = getOutputFields
@@ -116,12 +116,12 @@ func configTemplate() {
 	var pkgf = func(s string) func(t *gen.Type) string {
 		return func(t *gen.Type) string { return fmt.Sprintf(s, t.PackageDir()) }
 	}
-	// generate io file for per model.
+	// Generate io file for per model.
 	gen.Templates = append(gen.Templates, gen.TypeTemplate{
 		Name:   "io",
 		Format: pkgf("%s_io.go"),
 		ExtendPatterns: []string{
-			// combine the go templates that matches the following patterns together,
+			// Combine the go templates that matches the following patterns together,
 			// render and output to the file path formatted by `pkgf`.
 			"io",
 			"io/additional",

@@ -20,7 +20,7 @@ const defaultDataSourceAddress = "postgres://root@127.0.0.1:5432/seal?sslmode=di
 type Embedded struct{}
 
 func (Embedded) Run(ctx context.Context) error {
-	// create run data dir if not found.
+	// Create run data dir if not found.
 	var runDataPath = filepath.Join(consts.DataDir, "postgresql")
 	if !files.Exists(runDataPath) {
 		var err = files.Copy(

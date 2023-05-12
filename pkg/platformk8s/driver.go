@@ -80,7 +80,7 @@ func LoadApiConfig(conn model.Connector) (apiConfig *api.Config, raw string, err
 		//      "configData": {
 		//          "kubeconfig": "..."
 		//      }
-		// }
+		// }.
 		raw, err = loadRawConfigV1(conn.ConfigData)
 		if err != nil {
 			return nil, "", fmt.Errorf("error load config from connector %s: %w", conn.Name, err)
@@ -97,7 +97,7 @@ func LoadApiConfig(conn model.Connector) (apiConfig *api.Config, raw string, err
 func loadRawConfigV1(data crypto.Properties) (string, error) {
 	// {
 	//      "kubeconfig": "..."
-	// }
+	// }.
 	var kubeconfigText, exist, err = data["kubeconfig"].GetString()
 	if err != nil {
 		return "", fmt.Errorf(`failed to get "kubeconfig": %w`, err)

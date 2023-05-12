@@ -56,7 +56,7 @@ type checkResults struct {
 }
 
 func (c checkResults) MarshalJSON() ([]byte, error) {
-	// if c is empty return empty json
+	// If c is empty return empty json.
 	if c.ObjectKind == "" && c.ConfigAddr == "" && c.Status == "" && c.Objects == nil {
 		return []byte("null"), nil
 	}

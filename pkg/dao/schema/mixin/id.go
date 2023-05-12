@@ -11,7 +11,7 @@ type ID struct {
 }
 
 func (ID) Fields() []ent.Field {
-	// keep the json tag in camel case
+	// Keep the json tag in camel case.
 	return []ent.Field{
 		oid.Field("id").
 			Immutable(),

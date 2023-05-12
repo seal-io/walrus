@@ -45,7 +45,7 @@ func createNamespace(ctx context.Context, clientSet *kubernetes.Clientset) error
 			Name: types.SealSystemNamespace,
 		},
 	}
-	// create namespace if not exist.
+	// Create namespace if not exist.
 	_, err := clientSet.CoreV1().
 		Namespaces().
 		Create(ctx, &createNamespace, metav1.CreateOptions{})
@@ -63,7 +63,7 @@ func createServiceAccount(ctx context.Context, clientSet *kubernetes.Clientset) 
 			Name: types.DeployerServiceAccountName,
 		},
 	}
-	// create service account if not exist.
+	// Create service account if not exist.
 	_, err := clientSet.CoreV1().
 		ServiceAccounts(types.SealSystemNamespace).
 		Create(ctx, &sa, metav1.CreateOptions{})
@@ -87,14 +87,14 @@ func createRoleBinding(ctx context.Context, clientSet *kubernetes.Clientset) err
 				Namespace: types.SealSystemNamespace,
 			},
 		},
-		// TODO minimum role
+		// TODO minimum role.
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "ClusterRole",
 			Name:     "admin",
 			APIGroup: rbacv1.GroupName,
 		},
 	}
-	// create role binding if not exist.
+	// Create role binding if not exist.
 	_, err := clientSet.RbacV1().
 		RoleBindings(types.SealSystemNamespace).
 		Create(ctx, &rb, metav1.CreateOptions{})

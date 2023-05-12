@@ -29,7 +29,7 @@ import (
 
 // Terraform returns Converter to convert Terraform provider resource type to raw Kubernetes GVK/GVR.
 func Terraform() Converter {
-	// singleton pattern.
+	// Singleton pattern.
 	return tfConvert
 }
 
@@ -54,7 +54,7 @@ var tfConvert = terraformConvert{
 }
 
 func init() {
-	// emit, transfer and record.
+	// Emit, transfer and record.
 	//
 	// ref to https://registry.terraform.io/providers/hashicorp/kubernetes/2.18.1.
 	//

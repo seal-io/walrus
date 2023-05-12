@@ -19,14 +19,14 @@ func PerspectiveCreates(mc model.ClientSet, input ...*model.Perspective) ([]*mod
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Perspectives().Create().
 			SetName(r.Name).
 			SetStartTime(r.StartTime).
 			SetEndTime(r.EndTime).
 			SetBuiltin(r.Builtin)
 
-		// optional.
+		// Optional.
 		if len(r.AllocationQueries) != 0 {
 			c.SetAllocationQueries(r.AllocationQueries)
 		}
@@ -40,7 +40,7 @@ func PerspectiveUpdate(mc model.ClientSet, input *model.Perspective) (*model.Per
 	if input == nil {
 		return nil, errors.New("invalid input: nil entity")
 	}
-	// predicated.
+	// Predicated.
 	var ps = []predicate.Perspective{
 		perspective.ID(input.ID),
 	}

@@ -46,13 +46,13 @@ type hub struct {
 
 func (h *hub) Subscribe(t Topic) (Subscriber, error) {
 	if t == "" {
-		// topic scope
+		// Topic scope.
 		var n = uuid.NewString()
 		var c = make(chan Event, runtime.NumCPU()*2)
 		h.m.Store(n, c)
 		return subscriber{p: h, n: n, c: c}, nil
 	}
-	// hub scope
+	// Hub scope.
 	var v, _ = h.m.LoadOrStore(t, &hub{p: h, t: t})
 	var sh = v.(*hub)
 	return sh.Subscribe("")
@@ -60,7 +60,7 @@ func (h *hub) Subscribe(t Topic) (Subscriber, error) {
 
 func (h *hub) Unsubscribe(t Topic) error {
 	if t == "" {
-		// topic scope
+		// Topic scope.
 		h.m.Range(func(n, v any) bool {
 			var c = v.(chan Event)
 			close(c)
@@ -69,7 +69,7 @@ func (h *hub) Unsubscribe(t Topic) error {
 		})
 		return nil
 	}
-	// hub scope
+	// Hub scope.
 	var v, ok = h.m.Load(t)
 	if !ok {
 		return nil
@@ -80,7 +80,7 @@ func (h *hub) Unsubscribe(t Topic) error {
 
 func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
 	if n == "" {
-		// topic scope
+		// Topic scope.
 		h.m.Range(func(n, v any) bool {
 			var c = v.(chan Event)
 			select {
@@ -89,7 +89,7 @@ func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
 			case c <- Event{Topic: h.t, Data: m}:
 				return true
 			default:
-				// if chan is blocking
+				// If chan is blocking.
 				close(c)
 				h.m.Delete(n)
 				return true
@@ -97,7 +97,7 @@ func (h *hub) Publish(ctx context.Context, n Topic, m Message) error {
 		})
 		return nil
 	}
-	// hub scope
+	// Hub scope.
 	var v, ok = h.m.Load(n)
 	if !ok {
 		return nil
@@ -130,7 +130,7 @@ func (s subscriber) Unsubscribe() {
 
 var globalHub = New()
 
-// New returns a new Hub
+// New returns a new Hub.
 func New() Hub {
 	return &hub{}
 }

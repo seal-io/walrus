@@ -37,7 +37,7 @@ func State(ctx context.Context, op operator.Operator, modelClient model.ClientSe
 	}
 
 	for i := range candidates {
-		// get status of the application resource.
+		// Get status of the application resource.
 		st, err := op.GetStatus(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
@@ -45,19 +45,19 @@ func State(ctx context.Context, op operator.Operator, modelClient model.ClientSe
 			sr.merge(st.Error, st.Transitioning)
 		}
 
-		// get endpoints of the application resource.
+		// Get endpoints of the application resource.
 		eps, err := op.GetEndpoints(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}
 
-		// new application resource status.
+		// New application resource status.
 		newStatus := types.ApplicationResourceStatus{
 			Status:            *st,
 			ResourceEndpoints: eps,
 		}
 		if candidates[i].Status.Equal(newStatus) {
-			// do not update if the status is same as previous.
+			// Do not update if the status is same as previous.
 			continue
 		}
 
@@ -66,7 +66,7 @@ func State(ctx context.Context, op operator.Operator, modelClient model.ClientSe
 			Exec(ctx)
 		if err != nil {
 			if model.IsNotFound(err) {
-				// application resource has been deleted by other thread processing.
+				// Application resource has been deleted by other thread processing.
 				continue
 			}
 			berr = multierr.Append(berr, err)

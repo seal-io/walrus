@@ -28,7 +28,7 @@ var (
 	pathPrometheusQueryRange = "/prometheusQueryRange"
 )
 
-// labelMapping indicate the relation between opencost converted label and original label
+// labelMapping indicate the relation between opencost converted label and original label.
 var (
 	labelMapping = map[string]string{
 		"seal_io_project":     types.LabelSealProject,
@@ -39,7 +39,7 @@ var (
 
 // prometheus expression.
 const (
-	// exprClusterMgmtHrCost defined expression for management cost.
+	// ExprClusterMgmtHrCost defined expression for management cost.
 	exprClusterMgmtHrCost = "avg(avg_over_time(kubecost_cluster_management_cost[1h:5m]))"
 )
 
@@ -87,13 +87,13 @@ func (c *Collector) K8sCosts(startTime, endTime *time.Time, step time.Duration) 
 func (c *Collector) allocationResourceCosts(startTime, endTime *time.Time, step time.Duration) ([]*model.AllocationCost, error) {
 	window := fmt.Sprintf("%d,%d", startTime.Unix(), endTime.Unix())
 	queries := url.Values{
-		// each AllocationSet would be a container, use pod, container as aggregate key to prevent containers with same name.
+		// Each AllocationSet would be a container, use pod, container as aggregate key to prevent containers with same name.
 		"aggregate": []string{"pod,container"},
-		// accumulate sums each AllocationSet in the given range, just returning a single cumulative.
+		// Accumulate sums each AllocationSet in the given range, just returning a single cumulative.
 		"accumulate": []string{"false"},
-		// e.g. "1586822400,1586908800"
+		// E.g. "1586822400,1586908800".
 		"window": []string{window},
-		// e.g. "1h"
+		// E.g. "1h".
 		"step": []string{step.String()},
 	}
 
@@ -193,9 +193,9 @@ func (c *Collector) clusterCostsWithinRange(startTime, endTime *time.Time) (*mod
 
 	window := math.Ceil(endTime.Sub(*startTime).Minutes())
 	queries := url.Values{
-		// e.g. 1h
+		// E.g. 1h.
 		"window": []string{fmt.Sprintf("%.0fm", window)},
-		// e.g. 1h
+		// E.g. 1h.
 		"offset": []string{fmt.Sprintf("%.0fs", offset)},
 	}
 
@@ -247,7 +247,7 @@ func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.Al
 	for i, v := range ccs {
 		key := fmt.Sprintf("%s-%s", v.StartTime.Format(time.RFC3339), v.EndTime.Format(time.RFC3339))
 		if ac, ok := allocationCosts[key]; ok {
-			// can't get load balancer cost from cluster cost, so add it from allocation cost
+			// Can't get load balancer cost from cluster cost, so add it from allocation cost.
 			ccs[i].TotalCost += ac.LoadBalancerCost
 			ccs[i].AllocationCost = ac.TotalCost
 			idleCost := ccs[i].TotalCost - ccs[i].ManagementCost - ccs[i].AllocationCost
@@ -262,13 +262,13 @@ func (c *Collector) applyExtraCostInfo(ccs []*model.ClusterCost, acs []*model.Al
 func (c *Collector) clusterManagementCost(startTime, endTime *time.Time) (float64, error) {
 	layout := "2006-01-02T15:04:05.000Z"
 	queries := url.Values{
-		// e.g "2006-01-02T15:04:05.000Z"
+		// E.g "2006-01-02T15:04:05.000Z".
 		"start": []string{startTime.Format(layout)},
-		// e.g "2006-01-02T15:04:05.000Z"
+		// E.g "2006-01-02T15:04:05.000Z".
 		"end": []string{endTime.Format(layout)},
-		// prometheus query step
+		// Prometheus query step.
 		"duration": []string{"1h"},
-		// prometheus query expression
+		// Prometheus query expression.
 		"query": []string{exprClusterMgmtHrCost},
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.TokenCreateInput `json:",inline"`
@@ -49,7 +49,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.TokenOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestQuerying[predicate.Token] `query:",inline"`
@@ -58,4 +58,4 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.TokenOutput
 
-// Extensional APIs
+// Extensional APIs.

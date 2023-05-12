@@ -231,7 +231,7 @@ func (v value) Set(ctx context.Context, client model.ClientSet, newValueRaw inte
 	}
 
 	if oldVal == newVal {
-		// nothing to do if same as previous.
+		// Nothing to do if same as previous.
 		return false, nil
 	}
 

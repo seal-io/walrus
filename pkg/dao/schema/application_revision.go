@@ -67,7 +67,7 @@ func (ApplicationRevision) Fields() []ent.Field {
 
 func (ApplicationRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// application instance 1-* application revisions.
+		// Application instance 1-* application revisions.
 		edge.From("instance", ApplicationInstance.Type).
 			Ref("revisions").
 			Field("instanceID").
@@ -75,7 +75,7 @@ func (ApplicationRevision) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// environment 1-* application revisions.
+		// Environment 1-* application revisions.
 		edge.From("environment", Environment.Type).
 			Ref("revisions").
 			Field("environmentID").

@@ -26,7 +26,7 @@ type SharedCost struct {
 	Condition      types.SharedCost `json:"condition"`
 }
 
-// orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset, offset is in seconds east of UTC
+// orderByWithOffsetSQL generate the order by sql with groupBy field and timezone offset, offset is in seconds east of UTC.
 func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid order by: blank")
@@ -41,7 +41,7 @@ func orderByWithOffsetSQL(field types.GroupByField, offset int) (string, error) 
 	}
 }
 
-// groupByWithZoneOffsetSQL generate the group by sql with timezone offset, offset is in seconds east of UTC
+// groupByWithZoneOffsetSQL generate the group by sql with timezone offset, offset is in seconds east of UTC.
 func groupByWithZoneOffsetSQL(field types.GroupByField, offset int) (string, error) {
 	if field == "" {
 		return "", fmt.Errorf("invalid group by: blank")
@@ -73,7 +73,7 @@ END`, types.UnallocatedLabel, types.UnallocatedLabel, types.UnallocatedLabel)
 	return groupBy, nil
 }
 
-// wrappedCondition update step base on the groupBy
+// wrappedCondition update step base on the groupBy.
 func wrappedCondition(cond types.QueryCondition) types.QueryCondition {
 	switch cond.GroupBy {
 	case types.GroupByFieldDay:
@@ -86,7 +86,7 @@ func wrappedCondition(cond types.QueryCondition) types.QueryCondition {
 	return cond
 }
 
-// havingSQL generate the having sql with group by and query keyword
+// havingSQL generate the having sql with group by and query keyword.
 func havingSQL(
 	ctx context.Context,
 	client model.ClientSet,
@@ -127,7 +127,7 @@ func havingSQL(
 	return having, nil
 }
 
-// FilterToSQLPredicates create sql predicate from filters
+// FilterToSQLPredicates create sql predicate from filters.
 func FilterToSQLPredicates(filters types.AllocationCostFilters) *sql.Predicate {
 	var or []*sql.Predicate
 	for _, cond := range filters {
@@ -163,7 +163,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 	}
 
 	var pred *sql.Predicate
-	// label query
+	// Label query.
 	if strings.HasPrefix(string(cond.FieldName), types.LabelPrefix) {
 		labelName := strings.TrimPrefix(string(cond.FieldName), types.LabelPrefix)
 		switch cond.Operator {
@@ -175,7 +175,7 @@ func ruleToSQLPredicates(cond types.FilterRule) *sql.Predicate {
 		return pred
 	}
 
-	// other field query
+	// Other field query.
 	fieldName := strs.Underscore(string(cond.FieldName))
 	switch cond.Operator {
 	case types.OperatorIn:

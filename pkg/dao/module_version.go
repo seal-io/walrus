@@ -18,13 +18,13 @@ func ModuleVersionCreates(mc model.ClientSet, input ...*model.ModuleVersion) ([]
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.ModuleVersions().Create().
 			SetModuleID(r.ModuleID).
 			SetSource(r.Source).
 			SetVersion(r.Version)
 
-		// optional.
+		// Optional.
 		if r.Schema != nil {
 			c.SetSchema(r.Schema)
 		}

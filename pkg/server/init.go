@@ -15,13 +15,13 @@ type initOptions struct {
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
-	// create model schema.
+	// Create model schema.
 	var err = opts.ModelClient.Schema.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("error creating model schemas: %w", err)
 	}
 
-	// initialize critical resources.
+	// Initialize critical resources.
 	type initor struct {
 		name string
 		init func(context.Context, initOptions) error

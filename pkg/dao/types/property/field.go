@@ -386,7 +386,7 @@ func (i Property) Cty() (cty.Type, cty.Value, error) {
 	}
 
 	if i.Type == cty.NilType || i.Type == cty.DynamicPseudoType {
-		// guess
+		// Guess.
 		var v ctyjson.SimpleJSONValue
 		if err := json.Unmarshal(i.Value, &v); err != nil {
 			return i.Type, cty.NilVal, err
@@ -520,34 +520,34 @@ func (i Values) StringTypesWith(schemas Schemas) map[string]string {
 
 // ValidateWith validates the property value with the given schemas.
 func (i Values) ValidateWith(schemas Schemas) error {
-	// convert values to properties with the schemas.
+	// Convert values to properties with the schemas.
 	var props = Properties{}
 	for _, s := range schemas {
 		var v, exist = i[s.Name]
 		if s.Required {
-			// validate required value.
+			// Validate required value.
 			if !exist || len(v) == 0 {
 				return fmt.Errorf("not found required value %s", s.Name)
 			}
 		}
 		if !exist {
-			// ignore unspecified value.
+			// Ignore unspecified value.
 			continue
 		}
-		// construct property.
+		// Construct property.
 		props[s.Name] = Property{
 			Type:  s.Type,
 			Value: v,
 		}
 	}
 
-	// validate undefined value.
+	// Validate undefined value.
 	if len(i) != len(props) {
 		var l, r = sets.KeySet[string, Value](i), sets.KeySet[string, Property](props)
 		return fmt.Errorf("found undefiend values %v", l.Difference(r).UnsortedList())
 	}
 
-	// validate converting.
+	// Validate converting.
 	var _, _, err = props.Cty()
 	if err != nil {
 		return fmt.Errorf("unexpected value parsed: %w", err)

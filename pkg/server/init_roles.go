@@ -14,7 +14,7 @@ import (
 
 func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 	var builtin = []*model.Role{
-		// system anonymity
+		// System anonymity.
 		{
 			Domain:      "system",
 			Name:        "anonymity",
@@ -35,7 +35,7 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 			Session: true,
 		},
 
-		// system user
+		// System user.
 		{
 			Domain:      "system",
 			Name:        "user",
@@ -65,7 +65,7 @@ func (r *Server) initRoles(ctx context.Context, opts initOptions) error {
 			Session: true,
 		},
 
-		// system admin
+		// System admin.
 		{
 			Domain:      "system",
 			Name:        "admin",

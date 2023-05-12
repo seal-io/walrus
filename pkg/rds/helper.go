@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql" // db = mysql
-	_ "github.com/lib/pq"              // db = postgres
-	_ "github.com/mattn/go-sqlite3"    // db = sqlite3
+	_ "github.com/go-sql-driver/mysql" // Db = mysql.
+	_ "github.com/lib/pq"              // Db = postgres.
+	_ "github.com/mattn/go-sqlite3"    // Db = sqlite3.
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/seal-io/seal/utils/log"

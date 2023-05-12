@@ -61,9 +61,9 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) CollectionRouteExamples(c *gin.Context, _ view.ExampleRequest) (view.ExampleResponse, error) {
 	var translated []view.ModuleCompletionPromptExample
@@ -230,7 +230,7 @@ func (h Handler) CollectionRouteCreatePr(ctx *gin.Context, req view.CreatePrRequ
 			refInput.Name, req.Repository)
 	}
 
-	// TODO more informative PR body. e.g., let chatGPT generate it.
+	// TODO more informative PR body. E.g., let chatGPT generate it.
 	var prInput = &scm.PullRequestInput{
 		Title:  fmt.Sprintf("Add module %s", moduleName),
 		Body:   "This is a module proposed from Seal.",

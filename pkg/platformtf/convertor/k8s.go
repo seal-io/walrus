@@ -65,7 +65,7 @@ func (m K8sConvertor) toBlock(connector *model.Connector, opts interface{}) (*bl
 	return &block.Block{
 		Type:       block.TypeProvider,
 		Attributes: attributes,
-		// convert the connector type to provider type.
+		// Convert the connector type to provider type.
 		Labels: []string{string(m)},
 	}, nil
 }

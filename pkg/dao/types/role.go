@@ -128,48 +128,48 @@ type RolePolicy struct {
 
 func (in RolePolicy) Normalize() RolePolicy {
 	if len(in.Actions) > 1 {
-		// aggregate Actions if Actions has "*".
+		// Aggregate Actions if Actions has "*".
 		in.Actions = aggregateList(&in.Actions)
 	}
 	if len(in.Actions) != 1 || in.Actions[0] != "*" {
-		// clean up ActionExcludes if Action is not ["*"].
+		// Clean up ActionExcludes if Action is not ["*"].
 		in.ActionExcludes = nil
 	}
 
 	if len(in.Resources) > 1 {
-		// aggregate Resources if Resources has "*".
+		// Aggregate Resources if Resources has "*".
 		in.Resources = aggregateList(&in.Resources)
 	}
 	if len(in.Resources) != 1 || in.Resources[0] != "*" {
-		// clean up ResourceExcludes if Resources is not ["*"].
+		// Clean up ResourceExcludes if Resources is not ["*"].
 		in.ResourceExcludes = nil
 	}
 
 	if len(in.Resources) != 1 || in.Resources[0] == "*" {
-		// clean up ObjectIDs if Resources is not ["<a kind of resource>"].
+		// Clean up ObjectIDs if Resources is not ["<a kind of resource>"].
 		in.ObjectIDs = nil
 	}
 	if len(in.ObjectIDs) > 1 {
-		// aggregate ObjectIDs if ObjectIDs has "*".
+		// Aggregate ObjectIDs if ObjectIDs has "*".
 		in.ObjectIDs = aggregateList(&in.ObjectIDs)
 	}
 	if len(in.ObjectIDs) != 1 || in.ObjectIDs[0] != "*" {
-		// clean up ObjectIDExcludes if ObjectIDs is not ["*"].
+		// Clean up ObjectIDExcludes if ObjectIDs is not ["*"].
 		in.ObjectIDExcludes = nil
 	}
 
 	if len(in.ObjectIDs) != 0 {
-		// correct Scope to "G" if ObjectIDs is not empty.
+		// Correct Scope to "G" if ObjectIDs is not empty.
 		in.Scope = RolePolicyResourceScopeGlobal
 	}
 
 	if len(in.Resources) != 0 {
-		// clean up Paths if Resources is not empty.
+		// Clean up Paths if Resources is not empty.
 		in.Paths = nil
 	}
 
 	if len(in.Paths) != 0 {
-		// clean up Scope if Paths is not empty.
+		// Clean up Scope if Paths is not empty.
 		in.Scope = ""
 	}
 

@@ -62,7 +62,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 		case "managed", "data":
 		}
 
-		// try to get the connector id from the provider.
+		// Try to get the connector id from the provider.
 		connector, err := ParseInstanceProviderConnector(rs.Provider)
 		if err != nil {
 			logger.Errorf("invalid provider format: %s", rs.Provider)
@@ -73,7 +73,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 			continue
 		}
 
-		// "module": "module.singleton[0]" or "module": "module.singleton"
+		// "module": "module.singleton[0]" or "module": "module.singleton".
 		moduleName, err := ParseInstanceModuleName(rs.Module)
 		if err != nil {
 			logger.Errorf("invalid module format: %s", rs.Module)
@@ -97,7 +97,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 			if rs.Type == "helm_release" && !strings.Contains(instanceID, "/") {
 				// NB(thxCode): the ID of helm_release resource doesn't include namespace,
 				// so we can't fetch the real Helm Release record that under specified namespace.
-				// in order to recognize the real Helm Release record,
+				// In order to recognize the real Helm Release record,
 				// we should enrich the instanceID with the namespace name.
 				md, err := ParseInstanceMetadata(is)
 				if err != nil {
@@ -139,7 +139,7 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 		return nil, err
 	}
 
-	// sort by the module name length.
+	// Sort by the module name length.
 	var moduleNames = make([]string, len(revision.Modules))
 	for i, v := range revision.Modules {
 		moduleNames[i] = v.Name
@@ -157,7 +157,7 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 					val = []byte(`"<sensitive>"`)
 				}
 				outputs = append(outputs, types.OutputValue{
-					Name:       strings.TrimPrefix(n, mn+"_"), // name format is moduleName_outputName.
+					Name:       strings.TrimPrefix(n, mn+"_"), // Name format is moduleName_outputName.
 					Value:      val,
 					Type:       o.Type,
 					Sensitive:  o.Sensitive,
@@ -233,7 +233,7 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 }
 
 // ParseInstanceID get the real instance id from the instance object state.
-// The instance id is stored in the "name" attribute of application resource
+// The instance id is stored in the "name" attribute of application resource.
 func ParseInstanceID(is instanceObjectState) (string, error) {
 	if is.Attributes != nil {
 		ty, err := ctyjson.ImpliedType(is.Attributes)

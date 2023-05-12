@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.PerspectiveCreateInput `json:",inline"`
@@ -85,7 +85,7 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.PerspectiveOutput
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionDeleteRequest []*model.PerspectiveQueryInput
 
@@ -109,7 +109,7 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.PerspectiveOutput
 
-// Extensional APIs
+// Extensional APIs.
 
 type FieldType string
 

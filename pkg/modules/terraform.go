@@ -84,7 +84,7 @@ func GetModuleNameByPath(path string) string {
 		return lastPart
 	}
 
-	// lastPart is a version, get the
+	// LastPart is a version, get the.
 	nonVersionPath := strings.TrimSuffix(path, lastPart)
 	return filepath.Base(nonVersionPath)
 }
@@ -137,7 +137,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 	}
 
 	return mc.WithTx(ctx, func(tx *model.Tx) error {
-		// clean up previous module versions if there's any.
+		// Clean up previous module versions if there's any.
 		var _, err = tx.ModuleVersions().Delete().
 			Where(moduleversion.ModuleID(m.ID)).
 			Exec(ctx)
@@ -145,7 +145,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 			return err
 		}
 
-		// create new module versions.
+		// Create new module versions.
 		creates, err := dao.ModuleVersionCreates(tx, versions...)
 		if err != nil {
 			return err
@@ -157,7 +157,7 @@ func syncSchema(ctx context.Context, mc model.ClientSet, m *model.Module) error 
 			}
 		}
 
-		// state module.
+		// State module.
 		m.Status = status.ModuleStatusReady
 		update, err := dao.ModuleUpdate(tx, m)
 		if err != nil {
@@ -182,8 +182,8 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 	}
 
 	if len(versions) == 0 {
-		// try to load a module version from the root
-		// This keeps compatible with terraform git source
+		// Try to load a module version from the root
+		// This keeps compatible with terraform git source.
 		schema, err := loadTerraformModuleSchema(mRoot)
 		if err != nil {
 			return nil, err
@@ -208,7 +208,7 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 		}, nil
 	}
 
-	// Support reading different module versions in subdirectory
+	// Support reading different module versions in subdirectory.
 	var mvs []*model.ModuleVersion
 	for _, v := range versions {
 		schema, err := loadTerraformModuleSchema(filepath.Join(mRoot, v))
@@ -216,7 +216,7 @@ func loadTerraformModuleVersions(m *model.Module) ([]*model.ModuleVersion, error
 			return nil, err
 		}
 
-		// ModuleVersion.Source is the concatenation of Module.Source and Version
+		// ModuleVersion.Source is the concatenation of Module.Source and Version.
 		versionedSource := getVersionedSource(m.Source, v)
 		mvs = append(mvs, &model.ModuleVersion{
 			ModuleID: m.ID,

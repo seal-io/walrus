@@ -20,13 +20,13 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 		}
 
 		c := mc.AllocationCosts().Create().
-			// required.
+			// Required.
 			SetStartTime(r.StartTime).
 			SetEndTime(r.EndTime).
 			SetMinutes(r.Minutes).
 			SetClusterName(r.ClusterName).
 			SetConnectorID(r.ConnectorID).
-			// optional.
+			// Optional.
 			SetName(r.Name).
 			SetClusterName(r.ClusterName).
 			SetNamespace(r.Namespace).
@@ -66,6 +66,6 @@ func AllocationCostCreates(mc model.ClientSet, input ...*model.AllocationCost) (
 }
 
 func allocationCostFingerprint(cost *model.AllocationCost) string {
-	// TODO: support pv
+	// TODO: support pv.
 	return strs.Join("/", cost.ClusterName, cost.Node, cost.Namespace, cost.Pod, cost.Container)
 }

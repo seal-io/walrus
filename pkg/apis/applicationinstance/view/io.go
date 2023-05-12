@@ -25,7 +25,7 @@ import (
 	"github.com/seal-io/seal/utils/validation"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	*model.ApplicationInstanceCreateInput `json:",inline"`
@@ -44,7 +44,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
-	// verify application if it has no modules.
+	// Verify application if it has no modules.
 	app, err := modelClient.Applications().Query().
 		Select(
 			application.FieldID,
@@ -61,7 +61,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return runtime.Error(http.StatusNotFound, "invalid application: no modules")
 	}
 
-	// verify environment if it has no connectors.
+	// Verify environment if it has no connectors.
 	_, err = modelClient.Environments().Query().
 		Where(environment.ID(r.Environment.ID)).
 		OnlyID(ctx)
@@ -75,7 +75,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return runtime.Error(http.StatusNotFound, "invalid environment: no connectors")
 	}
 
-	// verify variables with variables schema that defined on application.
+	// Verify variables with variables schema that defined on application.
 	err = r.Variables.ValidateWith(app.Variables)
 	if err != nil {
 		return fmt.Errorf("invalid variables: %w", err)
@@ -98,7 +98,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if r.Force == nil {
-		// by default, clean deployed native resources too.
+		// By default, clean deployed native resources too.
 		r.Force = pointer.Bool(true)
 	}
 
@@ -151,7 +151,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationInstance, applicationinstance.OrderOption] `query:",inline"`
@@ -199,7 +199,7 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 	return nil
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 type RouteUpgradeRequest struct {
 	_ struct{} `route:"PUT=/upgrade"`
@@ -227,7 +227,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return runtime.Errorw(err, "failed to get application instance")
 	}
 
-	// verify variables with variables schema that defined on application.
+	// Verify variables with variables schema that defined on application.
 	err = r.Variables.ValidateWith(ai.Edges.Application.Variables)
 	if err != nil {
 		return fmt.Errorf("invalid variables: %w", err)
@@ -272,7 +272,7 @@ type AccessEndpointResponse = []Endpoint
 type Endpoint struct {
 	// ModuleName is the name of module.
 	ModuleName string `json:"moduleName,omitempty"`
-	// Name is identifier for the endpoint
+	// Name is identifier for the endpoint.
 	Name string `json:"name,omitempty"`
 	// Endpoint is access endpoint.
 	Endpoints []string `json:"endpoints,omitempty"`

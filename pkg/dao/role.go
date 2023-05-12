@@ -20,11 +20,11 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Roles().Create().
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		c.SetBuiltin(r.Builtin)
 		c.SetSession(r.Session)
@@ -50,7 +50,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Role
 		switch {
 		case r.ID.IsNaive():
@@ -65,7 +65,7 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		// conditional.
+		// Conditional.
 		var c = mc.Roles().Update().
 			Where(ps...).
 			SetDescription(r.Description)

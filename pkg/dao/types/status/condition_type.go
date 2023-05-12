@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ConditionStatus is the value of status
+// ConditionStatus is the value of status.
 type ConditionStatus string
 
 // These are valid condition statuses.
@@ -18,7 +18,7 @@ const (
 	ConditionStatusUnknown ConditionStatus = "Unknown"
 )
 
-// ConditionType is the type of status
+// ConditionType is the type of status.
 type ConditionType string
 
 // True set status value to True for object field .Status.Conditions,

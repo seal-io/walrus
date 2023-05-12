@@ -38,11 +38,11 @@ func (h Handler) Validating() any {
 	return h.modelClient
 }
 
-// Basic APIs
+// Basic APIs.
 
-// Batch APIs
+// Batch APIs.
 
-// Extensional APIs
+// Extensional APIs.
 
 func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.AllocationCostRequest) (*runtime.ResponseCollection, error) {
 	items, count, err := h.distributor.Distribute(ctx, req.StartTime, req.EndTime, req.QueryCondition)
@@ -55,7 +55,7 @@ func (h Handler) CollectionRouteAllocationCost(ctx *gin.Context, req view.Alloca
 }
 
 func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCostRequest) (*view.SummaryCostResponse, error) {
-	// total
+	// Total.
 	var clusterCostPs = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
@@ -76,7 +76,7 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 		return nil, fmt.Errorf("error summary total cost: %w", err)
 	}
 
-	// cluster
+	// Cluster.
 	clusters, err := h.modelClient.ClusterCosts().Query().
 		Modify(func(s *sql.Selector) {
 			s.Where(
@@ -89,7 +89,7 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 		return nil, fmt.Errorf("error summary each cluster's cost: %w", err)
 	}
 
-	// project
+	// Project.
 	var (
 		projectCostPs = []*sql.Predicate{
 			sql.GTE(allocationcost.FieldStartTime, req.StartTime),
@@ -119,17 +119,17 @@ func (h Handler) CollectionRouteSummaryCost(ctx *gin.Context, req view.SummaryCo
 		}
 	}
 
-	// days
+	// Days.
 	_, offset := req.StartTime.Zone()
 	days, err := h.clusterCostExistedDays(ctx, clusterCostPs, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	// average
+	// Average.
 	averageDailyCost := averageDaily(days, totalCost)
 
-	// collected time range
+	// Collected time range.
 	var timeRange *view.CollectedTimeRange
 	if totalCost != 0 {
 		timeRange, err = h.clusterCostCollectedDataRange(ctx, req.StartTime.Location())
@@ -175,14 +175,14 @@ func (h Handler) CollectionRouteSummaryClusterCost(ctx *gin.Context, req view.Su
 		return nil, nil
 	}
 
-	// days
+	// Days.
 	_, offset := req.StartTime.Zone()
 	days, err := h.clusterCostExistedDays(ctx, ps, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	// collected time range
+	// Collected time range.
 	var timeRange *view.CollectedTimeRange
 	if s[0].TotalCost != 0 {
 		timeRange, err = h.clusterCostCollectedDataRange(ctx,
@@ -224,14 +224,14 @@ func (h Handler) CollectionRouteSummaryProjectCost(ctx *gin.Context, req view.Su
 		return nil, nil
 	}
 
-	// days
+	// Days.
 	_, offset := req.StartTime.Zone()
 	days, err := h.allocationCostExistedDays(ctx, ps, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	// collected time range
+	// Collected time range.
 	var timeRange *view.CollectedTimeRange
 	if s[0].TotalCost != 0 {
 		timeRange, err = h.allocationCostCollectedDataRange(ctx,
@@ -260,7 +260,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		return nil, runtime.Errorw(err, "error query allocation cost")
 	}
 
-	// days
+	// Days.
 	var ps = []*sql.Predicate{
 		sql.GTE(allocationcost.FieldStartTime, req.StartTime),
 		sql.LTE(allocationcost.FieldEndTime, req.EndTime),
@@ -276,7 +276,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		return nil, err
 	}
 
-	// summary
+	// Summary.
 	summary := &view.SummaryQueriedCostResponse{}
 	for _, v := range items {
 		summary.TotalCost += v.TotalCost
@@ -287,7 +287,7 @@ func (h Handler) CollectionRouteSummaryQueriedCost(ctx *gin.Context, req view.Su
 		summary.PvCost += v.PvCost
 	}
 
-	// collected time range
+	// Collected time range.
 	var timeRange *view.CollectedTimeRange
 	if summary.TotalCost != 0 {
 		timeRange, err = h.allocationCostCollectedDataRange(ctx,
@@ -368,7 +368,7 @@ func (h Handler) clusterCostCollectedDataRange(ctx *gin.Context, loc *time.Locat
 		}
 	}
 
-	// first
+	// First.
 	first, err := h.modelClient.ClusterCosts().Query().
 		Modify(modifier).
 		Order(model.Asc(clustercost.FieldStartTime)).
@@ -377,7 +377,7 @@ func (h Handler) clusterCostCollectedDataRange(ctx *gin.Context, loc *time.Locat
 		return nil, fmt.Errorf("error get first collected cost data: %w", err)
 	}
 
-	// last
+	// Last.
 	last, err := h.modelClient.ClusterCosts().Query().
 		Modify(modifier).
 		Order(model.Desc(clustercost.FieldStartTime)).
@@ -406,7 +406,7 @@ func (h Handler) allocationCostCollectedDataRange(ctx *gin.Context, loc *time.Lo
 		}
 	}
 
-	// first
+	// First.
 	first, err := h.modelClient.AllocationCosts().Query().
 		Modify(modifier).
 		Order(model.Asc(clustercost.FieldStartTime)).
@@ -415,7 +415,7 @@ func (h Handler) allocationCostCollectedDataRange(ctx *gin.Context, loc *time.Lo
 		return nil, fmt.Errorf("error get first collected cost data: %w", err)
 	}
 
-	// last
+	// Last.
 	last, err := h.modelClient.AllocationCosts().Query().
 		Modify(modifier).
 		Order(model.Desc(clustercost.FieldStartTime)).
@@ -435,6 +435,6 @@ func averageDaily(days int, total float64) float64 {
 		return 0
 	}
 
-	// average
+	// Average.
 	return total / float64(days)
 }

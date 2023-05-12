@@ -77,9 +77,9 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Basic APIs
+// Basic APIs.
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationResource, applicationresource.OrderOption] `query:",inline"`
@@ -149,7 +149,7 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 	return nil
 }
 
-// Extensional APIs
+// Extensional APIs.
 
 type GetKeysRequest = ApplicationResourceQuery
 

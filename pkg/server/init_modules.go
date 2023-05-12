@@ -13,12 +13,12 @@ import (
 )
 
 func (r *Server) initModules(ctx context.Context, opts initOptions) error {
-	var ref, err = settings.ServeModuleRefer.Value(ctx, opts.ModelClient)
+	ref, err := settings.ServeModuleRefer.Value(ctx, opts.ModelClient)
 	if err != nil {
 		return err
 	}
 
-	var builtin = []*model.Module{
+	builtin := []*model.Module{
 		{
 			ID:          "webservice",
 			Description: "A long-running, scalable, containerized service that have a stable network endpoint to receive external network traffic.",
@@ -50,14 +50,14 @@ func (r *Server) initModules(ctx context.Context, opts initOptions) error {
 		return err
 	}
 	for i := range creates {
-		// do nothing if the module has been created.
+		// Do nothing if the module has been created.
 		err = creates[i].
 			OnConflictColumns(module.FieldID).
 			DoNothing().
 			Exec(ctx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				// no rows error is reasonable for nothing updating.
+				// No rows error is reasonable for nothing updating.
 				continue
 			}
 			return err

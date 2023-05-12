@@ -23,7 +23,7 @@ func (op Operator) GetEndpoints(ctx context.Context, res *model.ApplicationResou
 		if !isResourceParsingError(err) {
 			return nil, err
 		}
-		// warn out if got above errors.
+		// Warn out if got above errors.
 		op.Logger.Warn(err)
 		return nil, nil
 	}

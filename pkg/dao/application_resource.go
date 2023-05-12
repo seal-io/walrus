@@ -17,7 +17,7 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.ApplicationResources().Create().
 			SetInstanceID(r.InstanceID).
 			SetConnectorID(r.ConnectorID).
@@ -27,7 +27,7 @@ func ApplicationResourceCreates(mc model.ClientSet, input ...*model.ApplicationR
 			SetMode(r.Mode).
 			SetDeployerType(r.DeployerType)
 
-		// optional.
+		// Optional.
 		if r.CompositionID.Valid(0) {
 			c.SetCompositionID(r.CompositionID)
 		}

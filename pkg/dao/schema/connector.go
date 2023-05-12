@@ -57,18 +57,18 @@ func (Connector) Fields() []ent.Field {
 
 func (Connector) Edges() []ent.Edge {
 	return []ent.Edge{
-		// environments *-* connectors.
+		// Environments *-* connectors.
 		edge.From("environments", Environment.Type).
 			Ref("connectors").
 			Comment("Environments to which the connector configures.").
 			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type),
-		// connector 1-* application resources.
+		// Connector 1-* application resources.
 		edge.To("resources", ApplicationResource.Type).
 			Comment("Resources that belong to the application.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
-		// connector 1-* cluster costs.
+		// Connector 1-* cluster costs.
 		edge.To("clusterCosts", ClusterCost.Type).
 			Comment("Cluster costs that linked to the connection").
 			Annotations(
@@ -76,7 +76,7 @@ func (Connector) Edges() []ent.Edge {
 					OnDelete: entsql.Cascade,
 				},
 			),
-		// connector 1-* allocation costs.
+		// Connector 1-* allocation costs.
 		edge.To("allocationCosts", AllocationCost.Type).
 			Comment("Cluster allocation resource costs that linked to the connection.").
 			Annotations(

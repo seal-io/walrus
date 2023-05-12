@@ -74,9 +74,9 @@ const (
 	FilterFieldControllerKind FilterField = "controller_kind"
 	FilterFieldPod            FilterField = "pod"
 	FilterFieldContainer      FilterField = "container"
-	FilterFieldProject                    = FilterField("label:" + LabelSealProject)     // "label:seal.io/project"
-	FilterFieldEnvironment                = FilterField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
-	FilterFieldApplication                = FilterField("label:" + LabelSealApplication) // "label:seal.io/app"
+	FilterFieldProject                    = FilterField("label:" + LabelSealProject)     // "label:seal.io/project".
+	FilterFieldEnvironment                = FilterField("label:" + LabelSealEnvironment) // "label:seal.io/environment".
+	FilterFieldApplication                = FilterField("label:" + LabelSealApplication) // "label:seal.io/app".
 )
 
 func (f *FilterField) IsLabel() bool {
@@ -91,7 +91,7 @@ type GroupByField string
 
 // built-in groupBy fieldName.
 const (
-	// properties
+	// Properties.
 	GroupByFieldConnectorID    GroupByField = "connector_id"
 	GroupByFieldNamespace      GroupByField = "namespace"
 	GroupByFieldClusterName    GroupByField = "cluster_name"
@@ -102,15 +102,15 @@ const (
 	GroupByFieldContainer      GroupByField = "container"
 	GroupByFieldWorkload       GroupByField = "workload"
 
-	// time bucket
+	// Time bucket.
 	GroupByFieldDay   GroupByField = "day"
 	GroupByFieldWeek  GroupByField = "week"
 	GroupByFieldMonth GroupByField = "month"
 
-	// built-in labels
-	GroupByFieldProject     = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project"
-	GroupByFieldEnvironment = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment"
-	GroupByFieldApplication = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app"
+	// Built-in labels.
+	GroupByFieldProject     = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project".
+	GroupByFieldEnvironment = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment".
+	GroupByFieldApplication = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app".
 )
 
 func (f *GroupByField) IsLabel() bool {

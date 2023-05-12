@@ -27,10 +27,10 @@ const (
 	testLabelApp = "seal/app"
 	testLabelEnv = "seal/environment"
 
-	// testLabelApp replace the types.FilterFieldEnvironment = "seal.io/environment",
+	// TestLabelApp replace the types.FilterFieldEnvironment = "seal.io/environment",
 	// because the sqlite use JSON path expression, can't handle dot in json key.
 	testFilterFieldEnv = types.FilterField(types.LabelPrefix + testLabelEnv)
-	// testLabelApp replace the types.GroupByFieldApplication
+	// TestLabelApp replace the types.GroupByFieldApplication.
 	testGroupByFieldApp = types.GroupByField(types.LabelPrefix + testLabelApp)
 )
 
@@ -205,7 +205,7 @@ func TestAccumulateDistribute(t *testing.T) {
 }
 
 func TestAllocationResourceCosts(t *testing.T) {
-	// init data
+	// Init data.
 	ctx := context.Background()
 	client := enttest.Open(t, testDriverName, testDataSourceName)
 	defer client.Close()
@@ -395,7 +395,7 @@ func TestAllocationResourceCosts(t *testing.T) {
 }
 
 func testData(ctx context.Context, client *model.Client, startTime, endTime time.Time) (*model.Connector, error) {
-	// clean
+	// Clean.
 	if _, err := client.Connector.Delete().Exec(ctx); err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ func testData(ctx context.Context, client *model.Client, startTime, endTime time
 		return nil, err
 	}
 
-	// init
+	// Init.
 	conn, err := newTestConn(ctx, client)
 	if err != nil {
 		return nil, err

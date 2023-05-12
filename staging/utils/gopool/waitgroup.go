@@ -63,7 +63,7 @@ func (g *waitGroup) Go(f func() error) {
 }
 
 // GroupWithContext returns a waiting group and a context derived by the given context.Context.
-// waiting group notifies closing when any task raises error,
+// Waiting group notifies closing when any task raises error,
 // any submitting task should use the returning context to receive quiting.
 func GroupWithContext(ctx context.Context) (contextWaitGroup, context.Context) {
 	var g, c = gp.GroupContext(ctx)

@@ -31,7 +31,7 @@ func (h Handler) Kind() string {
 	return "Token"
 }
 
-// Basic APIs
+// Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
 	var entity = req.Model()
@@ -41,17 +41,17 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 	if err != nil {
 		return nil, err
 	}
-	// create token value from casdoor.
+	// Create token value from casdoor.
 	t, err := casdoor.CreateToken(ctx, cred.ClientID, cred.ClientSecret, s.Name, req.Expiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token to casdoor: %w", err)
 	}
 	entity.CasdoorTokenName, entity.CasdoorTokenOwner = t.Name, t.Owner
 
-	// create token.
+	// Create token.
 	var cerr error
 	defer func() {
-		// revert token if any error occurs.
+		// Revert token if any error occurs.
 		if cerr == nil {
 			return
 		}
@@ -81,7 +81,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		input = append(input, token.CasdoorTokenName(keys[0]))
 	}
 
-	// delete token.
+	// Delete token.
 	var entity, err = h.modelClient.Tokens().Query().
 		Where(input...).
 		Select(token.FieldCasdoorTokenOwner, token.FieldCasdoorTokenName).
@@ -96,7 +96,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		if err != nil {
 			return err
 		}
-		// remove token value from casdoor.
+		// Remove token value from casdoor.
 		var cred casdoor.ApplicationCredential
 		err = settings.CasdoorCred.ValueJSONUnmarshal(ctx, h.modelClient, &cred)
 		if err != nil {
@@ -112,12 +112,12 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 		return err
 	}
 
-	// clean cache.
+	// Clean cache.
 	cache.CleanTokenSubjects()
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 var (
 	queryFields = []string{
@@ -138,7 +138,7 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	var entities, err = query.
 		Order(model.Desc(token.FieldCreateTime)).
 		Select(getFields...).
-		// allow returning without sorting keys.
+		// Allow returning without sorting keys.
 		Unique(false).
 		All(ctx)
 	if err != nil {
@@ -148,4 +148,4 @@ func (h Handler) CollectionGet(ctx *gin.Context, req view.CollectionGetRequest) 
 	return model.ExposeTokens(entities), len(entities), nil
 }
 
-// Extensional APIs
+// Extensional APIs.

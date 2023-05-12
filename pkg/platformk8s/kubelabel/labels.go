@@ -77,12 +77,12 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 		update[k] = v
 	}
 
-	// unchanged
+	// Unchanged.
 	if reflect.DeepEqual(origin, update) {
 		return nil
 	}
 
-	// change
+	// Change.
 	patchBytes, err := json.Marshal(map[string]interface{}{
 		"metadata": map[string]interface{}{
 			"labels": update,

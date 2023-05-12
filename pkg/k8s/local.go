@@ -38,7 +38,7 @@ func init() {
 type Embedded struct{}
 
 func (Embedded) Run(ctx context.Context) error {
-	// validate if run with privileged.
+	// Validate if run with privileged.
 	if !files.Exists("/dev/kmsg") {
 		if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 			return errors.New(`require "securityContext.privileged" feature of seal pod`)
@@ -46,10 +46,10 @@ func (Embedded) Run(ctx context.Context) error {
 		return errors.New(`require "--privileged" flag to run seal container`)
 	}
 
-	// enable nested cgroup v2,
+	// Enable nested cgroup v2,
 	// ref to https://github.com/moby/moby/issues/43093.
 	if files.Exists("/sys/fs/cgroup/cgroup.controllers") {
-		// move the processes from the root group to the /init group,
+		// Move the processes from the root group to the /init group,
 		// otherwise writing subtree_control fails with EBUSY.
 		var err = files.Copy(
 			"/sys/fs/cgroup/cgroup.procs",
@@ -57,7 +57,7 @@ func (Embedded) Run(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("error moving processes to init group: %w", err)
 		}
-		// enable controllers.
+		// Enable controllers.
 		err = files.Copy(
 			"/sys/fs/cgroup/cgroup.controllers",
 			"/sys/fs/cgroup/cgroup.subtree_control",
@@ -80,7 +80,7 @@ func (Embedded) Run(ctx context.Context) error {
 		runDataPath      = filepath.Join(consts.DataDir, "k3s")
 	)
 
-	// link run data directory.
+	// Link run data directory.
 	var err = files.Link(
 		runDataPath,
 		k3sServerDataDir,
@@ -90,9 +90,9 @@ func (Embedded) Run(ctx context.Context) error {
 		return fmt.Errorf("error link server data: %w", err)
 	}
 
-	// reset server data.
+	// Reset server data.
 	if files.Exists(filepath.Join(k3sServerDataDir, "db", "etcd")) {
-		_ = os.Remove(filepath.Join(k3sServerDataDir, "db", "reset-flag")) // clean reset flag.
+		_ = os.Remove(filepath.Join(k3sServerDataDir, "db", "reset-flag")) // Clean reset flag.
 		var cmdArgs = []string{
 			"server",
 			"--cluster-reset",

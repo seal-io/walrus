@@ -19,11 +19,11 @@ func SettingCreates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Settings().Create().
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetValue(r.Value)
 		c.SetNillableHidden(r.Hidden)
 		c.SetNillableEditable(r.Editable)
@@ -44,7 +44,7 @@ func SettingUpdates(mc model.ClientSet, input ...*model.Setting) ([]*model.Setti
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Setting
 		switch {
 		case r.ID.IsNaive():

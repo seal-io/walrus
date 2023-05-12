@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/utils/topic"
 )
 
-// Application topics
+// Application topics.
 const (
 	// Application is the topic for application.
 	Application topic.Topic = "Application"

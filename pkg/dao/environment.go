@@ -27,13 +27,13 @@ type WrappedEnvironmentCreate struct {
 func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.Environment, err error) {
 	var mc = ec.EnvironmentCreate.Mutation().Client()
 
-	// save entity.
+	// Save entity.
 	created, err = ec.EnvironmentCreate.Save(ctx)
 	if err != nil {
 		return
 	}
 
-	// construct relationships.
+	// Construct relationships.
 	var newRss = ec.entity.Edges.Connectors
 	var createRss = make([]*model.EnvironmentConnectorRelationshipCreate, len(newRss))
 	for i, rs := range newRss {
@@ -41,7 +41,7 @@ func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.En
 			return nil, errors.New("invalid input: nil relationship")
 		}
 
-		// required.
+		// Required.
 		var c = mc.EnvironmentConnectorRelationships().Create().
 			SetEnvironmentID(created.ID).
 			SetConnectorID(rs.ConnectorID)
@@ -49,7 +49,7 @@ func (ec *WrappedEnvironmentCreate) Save(ctx context.Context) (created *model.En
 		createRss[i] = c
 	}
 
-	// save relationships.
+	// Save relationships.
 	newRss, err = mc.EnvironmentConnectorRelationships().CreateBulk(createRss...).
 		Save(ctx)
 	if err != nil {
@@ -75,11 +75,11 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Environments().Create().
 			SetName(r.Name)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
@@ -106,14 +106,14 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 	var mc = eu.EnvironmentUpdate.Mutation().Client()
 
 	if len(eu.EnvironmentUpdate.Mutation().Fields()) != 0 {
-		// update entity.
+		// Update entity.
 		updated, err = eu.EnvironmentUpdate.Save(ctx)
 		if err != nil {
 			return
 		}
 	}
 
-	// get old relationships.
+	// Get old relationships.
 	oldEntity, err := mc.Environments().Query().
 		Where(eu.entityPredicates...).
 		Select(environment.FieldID).
@@ -128,14 +128,14 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 		return
 	}
 
-	// create new relationship or update relationship.
+	// Create new relationship or update relationship.
 	var environmentID = oldEntity.ID
 	var newRsKeys = sets.New[string]()
 	var newRss = eu.entity.Edges.Connectors
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(environmentID), string(rs.ConnectorID)))
 
-		// required.
+		// Required.
 		var c = mc.EnvironmentConnectorRelationships().Create().
 			SetEnvironmentID(environmentID).
 			SetConnectorID(rs.ConnectorID)
@@ -152,7 +152,7 @@ func (eu *WrappedEnvironmentUpdate) Save(ctx context.Context) (updated int, err 
 		}
 	}
 
-	// delete stale relationship.
+	// Delete stale relationship.
 	var oldRss = oldEntity.Edges.Connectors
 	for _, rs := range oldRss {
 		if newRsKeys.Has(strs.Join("/", string(rs.EnvironmentID), string(rs.ConnectorID))) {
@@ -189,7 +189,7 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Environment
 		switch {
 		case r.ID.IsNaive():
@@ -201,7 +201,7 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		// conditional.
+		// Conditional.
 		var c = mc.Environments().Update().
 			Where(ps...).
 			SetDescription(r.Description)

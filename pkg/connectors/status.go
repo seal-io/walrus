@@ -27,9 +27,9 @@ func NewStatusSyncer(client model.ClientSet) *StatusSyncer {
 	}
 }
 
-// SyncStatus sync all connector status
+// SyncStatus sync all connector status.
 func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) error {
-	// statuses check in sequence
+	// Statuses check in sequence.
 	statusChecker := []struct {
 		status status.ConditionType
 		check  func(context.Context, model.Connector) (string, error)
@@ -58,9 +58,9 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 		},
 	}
 
-	// set status and message
+	// Set status and message.
 	for _, sc := range statusChecker {
-		// init with unknown
+		// Init with unknown.
 		sc.status.Unknown(conn, "")
 
 		successMsg, err := sc.check(ctx, *conn)
@@ -76,9 +76,9 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 	return UpdateStatus(ctx, in.client, conn)
 }
 
-// SyncFinOpsStatus only sync cost data
+// SyncFinOpsStatus only sync cost data.
 func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connector) error {
-	// statuses check in sequence
+	// Statuses check in sequence.
 	statusChecker := []struct {
 		status status.ConditionType
 		check  func(context.Context, model.Connector) (string, error)
@@ -89,9 +89,9 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 		},
 	}
 
-	// set status and message
+	// Set status and message.
 	for _, sc := range statusChecker {
-		// init with unknown
+		// Init with unknown.
 		sc.status.Unknown(conn, "")
 
 		successMsg, err := sc.check(ctx, *conn)
@@ -111,7 +111,7 @@ func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector
 	}
 
 	if !status.ConnectorStatusReady.IsTrue(&conn) {
-		// skip connector isn't ready
+		// Skip connector isn't ready.
 		return "", nil
 	}
 

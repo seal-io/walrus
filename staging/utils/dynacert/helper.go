@@ -26,20 +26,20 @@ import (
 )
 
 func GenCA() (crypto.Signer, *x509.Certificate, error) {
-	// generate private key.
+	// Generate private key.
 	var key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// generate certificate.
+	// Generate certificate.
 	var now = time.Now()
 	var x509Cert = &x509.Certificate{
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		NotBefore:             now.Add(-5 * time.Minute).UTC(),
-		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(), // 10 years
+		NotAfter:              now.Add(time.Hour * 24 * 365 * 10).UTC(), // 10 years.
 		SerialNumber:          new(big.Int).SetInt64(now.Unix()),
 		Subject: pkix.Name{
 			CommonName:   "dynacert-ca@" + strconv.FormatInt(now.Unix(), 10),
@@ -79,7 +79,7 @@ func GenServerCert(caKey crypto.Signer, caX509Cert *x509.Certificate, key crypto
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		IPAddresses:  ipAddresses,
 		KeyUsage:     x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		NotAfter:     time.Now().Add(time.Hour * 24 * 92).UTC(), // 3 months
+		NotAfter:     time.Now().Add(time.Hour * 24 * 92).UTC(), // 3 months.
 		NotBefore:    caX509Cert.NotBefore,
 		SerialNumber: new(big.Int).SetInt64(now.Unix()),
 		Subject: pkix.Name{
@@ -136,7 +136,7 @@ func LoadOrGenSelfSignedCA(ctx context.Context, cache Cache) (crypto.Signer, *x5
 func encodeTlsCertificate(tlsCert *tls.Certificate) ([]byte, error) {
 	var buf bytes.Buffer
 
-	// encode private key.
+	// Encode private key.
 	switch k := tlsCert.PrivateKey.(type) {
 	case *ecdsa.PrivateKey:
 		var b, err = x509.MarshalECPrivateKey(k)
@@ -157,7 +157,7 @@ func encodeTlsCertificate(tlsCert *tls.Certificate) ([]byte, error) {
 		return nil, errors.New("unknown private key type")
 	}
 
-	// encode public key.
+	// Encode public key.
 	for _, b := range tlsCert.Certificate {
 		var pb = &pem.Block{Type: "CERTIFICATE", Bytes: b}
 		if err := pem.Encode(&buf, pb); err != nil {
@@ -169,7 +169,7 @@ func encodeTlsCertificate(tlsCert *tls.Certificate) ([]byte, error) {
 }
 
 func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error) {
-	// decode private key.
+	// Decode private key.
 	keyBlock, data := pem.Decode(data)
 	if keyBlock == nil || !strings.Contains(keyBlock.Type, "PRIVATE") {
 		return nil, errors.New("corrupt private key: invalid format")
@@ -177,7 +177,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	var key crypto.PrivateKey
 	key, err := x509.ParseECPrivateKey(keyBlock.Bytes)
 	if err != nil {
-		// try RSA
+		// Try RSA.
 		var k, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
 		if err != nil {
 			return nil, errors.New("corrupt private key: parse failed")
@@ -185,7 +185,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 		key = k.(*rsa.PrivateKey)
 	}
 
-	// decode public key.
+	// Decode public key.
 	var certs [][]byte
 	for len(data) > 0 {
 		var certBlock *pem.Block
@@ -199,7 +199,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 		return nil, errors.New("corrupt certificate: invalid format")
 	}
 
-	// get leaf certificate.
+	// Get leaf certificate.
 	var n int
 	for i := range certs {
 		n += len(certs[i])
@@ -218,7 +218,7 @@ func decodeTlsCertificate(data []byte, hostname string) (*tls.Certificate, error
 	}
 	var leaf = x509Certs[0]
 
-	// validate leaf certificate.
+	// Validate leaf certificate.
 	err = verifyCert(leaf, hostname)
 	if err != nil {
 		return nil, err

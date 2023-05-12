@@ -45,7 +45,7 @@ func (Application) Fields() []ent.Field {
 
 func (Application) Edges() []ent.Edge {
 	return []ent.Edge{
-		// project 1-* applications.
+		// Project 1-* applications.
 		edge.From("project", Project.Type).
 			Ref("applications").
 			Field("projectID").
@@ -53,13 +53,13 @@ func (Application) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// application 1-* application instances.
+		// Application 1-* application instances.
 		edge.To("instances", ApplicationInstance.Type).
 			Comment("Application instances that belong to this application.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
-		// applications *-* modules.
+		// Applications *-* modules.
 		edge.To("modules", Module.Type).
 			Comment("Modules that configure to the application.").
 			Through("applicationModuleRelationships", ApplicationModuleRelationship.Type),

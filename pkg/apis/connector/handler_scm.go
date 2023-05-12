@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/vcs"
 )
 
-// Extensional APIs for SCM connectors
+// Extensional APIs for SCM connectors.
 
 func (h Handler) RouteGetRepositories(ctx *gin.Context, req view.GetRepositoriesRequest) (view.GetRepositoriesResponse, error) {
 	conn, err := h.modelClient.Connectors().Get(ctx, req.ID)

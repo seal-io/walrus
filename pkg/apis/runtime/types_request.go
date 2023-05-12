@@ -142,11 +142,11 @@ func (r RequestSorting[T]) Sorting(allowKeys []string, defaultOrders ...T) ([]T,
 			key = r.Sorts[i]
 		}
 		if allows.Has(key) {
-			allows.Delete(key) // not allow duplicate inputs
+			allows.Delete(key) // Not allow duplicate inputs.
 			orders = append(orders, order(key))
 		} else if ukey := strs.Underscore(key); ukey != key {
 			if allows.Has(ukey) {
-				allows.Delete(ukey) // not allow duplicate inputs
+				allows.Delete(ukey) // Not allow duplicate inputs.
 				orders = append(orders, order(ukey))
 			}
 		}
@@ -241,13 +241,13 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 			key = candidates[i]
 		}
 		if allows.Has(key) {
-			allows.Delete(key) // not allow duplicate inputs
+			allows.Delete(key) // Not allow duplicate inputs.
 			if with {
 				fields = append(fields, key)
 			}
 		} else if ukey := strs.Underscore(key); ukey != key {
 			if allows.Has(ukey) {
-				allows.Delete(ukey) // not allow duplicate inputs
+				allows.Delete(ukey) // Not allow duplicate inputs.
 				if with {
 					fields = append(fields, ukey)
 				}

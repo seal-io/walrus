@@ -13,7 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-// Basic APIs
+// Basic APIs.
 
 type CreateRequest struct {
 	Group       string             `json:"group"`
@@ -175,7 +175,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Batch APIs
+// Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Subject, subject.OrderOption] `query:",inline"`
@@ -185,7 +185,7 @@ type CollectionGetRequest struct {
 
 type CollectionGetResponse = []*model.SubjectOutput
 
-// Extensional APIs
+// Extensional APIs.
 
 type RouteMountRequest struct {
 	_ struct{} `route:"POST=/mount"`

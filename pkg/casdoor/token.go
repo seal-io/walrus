@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// neverExpiresInSeconds gives a large number to simulate "never expires",
+	// NeverExpiresInSeconds gives a large number to simulate "never expires",
 	// ref to https://github.com/casdoor/casdoor/issues/803.
 	neverExpiresInSeconds = 50 * 365 * 24 * 60 * 60
 )

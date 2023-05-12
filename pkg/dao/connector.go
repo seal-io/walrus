@@ -20,7 +20,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Connectors().Create().
 			SetName(r.Name).
 			SetType(r.Type).
@@ -29,7 +29,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 			SetEnableFinOps(r.EnableFinOps).
 			SetCategory(r.Category)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
@@ -37,7 +37,7 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		if !r.FinOpsCustomPricing.IsZero() {
 			c.SetFinOpsCustomPricing(r.FinOpsCustomPricing)
 		} else if r.Type == types.ConnectorTypeK8s {
-			// set default pricing for Kubernetes connector.
+			// Set default pricing for Kubernetes connector.
 			c.SetFinOpsCustomPricing(types.DefaultFinOpsCustomPricing())
 		}
 		if r.Type == types.ConnectorTypeK8s {
@@ -58,7 +58,7 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 		return nil, errors.New("invalid input: nil entity")
 	}
 
-	// predicated.
+	// Predicated.
 	if input.ID == "" {
 		return nil, errors.New("invalid input: illegal predicates")
 	}
@@ -67,7 +67,7 @@ func ConnectorUpdate(mc model.ClientSet, input *model.Connector) (*model.Connect
 		return nil, errors.New("invalid connector: finOps not supported")
 	}
 
-	// conditional.
+	// Conditional.
 	var c = mc.Connectors().UpdateOne(input).
 		SetDescription(input.Description).
 		SetEnableFinOps(input.EnableFinOps)

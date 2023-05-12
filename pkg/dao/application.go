@@ -26,13 +26,13 @@ type WrappedApplicationCreate struct {
 func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Application, err error) {
 	var mc = ac.ApplicationCreate.Mutation().Client()
 
-	// save entity.
+	// Save entity.
 	created, err = ac.ApplicationCreate.Save(ctx)
 	if err != nil {
 		return
 	}
 
-	// construct relationships.
+	// Construct relationships.
 	var newRss = ac.entity.Edges.Modules
 	var createRss = make([]*model.ApplicationModuleRelationshipCreate, len(newRss))
 	for i, rs := range newRss {
@@ -40,21 +40,21 @@ func (ac *WrappedApplicationCreate) Save(ctx context.Context) (created *model.Ap
 			return nil, errors.New("invalid input: nil relationship")
 		}
 
-		// required.
+		// Required.
 		var c = mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(created.ID).
 			SetModuleID(rs.ModuleID).
 			SetVersion(rs.Version).
 			SetName(rs.Name)
 
-		// optional.
+		// Optional.
 		if rs.Attributes != nil {
 			c.SetAttributes(rs.Attributes)
 		}
 		createRss[i] = c
 	}
 
-	// save relationships.
+	// Save relationships.
 	newRss, err = mc.ApplicationModuleRelationships().CreateBulk(createRss...).
 		Save(ctx)
 	if err != nil {
@@ -80,12 +80,12 @@ func ApplicationCreates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// required.
+		// Required.
 		var c = mc.Applications().Create().
 			SetName(r.Name).
 			SetProjectID(r.ProjectID)
 
-		// optional.
+		// Optional.
 		c.SetDescription(r.Description)
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
@@ -115,14 +115,14 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 	var mc = au.ApplicationUpdate.Mutation().Client()
 
 	if len(au.ApplicationUpdate.Mutation().Fields()) != 0 {
-		// update entity.
+		// Update entity.
 		updated, err = au.ApplicationUpdate.Save(ctx)
 		if err != nil {
 			return
 		}
 	}
 
-	// get old relationships.
+	// Get old relationships.
 	oldEntity, err := mc.Applications().Query().
 		Where(au.entityPredicates...).
 		Select(application.FieldID).
@@ -139,21 +139,21 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 		return
 	}
 
-	// create new relationship or update relationship.
+	// Create new relationship or update relationship.
 	var applicationID = oldEntity.ID
 	var newRsKeys = sets.New[string]()
 	var newRss = au.entity.Edges.Modules
 	for _, rs := range newRss {
 		newRsKeys.Insert(strs.Join("/", string(applicationID), rs.ModuleID, rs.Name))
 
-		// required.
+		// Required.
 		var c = mc.ApplicationModuleRelationships().Create().
 			SetApplicationID(applicationID).
 			SetModuleID(rs.ModuleID).
 			SetVersion(rs.Version).
 			SetName(rs.Name)
 
-		// optional.
+		// Optional.
 		if rs.Attributes != nil {
 			c.SetAttributes(rs.Attributes)
 		}
@@ -177,7 +177,7 @@ func (au *WrappedApplicationUpdate) Save(ctx context.Context) (updated int, err 
 		}
 	}
 
-	// delete stale relationship.
+	// Delete stale relationship.
 	var oldRss = oldEntity.Edges.Modules
 	for _, rs := range oldRss {
 		if newRsKeys.Has(strs.Join("/", string(rs.ApplicationID), rs.ModuleID, rs.Name)) {
@@ -214,7 +214,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			return nil, errors.New("invalid input: nil entity")
 		}
 
-		// predicated.
+		// Predicated.
 		var ps []predicate.Application
 		switch {
 		case r.ID.IsNaive():
@@ -229,7 +229,7 @@ func ApplicationUpdates(mc model.ClientSet, input ...*model.Application) ([]*Wra
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
-		// conditional.
+		// Conditional.
 		var c = mc.Applications().Update().
 			Where(ps...).
 			SetDescription(r.Description)

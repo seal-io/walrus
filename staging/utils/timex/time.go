@@ -17,7 +17,7 @@ const (
 )
 
 // TimezoneInPosix is in posix timezone string format.
-// time zone Asia/Shanghai in posix is UTC-8.
+// Time zone Asia/Shanghai in posix is UTC-8.
 func TimezoneInPosix(offset int) string {
 	timeZone := "UTC"
 	if offset != 0 {

@@ -28,7 +28,7 @@ func Erroring() Handle {
 			}
 		}
 
-		// log private errors
+		// Log private errors.
 		if me := c.Errors.ByType(gin.ErrorTypePrivate); len(me) != 0 {
 			var reqPath = c.Request.URL.Path
 			if raw := c.Request.URL.RawQuery; raw != "" {
@@ -37,9 +37,9 @@ func Erroring() Handle {
 			logger.Errorf("error requesting %s: %v", reqPath, me[len(me)-1])
 		}
 
-		// get last error from chain and parse into response
+		// Get last error from chain and parse into response.
 		var he = getHttpError(c)
-		c.AbortWithStatusJSON(he.code, he) // TODO negotiate
+		c.AbortWithStatusJSON(he.code, he) // TODO negotiate.
 	}
 }
 
@@ -56,14 +56,14 @@ func getHttpError(c *gin.Context) (he httpError) {
 		if ge.Type == gin.ErrorTypePrivate {
 			var we wrapError
 			if !errors.As(he.cause, &we) {
-				he.cause = nil // mute
+				he.cause = nil // Mute.
 			} else {
 				he.cause = we.external
 			}
 		}
 	}
 
-	// correct the code if already write within context.
+	// Correct the code if already write within context.
 	if c.Writer.Written() {
 		he.code = c.Writer.Status()
 	}
