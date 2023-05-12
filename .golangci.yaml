@@ -55,6 +55,7 @@ linters:
     - godot
     - lll
     - nolintlint
+    - goconst
 
 linters-settings:
   staticcheck:
@@ -100,6 +101,14 @@ linters-settings:
     allow-no-explanation: []
     require-explanation: false
     require-specific: true
+  goconst:
+    # Minimal length of string constant.
+    # Default: 3
+    min-len: 3
+    # Minimum occurrences of constant string count to trigger issue.
+    # Default: 3
+    min-occurrences: 3
+
 
 issues:
   exclude-rules:
