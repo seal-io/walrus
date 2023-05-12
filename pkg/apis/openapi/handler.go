@@ -65,7 +65,7 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 
 	specBytes, err := json.Marshal(spec)
 	if err != nil {
-		panic(fmt.Errorf("error marshalling openapi spec: %w", err))
+		panic(fmt.Errorf("error marshaling openapi spec: %w", err))
 	}
 
 	return func(c *gin.Context) {

@@ -30,6 +30,8 @@ func sockSchemeUrlOnly(scheme string) bool {
 }
 
 // parseUrl parses the given string as *url.URL.
+//
+//nolint:unparam
 func parseUrl(str string, check urlSchemeChecker) (*url.URL, error) {
 	v, err := url.Parse(str)
 	if err != nil {

@@ -247,7 +247,7 @@ func toSchemaResponses(r route, op *OutputProfile) []*ogen.NamedResponse {
 	}
 }
 
-func toSchemaResponse(r route, op *OutputProfile) *ogen.Response {
+func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 	if op == nil {
 		return nil
 	}

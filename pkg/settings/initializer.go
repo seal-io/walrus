@@ -13,6 +13,8 @@ type initializer func(string) string
 
 // initializeFromSpecifiedEnv searches the variable of the given environment name,
 // returns the default value if not found the specified environment.
+//
+//nolint:unparam
 func initializeFromSpecifiedEnv(envName string, defValue string) initializer {
 	return func(id string) string {
 		envValue := os.Getenv(envName)
@@ -50,7 +52,7 @@ func initializeFromJSON(defValue interface{}) initializer {
 	return func(id string) string {
 		v, err := json.Marshal(defValue)
 		if err != nil {
-			panic(fmt.Errorf("error marshalling initialization value: %w", err))
+			panic(fmt.Errorf("error marshaling initialization value: %w", err))
 		}
 		return string(v)
 	}
