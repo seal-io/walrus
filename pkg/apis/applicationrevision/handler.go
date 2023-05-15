@@ -676,18 +676,27 @@ func (h Handler) CreateRollbackApplications(
 	})
 }
 
-// GetRevisionDiff get the revision with the application instance latest revision diff.
-func (h Handler) GetRevisionDiff(
-	ctx *gin.Context,
-	req view.RevisionDiffRequest,
-) (*view.RevisionDiffResponse, error) {
-	instance, err := h.modelClient.ApplicationInstances().Query().
-		WithApplication(func(q *model.ApplicationQuery) {
-			q.Select(
-				application.FieldID,
-				application.FieldVariables)
-		}).
-		Where(applicationinstance.ID(req.InstanceID)).
+// GetDiffLatest get the revision with the application instance latest revision diff.
+func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*view.RevisionDiffResponse, error) {
+	compareRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldID,
+			applicationrevision.FieldInstanceID,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldInputVariables,
+			applicationrevision.FieldVariables,
+		).
+		Where(applicationrevision.ID(req.ID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := h.modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(compareRevision.InstanceID)).
+		QueryApplication().
+		Select(application.FieldVariables).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -700,19 +709,40 @@ func (h Handler) GetRevisionDiff(
 			applicationrevision.FieldInputVariables,
 			applicationrevision.FieldVariables,
 		).
-		Where(applicationrevision.InstanceID(req.InstanceID)).
+		Where(applicationrevision.InstanceID(compareRevision.InstanceID)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
 		First(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	return &view.RevisionDiffResponse{
+		Old: view.RevisionDiff{
+			InputVariables: latestRevision.InputVariables,
+			Variables:      app.Variables,
+			Modules:        latestRevision.Modules,
+		},
+		New: view.RevisionDiff{
+			InputVariables: compareRevision.InputVariables,
+			Variables:      compareRevision.Variables,
+			Modules:        compareRevision.Modules,
+		},
+	}, nil
+}
+
+// GetDiffPrevious get the revision with the application instance previous revision diff.
+func (h Handler) GetDiffPrevious(
+	ctx *gin.Context,
+	req view.RevisionDiffPreviousRequest,
+) (*view.RevisionDiffResponse, error) {
 	compareRevision, err := h.modelClient.ApplicationRevisions().Query().
 		Select(
 			applicationrevision.FieldID,
 			applicationrevision.FieldModules,
 			applicationrevision.FieldInputVariables,
 			applicationrevision.FieldVariables,
+			applicationrevision.FieldInstanceID,
+			applicationrevision.FieldCreateTime,
 		).
 		Where(applicationrevision.ID(req.ID)).
 		Order(model.Desc(applicationrevision.FieldCreateTime)).
@@ -721,12 +751,35 @@ func (h Handler) GetRevisionDiff(
 		return nil, err
 	}
 
+	var old view.RevisionDiff
+
+	previousRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldID,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldInputVariables,
+			applicationrevision.FieldVariables,
+		).
+		Where(
+			applicationrevision.InstanceID(compareRevision.InstanceID),
+			applicationrevision.CreateTimeLT(*compareRevision.CreateTime),
+		).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return nil, err
+	}
+
+	if previousRevision != nil {
+		old = view.RevisionDiff{
+			InputVariables: previousRevision.InputVariables,
+			Variables:      previousRevision.Variables,
+			Modules:        previousRevision.Modules,
+		}
+	}
+
 	return &view.RevisionDiffResponse{
-		Old: view.RevisionDiff{
-			InputVariables: latestRevision.InputVariables,
-			Variables:      instance.Edges.Application.Variables,
-			Modules:        latestRevision.Modules,
-		},
+		Old: old,
 		New: view.RevisionDiff{
 			InputVariables: compareRevision.InputVariables,
 			Variables:      compareRevision.Variables,
