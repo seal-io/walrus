@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
@@ -389,4 +390,26 @@ type StreamAccessEndpointResponse struct {
 type StreamOutputResponse struct {
 	Type       datamessage.EventType `json:"type"`
 	Collection OutputResponse        `json:"collection,omitempty"`
+}
+
+type Diff struct {
+	Variables property.Schemas          `json:"variables"`
+	Modules   []types.ApplicationModule `json:"modules"`
+}
+
+type DiffLatestRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *DiffLatestRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}
+
+type DiffLatestResponse struct {
+	Old *Diff `json:"old,omitempty"`
+	New *Diff `json:"new,omitempty"`
 }
