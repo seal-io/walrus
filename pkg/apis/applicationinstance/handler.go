@@ -15,7 +15,9 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
+	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
@@ -848,4 +850,59 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 			}
 		}
 	}
+}
+
+// GetDiffLatest diff the latest application config with the current application instance.
+func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*view.DiffLatestResponse, error) {
+	latestRevision, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldModules,
+			applicationrevision.FieldVariables,
+		).
+		Where(applicationrevision.InstanceID(req.ID)).
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := h.modelClient.ApplicationInstances().Query().
+		Where(applicationinstance.ID(req.ID)).
+		QueryApplication().
+		Select(
+			application.FieldID,
+			application.FieldVariables,
+		).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	relationships, err := h.modelClient.ApplicationModuleRelationships().Query().
+		Where(applicationmodulerelationship.ApplicationID(app.ID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	modules := make([]types.ApplicationModule, 0, len(relationships))
+	for _, r := range relationships {
+		modules = append(modules, types.ApplicationModule{
+			ModuleID:   r.ModuleID,
+			Version:    r.Version,
+			Name:       r.Name,
+			Attributes: r.Attributes,
+		})
+	}
+
+	return &view.DiffLatestResponse{
+		Old: &view.Diff{
+			Modules:   latestRevision.Modules,
+			Variables: latestRevision.Variables,
+		},
+		New: &view.Diff{
+			Modules:   modules,
+			Variables: app.Variables,
+		},
+	}, nil
 }
