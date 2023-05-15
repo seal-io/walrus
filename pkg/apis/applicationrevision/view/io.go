@@ -252,20 +252,25 @@ func (r *RollbackApplicationRequest) Validate() error {
 	return nil
 }
 
-type RevisionDiffRequest struct {
-	_ struct{} `route:"/diff"`
-
-	ID         types.ID `uri:"id"`
-	InstanceID types.ID `query:"instanceID"`
+type DiffLatestRequest struct {
+	ID types.ID `uri:"id"`
 }
 
-func (r *RevisionDiffRequest) Validate() error {
+func (r *DiffLatestRequest) Validate() error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 
-	if !r.InstanceID.Valid(0) {
-		return errors.New("invalid instance id: blank")
+	return nil
+}
+
+type RevisionDiffPreviousRequest struct {
+	ID types.ID `uri:"id"`
+}
+
+func (r *RevisionDiffPreviousRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
 	}
 
 	return nil
