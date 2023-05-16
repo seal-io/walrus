@@ -172,6 +172,18 @@ func (aru *ApplicationRevisionUpdate) AppendPreviousRequiredProviders(tr []types
 	return aru
 }
 
+// SetTags sets the "tags" field.
+func (aru *ApplicationRevisionUpdate) SetTags(s []string) *ApplicationRevisionUpdate {
+	aru.mutation.SetTags(s)
+	return aru
+}
+
+// AppendTags appends s to the "tags" field.
+func (aru *ApplicationRevisionUpdate) AppendTags(s []string) *ApplicationRevisionUpdate {
+	aru.mutation.AppendTags(s)
+	return aru
+}
+
 // Mutation returns the ApplicationRevisionMutation object of the builder.
 func (aru *ApplicationRevisionUpdate) Mutation() *ApplicationRevisionMutation {
 	return aru.mutation
@@ -286,6 +298,14 @@ func (aru *ApplicationRevisionUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := aru.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, applicationrevision.FieldPreviousRequiredProviders, value)
+		})
+	}
+	if value, ok := aru.mutation.Tags(); ok {
+		_spec.SetField(applicationrevision.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := aru.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, applicationrevision.FieldTags, value)
 		})
 	}
 	_spec.Node.Schema = aru.schemaConfig.ApplicationRevision
@@ -447,6 +467,18 @@ func (aruo *ApplicationRevisionUpdateOne) AppendPreviousRequiredProviders(tr []t
 	return aruo
 }
 
+// SetTags sets the "tags" field.
+func (aruo *ApplicationRevisionUpdateOne) SetTags(s []string) *ApplicationRevisionUpdateOne {
+	aruo.mutation.SetTags(s)
+	return aruo
+}
+
+// AppendTags appends s to the "tags" field.
+func (aruo *ApplicationRevisionUpdateOne) AppendTags(s []string) *ApplicationRevisionUpdateOne {
+	aruo.mutation.AppendTags(s)
+	return aruo
+}
+
 // Mutation returns the ApplicationRevisionMutation object of the builder.
 func (aruo *ApplicationRevisionUpdateOne) Mutation() *ApplicationRevisionMutation {
 	return aruo.mutation
@@ -591,6 +623,14 @@ func (aruo *ApplicationRevisionUpdateOne) sqlSave(ctx context.Context) (_node *A
 	if value, ok := aruo.mutation.AppendedPreviousRequiredProviders(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, applicationrevision.FieldPreviousRequiredProviders, value)
+		})
+	}
+	if value, ok := aruo.mutation.Tags(); ok {
+		_spec.SetField(applicationrevision.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := aruo.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, applicationrevision.FieldTags, value)
 		})
 	}
 	_spec.Node.Schema = aruo.schemaConfig.ApplicationRevision

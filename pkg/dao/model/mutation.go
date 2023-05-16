@@ -6238,6 +6238,8 @@ type ApplicationRevisionMutation struct {
 	addduration                     *int
 	previousRequiredProviders       *[]types.ProviderRequirement
 	appendpreviousRequiredProviders []types.ProviderRequirement
+	tags                            *[]string
+	appendtags                      []string
 	clearedFields                   map[string]struct{}
 	instance                        *oid.ID
 	clearedinstance                 bool
@@ -6945,6 +6947,57 @@ func (m *ApplicationRevisionMutation) ResetPreviousRequiredProviders() {
 	m.appendpreviousRequiredProviders = nil
 }
 
+// SetTags sets the "tags" field.
+func (m *ApplicationRevisionMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *ApplicationRevisionMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the ApplicationRevision entity.
+// If the ApplicationRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationRevisionMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *ApplicationRevisionMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *ApplicationRevisionMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *ApplicationRevisionMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
+}
+
 // ClearInstance clears the "instance" edge to the ApplicationInstance entity.
 func (m *ApplicationRevisionMutation) ClearInstance() {
 	m.clearedinstance = true
@@ -7031,7 +7084,7 @@ func (m *ApplicationRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.status != nil {
 		fields = append(fields, applicationrevision.FieldStatus)
 	}
@@ -7074,6 +7127,9 @@ func (m *ApplicationRevisionMutation) Fields() []string {
 	if m.previousRequiredProviders != nil {
 		fields = append(fields, applicationrevision.FieldPreviousRequiredProviders)
 	}
+	if m.tags != nil {
+		fields = append(fields, applicationrevision.FieldTags)
+	}
 	return fields
 }
 
@@ -7110,6 +7166,8 @@ func (m *ApplicationRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.Duration()
 	case applicationrevision.FieldPreviousRequiredProviders:
 		return m.PreviousRequiredProviders()
+	case applicationrevision.FieldTags:
+		return m.Tags()
 	}
 	return nil, false
 }
@@ -7147,6 +7205,8 @@ func (m *ApplicationRevisionMutation) OldField(ctx context.Context, name string)
 		return m.OldDuration(ctx)
 	case applicationrevision.FieldPreviousRequiredProviders:
 		return m.OldPreviousRequiredProviders(ctx)
+	case applicationrevision.FieldTags:
+		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown ApplicationRevision field %s", name)
 }
@@ -7253,6 +7313,13 @@ func (m *ApplicationRevisionMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPreviousRequiredProviders(v)
+		return nil
+	case applicationrevision.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)
@@ -7380,6 +7447,9 @@ func (m *ApplicationRevisionMutation) ResetField(name string) error {
 		return nil
 	case applicationrevision.FieldPreviousRequiredProviders:
 		m.ResetPreviousRequiredProviders()
+		return nil
+	case applicationrevision.FieldTags:
+		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown ApplicationRevision field %s", name)

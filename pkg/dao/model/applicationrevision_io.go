@@ -51,6 +51,8 @@ type ApplicationRevisionCreateInput struct {
 	Duration int `json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `json:"tags,omitempty"`
 	// Application instance to which the revision belongs.
 	Instance ApplicationInstanceQueryInput `json:"instance"`
 	// Environment to which the revision deploys.
@@ -71,6 +73,7 @@ func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,
+		Tags:                      in.Tags,
 	}
 	entity.InstanceID = in.Instance.ID
 	entity.EnvironmentID = in.Environment.ID
@@ -103,6 +106,8 @@ type ApplicationRevisionUpdateInput struct {
 	Duration int `json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `json:"tags,omitempty"`
 }
 
 // Model converts the ApplicationRevisionUpdateInput to ApplicationRevision.
@@ -120,6 +125,7 @@ func (in ApplicationRevisionUpdateInput) Model() *ApplicationRevision {
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,
+		Tags:                      in.Tags,
 	}
 	return entity
 }
@@ -146,6 +152,8 @@ type ApplicationRevisionOutput struct {
 	Duration int `json:"duration,omitempty"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `json:"tags,omitempty"`
 	// Application instance to which the revision belongs.
 	Instance *ApplicationInstanceOutput `json:"instance,omitempty"`
 	// Environment to which the revision deploys.
@@ -168,6 +176,7 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,
+		Tags:                      in.Tags,
 		Instance:                  ExposeApplicationInstance(in.Edges.Instance),
 		Environment:               ExposeEnvironment(in.Edges.Environment),
 	}
