@@ -53,6 +53,7 @@ type Deployer struct {
 type CreateRevisionOptions struct {
 	// JobType indicates the type of the job.
 	JobType             string
+	Tags                []string
 	Application         *model.Application
 	ApplicationInstance *model.ApplicationInstance
 	// CloneFrom indicates the application revision to clone from.
@@ -125,6 +126,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts
 
 	ar, err := d.CreateApplicationRevision(ctx, CreateRevisionOptions{
 		JobType:             JobTypeApply,
+		Tags:                opts.Tags,
 		Application:         app,
 		ApplicationInstance: ai,
 		CloneFrom:           opts.CloneFrom,
@@ -231,6 +233,7 @@ func (d Deployer) Rollback(
 	ar, err := d.CreateApplicationRevision(ctx,
 		CreateRevisionOptions{
 			JobType:             JobTypeApply,
+			Tags:                opts.Tags,
 			Application:         app,
 			ApplicationInstance: ai,
 			CloneFrom:           opts.CloneFrom,
@@ -421,6 +424,7 @@ func (d Deployer) CreateApplicationRevision(
 		}
 	}
 
+	entity.Tags = opts.Tags
 	entity.Status = status.ApplicationRevisionStatusRunning
 	entity.DeployerType = DeployerType
 	entity.InstanceID = opts.ApplicationInstance.ID
