@@ -22,6 +22,7 @@ const casdoorConfigPathEnvName = "BEEGO_CONFIG_PATH"
 
 const embeddedCasdoorEndpointAddress = "http://127.0.0.1:8000"
 
+//nolint:lll
 const embeddedCasdoorConfigTmpl = `
 appname = casdoor
 httpport = 8000
@@ -47,15 +48,7 @@ batchSize = 100
 ldapServerPort = 389
 languages = en,zh,es,fr,de,ja,ko,ru
 quota = {"organization": -1, "user": -1, "application": -1, "provider": -1}
-sessionConfig = {
-	"enableSetCookie":true,
-	"cookieName":"casdoor_session_id",
-	"cookieLifeTime":3600,
-	"providerConfig":"{{ .DataDir }}",
-	"gclifetime":3600,"domain":"",
-	"secure":false,
-	"disableHTTPOnly":false
-}
+sessionConfig = {"enableSetCookie":true,"cookieName":"casdoor_session_id","cookieLifeTime":3600,"providerConfig":"{{ .DataDir }}","gclifetime":3600,"domain":"","secure":false,"disableHTTPOnly":false}
 `
 
 type Embedded struct{}
