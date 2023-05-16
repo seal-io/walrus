@@ -202,10 +202,10 @@ function seal::format::run() {
     seal::log::fatal "cannot execute wsl as client is not found"
   fi
 
-  local generated_pkg="pkg/dao/model"
+  local generated_pkgs="pkg/dao/model|pkg/i18n"
   local wsl_opts="--allow-assign-and-anything --allow-trailing-comment --force-short-decl-cuddling=false --fix"
   seal::log::debug "wsl $wsl_opts $path/..."
-  go list $path/... | grep -v $generated_pkg | xargs $(seal::format::wsl::bin) $wsl_opts
+  go list $path/... | grep -v -E "$generated_pkgs" | xargs $(seal::format::wsl::bin) $wsl_opts >/dev/null 2>&1
 
   set -e
 }
