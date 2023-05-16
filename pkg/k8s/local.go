@@ -226,7 +226,7 @@ func prepareDeployPermission(ctx context.Context, cli *kubernetes.Clientset) err
 			},
 			{
 				APIGroups: []string{core.GroupName},
-				Resources: []string{"secrets", "pods"},
+				Resources: []string{"secrets", "pods", "pods/log"},
 				Verbs:     []string{rbac.VerbAll},
 			},
 		},
