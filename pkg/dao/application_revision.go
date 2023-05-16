@@ -33,6 +33,10 @@ func ApplicationRevisionCreates(
 		c.SetStatus(r.Status)
 		c.SetStatusMessage(strs.NormalizeSpecialChars(r.StatusMessage))
 
+		if r.Tags != nil {
+			c.SetTags(r.Tags)
+		}
+
 		if r.Modules != nil {
 			c.SetModules(r.Modules)
 		}

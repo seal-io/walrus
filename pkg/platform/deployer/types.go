@@ -31,6 +31,8 @@ type ApplyOptions struct {
 	SkipTLSVerify bool
 	// CloneFrom is the application revision to clone from.
 	CloneFrom *model.ApplicationRevision
+	// Tags is the application revision tags.
+	Tags []string
 }
 
 // DestroyOptions holds the options of Deployer's Destroy action.
@@ -43,4 +45,6 @@ type RollbackOptions struct {
 	SkipTLSVerify bool
 	// CloneFrom is the application revision to clone from.
 	CloneFrom *model.ApplicationRevision
+	// Tags is the application revision tags.
+	Tags []string
 }

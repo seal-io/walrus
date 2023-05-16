@@ -52,6 +52,7 @@ type Handler struct {
 
 type createInstanceOptions struct {
 	Clone               bool
+	Tags                []string
 	ApplicationInstance *model.ApplicationInstance
 }
 
@@ -69,6 +70,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 	entity := req.Model()
 
 	return h.createInstance(ctx, createInstanceOptions{
+		Tags:                req.RemarkTags,
 		ApplicationInstance: entity,
 	})
 }
@@ -401,6 +403,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	// Apply instance.
 	applyOpts := deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
+		Tags:          req.RemarkTags,
 	}
 
 	return dp.Apply(ctx, entity, applyOpts)
@@ -612,6 +615,7 @@ func (h Handler) CreateClone(
 
 	return h.createInstance(ctx, createInstanceOptions{
 		Clone:               true,
+		Tags:                req.RemarkTags,
 		ApplicationInstance: applicationInstance,
 	})
 }
@@ -680,6 +684,7 @@ func (h Handler) createInstance(
 	// Apply instance.
 	applyOpts := deployer.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
+		Tags:          opts.Tags,
 		CloneFrom:     clonedInstanceRevision,
 	}
 

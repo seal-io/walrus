@@ -30,6 +30,8 @@ import (
 
 type CreateRequest struct {
 	*model.ApplicationInstanceCreateInput `json:",inline"`
+
+	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -217,6 +219,8 @@ type RouteUpgradeRequest struct {
 	_ struct{} `route:"PUT=/upgrade"`
 
 	*model.ApplicationInstanceUpdateInput `uri:",inline" json:",inline"`
+
+	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
@@ -319,8 +323,9 @@ type OutputResponse = []types.OutputValue
 type CreateCloneRequest struct {
 	_ struct{} `route:"POST=/clone"`
 
-	ID   types.ID `uri:"id"`
-	Name string   `json:"name"`
+	ID         types.ID `uri:"id"`
+	Name       string   `json:"name"`
+	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateCloneRequest) Validate() error {
