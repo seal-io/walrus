@@ -50,6 +50,8 @@ const (
 	FieldDuration = "duration"
 	// FieldPreviousRequiredProviders holds the string denoting the previousrequiredproviders field in the database.
 	FieldPreviousRequiredProviders = "previous_required_providers"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// EdgeInstance holds the string denoting the instance edge name in mutations.
 	EdgeInstance = "instance"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -89,6 +91,7 @@ var Columns = []string{
 	FieldDeployerType,
 	FieldDuration,
 	FieldPreviousRequiredProviders,
+	FieldTags,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -126,6 +129,8 @@ var (
 	DefaultDuration int
 	// DefaultPreviousRequiredProviders holds the default value on creation for the "previousRequiredProviders" field.
 	DefaultPreviousRequiredProviders []types.ProviderRequirement
+	// DefaultTags holds the default value on creation for the "tags" field.
+	DefaultTags []string
 )
 
 // OrderOption defines the ordering options for the ApplicationRevision queries.

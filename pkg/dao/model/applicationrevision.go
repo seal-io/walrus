@@ -56,6 +56,8 @@ type ApplicationRevision struct {
 	Duration int `json:"duration,omitempty" sql:"duration"`
 	// Previous provider requirement of the revision.
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty" sql:"previousRequiredProviders"`
+	// Tags of the revision.
+	Tags []string `json:"tags,omitempty" sql:"tags"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ApplicationRevisionQuery when eager-loading is set.
 	Edges        ApplicationRevisionEdges `json:"edges,omitempty"`
@@ -104,7 +106,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case applicationrevision.FieldModules, applicationrevision.FieldPreviousRequiredProviders:
+		case applicationrevision.FieldModules, applicationrevision.FieldPreviousRequiredProviders, applicationrevision.FieldTags:
 			values[i] = new([]byte)
 		case applicationrevision.FieldSecrets:
 			values[i] = new(crypto.Map[string, string])
@@ -230,6 +232,14 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field previousRequiredProviders: %w", err)
 				}
 			}
+		case applicationrevision.FieldTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ar.Tags); err != nil {
+					return fmt.Errorf("unmarshal field tags: %w", err)
+				}
+			}
 		default:
 			ar.selectValues.Set(columns[i], values[i])
 		}
@@ -316,6 +326,9 @@ func (ar *ApplicationRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("previousRequiredProviders=")
 	builder.WriteString(fmt.Sprintf("%v", ar.PreviousRequiredProviders))
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(fmt.Sprintf("%v", ar.Tags))
 	builder.WriteByte(')')
 	return builder.String()
 }

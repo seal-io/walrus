@@ -316,6 +316,10 @@ func init() {
 	applicationrevisionDescPreviousRequiredProviders := applicationrevisionFields[10].Descriptor()
 	// applicationrevision.DefaultPreviousRequiredProviders holds the default value on creation for the previousRequiredProviders field.
 	applicationrevision.DefaultPreviousRequiredProviders = applicationrevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
+	// applicationrevisionDescTags is the schema descriptor for tags field.
+	applicationrevisionDescTags := applicationrevisionFields[11].Descriptor()
+	// applicationrevision.DefaultTags holds the default value on creation for the tags field.
+	applicationrevision.DefaultTags = applicationrevisionDescTags.Default.([]string)
 	clustercostFields := schema.ClusterCost{}.Fields()
 	_ = clustercostFields
 	// clustercostDescConnectorID is the schema descriptor for connectorID field.

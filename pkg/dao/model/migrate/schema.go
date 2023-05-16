@@ -252,6 +252,7 @@ var (
 		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
 		{Name: "duration", Type: field.TypeInt, Default: 0},
 		{Name: "previous_required_providers", Type: field.TypeJSON},
+		{Name: "tags", Type: field.TypeJSON},
 		{Name: "instance_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -263,13 +264,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "application_revisions_application_instances_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[13]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[14]},
 				RefColumns: []*schema.Column{ApplicationInstancesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "application_revisions_environments_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[14]},
+				Columns:    []*schema.Column{ApplicationRevisionsColumns[15]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},

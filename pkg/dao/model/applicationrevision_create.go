@@ -157,6 +157,12 @@ func (arc *ApplicationRevisionCreate) SetPreviousRequiredProviders(tr []types.Pr
 	return arc
 }
 
+// SetTags sets the "tags" field.
+func (arc *ApplicationRevisionCreate) SetTags(s []string) *ApplicationRevisionCreate {
+	arc.mutation.SetTags(s)
+	return arc
+}
+
 // SetID sets the "id" field.
 func (arc *ApplicationRevisionCreate) SetID(o oid.ID) *ApplicationRevisionCreate {
 	arc.mutation.SetID(o)
@@ -241,6 +247,10 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 		v := applicationrevision.DefaultPreviousRequiredProviders
 		arc.mutation.SetPreviousRequiredProviders(v)
 	}
+	if _, ok := arc.mutation.Tags(); !ok {
+		v := applicationrevision.DefaultTags
+		arc.mutation.SetTags(v)
+	}
 	return nil
 }
 
@@ -288,6 +298,9 @@ func (arc *ApplicationRevisionCreate) check() error {
 	}
 	if _, ok := arc.mutation.PreviousRequiredProviders(); !ok {
 		return &ValidationError{Name: "previousRequiredProviders", err: errors.New(`model: missing required field "ApplicationRevision.previousRequiredProviders"`)}
+	}
+	if _, ok := arc.mutation.Tags(); !ok {
+		return &ValidationError{Name: "tags", err: errors.New(`model: missing required field "ApplicationRevision.tags"`)}
 	}
 	if _, ok := arc.mutation.InstanceID(); !ok {
 		return &ValidationError{Name: "instance", err: errors.New(`model: missing required edge "ApplicationRevision.instance"`)}
@@ -379,6 +392,10 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if value, ok := arc.mutation.PreviousRequiredProviders(); ok {
 		_spec.SetField(applicationrevision.FieldPreviousRequiredProviders, field.TypeJSON, value)
 		_node.PreviousRequiredProviders = value
+	}
+	if value, ok := arc.mutation.Tags(); ok {
+		_spec.SetField(applicationrevision.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
 	}
 	if nodes := arc.mutation.InstanceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -624,6 +641,18 @@ func (u *ApplicationRevisionUpsert) UpdatePreviousRequiredProviders() *Applicati
 	return u
 }
 
+// SetTags sets the "tags" field.
+func (u *ApplicationRevisionUpsert) SetTags(v []string) *ApplicationRevisionUpsert {
+	u.Set(applicationrevision.FieldTags, v)
+	return u
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsert) UpdateTags() *ApplicationRevisionUpsert {
+	u.SetExcluded(applicationrevision.FieldTags)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -860,6 +889,20 @@ func (u *ApplicationRevisionUpsertOne) SetPreviousRequiredProviders(v []types.Pr
 func (u *ApplicationRevisionUpsertOne) UpdatePreviousRequiredProviders() *ApplicationRevisionUpsertOne {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdatePreviousRequiredProviders()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *ApplicationRevisionUpsertOne) SetTags(v []string) *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertOne) UpdateTags() *ApplicationRevisionUpsertOne {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateTags()
 	})
 }
 
@@ -1262,6 +1305,20 @@ func (u *ApplicationRevisionUpsertBulk) SetPreviousRequiredProviders(v []types.P
 func (u *ApplicationRevisionUpsertBulk) UpdatePreviousRequiredProviders() *ApplicationRevisionUpsertBulk {
 	return u.Update(func(s *ApplicationRevisionUpsert) {
 		s.UpdatePreviousRequiredProviders()
+	})
+}
+
+// SetTags sets the "tags" field.
+func (u *ApplicationRevisionUpsertBulk) SetTags(v []string) *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.SetTags(v)
+	})
+}
+
+// UpdateTags sets the "tags" field to the value that was provided on create.
+func (u *ApplicationRevisionUpsertBulk) UpdateTags() *ApplicationRevisionUpsertBulk {
+	return u.Update(func(s *ApplicationRevisionUpsert) {
+		s.UpdateTags()
 	})
 }
 
