@@ -133,12 +133,12 @@ func (r *GetRequest) Validate() error {
 	return nil
 }
 
-type GetResponse = *model.ApplicationInstanceOutput
+type GetResponse = *WrappedInstanceOutput
 
 type StreamResponse struct {
-	Type       datamessage.EventType              `json:"type"`
-	IDs        []types.ID                         `json:"ids,omitempty"`
-	Collection []*model.ApplicationInstanceOutput `json:"collection,omitempty"`
+	Type       datamessage.EventType    `json:"type"`
+	IDs        []types.ID               `json:"ids,omitempty"`
+	Collection []*WrappedInstanceOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
@@ -186,7 +186,14 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	return nil
 }
 
-type CollectionGetResponse = []*model.ApplicationInstanceOutput
+type WrappedInstanceOutput struct {
+	*model.ApplicationInstanceOutput
+
+	// ConfigStatus is the comparation of the instance and the application.
+	ConfigStatus string `json:"configStatus"`
+}
+
+type CollectionGetResponse = []*WrappedInstanceOutput
 
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`

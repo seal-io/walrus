@@ -24,6 +24,11 @@ const (
 	ApplicationRevisionStatusFailed    = "Failed"
 )
 
+const (
+	ApplicationInstanceConfigStatusLatest   = "Latest"
+	ApplicationInstanceConfigStatusOutdated = "Outdateted"
+)
+
 // Status wrap the summary of conditions and condition details.
 type Status struct {
 	Summary    `json:",inline"`

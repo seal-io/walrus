@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/zclconf/go-cty/cty"
 	"k8s.io/client-go/rest"
@@ -151,10 +153,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
-	return h.getEntityOutput(ctx, req.ID)
+	return h.getEntityOutputWithConfigStatus(ctx, req.ID)
 }
 
-func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.ApplicationInstanceOutput, error) {
+func (h Handler) getEntityOutputWithConfigStatus(
+	ctx context.Context,
+	id types.ID,
+) (view.GetResponse, error) {
 	entity, err := h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(id)).
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
@@ -165,7 +170,12 @@ func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.Appli
 		return nil, err
 	}
 
-	return model.ExposeApplicationInstance(entity), nil
+	outputs, err := h.getWrappedInstanceOutputs(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
+
+	return outputs[0], nil
 }
 
 func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) error {
@@ -198,13 +208,14 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 
 			switch dm.Type {
 			case datamessage.EventCreate, datamessage.EventUpdate:
-				entityOutput, err := h.getEntityOutput(ctx, id)
+				entityOutput, err := h.getEntityOutputWithConfigStatus(ctx, id)
 				if err != nil {
 					return err
 				}
+
 				streamData = view.StreamResponse{
 					Type:       dm.Type,
-					Collection: []*model.ApplicationInstanceOutput{entityOutput},
+					Collection: []*view.WrappedInstanceOutput{entityOutput},
 				}
 			case datamessage.EventDelete:
 				streamData = view.StreamResponse{
@@ -227,9 +238,7 @@ var (
 	queryFields = []string{
 		applicationinstance.FieldName,
 	}
-	getFields = applicationinstance.WithoutFields(
-		applicationinstance.FieldApplicationID,
-		applicationinstance.FieldUpdateTime)
+	getFields  = applicationinstance.WithoutFields(applicationinstance.FieldUpdateTime)
 	sortFields = []string{
 		applicationinstance.FieldName,
 		applicationinstance.FieldCreateTime,
@@ -278,7 +287,12 @@ func (h Handler) CollectionGet(
 		return nil, 0, err
 	}
 
-	return model.ExposeApplicationInstances(entities), cnt, nil
+	response, err := h.getWrappedInstanceOutputs(ctx, entities...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return response, cnt, nil
 }
 
 func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
@@ -328,9 +342,15 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 			if err != nil {
 				return err
 			}
+
+			collections, err := h.getWrappedInstanceOutputs(ctx, entities...)
+			if err != nil {
+				return err
+			}
+
 			streamData = view.StreamResponse{
 				Type:       dm.Type,
-				Collection: model.ExposeApplicationInstances(entities),
+				Collection: collections,
 			}
 		case datamessage.EventDelete:
 			streamData = view.StreamResponse{
@@ -910,4 +930,113 @@ func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*v
 			Variables: app.Variables,
 		},
 	}, nil
+}
+
+// getWrappedInstanceOutputs set the config status of the application instance,
+// if config is different from the application the status is status.ApplicationInstanceConfigStatusOutdated,
+// otherwise, the status is status.ApplicationInstanceConfigStatusLatest.
+func (h Handler) getWrappedInstanceOutputs(
+	ctx context.Context,
+	instances ...*model.ApplicationInstance,
+) ([]*view.WrappedInstanceOutput, error) {
+	if len(instances) == 0 {
+		return nil, nil
+	}
+
+	// Get the application of the first instance.
+	application, err := h.modelClient.Applications().Query().
+		Select(
+			application.FieldID,
+			application.FieldVariables,
+		).
+		Where(application.ID(instances[0].ApplicationID)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the config of the application.
+	relationships, err := h.modelClient.ApplicationModuleRelationships().Query().
+		Where(applicationmodulerelationship.ApplicationID(application.ID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	modules := make([]types.ApplicationModule, 0, len(relationships))
+	for _, r := range relationships {
+		modules = append(modules, types.ApplicationModule{
+			ModuleID:   r.ModuleID,
+			Version:    r.Version,
+			Name:       r.Name,
+			Attributes: r.Attributes,
+		})
+	}
+
+	instanceIDs := make([]types.ID, 0, len(instances))
+	// Compare the config of the application and the config of the instance.
+	for _, instance := range instances {
+		if instance.ApplicationID != application.ID {
+			return nil, fmt.Errorf(
+				"the application id of the instances is not equal, expect: %s, got: %s",
+				application.ID,
+				instance.ApplicationID,
+			)
+		}
+
+		instanceIDs = append(instanceIDs, instance.ID)
+	}
+
+	// Get the latest application revision of the instance.
+	latestRevisions, err := h.modelClient.ApplicationRevisions().Query().
+		Select(
+			applicationrevision.FieldVariables,
+			applicationrevision.FieldModules,
+			applicationrevision.FieldInstanceID,
+		).
+		Where(func(s *sql.Selector) {
+			sq := s.Clone().
+				AppendSelectExprAs(
+					sql.RowNumber().
+						PartitionBy(applicationrevision.FieldInstanceID).
+						OrderBy(sql.Desc(applicationrevision.FieldCreateTime)),
+					"row_number",
+				).
+				Where(s.P()).
+				From(s.Table()).
+				As(applicationrevision.Table)
+
+				// Query the latest application revision of the instance.
+			s.Where(sql.EQ(s.C("row_number"), 1)).
+				From(sq)
+		}).
+		Where(applicationrevision.InstanceIDIn(instanceIDs...)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	configStatus := make(map[types.ID]string, len(latestRevisions))
+	// Compare the config of the application and the config of the instance.
+	for _, latestRevision := range latestRevisions {
+		if reflect.DeepEqual(latestRevision.Modules, modules) &&
+			reflect.DeepEqual(latestRevision.Variables, application.Variables) {
+			configStatus[latestRevision.InstanceID] = status.ApplicationInstanceConfigStatusLatest
+			continue
+		}
+
+		configStatus[latestRevision.InstanceID] = status.ApplicationInstanceConfigStatusOutdated
+	}
+
+	instancesWithConfStatus := make(view.CollectionGetResponse, 0, len(instances))
+	outputs := model.ExposeApplicationInstances(instances)
+
+	for i := range outputs {
+		instancesWithConfStatus = append(instancesWithConfStatus, &view.WrappedInstanceOutput{
+			ApplicationInstanceOutput: outputs[i],
+			ConfigStatus:              configStatus[outputs[i].ID],
+		})
+	}
+
+	return instancesWithConfStatus, nil
 }
