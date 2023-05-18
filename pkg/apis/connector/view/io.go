@@ -235,11 +235,13 @@ type GetBranchesRequest struct {
 type GetBranchesResponse = []*scm.Reference
 
 func validateConnector(ctx context.Context, entity *model.Connector) error {
+	ops := operator.CreateOptions{
+		Connector: *entity,
+	}
+
 	switch entity.Category {
-	case types.ConnectorCategoryKubernetes:
-		op, err := platform.GetOperator(ctx, operator.CreateOptions{
-			Connector: *entity,
-		})
+	case types.ConnectorCategoryKubernetes, types.ConnectorCategoryCloudProvider:
+		op, err := platform.GetOperator(ctx, ops)
 		if err != nil {
 			return fmt.Errorf("invalid connector config: %w", err)
 		}

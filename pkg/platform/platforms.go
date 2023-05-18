@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/seal-io/seal/pkg/operatoralibaba"
 	"github.com/seal-io/seal/pkg/operatorany"
+	"github.com/seal-io/seal/pkg/operatoraws"
 	"github.com/seal-io/seal/pkg/platform/deployer"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/platformk8s"
@@ -19,7 +21,9 @@ func init() {
 
 	// Register operator creators as below.
 	opCreators = map[operator.Type]operator.Creator{
-		platformk8s.OperatorType: platformk8s.NewOperator,
+		platformk8s.OperatorType:     platformk8s.NewOperator,
+		operatoralibaba.OperatorType: operatoralibaba.New,
+		operatoraws.OperatorType:     operatoraws.New,
 	}
 }
 
