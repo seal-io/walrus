@@ -323,18 +323,33 @@ type OutputResponse = []types.OutputValue
 type CreateCloneRequest struct {
 	_ struct{} `route:"POST=/clone"`
 
-	ID         types.ID `uri:"id"`
-	Name       string   `json:"name"`
-	RemarkTags []string `json:"remarkTags,omitempty"`
+	ID            types.ID `uri:"id"`
+	EnviornmentID types.ID `json:"enviornmentID"`
+	Name          string   `json:"name"`
+	RemarkTags    []string `json:"remarkTags,omitempty"`
 }
 
-func (r *CreateCloneRequest) Validate() error {
+func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 
 	if r.Name == "" {
 		return errors.New("invalid name: blank")
+	}
+
+	if r.EnviornmentID != "" {
+		if !r.EnviornmentID.IsNaive() {
+			return fmt.Errorf("invalid environment id: %s", r.EnviornmentID)
+		}
+		modelClient := input.(model.ClientSet)
+
+		_, err := modelClient.Environments().Query().
+			Where(environment.ID(r.EnviornmentID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get environment")
+		}
 	}
 
 	return nil
