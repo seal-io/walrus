@@ -116,6 +116,7 @@ func (s *Server) Serve(c context.Context, opts ServeOptions) error {
 				return err
 			}
 			tlsConfig.Certificates = []tls.Certificate{cert}
+			ls = tls.NewListener(ls, tlsConfig)
 			httpHandler <- http.HandlerFunc(redirectHandler)
 		}
 
@@ -182,9 +183,10 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Use HTTPS", http.StatusBadRequest)
 		return
 	}
-	host := r.Host
-	rawHost, _, err := net.SplitHostPort(host)
 
+	host := r.Host
+
+	rawHost, _, err := net.SplitHostPort(host)
 	if err == nil {
 		host = net.JoinHostPort(rawHost, "443")
 	}

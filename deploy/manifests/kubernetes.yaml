@@ -44,7 +44,7 @@ spec:
 #kind: Service
 #metadata:
 #  namespace: seal-system
-#  name: app-manager
+#  name: seal
 #  labels:
 #    "app.kubernetes.io/part-of": "seal"
 #    "app.kubernetes.io/component": "entrance"
@@ -118,6 +118,18 @@ metadata:
   namespace: seal-system
   name: database-script
 data:
+  "init.sh": |
+    #!/usr/bin/env bash
+    
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+    
+    if [[ ! -d ${PGDATA} ]]; then
+      mkdir -p ${PGDATA}
+      chown 999:999 ${PGDATA}
+    fi
+
   "probe.sh": |
     #!/usr/bin/env bash
     
@@ -185,6 +197,20 @@ spec:
     spec:
       automountServiceAccountToken: false
       restartPolicy: Always
+      initContainers:
+        - name: init
+          image: postgres:14.8
+          imagePullPolicy: IfNotPresent
+          command:
+            - /script/init.sh
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: script
+              mountPath: /script
+            - name: data
+              mountPath: /var/lib/postgresql/data
       containers:
         - name: postgres
           image: postgres:14.8
@@ -270,7 +296,6 @@ data:
     set -o errexit
     set -o nounset
     set -o pipefail
-    set +x
     
     # validate database
     set +o errexit
@@ -336,7 +361,7 @@ spec:
       automountServiceAccountToken: false
       restartPolicy: Always
       initContainers:
-        - name: generate-config
+        - name: init
           image: sealio/casdoor:v1.197.0-seal.3
           imagePullPolicy: IfNotPresent
           workingDir: /tmp/conf
@@ -589,12 +614,12 @@ spec:
                 secretKeyRef:
                   name: seal
                   key: enable_tls
-# Uncomment the following lines if consuming custom TLS.
-#
-#            - name: SERVER_TLS_CERT_FILE
-#              value: /etc/seal/ssl/tls.crt
-#            - name: SERVER_TLS_PRIVATE_KEY_FILE
-#              value: /etc/seal/ssl/tls.key
+            # Uncomment the following lines if consuming custom TLS.
+            #
+            #            - name: SERVER_TLS_CERT_FILE
+            #              value: /etc/seal/ssl/tls.crt
+            #            - name: SERVER_TLS_PRIVATE_KEY_FILE
+            #              value: /etc/seal/ssl/tls.key
             - name: SERVER_DATA_SOURCE_ADDRESS
               value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD)@database:5432/$(DB_NAME)?sslmode=disable
             - name: SERVER_CASDOOR_SERVER
