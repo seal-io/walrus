@@ -613,6 +613,10 @@ func (h Handler) CreateClone(
 	}
 	applicationInstance.Name = req.Name
 
+	if req.EnviornmentID != "" {
+		applicationInstance.EnvironmentID = req.EnviornmentID
+	}
+
 	return h.createInstance(ctx, createInstanceOptions{
 		Clone:               true,
 		Tags:                req.RemarkTags,
