@@ -112,18 +112,6 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	defer func() {
-		if job.Status.Succeeded == 0 && job.Status.Failed == 0 && err == nil {
-			return
-		}
-
-		// Delete the secret of the job.
-		derr := r.deleteSecret(ctx, job.Name)
-		if derr != nil {
-			r.Logger.Error(err, "failed to delete secret", "application-revision", appRevisionID)
-		}
-	}()
-
 	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, oid.ID(appRevisionID))
 	if err != nil {
 		return err
@@ -203,20 +191,6 @@ func (r JobReconciler) getJobPodsLogs(ctx context.Context, jobName string) (stri
 	return logs, nil
 }
 
-func (r JobReconciler) deleteSecret(ctx context.Context, secretName string) error {
-	clientSet, err := kubernetes.NewForConfig(r.Kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	err = clientSet.CoreV1().Secrets(types.SealSystemNamespace).Delete(ctx, secretName, metav1.DeleteOptions{})
-	if err != nil && !kerrors.IsNotFound(err) {
-		return err
-	}
-
-	return nil
-}
-
 // CreateJob create a job to run terraform deployment.
 func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCreateOptions) error {
 	var (
@@ -227,6 +201,12 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ApplicationRevisionID)
 		configName                    = _jobSecretPrefix + opts.ApplicationRevisionID
 	)
+
+	secret, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	podTemplate := getPodTemplate(opts.ApplicationRevisionID, configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -239,13 +219,31 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		},
 	}
 
-	_, err := clientSet.BatchV1().Jobs(types.SealSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
+	job, err = clientSet.BatchV1().Jobs(types.SealSystemNamespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		if kerrors.IsAlreadyExists(err) {
 			logger.Warnf("k8s job %s already exists", name)
 		} else {
 			return err
 		}
+	}
+
+	// Set ownerReferences to secret with the job name.
+	secret.ObjectMeta = metav1.ObjectMeta{
+		Name: configName,
+		OwnerReferences: []metav1.OwnerReference{
+			{
+				APIVersion: batchv1.SchemeGroupVersion.String(),
+				Kind:       "Job",
+				Name:       name,
+				UID:        job.UID,
+			},
+		},
+	}
+
+	_, err = clientSet.CoreV1().Secrets(types.SealSystemNamespace).Update(ctx, secret, metav1.UpdateOptions{})
+	if err != nil {
+		return err
 	}
 
 	logger.Debugf("k8s job %s created", name)
