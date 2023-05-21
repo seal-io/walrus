@@ -11,7 +11,4 @@ const (
 	BuiltinApp          = "app-built-in"
 	BuiltinAdmin        = "admin"
 	BuiltinAdminInitPwd = "Admin@123"
-
-	InternalSessionCookieKey = "casdoor_session_id"
-	ExternalSessionCookieKey = "seal_session"
 )

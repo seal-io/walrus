@@ -33,11 +33,10 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "dispatches", init: r.initDispatches},
 		{name: "backgroundJobs", init: r.initBackgroundJobs},
 		{name: "subscribers", init: r.initSubscribers},
+		{name: "rbac", init: r.initRbac},
 	}
 	inits = append(inits,
 		initor{name: "modules", init: r.initModules},
-		initor{name: "roles", init: r.initRoles},
-		initor{name: "subjects", init: r.initSubjects},
 		initor{name: "perspective", init: r.initPerspectives},
 		initor{name: "projects", init: r.initProjects},
 		initor{name: "environments", init: r.initEnvironments},

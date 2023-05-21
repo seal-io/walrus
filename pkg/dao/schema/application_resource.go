@@ -21,6 +21,7 @@ type ApplicationResource struct {
 func (ApplicationResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
+		mixin.OwnByProject{},
 		mixin.Time{},
 	}
 }
@@ -92,7 +93,7 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Immutable(),
 		// Application resource(!discovered) 1-* application resources(discovered).
 		edge.To("components", ApplicationResource.Type).
-			Comment("Application resources that make up this resource.").
+			Comment("Application resources that make up the resource.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}).

@@ -1,9 +1,11 @@
 package secret
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/secret/view"
+	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
@@ -92,10 +94,23 @@ func (h Handler) CollectionGet(
 	ctx *gin.Context,
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
+	s := session.MustGetSubject(ctx)
+
+	s.IncognitoOn()
+	defer s.IncognitoOff()
+
 	query := h.modelClient.Secrets().Query()
+
 	if len(req.ProjectIDs) != 0 {
-		// Project scope.
-		query.Where(secret.ProjectIDIn(req.ProjectIDs...))
+		if req.WithGlobal {
+			// With global scope.
+			query.Where(secret.Or(
+				secret.ProjectIDIsNil(),
+				secret.ProjectIDIn(req.ProjectIDs...)))
+		} else {
+			// Project scope only.
+			query.Where(secret.ProjectIDIn(req.ProjectIDs...))
+		}
 	} else {
 		// Global scope.
 		query.Where(secret.ProjectIDIsNil())
@@ -116,12 +131,22 @@ func (h Handler) CollectionGet(
 		query.Limit(limit).Offset(offset)
 	}
 
-	entities, err := query.
-		Order(model.Desc(secret.FieldCreateTime)).
-		Select(getFields...).
+	if req.WithGlobal {
+		// With global scope, make it unique.
+		query.Modify(func(s *sql.Selector) {
+			s.Select(secret.FieldName).
+				Distinct()
+		})
+	} else {
+		if fields, ok := req.Extracting(getFields, getFields...); ok {
+			query.Select(fields...)
+		}
 		// Allow returning without sorting keys.
-		Unique(false).
-		All(ctx)
+		query.Order(model.Desc(secret.FieldCreateTime)).
+			Unique(false)
+	}
+
+	entities, err := query.All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}

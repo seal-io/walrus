@@ -21,9 +21,15 @@ import (
 
 type GetRequest struct {
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *GetRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -33,17 +39,16 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ApplicationRevisionOutput
 
-type StreamResponse struct {
-	Type       datamessage.EventType              `json:"type"`
-	IDs        []oid.ID                           `json:"ids,omitempty"`
-	Collection []*model.ApplicationRevisionOutput `json:"collection,omitempty"`
-}
-
 type StreamRequest struct {
-	ID oid.ID `uri:"id"`
+	ID        oid.ID `uri:"id"`
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -58,6 +63,12 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	return nil
+}
+
+type StreamResponse struct {
+	Type       datamessage.EventType              `json:"type"`
+	IDs        []oid.ID                           `json:"ids,omitempty"`
+	Collection []*model.ApplicationRevisionOutput `json:"collection,omitempty"`
 }
 
 // Batch APIs.
@@ -125,16 +136,21 @@ type CollectionGetRequest struct {
 	runtime.RequestExtracting                               `query:",inline"`
 	runtime.RequestSorting[applicationrevision.OrderOption] `query:",inline"`
 
+	ProjectID  oid.ID `query:"projectID"`
 	InstanceID oid.ID `query:"instanceID,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if r.InstanceID != "" {
 		if !r.InstanceID.IsNaive() {
 			return errors.New("invalid instance id")
 		}
+
+		modelClient := input.(model.ClientSet)
 
 		_, err := modelClient.ApplicationInstances().Query().
 			Where(applicationinstance.ID(r.InstanceID)).
@@ -152,24 +168,27 @@ type CollectionGetResponse = []*model.ApplicationRevisionOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
+	ProjectID  oid.ID `query:"projectID"`
 	InstanceID oid.ID `query:"instanceID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if r.InstanceID != "" {
+		if !r.InstanceID.IsNaive() {
+			return errors.New("invalid instance id")
+		}
+
 		modelClient := input.(model.ClientSet)
 
-		if r.InstanceID != "" {
-			if !r.InstanceID.IsNaive() {
-				return errors.New("invalid instance id")
-			}
-
-			_, err := modelClient.ApplicationInstances().Query().
-				Where(applicationinstance.ID(r.InstanceID)).
-				OnlyID(ctx)
-			if err != nil {
-				return runtime.Errorw(err, "failed to get application instance")
-			}
+		_, err := modelClient.ApplicationInstances().Query().
+			Where(applicationinstance.ID(r.InstanceID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get application instance")
 		}
 	}
 
@@ -183,16 +202,22 @@ type GetTerraformStatesRequest = GetRequest
 type GetTerraformStatesResponse = json.RawMessage
 
 type UpdateTerraformStatesRequest struct {
-	GetRequest      `uri:",inline"`
+	GetRequest `query:",inline" uri:",inline"`
+
 	json.RawMessage `uri:"-" json:",inline"`
 }
 
 type StreamLogRequest struct {
-	ID      oid.ID `uri:"id"`
-	JobType string `query:"jobType,omitempty"`
+	ID        oid.ID `uri:"id"`
+	ProjectID oid.ID `query:"projectID"`
+	JobType   string `query:"jobType,omitempty"`
 }
 
 func (r *StreamLogRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -212,9 +237,15 @@ type RollbackInstanceRequest struct {
 	_ struct{} `route:"POST=/rollback-instances"`
 
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *RollbackInstanceRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -247,9 +278,15 @@ type RollbackApplicationRequest struct {
 	_ struct{} `route:"POST=/rollback-applications"`
 
 	*model.ApplicationRevisionQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *RollbackApplicationRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -258,10 +295,15 @@ func (r *RollbackApplicationRequest) Validate() error {
 }
 
 type DiffLatestRequest struct {
-	ID oid.ID `uri:"id"`
+	ID        oid.ID `uri:"id"`
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *DiffLatestRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -270,10 +312,15 @@ func (r *DiffLatestRequest) Validate() error {
 }
 
 type RevisionDiffPreviousRequest struct {
-	ID oid.ID `uri:"id"`
+	ID        oid.ID `uri:"id"`
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *RevisionDiffPreviousRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}

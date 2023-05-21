@@ -8,7 +8,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -85,18 +84,3 @@ type CollectionGetRequest struct {
 type CollectionGetResponse = []*model.ProjectOutput
 
 // Extensional APIs.
-
-type GetSecretsRequest struct {
-	*model.ProjectQueryInput                                        `uri:",inline"`
-	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
-}
-
-func (r *GetSecretsRequest) Validate() error {
-	if !r.ID.Valid(0) {
-		return errors.New("invalid project id: blank")
-	}
-
-	return nil
-}
-
-type GetSecretsResponse = []*model.SecretOutput

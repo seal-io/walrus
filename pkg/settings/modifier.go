@@ -75,6 +75,12 @@ func once(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 	return true, nil
 }
 
+// never implements the modifyValidator stereotype,
+// which means the value can not be modified.
+func never(ctx context.Context, name, oldVal, newVal string) (bool, error) {
+	return false, errors.New("cannot modify")
+}
+
 // httpUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is an HTTP URL.
 func httpUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/role/view"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 )
 
@@ -29,13 +28,12 @@ func (h Handler) Kind() string {
 
 var (
 	queryFields = []string{
-		role.FieldName,
+		role.FieldID,
 	}
 	getFields = role.WithoutFields(
-		role.FieldCreateTime,
 		role.FieldUpdateTime)
 	sortFields = []string{
-		role.FieldName,
+		role.FieldID,
 		role.FieldCreateTime,
 	}
 )
@@ -44,16 +42,12 @@ func (h Handler) CollectionGet(
 	ctx *gin.Context,
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
-	// Do not export session level roles.
-	input := []predicate.Role{
-		role.Session(false),
-	}
-	if req.Domain != "" {
-		input = append(input, role.Domain(req.Domain))
+	query := h.modelClient.Roles().Query().
+		Where(role.Session(false))
+	if req.Kind != "" {
+		query.Where(role.Kind(req.Kind))
 	}
 
-	query := h.modelClient.Roles().Query().
-		Where(input...)
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}

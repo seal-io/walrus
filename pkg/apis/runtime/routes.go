@@ -14,7 +14,8 @@ import (
 	"github.com/gin-gonic/gin/render"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/seal-io/seal/pkg/apis/auth/session"
+	"github.com/seal-io/seal/pkg/auths/session"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -379,8 +380,21 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 		}
 		vh := func(c *gin.Context) {
 			// Auth request.
-			s := session.LoadSubject(c)
-			if !s.Enforce(c, resource) {
+			s, err := session.GetSubject(c)
+			if err != nil {
+				_ = c.Error(err)
+
+				return
+			}
+
+			var (
+				pid   = oid.ID(c.Query("projectID"))
+				act   = c.Request.Method
+				rid   = c.Param("id")
+				fpath = c.FullPath()
+			)
+
+			if !s.Enforce(pid, resource, act, rid, fpath) {
 				if s.IsAnonymous() {
 					c.AbortWithStatus(http.StatusUnauthorized)
 				} else {
@@ -389,8 +403,6 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 
 				return
 			}
-
-			session.StoreSubjectCurrentOperation(c, s.Give(resource).If(c.Request.Method))
 
 			// Check request whether to stream.
 			var withStream bool

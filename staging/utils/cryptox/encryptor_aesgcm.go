@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"errors"
 	"io"
 )
 
@@ -23,6 +24,10 @@ type aesGcmEncryptor struct {
 }
 
 func (e aesGcmEncryptor) Encrypt(p, a []byte) ([]byte, error) {
+	if len(p) == 0 {
+		return nil, errors.New("empty plaintext")
+	}
+
 	g, err := cipher.NewGCM(e.b)
 	if err != nil {
 		return nil, err
@@ -38,6 +43,10 @@ func (e aesGcmEncryptor) Encrypt(p, a []byte) ([]byte, error) {
 }
 
 func (e aesGcmEncryptor) Decrypt(c, a []byte) ([]byte, error) {
+	if len(c) == 0 {
+		return nil, errors.New("empty ciphertext")
+	}
+
 	g, err := cipher.NewGCM(e.b)
 	if err != nil {
 		return nil, err

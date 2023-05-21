@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/utils/timex"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -37,6 +38,16 @@ type BasicInformation struct {
 	// Connector number.
 	Connector int `json:"connector"`
 }
+
+// Basic APIs.
+
+// Batch APIs.
+
+type CollectionGetLatestApplicationRevisionsRequest struct{}
+
+type CollectionGetLatestApplicationRevisionsResponse = []*model.ApplicationRevisionOutput
+
+// Extensional APIs.
 
 type BasicInfoRequest struct {
 	_ struct{} `route:"GET=/basic-information"`

@@ -445,7 +445,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID oid.ID) (vi
 	)
 
 	for _, v := range outputs {
-		if !view.IsEndpointOuput(v.Name) {
+		if !view.IsEndpointOutput(v.Name) {
 			continue
 		}
 
@@ -614,8 +614,8 @@ func (h Handler) CreateClone(
 	}
 	applicationInstance.Name = req.Name
 
-	if req.EnviornmentID != "" {
-		applicationInstance.EnvironmentID = req.EnviornmentID
+	if req.EnvironmentID != "" {
+		applicationInstance.EnvironmentID = req.EnvironmentID
 	}
 
 	return h.createInstance(ctx, createInstanceOptions{

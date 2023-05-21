@@ -63,7 +63,7 @@ func WrapErrorHandler(h ErrorHandler) gin.HandlerFunc {
 	}
 }
 
-type ErrorHandle func(c *gin.Context) error
+type ErrorHandle = func(c *gin.Context) error
 
 func WrapErrorHandle(f ErrorHandle) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -97,7 +97,7 @@ func WrapHandler(h Handler) gin.HandlerFunc {
 	}
 }
 
-type Handle = gin.HandlerFunc
+type Handle = func(c *gin.Context)
 
 type HTTPHandler = http.Handler
 

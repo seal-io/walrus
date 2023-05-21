@@ -9,7 +9,7 @@ import (
 	"github.com/ogen-go/ogen"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/casdoor"
+	"github.com/seal-io/seal/pkg/auths"
 	"github.com/seal-io/seal/utils/bytespool"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/version"
@@ -41,7 +41,7 @@ func Index(authing bool, apiPrefix string) runtime.Handle {
 		securitySchemes["cookieAuth"] = &ogen.SecurityScheme{
 			Type: "apiKey",
 			In:   "cookie",
-			Name: casdoor.ExternalSessionCookieKey,
+			Name: auths.SessionCookieName,
 		}
 
 		spec.Components.SecuritySchemes = securitySchemes

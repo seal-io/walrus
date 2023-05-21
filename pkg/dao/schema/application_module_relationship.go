@@ -32,12 +32,12 @@ func (ApplicationModuleRelationship) Fields() []ent.Field {
 	return []ent.Field{
 		oid.Field("application_id").
 			Comment("ID of the application to which the relationship connects.").
-			StructTag(`json:"applicationID"`).
+			StructTag(`json:"applicationID" sql:"applicationID"`).
 			NotEmpty().
 			Immutable(),
 		field.String("module_id").
 			Comment("ID of the module to which the relationship connects.").
-			StructTag(`json:"moduleID"`).
+			StructTag(`json:"moduleID" sql:"moduleID"`).
 			NotEmpty().
 			Immutable(),
 		field.String("version").
@@ -58,7 +58,7 @@ func (ApplicationModuleRelationship) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("application", Application.Type).
 			Field("application_id").
-			Comment("Applications that connect to the relationship.").
+			Comment("Application that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().
@@ -67,7 +67,7 @@ func (ApplicationModuleRelationship) Edges() []ent.Edge {
 			}),
 		edge.To("module", Module.Type).
 			Field("module_id").
-			Comment("Modules that connect to the relationship.").
+			Comment("Module that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().

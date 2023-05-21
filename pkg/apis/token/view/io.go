@@ -11,7 +11,8 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.TokenCreateInput `json:",inline"`
+	Name              string `json:"name"`
+	ExpirationSeconds *int   `json:"expirationSeconds,omitempty"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -19,9 +20,9 @@ func (r *CreateRequest) Validate() error {
 		return errors.New("invalid name: blank")
 	}
 
-	if r.Expiration != nil {
-		if *r.Expiration < 0 {
-			return errors.New("invalid expiration: negative")
+	if r.ExpirationSeconds != nil {
+		if *r.ExpirationSeconds < 0 {
+			return errors.New("invalid expiration seconds: negative")
 		}
 	}
 
@@ -36,21 +37,17 @@ type CreateResponse struct {
 	AccessToken string `json:"accessToken,omitempty"`
 }
 
-type DeleteRequest = GetRequest
-
-type GetRequest struct {
+type DeleteRequest struct {
 	*model.TokenQueryInput `uri:",inline"`
 }
 
-func (r *GetRequest) Validate() error {
-	if !r.ID.Valid(1) {
+func (r *DeleteRequest) Validate() error {
+	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
 
 	return nil
 }
-
-type GetResponse = *model.TokenOutput
 
 // Batch APIs.
 

@@ -24,6 +24,7 @@ func ApplicationInstanceCreates(
 
 		// Required.
 		c := mc.ApplicationInstances().Create().
+			SetProjectID(r.ProjectID).
 			SetApplicationID(r.ApplicationID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetName(r.Name)

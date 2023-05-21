@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // the built-in settings for system.
@@ -56,6 +57,9 @@ var (
 	)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
+	// AuthsEncryptionAesGcmKey keeps the key for encrypting public token value with AES-GCM algorithm.
+	AuthsEncryptionAesGcmKey = newValue("AuthsEncryptionAesGcmKey", private, initializeFrom(strs.Hex(32)),
+		modifyWith(never))
 	// OpenAiApiToken keeps the openAI API token for generating module completions.
 	// TODO protect the stored token.
 	OpenAiApiToken = newValue("openAiApiToken", editable, nil, nil)
@@ -89,7 +93,7 @@ var (
 		modifyWith(notBlank, cronExpression),
 	)
 	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to application resource,
-	// default cron expression means setting every 2 minute.
+	// default cron expression means setting every 2 minutes.
 	ResourceLabelApplyCronExpr = newValue(
 		"ResourceLabelApplyCronExpr",
 		editable,
@@ -102,6 +106,14 @@ var (
 		"ResourceComponentsDiscoverCronExpr",
 		editable,
 		initializeFrom("0 */1 * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
+	// TokenDeploymentExpiredCleanCronExpr indicates the cron expression of clean expired deployment token,
+	// default cron expression means cleaning up every 30 minutes.
+	TokenDeploymentExpiredCleanCronExpr = newValue(
+		"TokenDeploymentExpiredCleanCronExpr",
+		hidden,
+		initializeFrom("0 */30 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 )

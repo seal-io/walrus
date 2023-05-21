@@ -52,17 +52,16 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 	return nil
 }
 
-type StreamResponse struct {
-	Type       datamessage.EventType `json:"type"`
-	IDs        []oid.ID              `json:"ids,omitempty"`
-	Collection []ApplicationResource `json:"collection,omitempty"`
-}
-
 type StreamRequest struct {
-	ID oid.ID `uri:"id"`
+	ID        oid.ID `uri:"id"`
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -79,23 +78,32 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-// Basic APIs.
+type StreamResponse struct {
+	Type       datamessage.EventType `json:"type"`
+	IDs        []oid.ID              `json:"ids,omitempty"`
+	Collection []ApplicationResource `json:"collection,omitempty"`
+}
 
 // Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationResource, applicationresource.OrderOption] `query:",inline"`
 
+	ProjectID   oid.ID `query:"projectID"`
 	InstanceID  oid.ID `query:"instanceID"`
 	WithoutKeys bool   `query:"withoutKeys,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.InstanceID.Valid(0) {
 		return errors.New("invalid instance id: blank")
 	}
+
+	modelClient := input.(model.ClientSet)
 
 	_, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.InstanceID)).
@@ -133,11 +141,16 @@ type CollectionGetResponse = []ApplicationResource
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
+	ProjectID   oid.ID `query:"projectID"`
 	InstanceID  oid.ID `query:"instanceID,omitempty"`
 	WithoutKeys bool   `query:"withoutKeys,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if r.InstanceID != "" {
 		modelClient := input.(model.ClientSet)
 
@@ -158,13 +171,26 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 
 // Extensional APIs.
 
-type GetKeysRequest = ApplicationResourceQuery
+type GetKeysRequest struct {
+	ApplicationResourceQuery `query:"-" uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
+}
+
+func (r *GetKeysRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	return r.ApplicationResourceQuery.ValidateWith(ctx, input)
+}
 
 type GetKeysResponse = *optypes.Keys
 
 type StreamLogRequest struct {
 	ApplicationResourceQuery `query:"-" uri:",inline"`
 
+	ProjectID    oid.ID `query:"projectID"`
 	Key          string `query:"key"`
 	Previous     bool   `query:"previous,omitempty"`
 	Tail         bool   `query:"tail,omitempty"`
@@ -173,6 +199,10 @@ type StreamLogRequest struct {
 }
 
 func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if r.Key == "" {
 		return errors.New("invalid key: blank")
 	}
@@ -189,13 +219,18 @@ func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
 type StreamExecRequest struct {
 	ApplicationResourceQuery `query:"-" uri:",inline"`
 
-	Key    string `query:"key"`
-	Shell  string `query:"shell,omitempty"`
-	Width  int32  `query:"width,omitempty"`
-	Height int32  `query:"height,omitempty"`
+	ProjectID oid.ID `query:"projectID"`
+	Key       string `query:"key"`
+	Shell     string `query:"shell,omitempty"`
+	Width     int32  `query:"width,omitempty"`
+	Height    int32  `query:"height,omitempty"`
 }
 
 func (r *StreamExecRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if r.Key == "" {
 		return errors.New("invalid key: blank")
 	}

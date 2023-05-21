@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -23,20 +22,22 @@ func RoleCreates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleCreate,
 
 		// Required.
 		c := mc.Roles().Create().
-			SetName(r.Name)
+			SetID(r.ID)
 
 		// Optional.
-		c.SetDescription(r.Description)
-		c.SetBuiltin(r.Builtin)
-		c.SetSession(r.Session)
-
-		if r.Domain != "" {
-			c.SetDomain(r.Domain)
+		if r.Kind != "" {
+			c.SetKind(r.Kind)
 		}
+
+		c.SetDescription(r.Description)
 
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
 		}
+
+		c.SetBuiltin(r.Builtin)
+		c.SetSession(r.Session)
+
 		rrs[i] = c
 	}
 
@@ -56,31 +57,20 @@ func RoleUpdates(mc model.ClientSet, input ...*model.Role) ([]*model.RoleUpdate,
 		}
 
 		// Predicated.
-		var ps []predicate.Role
-
-		switch {
-		case r.ID.IsNaive():
-			ps = append(ps, role.ID(r.ID))
-		case r.Domain != "" && r.Name != "":
-			ps = append(ps, role.And(
-				role.Domain(r.Domain),
-				role.Name(r.Name),
-			))
-		}
-
-		if len(ps) == 0 {
+		if r.ID == "" {
 			return nil, errors.New("invalid input: illegal predicates")
 		}
 
 		// Conditional.
 		c := mc.Roles().Update().
-			Where(ps...).
+			Where(role.ID(r.ID)).
 			SetDescription(r.Description)
 		if len(r.Policies) != 0 {
 			c.SetPolicies(r.Policies.Normalize().Deduplicate().Sort())
 		} else {
 			c.SetPolicies(types.DefaultRolePolicies())
 		}
+
 		rrs[i] = c
 	}
 

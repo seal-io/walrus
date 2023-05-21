@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/utils/pointer"
 
+	"github.com/seal-io/seal/pkg/auths"
+	"github.com/seal-io/seal/pkg/auths/session"
 	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -87,7 +90,7 @@ type CreateJobOptions struct {
 
 // _backendAPI the API path to terraform deploy backend.
 // Terraform will get and update deployment states from this API.
-const _backendAPI = "/v1/application-revisions/%s/terraform-states"
+const _backendAPI = "/v1/application-revisions/%s/terraform-states?projectID=%s"
 
 // _varPrefix the prefix of the variable name.
 const _varPrefix = "_seal_var_"
@@ -545,9 +548,13 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		return nil, errors.New("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress,
-		fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID))
+		fmt.Sprintf(_backendAPI, opts.ApplicationRevision.ID, opts.ProjectID))
+
 	// Prepare API token for terraform backend.
-	token, err := settings.PrivilegeApiToken.Value(ctx, d.modelClient)
+	const _30mins = 1800
+
+	at, err := auths.CreateAccessToken(ctx,
+		d.modelClient, types.TokenKindDeployment, string(opts.ApplicationRevision.ID), pointer.Int(_30mins))
 	if err != nil {
 		return nil, err
 	}
@@ -577,7 +584,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	secretOptionMaps := map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
-				Token:                token,
+				Token:                at.Value,
 				Address:              address,
 				SkipTLSVerify:        opts.SkipTLSVerify,
 				ProviderRequirements: requiredProviders,
@@ -808,27 +815,35 @@ func (d Deployer) parseModuleSecrets(
 	//      OR "project_id" = opts.ProjectID
 	//    )
 	//    AND NAME IN (moduleSecrets)
-	err := d.modelClient.Secrets().Query().
-		Modify(func(s *sql.Selector) {
-			// Select secrets without project id or not in project.
-			subQuery := sql.Select(secret.FieldName).
-				From(sql.Table(secret.Table)).
-				Where(sql.EQ(secret.FieldProjectID, opts.ProjectID))
-			s.Select(secret.FieldID, secret.FieldName, secret.FieldValue).
-				Where(
-					sql.And(
-						sql.Or(
-							sql.And(
-								sql.IsNull(secret.FieldProjectID),
-								sql.NotIn(secret.FieldName, subQuery),
+	err := func() error {
+		s, err := session.GetSubject(ctx)
+		if err == nil {
+			s.IncognitoOn()
+			defer s.IncognitoOff()
+		}
+
+		return d.modelClient.Secrets().Query().
+			Modify(func(s *sql.Selector) {
+				// Select secrets without project id or not in project.
+				subQuery := sql.Select(secret.FieldName).
+					From(sql.Table(secret.Table)).
+					Where(sql.EQ(secret.FieldProjectID, opts.ProjectID))
+				s.Select(secret.FieldID, secret.FieldName, secret.FieldValue).
+					Where(
+						sql.And(
+							sql.Or(
+								sql.And(
+									sql.IsNull(secret.FieldProjectID),
+									sql.NotIn(secret.FieldName, subQuery),
+								),
+								sql.EQ(secret.FieldProjectID, opts.ProjectID),
 							),
-							sql.EQ(secret.FieldProjectID, opts.ProjectID),
+							sql.In(secret.FieldName, nameIn...),
 						),
-						sql.In(secret.FieldName, nameIn...),
-					),
-				)
-		}).
-		Scan(ctx, &secrets)
+					)
+			}).
+			Scan(ctx, &secrets)
+	}()
 	if err != nil {
 		return nil, err
 	}

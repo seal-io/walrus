@@ -1,14 +1,18 @@
 package project
 
 import (
-	"entgo.io/ent/dialect/sql"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/project/view"
+	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -34,6 +38,15 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
+	// Add a subject role for the project.
+	s := session.MustGetSubject(ctx)
+	entity.Edges.SubjectRoles = []*model.SubjectRoleRelationship{
+		{
+			SubjectID: s.ID,
+			RoleID:    types.ProjectRoleOwner,
+		},
+	}
+
 	creates, err := dao.ProjectCreates(h.modelClient, entity)
 	if err != nil {
 		return nil, err
@@ -48,10 +61,20 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
+	s := session.MustGetSubject(ctx)
+	if !s.Enforce(req.ID, "projects", http.MethodDelete, string(req.ID), "") {
+		return runtime.Errorc(http.StatusForbidden)
+	}
+
 	return h.modelClient.Projects().DeleteOne(req.Model()).Exec(ctx)
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
+	s := session.MustGetSubject(ctx)
+	if !s.Enforce(req.ID, "projects", http.MethodPut, string(req.ID), "") {
+		return runtime.Errorc(http.StatusForbidden)
+	}
+
 	entity := req.Model()
 
 	updates, err := dao.ProjectUpdates(h.modelClient, entity)
@@ -63,6 +86,11 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+	s := session.MustGetSubject(ctx)
+	if !s.Enforce(req.ID, "projects", http.MethodGet, string(req.ID), "") {
+		return nil, runtime.Errorc(http.StatusForbidden)
+	}
+
 	entity, err := h.modelClient.Projects().Get(ctx, req.ID)
 	if err != nil {
 		return nil, err
@@ -74,6 +102,13 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 // Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	s := session.MustGetSubject(ctx)
+	for i := range req {
+		if !s.Enforce(req[i].ID, "projects", http.MethodDelete, string(req[i].ID), "") {
+			return runtime.Errorc(http.StatusForbidden)
+		}
+	}
+
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
 		for i := range req {
 			err = tx.Projects().DeleteOne(req[i].Model()).
@@ -104,6 +139,17 @@ func (h Handler) CollectionGet(
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.Projects().Query()
+
+	s := session.MustGetSubject(ctx)
+	if !s.IsAdmin() {
+		pids := make([]oid.ID, len(s.ProjectRoles))
+		for i := range s.ProjectRoles {
+			pids[i] = s.ProjectRoles[i].Project.ID
+		}
+
+		query.Where(project.IDIn(pids...))
+	}
+
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
 	}
@@ -139,35 +185,3 @@ func (h Handler) CollectionGet(
 }
 
 // Extensional APIs.
-
-var secretQueryFields = []string{
-	secret.FieldName,
-}
-
-func (h Handler) GetSecrets(
-	ctx *gin.Context,
-	req view.GetSecretsRequest,
-) (view.GetSecretsResponse, error) {
-	query := h.modelClient.Secrets().Query()
-	if queries, ok := req.Querying(secretQueryFields); ok {
-		query.Where(queries)
-	}
-
-	var entities model.Secrets
-
-	err := query.
-		Where(secret.Or(
-			secret.ProjectIDIsNil(),
-			secret.ProjectID(req.ID),
-		)).
-		Modify(func(s *sql.Selector) {
-			s.Select(secret.FieldName).
-				Distinct()
-		}).
-		Scan(ctx, &entities)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.ExposeSecrets(entities), nil
-}

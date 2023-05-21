@@ -20,12 +20,17 @@ func TokenCreates(mc model.ClientSet, input ...*model.Token) ([]*model.TokenCrea
 
 		// Required.
 		c := mc.Tokens().Create().
-			SetCasdoorTokenName(r.CasdoorTokenName).
-			SetCasdoorTokenOwner(r.CasdoorTokenOwner).
-			SetName(r.Name)
+			SetSubjectID(r.SubjectID).
+			SetName(r.Name).
+			SetValue(r.Value)
 
 		// Optional.
+		if r.Kind != "" {
+			c.SetKind(r.Kind)
+		}
+
 		c.SetNillableExpiration(r.Expiration)
+
 		rrs[i] = c
 	}
 
