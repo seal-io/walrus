@@ -24,6 +24,7 @@ func ApplicationRevisionCreates(
 
 		// Required.
 		c := mc.ApplicationRevisions().Create().
+			SetProjectID(r.ProjectID).
 			SetInstanceID(r.InstanceID).
 			SetEnvironmentID(r.EnvironmentID).
 			SetInputPlan(r.InputPlan).

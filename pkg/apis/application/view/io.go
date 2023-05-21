@@ -22,12 +22,12 @@ import (
 
 type CreateRequest struct {
 	*model.ApplicationCreateInput `json:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
-
-	if r.Project.ID == "" {
+	if !r.ProjectID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
 
@@ -36,6 +36,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if len(r.Modules) != 0 {
+		modelClient := input.(model.ClientSet)
 		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
 	}
 
@@ -115,10 +116,14 @@ type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
 	*model.ApplicationUpdateInput `uri:",inline" json:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
@@ -129,6 +134,8 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if len(r.Modules) != 0 {
+		modelClient := input.(model.ClientSet)
+
 		return validateModules(ctx, modelClient, r.Model().Edges.Modules)
 	}
 
@@ -137,9 +144,15 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 
 type GetRequest struct {
 	*model.ApplicationQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *GetRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -149,17 +162,17 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ApplicationOutput
 
-type StreamResponse struct {
-	Type       datamessage.EventType      `json:"type"`
-	IDs        []oid.ID                   `json:"ids,omitempty"`
-	Collection []*model.ApplicationOutput `json:"collection,omitempty"`
-}
-
 type StreamRequest struct {
 	ID oid.ID `uri:"id"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -173,6 +186,12 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	return nil
+}
+
+type StreamResponse struct {
+	Type       datamessage.EventType      `json:"type"`
+	IDs        []oid.ID                   `json:"ids,omitempty"`
+	Collection []*model.ApplicationOutput `json:"collection,omitempty"`
 }
 
 // Batch APIs.
@@ -218,10 +237,14 @@ type CollectionGetResponse = []*model.ApplicationOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	ProjectIDs []oid.ID `query:"projectID,omitempty"`
+	ProjectIDs []oid.ID `query:"projectID"`
 }
 
 func (r *CollectionStreamRequest) Validate() error {
+	if len(r.ProjectIDs) == 0 {
+		return errors.New("invalid input: missing project id")
+	}
+
 	for i := range r.ProjectIDs {
 		if !r.ProjectIDs[i].Valid(0) {
 			return errors.New("invalid project id: blank")

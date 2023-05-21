@@ -32,11 +32,14 @@ import (
 type CreateRequest struct {
 	*model.ApplicationInstanceCreateInput `json:",inline"`
 
+	ProjectID  oid.ID   `query:"projectID"`
 	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.Application.ID.Valid(0) {
 		return errors.New("invalid application id: blank")
@@ -51,6 +54,8 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	// Verify application if it has no modules.
+	modelClient := input.(model.ClientSet)
+
 	app, err := modelClient.Applications().Query().
 		Select(
 			application.FieldID,
@@ -97,10 +102,15 @@ type CreateResponse = *model.ApplicationInstanceOutput
 type DeleteRequest struct {
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
 
-	Force *bool `query:"force,default=true"`
+	ProjectID oid.ID `query:"projectID"`
+	Force     *bool  `query:"force,default=true"`
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -124,9 +134,15 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 
 type GetRequest struct {
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *GetRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -136,20 +152,21 @@ func (r *GetRequest) Validate() error {
 
 type GetResponse = *model.ApplicationInstanceOutput
 
-type StreamResponse struct {
-	Type       datamessage.EventType              `json:"type"`
-	IDs        []oid.ID                           `json:"ids,omitempty"`
-	Collection []*model.ApplicationInstanceOutput `json:"collection,omitempty"`
-}
-
 type StreamRequest struct {
 	ID oid.ID `uri:"id"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
 	modelClient := input.(model.ClientSet)
 
 	exist, err := modelClient.ApplicationInstances().Query().
@@ -162,20 +179,31 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
+type StreamResponse struct {
+	Type       datamessage.EventType              `json:"type"`
+	IDs        []oid.ID                           `json:"ids,omitempty"`
+	Collection []*model.ApplicationInstanceOutput `json:"collection,omitempty"`
+}
+
 // Batch APIs.
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationInstance, applicationinstance.OrderOption] `query:",inline"`
 
+	ProjectID     oid.ID `query:"projectID"`
 	ApplicationID oid.ID `query:"applicationID"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.ApplicationID.Valid(0) {
 		return errors.New("invalid application id: blank")
 	}
+
+	modelClient := input.(model.ClientSet)
 
 	_, err := modelClient.Applications().Query().
 		Where(application.ID(r.ApplicationID)).
@@ -192,11 +220,16 @@ type CollectionGetResponse = []*model.ApplicationInstanceOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
+	ProjectID     oid.ID `query:"projectID"`
 	ApplicationID oid.ID `query:"applicationID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if r.ApplicationID != "" {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	if r.ApplicationID.Valid(0) {
 		modelClient := input.(model.ClientSet)
 
 		if !r.ApplicationID.Valid(0) {
@@ -221,15 +254,20 @@ type RouteUpgradeRequest struct {
 
 	*model.ApplicationInstanceUpdateInput `uri:",inline" json:",inline"`
 
+	ProjectID  oid.ID   `query:"projectID"`
 	RemarkTags []string `json:"remarkTags,omitempty"`
 }
 
 func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
+	modelClient := input.(model.ClientSet)
 
 	ai, err := modelClient.ApplicationInstances().Query().
 		Select(
@@ -258,7 +296,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 	return nil
 }
 
-func IsEndpointOuput(outputName string) bool {
+func IsEndpointOutput(outputName string) bool {
 	return strings.HasPrefix(outputName, "endpoint")
 }
 
@@ -266,14 +304,20 @@ type AccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
 
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
+	modelClient := input.(model.ClientSet)
 
 	_, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.ID)).
@@ -300,14 +344,20 @@ type OutputRequest struct {
 	_ struct{} `route:"GET=/outputs"`
 
 	*model.ApplicationInstanceQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
 }
 
 func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
-	modelClient := input.(model.ClientSet)
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
 
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
+
+	modelClient := input.(model.ClientSet)
 
 	_, err := modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(r.ID)).
@@ -325,7 +375,7 @@ type CreateCloneRequest struct {
 	_ struct{} `route:"POST=/clone"`
 
 	ID            oid.ID   `uri:"id"`
-	EnviornmentID oid.ID   `json:"enviornmentID"`
+	EnvironmentID oid.ID   `json:"environmentID"`
 	Name          string   `json:"name"`
 	RemarkTags    []string `json:"remarkTags,omitempty"`
 }
@@ -339,14 +389,14 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 		return errors.New("invalid name: blank")
 	}
 
-	if r.EnviornmentID != "" {
-		if !r.EnviornmentID.IsNaive() {
-			return fmt.Errorf("invalid environment id: %s", r.EnviornmentID)
+	if r.EnvironmentID != "" {
+		if !r.EnvironmentID.IsNaive() {
+			return fmt.Errorf("invalid environment id: %s", r.EnvironmentID)
 		}
 		modelClient := input.(model.ClientSet)
 
 		_, err := modelClient.Environments().Query().
-			Where(environment.ID(r.EnviornmentID)).
+			Where(environment.ID(r.EnvironmentID)).
 			OnlyID(ctx)
 		if err != nil {
 			return runtime.Errorw(err, "failed to get environment")

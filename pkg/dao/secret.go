@@ -26,7 +26,7 @@ func SecretCreates(mc model.ClientSet, input ...*model.Secret) ([]*model.SecretC
 			SetValue(r.Value)
 
 		// Optional.
-		if r.ProjectID != "" {
+		if r.ProjectID.IsNaive() {
 			c.SetProjectID(r.ProjectID)
 		}
 		rrs[i] = c

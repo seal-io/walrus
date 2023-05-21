@@ -9,7 +9,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 type Secret struct {
@@ -19,6 +18,7 @@ type Secret struct {
 func (Secret) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
+		mixin.OwnByProject{}.AsOptional(),
 		mixin.Time{},
 	}
 }
@@ -43,11 +43,6 @@ func (Secret) Indexes() []ent.Index {
 
 func (Secret) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("projectID").
-			Comment("ID of the project to which the secret belongs, " +
-				"empty means sharing for all projects.").
-			Optional().
-			Immutable(),
 		field.String("name").
 			Comment("The name of secret.").
 			NotEmpty().
@@ -65,7 +60,7 @@ func (Secret) Edges() []ent.Edge {
 		edge.From("project", Project.Type).
 			Ref("secrets").
 			Field("projectID").
-			Comment("Project to which this secret belongs.").
+			Comment("Project to which the secret belongs.").
 			Unique().
 			Immutable(),
 	}

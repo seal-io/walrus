@@ -8,18 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/apis/account"
 	"github.com/seal-io/seal/pkg/apis/application"
 	"github.com/seal-io/seal/pkg/apis/applicationinstance"
 	"github.com/seal-io/seal/pkg/apis/applicationresource"
 	"github.com/seal-io/seal/pkg/apis/applicationrevision"
-	"github.com/seal-io/seal/pkg/apis/auth"
 	"github.com/seal-io/seal/pkg/apis/connector"
 	"github.com/seal-io/seal/pkg/apis/cost"
 	"github.com/seal-io/seal/pkg/apis/dashboard"
 	"github.com/seal-io/seal/pkg/apis/debug"
 	"github.com/seal-io/seal/pkg/apis/environment"
-	"github.com/seal-io/seal/pkg/apis/group"
 	"github.com/seal-io/seal/pkg/apis/health"
 	"github.com/seal-io/seal/pkg/apis/module"
 	"github.com/seal-io/seal/pkg/apis/modulecompletion"
@@ -31,10 +28,12 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/secret"
 	"github.com/seal-io/seal/pkg/apis/setting"
+	"github.com/seal-io/seal/pkg/apis/subject"
+	"github.com/seal-io/seal/pkg/apis/subjectrole"
 	"github.com/seal-io/seal/pkg/apis/swagger"
 	"github.com/seal-io/seal/pkg/apis/token"
 	"github.com/seal-io/seal/pkg/apis/ui"
-	"github.com/seal-io/seal/pkg/apis/user"
+	"github.com/seal-io/seal/pkg/auths"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -53,7 +52,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	gin.DefaultWriter = s.logger
 	gin.DefaultErrorWriter = s.logger
 	apis := gin.New()
-	auths := auth.Auth(opts.EnableAuthn, opts.ModelClient)
+	account := auths.RequestAccount(opts.ModelClient, opts.EnableAuthn)
 	throttler := runtime.RequestThrottling(opts.ConnQPS, opts.ConnBurst)
 	rectifier := runtime.RequestShaping(opts.ConnQPS, opts.ConnQPS, 5*time.Second)
 	wsCounter := runtime.If(
@@ -85,20 +84,20 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 
 	accountApis := apis.Group("/account",
 		rectifier,
-		auths)
+		account.Filter)
 	{
 		r := accountApis
-		runtime.MustRoutePost(r, "/login", account.Login())
-		runtime.MustRoutePost(r, "/logout", account.Logout())
-		runtime.MustRoutePost(r, "/info", account.Info(opts.ModelClient))
-		runtime.MustRouteGet(r, "/info", account.Info(opts.ModelClient))
+		runtime.MustRoutePost(r, "/login", account.Login)
+		runtime.MustRoutePost(r, "/logout", account.Logout)
+		runtime.MustRoutePost(r, "/info", account.UpdateInfo)
+		runtime.MustRouteGet(r, "/info", account.GetInfo)
 	}
 
 	resourceApis := apis.Group("/v1",
 		throttler,
-		auths)
+		account.Filter)
 	{
-		r := auth.WithResourceRoleGenerator(ctx, resourceApis, opts.ModelClient)
+		r := resourceApis
 		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r.Group("", rectifier, wsCounter),
@@ -106,19 +105,19 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, group.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, dashboard.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, environment.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, modulecompletion.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, moduleversion.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, project.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, secret.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, setting.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, subject.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, subjectrole.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, user.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, moduleversion.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, environment.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, dashboard.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, modulecompletion.Handle(opts.ModelClient))
 	}
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
 	runtime.MustRouteStatic(apis, "/swagger/*any", swagger.Index("/openapi"))

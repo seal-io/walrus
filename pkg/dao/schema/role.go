@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -15,27 +15,20 @@ type Role struct {
 
 func (Role) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
 		mixin.Time{},
-	}
-}
-
-func (Role) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("domain", "name").
-			Unique(),
 	}
 }
 
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("domain").
-			Comment("The domain of the role.").
-			Default("system").
-			Immutable(),
-		field.String("name").
-			Comment("The name of the role.").
+		field.String("id").
+			Comment("It is also the name of the role.").
+			Unique().
 			NotEmpty().
+			Immutable(),
+		field.String("kind").
+			Comment("The kind of the role.").
+			Default(types.RoleKindSystem).
 			Immutable(),
 		field.String("description").
 			Comment("The detail of the role.").
@@ -43,13 +36,23 @@ func (Role) Fields() []ent.Field {
 		field.JSON("policies", types.RolePolicies{}).
 			Comment("The policy list of the role.").
 			Default(types.DefaultRolePolicies()),
-		field.Bool("builtin").
-			Comment("Indicate whether the subject is builtin, decide when creating.").
-			Default(false).
-			Immutable(),
 		field.Bool("session").
-			Comment("Indicate whether the subject is session level, decide when creating.").
+			Comment("Indicate whether the role is session level, decide when creating.").
 			Default(false).
 			Immutable(),
+		field.Bool("builtin").
+			Comment("Indicate whether the role is builtin, decide when creating.").
+			Default(false).
+			Immutable(),
+	}
+}
+
+func (Role) Edges() []ent.Edge {
+	return []ent.Edge{
+		// Subjects *-* roles.
+		edge.From("subjects", Subject.Type).
+			Ref("roles").
+			Comment("Subjects to which the role configures.").
+			Through("subjectRoleRelationships", SubjectRoleRelationship.Type),
 	}
 }

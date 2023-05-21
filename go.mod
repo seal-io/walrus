@@ -12,7 +12,6 @@ go 1.19
 require (
 	entgo.io/ent v0.12.2
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3
-	github.com/allegro/bigcache/v3 v3.1.0
 	github.com/aws/aws-sdk-go v1.44.153
 	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
@@ -95,6 +94,7 @@ require (
 	github.com/akerl/go-indefinite-article v0.0.2-0.20221219154354-6280c92263d6 // indirect
 	github.com/akerl/timber v0.0.3 // indirect
 	github.com/alitto/pond v1.8.3 // indirect
+	github.com/allegro/bigcache/v3 v3.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect

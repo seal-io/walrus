@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 
-	"entgo.io/ent/dialect/sql"
-
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -19,11 +17,7 @@ func (r *Server) initSettings(ctx context.Context, opts initOptions) error {
 
 	for i := range creates {
 		err = creates[i].
-			OnConflict(
-				sql.ConflictColumns(
-					setting.FieldName,
-				),
-			).
+			OnConflictColumns(setting.FieldName).
 			Update(func(upsert *model.SettingUpsert) {
 				upsert.UpdateHidden()
 				upsert.UpdateEditable()

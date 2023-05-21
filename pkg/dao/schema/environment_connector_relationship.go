@@ -31,12 +31,12 @@ func (EnvironmentConnectorRelationship) Fields() []ent.Field {
 	return []ent.Field{
 		oid.Field("environment_id").
 			Comment("ID of the environment to which the relationship connects.").
-			StructTag(`json:"environmentID"`).
+			StructTag(`json:"environmentID" sql:"environmentID"`).
 			NotEmpty().
 			Immutable(),
 		oid.Field("connector_id").
 			Comment("ID of the connector to which the relationship connects.").
-			StructTag(`json:"connectorID"`).
+			StructTag(`json:"connectorID" sql:"connectorID"`).
 			NotEmpty().
 			Immutable(),
 	}
@@ -47,7 +47,7 @@ func (EnvironmentConnectorRelationship) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("environment", Environment.Type).
 			Field("environment_id").
-			Comment("Environments that connect to the relationship.").
+			Comment("Environment that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().
@@ -56,7 +56,7 @@ func (EnvironmentConnectorRelationship) Edges() []ent.Edge {
 			}),
 		edge.To("connector", Connector.Type).
 			Field("connector_id").
-			Comment("Connectors that connect to the relationship.").
+			Comment("Connector that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().

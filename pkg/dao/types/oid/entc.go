@@ -44,7 +44,7 @@ func Hook() ent.Hook {
 
 			is, ok := m.(setter)
 			if !ok {
-				return nil, fmt.Errorf("unexpected mutation %T", m)
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
 			}
 
 			id, err := g.NextID()

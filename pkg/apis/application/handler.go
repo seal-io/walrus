@@ -237,6 +237,7 @@ func (h Handler) getCollectionQuery(query *model.ApplicationQuery) *model.Applic
 		WithInstances(func(iq *model.ApplicationInstanceQuery) {
 			iq.Select(
 				applicationinstance.FieldApplicationID,
+				applicationinstance.FieldProjectID,
 				applicationinstance.FieldID,
 				applicationinstance.FieldName,
 				applicationinstance.FieldStatus).
@@ -278,12 +279,10 @@ func (h Handler) CollectionStream(
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.Applications().Query().
+		Where(application.ProjectIDIn(req.ProjectIDs...)).
 		WithProject(func(q *model.ProjectQuery) {
 			q.Select(project.FieldID)
 		})
-	if len(req.ProjectIDs) != 0 {
-		query.Where(application.ProjectIDIn(req.ProjectIDs...))
-	}
 
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)

@@ -9,8 +9,12 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/dashboard/view"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/sqlx"
 	"github.com/seal-io/seal/utils/timex"
@@ -31,6 +35,55 @@ func (h Handler) Kind() string {
 }
 
 // Basic APIs.
+
+// Batch APIs.
+
+var getApplicationRevisionFields = applicationrevision.WithoutFields(
+	applicationrevision.FieldStatusMessage,
+	applicationrevision.FieldInputPlan,
+	applicationrevision.FieldOutput,
+	applicationrevision.FieldInputVariables,
+	applicationrevision.FieldModules,
+	applicationrevision.FieldVariables,
+	applicationrevision.FieldSecrets,
+)
+
+func (h Handler) CollectionGetLatestApplicationRevisions(
+	ctx *gin.Context,
+	_ view.CollectionGetLatestApplicationRevisionsRequest,
+) (view.CollectionGetLatestApplicationRevisionsResponse, int, error) {
+	entities, err := h.modelClient.ApplicationRevisions().Query().
+		Order(model.Desc(applicationrevision.FieldCreateTime)).
+		Select(getApplicationRevisionFields...).
+		WithInstance(func(aiq *model.ApplicationInstanceQuery) {
+			aiq.Select(
+				applicationinstance.FieldID,
+				applicationinstance.FieldName,
+				applicationinstance.FieldApplicationID,
+			).WithApplication(func(aq *model.ApplicationQuery) {
+				aq.Select(
+					application.FieldID,
+					application.FieldName,
+					application.FieldProjectID).
+					WithProject(func(pq *model.ProjectQuery) {
+						pq.Select(project.FieldID, project.FieldName)
+					})
+			})
+		}).
+		WithEnvironment(
+			func(eq *model.EnvironmentQuery) {
+				eq.Select(
+					environment.FieldID,
+					environment.FieldName)
+			}).
+		Limit(10).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return model.ExposeApplicationRevisions(entities), len(entities), nil
+}
 
 // Extensional APIs.
 
@@ -84,42 +137,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	}, nil
 }
 
-// getApplicationRevisionStatusCount returns the count of each status of application revisions.
-func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.RevisionStatusCount, error) {
-	var (
-		currentStatusCount = &view.RevisionStatusCount{}
-		statusCount        []struct {
-			Status string `json:"status"`
-			Count  int    `json:"count"`
-		}
-	)
-
-	err := h.modelClient.ApplicationRevisions().Query().
-		GroupBy(applicationrevision.FieldStatus).
-		Aggregate(
-			model.Count(),
-		).
-		Scan(ctx, &statusCount)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, s := range statusCount {
-		switch s.Status {
-		case status.ApplicationRevisionStatusFailed:
-			currentStatusCount.Failed = s.Count
-		case status.ApplicationRevisionStatusSucceeded:
-			currentStatusCount.Succeed = s.Count
-		case status.ApplicationRevisionStatusRunning:
-			currentStatusCount.Running = s.Count
-		}
-	}
-
-	return currentStatusCount, nil
-}
-
-// CollectionCreateApplicationRevisionStatistics returns the statistics of revision status.
-func (h Handler) CollectionCreateApplicationRevisionStatistics(
+func (h Handler) CollectionRouteApplicationRevisionStatistics(
 	ctx *gin.Context,
 	req view.ApplicationRevisionStatisticsRequest,
 ) (*view.ApplicationRevisionStatisticsResponse, error) {
@@ -230,4 +248,38 @@ func (h Handler) CollectionCreateApplicationRevisionStatistics(
 		StatusStats: statusStatistics,
 		StatusCount: statusCount,
 	}, nil
+}
+
+// getApplicationRevisionStatusCount returns the count of each status of application revisions.
+func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.RevisionStatusCount, error) {
+	var (
+		currentStatusCount = &view.RevisionStatusCount{}
+		statusCount        []struct {
+			Status string `json:"status"`
+			Count  int    `json:"count"`
+		}
+	)
+
+	err := h.modelClient.ApplicationRevisions().Query().
+		GroupBy(applicationrevision.FieldStatus).
+		Aggregate(
+			model.Count(),
+		).
+		Scan(ctx, &statusCount)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range statusCount {
+		switch s.Status {
+		case status.ApplicationRevisionStatusFailed:
+			currentStatusCount.Failed = s.Count
+		case status.ApplicationRevisionStatusSucceeded:
+			currentStatusCount.Succeed = s.Count
+		case status.ApplicationRevisionStatusRunning:
+			currentStatusCount.Running = s.Count
+		}
+	}
+
+	return currentStatusCount, nil
 }

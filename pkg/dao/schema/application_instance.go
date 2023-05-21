@@ -20,6 +20,7 @@ type ApplicationInstance struct {
 func (ApplicationInstance) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
+		mixin.OwnByProject{},
 		mixin.Time{},
 	}
 }
@@ -74,7 +75,7 @@ func (ApplicationInstance) Edges() []ent.Edge {
 			Immutable(),
 		// Application instance 1-* application revisions.
 		edge.To("revisions", ApplicationRevision.Type).
-			Comment("Application revisions that belong to this instance.").
+			Comment("Application revisions that belong to the instance.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),

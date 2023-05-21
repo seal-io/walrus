@@ -19,6 +19,7 @@ type ApplicationRevision struct {
 func (ApplicationRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
+		mixin.OwnByProject{},
 		mixin.Status{},
 		mixin.CreateTime{},
 	}

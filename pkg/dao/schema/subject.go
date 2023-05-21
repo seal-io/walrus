@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
@@ -22,7 +24,7 @@ func (Subject) Mixin() []ent.Mixin {
 
 func (Subject) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("kind", "group", "name").
+		index.Fields("kind", "domain", "name").
 			Unique(),
 	}
 }
@@ -31,11 +33,11 @@ func (Subject) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("kind").
 			Comment("The kind of the subject.").
-			Default("user").
+			Default(types.SubjectKindUser).
 			Immutable(),
-		field.String("group").
-			Comment("The group of the subject.").
-			Default("default"),
+		field.String("domain").
+			Comment("The domain of the subject.").
+			Default(types.SubjectDomainBuiltin),
 		field.String("name").
 			Comment("The name of the subject.").
 			NotEmpty().
@@ -43,22 +45,24 @@ func (Subject) Fields() []ent.Field {
 		field.String("description").
 			Comment("The detail of the subject.").
 			Optional(),
-		field.Bool("mountTo").
-			Comment("Indicate whether the user mount to the group.").
-			Nillable().
-			Default(false),
-		field.Bool("loginTo").
-			Comment("Indicate whether the user login to the group.").
-			Nillable().
-			Default(true),
-		field.JSON("roles", types.SubjectRoles{}).
-			Comment("The role list of the subject.").
-			Default(types.DefaultSubjectRoles()),
-		field.Strings("paths").
-			Comment("The path of the subject from the root group to itself.").
-			Default([]string{}),
 		field.Bool("builtin").
-			Comment("Indicate whether the subject is builtin.").
-			Default(false),
+			Comment("Indicate whether the subject is builtin, decide when creating.").
+			Default(false).
+			Immutable(),
+	}
+}
+
+func (Subject) Edges() []ent.Edge {
+	return []ent.Edge{
+		// Subject 1-* tokens.
+		edge.To("tokens", Token.Type).
+			Comment("Tokens that belong to the subject.").
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		// Subjects *-* roles.
+		edge.To("roles", Role.Type).
+			Comment("Roles that configure to the subject.").
+			Through("subjectRoleRelationships", SubjectRoleRelationship.Type),
 	}
 }

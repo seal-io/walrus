@@ -52,6 +52,12 @@ func (b *fieldBuilder) Optional() *fieldBuilder {
 	return b
 }
 
+// Sensitive fields not printable and not serializable.
+func (b *fieldBuilder) Sensitive() *fieldBuilder {
+	b.desc.Sensitive = true
+	return b
+}
+
 // Immutable indicates that this field cannot be updated.
 func (b *fieldBuilder) Immutable() *fieldBuilder {
 	b.desc.Immutable = true

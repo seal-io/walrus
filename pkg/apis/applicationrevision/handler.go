@@ -214,7 +214,11 @@ func (h Handler) CollectionGet(
 	}
 
 	entities, err := query.WithEnvironment(
-		func(eq *model.EnvironmentQuery) { eq.Select(environment.FieldID, environment.FieldName) }).
+		func(eq *model.EnvironmentQuery) {
+			eq.Select(
+				environment.FieldID,
+				environment.FieldName)
+		}).
 		Unique(false). // Allow returning without sorting keys.
 		All(ctx)
 	if err != nil {

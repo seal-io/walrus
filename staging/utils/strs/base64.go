@@ -14,7 +14,7 @@ func DecodeBase64(str string) (string, error) {
 	// Normalizes to no padding format.
 	str = strings.TrimRight(str, "=")
 
-	bs, err := base64.RawStdEncoding.DecodeString(str)
+	bs, err := DecodeBase64Bytes(ToBytes(&str))
 	if err != nil {
 		return "", err
 	}
@@ -22,15 +22,28 @@ func DecodeBase64(str string) (string, error) {
 	return FromBytes(&bs), nil
 }
 
+// DecodeBase64Bytes decodes the given bytes.
+func DecodeBase64Bytes(src []byte) ([]byte, error) {
+	enc := base64.RawStdEncoding
+	dst := make([]byte, enc.DecodedLen(len(src)))
+	n, err := enc.Decode(dst, src)
+
+	return dst[:n], err
+}
+
 // EncodeBase64 encodes the given string,
 // and then output standard format.
 func EncodeBase64(src string) string {
-	var (
-		enc = base64.StdEncoding
-		ret = make([]byte, enc.EncodedLen(len(src)))
-	)
+	bs := EncodeBase64Bytes(ToBytes(&src))
+	return FromBytes(&bs)
+}
 
-	enc.Encode(ret, ToBytes(&src))
+// EncodeBase64Bytes is similar to DecodeBase64,
+// but returns bytes.
+func EncodeBase64Bytes(src []byte) []byte {
+	enc := base64.URLEncoding
+	dst := make([]byte, enc.EncodedLen(len(src)))
+	enc.Encode(dst, src)
 
-	return FromBytes(&ret)
+	return dst
 }

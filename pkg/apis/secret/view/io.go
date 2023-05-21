@@ -14,10 +14,12 @@ import (
 
 type CreateRequest struct {
 	*model.SecretCreateInput `json:",inline"`
+
+	ProjectID oid.ID `query:"projectID,omitempty"`
 }
 
 func (r *CreateRequest) Validate() error {
-	if r.Project != nil && !r.Project.ID.Valid(0) {
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
 
@@ -36,13 +38,33 @@ type CreateResponse = *model.SecretOutput
 
 type DeleteRequest struct {
 	*model.SecretQueryInput `uri:",inline"`
+
+	ProjectID oid.ID `query:"projectID,omitempty"`
+}
+
+func (r *DeleteRequest) Validate() error {
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
 }
 
 type UpdateRequest struct {
 	*model.SecretUpdateInput `uri:",inline" json:",inline"`
+
+	ProjectID oid.ID `query:"projectID,omitempty"`
 }
 
 func (r *UpdateRequest) Validate() error {
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -76,11 +98,12 @@ type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
 
 	ProjectIDs []oid.ID `query:"projectID,omitempty"`
+	WithGlobal bool     `query:"withGlobal,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
-	// Query global scope secret if the given `ProjectIDs` is empty,
-	// otherwise, query project scope secret.
+	// Query global scope secrets if the given `ProjectIDs` is empty,
+	// otherwise, query project scope secrets.
 	for i := range r.ProjectIDs {
 		if !r.ProjectIDs[i].Valid(0) {
 			return errors.New("invalid project id: blank")

@@ -23,6 +23,7 @@ func ApplicationResourceCreates(
 
 		// Required.
 		c := mc.ApplicationResources().Create().
+			SetProjectID(r.ProjectID).
 			SetInstanceID(r.InstanceID).
 			SetConnectorID(r.ConnectorID).
 			SetName(r.Name).

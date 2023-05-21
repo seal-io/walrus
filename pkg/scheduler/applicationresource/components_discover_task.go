@@ -139,6 +139,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			Unique(false).
 			Select(
 				applicationresource.FieldID,
+				applicationresource.FieldProjectID,
 				applicationresource.FieldType,
 				applicationresource.FieldModule,
 				applicationresource.FieldInstanceID,
