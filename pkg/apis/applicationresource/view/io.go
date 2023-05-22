@@ -11,7 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -109,7 +109,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 
 type ApplicationResource struct {
 	Resource *model.ApplicationResourceOutput
-	Keys     *operator.Keys
+	Keys     *optypes.Keys
 }
 
 // MarshalJSON implements the json.Marshaler to avoid the impact from model.ApplicationResourceOutput's marshaller.
@@ -118,7 +118,7 @@ func (in ApplicationResource) MarshalJSON() ([]byte, error) {
 		AliasResource model.ApplicationResourceOutput
 		Alias         struct {
 			*AliasResource `json:",inline"`
-			Keys           *operator.Keys `json:"keys"`
+			Keys           *optypes.Keys `json:"keys"`
 		}
 	)
 
@@ -160,7 +160,7 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 
 type GetKeysRequest = ApplicationResourceQuery
 
-type GetKeysResponse = *operator.Keys
+type GetKeysResponse = *optypes.Keys
 
 type StreamLogRequest struct {
 	ApplicationResourceQuery `query:"-" uri:",inline"`

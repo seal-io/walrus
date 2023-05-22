@@ -7,11 +7,11 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
 // Label applies the labels to the given model.ApplicationResource list with the given operator.Operator.
-func Label(ctx context.Context, op operator.Operator, candidates []*model.ApplicationResource) (berr error) {
+func Label(ctx context.Context, op optypes.Operator, candidates []*model.ApplicationResource) (berr error) {
 	if op == nil {
 		return
 	}

@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -110,12 +110,12 @@ func TestOperator(t *testing.T) {
 			t.Errorf("error getting keys: %v", err)
 		}
 
-		assert.Equalf(t, keys, &operator.Keys{
+		assert.Equalf(t, keys, &optypes.Keys{
 			Labels: []string{"Pod", "Container"},
-			Keys: []operator.Key{
+			Keys: []optypes.Key{
 				{
 					Name: p.Name,
-					Keys: []operator.Key{
+					Keys: []optypes.Key{
 						{
 							Name:       "nginx",
 							Value:      p.Namespace + "/" + p.Name + "/run/nginx",
@@ -132,7 +132,7 @@ func TestOperator(t *testing.T) {
 		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
 
-		err := op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.LogOptions{
+		err := op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", optypes.LogOptions{
 			Out:  testLogWriter(t.Logf),
 			Tail: true,
 		})
@@ -168,7 +168,7 @@ func TestOperator(t *testing.T) {
 			}
 		}()
 
-		err = op.Exec(ctx, p.Namespace+"/"+p.Name+"/run/nginx", operator.ExecOptions{
+		err = op.Exec(ctx, p.Namespace+"/"+p.Name+"/run/nginx", optypes.ExecOptions{
 			Out:   testLogWriter(t.Logf),
 			In:    r,
 			Shell: "bash",

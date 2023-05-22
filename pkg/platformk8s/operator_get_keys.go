@@ -17,7 +17,7 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
 	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
@@ -27,7 +27,7 @@ import (
 func (op Operator) GetKeys(
 	ctx context.Context,
 	res *model.ApplicationResource,
-) (*operator.Keys, error) {
+) (*optypes.Keys, error) {
 	psp, err := op.getPods(ctx, res)
 	if err != nil {
 		return nil, err
@@ -47,9 +47,9 @@ func (op Operator) GetKeys(
 	//          }
 	//      ]
 	// }.
-	ks := operator.Keys{
+	ks := optypes.Keys{
 		Labels: []string{"Pod", "Container"},
-		Keys:   make([]operator.Key, 0),
+		Keys:   make([]optypes.Key, 0),
 	}
 	if psp == nil {
 		return &ks, nil
@@ -63,12 +63,12 @@ func (op Operator) GetKeys(
 		running := kube.IsPodRunning(&ps[i])
 		states := kube.GetContainerStates(&ps[i])
 
-		k := operator.Key{
+		k := optypes.Key{
 			Name: ps[i].Name, // Pod name.
-			Keys: make([]operator.Key, 0, len(states)),
+			Keys: make([]optypes.Key, 0, len(states)),
 		}
 		for j := 0; j < len(states); j++ {
-			k.Keys = append(k.Keys, operator.Key{
+			k.Keys = append(k.Keys, optypes.Key{
 				Name:       states[j].Name,     // Container name.
 				Value:      states[j].String(), // Key.
 				Loggable:   pointer.Bool(states[j].State > kube.ContainerStateUnknown),

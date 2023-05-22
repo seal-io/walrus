@@ -32,7 +32,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platform/deployer"
+	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/platformk8s"
 	"github.com/seal-io/seal/pkg/platformtf/config"
 	"github.com/seal-io/seal/pkg/platformtf/util"
@@ -101,7 +101,7 @@ var (
 	_varReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_]+)}`)
 )
 
-func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deployer, error) {
+func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
 	clientSet, err := kubernetes.NewForConfig(opts.KubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubernetes client set: %w", err)
@@ -114,12 +114,12 @@ func NewDeployer(_ context.Context, opts deployer.CreateOptions) (deployer.Deplo
 	}, nil
 }
 
-func (d Deployer) Type() deployer.Type {
+func (d Deployer) Type() deptypes.Type {
 	return DeployerType
 }
 
 // Apply will apply the application to deploy the application.
-func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts deployer.ApplyOptions) (err error) {
+func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts deptypes.ApplyOptions) (err error) {
 	app, err := d.getApplication(ctx, ai.ApplicationID)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func (d Deployer) Apply(ctx context.Context, ai *model.ApplicationInstance, opts
 func (d Deployer) Destroy(
 	ctx context.Context,
 	ai *model.ApplicationInstance,
-	destroyOpts deployer.DestroyOptions,
+	destroyOpts deptypes.DestroyOptions,
 ) (err error) {
 	app, err := d.getApplication(ctx, ai.ApplicationID)
 	if err != nil {
@@ -208,7 +208,7 @@ func (d Deployer) Destroy(
 func (d Deployer) Rollback(
 	ctx context.Context,
 	ai *model.ApplicationInstance,
-	opts deployer.RollbackOptions,
+	opts deptypes.RollbackOptions,
 ) (err error) {
 	if opts.CloneFrom == nil || opts.CloneFrom.InstanceID != ai.ID {
 		return errors.New("rollback failed: invalid revision")

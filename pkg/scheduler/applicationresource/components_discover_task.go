@@ -15,9 +15,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/operatorunknown"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -79,7 +79,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 
 func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.Connector) func() error {
 	return func() error {
-		op, err := platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := operator.Get(ctx, optypes.CreateOptions{
 			Connector: *c,
 		})
 		if err != nil {
@@ -124,7 +124,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 
 func (in *ComponentsDiscoverTask) buildSyncTask(
 	ctx context.Context,
-	op operator.Operator,
+	op optypes.Operator,
 	connectorID oid.ID,
 	offset,
 	limit int,

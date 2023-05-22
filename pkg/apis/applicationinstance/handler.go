@@ -25,8 +25,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/deployer"
+	"github.com/seal-io/seal/pkg/deployer"
+	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -80,13 +80,13 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	entity := req.Model()
 
 	// Get deployer.
-	createOpts := deployer.CreateOptions{
+	createOpts := deptypes.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
 
-	dp, err := platform.GetDeployer(ctx, createOpts)
+	dp, err := deployer.Get(ctx, createOpts)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	// Destroy instance.
-	destroyOpts := deployer.DestroyOptions{
+	destroyOpts := deptypes.DestroyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 	}
 
@@ -357,13 +357,13 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	entity := req.Model()
 
 	// Get deployer.
-	createOpts := deployer.CreateOptions{
+	createOpts := deptypes.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
 
-	dp, err := platform.GetDeployer(ctx, createOpts)
+	dp, err := deployer.Get(ctx, createOpts)
 	if err != nil {
 		return err
 	}
@@ -401,7 +401,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	}
 
 	// Apply instance.
-	applyOpts := deployer.ApplyOptions{
+	applyOpts := deptypes.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 		Tags:          req.RemarkTags,
 	}
@@ -631,13 +631,13 @@ func (h Handler) createInstance(
 	logger := log.WithName("api").WithName("application-instance")
 
 	// Get deployer.
-	createOpts := deployer.CreateOptions{
+	createOpts := deptypes.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
 
-	dp, err := platform.GetDeployer(ctx, createOpts)
+	dp, err := deployer.Get(ctx, createOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -686,7 +686,7 @@ func (h Handler) createInstance(
 	}
 
 	// Apply instance.
-	applyOpts := deployer.ApplyOptions{
+	applyOpts := deptypes.ApplyOptions{
 		SkipTLSVerify: !h.tlsCertified,
 		Tags:          opts.Tags,
 		CloneFrom:     clonedInstanceRevision,

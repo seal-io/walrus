@@ -11,13 +11,13 @@ import (
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/utils/pointer"
 
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/platformk8s/key"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Log implements operator.Operator.
-func (op Operator) Log(ctx context.Context, k string, opts operator.LogOptions) error {
+func (op Operator) Log(ctx context.Context, k string, opts optypes.LogOptions) error {
 	// Parse key.
 	ns, pn, ct, cn, ok := key.Decode(k)
 	if !ok {
