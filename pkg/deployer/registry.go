@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/deployer/types"
-	"github.com/seal-io/seal/pkg/platformtf"
 )
 
 var dpCreators map[types.Type]types.Creator
@@ -13,7 +13,7 @@ var dpCreators map[types.Type]types.Creator
 func init() {
 	// Register deployer creators as below.
 	dpCreators = map[types.Type]types.Creator{
-		platformtf.DeployerType: platformtf.NewDeployer,
+		terraform.DeployerType: terraform.NewDeployer,
 	}
 }
 

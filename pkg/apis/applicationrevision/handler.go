@@ -28,10 +28,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer"
+	"github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/pkg/platformtf"
+	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
@@ -379,7 +380,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		return strs.Join("-", string(r.ConnectorID), r.Module, r.Mode, r.Type, r.Name)
 	}
 
-	var p platformtf.Parser
+	var p tfparser.Parser
 
 	observedRess, err := p.ParseAppRevision(entity)
 	if err != nil {
@@ -588,7 +589,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 		return fmt.Errorf("error creating kubernetes client: %w", err)
 	}
 
-	return platformtf.StreamJobLogs(ctx, platformtf.StreamJobLogsOptions{
+	return terraform.StreamJobLogs(ctx, terraform.StreamJobLogsOptions{
 		Cli:        cli,
 		RevisionID: req.ID,
 		JobType:    req.JobType,
@@ -610,7 +611,7 @@ func (h Handler) RouteRollbackInstances(ctx *gin.Context, req view.RollbackInsta
 	}
 
 	createOpts := deptypes.CreateOptions{
-		Type:        platformtf.DeployerType,
+		Type:        terraform.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}

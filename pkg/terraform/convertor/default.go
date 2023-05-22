@@ -6,7 +6,7 @@ import (
 	"github.com/seal-io/seal/pkg/connectors/config"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platformtf/block"
+	"github.com/seal-io/seal/pkg/terraform/block"
 )
 
 // DefaultConvertor is the convertor for custom category connector.

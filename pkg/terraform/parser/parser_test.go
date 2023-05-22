@@ -1,4 +1,4 @@
-package platformtf
+package parser
 
 import (
 	"errors"

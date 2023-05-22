@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -198,10 +198,10 @@ func (r *StreamLogRequest) Validate() error {
 	}
 
 	if r.JobType == "" {
-		r.JobType = platformtf.JobTypeApply
+		r.JobType = terraform.JobTypeApply
 	}
 
-	if r.JobType != platformtf.JobTypeApply && r.JobType != platformtf.JobTypeDestroy {
+	if r.JobType != terraform.JobTypeApply && r.JobType != terraform.JobTypeDestroy {
 		return errors.New("invalid job type")
 	}
 

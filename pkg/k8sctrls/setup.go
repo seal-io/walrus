@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/platformtf"
+	"github.com/seal-io/seal/pkg/deployer/terraform"
 )
 
 func init() {
@@ -59,7 +59,7 @@ type Reconciler interface {
 func (m *Manager) Setup(ctx context.Context, opts SetupOptions) ([]Reconciler, error) {
 	// Setup reconciler below.
 	return []Reconciler{
-		platformtf.JobReconciler{
+		terraform.JobReconciler{
 			Logger:      opts.GetLogger().WithName("deployer").WithName("tf"),
 			KubeClient:  opts.GetClient(),
 			Kubeconfig:  opts.GetConfig(),

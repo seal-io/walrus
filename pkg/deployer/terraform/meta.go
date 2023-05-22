@@ -1,4 +1,4 @@
-package platformtf
+package terraform
 
 // seal metadata indicate seal will set value to these attribute while user module include these attribute.
 const (
