@@ -1,4 +1,4 @@
-package platformk8s
+package k8s
 
 import (
 	"fmt"

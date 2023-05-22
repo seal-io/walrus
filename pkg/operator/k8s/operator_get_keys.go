@@ -1,4 +1,4 @@
-package platformk8s
+package k8s
 
 import (
 	"context"
@@ -16,11 +16,12 @@ import (
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/utils/pointer"
 
+	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
+	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
+
 	"github.com/seal-io/seal/pkg/dao/model"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/pkg/platformk8s/intercept"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
-	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
 )
 
 // GetKeys implements operator.Operator.

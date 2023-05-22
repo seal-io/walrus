@@ -24,8 +24,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformk8s"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
+	"github.com/seal-io/seal/pkg/operator/k8s/kube"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -379,5 +379,5 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 		}
 	)
 
-	return platformk8s.GetPodLogs(ctx, opts.Cli, types.SealSystemNamespace, jobPod.Name, opts.Out, podLogOpts)
+	return opk8s.GetPodLogs(ctx, opts.Cli, types.SealSystemNamespace, jobPod.Name, opts.Out, podLogOpts)
 }

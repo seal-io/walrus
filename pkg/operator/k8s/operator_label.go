@@ -1,4 +1,4 @@
-package platformk8s
+package k8s
 
 import (
 	"context"
@@ -8,11 +8,12 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	dynamicclient "k8s.io/client-go/dynamic"
 
+	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
+	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/seal/pkg/operator/k8s/kubelabel"
+
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platformk8s/intercept"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
-	"github.com/seal-io/seal/pkg/platformk8s/kubelabel"
 )
 
 // Label implements operator.Operator.

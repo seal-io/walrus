@@ -14,14 +14,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformk8s"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/utils/log"
 )
 
 func UpdateCustomPricing(ctx context.Context, conn *model.Connector) error {
 	log.WithName("cost").Debugf("updating cost custom pricing for connector %s", conn.Name)
 
-	restCfg, err := platformk8s.GetConfig(*conn)
+	restCfg, err := opk8s.GetConfig(*conn)
 	if err != nil {
 		return err
 	}

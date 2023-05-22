@@ -1,4 +1,4 @@
-package platformk8s
+package k8s
 
 import (
 	"context"
@@ -15,9 +15,9 @@ import (
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 
+	"github.com/seal-io/seal/pkg/operator/k8s/key"
+	"github.com/seal-io/seal/pkg/operator/k8s/kube"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/pkg/platformk8s/key"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
 )
 
 // Exec implements operator.Operator.

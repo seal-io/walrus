@@ -33,7 +33,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
-	"github.com/seal-io/seal/pkg/platformk8s"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/pkg/terraform/config"
 	"github.com/seal-io/seal/pkg/terraform/parser"
@@ -648,7 +648,7 @@ func (d Deployer) GetProviderSecretData(connectors model.Connectors) (map[string
 			continue
 		}
 
-		_, s, err := platformk8s.LoadApiConfig(*c)
+		_, s, err := opk8s.LoadApiConfig(*c)
 		if err != nil {
 			return nil, err
 		}

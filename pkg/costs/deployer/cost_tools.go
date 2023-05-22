@@ -15,7 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platformk8s"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -46,7 +46,7 @@ type input struct {
 func DeployCostTools(ctx context.Context, conn *model.Connector, replace bool) error {
 	log.WithName("cost").Debugf("deploying cost tools for connector %s", conn.Name)
 
-	apiConfig, kubeconfig, err := platformk8s.LoadApiConfig(*conn)
+	apiConfig, kubeconfig, err := opk8s.LoadApiConfig(*conn)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func DeployCostTools(ctx context.Context, conn *model.Connector, replace bool) e
 }
 
 func CostToolsStatus(ctx context.Context, conn *model.Connector) error {
-	restCfg, err := platformk8s.GetConfig(*conn)
+	restCfg, err := opk8s.GetConfig(*conn)
 	if err != nil {
 		return err
 	}

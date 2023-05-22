@@ -28,7 +28,7 @@ import (
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
-	"github.com/seal-io/seal/pkg/platformk8s/intercept"
+	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
