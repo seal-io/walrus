@@ -7,7 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Basic APIs.
@@ -75,7 +75,7 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
 
-	ProjectIDs []types.ID `query:"projectID,omitempty"`
+	ProjectIDs []oid.ID `query:"projectID,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {

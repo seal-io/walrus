@@ -8,7 +8,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/operatorunknown"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
@@ -117,7 +117,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 func (in *LabelApplyTask) buildApplyTask(
 	ctx context.Context,
 	op operator.Operator,
-	connectorID types.ID,
+	connectorID oid.ID,
 	offset,
 	limit int,
 ) func() error {

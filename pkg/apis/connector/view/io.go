@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/platform"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -97,11 +98,11 @@ type GetResponse = *model.ConnectorOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType    `json:"type"`
-	IDs        []types.ID               `json:"ids,omitempty"`
+	IDs        []oid.ID                 `json:"ids,omitempty"`
 	Collection []*model.ConnectorOutput `json:"collection,omitempty"`
 }
 type StreamRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -170,7 +171,7 @@ type CollectionStreamRequest struct {
 type ApplyCostToolsRequest struct {
 	_ struct{} `route:"POST=/apply-cost-tools"`
 
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *ApplyCostToolsRequest) ValidateWith(ctx context.Context, input any) error {
@@ -186,7 +187,7 @@ func (r *ApplyCostToolsRequest) ValidateWith(ctx context.Context, input any) err
 type SyncCostDataRequest struct {
 	_ struct{} `route:"POST=/sync-cost-data"`
 
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error {
@@ -199,7 +200,7 @@ func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error
 	return validateConnectorType(ctx, modelClient, r.ID)
 }
 
-func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id types.ID) error {
+func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id oid.ID) error {
 	conn, err := modelClient.Connectors().Query().
 		Select(connector.FieldType).
 		Where(connector.ID(id)).
@@ -219,7 +220,7 @@ type GetRepositoriesRequest struct {
 	_ struct{} `route:"GET=/repositories"`
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
-	ID                                                                    types.ID `uri:"id"`
+	ID                                                                    oid.ID `uri:"id"`
 }
 
 type GetRepositoriesResponse = []*scm.Repository
@@ -228,8 +229,8 @@ type GetBranchesRequest struct {
 	_ struct{} `route:"GET=/repository-branches"`
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
-	ID                                                                    types.ID `uri:"id"`
-	Repository                                                            string   `query:"repository"`
+	ID                                                                    oid.ID `uri:"id"`
+	Repository                                                            string `query:"repository"`
 }
 
 type GetBranchesResponse = []*scm.Reference

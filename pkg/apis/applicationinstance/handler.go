@@ -154,7 +154,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return h.getEntityOutput(ctx, req.ID)
 }
 
-func (h Handler) getEntityOutput(ctx context.Context, id types.ID) (*model.ApplicationInstanceOutput, error) {
+func (h Handler) getEntityOutput(ctx context.Context, id oid.ID) (*model.ApplicationInstanceOutput, error) {
 	entity, err := h.modelClient.ApplicationInstances().Query().
 		Where(applicationinstance.ID(id)).
 		WithEnvironment(func(eq *model.EnvironmentQuery) {
@@ -416,7 +416,7 @@ func (h Handler) RouteAccessEndpoints(
 	return h.accessEndpoints(ctx, req.ID)
 }
 
-func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view.AccessEndpointResponse, error) {
+func (h Handler) accessEndpoints(ctx context.Context, instanceID oid.ID) (view.AccessEndpointResponse, error) {
 	// Endpoints from output.
 	endpoints, err := h.endpointsFromOutput(ctx, instanceID)
 	if err != nil {
@@ -431,7 +431,7 @@ func (h Handler) accessEndpoints(ctx context.Context, instanceID types.ID) (view
 	return h.endpointsFromResources(ctx, instanceID)
 }
 
-func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (view.AccessEndpointResponse, error) {
+func (h Handler) endpointsFromOutput(ctx context.Context, instanceID oid.ID) (view.AccessEndpointResponse, error) {
 	outputs, err := h.getInstanceOutputs(ctx, instanceID, true)
 	if err != nil {
 		return nil, err
@@ -502,7 +502,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, instanceID types.ID) (
 	return endpoints, nil
 }
 
-func (h Handler) endpointsFromResources(ctx context.Context, instanceID types.ID) ([]view.Endpoint, error) {
+func (h Handler) endpointsFromResources(ctx context.Context, instanceID oid.ID) ([]view.Endpoint, error) {
 	res, err := h.modelClient.ApplicationResources().Query().
 		Where(
 			applicationresource.InstanceID(instanceID),
@@ -557,7 +557,7 @@ func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.Ou
 
 func (h Handler) getInstanceOutputs(
 	ctx context.Context,
-	instanceID types.ID,
+	instanceID oid.ID,
 	onlySuccess bool,
 ) ([]types.OutputValue, error) {
 	ar, err := h.modelClient.ApplicationRevisions().Query().
@@ -715,7 +715,7 @@ func (h Handler) createInstance(
 }
 
 func publishApplicationUpdate(ctx context.Context, entity *model.ApplicationInstance) error {
-	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []types.ID{entity.ApplicationID})
+	return datamessage.Publish(ctx, string(datamessage.Application), model.OpUpdate, []oid.ID{entity.ApplicationID})
 }
 
 func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
@@ -787,7 +787,7 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 	}
 }
 
-func (h Handler) getRevisionByID(ctx context.Context, id types.ID) (*model.ApplicationRevision, error) {
+func (h Handler) getRevisionByID(ctx context.Context, id oid.ID) (*model.ApplicationRevision, error) {
 	return h.modelClient.ApplicationRevisions().Query().
 		Where(applicationrevision.ID(id)).
 		Only(ctx)

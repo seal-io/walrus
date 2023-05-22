@@ -29,6 +29,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform/deployer"
@@ -65,7 +66,7 @@ type CreateSecretsOptions struct {
 	SkipTLSVerify       bool
 	ApplicationRevision *model.ApplicationRevision
 	Connectors          model.Connectors
-	ProjectID           types.ID
+	ProjectID           oid.ID
 	// Metadata.
 	ProjectName             string
 	ApplicationName         string
@@ -278,7 +279,7 @@ func (d Deployer) Rollback(
 }
 
 // getApplication will get the application by id.
-func (d Deployer) getApplication(ctx context.Context, id types.ID) (*model.Application, error) {
+func (d Deployer) getApplication(ctx context.Context, id oid.ID) (*model.Application, error) {
 	return d.modelClient.Applications().Query().
 		Where(application.ID(id)).
 		WithProject(func(pq *model.ProjectQuery) {
@@ -477,7 +478,7 @@ func (d Deployer) CreateApplicationRevision(
 
 func (d Deployer) getRequiredProviders(
 	ctx context.Context,
-	instanceID types.ID,
+	instanceID oid.ID,
 	previousOutput string,
 ) ([]types.ProviderRequirement, error) {
 	stateRequiredProviderSet := sets.NewString()
@@ -850,7 +851,7 @@ func (d Deployer) parseModuleSecrets(
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
 func (d Deployer) getPreviousRequiredProviders(
 	ctx context.Context,
-	instanceID types.ID,
+	instanceID oid.ID,
 ) ([]types.ProviderRequirement, error) {
 	prevRequiredProviders := make([]types.ProviderRequirement, 0)
 
@@ -952,7 +953,7 @@ func SyncApplicationRevisionStatus(ctx context.Context, bm revisionbus.BusMessag
 		ctx,
 		string(datamessage.Application),
 		model.OpUpdate,
-		[]types.ID{appInstance.ApplicationID},
+		[]oid.ID{appInstance.ApplicationID},
 	)
 }
 

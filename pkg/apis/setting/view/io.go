@@ -8,14 +8,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Basic APIs.
 
 type UpdateRequest struct {
-	ID    types.ID `uri:"id"`
-	Value *string  `json:"value"`
+	ID    oid.ID  `uri:"id"`
+	Value *string `json:"value"`
 
 	Name string `json:"-"`
 }
@@ -92,7 +92,7 @@ func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) er
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
 
-	IDs []types.ID `query:"id,omitempty"`
+	IDs []oid.ID `query:"id,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {

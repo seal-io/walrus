@@ -16,7 +16,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/topic"
@@ -88,7 +87,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 func (h Handler) getApplicationOutput(
 	ctx context.Context,
-	id types.ID,
+	id oid.ID,
 ) (*model.ApplicationOutput, error) {
 	entity, err := h.modelClient.Applications().Query().
 		Where(application.ID(id)).

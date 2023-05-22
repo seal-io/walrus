@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/application"
 	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
@@ -151,12 +151,12 @@ type GetResponse = *model.ApplicationOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType      `json:"type"`
-	IDs        []types.ID                 `json:"ids,omitempty"`
+	IDs        []oid.ID                   `json:"ids,omitempty"`
 	Collection []*model.ApplicationOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -196,7 +196,7 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Application, application.OrderOption] `query:",inline"`
 
-	ProjectIDs []types.ID `query:"projectID"`
+	ProjectIDs []oid.ID `query:"projectID"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
@@ -218,7 +218,7 @@ type CollectionGetResponse = []*model.ApplicationOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	ProjectIDs []types.ID `query:"projectID,omitempty"`
+	ProjectIDs []oid.ID `query:"projectID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) Validate() error {

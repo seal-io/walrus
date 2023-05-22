@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -137,12 +138,12 @@ type GetResponse = *model.ApplicationInstanceOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType              `json:"type"`
-	IDs        []types.ID                         `json:"ids,omitempty"`
+	IDs        []oid.ID                           `json:"ids,omitempty"`
 	Collection []*model.ApplicationInstanceOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -166,7 +167,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationInstance, applicationinstance.OrderOption] `query:",inline"`
 
-	ApplicationID types.ID `query:"applicationID"`
+	ApplicationID oid.ID `query:"applicationID"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -191,7 +192,7 @@ type CollectionGetResponse = []*model.ApplicationInstanceOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	ApplicationID types.ID `query:"applicationID,omitempty"`
+	ApplicationID oid.ID `query:"applicationID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -323,8 +324,8 @@ type OutputResponse = []types.OutputValue
 type CreateCloneRequest struct {
 	_ struct{} `route:"POST=/clone"`
 
-	ID            types.ID `uri:"id"`
-	EnviornmentID types.ID `json:"enviornmentID"`
+	ID            oid.ID   `uri:"id"`
+	EnviornmentID oid.ID   `json:"enviornmentID"`
 	Name          string   `json:"name"`
 	RemarkTags    []string `json:"remarkTags,omitempty"`
 }
@@ -358,7 +359,7 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 func validateRevisionStatus(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	id types.ID,
+	id oid.ID,
 	action string,
 ) error {
 	revision, err := modelClient.ApplicationRevisions().Query().
@@ -418,7 +419,7 @@ type Diff struct {
 }
 
 type DiffLatestRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *DiffLatestRequest) Validate() error {

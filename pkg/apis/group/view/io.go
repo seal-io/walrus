@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Basic APIs.
@@ -48,7 +48,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type DeleteRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 
 	Name string `json:"-"`
 }
@@ -86,8 +86,8 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type UpdateRequest struct {
-	ID          types.ID `uri:"id"`
-	Description string   `json:"description,omitempty"`
+	ID          oid.ID `uri:"id"`
+	Description string `json:"description,omitempty"`
 
 	Name string `json:"-"`
 }
