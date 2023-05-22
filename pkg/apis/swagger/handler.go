@@ -76,6 +76,13 @@ const indexTemplate = `
       docExpansion: 'none',
       displayRequestDuration: true,
       persistAuthorization: true,
+      requestInterceptor: (r) => {
+        if (r.headers.Cookie) {
+          document.cookie = r.headers.Cookie+'; path=/; domain=;'
+        }
+        return r
+      },
+      withCredentials: true,
     });
   };
 </script>
