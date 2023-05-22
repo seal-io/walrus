@@ -11,7 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/pkg/operatorunknown"
+	opunknown "github.com/seal-io/seal/pkg/operator/unknown"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -83,7 +83,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", c.ID)
 			// NB(thxCode): replace disconnected connector with unknown connector.
-			op = operatorunknown.Operator{}
+			op = opunknown.Operator{}
 		}
 
 		cnt, err := c.QueryResources().

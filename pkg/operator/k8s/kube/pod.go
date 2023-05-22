@@ -3,7 +3,7 @@ package kube
 import (
 	core "k8s.io/api/core/v1"
 
-	"github.com/seal-io/seal/pkg/platformk8s/key"
+	"github.com/seal-io/seal/pkg/operator/k8s/key"
 )
 
 // IsPodReady returns true if Pod is ready.

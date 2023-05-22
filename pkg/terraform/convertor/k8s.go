@@ -5,7 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platformk8s"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/pkg/terraform/block"
 	"github.com/seal-io/seal/pkg/terraform/util"
 )
@@ -58,7 +58,7 @@ func (m K8sConvertor) toBlock(connector *model.Connector, opts interface{}) (*bl
 		}
 	)
 
-	_, _, err := platformk8s.LoadApiConfig(*connector)
+	_, _, err := opk8s.LoadApiConfig(*connector)
 	if err != nil {
 		return nil, err
 	}

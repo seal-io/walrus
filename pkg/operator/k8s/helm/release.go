@@ -16,8 +16,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformk8s/kube"
-	"github.com/seal-io/seal/pkg/platformk8s/kubestatus"
+	"github.com/seal-io/seal/pkg/operator/k8s/kube"
+	"github.com/seal-io/seal/pkg/operator/k8s/kubestatus"
 	"github.com/seal-io/seal/utils/strs"
 )
 

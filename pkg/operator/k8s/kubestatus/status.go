@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/dynamic"
 
 	typestatus "github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platformk8s/polymorphic"
+	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
 )
 
 var (

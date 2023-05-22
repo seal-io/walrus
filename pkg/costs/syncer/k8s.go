@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
-	"github.com/seal-io/seal/pkg/platformk8s"
+	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/timex"
 )
@@ -54,7 +54,7 @@ func (in *K8sCostSyncer) Sync(ctx context.Context, conn *model.Connector, startT
 func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, startTime, endTime *time.Time) error {
 	in.logger.Debugf("collect cost for connector: %s", conn.Name)
 
-	apiConfig, _, err := platformk8s.LoadApiConfig(*conn)
+	apiConfig, _, err := opk8s.LoadApiConfig(*conn)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once full-series costs synchronization,
 	// and rely on the session context timeout control,
 	// which means we don't close the underlay kubernetes client operation until the `ctx` is cancel or timeout.
-	restCfg, err := platformk8s.GetConfig(*conn, platformk8s.WithoutTimeout())
+	restCfg, err := opk8s.GetConfig(*conn, opk8s.WithoutTimeout())
 	if err != nil {
 		return err
 	}
