@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/platformtf/block"
+	"github.com/seal-io/seal/pkg/terraform/block"
 )
 
 func TestCreateConfigToBytes(t *testing.T) {

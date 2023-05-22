@@ -1,4 +1,4 @@
-package platformtf
+package parser
 
 import (
 	"errors"
@@ -22,8 +22,8 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// connectorSeparator is used to separate the connector id and the instance name.
-const connectorSeparator = "connector--"
+// ConnectorSeparator is used to separate the connector id and the instance name.
+const ConnectorSeparator = "connector--"
 
 type Provider = tfaddr.Provider
 
@@ -236,7 +236,7 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 		return "", nil
 	}
 
-	providers := strings.Split(providerConfig.Alias, connectorSeparator)
+	providers := strings.Split(providerConfig.Alias, ConnectorSeparator)
 	if len(providers) != 2 {
 		return "", fmt.Errorf("provider name error: %s", providerString)
 	}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 
-	"github.com/seal-io/seal/pkg/platformtf/block"
-	"github.com/seal-io/seal/pkg/platformtf/convertor"
+	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/seal/pkg/terraform/convertor"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )

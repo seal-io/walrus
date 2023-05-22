@@ -8,8 +8,8 @@ import (
 	"github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/modules"
-	"github.com/seal-io/seal/pkg/platformtf"
 )
 
 type SetupOptions struct {
@@ -19,7 +19,7 @@ type SetupOptions struct {
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	// Application revision.
 	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status",
-		platformtf.SyncApplicationRevisionStatus)
+		terraform.SyncApplicationRevisionStatus)
 	if err != nil {
 		return
 	}

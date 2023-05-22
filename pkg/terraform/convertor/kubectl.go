@@ -6,8 +6,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/platformk8s"
-	"github.com/seal-io/seal/pkg/platformtf/block"
-	"github.com/seal-io/seal/pkg/platformtf/util"
+	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/seal/pkg/terraform/util"
 )
 
 type KubectlConvertor string

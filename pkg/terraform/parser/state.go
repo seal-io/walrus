@@ -1,4 +1,4 @@
-package platformtf
+package parser
 
 import (
 	"github.com/seal-io/seal/pkg/dao/types/property"

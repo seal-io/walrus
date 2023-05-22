@@ -1,4 +1,4 @@
-package platformtf
+package terraform
 
 import (
 	"context"

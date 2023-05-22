@@ -1,4 +1,4 @@
-package platformtf
+package terraform
 
 import (
 	"context"
@@ -34,9 +34,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/platformk8s"
-	"github.com/seal-io/seal/pkg/platformtf/config"
-	"github.com/seal-io/seal/pkg/platformtf/util"
 	"github.com/seal-io/seal/pkg/settings"
+	"github.com/seal-io/seal/pkg/terraform/config"
+	"github.com/seal-io/seal/pkg/terraform/parser"
+	"github.com/seal-io/seal/pkg/terraform/util"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -488,7 +489,7 @@ func (d Deployer) getRequiredProviders(
 		return nil, err
 	}
 
-	stateRequiredProviders, err := ParseStateProviders(previousOutput)
+	stateRequiredProviders, err := parser.ParseStateProviders(previousOutput)
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +586,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				RequiredProviderNames: requiredProviderNames.List(),
 				Connectors:            opts.Connectors,
 				SecretMonthPath:       _secretMountPath,
-				ConnectorSeparator:    connectorSeparator,
+				ConnectorSeparator:    parser.ConnectorSeparator,
 			},
 			ModuleOptions: &config.ModuleOptions{
 				ModuleConfigs: moduleConfigs,

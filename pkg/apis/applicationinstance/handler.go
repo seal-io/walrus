@@ -26,9 +26,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer"
+	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/platformk8s/intercept"
-	"github.com/seal-io/seal/pkg/platformtf"
+	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -81,7 +82,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 
 	// Get deployer.
 	createOpts := deptypes.CreateOptions{
-		Type:        platformtf.DeployerType,
+		Type:        deployertf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
@@ -358,7 +359,7 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 
 	// Get deployer.
 	createOpts := deptypes.CreateOptions{
-		Type:        platformtf.DeployerType,
+		Type:        deployertf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
@@ -577,7 +578,7 @@ func (h Handler) getInstanceOutputs(
 		return nil, nil
 	}
 
-	o, err := platformtf.ParseStateOutput(ar)
+	o, err := tfparser.ParseStateOutput(ar)
 	if err != nil {
 		return nil, fmt.Errorf("error get outputs: %w", err)
 	}
@@ -632,7 +633,7 @@ func (h Handler) createInstance(
 
 	// Get deployer.
 	createOpts := deptypes.CreateOptions{
-		Type:        platformtf.DeployerType,
+		Type:        deployertf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
