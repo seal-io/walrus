@@ -16,6 +16,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -118,7 +119,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 
 			applicationResource := &model.ApplicationResource{
 				InstanceID:   revision.InstanceID,
-				ConnectorID:  types.ID(connector),
+				ConnectorID:  oid.ID(connector),
 				Mode:         rs.Mode,
 				Module:       moduleName,
 				Type:         rs.Type,

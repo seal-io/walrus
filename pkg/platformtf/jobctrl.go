@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformk8s"
 	"github.com/seal-io/seal/pkg/platformk8s/kube"
@@ -42,7 +43,7 @@ type JobCreateOptions struct {
 
 type StreamJobLogsOptions struct {
 	Cli        *coreclient.CoreV1Client
-	RevisionID types.ID
+	RevisionID oid.ID
 	JobType    string
 	Out        io.Writer
 }
@@ -123,7 +124,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		}
 	}()
 
-	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, types.ID(appRevisionID))
+	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, oid.ID(appRevisionID))
 	if err != nil {
 		return err
 	}

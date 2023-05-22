@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
@@ -54,12 +54,12 @@ func (r *ApplicationResourceQuery) ValidateWith(ctx context.Context, input any) 
 
 type StreamResponse struct {
 	Type       datamessage.EventType `json:"type"`
-	IDs        []types.ID            `json:"ids,omitempty"`
+	IDs        []oid.ID              `json:"ids,omitempty"`
 	Collection []ApplicationResource `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -86,8 +86,8 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ApplicationResource, applicationresource.OrderOption] `query:",inline"`
 
-	InstanceID  types.ID `query:"instanceID"`
-	WithoutKeys bool     `query:"withoutKeys,omitempty"`
+	InstanceID  oid.ID `query:"instanceID"`
+	WithoutKeys bool   `query:"withoutKeys,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -133,8 +133,8 @@ type CollectionGetResponse = []ApplicationResource
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	InstanceID  types.ID `query:"instanceID,omitempty"`
-	WithoutKeys bool     `query:"withoutKeys,omitempty"`
+	InstanceID  oid.ID `query:"instanceID,omitempty"`
+	WithoutKeys bool   `query:"withoutKeys,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {

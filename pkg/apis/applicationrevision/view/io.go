@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platformtf"
@@ -34,12 +35,12 @@ type GetResponse = *model.ApplicationRevisionOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType              `json:"type"`
-	IDs        []types.ID                         `json:"ids,omitempty"`
+	IDs        []oid.ID                           `json:"ids,omitempty"`
 	Collection []*model.ApplicationRevisionOutput `json:"collection,omitempty"`
 }
 
 type StreamRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -69,7 +70,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	var (
-		ids         = make([]types.ID, 0, len(r))
+		ids         = make([]oid.ID, 0, len(r))
 		modelClient = input.(model.ClientSet)
 	)
 
@@ -124,7 +125,7 @@ type CollectionGetRequest struct {
 	runtime.RequestExtracting                               `query:",inline"`
 	runtime.RequestSorting[applicationrevision.OrderOption] `query:",inline"`
 
-	InstanceID types.ID `query:"instanceID,omitempty"`
+	InstanceID oid.ID `query:"instanceID,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -151,7 +152,7 @@ type CollectionGetResponse = []*model.ApplicationRevisionOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	InstanceID types.ID `query:"instanceID,omitempty"`
+	InstanceID oid.ID `query:"instanceID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -187,8 +188,8 @@ type UpdateTerraformStatesRequest struct {
 }
 
 type StreamLogRequest struct {
-	ID      types.ID `uri:"id"`
-	JobType string   `query:"jobType,omitempty"`
+	ID      oid.ID `uri:"id"`
+	JobType string `query:"jobType,omitempty"`
 }
 
 func (r *StreamLogRequest) Validate() error {
@@ -257,7 +258,7 @@ func (r *RollbackApplicationRequest) Validate() error {
 }
 
 type DiffLatestRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *DiffLatestRequest) Validate() error {
@@ -269,7 +270,7 @@ func (r *DiffLatestRequest) Validate() error {
 }
 
 type RevisionDiffPreviousRequest struct {
-	ID types.ID `uri:"id"`
+	ID oid.ID `uri:"id"`
 }
 
 func (r *RevisionDiffPreviousRequest) Validate() error {

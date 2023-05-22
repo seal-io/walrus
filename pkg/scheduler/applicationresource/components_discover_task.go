@@ -125,7 +125,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 func (in *ComponentsDiscoverTask) buildSyncTask(
 	ctx context.Context,
 	op operator.Operator,
-	connectorID types.ID,
+	connectorID oid.ID,
 	offset,
 	limit int,
 ) func() error {

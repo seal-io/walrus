@@ -25,7 +25,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/platform"
@@ -405,7 +404,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 		c := observedRess[j]
 		observedRessIndex[key(c)] = c
 	}
-	deleteRessIDs := make([]types.ID, 0, len(recordRess))
+	deleteRessIDs := make([]oid.ID, 0, len(recordRess))
 
 	for _, c := range recordRess {
 		k := key(c)
@@ -458,7 +457,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 	}
 
 	// State/label the new resources async.
-	ids := make(map[types.ID][]types.ID)
+	ids := make(map[oid.ID][]oid.ID)
 	for i := range createRess {
 		// Group resources by connector.
 		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
@@ -488,7 +487,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 			return
 		}
 
-		csidx := make(map[types.ID]*model.Connector, len(cs))
+		csidx := make(map[oid.ID]*model.Connector, len(cs))
 		for i := range cs {
 			csidx[cs[i].ID] = cs[i]
 		}
