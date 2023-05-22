@@ -27,9 +27,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/deployer"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/deployer"
+	deptypes "github.com/seal-io/seal/pkg/deployer/types"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/platformtf"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/gopool"
@@ -510,7 +511,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ApplicationR
 				continue
 			}
 
-			op, err := platform.GetOperator(ctx, operator.CreateOptions{
+			op, err := operator.Get(ctx, optypes.CreateOptions{
 				Connector: *c,
 			})
 			if err != nil {
@@ -608,18 +609,18 @@ func (h Handler) RouteRollbackInstances(ctx *gin.Context, req view.RollbackInsta
 		return err
 	}
 
-	createOpts := deployer.CreateOptions{
+	createOpts := deptypes.CreateOptions{
 		Type:        platformtf.DeployerType,
 		ModelClient: h.modelClient,
 		KubeConfig:  h.kubeConfig,
 	}
 
-	dp, err := platform.GetDeployer(ctx, createOpts)
+	dp, err := deployer.Get(ctx, createOpts)
 	if err != nil {
 		return err
 	}
 
-	rollbackOpts := deployer.RollbackOptions{
+	rollbackOpts := deptypes.RollbackOptions{
 		SkipTLSVerify: !h.tlsCertified,
 		CloneFrom:     applicationRevision,
 	}

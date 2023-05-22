@@ -8,14 +8,14 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/utils/log"
 )
 
 const OperatorType = types.ConnectorTypeK8s
 
 // NewOperator returns operator.Operator with the given options.
-func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Operator, error) {
+func NewOperator(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once operation,
 	// and rely on the session context timeout control of each operation.
 	restConfig, err := GetConfig(opts.Connector, WithoutTimeout())
@@ -36,7 +36,7 @@ type Operator struct {
 }
 
 // Type implements operator.Operator.
-func (Operator) Type() operator.Type {
+func (Operator) Type() optypes.Type {
 	return OperatorType
 }
 

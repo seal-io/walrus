@@ -7,13 +7,13 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
 const OperatorType = "Any"
 
-// NewOperator returns operator.Operator with the given options.
-func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Operator, error) {
+// NewOperator returns types.Operator with the given options.
+func NewOperator(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
 	if opts.Connector.Category != types.ConnectorCategoryCustom {
 		return nil, errors.New("not custom connector")
 	}
@@ -23,7 +23,7 @@ func NewOperator(ctx context.Context, opts operator.CreateOptions) (operator.Ope
 
 type Operator struct{}
 
-func (Operator) Type() operator.Type {
+func (Operator) Type() optypes.Type {
 	return OperatorType
 }
 
@@ -31,7 +31,7 @@ func (Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
-func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*operator.Keys, error) {
+func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
 	return nil, nil
 }
 
@@ -57,11 +57,11 @@ func (Operator) GetComponents(
 	return nil, nil
 }
 
-func (Operator) Log(ctx context.Context, s string, options operator.LogOptions) error {
+func (Operator) Log(ctx context.Context, s string, options optypes.LogOptions) error {
 	return errors.New("cannot log")
 }
 
-func (Operator) Exec(ctx context.Context, s string, options operator.ExecOptions) error {
+func (Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions) error {
 	return errors.New("cannot execute")
 }
 

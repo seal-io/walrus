@@ -13,8 +13,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/pkg/vcs"
 )
@@ -238,7 +238,7 @@ type GetBranchesResponse = []*scm.Reference
 func validateConnector(ctx context.Context, entity *model.Connector) error {
 	switch entity.Category {
 	case types.ConnectorCategoryKubernetes:
-		op, err := platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := operator.Get(ctx, optypes.CreateOptions{
 			Connector: *entity,
 		})
 		if err != nil {

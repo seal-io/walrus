@@ -13,8 +13,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
 type StatusSyncer struct {
@@ -145,7 +145,7 @@ func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector
 		return nil
 	}
 
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{
+	op, err := operator.Get(ctx, optypes.CreateOptions{
 		Connector: conn,
 	})
 	if err != nil {

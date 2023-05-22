@@ -9,9 +9,9 @@ import (
 	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/operatorunknown"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -72,7 +72,7 @@ func (in *LabelApplyTask) Process(ctx context.Context, args ...interface{}) erro
 
 func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connector) func() error {
 	return func() error {
-		op, err := platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := operator.Get(ctx, optypes.CreateOptions{
 			Connector: *c,
 		})
 		if err != nil {
@@ -116,7 +116,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 
 func (in *LabelApplyTask) buildApplyTask(
 	ctx context.Context,
-	op operator.Operator,
+	op optypes.Operator,
 	connectorID oid.ID,
 	offset,
 	limit int,

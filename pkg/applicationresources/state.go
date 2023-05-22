@@ -7,7 +7,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
 type StateResult struct {
@@ -32,7 +32,7 @@ func (r *StateResult) merge(isError, isTransitioning bool) {
 // State gets status of the given model.ApplicationResource list with the given operator.Operator,
 // and represents is ready if both `Error` and `Transitioning` of StateResult are false.
 func State(
-	ctx context.Context, op operator.Operator,
+	ctx context.Context, op optypes.Operator,
 	modelClient model.ClientSet,
 	candidates []*model.ApplicationResource,
 ) (sr StateResult, berr error) {

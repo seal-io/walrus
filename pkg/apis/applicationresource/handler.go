@@ -15,8 +15,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
@@ -171,7 +171,7 @@ func (h Handler) CollectionStream(
 func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKeysResponse, error) {
 	res := req.Entity
 
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (h Handler) GetKeys(ctx *gin.Context, req view.GetKeysRequest) (view.GetKey
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
 	res := req.Entity
 
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 		return fmt.Errorf("unreachable connector: %w", err)
 	}
 
-	opts := operator.LogOptions{
+	opts := optypes.LogOptions{
 		Out:          ctx,
 		Previous:     req.Previous,
 		Tail:         req.Tail,
@@ -209,7 +209,7 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRequest) error {
 	res := req.Entity
 
-	op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *res.Edges.Connector})
+	op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *res.Edges.Connector})
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 
 	ts := asTermStream(ctx, req.Width, req.Height)
 	defer func() { _ = ts.Close() }()
-	opts := operator.ExecOptions{
+	opts := optypes.ExecOptions{
 		Out:     ts,
 		In:      ts,
 		Shell:   req.Shell,
@@ -289,7 +289,7 @@ func getCollection(
 
 		for c, idxs := range m {
 			// Get operator by connector.
-			op, err := platform.GetOperator(ctx, operator.CreateOptions{Connector: *c})
+			op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
 			if err != nil {
 				logger.Warnf("cannot get operator of connector: %v", err)
 				continue

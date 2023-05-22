@@ -15,9 +15,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/operator"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/operatorunknown"
-	"github.com/seal-io/seal/pkg/platform"
-	"github.com/seal-io/seal/pkg/platform/operator"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -75,10 +75,10 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if len(cs) == 0 {
 		return nil
 	}
-	ops := make(map[oid.ID]operator.Operator, len(cs))
+	ops := make(map[oid.ID]optypes.Operator, len(cs))
 
 	for i := range cs {
-		op, err := platform.GetOperator(ctx, operator.CreateOptions{
+		op, err := operator.Get(ctx, optypes.CreateOptions{
 			Connector: *cs[i],
 		})
 		if err != nil {
@@ -117,7 +117,7 @@ func (in *StatusSyncTask) buildStateTasks(
 	ctx context.Context,
 	offset,
 	limit int,
-	ops map[oid.ID]operator.Operator,
+	ops map[oid.ID]optypes.Operator,
 ) func() error {
 	return func() error {
 		is, err := in.modelClient.ApplicationInstances().Query().
@@ -147,7 +147,7 @@ func (in *StatusSyncTask) buildStateTasks(
 func (in *StatusSyncTask) buildStateTask(
 	ctx context.Context,
 	i *model.ApplicationInstance,
-	ops map[oid.ID]operator.Operator,
+	ops map[oid.ID]optypes.Operator,
 ) func() error {
 	return func() (berr error) {
 		rs, err := i.QueryResources().
