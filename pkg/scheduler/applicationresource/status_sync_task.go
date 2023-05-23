@@ -17,7 +17,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	opunknown "github.com/seal-io/seal/pkg/operator/unknown"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -91,7 +90,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 			// Warn out without breaking the whole syncing.
 			in.logger.Warnf("unreachable connector %q", cs[i].ID)
 			// NB(thxCode): replace disconnected connector with unknown connector.
-			op = opunknown.Operator{}
+			op = operator.UnReachable()
 		}
 		ops[cs[i].ID] = op
 	}

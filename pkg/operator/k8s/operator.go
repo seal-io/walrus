@@ -14,8 +14,8 @@ import (
 
 const OperatorType = types.ConnectorTypeK8s
 
-// NewOperator returns operator.Operator with the given options.
-func NewOperator(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
+// New returns operator.Operator with the given options.
+func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
 	// NB(thxCode): disable timeout as we don't know the maximum time-cost of once operation,
 	// and rely on the session context timeout control of each operation.
 	restConfig, err := GetConfig(opts.Connector, WithoutTimeout())
