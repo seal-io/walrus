@@ -1,4 +1,4 @@
-package any
+package unreachable
 
 import (
 	"context"
@@ -10,14 +10,10 @@ import (
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
-const OperatorType = "Any"
+const OperatorType = "UnReachable"
 
-// NewOperator returns types.Operator with the given options.
-func NewOperator(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
-	if opts.Connector.Category != types.ConnectorCategoryCustom {
-		return nil, errors.New("not custom connector")
-	}
-
+// New returns types.Operator with the given options.
+func New(ctx context.Context, opts optypes.CreateOptions) (optypes.Operator, error) {
 	return Operator{}, nil
 }
 
@@ -38,7 +34,9 @@ func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource
 func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResource) (*status.Status, error) {
 	return &status.Status{
 		Summary: status.Summary{
-			SummaryStatus: "Ready",
+			SummaryStatus:        "Unknown",
+			SummaryStatusMessage: "Connector Error: unreachable",
+			Error:                true,
 		},
 	}, nil
 }

@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/seal-io/seal/pkg/operator/any"
 	"github.com/seal-io/seal/pkg/operator/k8s"
 	"github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/seal/pkg/operator/unknown"
+	"github.com/seal-io/seal/pkg/operator/unreachable"
 )
 
 var opCreators map[types.Type]types.Creator
@@ -14,7 +15,7 @@ var opCreators map[types.Type]types.Creator
 func init() {
 	// Register operator creators as below.
 	opCreators = map[types.Type]types.Creator{
-		k8s.OperatorType: k8s.NewOperator,
+		k8s.OperatorType: k8s.New,
 	}
 }
 
@@ -23,7 +24,7 @@ func Get(ctx context.Context, opts types.CreateOptions) (op types.Operator, err 
 	f, exist := opCreators[opts.Connector.Type]
 	if !exist {
 		// Try to create an any operator.
-		op, err = any.NewOperator(ctx, opts)
+		op, err = unknown.New(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("unknown operator: %s", opts.Connector.Type)
 		}
@@ -35,4 +36,8 @@ func Get(ctx context.Context, opts types.CreateOptions) (op types.Operator, err 
 	}
 
 	return op, nil
+}
+
+func UnReachable() types.Operator {
+	return unreachable.Operator{}
 }
