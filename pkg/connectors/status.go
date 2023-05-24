@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
+	"github.com/seal-io/seal/utils/slice"
 )
 
 type StatusSyncer struct {
@@ -32,18 +33,20 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 	// Statuses check in sequence.
 	statusChecker := []struct {
 		status status.ConditionType
-		check  func(context.Context, model.Connector) (string, error)
+		check  func(context.Context, model.Connector) (bool, string, error)
 	}{
 		{
 			status: status.ConnectorStatusConnected,
-			check: func(ctx context.Context, m model.Connector) (string, error) {
-				return "", in.checkReachable(ctx, m)
+			check: func(ctx context.Context, m model.Connector) (bool, string, error) {
+				related, err := in.checkReachable(ctx, m)
+				return related, "", err
 			},
 		},
 		{
 			status: status.ConnectorStatusCostToolsDeployed,
-			check: func(ctx context.Context, m model.Connector) (string, error) {
-				return "", in.checkCostTool(ctx, m)
+			check: func(ctx context.Context, m model.Connector) (bool, string, error) {
+				related, err := in.checkCostTool(ctx, m)
+				return related, "", err
 			},
 		},
 		{
@@ -52,8 +55,8 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 		},
 		{
 			status: status.ConnectorStatusReady,
-			check: func(ctx context.Context, connector model.Connector) (string, error) {
-				return "", nil
+			check: func(ctx context.Context, connector model.Connector) (bool, string, error) {
+				return true, "", nil
 			},
 		},
 	}
@@ -63,7 +66,11 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 		// Init with unknown.
 		sc.status.Unknown(conn, "")
 
-		successMsg, err := sc.check(ctx, *conn)
+		related, successMsg, err := sc.check(ctx, *conn)
+		if !related {
+			continue
+		}
+
 		if err != nil {
 			sc.status.Status(conn, status.ConditionStatusFalse)
 			sc.status.Message(conn, err.Error())
@@ -83,7 +90,7 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 	// Statuses check in sequence.
 	statusChecker := []struct {
 		status status.ConditionType
-		check  func(context.Context, model.Connector) (string, error)
+		check  func(context.Context, model.Connector) (bool, string, error)
 	}{
 		{
 			status: status.ConnectorStatusCostSynced,
@@ -96,7 +103,11 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 		// Init with unknown.
 		sc.status.Unknown(conn, "")
 
-		successMsg, err := sc.check(ctx, *conn)
+		related, successMsg, err := sc.check(ctx, *conn)
+		if !related {
+			continue
+		}
+
 		if err != nil {
 			sc.status.False(conn, err.Error())
 			break
@@ -108,68 +119,82 @@ func (in *StatusSyncer) SyncFinOpsStatus(ctx context.Context, conn *model.Connec
 	return UpdateStatus(ctx, in.client, conn)
 }
 
-func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector) (string, error) {
+func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector) (bool, string, error) {
+	if conn.Type != types.ConnectorTypeK8s {
+		return false, "", nil
+	}
+
 	if !conn.EnableFinOps {
-		return "", nil
+		return true, "", nil
 	}
 
 	if !status.ConnectorStatusReady.IsTrue(&conn) {
 		// Skip connector isn't ready.
-		return "", nil
+		return true, "", nil
 	}
 
 	k8sSyncer := syncer.NewK8sCostSyncer(in.client, nil)
 
 	err := k8sSyncer.Sync(ctx, &conn, nil, nil)
 	if err != nil {
-		return "", err
+		return true, "", err
 	}
 
 	existed, err := in.client.ClusterCosts().Query().
 		Where(clustercost.ConnectorID(conn.ID)).
 		Exist(ctx)
 	if err != nil {
-		return "", err
+		return true, "", err
 	}
 
 	now := time.Now().UTC()
 	if now.Sub(*conn.CreateTime) < time.Hour && !existed {
-		return "It takes about an hour to generate hour-level cost data", nil
+		return true, "It takes about an hour to generate hour-level cost data", nil
 	}
 
-	return fmt.Sprintf("Last sync time %s", now.Format(time.RFC3339)), nil
+	return true, fmt.Sprintf("Last sync time %s", now.Format(time.RFC3339)), nil
 }
 
-func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector) error {
-	if conn.Type != types.ConnectorTypeK8s {
-		return nil
+func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector) (bool, error) {
+	if !slice.ContainsAny(
+		[]string{
+			types.ConnectorCategoryCloudProvider,
+			types.ConnectorCategoryKubernetes,
+		},
+		conn.Category,
+	) {
+		return false, nil
 	}
 
 	op, err := operator.Get(ctx, optypes.CreateOptions{
 		Connector: conn,
 	})
 	if err != nil {
-		return fmt.Errorf("invalid connector config: %w", err)
+		return true, fmt.Errorf("invalid connector config: %w", err)
 	}
 
 	if err = op.IsConnected(ctx); err != nil {
-		return fmt.Errorf("unreachable connector: %w", err)
+		return true, fmt.Errorf("unreachable connector: %w", err)
 	}
 
-	return nil
+	return true, nil
 }
 
-func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector) error {
-	if conn.Type != types.ConnectorTypeK8s || !conn.EnableFinOps {
-		return nil
+func (in *StatusSyncer) checkCostTool(ctx context.Context, conn model.Connector) (bool, error) {
+	if conn.Type != types.ConnectorTypeK8s {
+		return false, nil
+	}
+
+	if !conn.EnableFinOps {
+		return true, nil
 	}
 
 	err := deployer.CostToolsStatus(ctx, &conn)
 	if err != nil {
-		return fmt.Errorf("error check cost tools: %w", err)
+		return true, fmt.Errorf("error check cost tools: %w", err)
 	}
 
-	return nil
+	return true, nil
 }
 
 // UpdateStatus set summary and update the connector with locked.

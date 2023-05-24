@@ -46,7 +46,11 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	}()
 
 	conns, err := in.modelClient.Connectors().Query().Where(
-		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+		connector.CategoryIn(
+			types.ConnectorCategoryKubernetes,
+			types.ConnectorCategoryCloudProvider,
+		),
+	).All(ctx)
 	if err != nil {
 		return err
 	}
