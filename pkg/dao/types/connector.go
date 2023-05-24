@@ -1,11 +1,16 @@
 package types
 
-const ConnectorTypeK8s string = "Kubernetes"
+const (
+	ConnectorTypeK8s     string = "Kubernetes"
+	ConnectorTypeAlibaba string = "Alibaba"
+	ConnectorTypeAWS     string = "AWS"
+)
 
 const (
 	ConnectorCategoryKubernetes     string = "Kubernetes"
 	ConnectorCategoryCustom         string = "Custom"
 	ConnectorCategoryVersionControl string = "VersionControl"
+	ConnectorCategoryCloudProvider  string = "CloudProvider"
 )
 
 // FinOpsCustomPricing used to config opencost.
