@@ -11,8 +11,18 @@ go 1.19
 
 require (
 	entgo.io/ent v0.12.2
+	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3
 	github.com/allegro/bigcache/v3 v3.1.0
+	github.com/aws/aws-sdk-go v1.44.153
+	github.com/aws/aws-sdk-go-v2 v1.18.0
+	github.com/aws/aws-sdk-go-v2/config v1.13.1
+	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.26.6
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.29.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.12
+	github.com/aws/aws-sdk-go-v2/service/elasticache v1.27.0
+	github.com/aws/aws-sdk-go-v2/service/rds v1.44.1
 	github.com/davecgh/go-spew v1.1.1
+	github.com/denverdino/aliyungo v0.0.0-20230411124812-ab98a9173ace
 	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/drone/go-scm v1.29.1
 	github.com/dustin/go-humanize v1.0.1
@@ -85,14 +95,10 @@ require (
 	github.com/akerl/go-indefinite-article v0.0.2-0.20221219154354-6280c92263d6 // indirect
 	github.com/akerl/timber v0.0.3 // indirect
 	github.com/alitto/pond v1.8.3 // indirect
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/aws/aws-sdk-go v1.44.153 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.18.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.2.0 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.13.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.10.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.9.1 // indirect
@@ -100,7 +106,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/athena v1.12.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.29.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.7.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.27 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.11.0 // indirect
