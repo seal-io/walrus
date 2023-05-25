@@ -31,7 +31,7 @@ type SecretCreateInput struct {
 	Name string `json:"name"`
 	// The value of secret, store in string.
 	Value crypto.String `json:"value,omitempty"`
-	// Project to which this secret belongs.
+	// Project to which the secret belongs.
 	Project *ProjectQueryInput `json:"project,omitempty"`
 }
 
@@ -74,7 +74,7 @@ type SecretOutput struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The name of secret.
 	Name string `json:"name,omitempty"`
-	// Project to which this secret belongs.
+	// Project to which the secret belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
 }
 

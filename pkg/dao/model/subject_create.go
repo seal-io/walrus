@@ -17,7 +17,8 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -71,16 +72,16 @@ func (sc *SubjectCreate) SetNillableKind(s *string) *SubjectCreate {
 	return sc
 }
 
-// SetGroup sets the "group" field.
-func (sc *SubjectCreate) SetGroup(s string) *SubjectCreate {
-	sc.mutation.SetGroup(s)
+// SetDomain sets the "domain" field.
+func (sc *SubjectCreate) SetDomain(s string) *SubjectCreate {
+	sc.mutation.SetDomain(s)
 	return sc
 }
 
-// SetNillableGroup sets the "group" field if the given value is not nil.
-func (sc *SubjectCreate) SetNillableGroup(s *string) *SubjectCreate {
+// SetNillableDomain sets the "domain" field if the given value is not nil.
+func (sc *SubjectCreate) SetNillableDomain(s *string) *SubjectCreate {
 	if s != nil {
-		sc.SetGroup(*s)
+		sc.SetDomain(*s)
 	}
 	return sc
 }
@@ -105,46 +106,6 @@ func (sc *SubjectCreate) SetNillableDescription(s *string) *SubjectCreate {
 	return sc
 }
 
-// SetMountTo sets the "mountTo" field.
-func (sc *SubjectCreate) SetMountTo(b bool) *SubjectCreate {
-	sc.mutation.SetMountTo(b)
-	return sc
-}
-
-// SetNillableMountTo sets the "mountTo" field if the given value is not nil.
-func (sc *SubjectCreate) SetNillableMountTo(b *bool) *SubjectCreate {
-	if b != nil {
-		sc.SetMountTo(*b)
-	}
-	return sc
-}
-
-// SetLoginTo sets the "loginTo" field.
-func (sc *SubjectCreate) SetLoginTo(b bool) *SubjectCreate {
-	sc.mutation.SetLoginTo(b)
-	return sc
-}
-
-// SetNillableLoginTo sets the "loginTo" field if the given value is not nil.
-func (sc *SubjectCreate) SetNillableLoginTo(b *bool) *SubjectCreate {
-	if b != nil {
-		sc.SetLoginTo(*b)
-	}
-	return sc
-}
-
-// SetRoles sets the "roles" field.
-func (sc *SubjectCreate) SetRoles(tr types.SubjectRoles) *SubjectCreate {
-	sc.mutation.SetRoles(tr)
-	return sc
-}
-
-// SetPaths sets the "paths" field.
-func (sc *SubjectCreate) SetPaths(s []string) *SubjectCreate {
-	sc.mutation.SetPaths(s)
-	return sc
-}
-
 // SetBuiltin sets the "builtin" field.
 func (sc *SubjectCreate) SetBuiltin(b bool) *SubjectCreate {
 	sc.mutation.SetBuiltin(b)
@@ -163,6 +124,36 @@ func (sc *SubjectCreate) SetNillableBuiltin(b *bool) *SubjectCreate {
 func (sc *SubjectCreate) SetID(o oid.ID) *SubjectCreate {
 	sc.mutation.SetID(o)
 	return sc
+}
+
+// AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
+func (sc *SubjectCreate) AddTokenIDs(ids ...oid.ID) *SubjectCreate {
+	sc.mutation.AddTokenIDs(ids...)
+	return sc
+}
+
+// AddTokens adds the "tokens" edges to the Token entity.
+func (sc *SubjectCreate) AddTokens(t ...*Token) *SubjectCreate {
+	ids := make([]oid.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return sc.AddTokenIDs(ids...)
+}
+
+// AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by IDs.
+func (sc *SubjectCreate) AddRoleIDs(ids ...oid.ID) *SubjectCreate {
+	sc.mutation.AddRoleIDs(ids...)
+	return sc
+}
+
+// AddRoles adds the "roles" edges to the SubjectRoleRelationship entity.
+func (sc *SubjectCreate) AddRoles(s ...*SubjectRoleRelationship) *SubjectCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddRoleIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
@@ -220,25 +211,9 @@ func (sc *SubjectCreate) defaults() error {
 		v := subject.DefaultKind
 		sc.mutation.SetKind(v)
 	}
-	if _, ok := sc.mutation.Group(); !ok {
-		v := subject.DefaultGroup
-		sc.mutation.SetGroup(v)
-	}
-	if _, ok := sc.mutation.MountTo(); !ok {
-		v := subject.DefaultMountTo
-		sc.mutation.SetMountTo(v)
-	}
-	if _, ok := sc.mutation.LoginTo(); !ok {
-		v := subject.DefaultLoginTo
-		sc.mutation.SetLoginTo(v)
-	}
-	if _, ok := sc.mutation.Roles(); !ok {
-		v := subject.DefaultRoles
-		sc.mutation.SetRoles(v)
-	}
-	if _, ok := sc.mutation.Paths(); !ok {
-		v := subject.DefaultPaths
-		sc.mutation.SetPaths(v)
+	if _, ok := sc.mutation.Domain(); !ok {
+		v := subject.DefaultDomain
+		sc.mutation.SetDomain(v)
 	}
 	if _, ok := sc.mutation.Builtin(); !ok {
 		v := subject.DefaultBuiltin
@@ -258,8 +233,8 @@ func (sc *SubjectCreate) check() error {
 	if _, ok := sc.mutation.Kind(); !ok {
 		return &ValidationError{Name: "kind", err: errors.New(`model: missing required field "Subject.kind"`)}
 	}
-	if _, ok := sc.mutation.Group(); !ok {
-		return &ValidationError{Name: "group", err: errors.New(`model: missing required field "Subject.group"`)}
+	if _, ok := sc.mutation.Domain(); !ok {
+		return &ValidationError{Name: "domain", err: errors.New(`model: missing required field "Subject.domain"`)}
 	}
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Subject.name"`)}
@@ -268,18 +243,6 @@ func (sc *SubjectCreate) check() error {
 		if err := subject.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Subject.name": %w`, err)}
 		}
-	}
-	if _, ok := sc.mutation.MountTo(); !ok {
-		return &ValidationError{Name: "mountTo", err: errors.New(`model: missing required field "Subject.mountTo"`)}
-	}
-	if _, ok := sc.mutation.LoginTo(); !ok {
-		return &ValidationError{Name: "loginTo", err: errors.New(`model: missing required field "Subject.loginTo"`)}
-	}
-	if _, ok := sc.mutation.Roles(); !ok {
-		return &ValidationError{Name: "roles", err: errors.New(`model: missing required field "Subject.roles"`)}
-	}
-	if _, ok := sc.mutation.Paths(); !ok {
-		return &ValidationError{Name: "paths", err: errors.New(`model: missing required field "Subject.paths"`)}
 	}
 	if _, ok := sc.mutation.Builtin(); !ok {
 		return &ValidationError{Name: "builtin", err: errors.New(`model: missing required field "Subject.builtin"`)}
@@ -333,9 +296,9 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 		_spec.SetField(subject.FieldKind, field.TypeString, value)
 		_node.Kind = value
 	}
-	if value, ok := sc.mutation.Group(); ok {
-		_spec.SetField(subject.FieldGroup, field.TypeString, value)
-		_node.Group = value
+	if value, ok := sc.mutation.Domain(); ok {
+		_spec.SetField(subject.FieldDomain, field.TypeString, value)
+		_node.Domain = value
 	}
 	if value, ok := sc.mutation.Name(); ok {
 		_spec.SetField(subject.FieldName, field.TypeString, value)
@@ -345,25 +308,47 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 		_spec.SetField(subject.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := sc.mutation.MountTo(); ok {
-		_spec.SetField(subject.FieldMountTo, field.TypeBool, value)
-		_node.MountTo = &value
-	}
-	if value, ok := sc.mutation.LoginTo(); ok {
-		_spec.SetField(subject.FieldLoginTo, field.TypeBool, value)
-		_node.LoginTo = &value
-	}
-	if value, ok := sc.mutation.Roles(); ok {
-		_spec.SetField(subject.FieldRoles, field.TypeJSON, value)
-		_node.Roles = value
-	}
-	if value, ok := sc.mutation.Paths(); ok {
-		_spec.SetField(subject.FieldPaths, field.TypeJSON, value)
-		_node.Paths = value
-	}
 	if value, ok := sc.mutation.Builtin(); ok {
 		_spec.SetField(subject.FieldBuiltin, field.TypeBool, value)
 		_node.Builtin = value
+	}
+	if nodes := sc.mutation.TokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = sc.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = sc.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: sc.config, mutation: newSubjectRoleRelationshipMutation(sc.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -429,15 +414,15 @@ func (u *SubjectUpsert) UpdateUpdateTime() *SubjectUpsert {
 	return u
 }
 
-// SetGroup sets the "group" field.
-func (u *SubjectUpsert) SetGroup(v string) *SubjectUpsert {
-	u.Set(subject.FieldGroup, v)
+// SetDomain sets the "domain" field.
+func (u *SubjectUpsert) SetDomain(v string) *SubjectUpsert {
+	u.Set(subject.FieldDomain, v)
 	return u
 }
 
-// UpdateGroup sets the "group" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdateGroup() *SubjectUpsert {
-	u.SetExcluded(subject.FieldGroup)
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *SubjectUpsert) UpdateDomain() *SubjectUpsert {
+	u.SetExcluded(subject.FieldDomain)
 	return u
 }
 
@@ -456,66 +441,6 @@ func (u *SubjectUpsert) UpdateDescription() *SubjectUpsert {
 // ClearDescription clears the value of the "description" field.
 func (u *SubjectUpsert) ClearDescription() *SubjectUpsert {
 	u.SetNull(subject.FieldDescription)
-	return u
-}
-
-// SetMountTo sets the "mountTo" field.
-func (u *SubjectUpsert) SetMountTo(v bool) *SubjectUpsert {
-	u.Set(subject.FieldMountTo, v)
-	return u
-}
-
-// UpdateMountTo sets the "mountTo" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdateMountTo() *SubjectUpsert {
-	u.SetExcluded(subject.FieldMountTo)
-	return u
-}
-
-// SetLoginTo sets the "loginTo" field.
-func (u *SubjectUpsert) SetLoginTo(v bool) *SubjectUpsert {
-	u.Set(subject.FieldLoginTo, v)
-	return u
-}
-
-// UpdateLoginTo sets the "loginTo" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdateLoginTo() *SubjectUpsert {
-	u.SetExcluded(subject.FieldLoginTo)
-	return u
-}
-
-// SetRoles sets the "roles" field.
-func (u *SubjectUpsert) SetRoles(v types.SubjectRoles) *SubjectUpsert {
-	u.Set(subject.FieldRoles, v)
-	return u
-}
-
-// UpdateRoles sets the "roles" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdateRoles() *SubjectUpsert {
-	u.SetExcluded(subject.FieldRoles)
-	return u
-}
-
-// SetPaths sets the "paths" field.
-func (u *SubjectUpsert) SetPaths(v []string) *SubjectUpsert {
-	u.Set(subject.FieldPaths, v)
-	return u
-}
-
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdatePaths() *SubjectUpsert {
-	u.SetExcluded(subject.FieldPaths)
-	return u
-}
-
-// SetBuiltin sets the "builtin" field.
-func (u *SubjectUpsert) SetBuiltin(v bool) *SubjectUpsert {
-	u.Set(subject.FieldBuiltin, v)
-	return u
-}
-
-// UpdateBuiltin sets the "builtin" field to the value that was provided on create.
-func (u *SubjectUpsert) UpdateBuiltin() *SubjectUpsert {
-	u.SetExcluded(subject.FieldBuiltin)
 	return u
 }
 
@@ -544,6 +469,9 @@ func (u *SubjectUpsertOne) UpdateNewValues() *SubjectUpsertOne {
 		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(subject.FieldName)
+		}
+		if _, exists := u.create.mutation.Builtin(); exists {
+			s.SetIgnore(subject.FieldBuiltin)
 		}
 	}))
 	return u
@@ -590,17 +518,17 @@ func (u *SubjectUpsertOne) UpdateUpdateTime() *SubjectUpsertOne {
 	})
 }
 
-// SetGroup sets the "group" field.
-func (u *SubjectUpsertOne) SetGroup(v string) *SubjectUpsertOne {
+// SetDomain sets the "domain" field.
+func (u *SubjectUpsertOne) SetDomain(v string) *SubjectUpsertOne {
 	return u.Update(func(s *SubjectUpsert) {
-		s.SetGroup(v)
+		s.SetDomain(v)
 	})
 }
 
-// UpdateGroup sets the "group" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdateGroup() *SubjectUpsertOne {
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *SubjectUpsertOne) UpdateDomain() *SubjectUpsertOne {
 	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateGroup()
+		s.UpdateDomain()
 	})
 }
 
@@ -622,76 +550,6 @@ func (u *SubjectUpsertOne) UpdateDescription() *SubjectUpsertOne {
 func (u *SubjectUpsertOne) ClearDescription() *SubjectUpsertOne {
 	return u.Update(func(s *SubjectUpsert) {
 		s.ClearDescription()
-	})
-}
-
-// SetMountTo sets the "mountTo" field.
-func (u *SubjectUpsertOne) SetMountTo(v bool) *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetMountTo(v)
-	})
-}
-
-// UpdateMountTo sets the "mountTo" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdateMountTo() *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateMountTo()
-	})
-}
-
-// SetLoginTo sets the "loginTo" field.
-func (u *SubjectUpsertOne) SetLoginTo(v bool) *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetLoginTo(v)
-	})
-}
-
-// UpdateLoginTo sets the "loginTo" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdateLoginTo() *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateLoginTo()
-	})
-}
-
-// SetRoles sets the "roles" field.
-func (u *SubjectUpsertOne) SetRoles(v types.SubjectRoles) *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetRoles(v)
-	})
-}
-
-// UpdateRoles sets the "roles" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdateRoles() *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateRoles()
-	})
-}
-
-// SetPaths sets the "paths" field.
-func (u *SubjectUpsertOne) SetPaths(v []string) *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetPaths(v)
-	})
-}
-
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdatePaths() *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdatePaths()
-	})
-}
-
-// SetBuiltin sets the "builtin" field.
-func (u *SubjectUpsertOne) SetBuiltin(v bool) *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetBuiltin(v)
-	})
-}
-
-// UpdateBuiltin sets the "builtin" field to the value that was provided on create.
-func (u *SubjectUpsertOne) UpdateBuiltin() *SubjectUpsertOne {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateBuiltin()
 	})
 }
 
@@ -883,6 +741,9 @@ func (u *SubjectUpsertBulk) UpdateNewValues() *SubjectUpsertBulk {
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(subject.FieldName)
 			}
+			if _, exists := b.mutation.Builtin(); exists {
+				s.SetIgnore(subject.FieldBuiltin)
+			}
 		}
 	}))
 	return u
@@ -929,17 +790,17 @@ func (u *SubjectUpsertBulk) UpdateUpdateTime() *SubjectUpsertBulk {
 	})
 }
 
-// SetGroup sets the "group" field.
-func (u *SubjectUpsertBulk) SetGroup(v string) *SubjectUpsertBulk {
+// SetDomain sets the "domain" field.
+func (u *SubjectUpsertBulk) SetDomain(v string) *SubjectUpsertBulk {
 	return u.Update(func(s *SubjectUpsert) {
-		s.SetGroup(v)
+		s.SetDomain(v)
 	})
 }
 
-// UpdateGroup sets the "group" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdateGroup() *SubjectUpsertBulk {
+// UpdateDomain sets the "domain" field to the value that was provided on create.
+func (u *SubjectUpsertBulk) UpdateDomain() *SubjectUpsertBulk {
 	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateGroup()
+		s.UpdateDomain()
 	})
 }
 
@@ -961,76 +822,6 @@ func (u *SubjectUpsertBulk) UpdateDescription() *SubjectUpsertBulk {
 func (u *SubjectUpsertBulk) ClearDescription() *SubjectUpsertBulk {
 	return u.Update(func(s *SubjectUpsert) {
 		s.ClearDescription()
-	})
-}
-
-// SetMountTo sets the "mountTo" field.
-func (u *SubjectUpsertBulk) SetMountTo(v bool) *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetMountTo(v)
-	})
-}
-
-// UpdateMountTo sets the "mountTo" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdateMountTo() *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateMountTo()
-	})
-}
-
-// SetLoginTo sets the "loginTo" field.
-func (u *SubjectUpsertBulk) SetLoginTo(v bool) *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetLoginTo(v)
-	})
-}
-
-// UpdateLoginTo sets the "loginTo" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdateLoginTo() *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateLoginTo()
-	})
-}
-
-// SetRoles sets the "roles" field.
-func (u *SubjectUpsertBulk) SetRoles(v types.SubjectRoles) *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetRoles(v)
-	})
-}
-
-// UpdateRoles sets the "roles" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdateRoles() *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateRoles()
-	})
-}
-
-// SetPaths sets the "paths" field.
-func (u *SubjectUpsertBulk) SetPaths(v []string) *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetPaths(v)
-	})
-}
-
-// UpdatePaths sets the "paths" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdatePaths() *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdatePaths()
-	})
-}
-
-// SetBuiltin sets the "builtin" field.
-func (u *SubjectUpsertBulk) SetBuiltin(v bool) *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.SetBuiltin(v)
-	})
-}
-
-// UpdateBuiltin sets the "builtin" field to the value that was provided on create.
-func (u *SubjectUpsertBulk) UpdateBuiltin() *SubjectUpsertBulk {
-	return u.Update(func(s *SubjectUpsert) {
-		s.UpdateBuiltin()
 	})
 }
 

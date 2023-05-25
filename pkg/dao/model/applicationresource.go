@@ -26,6 +26,8 @@ type ApplicationResource struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -62,7 +64,7 @@ type ApplicationResourceEdges struct {
 	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// Application resource to which the resource makes up.
 	Composition *ApplicationResource `json:"composition,omitempty" sql:"composition"`
-	// Application resources that make up this resource.
+	// Application resources that make up the resource.
 	Components []*ApplicationResource `json:"components,omitempty" sql:"components"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -124,7 +126,7 @@ func (*ApplicationResource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationresource.FieldStatus:
 			values[i] = new([]byte)
-		case applicationresource.FieldID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID, applicationresource.FieldCompositionID:
+		case applicationresource.FieldID, applicationresource.FieldProjectID, applicationresource.FieldInstanceID, applicationresource.FieldConnectorID, applicationresource.FieldCompositionID:
 			values[i] = new(oid.ID)
 		case applicationresource.FieldModule, applicationresource.FieldMode, applicationresource.FieldType, applicationresource.FieldName, applicationresource.FieldDeployerType:
 			values[i] = new(sql.NullString)
@@ -150,6 +152,12 @@ func (ar *ApplicationResource) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
+			}
+		case applicationresource.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				ar.ProjectID = *value
 			}
 		case applicationresource.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -277,6 +285,9 @@ func (ar *ApplicationResource) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationResource(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ar.ID))
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.ProjectID))
+	builder.WriteString(", ")
 	if v := ar.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))

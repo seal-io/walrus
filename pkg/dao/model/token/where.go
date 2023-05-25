@@ -9,8 +9,11 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -59,24 +62,19 @@ func IDLTE(id oid.ID) predicate.Token {
 	return predicate.Token(sql.FieldLTE(FieldID, id))
 }
 
+// SubjectID applies equality check predicate on the "subjectID" field. It's identical to SubjectIDEQ.
+func SubjectID(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldSubjectID, v))
+}
+
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldCreateTime, v))
 }
 
-// UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
-func UpdateTime(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// CasdoorTokenName applies equality check predicate on the "casdoorTokenName" field. It's identical to CasdoorTokenNameEQ.
-func CasdoorTokenName(v string) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenOwner applies equality check predicate on the "casdoorTokenOwner" field. It's identical to CasdoorTokenOwnerEQ.
-func CasdoorTokenOwner(v string) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldCasdoorTokenOwner, v))
+// Kind applies equality check predicate on the "kind" field. It's identical to KindEQ.
+func Kind(v string) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldKind, v))
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
@@ -85,8 +83,83 @@ func Name(v string) predicate.Token {
 }
 
 // Expiration applies equality check predicate on the "expiration" field. It's identical to ExpirationEQ.
-func Expiration(v int) predicate.Token {
+func Expiration(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldExpiration, v))
+}
+
+// Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
+func Value(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldValue, v))
+}
+
+// SubjectIDEQ applies the EQ predicate on the "subjectID" field.
+func SubjectIDEQ(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldSubjectID, v))
+}
+
+// SubjectIDNEQ applies the NEQ predicate on the "subjectID" field.
+func SubjectIDNEQ(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldNEQ(FieldSubjectID, v))
+}
+
+// SubjectIDIn applies the In predicate on the "subjectID" field.
+func SubjectIDIn(vs ...oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldIn(FieldSubjectID, vs...))
+}
+
+// SubjectIDNotIn applies the NotIn predicate on the "subjectID" field.
+func SubjectIDNotIn(vs ...oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldNotIn(FieldSubjectID, vs...))
+}
+
+// SubjectIDGT applies the GT predicate on the "subjectID" field.
+func SubjectIDGT(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldGT(FieldSubjectID, v))
+}
+
+// SubjectIDGTE applies the GTE predicate on the "subjectID" field.
+func SubjectIDGTE(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldGTE(FieldSubjectID, v))
+}
+
+// SubjectIDLT applies the LT predicate on the "subjectID" field.
+func SubjectIDLT(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldLT(FieldSubjectID, v))
+}
+
+// SubjectIDLTE applies the LTE predicate on the "subjectID" field.
+func SubjectIDLTE(v oid.ID) predicate.Token {
+	return predicate.Token(sql.FieldLTE(FieldSubjectID, v))
+}
+
+// SubjectIDContains applies the Contains predicate on the "subjectID" field.
+func SubjectIDContains(v oid.ID) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldContains(FieldSubjectID, vc))
+}
+
+// SubjectIDHasPrefix applies the HasPrefix predicate on the "subjectID" field.
+func SubjectIDHasPrefix(v oid.ID) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldHasPrefix(FieldSubjectID, vc))
+}
+
+// SubjectIDHasSuffix applies the HasSuffix predicate on the "subjectID" field.
+func SubjectIDHasSuffix(v oid.ID) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldHasSuffix(FieldSubjectID, vc))
+}
+
+// SubjectIDEqualFold applies the EqualFold predicate on the "subjectID" field.
+func SubjectIDEqualFold(v oid.ID) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldEqualFold(FieldSubjectID, vc))
+}
+
+// SubjectIDContainsFold applies the ContainsFold predicate on the "subjectID" field.
+func SubjectIDContainsFold(v oid.ID) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldContainsFold(FieldSubjectID, vc))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -129,174 +202,69 @@ func CreateTimeLTE(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldLTE(FieldCreateTime, v))
 }
 
-// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
-func UpdateTimeEQ(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldUpdateTime, v))
+// KindEQ applies the EQ predicate on the "kind" field.
+func KindEQ(v string) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldKind, v))
 }
 
-// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
-func UpdateTimeNEQ(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldNEQ(FieldUpdateTime, v))
+// KindNEQ applies the NEQ predicate on the "kind" field.
+func KindNEQ(v string) predicate.Token {
+	return predicate.Token(sql.FieldNEQ(FieldKind, v))
 }
 
-// UpdateTimeIn applies the In predicate on the "updateTime" field.
-func UpdateTimeIn(vs ...time.Time) predicate.Token {
-	return predicate.Token(sql.FieldIn(FieldUpdateTime, vs...))
+// KindIn applies the In predicate on the "kind" field.
+func KindIn(vs ...string) predicate.Token {
+	return predicate.Token(sql.FieldIn(FieldKind, vs...))
 }
 
-// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.Token {
-	return predicate.Token(sql.FieldNotIn(FieldUpdateTime, vs...))
+// KindNotIn applies the NotIn predicate on the "kind" field.
+func KindNotIn(vs ...string) predicate.Token {
+	return predicate.Token(sql.FieldNotIn(FieldKind, vs...))
 }
 
-// UpdateTimeGT applies the GT predicate on the "updateTime" field.
-func UpdateTimeGT(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldGT(FieldUpdateTime, v))
+// KindGT applies the GT predicate on the "kind" field.
+func KindGT(v string) predicate.Token {
+	return predicate.Token(sql.FieldGT(FieldKind, v))
 }
 
-// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
-func UpdateTimeGTE(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldGTE(FieldUpdateTime, v))
+// KindGTE applies the GTE predicate on the "kind" field.
+func KindGTE(v string) predicate.Token {
+	return predicate.Token(sql.FieldGTE(FieldKind, v))
 }
 
-// UpdateTimeLT applies the LT predicate on the "updateTime" field.
-func UpdateTimeLT(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldLT(FieldUpdateTime, v))
+// KindLT applies the LT predicate on the "kind" field.
+func KindLT(v string) predicate.Token {
+	return predicate.Token(sql.FieldLT(FieldKind, v))
 }
 
-// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
-func UpdateTimeLTE(v time.Time) predicate.Token {
-	return predicate.Token(sql.FieldLTE(FieldUpdateTime, v))
+// KindLTE applies the LTE predicate on the "kind" field.
+func KindLTE(v string) predicate.Token {
+	return predicate.Token(sql.FieldLTE(FieldKind, v))
 }
 
-// CasdoorTokenNameEQ applies the EQ predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameEQ(v string) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldCasdoorTokenName, v))
+// KindContains applies the Contains predicate on the "kind" field.
+func KindContains(v string) predicate.Token {
+	return predicate.Token(sql.FieldContains(FieldKind, v))
 }
 
-// CasdoorTokenNameNEQ applies the NEQ predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameNEQ(v string) predicate.Token {
-	return predicate.Token(sql.FieldNEQ(FieldCasdoorTokenName, v))
+// KindHasPrefix applies the HasPrefix predicate on the "kind" field.
+func KindHasPrefix(v string) predicate.Token {
+	return predicate.Token(sql.FieldHasPrefix(FieldKind, v))
 }
 
-// CasdoorTokenNameIn applies the In predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameIn(vs ...string) predicate.Token {
-	return predicate.Token(sql.FieldIn(FieldCasdoorTokenName, vs...))
+// KindHasSuffix applies the HasSuffix predicate on the "kind" field.
+func KindHasSuffix(v string) predicate.Token {
+	return predicate.Token(sql.FieldHasSuffix(FieldKind, v))
 }
 
-// CasdoorTokenNameNotIn applies the NotIn predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameNotIn(vs ...string) predicate.Token {
-	return predicate.Token(sql.FieldNotIn(FieldCasdoorTokenName, vs...))
+// KindEqualFold applies the EqualFold predicate on the "kind" field.
+func KindEqualFold(v string) predicate.Token {
+	return predicate.Token(sql.FieldEqualFold(FieldKind, v))
 }
 
-// CasdoorTokenNameGT applies the GT predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameGT(v string) predicate.Token {
-	return predicate.Token(sql.FieldGT(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameGTE applies the GTE predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameGTE(v string) predicate.Token {
-	return predicate.Token(sql.FieldGTE(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameLT applies the LT predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameLT(v string) predicate.Token {
-	return predicate.Token(sql.FieldLT(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameLTE applies the LTE predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameLTE(v string) predicate.Token {
-	return predicate.Token(sql.FieldLTE(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameContains applies the Contains predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameContains(v string) predicate.Token {
-	return predicate.Token(sql.FieldContains(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameHasPrefix applies the HasPrefix predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameHasPrefix(v string) predicate.Token {
-	return predicate.Token(sql.FieldHasPrefix(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameHasSuffix applies the HasSuffix predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameHasSuffix(v string) predicate.Token {
-	return predicate.Token(sql.FieldHasSuffix(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameEqualFold applies the EqualFold predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameEqualFold(v string) predicate.Token {
-	return predicate.Token(sql.FieldEqualFold(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenNameContainsFold applies the ContainsFold predicate on the "casdoorTokenName" field.
-func CasdoorTokenNameContainsFold(v string) predicate.Token {
-	return predicate.Token(sql.FieldContainsFold(FieldCasdoorTokenName, v))
-}
-
-// CasdoorTokenOwnerEQ applies the EQ predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerEQ(v string) predicate.Token {
-	return predicate.Token(sql.FieldEQ(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerNEQ applies the NEQ predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerNEQ(v string) predicate.Token {
-	return predicate.Token(sql.FieldNEQ(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerIn applies the In predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerIn(vs ...string) predicate.Token {
-	return predicate.Token(sql.FieldIn(FieldCasdoorTokenOwner, vs...))
-}
-
-// CasdoorTokenOwnerNotIn applies the NotIn predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerNotIn(vs ...string) predicate.Token {
-	return predicate.Token(sql.FieldNotIn(FieldCasdoorTokenOwner, vs...))
-}
-
-// CasdoorTokenOwnerGT applies the GT predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerGT(v string) predicate.Token {
-	return predicate.Token(sql.FieldGT(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerGTE applies the GTE predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerGTE(v string) predicate.Token {
-	return predicate.Token(sql.FieldGTE(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerLT applies the LT predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerLT(v string) predicate.Token {
-	return predicate.Token(sql.FieldLT(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerLTE applies the LTE predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerLTE(v string) predicate.Token {
-	return predicate.Token(sql.FieldLTE(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerContains applies the Contains predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerContains(v string) predicate.Token {
-	return predicate.Token(sql.FieldContains(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerHasPrefix applies the HasPrefix predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerHasPrefix(v string) predicate.Token {
-	return predicate.Token(sql.FieldHasPrefix(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerHasSuffix applies the HasSuffix predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerHasSuffix(v string) predicate.Token {
-	return predicate.Token(sql.FieldHasSuffix(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerEqualFold applies the EqualFold predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerEqualFold(v string) predicate.Token {
-	return predicate.Token(sql.FieldEqualFold(FieldCasdoorTokenOwner, v))
-}
-
-// CasdoorTokenOwnerContainsFold applies the ContainsFold predicate on the "casdoorTokenOwner" field.
-func CasdoorTokenOwnerContainsFold(v string) predicate.Token {
-	return predicate.Token(sql.FieldContainsFold(FieldCasdoorTokenOwner, v))
+// KindContainsFold applies the ContainsFold predicate on the "kind" field.
+func KindContainsFold(v string) predicate.Token {
+	return predicate.Token(sql.FieldContainsFold(FieldKind, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -365,42 +333,42 @@ func NameContainsFold(v string) predicate.Token {
 }
 
 // ExpirationEQ applies the EQ predicate on the "expiration" field.
-func ExpirationEQ(v int) predicate.Token {
+func ExpirationEQ(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldExpiration, v))
 }
 
 // ExpirationNEQ applies the NEQ predicate on the "expiration" field.
-func ExpirationNEQ(v int) predicate.Token {
+func ExpirationNEQ(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldNEQ(FieldExpiration, v))
 }
 
 // ExpirationIn applies the In predicate on the "expiration" field.
-func ExpirationIn(vs ...int) predicate.Token {
+func ExpirationIn(vs ...time.Time) predicate.Token {
 	return predicate.Token(sql.FieldIn(FieldExpiration, vs...))
 }
 
 // ExpirationNotIn applies the NotIn predicate on the "expiration" field.
-func ExpirationNotIn(vs ...int) predicate.Token {
+func ExpirationNotIn(vs ...time.Time) predicate.Token {
 	return predicate.Token(sql.FieldNotIn(FieldExpiration, vs...))
 }
 
 // ExpirationGT applies the GT predicate on the "expiration" field.
-func ExpirationGT(v int) predicate.Token {
+func ExpirationGT(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldGT(FieldExpiration, v))
 }
 
 // ExpirationGTE applies the GTE predicate on the "expiration" field.
-func ExpirationGTE(v int) predicate.Token {
+func ExpirationGTE(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldGTE(FieldExpiration, v))
 }
 
 // ExpirationLT applies the LT predicate on the "expiration" field.
-func ExpirationLT(v int) predicate.Token {
+func ExpirationLT(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldLT(FieldExpiration, v))
 }
 
 // ExpirationLTE applies the LTE predicate on the "expiration" field.
-func ExpirationLTE(v int) predicate.Token {
+func ExpirationLTE(v time.Time) predicate.Token {
 	return predicate.Token(sql.FieldLTE(FieldExpiration, v))
 }
 
@@ -412,6 +380,105 @@ func ExpirationIsNil() predicate.Token {
 // ExpirationNotNil applies the NotNil predicate on the "expiration" field.
 func ExpirationNotNil() predicate.Token {
 	return predicate.Token(sql.FieldNotNull(FieldExpiration))
+}
+
+// ValueEQ applies the EQ predicate on the "value" field.
+func ValueEQ(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldEQ(FieldValue, v))
+}
+
+// ValueNEQ applies the NEQ predicate on the "value" field.
+func ValueNEQ(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldNEQ(FieldValue, v))
+}
+
+// ValueIn applies the In predicate on the "value" field.
+func ValueIn(vs ...crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldIn(FieldValue, vs...))
+}
+
+// ValueNotIn applies the NotIn predicate on the "value" field.
+func ValueNotIn(vs ...crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldNotIn(FieldValue, vs...))
+}
+
+// ValueGT applies the GT predicate on the "value" field.
+func ValueGT(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldGT(FieldValue, v))
+}
+
+// ValueGTE applies the GTE predicate on the "value" field.
+func ValueGTE(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldGTE(FieldValue, v))
+}
+
+// ValueLT applies the LT predicate on the "value" field.
+func ValueLT(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldLT(FieldValue, v))
+}
+
+// ValueLTE applies the LTE predicate on the "value" field.
+func ValueLTE(v crypto.String) predicate.Token {
+	return predicate.Token(sql.FieldLTE(FieldValue, v))
+}
+
+// ValueContains applies the Contains predicate on the "value" field.
+func ValueContains(v crypto.String) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldContains(FieldValue, vc))
+}
+
+// ValueHasPrefix applies the HasPrefix predicate on the "value" field.
+func ValueHasPrefix(v crypto.String) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldHasPrefix(FieldValue, vc))
+}
+
+// ValueHasSuffix applies the HasSuffix predicate on the "value" field.
+func ValueHasSuffix(v crypto.String) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldHasSuffix(FieldValue, vc))
+}
+
+// ValueEqualFold applies the EqualFold predicate on the "value" field.
+func ValueEqualFold(v crypto.String) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldEqualFold(FieldValue, vc))
+}
+
+// ValueContainsFold applies the ContainsFold predicate on the "value" field.
+func ValueContainsFold(v crypto.String) predicate.Token {
+	vc := string(v)
+	return predicate.Token(sql.FieldContainsFold(FieldValue, vc))
+}
+
+// HasSubject applies the HasEdge predicate on the "subject" edge.
+func HasSubject() predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SubjectTable, SubjectColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Subject
+		step.Edge.Schema = schemaConfig.Token
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubjectWith applies the HasEdge predicate on the "subject" edge with a given conditions (other predicates).
+func HasSubjectWith(preds ...predicate.Subject) predicate.Token {
+	return predicate.Token(func(s *sql.Selector) {
+		step := newSubjectStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Subject
+		step.Edge.Schema = schemaConfig.Token
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

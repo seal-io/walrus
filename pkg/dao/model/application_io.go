@@ -35,7 +35,7 @@ type ApplicationCreateInput struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
 	Variables property.Schemas `json:"variables,omitempty"`
-	// Project to which this application belongs.
+	// Project to which the application belongs.
 	Project ProjectQueryInput `json:"project"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipCreateInput `json:"modules,omitempty"`
@@ -109,9 +109,9 @@ type ApplicationOutput struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Variables definition of the application, the variables of instance derived by this definition
 	Variables property.Schemas `json:"variables,omitempty"`
-	// Project to which this application belongs.
+	// Project to which the application belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
-	// Application instances that belong to this application.
+	// Application instances that belong to the application.
 	Instances []*ApplicationInstanceOutput `json:"instances,omitempty"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationshipOutput `json:"modules,omitempty"`

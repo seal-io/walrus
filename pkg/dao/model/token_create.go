@@ -16,7 +16,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -26,6 +28,12 @@ type TokenCreate struct {
 	mutation *TokenMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetSubjectID sets the "subjectID" field.
+func (tc *TokenCreate) SetSubjectID(o oid.ID) *TokenCreate {
+	tc.mutation.SetSubjectID(o)
+	return tc
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -42,29 +50,17 @@ func (tc *TokenCreate) SetNillableCreateTime(t *time.Time) *TokenCreate {
 	return tc
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (tc *TokenCreate) SetUpdateTime(t time.Time) *TokenCreate {
-	tc.mutation.SetUpdateTime(t)
+// SetKind sets the "kind" field.
+func (tc *TokenCreate) SetKind(s string) *TokenCreate {
+	tc.mutation.SetKind(s)
 	return tc
 }
 
-// SetNillableUpdateTime sets the "updateTime" field if the given value is not nil.
-func (tc *TokenCreate) SetNillableUpdateTime(t *time.Time) *TokenCreate {
-	if t != nil {
-		tc.SetUpdateTime(*t)
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (tc *TokenCreate) SetNillableKind(s *string) *TokenCreate {
+	if s != nil {
+		tc.SetKind(*s)
 	}
-	return tc
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (tc *TokenCreate) SetCasdoorTokenName(s string) *TokenCreate {
-	tc.mutation.SetCasdoorTokenName(s)
-	return tc
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (tc *TokenCreate) SetCasdoorTokenOwner(s string) *TokenCreate {
-	tc.mutation.SetCasdoorTokenOwner(s)
 	return tc
 }
 
@@ -75,16 +71,22 @@ func (tc *TokenCreate) SetName(s string) *TokenCreate {
 }
 
 // SetExpiration sets the "expiration" field.
-func (tc *TokenCreate) SetExpiration(i int) *TokenCreate {
-	tc.mutation.SetExpiration(i)
+func (tc *TokenCreate) SetExpiration(t time.Time) *TokenCreate {
+	tc.mutation.SetExpiration(t)
 	return tc
 }
 
 // SetNillableExpiration sets the "expiration" field if the given value is not nil.
-func (tc *TokenCreate) SetNillableExpiration(i *int) *TokenCreate {
-	if i != nil {
-		tc.SetExpiration(*i)
+func (tc *TokenCreate) SetNillableExpiration(t *time.Time) *TokenCreate {
+	if t != nil {
+		tc.SetExpiration(*t)
 	}
+	return tc
+}
+
+// SetValue sets the "value" field.
+func (tc *TokenCreate) SetValue(c crypto.String) *TokenCreate {
+	tc.mutation.SetValue(c)
 	return tc
 }
 
@@ -92,6 +94,11 @@ func (tc *TokenCreate) SetNillableExpiration(i *int) *TokenCreate {
 func (tc *TokenCreate) SetID(o oid.ID) *TokenCreate {
 	tc.mutation.SetID(o)
 	return tc
+}
+
+// SetSubject sets the "subject" edge to the Subject entity.
+func (tc *TokenCreate) SetSubject(s *Subject) *TokenCreate {
+	return tc.SetSubjectID(s.ID)
 }
 
 // Mutation returns the TokenMutation object of the builder.
@@ -138,39 +145,28 @@ func (tc *TokenCreate) defaults() error {
 		v := token.DefaultCreateTime()
 		tc.mutation.SetCreateTime(v)
 	}
-	if _, ok := tc.mutation.UpdateTime(); !ok {
-		if token.DefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized token.DefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := token.DefaultUpdateTime()
-		tc.mutation.SetUpdateTime(v)
+	if _, ok := tc.mutation.Kind(); !ok {
+		v := token.DefaultKind
+		tc.mutation.SetKind(v)
 	}
 	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (tc *TokenCreate) check() error {
+	if _, ok := tc.mutation.SubjectID(); !ok {
+		return &ValidationError{Name: "subjectID", err: errors.New(`model: missing required field "Token.subjectID"`)}
+	}
+	if v, ok := tc.mutation.SubjectID(); ok {
+		if err := token.SubjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "subjectID", err: fmt.Errorf(`model: validator failed for field "Token.subjectID": %w`, err)}
+		}
+	}
 	if _, ok := tc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Token.createTime"`)}
 	}
-	if _, ok := tc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Token.updateTime"`)}
-	}
-	if _, ok := tc.mutation.CasdoorTokenName(); !ok {
-		return &ValidationError{Name: "casdoorTokenName", err: errors.New(`model: missing required field "Token.casdoorTokenName"`)}
-	}
-	if v, ok := tc.mutation.CasdoorTokenName(); ok {
-		if err := token.CasdoorTokenNameValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
-		}
-	}
-	if _, ok := tc.mutation.CasdoorTokenOwner(); !ok {
-		return &ValidationError{Name: "casdoorTokenOwner", err: errors.New(`model: missing required field "Token.casdoorTokenOwner"`)}
-	}
-	if v, ok := tc.mutation.CasdoorTokenOwner(); ok {
-		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
-		}
+	if _, ok := tc.mutation.Kind(); !ok {
+		return &ValidationError{Name: "kind", err: errors.New(`model: missing required field "Token.kind"`)}
 	}
 	if _, ok := tc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Token.name"`)}
@@ -179,6 +175,17 @@ func (tc *TokenCreate) check() error {
 		if err := token.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
 		}
+	}
+	if _, ok := tc.mutation.Value(); !ok {
+		return &ValidationError{Name: "value", err: errors.New(`model: missing required field "Token.value"`)}
+	}
+	if v, ok := tc.mutation.Value(); ok {
+		if err := token.ValueValidator(string(v)); err != nil {
+			return &ValidationError{Name: "value", err: fmt.Errorf(`model: validator failed for field "Token.value": %w`, err)}
+		}
+	}
+	if _, ok := tc.mutation.SubjectID(); !ok {
+		return &ValidationError{Name: "subject", err: errors.New(`model: missing required edge "Token.subject"`)}
 	}
 	return nil
 }
@@ -221,25 +228,39 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 		_spec.SetField(token.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
 	}
-	if value, ok := tc.mutation.UpdateTime(); ok {
-		_spec.SetField(token.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = &value
-	}
-	if value, ok := tc.mutation.CasdoorTokenName(); ok {
-		_spec.SetField(token.FieldCasdoorTokenName, field.TypeString, value)
-		_node.CasdoorTokenName = value
-	}
-	if value, ok := tc.mutation.CasdoorTokenOwner(); ok {
-		_spec.SetField(token.FieldCasdoorTokenOwner, field.TypeString, value)
-		_node.CasdoorTokenOwner = value
+	if value, ok := tc.mutation.Kind(); ok {
+		_spec.SetField(token.FieldKind, field.TypeString, value)
+		_node.Kind = value
 	}
 	if value, ok := tc.mutation.Name(); ok {
 		_spec.SetField(token.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := tc.mutation.Expiration(); ok {
-		_spec.SetField(token.FieldExpiration, field.TypeInt, value)
+		_spec.SetField(token.FieldExpiration, field.TypeTime, value)
 		_node.Expiration = &value
+	}
+	if value, ok := tc.mutation.Value(); ok {
+		_spec.SetField(token.FieldValue, field.TypeString, value)
+		_node.Value = value
+	}
+	if nodes := tc.mutation.SubjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   token.SubjectTable,
+			Columns: []string{token.SubjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subject.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tc.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SubjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -248,7 +269,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Token.Create().
-//		SetCreateTime(v).
+//		SetSubjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -257,7 +278,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenUpsert) {
-//			SetCreateTime(v+v).
+//			SetSubjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (tc *TokenCreate) OnConflict(opts ...sql.ConflictOption) *TokenUpsertOne {
@@ -293,78 +314,6 @@ type (
 	}
 )
 
-// SetUpdateTime sets the "updateTime" field.
-func (u *TokenUpsert) SetUpdateTime(v time.Time) *TokenUpsert {
-	u.Set(token.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TokenUpsert) UpdateUpdateTime() *TokenUpsert {
-	u.SetExcluded(token.FieldUpdateTime)
-	return u
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (u *TokenUpsert) SetCasdoorTokenName(v string) *TokenUpsert {
-	u.Set(token.FieldCasdoorTokenName, v)
-	return u
-}
-
-// UpdateCasdoorTokenName sets the "casdoorTokenName" field to the value that was provided on create.
-func (u *TokenUpsert) UpdateCasdoorTokenName() *TokenUpsert {
-	u.SetExcluded(token.FieldCasdoorTokenName)
-	return u
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (u *TokenUpsert) SetCasdoorTokenOwner(v string) *TokenUpsert {
-	u.Set(token.FieldCasdoorTokenOwner, v)
-	return u
-}
-
-// UpdateCasdoorTokenOwner sets the "casdoorTokenOwner" field to the value that was provided on create.
-func (u *TokenUpsert) UpdateCasdoorTokenOwner() *TokenUpsert {
-	u.SetExcluded(token.FieldCasdoorTokenOwner)
-	return u
-}
-
-// SetName sets the "name" field.
-func (u *TokenUpsert) SetName(v string) *TokenUpsert {
-	u.Set(token.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TokenUpsert) UpdateName() *TokenUpsert {
-	u.SetExcluded(token.FieldName)
-	return u
-}
-
-// SetExpiration sets the "expiration" field.
-func (u *TokenUpsert) SetExpiration(v int) *TokenUpsert {
-	u.Set(token.FieldExpiration, v)
-	return u
-}
-
-// UpdateExpiration sets the "expiration" field to the value that was provided on create.
-func (u *TokenUpsert) UpdateExpiration() *TokenUpsert {
-	u.SetExcluded(token.FieldExpiration)
-	return u
-}
-
-// AddExpiration adds v to the "expiration" field.
-func (u *TokenUpsert) AddExpiration(v int) *TokenUpsert {
-	u.Add(token.FieldExpiration, v)
-	return u
-}
-
-// ClearExpiration clears the value of the "expiration" field.
-func (u *TokenUpsert) ClearExpiration() *TokenUpsert {
-	u.SetNull(token.FieldExpiration)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -382,8 +331,23 @@ func (u *TokenUpsertOne) UpdateNewValues() *TokenUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(token.FieldID)
 		}
+		if _, exists := u.create.mutation.SubjectID(); exists {
+			s.SetIgnore(token.FieldSubjectID)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(token.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.Kind(); exists {
+			s.SetIgnore(token.FieldKind)
+		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(token.FieldName)
+		}
+		if _, exists := u.create.mutation.Expiration(); exists {
+			s.SetIgnore(token.FieldExpiration)
+		}
+		if _, exists := u.create.mutation.Value(); exists {
+			s.SetIgnore(token.FieldValue)
 		}
 	}))
 	return u
@@ -414,90 +378,6 @@ func (u *TokenUpsertOne) Update(set func(*TokenUpsert)) *TokenUpsertOne {
 		set(&TokenUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *TokenUpsertOne) SetUpdateTime(v time.Time) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TokenUpsertOne) UpdateUpdateTime() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (u *TokenUpsertOne) SetCasdoorTokenName(v string) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetCasdoorTokenName(v)
-	})
-}
-
-// UpdateCasdoorTokenName sets the "casdoorTokenName" field to the value that was provided on create.
-func (u *TokenUpsertOne) UpdateCasdoorTokenName() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateCasdoorTokenName()
-	})
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (u *TokenUpsertOne) SetCasdoorTokenOwner(v string) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetCasdoorTokenOwner(v)
-	})
-}
-
-// UpdateCasdoorTokenOwner sets the "casdoorTokenOwner" field to the value that was provided on create.
-func (u *TokenUpsertOne) UpdateCasdoorTokenOwner() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateCasdoorTokenOwner()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *TokenUpsertOne) SetName(v string) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TokenUpsertOne) UpdateName() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetExpiration sets the "expiration" field.
-func (u *TokenUpsertOne) SetExpiration(v int) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetExpiration(v)
-	})
-}
-
-// AddExpiration adds v to the "expiration" field.
-func (u *TokenUpsertOne) AddExpiration(v int) *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.AddExpiration(v)
-	})
-}
-
-// UpdateExpiration sets the "expiration" field to the value that was provided on create.
-func (u *TokenUpsertOne) UpdateExpiration() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateExpiration()
-	})
-}
-
-// ClearExpiration clears the value of the "expiration" field.
-func (u *TokenUpsertOne) ClearExpiration() *TokenUpsertOne {
-	return u.Update(func(s *TokenUpsert) {
-		s.ClearExpiration()
-	})
 }
 
 // Exec executes the query.
@@ -632,7 +512,7 @@ func (tcb *TokenCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenUpsert) {
-//			SetCreateTime(v+v).
+//			SetSubjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (tcb *TokenCreateBulk) OnConflict(opts ...sql.ConflictOption) *TokenUpsertBulk {
@@ -679,8 +559,23 @@ func (u *TokenUpsertBulk) UpdateNewValues() *TokenUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(token.FieldID)
 			}
+			if _, exists := b.mutation.SubjectID(); exists {
+				s.SetIgnore(token.FieldSubjectID)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(token.FieldCreateTime)
+			}
+			if _, exists := b.mutation.Kind(); exists {
+				s.SetIgnore(token.FieldKind)
+			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(token.FieldName)
+			}
+			if _, exists := b.mutation.Expiration(); exists {
+				s.SetIgnore(token.FieldExpiration)
+			}
+			if _, exists := b.mutation.Value(); exists {
+				s.SetIgnore(token.FieldValue)
 			}
 		}
 	}))
@@ -712,90 +607,6 @@ func (u *TokenUpsertBulk) Update(set func(*TokenUpsert)) *TokenUpsertBulk {
 		set(&TokenUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *TokenUpsertBulk) SetUpdateTime(v time.Time) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TokenUpsertBulk) UpdateUpdateTime() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (u *TokenUpsertBulk) SetCasdoorTokenName(v string) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetCasdoorTokenName(v)
-	})
-}
-
-// UpdateCasdoorTokenName sets the "casdoorTokenName" field to the value that was provided on create.
-func (u *TokenUpsertBulk) UpdateCasdoorTokenName() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateCasdoorTokenName()
-	})
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (u *TokenUpsertBulk) SetCasdoorTokenOwner(v string) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetCasdoorTokenOwner(v)
-	})
-}
-
-// UpdateCasdoorTokenOwner sets the "casdoorTokenOwner" field to the value that was provided on create.
-func (u *TokenUpsertBulk) UpdateCasdoorTokenOwner() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateCasdoorTokenOwner()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *TokenUpsertBulk) SetName(v string) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TokenUpsertBulk) UpdateName() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetExpiration sets the "expiration" field.
-func (u *TokenUpsertBulk) SetExpiration(v int) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.SetExpiration(v)
-	})
-}
-
-// AddExpiration adds v to the "expiration" field.
-func (u *TokenUpsertBulk) AddExpiration(v int) *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.AddExpiration(v)
-	})
-}
-
-// UpdateExpiration sets the "expiration" field to the value that was provided on create.
-func (u *TokenUpsertBulk) UpdateExpiration() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.UpdateExpiration()
-	})
-}
-
-// ClearExpiration clears the value of the "expiration" field.
-func (u *TokenUpsertBulk) ClearExpiration() *TokenUpsertBulk {
-	return u.Update(func(s *TokenUpsert) {
-		s.ClearExpiration()
-	})
 }
 
 // Exec executes the query.

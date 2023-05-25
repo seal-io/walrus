@@ -9,54 +9,65 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.Role {
+func ID(id string) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.Role {
+func IDEQ(id string) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.Role {
+func IDNEQ(id string) predicate.Role {
 	return predicate.Role(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.Role {
+func IDIn(ids ...string) predicate.Role {
 	return predicate.Role(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.Role {
+func IDNotIn(ids ...string) predicate.Role {
 	return predicate.Role(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.Role {
+func IDGT(id string) predicate.Role {
 	return predicate.Role(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.Role {
+func IDGTE(id string) predicate.Role {
 	return predicate.Role(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.Role {
+func IDLT(id string) predicate.Role {
 	return predicate.Role(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.Role {
+func IDLTE(id string) predicate.Role {
 	return predicate.Role(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Role {
+	return predicate.Role(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Role {
+	return predicate.Role(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
@@ -69,14 +80,9 @@ func UpdateTime(v time.Time) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// Domain applies equality check predicate on the "domain" field. It's identical to DomainEQ.
-func Domain(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldDomain, v))
-}
-
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldName, v))
+// Kind applies equality check predicate on the "kind" field. It's identical to KindEQ.
+func Kind(v string) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldKind, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
@@ -84,14 +90,14 @@ func Description(v string) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldDescription, v))
 }
 
-// Builtin applies equality check predicate on the "builtin" field. It's identical to BuiltinEQ.
-func Builtin(v bool) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldBuiltin, v))
-}
-
 // Session applies equality check predicate on the "session" field. It's identical to SessionEQ.
 func Session(v bool) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldSession, v))
+}
+
+// Builtin applies equality check predicate on the "builtin" field. It's identical to BuiltinEQ.
+func Builtin(v bool) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldBuiltin, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -174,134 +180,69 @@ func UpdateTimeLTE(v time.Time) predicate.Role {
 	return predicate.Role(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// DomainEQ applies the EQ predicate on the "domain" field.
-func DomainEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldDomain, v))
+// KindEQ applies the EQ predicate on the "kind" field.
+func KindEQ(v string) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldKind, v))
 }
 
-// DomainNEQ applies the NEQ predicate on the "domain" field.
-func DomainNEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldNEQ(FieldDomain, v))
+// KindNEQ applies the NEQ predicate on the "kind" field.
+func KindNEQ(v string) predicate.Role {
+	return predicate.Role(sql.FieldNEQ(FieldKind, v))
 }
 
-// DomainIn applies the In predicate on the "domain" field.
-func DomainIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldIn(FieldDomain, vs...))
+// KindIn applies the In predicate on the "kind" field.
+func KindIn(vs ...string) predicate.Role {
+	return predicate.Role(sql.FieldIn(FieldKind, vs...))
 }
 
-// DomainNotIn applies the NotIn predicate on the "domain" field.
-func DomainNotIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldNotIn(FieldDomain, vs...))
+// KindNotIn applies the NotIn predicate on the "kind" field.
+func KindNotIn(vs ...string) predicate.Role {
+	return predicate.Role(sql.FieldNotIn(FieldKind, vs...))
 }
 
-// DomainGT applies the GT predicate on the "domain" field.
-func DomainGT(v string) predicate.Role {
-	return predicate.Role(sql.FieldGT(FieldDomain, v))
+// KindGT applies the GT predicate on the "kind" field.
+func KindGT(v string) predicate.Role {
+	return predicate.Role(sql.FieldGT(FieldKind, v))
 }
 
-// DomainGTE applies the GTE predicate on the "domain" field.
-func DomainGTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldGTE(FieldDomain, v))
+// KindGTE applies the GTE predicate on the "kind" field.
+func KindGTE(v string) predicate.Role {
+	return predicate.Role(sql.FieldGTE(FieldKind, v))
 }
 
-// DomainLT applies the LT predicate on the "domain" field.
-func DomainLT(v string) predicate.Role {
-	return predicate.Role(sql.FieldLT(FieldDomain, v))
+// KindLT applies the LT predicate on the "kind" field.
+func KindLT(v string) predicate.Role {
+	return predicate.Role(sql.FieldLT(FieldKind, v))
 }
 
-// DomainLTE applies the LTE predicate on the "domain" field.
-func DomainLTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldLTE(FieldDomain, v))
+// KindLTE applies the LTE predicate on the "kind" field.
+func KindLTE(v string) predicate.Role {
+	return predicate.Role(sql.FieldLTE(FieldKind, v))
 }
 
-// DomainContains applies the Contains predicate on the "domain" field.
-func DomainContains(v string) predicate.Role {
-	return predicate.Role(sql.FieldContains(FieldDomain, v))
+// KindContains applies the Contains predicate on the "kind" field.
+func KindContains(v string) predicate.Role {
+	return predicate.Role(sql.FieldContains(FieldKind, v))
 }
 
-// DomainHasPrefix applies the HasPrefix predicate on the "domain" field.
-func DomainHasPrefix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasPrefix(FieldDomain, v))
+// KindHasPrefix applies the HasPrefix predicate on the "kind" field.
+func KindHasPrefix(v string) predicate.Role {
+	return predicate.Role(sql.FieldHasPrefix(FieldKind, v))
 }
 
-// DomainHasSuffix applies the HasSuffix predicate on the "domain" field.
-func DomainHasSuffix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasSuffix(FieldDomain, v))
+// KindHasSuffix applies the HasSuffix predicate on the "kind" field.
+func KindHasSuffix(v string) predicate.Role {
+	return predicate.Role(sql.FieldHasSuffix(FieldKind, v))
 }
 
-// DomainEqualFold applies the EqualFold predicate on the "domain" field.
-func DomainEqualFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldEqualFold(FieldDomain, v))
+// KindEqualFold applies the EqualFold predicate on the "kind" field.
+func KindEqualFold(v string) predicate.Role {
+	return predicate.Role(sql.FieldEqualFold(FieldKind, v))
 }
 
-// DomainContainsFold applies the ContainsFold predicate on the "domain" field.
-func DomainContainsFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldContainsFold(FieldDomain, v))
-}
-
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldName, v))
-}
-
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldNEQ(FieldName, v))
-}
-
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldIn(FieldName, vs...))
-}
-
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldNotIn(FieldName, vs...))
-}
-
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Role {
-	return predicate.Role(sql.FieldGT(FieldName, v))
-}
-
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldGTE(FieldName, v))
-}
-
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Role {
-	return predicate.Role(sql.FieldLT(FieldName, v))
-}
-
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldLTE(FieldName, v))
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Role {
-	return predicate.Role(sql.FieldContains(FieldName, v))
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasPrefix(FieldName, v))
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasSuffix(FieldName, v))
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldEqualFold(FieldName, v))
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldContainsFold(FieldName, v))
+// KindContainsFold applies the ContainsFold predicate on the "kind" field.
+func KindContainsFold(v string) predicate.Role {
+	return predicate.Role(sql.FieldContainsFold(FieldKind, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
@@ -379,6 +320,16 @@ func DescriptionContainsFold(v string) predicate.Role {
 	return predicate.Role(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// SessionEQ applies the EQ predicate on the "session" field.
+func SessionEQ(v bool) predicate.Role {
+	return predicate.Role(sql.FieldEQ(FieldSession, v))
+}
+
+// SessionNEQ applies the NEQ predicate on the "session" field.
+func SessionNEQ(v bool) predicate.Role {
+	return predicate.Role(sql.FieldNEQ(FieldSession, v))
+}
+
 // BuiltinEQ applies the EQ predicate on the "builtin" field.
 func BuiltinEQ(v bool) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldBuiltin, v))
@@ -389,14 +340,33 @@ func BuiltinNEQ(v bool) predicate.Role {
 	return predicate.Role(sql.FieldNEQ(FieldBuiltin, v))
 }
 
-// SessionEQ applies the EQ predicate on the "session" field.
-func SessionEQ(v bool) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldSession, v))
+// HasSubjects applies the HasEdge predicate on the "subjects" edge.
+func HasSubjects() predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, SubjectsTable, SubjectsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighbors(s, step)
+	})
 }
 
-// SessionNEQ applies the NEQ predicate on the "session" field.
-func SessionNEQ(v bool) predicate.Role {
-	return predicate.Role(sql.FieldNEQ(FieldSession, v))
+// HasSubjectsWith applies the HasEdge predicate on the "subjects" edge with a given conditions (other predicates).
+func HasSubjectsWith(preds ...predicate.SubjectRoleRelationship) predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := newSubjectsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

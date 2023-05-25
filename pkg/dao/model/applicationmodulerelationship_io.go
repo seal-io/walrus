@@ -39,9 +39,9 @@ type ApplicationModuleRelationshipCreateInput struct {
 	Name string `json:"name"`
 	// Attributes to configure the module.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Applications that connect to the relationship.
+	// Application that connect to the relationship.
 	Application ApplicationQueryInput `json:"application"`
-	// Modules that connect to the relationship.
+	// Module that connect to the relationship.
 	Module ModuleQueryInput `json:"module"`
 }
 
@@ -65,9 +65,9 @@ type ApplicationModuleRelationshipUpdateInput struct {
 	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Applications that connect to the relationship.
+	// Application that connect to the relationship.
 	Application ApplicationQueryInput `json:"application,omitempty"`
-	// Modules that connect to the relationship.
+	// Module that connect to the relationship.
 	Module ModuleQueryInput `json:"module,omitempty"`
 }
 
@@ -95,9 +95,9 @@ type ApplicationModuleRelationshipOutput struct {
 	Version string `json:"version,omitempty"`
 	// Attributes to configure the module.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Applications that connect to the relationship.
+	// Application that connect to the relationship.
 	Application *ApplicationOutput `json:"application,omitempty"`
-	// Modules that connect to the relationship.
+	// Module that connect to the relationship.
 	Module *ModuleOutput `json:"module,omitempty"`
 }
 

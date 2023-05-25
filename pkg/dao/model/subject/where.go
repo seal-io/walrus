@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
+	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -74,9 +76,9 @@ func Kind(v string) predicate.Subject {
 	return predicate.Subject(sql.FieldEQ(FieldKind, v))
 }
 
-// Group applies equality check predicate on the "group" field. It's identical to GroupEQ.
-func Group(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldGroup, v))
+// Domain applies equality check predicate on the "domain" field. It's identical to DomainEQ.
+func Domain(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldEQ(FieldDomain, v))
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
@@ -87,16 +89,6 @@ func Name(v string) predicate.Subject {
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Subject {
 	return predicate.Subject(sql.FieldEQ(FieldDescription, v))
-}
-
-// MountTo applies equality check predicate on the "mountTo" field. It's identical to MountToEQ.
-func MountTo(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldMountTo, v))
-}
-
-// LoginTo applies equality check predicate on the "loginTo" field. It's identical to LoginToEQ.
-func LoginTo(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldLoginTo, v))
 }
 
 // Builtin applies equality check predicate on the "builtin" field. It's identical to BuiltinEQ.
@@ -249,69 +241,69 @@ func KindContainsFold(v string) predicate.Subject {
 	return predicate.Subject(sql.FieldContainsFold(FieldKind, v))
 }
 
-// GroupEQ applies the EQ predicate on the "group" field.
-func GroupEQ(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldGroup, v))
+// DomainEQ applies the EQ predicate on the "domain" field.
+func DomainEQ(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldEQ(FieldDomain, v))
 }
 
-// GroupNEQ applies the NEQ predicate on the "group" field.
-func GroupNEQ(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldNEQ(FieldGroup, v))
+// DomainNEQ applies the NEQ predicate on the "domain" field.
+func DomainNEQ(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldNEQ(FieldDomain, v))
 }
 
-// GroupIn applies the In predicate on the "group" field.
-func GroupIn(vs ...string) predicate.Subject {
-	return predicate.Subject(sql.FieldIn(FieldGroup, vs...))
+// DomainIn applies the In predicate on the "domain" field.
+func DomainIn(vs ...string) predicate.Subject {
+	return predicate.Subject(sql.FieldIn(FieldDomain, vs...))
 }
 
-// GroupNotIn applies the NotIn predicate on the "group" field.
-func GroupNotIn(vs ...string) predicate.Subject {
-	return predicate.Subject(sql.FieldNotIn(FieldGroup, vs...))
+// DomainNotIn applies the NotIn predicate on the "domain" field.
+func DomainNotIn(vs ...string) predicate.Subject {
+	return predicate.Subject(sql.FieldNotIn(FieldDomain, vs...))
 }
 
-// GroupGT applies the GT predicate on the "group" field.
-func GroupGT(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldGT(FieldGroup, v))
+// DomainGT applies the GT predicate on the "domain" field.
+func DomainGT(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldGT(FieldDomain, v))
 }
 
-// GroupGTE applies the GTE predicate on the "group" field.
-func GroupGTE(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldGTE(FieldGroup, v))
+// DomainGTE applies the GTE predicate on the "domain" field.
+func DomainGTE(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldGTE(FieldDomain, v))
 }
 
-// GroupLT applies the LT predicate on the "group" field.
-func GroupLT(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldLT(FieldGroup, v))
+// DomainLT applies the LT predicate on the "domain" field.
+func DomainLT(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldLT(FieldDomain, v))
 }
 
-// GroupLTE applies the LTE predicate on the "group" field.
-func GroupLTE(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldLTE(FieldGroup, v))
+// DomainLTE applies the LTE predicate on the "domain" field.
+func DomainLTE(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldLTE(FieldDomain, v))
 }
 
-// GroupContains applies the Contains predicate on the "group" field.
-func GroupContains(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldContains(FieldGroup, v))
+// DomainContains applies the Contains predicate on the "domain" field.
+func DomainContains(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldContains(FieldDomain, v))
 }
 
-// GroupHasPrefix applies the HasPrefix predicate on the "group" field.
-func GroupHasPrefix(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldHasPrefix(FieldGroup, v))
+// DomainHasPrefix applies the HasPrefix predicate on the "domain" field.
+func DomainHasPrefix(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldHasPrefix(FieldDomain, v))
 }
 
-// GroupHasSuffix applies the HasSuffix predicate on the "group" field.
-func GroupHasSuffix(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldHasSuffix(FieldGroup, v))
+// DomainHasSuffix applies the HasSuffix predicate on the "domain" field.
+func DomainHasSuffix(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldHasSuffix(FieldDomain, v))
 }
 
-// GroupEqualFold applies the EqualFold predicate on the "group" field.
-func GroupEqualFold(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldEqualFold(FieldGroup, v))
+// DomainEqualFold applies the EqualFold predicate on the "domain" field.
+func DomainEqualFold(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldEqualFold(FieldDomain, v))
 }
 
-// GroupContainsFold applies the ContainsFold predicate on the "group" field.
-func GroupContainsFold(v string) predicate.Subject {
-	return predicate.Subject(sql.FieldContainsFold(FieldGroup, v))
+// DomainContainsFold applies the ContainsFold predicate on the "domain" field.
+func DomainContainsFold(v string) predicate.Subject {
+	return predicate.Subject(sql.FieldContainsFold(FieldDomain, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -454,26 +446,6 @@ func DescriptionContainsFold(v string) predicate.Subject {
 	return predicate.Subject(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// MountToEQ applies the EQ predicate on the "mountTo" field.
-func MountToEQ(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldMountTo, v))
-}
-
-// MountToNEQ applies the NEQ predicate on the "mountTo" field.
-func MountToNEQ(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldNEQ(FieldMountTo, v))
-}
-
-// LoginToEQ applies the EQ predicate on the "loginTo" field.
-func LoginToEQ(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldEQ(FieldLoginTo, v))
-}
-
-// LoginToNEQ applies the NEQ predicate on the "loginTo" field.
-func LoginToNEQ(v bool) predicate.Subject {
-	return predicate.Subject(sql.FieldNEQ(FieldLoginTo, v))
-}
-
 // BuiltinEQ applies the EQ predicate on the "builtin" field.
 func BuiltinEQ(v bool) predicate.Subject {
 	return predicate.Subject(sql.FieldEQ(FieldBuiltin, v))
@@ -482,6 +454,64 @@ func BuiltinEQ(v bool) predicate.Subject {
 // BuiltinNEQ applies the NEQ predicate on the "builtin" field.
 func BuiltinNEQ(v bool) predicate.Subject {
 	return predicate.Subject(sql.FieldNEQ(FieldBuiltin, v))
+}
+
+// HasTokens applies the HasEdge predicate on the "tokens" edge.
+func HasTokens() predicate.Subject {
+	return predicate.Subject(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TokensTable, TokensColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Token
+		step.Edge.Schema = schemaConfig.Token
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTokensWith applies the HasEdge predicate on the "tokens" edge with a given conditions (other predicates).
+func HasTokensWith(preds ...predicate.Token) predicate.Subject {
+	return predicate.Subject(func(s *sql.Selector) {
+		step := newTokensStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Token
+		step.Edge.Schema = schemaConfig.Token
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoles applies the HasEdge predicate on the "roles" edge.
+func HasRoles() predicate.Subject {
+	return predicate.Subject(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, RolesTable, RolesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRolesWith applies the HasEdge predicate on the "roles" edge with a given conditions (other predicates).
+func HasRolesWith(preds ...predicate.SubjectRoleRelationship) predicate.Subject {
+	return predicate.Subject(func(s *sql.Selector) {
+		step := newRolesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

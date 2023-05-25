@@ -37,6 +37,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 
 	stdsql "database/sql"
@@ -85,6 +86,8 @@ type Client struct {
 	Setting *SettingClient
 	// Subject is the client for interacting with the Subject builders.
 	Subject *SubjectClient
+	// SubjectRoleRelationship is the client for interacting with the SubjectRoleRelationship builders.
+	SubjectRoleRelationship *SubjectRoleRelationshipClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 }
@@ -118,6 +121,7 @@ func (c *Client) init() {
 	c.Secret = NewSecretClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
+	c.SubjectRoleRelationship = NewSubjectRoleRelationshipClient(c.config)
 	c.Token = NewTokenClient(c.config)
 }
 
@@ -221,6 +225,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Secret:                           NewSecretClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
+		SubjectRoleRelationship:          NewSubjectRoleRelationshipClient(cfg),
 		Token:                            NewTokenClient(cfg),
 	}, nil
 }
@@ -259,6 +264,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Secret:                           NewSecretClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
+		SubjectRoleRelationship:          NewSubjectRoleRelationshipClient(cfg),
 		Token:                            NewTokenClient(cfg),
 	}, nil
 }
@@ -293,7 +299,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ApplicationModuleRelationship, c.ApplicationResource, c.ApplicationRevision,
 		c.ClusterCost, c.Connector, c.Environment, c.EnvironmentConnectorRelationship,
 		c.Module, c.ModuleVersion, c.Perspective, c.Project, c.Role, c.Secret,
-		c.Setting, c.Subject, c.Token,
+		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Token,
 	} {
 		n.Use(hooks...)
 	}
@@ -307,7 +313,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ApplicationModuleRelationship, c.ApplicationResource, c.ApplicationRevision,
 		c.ClusterCost, c.Connector, c.Environment, c.EnvironmentConnectorRelationship,
 		c.Module, c.ModuleVersion, c.Perspective, c.Project, c.Role, c.Secret,
-		c.Setting, c.Subject, c.Token,
+		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Token,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -403,6 +409,11 @@ func (c *Client) Subjects() *SubjectClient {
 	return c.Subject
 }
 
+// SubjectRoleRelationships implements the ClientSet.
+func (c *Client) SubjectRoleRelationships() *SubjectRoleRelationshipClient {
+	return c.SubjectRoleRelationship
+}
+
 // Tokens implements the ClientSet.
 func (c *Client) Tokens() *TokenClient {
 	return c.Token
@@ -485,6 +496,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Setting.mutate(ctx, m)
 	case *SubjectMutation:
 		return c.Subject.mutate(ctx, m)
+	case *SubjectRoleRelationshipMutation:
+		return c.SubjectRoleRelationship.mutate(ctx, m)
 	case *TokenMutation:
 		return c.Token.mutate(ctx, m)
 	default:
@@ -787,7 +800,8 @@ func (c *ApplicationClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *ApplicationClient) Interceptors() []Interceptor {
-	return c.inters.Application
+	inters := c.inters.Application
+	return append(inters[:len(inters):len(inters)], application.Interceptors[:]...)
 }
 
 func (c *ApplicationClient) mutate(ctx context.Context, m *ApplicationMutation) (Value, error) {
@@ -982,7 +996,8 @@ func (c *ApplicationInstanceClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *ApplicationInstanceClient) Interceptors() []Interceptor {
-	return c.inters.ApplicationInstance
+	inters := c.inters.ApplicationInstance
+	return append(inters[:len(inters):len(inters)], applicationinstance.Interceptors[:]...)
 }
 
 func (c *ApplicationInstanceClient) mutate(ctx context.Context, m *ApplicationInstanceMutation) (Value, error) {
@@ -1437,7 +1452,8 @@ func (c *ApplicationRevisionClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *ApplicationRevisionClient) Interceptors() []Interceptor {
-	return c.inters.ApplicationRevision
+	inters := c.inters.ApplicationRevision
+	return append(inters[:len(inters):len(inters)], applicationrevision.Interceptors[:]...)
 }
 
 func (c *ApplicationRevisionClient) mutate(ctx context.Context, m *ApplicationRevisionMutation) (Value, error) {
@@ -2608,6 +2624,25 @@ func (c *ProjectClient) QuerySecrets(pr *Project) *SecretQuery {
 	return query
 }
 
+// QuerySubjectRoles queries the subjectRoles edge of a Project.
+func (c *ProjectClient) QuerySubjectRoles(pr *Project) *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.SubjectRolesTable, project.SubjectRolesColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProjectClient) Hooks() []Hook {
 	hooks := c.hooks.Project
@@ -2680,7 +2715,7 @@ func (c *RoleClient) UpdateOne(r *Role) *RoleUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RoleClient) UpdateOneID(id oid.ID) *RoleUpdateOne {
+func (c *RoleClient) UpdateOneID(id string) *RoleUpdateOne {
 	mutation := newRoleMutation(c.config, OpUpdateOne, withRoleID(id))
 	return &RoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2697,7 +2732,7 @@ func (c *RoleClient) DeleteOne(r *Role) *RoleDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RoleClient) DeleteOneID(id oid.ID) *RoleDeleteOne {
+func (c *RoleClient) DeleteOneID(id string) *RoleDeleteOne {
 	builder := c.Delete().Where(role.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2714,12 +2749,12 @@ func (c *RoleClient) Query() *RoleQuery {
 }
 
 // Get returns a Role entity by its id.
-func (c *RoleClient) Get(ctx context.Context, id oid.ID) (*Role, error) {
+func (c *RoleClient) Get(ctx context.Context, id string) (*Role, error) {
 	return c.Query().Where(role.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RoleClient) GetX(ctx context.Context, id oid.ID) *Role {
+func (c *RoleClient) GetX(ctx context.Context, id string) *Role {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2727,10 +2762,28 @@ func (c *RoleClient) GetX(ctx context.Context, id oid.ID) *Role {
 	return obj
 }
 
+// QuerySubjects queries the subjects edge of a Role.
+func (c *RoleClient) QuerySubjects(r *Role) *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, role.SubjectsTable, role.SubjectsColumn),
+		)
+		schemaConfig := r.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
-	hooks := c.hooks.Role
-	return append(hooks[:len(hooks):len(hooks)], role.Hooks[:]...)
+	return c.hooks.Role
 }
 
 // Interceptors returns the client interceptors.
@@ -2873,7 +2926,8 @@ func (c *SecretClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *SecretClient) Interceptors() []Interceptor {
-	return c.inters.Secret
+	inters := c.inters.Secret
+	return append(inters[:len(inters):len(inters)], secret.Interceptors[:]...)
 }
 
 func (c *SecretClient) mutate(ctx context.Context, m *SecretMutation) (Value, error) {
@@ -3103,6 +3157,44 @@ func (c *SubjectClient) GetX(ctx context.Context, id oid.ID) *Subject {
 	return obj
 }
 
+// QueryTokens queries the tokens edge of a Subject.
+func (c *SubjectClient) QueryTokens(s *Subject) *TokenQuery {
+	query := (&TokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, id),
+			sqlgraph.To(token.Table, token.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subject.TokensTable, subject.TokensColumn),
+		)
+		schemaConfig := s.schemaConfig
+		step.To.Schema = schemaConfig.Token
+		step.Edge.Schema = schemaConfig.Token
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoles queries the roles edge of a Subject.
+func (c *SubjectClient) QueryRoles(s *Subject) *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, id),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, subject.RolesTable, subject.RolesColumn),
+		)
+		schemaConfig := s.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubjectClient) Hooks() []Hook {
 	hooks := c.hooks.Subject
@@ -3126,6 +3218,183 @@ func (c *SubjectClient) mutate(ctx context.Context, m *SubjectMutation) (Value, 
 		return (&SubjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Subject mutation op: %q", m.Op())
+	}
+}
+
+// SubjectRoleRelationshipClient is a client for the SubjectRoleRelationship schema.
+type SubjectRoleRelationshipClient struct {
+	config
+}
+
+// NewSubjectRoleRelationshipClient returns a client for the SubjectRoleRelationship from the given config.
+func NewSubjectRoleRelationshipClient(c config) *SubjectRoleRelationshipClient {
+	return &SubjectRoleRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `subjectrolerelationship.Hooks(f(g(h())))`.
+func (c *SubjectRoleRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.SubjectRoleRelationship = append(c.hooks.SubjectRoleRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `subjectrolerelationship.Intercept(f(g(h())))`.
+func (c *SubjectRoleRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SubjectRoleRelationship = append(c.inters.SubjectRoleRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a SubjectRoleRelationship entity.
+func (c *SubjectRoleRelationshipClient) Create() *SubjectRoleRelationshipCreate {
+	mutation := newSubjectRoleRelationshipMutation(c.config, OpCreate)
+	return &SubjectRoleRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SubjectRoleRelationship entities.
+func (c *SubjectRoleRelationshipClient) CreateBulk(builders ...*SubjectRoleRelationshipCreate) *SubjectRoleRelationshipCreateBulk {
+	return &SubjectRoleRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) Update() *SubjectRoleRelationshipUpdate {
+	mutation := newSubjectRoleRelationshipMutation(c.config, OpUpdate)
+	return &SubjectRoleRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SubjectRoleRelationshipClient) UpdateOne(srr *SubjectRoleRelationship) *SubjectRoleRelationshipUpdateOne {
+	mutation := newSubjectRoleRelationshipMutation(c.config, OpUpdateOne, withSubjectRoleRelationship(srr))
+	return &SubjectRoleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SubjectRoleRelationshipClient) UpdateOneID(id oid.ID) *SubjectRoleRelationshipUpdateOne {
+	mutation := newSubjectRoleRelationshipMutation(c.config, OpUpdateOne, withSubjectRoleRelationshipID(id))
+	return &SubjectRoleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) Delete() *SubjectRoleRelationshipDelete {
+	mutation := newSubjectRoleRelationshipMutation(c.config, OpDelete)
+	return &SubjectRoleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SubjectRoleRelationshipClient) DeleteOne(srr *SubjectRoleRelationship) *SubjectRoleRelationshipDeleteOne {
+	return c.DeleteOneID(srr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SubjectRoleRelationshipClient) DeleteOneID(id oid.ID) *SubjectRoleRelationshipDeleteOne {
+	builder := c.Delete().Where(subjectrolerelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SubjectRoleRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) Query() *SubjectRoleRelationshipQuery {
+	return &SubjectRoleRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSubjectRoleRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SubjectRoleRelationship entity by its id.
+func (c *SubjectRoleRelationshipClient) Get(ctx context.Context, id oid.ID) (*SubjectRoleRelationship, error) {
+	return c.Query().Where(subjectrolerelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SubjectRoleRelationshipClient) GetX(ctx context.Context, id oid.ID) *SubjectRoleRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) QueryProject(srr *SubjectRoleRelationship) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := srr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subjectrolerelationship.Table, subjectrolerelationship.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, subjectrolerelationship.ProjectTable, subjectrolerelationship.ProjectColumn),
+		)
+		schemaConfig := srr.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubject queries the subject edge of a SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) QuerySubject(srr *SubjectRoleRelationship) *SubjectQuery {
+	query := (&SubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := srr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subjectrolerelationship.Table, subjectrolerelationship.FieldID, id),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, subjectrolerelationship.SubjectTable, subjectrolerelationship.SubjectColumn),
+		)
+		schemaConfig := srr.schemaConfig
+		step.To.Schema = schemaConfig.Subject
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRole queries the role edge of a SubjectRoleRelationship.
+func (c *SubjectRoleRelationshipClient) QueryRole(srr *SubjectRoleRelationship) *RoleQuery {
+	query := (&RoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := srr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subjectrolerelationship.Table, subjectrolerelationship.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, subjectrolerelationship.RoleTable, subjectrolerelationship.RoleColumn),
+		)
+		schemaConfig := srr.schemaConfig
+		step.To.Schema = schemaConfig.Role
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SubjectRoleRelationshipClient) Hooks() []Hook {
+	hooks := c.hooks.SubjectRoleRelationship
+	return append(hooks[:len(hooks):len(hooks)], subjectrolerelationship.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *SubjectRoleRelationshipClient) Interceptors() []Interceptor {
+	inters := c.inters.SubjectRoleRelationship
+	return append(inters[:len(inters):len(inters)], subjectrolerelationship.Interceptors[:]...)
+}
+
+func (c *SubjectRoleRelationshipClient) mutate(ctx context.Context, m *SubjectRoleRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SubjectRoleRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SubjectRoleRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SubjectRoleRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SubjectRoleRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown SubjectRoleRelationship mutation op: %q", m.Op())
 	}
 }
 
@@ -3222,6 +3491,25 @@ func (c *TokenClient) GetX(ctx context.Context, id oid.ID) *Token {
 	return obj
 }
 
+// QuerySubject queries the subject edge of a Token.
+func (c *TokenClient) QuerySubject(t *Token) *SubjectQuery {
+	query := (&SubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(token.Table, token.FieldID, id),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, token.SubjectTable, token.SubjectColumn),
+		)
+		schemaConfig := t.schemaConfig
+		step.To.Schema = schemaConfig.Subject
+		step.Edge.Schema = schemaConfig.Token
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TokenClient) Hooks() []Hook {
 	hooks := c.hooks.Token
@@ -3230,7 +3518,8 @@ func (c *TokenClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *TokenClient) Interceptors() []Interceptor {
-	return c.inters.Token
+	inters := c.inters.Token
+	return append(inters[:len(inters):len(inters)], token.Interceptors[:]...)
 }
 
 func (c *TokenClient) mutate(ctx context.Context, m *TokenMutation) (Value, error) {
@@ -3254,13 +3543,14 @@ type (
 		AllocationCost, Application, ApplicationInstance, ApplicationModuleRelationship,
 		ApplicationResource, ApplicationRevision, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Module, ModuleVersion, Perspective, Project,
-		Role, Secret, Setting, Subject, Token []ent.Hook
+		Role, Secret, Setting, Subject, SubjectRoleRelationship, Token []ent.Hook
 	}
 	inters struct {
 		AllocationCost, Application, ApplicationInstance, ApplicationModuleRelationship,
 		ApplicationResource, ApplicationRevision, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Module, ModuleVersion, Perspective, Project,
-		Role, Secret, Setting, Subject, Token []ent.Interceptor
+		Role, Secret, Setting, Subject, SubjectRoleRelationship,
+		Token []ent.Interceptor
 	}
 )
 

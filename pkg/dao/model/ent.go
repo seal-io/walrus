@@ -34,6 +34,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 )
 
@@ -113,6 +114,7 @@ func checkColumn(table, column string) error {
 			secret.Table:                           secret.ValidColumn,
 			setting.Table:                          setting.ValidColumn,
 			subject.Table:                          subject.ValidColumn,
+			subjectrolerelationship.Table:          subjectrolerelationship.ValidColumn,
 			token.Table:                            token.ValidColumn,
 		})
 	})

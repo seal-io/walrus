@@ -31,6 +31,12 @@ type ApplicationCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetProjectID sets the "projectID" field.
+func (ac *ApplicationCreate) SetProjectID(o oid.ID) *ApplicationCreate {
+	ac.mutation.SetProjectID(o)
+	return ac
+}
+
 // SetName sets the "name" field.
 func (ac *ApplicationCreate) SetName(s string) *ApplicationCreate {
 	ac.mutation.SetName(s)
@@ -82,12 +88,6 @@ func (ac *ApplicationCreate) SetNillableUpdateTime(t *time.Time) *ApplicationCre
 	if t != nil {
 		ac.SetUpdateTime(*t)
 	}
-	return ac
-}
-
-// SetProjectID sets the "projectID" field.
-func (ac *ApplicationCreate) SetProjectID(o oid.ID) *ApplicationCreate {
-	ac.mutation.SetProjectID(o)
 	return ac
 }
 
@@ -183,6 +183,14 @@ func (ac *ApplicationCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *ApplicationCreate) check() error {
+	if _, ok := ac.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Application.projectID"`)}
+	}
+	if v, ok := ac.mutation.ProjectID(); ok {
+		if err := application.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Application.projectID": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Application.name"`)}
 	}
@@ -199,14 +207,6 @@ func (ac *ApplicationCreate) check() error {
 	}
 	if _, ok := ac.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Application.updateTime"`)}
-	}
-	if _, ok := ac.mutation.ProjectID(); !ok {
-		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Application.projectID"`)}
-	}
-	if v, ok := ac.mutation.ProjectID(); ok {
-		if err := application.ProjectIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Application.projectID": %w`, err)}
-		}
 	}
 	if _, ok := ac.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Application.project"`)}
@@ -314,7 +314,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Application.Create().
-//		SetName(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -323,7 +323,7 @@ func (ac *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationUpsert) {
-//			SetName(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (ac *ApplicationCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationUpsertOne {
@@ -448,11 +448,11 @@ func (u *ApplicationUpsertOne) UpdateNewValues() *ApplicationUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(application.FieldID)
 		}
-		if _, exists := u.create.mutation.CreateTime(); exists {
-			s.SetIgnore(application.FieldCreateTime)
-		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(application.FieldProjectID)
+		}
+		if _, exists := u.create.mutation.CreateTime(); exists {
+			s.SetIgnore(application.FieldCreateTime)
 		}
 	}))
 	return u
@@ -701,7 +701,7 @@ func (acb *ApplicationCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationUpsert) {
-//			SetName(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (acb *ApplicationCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationUpsertBulk {
@@ -748,11 +748,11 @@ func (u *ApplicationUpsertBulk) UpdateNewValues() *ApplicationUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(application.FieldID)
 			}
-			if _, exists := b.mutation.CreateTime(); exists {
-				s.SetIgnore(application.FieldCreateTime)
-			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(application.FieldProjectID)
+			}
+			if _, exists := b.mutation.CreateTime(); exists {
+				s.SetIgnore(application.FieldCreateTime)
 			}
 		}
 	}))

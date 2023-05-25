@@ -18,6 +18,8 @@ const (
 	Label = "application_resource"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -77,6 +79,7 @@ const (
 // Columns holds all SQL columns for applicationresource fields.
 var Columns = []string{
 	FieldID,
+	FieldProjectID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldInstanceID,
@@ -106,8 +109,10 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks        [1]ent.Hook
-	Interceptors [1]ent.Interceptor
+	Hooks        [3]ent.Hook
+	Interceptors [2]ent.Interceptor
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
@@ -136,6 +141,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the createTime field.

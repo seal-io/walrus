@@ -424,12 +424,12 @@ func (arq *ApplicationResourceQuery) WithComponents(opts ...func(*ApplicationRes
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ApplicationResource.Query().
-//		GroupBy(applicationresource.FieldCreateTime).
+//		GroupBy(applicationresource.FieldProjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (arq *ApplicationResourceQuery) GroupBy(field string, fields ...string) *ApplicationResourceGroupBy {
@@ -447,11 +447,11 @@ func (arq *ApplicationResourceQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //	}
 //
 //	client.ApplicationResource.Query().
-//		Select(applicationresource.FieldCreateTime).
+//		Select(applicationresource.FieldProjectID).
 //		Scan(ctx, &v)
 func (arq *ApplicationResourceQuery) Select(fields ...string) *ApplicationResourceSelect {
 	arq.ctx.Fields = append(arq.ctx.Fields, fields...)

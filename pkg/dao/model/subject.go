@@ -14,9 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/utils/json"
 )
 
 // Subject is the model entity for the Subject schema.
@@ -30,23 +28,47 @@ type Subject struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The kind of the subject.
 	Kind string `json:"kind,omitempty" sql:"kind"`
-	// The group of the subject.
-	Group string `json:"group,omitempty" sql:"group"`
+	// The domain of the subject.
+	Domain string `json:"domain,omitempty" sql:"domain"`
 	// The name of the subject.
 	Name string `json:"name,omitempty" sql:"name"`
 	// The detail of the subject.
 	Description string `json:"description,omitempty" sql:"description"`
-	// Indicate whether the user mount to the group.
-	MountTo *bool `json:"mountTo,omitempty" sql:"mountTo"`
-	// Indicate whether the user login to the group.
-	LoginTo *bool `json:"loginTo,omitempty" sql:"loginTo"`
-	// The role list of the subject.
-	Roles types.SubjectRoles `json:"roles,omitempty" sql:"roles"`
-	// The path of the subject from the root group to itself.
-	Paths []string `json:"paths,omitempty" sql:"paths"`
-	// Indicate whether the subject is builtin.
-	Builtin      bool `json:"builtin,omitempty" sql:"builtin"`
+	// Indicate whether the subject is builtin, decide when creating.
+	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SubjectQuery when eager-loading is set.
+	Edges        SubjectEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
+}
+
+// SubjectEdges holds the relations/edges for other nodes in the graph.
+type SubjectEdges struct {
+	// Tokens that belong to the subject.
+	Tokens []*Token `json:"tokens,omitempty" sql:"tokens"`
+	// Roles holds the value of the roles edge.
+	Roles []*SubjectRoleRelationship `json:"roles,omitempty" sql:"roles"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// TokensOrErr returns the Tokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubjectEdges) TokensOrErr() ([]*Token, error) {
+	if e.loadedTypes[0] {
+		return e.Tokens, nil
+	}
+	return nil, &NotLoadedError{edge: "tokens"}
+}
+
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubjectEdges) RolesOrErr() ([]*SubjectRoleRelationship, error) {
+	if e.loadedTypes[1] {
+		return e.Roles, nil
+	}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -54,13 +76,11 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case subject.FieldRoles, subject.FieldPaths:
-			values[i] = new([]byte)
 		case subject.FieldID:
 			values[i] = new(oid.ID)
-		case subject.FieldMountTo, subject.FieldLoginTo, subject.FieldBuiltin:
+		case subject.FieldBuiltin:
 			values[i] = new(sql.NullBool)
-		case subject.FieldKind, subject.FieldGroup, subject.FieldName, subject.FieldDescription:
+		case subject.FieldKind, subject.FieldDomain, subject.FieldName, subject.FieldDescription:
 			values[i] = new(sql.NullString)
 		case subject.FieldCreateTime, subject.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -105,11 +125,11 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Kind = value.String
 			}
-		case subject.FieldGroup:
+		case subject.FieldDomain:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field group", values[i])
+				return fmt.Errorf("unexpected type %T for field domain", values[i])
 			} else if value.Valid {
-				s.Group = value.String
+				s.Domain = value.String
 			}
 		case subject.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -122,36 +142,6 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				s.Description = value.String
-			}
-		case subject.FieldMountTo:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field mountTo", values[i])
-			} else if value.Valid {
-				s.MountTo = new(bool)
-				*s.MountTo = value.Bool
-			}
-		case subject.FieldLoginTo:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field loginTo", values[i])
-			} else if value.Valid {
-				s.LoginTo = new(bool)
-				*s.LoginTo = value.Bool
-			}
-		case subject.FieldRoles:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field roles", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &s.Roles); err != nil {
-					return fmt.Errorf("unmarshal field roles: %w", err)
-				}
-			}
-		case subject.FieldPaths:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field paths", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &s.Paths); err != nil {
-					return fmt.Errorf("unmarshal field paths: %w", err)
-				}
 			}
 		case subject.FieldBuiltin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -170,6 +160,16 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (s *Subject) Value(name string) (ent.Value, error) {
 	return s.selectValues.Get(name)
+}
+
+// QueryTokens queries the "tokens" edge of the Subject entity.
+func (s *Subject) QueryTokens() *TokenQuery {
+	return NewSubjectClient(s.config).QueryTokens(s)
+}
+
+// QueryRoles queries the "roles" edge of the Subject entity.
+func (s *Subject) QueryRoles() *SubjectRoleRelationshipQuery {
+	return NewSubjectClient(s.config).QueryRoles(s)
 }
 
 // Update returns a builder for updating this Subject.
@@ -208,30 +208,14 @@ func (s *Subject) String() string {
 	builder.WriteString("kind=")
 	builder.WriteString(s.Kind)
 	builder.WriteString(", ")
-	builder.WriteString("group=")
-	builder.WriteString(s.Group)
+	builder.WriteString("domain=")
+	builder.WriteString(s.Domain)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(s.Name)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(s.Description)
-	builder.WriteString(", ")
-	if v := s.MountTo; v != nil {
-		builder.WriteString("mountTo=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := s.LoginTo; v != nil {
-		builder.WriteString("loginTo=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("roles=")
-	builder.WriteString(fmt.Sprintf("%v", s.Roles))
-	builder.WriteString(", ")
-	builder.WriteString("paths=")
-	builder.WriteString(fmt.Sprintf("%v", s.Paths))
 	builder.WriteString(", ")
 	builder.WriteString("builtin=")
 	builder.WriteString(fmt.Sprintf("%v", s.Builtin))

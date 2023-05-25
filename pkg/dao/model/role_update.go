@@ -19,7 +19,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -74,16 +76,50 @@ func (ru *RoleUpdate) AppendPolicies(tp types.RolePolicies) *RoleUpdate {
 	return ru
 }
 
+// AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
+func (ru *RoleUpdate) AddSubjectIDs(ids ...oid.ID) *RoleUpdate {
+	ru.mutation.AddSubjectIDs(ids...)
+	return ru
+}
+
+// AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
+func (ru *RoleUpdate) AddSubjects(s ...*SubjectRoleRelationship) *RoleUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ru.AddSubjectIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (ru *RoleUpdate) Mutation() *RoleMutation {
 	return ru.mutation
 }
 
+// ClearSubjects clears all "subjects" edges to the SubjectRoleRelationship entity.
+func (ru *RoleUpdate) ClearSubjects() *RoleUpdate {
+	ru.mutation.ClearSubjects()
+	return ru
+}
+
+// RemoveSubjectIDs removes the "subjects" edge to SubjectRoleRelationship entities by IDs.
+func (ru *RoleUpdate) RemoveSubjectIDs(ids ...oid.ID) *RoleUpdate {
+	ru.mutation.RemoveSubjectIDs(ids...)
+	return ru
+}
+
+// RemoveSubjects removes "subjects" edges to SubjectRoleRelationship entities.
+func (ru *RoleUpdate) RemoveSubjects(s ...*SubjectRoleRelationship) *RoleUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ru.RemoveSubjectIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ru *RoleUpdate) Save(ctx context.Context) (int, error) {
-	if err := ru.defaults(); err != nil {
-		return 0, err
-	}
+	ru.defaults()
 	return withHooks[int, RoleMutation](ctx, ru.sqlSave, ru.mutation, ru.hooks)
 }
 
@@ -110,15 +146,11 @@ func (ru *RoleUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ru *RoleUpdate) defaults() error {
+func (ru *RoleUpdate) defaults() {
 	if _, ok := ru.mutation.UpdateTime(); !ok {
-		if role.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized role.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := role.UpdateDefaultUpdateTime()
 		ru.mutation.SetUpdateTime(v)
 	}
-	return nil
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
@@ -152,6 +184,66 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, role.FieldPolicies, value)
 		})
+	}
+	if ru.mutation.SubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.SubjectRoleRelationship
+		createE := &SubjectRoleRelationshipCreate{config: ru.config, mutation: newSubjectRoleRelationshipMutation(ru.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedSubjectsIDs(); len(nodes) > 0 && !ru.mutation.SubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: ru.config, mutation: newSubjectRoleRelationshipMutation(ru.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.SubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ru.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: ru.config, mutation: newSubjectRoleRelationshipMutation(ru.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = ru.schemaConfig.Role
 	ctx = internal.NewSchemaConfigContext(ctx, ru.schemaConfig)
@@ -215,9 +307,45 @@ func (ruo *RoleUpdateOne) AppendPolicies(tp types.RolePolicies) *RoleUpdateOne {
 	return ruo
 }
 
+// AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
+func (ruo *RoleUpdateOne) AddSubjectIDs(ids ...oid.ID) *RoleUpdateOne {
+	ruo.mutation.AddSubjectIDs(ids...)
+	return ruo
+}
+
+// AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
+func (ruo *RoleUpdateOne) AddSubjects(s ...*SubjectRoleRelationship) *RoleUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ruo.AddSubjectIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (ruo *RoleUpdateOne) Mutation() *RoleMutation {
 	return ruo.mutation
+}
+
+// ClearSubjects clears all "subjects" edges to the SubjectRoleRelationship entity.
+func (ruo *RoleUpdateOne) ClearSubjects() *RoleUpdateOne {
+	ruo.mutation.ClearSubjects()
+	return ruo
+}
+
+// RemoveSubjectIDs removes the "subjects" edge to SubjectRoleRelationship entities by IDs.
+func (ruo *RoleUpdateOne) RemoveSubjectIDs(ids ...oid.ID) *RoleUpdateOne {
+	ruo.mutation.RemoveSubjectIDs(ids...)
+	return ruo
+}
+
+// RemoveSubjects removes "subjects" edges to SubjectRoleRelationship entities.
+func (ruo *RoleUpdateOne) RemoveSubjects(s ...*SubjectRoleRelationship) *RoleUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ruo.RemoveSubjectIDs(ids...)
 }
 
 // Where appends a list predicates to the RoleUpdate builder.
@@ -235,9 +363,7 @@ func (ruo *RoleUpdateOne) Select(field string, fields ...string) *RoleUpdateOne 
 
 // Save executes the query and returns the updated Role entity.
 func (ruo *RoleUpdateOne) Save(ctx context.Context) (*Role, error) {
-	if err := ruo.defaults(); err != nil {
-		return nil, err
-	}
+	ruo.defaults()
 	return withHooks[*Role, RoleMutation](ctx, ruo.sqlSave, ruo.mutation, ruo.hooks)
 }
 
@@ -264,15 +390,11 @@ func (ruo *RoleUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ruo *RoleUpdateOne) defaults() error {
+func (ruo *RoleUpdateOne) defaults() {
 	if _, ok := ruo.mutation.UpdateTime(); !ok {
-		if role.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized role.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := role.UpdateDefaultUpdateTime()
 		ruo.mutation.SetUpdateTime(v)
 	}
-	return nil
 }
 
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
@@ -323,6 +445,66 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, role.FieldPolicies, value)
 		})
+	}
+	if ruo.mutation.SubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.SubjectRoleRelationship
+		createE := &SubjectRoleRelationshipCreate{config: ruo.config, mutation: newSubjectRoleRelationshipMutation(ruo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedSubjectsIDs(); len(nodes) > 0 && !ruo.mutation.SubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: ruo.config, mutation: newSubjectRoleRelationshipMutation(ruo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.SubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ruo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: ruo.config, mutation: newSubjectRoleRelationshipMutation(ruo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = ruo.schemaConfig.Role
 	ctx = internal.NewSchemaConfigContext(ctx, ruo.schemaConfig)

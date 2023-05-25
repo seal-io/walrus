@@ -62,6 +62,11 @@ func IDLTE(id oid.ID) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(sql.FieldLTE(FieldID, id))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldEQ(FieldProjectID, v))
+}
+
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(sql.FieldEQ(FieldCreateTime, v))
@@ -90,6 +95,76 @@ func Name(v string) predicate.ApplicationInstance {
 // Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
 func Variables(v property.Values) predicate.ApplicationInstance {
 	return predicate.ApplicationInstance(sql.FieldEQ(FieldVariables, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.ApplicationInstance {
+	return predicate.ApplicationInstance(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.ApplicationInstance {
+	vc := string(v)
+	return predicate.ApplicationInstance(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.ApplicationInstance {
+	vc := string(v)
+	return predicate.ApplicationInstance(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.ApplicationInstance {
+	vc := string(v)
+	return predicate.ApplicationInstance(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.ApplicationInstance {
+	vc := string(v)
+	return predicate.ApplicationInstance(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.ApplicationInstance {
+	vc := string(v)
+	return predicate.ApplicationInstance(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.

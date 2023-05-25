@@ -63,6 +63,11 @@ func IDLTE(id oid.ID) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldLTE(FieldID, id))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldProjectID, v))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldStatus, v))
@@ -121,6 +126,76 @@ func DeployerType(v string) predicate.ApplicationRevision {
 // Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
 func Duration(v int) predicate.ApplicationRevision {
 	return predicate.ApplicationRevision(sql.FieldEQ(FieldDuration, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.ApplicationRevision {
+	return predicate.ApplicationRevision(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.ApplicationRevision {
+	vc := string(v)
+	return predicate.ApplicationRevision(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

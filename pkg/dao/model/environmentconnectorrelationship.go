@@ -25,9 +25,9 @@ type EnvironmentConnectorRelationship struct {
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the environment to which the relationship connects.
-	EnvironmentID oid.ID `json:"environmentID"`
+	EnvironmentID oid.ID `json:"environmentID" sql:"environmentID"`
 	// ID of the connector to which the relationship connects.
-	ConnectorID oid.ID `json:"connectorID"`
+	ConnectorID oid.ID `json:"connectorID" sql:"connectorID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentConnectorRelationshipQuery when eager-loading is set.
 	Edges        EnvironmentConnectorRelationshipEdges `json:"edges,omitempty"`
@@ -36,9 +36,9 @@ type EnvironmentConnectorRelationship struct {
 
 // EnvironmentConnectorRelationshipEdges holds the relations/edges for other nodes in the graph.
 type EnvironmentConnectorRelationshipEdges struct {
-	// Environments that connect to the relationship.
+	// Environment that connect to the relationship.
 	Environment *Environment `json:"environment,omitempty" sql:"environment"`
-	// Connectors that connect to the relationship.
+	// Connector that connect to the relationship.
 	Connector *Connector `json:"connector,omitempty" sql:"connector"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

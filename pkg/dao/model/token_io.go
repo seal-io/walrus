@@ -8,6 +8,7 @@ package model
 import (
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -26,24 +27,27 @@ func (in TokenQueryInput) Model() *Token {
 
 // TokenCreateInput is the input for the Token creation.
 type TokenCreateInput struct {
-	// The token name of casdoor.
-	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
-	// The token owner of casdoor.
-	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
+	// The kind of token.
+	Kind string `json:"kind,omitempty"`
 	// The name of token.
 	Name string `json:"name"`
-	// Expiration in seconds.
-	Expiration *int `json:"expiration,omitempty"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `json:"expiration,omitempty"`
+	// The value of token, store in string.
+	Value crypto.String `json:"value,omitempty"`
+	// Subject to which the token belongs.
+	Subject SubjectQueryInput `json:"subject"`
 }
 
 // Model converts the TokenCreateInput to Token.
 func (in TokenCreateInput) Model() *Token {
 	var entity = &Token{
-		CasdoorTokenName:  in.CasdoorTokenName,
-		CasdoorTokenOwner: in.CasdoorTokenOwner,
-		Name:              in.Name,
-		Expiration:        in.Expiration,
+		Kind:       in.Kind,
+		Name:       in.Name,
+		Expiration: in.Expiration,
+		Value:      in.Value,
 	}
+	entity.SubjectID = in.Subject.ID
 	return entity
 }
 
@@ -51,24 +55,12 @@ func (in TokenCreateInput) Model() *Token {
 type TokenUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// The token name of casdoor.
-	CasdoorTokenName string `json:"casdoorTokenName,omitempty"`
-	// The token owner of casdoor.
-	CasdoorTokenOwner string `json:"casdoorTokenOwner,omitempty"`
-	// The name of token.
-	Name string `json:"name,omitempty"`
-	// Expiration in seconds.
-	Expiration *int `json:"expiration,omitempty"`
 }
 
 // Model converts the TokenUpdateInput to Token.
 func (in TokenUpdateInput) Model() *Token {
 	var entity = &Token{
-		ID:                in.ID,
-		CasdoorTokenName:  in.CasdoorTokenName,
-		CasdoorTokenOwner: in.CasdoorTokenOwner,
-		Name:              in.Name,
-		Expiration:        in.Expiration,
+		ID: in.ID,
 	}
 	return entity
 }
@@ -79,12 +71,14 @@ type TokenOutput struct {
 	ID oid.ID `json:"id,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// The kind of token.
+	Kind string `json:"kind,omitempty"`
 	// The name of token.
 	Name string `json:"name,omitempty"`
-	// Expiration in seconds.
-	Expiration *int `json:"expiration,omitempty"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `json:"expiration,omitempty"`
+	// Subject to which the token belongs.
+	Subject *SubjectOutput `json:"subject,omitempty"`
 }
 
 // ExposeToken converts the Token to TokenOutput.
@@ -95,9 +89,16 @@ func ExposeToken(in *Token) *TokenOutput {
 	var entity = &TokenOutput{
 		ID:         in.ID,
 		CreateTime: in.CreateTime,
-		UpdateTime: in.UpdateTime,
+		Kind:       in.Kind,
 		Name:       in.Name,
 		Expiration: in.Expiration,
+		Subject:    ExposeSubject(in.Edges.Subject),
+	}
+	if in.SubjectID != "" {
+		if entity.Subject == nil {
+			entity.Subject = &SubjectOutput{}
+		}
+		entity.Subject.ID = in.SubjectID
 	}
 	return entity
 }

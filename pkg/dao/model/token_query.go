@@ -17,6 +17,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -24,11 +25,12 @@ import (
 // TokenQuery is the builder for querying Token entities.
 type TokenQuery struct {
 	config
-	ctx        *QueryContext
-	order      []token.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Token
-	modifiers  []func(*sql.Selector)
+	ctx         *QueryContext
+	order       []token.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.Token
+	withSubject *SubjectQuery
+	modifiers   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,6 +65,31 @@ func (tq *TokenQuery) Unique(unique bool) *TokenQuery {
 func (tq *TokenQuery) Order(o ...token.OrderOption) *TokenQuery {
 	tq.order = append(tq.order, o...)
 	return tq
+}
+
+// QuerySubject chains the current query on the "subject" edge.
+func (tq *TokenQuery) QuerySubject() *SubjectQuery {
+	query := (&SubjectClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(token.Table, token.FieldID, selector),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, token.SubjectTable, token.SubjectColumn),
+		)
+		schemaConfig := tq.schemaConfig
+		step.To.Schema = schemaConfig.Subject
+		step.Edge.Schema = schemaConfig.Token
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Token entity from the query.
@@ -252,15 +279,27 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 		return nil
 	}
 	return &TokenQuery{
-		config:     tq.config,
-		ctx:        tq.ctx.Clone(),
-		order:      append([]token.OrderOption{}, tq.order...),
-		inters:     append([]Interceptor{}, tq.inters...),
-		predicates: append([]predicate.Token{}, tq.predicates...),
+		config:      tq.config,
+		ctx:         tq.ctx.Clone(),
+		order:       append([]token.OrderOption{}, tq.order...),
+		inters:      append([]Interceptor{}, tq.inters...),
+		predicates:  append([]predicate.Token{}, tq.predicates...),
+		withSubject: tq.withSubject.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
 	}
+}
+
+// WithSubject tells the query-builder to eager-load the nodes that are connected to
+// the "subject" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TokenQuery) WithSubject(opts ...func(*SubjectQuery)) *TokenQuery {
+	query := (&SubjectClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withSubject = query
+	return tq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -269,12 +308,12 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Token.Query().
-//		GroupBy(token.FieldCreateTime).
+//		GroupBy(token.FieldSubjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
@@ -292,11 +331,11 @@ func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
 //	}
 //
 //	client.Token.Query().
-//		Select(token.FieldCreateTime).
+//		Select(token.FieldSubjectID).
 //		Scan(ctx, &v)
 func (tq *TokenQuery) Select(fields ...string) *TokenSelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)
@@ -339,8 +378,11 @@ func (tq *TokenQuery) prepareQuery(ctx context.Context) error {
 
 func (tq *TokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Token, error) {
 	var (
-		nodes = []*Token{}
-		_spec = tq.querySpec()
+		nodes       = []*Token{}
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withSubject != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Token).scanValues(nil, columns)
@@ -348,6 +390,7 @@ func (tq *TokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Token,
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Token{config: tq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = tq.schemaConfig.Token
@@ -364,7 +407,43 @@ func (tq *TokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Token,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := tq.withSubject; query != nil {
+		if err := tq.loadSubject(ctx, query, nodes, nil,
+			func(n *Token, e *Subject) { n.Edges.Subject = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (tq *TokenQuery) loadSubject(ctx context.Context, query *SubjectQuery, nodes []*Token, init func(*Token), assign func(*Token, *Subject)) error {
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*Token)
+	for i := range nodes {
+		fk := nodes[i].SubjectID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(subject.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "subjectID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (tq *TokenQuery) sqlCount(ctx context.Context) (int, error) {
@@ -396,6 +475,9 @@ func (tq *TokenQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != token.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if tq.withSubject != nil {
+			_spec.Node.AddColumnOnce(token.FieldSubjectID)
 		}
 	}
 	if ps := tq.predicates; len(ps) > 0 {

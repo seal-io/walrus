@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -22,19 +24,44 @@ type Token struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the subject to which the token belongs.
+	SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
-	// The token name of casdoor.
-	CasdoorTokenName string `json:"-" sql:"casdoorTokenName"`
-	// The token owner of casdoor.
-	CasdoorTokenOwner string `json:"-" sql:"casdoorTokenOwner"`
+	// The kind of token.
+	Kind string `json:"kind,omitempty" sql:"kind"`
 	// The name of token.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Expiration in seconds.
-	Expiration   *int `json:"expiration,omitempty" sql:"expiration"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `json:"expiration,omitempty" sql:"expiration"`
+	// The value of token, store in string.
+	Value crypto.String `json:"-" sql:"value"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TokenQuery when eager-loading is set.
+	Edges        TokenEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
+}
+
+// TokenEdges holds the relations/edges for other nodes in the graph.
+type TokenEdges struct {
+	// Subject to which the token belongs.
+	Subject *Subject `json:"subject,omitempty" sql:"subject"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SubjectOrErr returns the Subject value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TokenEdges) SubjectOrErr() (*Subject, error) {
+	if e.loadedTypes[0] {
+		if e.Subject == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: subject.Label}
+		}
+		return e.Subject, nil
+	}
+	return nil, &NotLoadedError{edge: "subject"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -42,13 +69,13 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case token.FieldID:
+		case token.FieldValue:
+			values[i] = new(crypto.String)
+		case token.FieldID, token.FieldSubjectID:
 			values[i] = new(oid.ID)
-		case token.FieldExpiration:
-			values[i] = new(sql.NullInt64)
-		case token.FieldCasdoorTokenName, token.FieldCasdoorTokenOwner, token.FieldName:
+		case token.FieldKind, token.FieldName:
 			values[i] = new(sql.NullString)
-		case token.FieldCreateTime, token.FieldUpdateTime:
+		case token.FieldCreateTime, token.FieldExpiration:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -71,6 +98,12 @@ func (t *Token) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				t.ID = *value
 			}
+		case token.FieldSubjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field subjectID", values[i])
+			} else if value != nil {
+				t.SubjectID = *value
+			}
 		case token.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -78,24 +111,11 @@ func (t *Token) assignValues(columns []string, values []any) error {
 				t.CreateTime = new(time.Time)
 				*t.CreateTime = value.Time
 			}
-		case token.FieldUpdateTime:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updateTime", values[i])
-			} else if value.Valid {
-				t.UpdateTime = new(time.Time)
-				*t.UpdateTime = value.Time
-			}
-		case token.FieldCasdoorTokenName:
+		case token.FieldKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field casdoorTokenName", values[i])
+				return fmt.Errorf("unexpected type %T for field kind", values[i])
 			} else if value.Valid {
-				t.CasdoorTokenName = value.String
-			}
-		case token.FieldCasdoorTokenOwner:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field casdoorTokenOwner", values[i])
-			} else if value.Valid {
-				t.CasdoorTokenOwner = value.String
+				t.Kind = value.String
 			}
 		case token.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -104,11 +124,17 @@ func (t *Token) assignValues(columns []string, values []any) error {
 				t.Name = value.String
 			}
 		case token.FieldExpiration:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field expiration", values[i])
 			} else if value.Valid {
-				t.Expiration = new(int)
-				*t.Expiration = int(value.Int64)
+				t.Expiration = new(time.Time)
+				*t.Expiration = value.Time
+			}
+		case token.FieldValue:
+			if value, ok := values[i].(*crypto.String); !ok {
+				return fmt.Errorf("unexpected type %T for field value", values[i])
+			} else if value != nil {
+				t.Value = *value
 			}
 		default:
 			t.selectValues.Set(columns[i], values[i])
@@ -117,10 +143,15 @@ func (t *Token) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Token.
+// GetValue returns the ent.Value that was dynamically selected and assigned to the Token.
 // This includes values selected through modifiers, order, etc.
-func (t *Token) Value(name string) (ent.Value, error) {
+func (t *Token) GetValue(name string) (ent.Value, error) {
 	return t.selectValues.Get(name)
+}
+
+// QuerySubject queries the "subject" edge of the Token entity.
+func (t *Token) QuerySubject() *SubjectQuery {
+	return NewTokenClient(t.config).QuerySubject(t)
 }
 
 // Update returns a builder for updating this Token.
@@ -146,27 +177,26 @@ func (t *Token) String() string {
 	var builder strings.Builder
 	builder.WriteString("Token(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("subjectID=")
+	builder.WriteString(fmt.Sprintf("%v", t.SubjectID))
+	builder.WriteString(", ")
 	if v := t.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	if v := t.UpdateTime; v != nil {
-		builder.WriteString("updateTime=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("casdoorTokenName=<sensitive>")
-	builder.WriteString(", ")
-	builder.WriteString("casdoorTokenOwner=<sensitive>")
+	builder.WriteString("kind=")
+	builder.WriteString(t.Kind)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(t.Name)
 	builder.WriteString(", ")
 	if v := t.Expiration; v != nil {
 		builder.WriteString("expiration=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("value=<sensitive>")
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -8,7 +8,6 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -29,36 +28,32 @@ func (in SubjectQueryInput) Model() *Subject {
 type SubjectCreateInput struct {
 	// The kind of the subject.
 	Kind string `json:"kind,omitempty"`
-	// The group of the subject.
-	Group string `json:"group,omitempty"`
+	// The domain of the subject.
+	Domain string `json:"domain,omitempty"`
 	// The name of the subject.
 	Name string `json:"name"`
 	// The detail of the subject.
 	Description string `json:"description,omitempty"`
-	// Indicate whether the user mount to the group.
-	MountTo *bool `json:"mountTo,omitempty"`
-	// Indicate whether the user login to the group.
-	LoginTo *bool `json:"loginTo,omitempty"`
-	// The role list of the subject.
-	Roles types.SubjectRoles `json:"roles,omitempty"`
-	// The path of the subject from the root group to itself.
-	Paths []string `json:"paths,omitempty"`
-	// Indicate whether the subject is builtin.
+	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*SubjectRoleRelationshipCreateInput `json:"roles,omitempty"`
 }
 
 // Model converts the SubjectCreateInput to Subject.
 func (in SubjectCreateInput) Model() *Subject {
 	var entity = &Subject{
 		Kind:        in.Kind,
-		Group:       in.Group,
+		Domain:      in.Domain,
 		Name:        in.Name,
 		Description: in.Description,
-		MountTo:     in.MountTo,
-		LoginTo:     in.LoginTo,
-		Roles:       in.Roles,
-		Paths:       in.Paths,
 		Builtin:     in.Builtin,
+	}
+	for i := 0; i < len(in.Roles); i++ {
+		if in.Roles[i] == nil {
+			continue
+		}
+		entity.Edges.Roles = append(entity.Edges.Roles, in.Roles[i].Model())
 	}
 	return entity
 }
@@ -67,33 +62,26 @@ func (in SubjectCreateInput) Model() *Subject {
 type SubjectUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// The group of the subject.
-	Group string `json:"group,omitempty"`
+	// The domain of the subject.
+	Domain string `json:"domain,omitempty"`
 	// The detail of the subject.
 	Description string `json:"description,omitempty"`
-	// Indicate whether the user mount to the group.
-	MountTo *bool `json:"mountTo,omitempty"`
-	// Indicate whether the user login to the group.
-	LoginTo *bool `json:"loginTo,omitempty"`
-	// The role list of the subject.
-	Roles types.SubjectRoles `json:"roles,omitempty"`
-	// The path of the subject from the root group to itself.
-	Paths []string `json:"paths,omitempty"`
-	// Indicate whether the subject is builtin.
-	Builtin bool `json:"builtin,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*SubjectRoleRelationshipUpdateInput `json:"roles,omitempty"`
 }
 
 // Model converts the SubjectUpdateInput to Subject.
 func (in SubjectUpdateInput) Model() *Subject {
 	var entity = &Subject{
 		ID:          in.ID,
-		Group:       in.Group,
+		Domain:      in.Domain,
 		Description: in.Description,
-		MountTo:     in.MountTo,
-		LoginTo:     in.LoginTo,
-		Roles:       in.Roles,
-		Paths:       in.Paths,
-		Builtin:     in.Builtin,
+	}
+	for i := 0; i < len(in.Roles); i++ {
+		if in.Roles[i] == nil {
+			continue
+		}
+		entity.Edges.Roles = append(entity.Edges.Roles, in.Roles[i].Model())
 	}
 	return entity
 }
@@ -108,22 +96,18 @@ type SubjectOutput struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The kind of the subject.
 	Kind string `json:"kind,omitempty"`
-	// The group of the subject.
-	Group string `json:"group,omitempty"`
+	// The domain of the subject.
+	Domain string `json:"domain,omitempty"`
 	// The name of the subject.
 	Name string `json:"name,omitempty"`
 	// The detail of the subject.
 	Description string `json:"description,omitempty"`
-	// Indicate whether the user mount to the group.
-	MountTo *bool `json:"mountTo,omitempty"`
-	// Indicate whether the user login to the group.
-	LoginTo *bool `json:"loginTo,omitempty"`
-	// The role list of the subject.
-	Roles types.SubjectRoles `json:"roles,omitempty"`
-	// The path of the subject from the root group to itself.
-	Paths []string `json:"paths,omitempty"`
-	// Indicate whether the subject is builtin.
+	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
+	// Tokens that belong to the subject.
+	Tokens []*TokenOutput `json:"tokens,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*SubjectRoleRelationshipOutput `json:"roles,omitempty"`
 }
 
 // ExposeSubject converts the Subject to SubjectOutput.
@@ -136,14 +120,12 @@ func ExposeSubject(in *Subject) *SubjectOutput {
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
 		Kind:        in.Kind,
-		Group:       in.Group,
+		Domain:      in.Domain,
 		Name:        in.Name,
 		Description: in.Description,
-		MountTo:     in.MountTo,
-		LoginTo:     in.LoginTo,
-		Roles:       in.Roles,
-		Paths:       in.Paths,
 		Builtin:     in.Builtin,
+		Tokens:      ExposeTokens(in.Edges.Tokens),
+		Roles:       ExposeSubjectRoleRelationships(in.Edges.Roles),
 	}
 	return entity
 }

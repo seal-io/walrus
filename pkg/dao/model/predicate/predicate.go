@@ -63,5 +63,8 @@ type Setting func(*sql.Selector)
 // Subject is the predicate function for subject builders.
 type Subject func(*sql.Selector)
 
+// SubjectRoleRelationship is the predicate function for subjectrolerelationship builders.
+type SubjectRoleRelationship func(*sql.Selector)
+
 // Token is the predicate function for token builders.
 type Token func(*sql.Selector)
