@@ -308,12 +308,12 @@ func (sq *SecretQuery) WithProject(opts ...func(*ProjectQuery)) *SecretQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Secret.Query().
-//		GroupBy(secret.FieldCreateTime).
+//		GroupBy(secret.FieldProjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (sq *SecretQuery) GroupBy(field string, fields ...string) *SecretGroupBy {
@@ -331,11 +331,11 @@ func (sq *SecretQuery) GroupBy(field string, fields ...string) *SecretGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //	}
 //
 //	client.Secret.Query().
-//		Select(secret.FieldCreateTime).
+//		Select(secret.FieldProjectID).
 //		Scan(ctx, &v)
 func (sq *SecretQuery) Select(fields ...string) *SecretSelect {
 	sq.ctx.Fields = append(sq.ctx.Fields, fields...)

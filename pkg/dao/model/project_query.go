@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -33,6 +34,7 @@ type ProjectQuery struct {
 	predicates       []predicate.Project
 	withApplications *ApplicationQuery
 	withSecrets      *SecretQuery
+	withSubjectRoles *SubjectRoleRelationshipQuery
 	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -114,6 +116,31 @@ func (pq *ProjectQuery) QuerySecrets() *SecretQuery {
 		schemaConfig := pq.schemaConfig
 		step.To.Schema = schemaConfig.Secret
 		step.Edge.Schema = schemaConfig.Secret
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubjectRoles chains the current query on the "subjectRoles" edge.
+func (pq *ProjectQuery) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.SubjectRolesTable, project.SubjectRolesColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -314,6 +341,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		predicates:       append([]predicate.Project{}, pq.predicates...),
 		withApplications: pq.withApplications.Clone(),
 		withSecrets:      pq.withSecrets.Clone(),
+		withSubjectRoles: pq.withSubjectRoles.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -339,6 +367,17 @@ func (pq *ProjectQuery) WithSecrets(opts ...func(*SecretQuery)) *ProjectQuery {
 		opt(query)
 	}
 	pq.withSecrets = query
+	return pq
+}
+
+// WithSubjectRoles tells the query-builder to eager-load the nodes that are connected to
+// the "subjectRoles" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithSubjectRoles(opts ...func(*SubjectRoleRelationshipQuery)) *ProjectQuery {
+	query := (&SubjectRoleRelationshipClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withSubjectRoles = query
 	return pq
 }
 
@@ -420,9 +459,10 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			pq.withApplications != nil,
 			pq.withSecrets != nil,
+			pq.withSubjectRoles != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -459,6 +499,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadSecrets(ctx, query, nodes,
 			func(n *Project) { n.Edges.Secrets = []*Secret{} },
 			func(n *Project, e *Secret) { n.Edges.Secrets = append(n.Edges.Secrets, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withSubjectRoles; query != nil {
+		if err := pq.loadSubjectRoles(ctx, query, nodes,
+			func(n *Project) { n.Edges.SubjectRoles = []*SubjectRoleRelationship{} },
+			func(n *Project, e *SubjectRoleRelationship) { n.Edges.SubjectRoles = append(n.Edges.SubjectRoles, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -510,6 +557,36 @@ func (pq *ProjectQuery) loadSecrets(ctx context.Context, query *SecretQuery, nod
 	}
 	query.Where(predicate.Secret(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(project.SecretsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadSubjectRoles(ctx context.Context, query *SubjectRoleRelationshipQuery, nodes []*Project, init func(*Project), assign func(*Project, *SubjectRoleRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(subjectrolerelationship.FieldProjectID)
+	}
+	query.Where(predicate.SubjectRoleRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.SubjectRolesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

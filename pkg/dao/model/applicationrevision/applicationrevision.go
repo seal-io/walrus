@@ -22,6 +22,8 @@ const (
 	Label = "application_revision"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
@@ -77,6 +79,7 @@ const (
 // Columns holds all SQL columns for applicationrevision fields.
 var Columns = []string{
 	FieldID,
+	FieldProjectID,
 	FieldStatus,
 	FieldStatusMessage,
 	FieldCreateTime,
@@ -110,7 +113,10 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks        [3]ent.Hook
+	Interceptors [1]ent.Interceptor
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// InstanceIDValidator is a validator for the "instanceID" field. It is called by the builders before save.
@@ -139,6 +145,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

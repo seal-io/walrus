@@ -45,9 +45,11 @@ type ProjectEdges struct {
 	Applications []*Application `json:"applications,omitempty" sql:"applications"`
 	// Secrets that belong to the project.
 	Secrets []*Secret `json:"secrets,omitempty" sql:"secrets"`
+	// Subject roles that belong to the project.
+	SubjectRoles []*SubjectRoleRelationship `json:"subjectRoles,omitempty" sql:"subjectRoles"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ApplicationsOrErr returns the Applications value or an error if the edge
@@ -66,6 +68,15 @@ func (e ProjectEdges) SecretsOrErr() ([]*Secret, error) {
 		return e.Secrets, nil
 	}
 	return nil, &NotLoadedError{edge: "secrets"}
+}
+
+// SubjectRolesOrErr returns the SubjectRoles value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
+	if e.loadedTypes[2] {
+		return e.SubjectRoles, nil
+	}
+	return nil, &NotLoadedError{edge: "subjectRoles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -157,6 +168,11 @@ func (pr *Project) QueryApplications() *ApplicationQuery {
 // QuerySecrets queries the "secrets" edge of the Project entity.
 func (pr *Project) QuerySecrets() *SecretQuery {
 	return NewProjectClient(pr.config).QuerySecrets(pr)
+}
+
+// QuerySubjectRoles queries the "subjectRoles" edge of the Project entity.
+func (pr *Project) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
+	return NewProjectClient(pr.config).QuerySubjectRoles(pr)
 }
 
 // Update returns a builder for updating this Project.

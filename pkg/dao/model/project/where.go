@@ -359,6 +359,35 @@ func HasSecretsWith(preds ...predicate.Secret) predicate.Project {
 	})
 }
 
+// HasSubjectRoles applies the HasEdge predicate on the "subjectRoles" edge.
+func HasSubjectRoles() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SubjectRolesTable, SubjectRolesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubjectRolesWith applies the HasEdge predicate on the "subjectRoles" edge with a given conditions (other predicates).
+func HasSubjectRolesWith(preds ...predicate.SubjectRoleRelationship) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newSubjectRolesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Project) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

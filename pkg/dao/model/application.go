@@ -25,6 +25,8 @@ type Application struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Name of the resource.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
@@ -35,8 +37,6 @@ type Application struct {
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
-	// ID of the project to which the application belongs.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Variables definition of the application, the variables of instance derived by this definition
 	Variables property.Schemas `json:"variables,omitempty" sql:"variables"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -47,9 +47,9 @@ type Application struct {
 
 // ApplicationEdges holds the relations/edges for other nodes in the graph.
 type ApplicationEdges struct {
-	// Project to which this application belongs.
+	// Project to which the application belongs.
 	Project *Project `json:"project,omitempty" sql:"project"`
-	// Application instances that belong to this application.
+	// Application instances that belong to the application.
 	Instances []*ApplicationInstance `json:"instances,omitempty" sql:"instances"`
 	// Modules holds the value of the modules edge.
 	Modules []*ApplicationModuleRelationship `json:"modules,omitempty" sql:"modules"`
@@ -125,6 +125,12 @@ func (a *Application) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				a.ID = *value
 			}
+		case application.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				a.ProjectID = *value
+			}
 		case application.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -158,12 +164,6 @@ func (a *Application) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				a.UpdateTime = new(time.Time)
 				*a.UpdateTime = value.Time
-			}
-		case application.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				a.ProjectID = *value
 			}
 		case application.FieldVariables:
 			if value, ok := values[i].(*property.Schemas); !ok {
@@ -222,6 +222,9 @@ func (a *Application) String() string {
 	var builder strings.Builder
 	builder.WriteString("Application(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", a.ProjectID))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(a.Name)
 	builder.WriteString(", ")
@@ -240,9 +243,6 @@ func (a *Application) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", a.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("variables=")
 	builder.WriteString(fmt.Sprintf("%v", a.Variables))

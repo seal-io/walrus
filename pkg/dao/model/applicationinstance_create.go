@@ -34,6 +34,12 @@ type ApplicationInstanceCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetProjectID sets the "projectID" field.
+func (aic *ApplicationInstanceCreate) SetProjectID(o oid.ID) *ApplicationInstanceCreate {
+	aic.mutation.SetProjectID(o)
+	return aic
+}
+
 // SetCreateTime sets the "createTime" field.
 func (aic *ApplicationInstanceCreate) SetCreateTime(t time.Time) *ApplicationInstanceCreate {
 	aic.mutation.SetCreateTime(t)
@@ -202,6 +208,14 @@ func (aic *ApplicationInstanceCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (aic *ApplicationInstanceCreate) check() error {
+	if _, ok := aic.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "ApplicationInstance.projectID"`)}
+	}
+	if v, ok := aic.mutation.ProjectID(); ok {
+		if err := applicationinstance.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "ApplicationInstance.projectID": %w`, err)}
+		}
+	}
 	if _, ok := aic.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ApplicationInstance.createTime"`)}
 	}
@@ -274,6 +288,10 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 	if id, ok := aic.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := aic.mutation.ProjectID(); ok {
+		_spec.SetField(applicationinstance.FieldProjectID, field.TypeString, value)
+		_node.ProjectID = value
 	}
 	if value, ok := aic.mutation.CreateTime(); ok {
 		_spec.SetField(applicationinstance.FieldCreateTime, field.TypeTime, value)
@@ -372,7 +390,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 // of the `INSERT` statement. For example:
 //
 //	client.ApplicationInstance.Create().
-//		SetCreateTime(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -381,7 +399,7 @@ func (aic *ApplicationInstanceCreate) createSpec() (*ApplicationInstance, *sqlgr
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationInstanceUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (aic *ApplicationInstanceCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationInstanceUpsertOne {
@@ -481,6 +499,9 @@ func (u *ApplicationInstanceUpsertOne) UpdateNewValues() *ApplicationInstanceUps
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(applicationinstance.FieldID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(applicationinstance.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(applicationinstance.FieldCreateTime)
@@ -713,7 +734,7 @@ func (aicb *ApplicationInstanceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationInstanceUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (aicb *ApplicationInstanceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationInstanceUpsertBulk {
@@ -759,6 +780,9 @@ func (u *ApplicationInstanceUpsertBulk) UpdateNewValues() *ApplicationInstanceUp
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(applicationinstance.FieldID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(applicationinstance.FieldProjectID)
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(applicationinstance.FieldCreateTime)

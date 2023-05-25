@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -17,31 +18,40 @@ const (
 	Label = "token"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldSubjectID holds the string denoting the subjectid field in the database.
+	FieldSubjectID = "subject_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the updatetime field in the database.
-	FieldUpdateTime = "update_time"
-	// FieldCasdoorTokenName holds the string denoting the casdoortokenname field in the database.
-	FieldCasdoorTokenName = "casdoor_token_name"
-	// FieldCasdoorTokenOwner holds the string denoting the casdoortokenowner field in the database.
-	FieldCasdoorTokenOwner = "casdoor_token_owner"
+	// FieldKind holds the string denoting the kind field in the database.
+	FieldKind = "kind"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldExpiration holds the string denoting the expiration field in the database.
 	FieldExpiration = "expiration"
+	// FieldValue holds the string denoting the value field in the database.
+	FieldValue = "value"
+	// EdgeSubject holds the string denoting the subject edge name in mutations.
+	EdgeSubject = "subject"
 	// Table holds the table name of the token in the database.
 	Table = "tokens"
+	// SubjectTable is the table that holds the subject relation/edge.
+	SubjectTable = "tokens"
+	// SubjectInverseTable is the table name for the Subject entity.
+	// It exists in this package in order to avoid circular dependency with the "subject" package.
+	SubjectInverseTable = "subjects"
+	// SubjectColumn is the table column denoting the subject relation/edge.
+	SubjectColumn = "subject_id"
 )
 
 // Columns holds all SQL columns for token fields.
 var Columns = []string{
 	FieldID,
+	FieldSubjectID,
 	FieldCreateTime,
-	FieldUpdateTime,
-	FieldCasdoorTokenName,
-	FieldCasdoorTokenOwner,
+	FieldKind,
 	FieldName,
 	FieldExpiration,
+	FieldValue,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,19 +70,18 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks        [3]ent.Hook
+	Interceptors [1]ent.Interceptor
+	// SubjectIDValidator is a validator for the "subjectID" field. It is called by the builders before save.
+	SubjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
-	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
-	DefaultUpdateTime func() time.Time
-	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
-	UpdateDefaultUpdateTime func() time.Time
-	// CasdoorTokenNameValidator is a validator for the "casdoorTokenName" field. It is called by the builders before save.
-	CasdoorTokenNameValidator func(string) error
-	// CasdoorTokenOwnerValidator is a validator for the "casdoorTokenOwner" field. It is called by the builders before save.
-	CasdoorTokenOwnerValidator func(string) error
+	// DefaultKind holds the default value on creation for the "kind" field.
+	DefaultKind string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	ValueValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Token queries.
@@ -83,24 +92,19 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// BySubjectID orders the results by the subjectID field.
+func BySubjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubjectID, opts...).ToFunc()
+}
+
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
 }
 
-// ByUpdateTime orders the results by the updateTime field.
-func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
-}
-
-// ByCasdoorTokenName orders the results by the casdoorTokenName field.
-func ByCasdoorTokenName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCasdoorTokenName, opts...).ToFunc()
-}
-
-// ByCasdoorTokenOwner orders the results by the casdoorTokenOwner field.
-func ByCasdoorTokenOwner(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCasdoorTokenOwner, opts...).ToFunc()
+// ByKind orders the results by the kind field.
+func ByKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKind, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -111,6 +115,25 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByExpiration orders the results by the expiration field.
 func ByExpiration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiration, opts...).ToFunc()
+}
+
+// ByValue orders the results by the value field.
+func ByValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValue, opts...).ToFunc()
+}
+
+// BySubjectField orders the results by subject field.
+func BySubjectField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubjectStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newSubjectStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubjectInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SubjectTable, SubjectColumn),
+	)
 }
 
 // WithoutFields returns the fields ignored the given list.

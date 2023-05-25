@@ -347,12 +347,12 @@ func (arq *ApplicationRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQu
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ApplicationRevision.Query().
-//		GroupBy(applicationrevision.FieldStatus).
+//		GroupBy(applicationrevision.FieldProjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (arq *ApplicationRevisionQuery) GroupBy(field string, fields ...string) *ApplicationRevisionGroupBy {
@@ -370,11 +370,11 @@ func (arq *ApplicationRevisionQuery) GroupBy(field string, fields ...string) *Ap
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //	}
 //
 //	client.ApplicationRevision.Query().
-//		Select(applicationrevision.FieldStatus).
+//		Select(applicationrevision.FieldProjectID).
 //		Scan(ctx, &v)
 func (arq *ApplicationRevisionQuery) Select(fields ...string) *ApplicationRevisionSelect {
 	arq.ctx.Fields = append(arq.ctx.Fields, fields...)

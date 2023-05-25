@@ -13,13 +13,14 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // SubjectUpdate is the builder for updating Subject entities.
@@ -42,16 +43,16 @@ func (su *SubjectUpdate) SetUpdateTime(t time.Time) *SubjectUpdate {
 	return su
 }
 
-// SetGroup sets the "group" field.
-func (su *SubjectUpdate) SetGroup(s string) *SubjectUpdate {
-	su.mutation.SetGroup(s)
+// SetDomain sets the "domain" field.
+func (su *SubjectUpdate) SetDomain(s string) *SubjectUpdate {
+	su.mutation.SetDomain(s)
 	return su
 }
 
-// SetNillableGroup sets the "group" field if the given value is not nil.
-func (su *SubjectUpdate) SetNillableGroup(s *string) *SubjectUpdate {
+// SetNillableDomain sets the "domain" field if the given value is not nil.
+func (su *SubjectUpdate) SetNillableDomain(s *string) *SubjectUpdate {
 	if s != nil {
-		su.SetGroup(*s)
+		su.SetDomain(*s)
 	}
 	return su
 }
@@ -76,75 +77,81 @@ func (su *SubjectUpdate) ClearDescription() *SubjectUpdate {
 	return su
 }
 
-// SetMountTo sets the "mountTo" field.
-func (su *SubjectUpdate) SetMountTo(b bool) *SubjectUpdate {
-	su.mutation.SetMountTo(b)
+// AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
+func (su *SubjectUpdate) AddTokenIDs(ids ...oid.ID) *SubjectUpdate {
+	su.mutation.AddTokenIDs(ids...)
 	return su
 }
 
-// SetNillableMountTo sets the "mountTo" field if the given value is not nil.
-func (su *SubjectUpdate) SetNillableMountTo(b *bool) *SubjectUpdate {
-	if b != nil {
-		su.SetMountTo(*b)
+// AddTokens adds the "tokens" edges to the Token entity.
+func (su *SubjectUpdate) AddTokens(t ...*Token) *SubjectUpdate {
+	ids := make([]oid.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
+	return su.AddTokenIDs(ids...)
+}
+
+// AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by IDs.
+func (su *SubjectUpdate) AddRoleIDs(ids ...oid.ID) *SubjectUpdate {
+	su.mutation.AddRoleIDs(ids...)
 	return su
 }
 
-// SetLoginTo sets the "loginTo" field.
-func (su *SubjectUpdate) SetLoginTo(b bool) *SubjectUpdate {
-	su.mutation.SetLoginTo(b)
-	return su
-}
-
-// SetNillableLoginTo sets the "loginTo" field if the given value is not nil.
-func (su *SubjectUpdate) SetNillableLoginTo(b *bool) *SubjectUpdate {
-	if b != nil {
-		su.SetLoginTo(*b)
+// AddRoles adds the "roles" edges to the SubjectRoleRelationship entity.
+func (su *SubjectUpdate) AddRoles(s ...*SubjectRoleRelationship) *SubjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return su
-}
-
-// SetRoles sets the "roles" field.
-func (su *SubjectUpdate) SetRoles(tr types.SubjectRoles) *SubjectUpdate {
-	su.mutation.SetRoles(tr)
-	return su
-}
-
-// AppendRoles appends tr to the "roles" field.
-func (su *SubjectUpdate) AppendRoles(tr types.SubjectRoles) *SubjectUpdate {
-	su.mutation.AppendRoles(tr)
-	return su
-}
-
-// SetPaths sets the "paths" field.
-func (su *SubjectUpdate) SetPaths(s []string) *SubjectUpdate {
-	su.mutation.SetPaths(s)
-	return su
-}
-
-// AppendPaths appends s to the "paths" field.
-func (su *SubjectUpdate) AppendPaths(s []string) *SubjectUpdate {
-	su.mutation.AppendPaths(s)
-	return su
-}
-
-// SetBuiltin sets the "builtin" field.
-func (su *SubjectUpdate) SetBuiltin(b bool) *SubjectUpdate {
-	su.mutation.SetBuiltin(b)
-	return su
-}
-
-// SetNillableBuiltin sets the "builtin" field if the given value is not nil.
-func (su *SubjectUpdate) SetNillableBuiltin(b *bool) *SubjectUpdate {
-	if b != nil {
-		su.SetBuiltin(*b)
-	}
-	return su
+	return su.AddRoleIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
 func (su *SubjectUpdate) Mutation() *SubjectMutation {
 	return su.mutation
+}
+
+// ClearTokens clears all "tokens" edges to the Token entity.
+func (su *SubjectUpdate) ClearTokens() *SubjectUpdate {
+	su.mutation.ClearTokens()
+	return su
+}
+
+// RemoveTokenIDs removes the "tokens" edge to Token entities by IDs.
+func (su *SubjectUpdate) RemoveTokenIDs(ids ...oid.ID) *SubjectUpdate {
+	su.mutation.RemoveTokenIDs(ids...)
+	return su
+}
+
+// RemoveTokens removes "tokens" edges to Token entities.
+func (su *SubjectUpdate) RemoveTokens(t ...*Token) *SubjectUpdate {
+	ids := make([]oid.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return su.RemoveTokenIDs(ids...)
+}
+
+// ClearRoles clears all "roles" edges to the SubjectRoleRelationship entity.
+func (su *SubjectUpdate) ClearRoles() *SubjectUpdate {
+	su.mutation.ClearRoles()
+	return su
+}
+
+// RemoveRoleIDs removes the "roles" edge to SubjectRoleRelationship entities by IDs.
+func (su *SubjectUpdate) RemoveRoleIDs(ids ...oid.ID) *SubjectUpdate {
+	su.mutation.RemoveRoleIDs(ids...)
+	return su
+}
+
+// RemoveRoles removes "roles" edges to SubjectRoleRelationship entities.
+func (su *SubjectUpdate) RemoveRoles(s ...*SubjectRoleRelationship) *SubjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -207,8 +214,8 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(subject.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := su.mutation.Group(); ok {
-		_spec.SetField(subject.FieldGroup, field.TypeString, value)
+	if value, ok := su.mutation.Domain(); ok {
+		_spec.SetField(subject.FieldDomain, field.TypeString, value)
 	}
 	if value, ok := su.mutation.Description(); ok {
 		_spec.SetField(subject.FieldDescription, field.TypeString, value)
@@ -216,30 +223,113 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.mutation.DescriptionCleared() {
 		_spec.ClearField(subject.FieldDescription, field.TypeString)
 	}
-	if value, ok := su.mutation.MountTo(); ok {
-		_spec.SetField(subject.FieldMountTo, field.TypeBool, value)
+	if su.mutation.TokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.Token
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := su.mutation.LoginTo(); ok {
-		_spec.SetField(subject.FieldLoginTo, field.TypeBool, value)
+	if nodes := su.mutation.RemovedTokensIDs(); len(nodes) > 0 && !su.mutation.TokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := su.mutation.Roles(); ok {
-		_spec.SetField(subject.FieldRoles, field.TypeJSON, value)
+	if nodes := su.mutation.TokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if value, ok := su.mutation.AppendedRoles(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, subject.FieldRoles, value)
-		})
+	if su.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.SubjectRoleRelationship
+		createE := &SubjectRoleRelationshipCreate{config: su.config, mutation: newSubjectRoleRelationshipMutation(su.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := su.mutation.Paths(); ok {
-		_spec.SetField(subject.FieldPaths, field.TypeJSON, value)
+	if nodes := su.mutation.RemovedRolesIDs(); len(nodes) > 0 && !su.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: su.config, mutation: newSubjectRoleRelationshipMutation(su.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := su.mutation.AppendedPaths(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, subject.FieldPaths, value)
-		})
-	}
-	if value, ok := su.mutation.Builtin(); ok {
-		_spec.SetField(subject.FieldBuiltin, field.TypeBool, value)
+	if nodes := su.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: su.config, mutation: newSubjectRoleRelationshipMutation(su.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = su.schemaConfig.Subject
 	ctx = internal.NewSchemaConfigContext(ctx, su.schemaConfig)
@@ -271,16 +361,16 @@ func (suo *SubjectUpdateOne) SetUpdateTime(t time.Time) *SubjectUpdateOne {
 	return suo
 }
 
-// SetGroup sets the "group" field.
-func (suo *SubjectUpdateOne) SetGroup(s string) *SubjectUpdateOne {
-	suo.mutation.SetGroup(s)
+// SetDomain sets the "domain" field.
+func (suo *SubjectUpdateOne) SetDomain(s string) *SubjectUpdateOne {
+	suo.mutation.SetDomain(s)
 	return suo
 }
 
-// SetNillableGroup sets the "group" field if the given value is not nil.
-func (suo *SubjectUpdateOne) SetNillableGroup(s *string) *SubjectUpdateOne {
+// SetNillableDomain sets the "domain" field if the given value is not nil.
+func (suo *SubjectUpdateOne) SetNillableDomain(s *string) *SubjectUpdateOne {
 	if s != nil {
-		suo.SetGroup(*s)
+		suo.SetDomain(*s)
 	}
 	return suo
 }
@@ -305,75 +395,81 @@ func (suo *SubjectUpdateOne) ClearDescription() *SubjectUpdateOne {
 	return suo
 }
 
-// SetMountTo sets the "mountTo" field.
-func (suo *SubjectUpdateOne) SetMountTo(b bool) *SubjectUpdateOne {
-	suo.mutation.SetMountTo(b)
+// AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
+func (suo *SubjectUpdateOne) AddTokenIDs(ids ...oid.ID) *SubjectUpdateOne {
+	suo.mutation.AddTokenIDs(ids...)
 	return suo
 }
 
-// SetNillableMountTo sets the "mountTo" field if the given value is not nil.
-func (suo *SubjectUpdateOne) SetNillableMountTo(b *bool) *SubjectUpdateOne {
-	if b != nil {
-		suo.SetMountTo(*b)
+// AddTokens adds the "tokens" edges to the Token entity.
+func (suo *SubjectUpdateOne) AddTokens(t ...*Token) *SubjectUpdateOne {
+	ids := make([]oid.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
+	return suo.AddTokenIDs(ids...)
+}
+
+// AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by IDs.
+func (suo *SubjectUpdateOne) AddRoleIDs(ids ...oid.ID) *SubjectUpdateOne {
+	suo.mutation.AddRoleIDs(ids...)
 	return suo
 }
 
-// SetLoginTo sets the "loginTo" field.
-func (suo *SubjectUpdateOne) SetLoginTo(b bool) *SubjectUpdateOne {
-	suo.mutation.SetLoginTo(b)
-	return suo
-}
-
-// SetNillableLoginTo sets the "loginTo" field if the given value is not nil.
-func (suo *SubjectUpdateOne) SetNillableLoginTo(b *bool) *SubjectUpdateOne {
-	if b != nil {
-		suo.SetLoginTo(*b)
+// AddRoles adds the "roles" edges to the SubjectRoleRelationship entity.
+func (suo *SubjectUpdateOne) AddRoles(s ...*SubjectRoleRelationship) *SubjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return suo
-}
-
-// SetRoles sets the "roles" field.
-func (suo *SubjectUpdateOne) SetRoles(tr types.SubjectRoles) *SubjectUpdateOne {
-	suo.mutation.SetRoles(tr)
-	return suo
-}
-
-// AppendRoles appends tr to the "roles" field.
-func (suo *SubjectUpdateOne) AppendRoles(tr types.SubjectRoles) *SubjectUpdateOne {
-	suo.mutation.AppendRoles(tr)
-	return suo
-}
-
-// SetPaths sets the "paths" field.
-func (suo *SubjectUpdateOne) SetPaths(s []string) *SubjectUpdateOne {
-	suo.mutation.SetPaths(s)
-	return suo
-}
-
-// AppendPaths appends s to the "paths" field.
-func (suo *SubjectUpdateOne) AppendPaths(s []string) *SubjectUpdateOne {
-	suo.mutation.AppendPaths(s)
-	return suo
-}
-
-// SetBuiltin sets the "builtin" field.
-func (suo *SubjectUpdateOne) SetBuiltin(b bool) *SubjectUpdateOne {
-	suo.mutation.SetBuiltin(b)
-	return suo
-}
-
-// SetNillableBuiltin sets the "builtin" field if the given value is not nil.
-func (suo *SubjectUpdateOne) SetNillableBuiltin(b *bool) *SubjectUpdateOne {
-	if b != nil {
-		suo.SetBuiltin(*b)
-	}
-	return suo
+	return suo.AddRoleIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
 func (suo *SubjectUpdateOne) Mutation() *SubjectMutation {
 	return suo.mutation
+}
+
+// ClearTokens clears all "tokens" edges to the Token entity.
+func (suo *SubjectUpdateOne) ClearTokens() *SubjectUpdateOne {
+	suo.mutation.ClearTokens()
+	return suo
+}
+
+// RemoveTokenIDs removes the "tokens" edge to Token entities by IDs.
+func (suo *SubjectUpdateOne) RemoveTokenIDs(ids ...oid.ID) *SubjectUpdateOne {
+	suo.mutation.RemoveTokenIDs(ids...)
+	return suo
+}
+
+// RemoveTokens removes "tokens" edges to Token entities.
+func (suo *SubjectUpdateOne) RemoveTokens(t ...*Token) *SubjectUpdateOne {
+	ids := make([]oid.ID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return suo.RemoveTokenIDs(ids...)
+}
+
+// ClearRoles clears all "roles" edges to the SubjectRoleRelationship entity.
+func (suo *SubjectUpdateOne) ClearRoles() *SubjectUpdateOne {
+	suo.mutation.ClearRoles()
+	return suo
+}
+
+// RemoveRoleIDs removes the "roles" edge to SubjectRoleRelationship entities by IDs.
+func (suo *SubjectUpdateOne) RemoveRoleIDs(ids ...oid.ID) *SubjectUpdateOne {
+	suo.mutation.RemoveRoleIDs(ids...)
+	return suo
+}
+
+// RemoveRoles removes "roles" edges to SubjectRoleRelationship entities.
+func (suo *SubjectUpdateOne) RemoveRoles(s ...*SubjectRoleRelationship) *SubjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the SubjectUpdate builder.
@@ -466,8 +562,8 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(subject.FieldUpdateTime, field.TypeTime, value)
 	}
-	if value, ok := suo.mutation.Group(); ok {
-		_spec.SetField(subject.FieldGroup, field.TypeString, value)
+	if value, ok := suo.mutation.Domain(); ok {
+		_spec.SetField(subject.FieldDomain, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.Description(); ok {
 		_spec.SetField(subject.FieldDescription, field.TypeString, value)
@@ -475,30 +571,113 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 	if suo.mutation.DescriptionCleared() {
 		_spec.ClearField(subject.FieldDescription, field.TypeString)
 	}
-	if value, ok := suo.mutation.MountTo(); ok {
-		_spec.SetField(subject.FieldMountTo, field.TypeBool, value)
+	if suo.mutation.TokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.Token
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := suo.mutation.LoginTo(); ok {
-		_spec.SetField(subject.FieldLoginTo, field.TypeBool, value)
+	if nodes := suo.mutation.RemovedTokensIDs(); len(nodes) > 0 && !suo.mutation.TokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := suo.mutation.Roles(); ok {
-		_spec.SetField(subject.FieldRoles, field.TypeJSON, value)
+	if nodes := suo.mutation.TokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subject.TokensTable,
+			Columns: []string{subject.TokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(token.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.Token
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if value, ok := suo.mutation.AppendedRoles(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, subject.FieldRoles, value)
-		})
+	if suo.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.SubjectRoleRelationship
+		createE := &SubjectRoleRelationshipCreate{config: suo.config, mutation: newSubjectRoleRelationshipMutation(suo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := suo.mutation.Paths(); ok {
-		_spec.SetField(subject.FieldPaths, field.TypeJSON, value)
+	if nodes := suo.mutation.RemovedRolesIDs(); len(nodes) > 0 && !suo.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: suo.config, mutation: newSubjectRoleRelationshipMutation(suo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := suo.mutation.AppendedPaths(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, subject.FieldPaths, value)
-		})
-	}
-	if value, ok := suo.mutation.Builtin(); ok {
-		_spec.SetField(subject.FieldBuiltin, field.TypeBool, value)
+	if nodes := suo.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.RolesTable,
+			Columns: []string{subject.RolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: suo.config, mutation: newSubjectRoleRelationshipMutation(suo.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.Node.Schema = suo.schemaConfig.Subject
 	ctx = internal.NewSchemaConfigContext(ctx, suo.schemaConfig)

@@ -28,6 +28,7 @@ type SchemaConfig struct {
 	Secret                           string // Secret table.
 	Setting                          string // Setting table.
 	Subject                          string // Subject table.
+	SubjectRoleRelationship          string // SubjectRoleRelationship table.
 	Token                            string // Token table.
 }
 

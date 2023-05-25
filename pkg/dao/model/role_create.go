@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -57,23 +58,17 @@ func (rc *RoleCreate) SetNillableUpdateTime(t *time.Time) *RoleCreate {
 	return rc
 }
 
-// SetDomain sets the "domain" field.
-func (rc *RoleCreate) SetDomain(s string) *RoleCreate {
-	rc.mutation.SetDomain(s)
+// SetKind sets the "kind" field.
+func (rc *RoleCreate) SetKind(s string) *RoleCreate {
+	rc.mutation.SetKind(s)
 	return rc
 }
 
-// SetNillableDomain sets the "domain" field if the given value is not nil.
-func (rc *RoleCreate) SetNillableDomain(s *string) *RoleCreate {
+// SetNillableKind sets the "kind" field if the given value is not nil.
+func (rc *RoleCreate) SetNillableKind(s *string) *RoleCreate {
 	if s != nil {
-		rc.SetDomain(*s)
+		rc.SetKind(*s)
 	}
-	return rc
-}
-
-// SetName sets the "name" field.
-func (rc *RoleCreate) SetName(s string) *RoleCreate {
-	rc.mutation.SetName(s)
 	return rc
 }
 
@@ -97,20 +92,6 @@ func (rc *RoleCreate) SetPolicies(tp types.RolePolicies) *RoleCreate {
 	return rc
 }
 
-// SetBuiltin sets the "builtin" field.
-func (rc *RoleCreate) SetBuiltin(b bool) *RoleCreate {
-	rc.mutation.SetBuiltin(b)
-	return rc
-}
-
-// SetNillableBuiltin sets the "builtin" field if the given value is not nil.
-func (rc *RoleCreate) SetNillableBuiltin(b *bool) *RoleCreate {
-	if b != nil {
-		rc.SetBuiltin(*b)
-	}
-	return rc
-}
-
 // SetSession sets the "session" field.
 func (rc *RoleCreate) SetSession(b bool) *RoleCreate {
 	rc.mutation.SetSession(b)
@@ -125,10 +106,39 @@ func (rc *RoleCreate) SetNillableSession(b *bool) *RoleCreate {
 	return rc
 }
 
-// SetID sets the "id" field.
-func (rc *RoleCreate) SetID(o oid.ID) *RoleCreate {
-	rc.mutation.SetID(o)
+// SetBuiltin sets the "builtin" field.
+func (rc *RoleCreate) SetBuiltin(b bool) *RoleCreate {
+	rc.mutation.SetBuiltin(b)
 	return rc
+}
+
+// SetNillableBuiltin sets the "builtin" field if the given value is not nil.
+func (rc *RoleCreate) SetNillableBuiltin(b *bool) *RoleCreate {
+	if b != nil {
+		rc.SetBuiltin(*b)
+	}
+	return rc
+}
+
+// SetID sets the "id" field.
+func (rc *RoleCreate) SetID(s string) *RoleCreate {
+	rc.mutation.SetID(s)
+	return rc
+}
+
+// AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
+func (rc *RoleCreate) AddSubjectIDs(ids ...oid.ID) *RoleCreate {
+	rc.mutation.AddSubjectIDs(ids...)
+	return rc
+}
+
+// AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
+func (rc *RoleCreate) AddSubjects(s ...*SubjectRoleRelationship) *RoleCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return rc.AddSubjectIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -138,9 +148,7 @@ func (rc *RoleCreate) Mutation() *RoleMutation {
 
 // Save creates the Role in the database.
 func (rc *RoleCreate) Save(ctx context.Context) (*Role, error) {
-	if err := rc.defaults(); err != nil {
-		return nil, err
-	}
+	rc.defaults()
 	return withHooks[*Role, RoleMutation](ctx, rc.sqlSave, rc.mutation, rc.hooks)
 }
 
@@ -167,38 +175,31 @@ func (rc *RoleCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (rc *RoleCreate) defaults() error {
+func (rc *RoleCreate) defaults() {
 	if _, ok := rc.mutation.CreateTime(); !ok {
-		if role.DefaultCreateTime == nil {
-			return fmt.Errorf("model: uninitialized role.DefaultCreateTime (forgotten import model/runtime?)")
-		}
 		v := role.DefaultCreateTime()
 		rc.mutation.SetCreateTime(v)
 	}
 	if _, ok := rc.mutation.UpdateTime(); !ok {
-		if role.DefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized role.DefaultUpdateTime (forgotten import model/runtime?)")
-		}
 		v := role.DefaultUpdateTime()
 		rc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := rc.mutation.Domain(); !ok {
-		v := role.DefaultDomain
-		rc.mutation.SetDomain(v)
+	if _, ok := rc.mutation.Kind(); !ok {
+		v := role.DefaultKind
+		rc.mutation.SetKind(v)
 	}
 	if _, ok := rc.mutation.Policies(); !ok {
 		v := role.DefaultPolicies
 		rc.mutation.SetPolicies(v)
 	}
-	if _, ok := rc.mutation.Builtin(); !ok {
-		v := role.DefaultBuiltin
-		rc.mutation.SetBuiltin(v)
-	}
 	if _, ok := rc.mutation.Session(); !ok {
 		v := role.DefaultSession
 		rc.mutation.SetSession(v)
 	}
-	return nil
+	if _, ok := rc.mutation.Builtin(); !ok {
+		v := role.DefaultBuiltin
+		rc.mutation.SetBuiltin(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -209,25 +210,22 @@ func (rc *RoleCreate) check() error {
 	if _, ok := rc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Role.updateTime"`)}
 	}
-	if _, ok := rc.mutation.Domain(); !ok {
-		return &ValidationError{Name: "domain", err: errors.New(`model: missing required field "Role.domain"`)}
-	}
-	if _, ok := rc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Role.name"`)}
-	}
-	if v, ok := rc.mutation.Name(); ok {
-		if err := role.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Role.name": %w`, err)}
-		}
+	if _, ok := rc.mutation.Kind(); !ok {
+		return &ValidationError{Name: "kind", err: errors.New(`model: missing required field "Role.kind"`)}
 	}
 	if _, ok := rc.mutation.Policies(); !ok {
 		return &ValidationError{Name: "policies", err: errors.New(`model: missing required field "Role.policies"`)}
 	}
+	if _, ok := rc.mutation.Session(); !ok {
+		return &ValidationError{Name: "session", err: errors.New(`model: missing required field "Role.session"`)}
+	}
 	if _, ok := rc.mutation.Builtin(); !ok {
 		return &ValidationError{Name: "builtin", err: errors.New(`model: missing required field "Role.builtin"`)}
 	}
-	if _, ok := rc.mutation.Session(); !ok {
-		return &ValidationError{Name: "session", err: errors.New(`model: missing required field "Role.session"`)}
+	if v, ok := rc.mutation.ID(); ok {
+		if err := role.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`model: validator failed for field "Role.id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -244,10 +242,10 @@ func (rc *RoleCreate) sqlSave(ctx context.Context) (*Role, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Role.ID type: %T", _spec.ID.Value)
 		}
 	}
 	rc.mutation.id = &_node.ID
@@ -264,7 +262,7 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	_spec.OnConflict = rc.conflict
 	if id, ok := rc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := rc.mutation.CreateTime(); ok {
 		_spec.SetField(role.FieldCreateTime, field.TypeTime, value)
@@ -274,13 +272,9 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := rc.mutation.Domain(); ok {
-		_spec.SetField(role.FieldDomain, field.TypeString, value)
-		_node.Domain = value
-	}
-	if value, ok := rc.mutation.Name(); ok {
-		_spec.SetField(role.FieldName, field.TypeString, value)
-		_node.Name = value
+	if value, ok := rc.mutation.Kind(); ok {
+		_spec.SetField(role.FieldKind, field.TypeString, value)
+		_node.Kind = value
 	}
 	if value, ok := rc.mutation.Description(); ok {
 		_spec.SetField(role.FieldDescription, field.TypeString, value)
@@ -290,13 +284,34 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		_spec.SetField(role.FieldPolicies, field.TypeJSON, value)
 		_node.Policies = value
 	}
+	if value, ok := rc.mutation.Session(); ok {
+		_spec.SetField(role.FieldSession, field.TypeBool, value)
+		_node.Session = value
+	}
 	if value, ok := rc.mutation.Builtin(); ok {
 		_spec.SetField(role.FieldBuiltin, field.TypeBool, value)
 		_node.Builtin = value
 	}
-	if value, ok := rc.mutation.Session(); ok {
-		_spec.SetField(role.FieldSession, field.TypeBool, value)
-		_node.Session = value
+	if nodes := rc.mutation.SubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.SubjectsTable,
+			Columns: []string{role.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = rc.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubjectRoleRelationshipCreate{config: rc.config, mutation: newSubjectRoleRelationshipMutation(rc.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -412,17 +427,14 @@ func (u *RoleUpsertOne) UpdateNewValues() *RoleUpsertOne {
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(role.FieldCreateTime)
 		}
-		if _, exists := u.create.mutation.Domain(); exists {
-			s.SetIgnore(role.FieldDomain)
-		}
-		if _, exists := u.create.mutation.Name(); exists {
-			s.SetIgnore(role.FieldName)
-		}
-		if _, exists := u.create.mutation.Builtin(); exists {
-			s.SetIgnore(role.FieldBuiltin)
+		if _, exists := u.create.mutation.Kind(); exists {
+			s.SetIgnore(role.FieldKind)
 		}
 		if _, exists := u.create.mutation.Session(); exists {
 			s.SetIgnore(role.FieldSession)
+		}
+		if _, exists := u.create.mutation.Builtin(); exists {
+			s.SetIgnore(role.FieldBuiltin)
 		}
 	}))
 	return u
@@ -520,7 +532,7 @@ func (u *RoleUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *RoleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *RoleUpsertOne) ID(ctx context.Context) (id string, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -534,7 +546,7 @@ func (u *RoleUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *RoleUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *RoleUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -686,17 +698,14 @@ func (u *RoleUpsertBulk) UpdateNewValues() *RoleUpsertBulk {
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(role.FieldCreateTime)
 			}
-			if _, exists := b.mutation.Domain(); exists {
-				s.SetIgnore(role.FieldDomain)
-			}
-			if _, exists := b.mutation.Name(); exists {
-				s.SetIgnore(role.FieldName)
-			}
-			if _, exists := b.mutation.Builtin(); exists {
-				s.SetIgnore(role.FieldBuiltin)
+			if _, exists := b.mutation.Kind(); exists {
+				s.SetIgnore(role.FieldKind)
 			}
 			if _, exists := b.mutation.Session(); exists {
 				s.SetIgnore(role.FieldSession)
+			}
+			if _, exists := b.mutation.Builtin(); exists {
+				s.SetIgnore(role.FieldBuiltin)
 			}
 		}
 	}))

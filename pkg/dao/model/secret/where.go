@@ -62,6 +62,11 @@ func IDLTE(id oid.ID) predicate.Secret {
 	return predicate.Secret(sql.FieldLTE(FieldID, id))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
+}
+
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldCreateTime, v))
@@ -72,11 +77,6 @@ func UpdateTime(v time.Time) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
-}
-
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldName, v))
@@ -85,86 +85,6 @@ func Name(v string) predicate.Secret {
 // Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
 func Value(v crypto.String) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldValue, v))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "createTime" field.
-func CreateTimeEQ(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
-func CreateTimeNEQ(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "createTime" field.
-func CreateTimeIn(vs ...time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "createTime" field.
-func CreateTimeGT(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "createTime" field.
-func CreateTimeGTE(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "createTime" field.
-func CreateTimeLT(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "createTime" field.
-func CreateTimeLTE(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldLTE(FieldCreateTime, v))
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
-func UpdateTimeEQ(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
-func UpdateTimeNEQ(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldNEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeIn applies the In predicate on the "updateTime" field.
-func UpdateTimeIn(vs ...time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldNotIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeGT applies the GT predicate on the "updateTime" field.
-func UpdateTimeGT(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldGT(FieldUpdateTime, v))
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
-func UpdateTimeGTE(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldGTE(FieldUpdateTime, v))
-}
-
-// UpdateTimeLT applies the LT predicate on the "updateTime" field.
-func UpdateTimeLT(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldLT(FieldUpdateTime, v))
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
-func UpdateTimeLTE(v time.Time) predicate.Secret {
-	return predicate.Secret(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
@@ -245,6 +165,86 @@ func ProjectIDEqualFold(v oid.ID) predicate.Secret {
 func ProjectIDContainsFold(v oid.ID) predicate.Secret {
 	vc := string(v)
 	return predicate.Secret(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "createTime" field.
+func CreateTimeEQ(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
+func CreateTimeNEQ(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "createTime" field.
+func CreateTimeIn(vs ...time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "createTime" field.
+func CreateTimeGT(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "createTime" field.
+func CreateTimeGTE(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "createTime" field.
+func CreateTimeLT(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "createTime" field.
+func CreateTimeLTE(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldLTE(FieldCreateTime, v))
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
+func UpdateTimeEQ(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
+func UpdateTimeNEQ(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldNEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeIn applies the In predicate on the "updateTime" field.
+func UpdateTimeIn(vs ...time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldNotIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeGT applies the GT predicate on the "updateTime" field.
+func UpdateTimeGT(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldGT(FieldUpdateTime, v))
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
+func UpdateTimeGTE(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldGTE(FieldUpdateTime, v))
+}
+
+// UpdateTimeLT applies the LT predicate on the "updateTime" field.
+func UpdateTimeLT(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldLT(FieldUpdateTime, v))
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
+func UpdateTimeLTE(v time.Time) predicate.Secret {
+	return predicate.Secret(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

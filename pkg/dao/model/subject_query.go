@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -18,6 +19,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -28,6 +31,8 @@ type SubjectQuery struct {
 	order      []subject.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Subject
+	withTokens *TokenQuery
+	withRoles  *SubjectRoleRelationshipQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -63,6 +68,56 @@ func (sq *SubjectQuery) Unique(unique bool) *SubjectQuery {
 func (sq *SubjectQuery) Order(o ...subject.OrderOption) *SubjectQuery {
 	sq.order = append(sq.order, o...)
 	return sq
+}
+
+// QueryTokens chains the current query on the "tokens" edge.
+func (sq *SubjectQuery) QueryTokens() *TokenQuery {
+	query := (&TokenClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, selector),
+			sqlgraph.To(token.Table, token.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subject.TokensTable, subject.TokensColumn),
+		)
+		schemaConfig := sq.schemaConfig
+		step.To.Schema = schemaConfig.Token
+		step.Edge.Schema = schemaConfig.Token
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoles chains the current query on the "roles" edge.
+func (sq *SubjectQuery) QueryRoles() *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, selector),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, subject.RolesTable, subject.RolesColumn),
+		)
+		schemaConfig := sq.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Subject entity from the query.
@@ -257,10 +312,34 @@ func (sq *SubjectQuery) Clone() *SubjectQuery {
 		order:      append([]subject.OrderOption{}, sq.order...),
 		inters:     append([]Interceptor{}, sq.inters...),
 		predicates: append([]predicate.Subject{}, sq.predicates...),
+		withTokens: sq.withTokens.Clone(),
+		withRoles:  sq.withRoles.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
 	}
+}
+
+// WithTokens tells the query-builder to eager-load the nodes that are connected to
+// the "tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SubjectQuery) WithTokens(opts ...func(*TokenQuery)) *SubjectQuery {
+	query := (&TokenClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withTokens = query
+	return sq
+}
+
+// WithRoles tells the query-builder to eager-load the nodes that are connected to
+// the "roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SubjectQuery) WithRoles(opts ...func(*SubjectRoleRelationshipQuery)) *SubjectQuery {
+	query := (&SubjectRoleRelationshipClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withRoles = query
+	return sq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -339,8 +418,12 @@ func (sq *SubjectQuery) prepareQuery(ctx context.Context) error {
 
 func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subject, error) {
 	var (
-		nodes = []*Subject{}
-		_spec = sq.querySpec()
+		nodes       = []*Subject{}
+		_spec       = sq.querySpec()
+		loadedTypes = [2]bool{
+			sq.withTokens != nil,
+			sq.withRoles != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Subject).scanValues(nil, columns)
@@ -348,6 +431,7 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Subject{config: sq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = sq.schemaConfig.Subject
@@ -364,7 +448,82 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := sq.withTokens; query != nil {
+		if err := sq.loadTokens(ctx, query, nodes,
+			func(n *Subject) { n.Edges.Tokens = []*Token{} },
+			func(n *Subject, e *Token) { n.Edges.Tokens = append(n.Edges.Tokens, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withRoles; query != nil {
+		if err := sq.loadRoles(ctx, query, nodes,
+			func(n *Subject) { n.Edges.Roles = []*SubjectRoleRelationship{} },
+			func(n *Subject, e *SubjectRoleRelationship) { n.Edges.Roles = append(n.Edges.Roles, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (sq *SubjectQuery) loadTokens(ctx context.Context, query *TokenQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *Token)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Subject)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(token.FieldSubjectID)
+	}
+	query.Where(predicate.Token(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subject.TokensColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SubjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "subjectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (sq *SubjectQuery) loadRoles(ctx context.Context, query *SubjectRoleRelationshipQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *SubjectRoleRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Subject)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(subjectrolerelationship.FieldSubjectID)
+	}
+	query.Where(predicate.SubjectRoleRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subject.RolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SubjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "subject_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (sq *SubjectQuery) sqlCount(ctx context.Context) (int, error) {

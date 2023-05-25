@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -34,57 +33,6 @@ func (tu *TokenUpdate) Where(ps ...predicate.Token) *TokenUpdate {
 	return tu
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (tu *TokenUpdate) SetUpdateTime(t time.Time) *TokenUpdate {
-	tu.mutation.SetUpdateTime(t)
-	return tu
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (tu *TokenUpdate) SetCasdoorTokenName(s string) *TokenUpdate {
-	tu.mutation.SetCasdoorTokenName(s)
-	return tu
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (tu *TokenUpdate) SetCasdoorTokenOwner(s string) *TokenUpdate {
-	tu.mutation.SetCasdoorTokenOwner(s)
-	return tu
-}
-
-// SetName sets the "name" field.
-func (tu *TokenUpdate) SetName(s string) *TokenUpdate {
-	tu.mutation.SetName(s)
-	return tu
-}
-
-// SetExpiration sets the "expiration" field.
-func (tu *TokenUpdate) SetExpiration(i int) *TokenUpdate {
-	tu.mutation.ResetExpiration()
-	tu.mutation.SetExpiration(i)
-	return tu
-}
-
-// SetNillableExpiration sets the "expiration" field if the given value is not nil.
-func (tu *TokenUpdate) SetNillableExpiration(i *int) *TokenUpdate {
-	if i != nil {
-		tu.SetExpiration(*i)
-	}
-	return tu
-}
-
-// AddExpiration adds i to the "expiration" field.
-func (tu *TokenUpdate) AddExpiration(i int) *TokenUpdate {
-	tu.mutation.AddExpiration(i)
-	return tu
-}
-
-// ClearExpiration clears the value of the "expiration" field.
-func (tu *TokenUpdate) ClearExpiration() *TokenUpdate {
-	tu.mutation.ClearExpiration()
-	return tu
-}
-
 // Mutation returns the TokenMutation object of the builder.
 func (tu *TokenUpdate) Mutation() *TokenMutation {
 	return tu.mutation
@@ -92,9 +40,6 @@ func (tu *TokenUpdate) Mutation() *TokenMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TokenUpdate) Save(ctx context.Context) (int, error) {
-	if err := tu.defaults(); err != nil {
-		return 0, err
-	}
 	return withHooks[int, TokenMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
@@ -120,34 +65,10 @@ func (tu *TokenUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (tu *TokenUpdate) defaults() error {
-	if _, ok := tu.mutation.UpdateTime(); !ok {
-		if token.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized token.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := token.UpdateDefaultUpdateTime()
-		tu.mutation.SetUpdateTime(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (tu *TokenUpdate) check() error {
-	if v, ok := tu.mutation.CasdoorTokenName(); ok {
-		if err := token.CasdoorTokenNameValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
-		}
-	}
-	if v, ok := tu.mutation.CasdoorTokenOwner(); ok {
-		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
-		}
-	}
-	if v, ok := tu.mutation.Name(); ok {
-		if err := token.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
-		}
+	if _, ok := tu.mutation.SubjectID(); tu.mutation.SubjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Token.subject"`)
 	}
 	return nil
 }
@@ -170,26 +91,8 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := tu.mutation.UpdateTime(); ok {
-		_spec.SetField(token.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := tu.mutation.CasdoorTokenName(); ok {
-		_spec.SetField(token.FieldCasdoorTokenName, field.TypeString, value)
-	}
-	if value, ok := tu.mutation.CasdoorTokenOwner(); ok {
-		_spec.SetField(token.FieldCasdoorTokenOwner, field.TypeString, value)
-	}
-	if value, ok := tu.mutation.Name(); ok {
-		_spec.SetField(token.FieldName, field.TypeString, value)
-	}
-	if value, ok := tu.mutation.Expiration(); ok {
-		_spec.SetField(token.FieldExpiration, field.TypeInt, value)
-	}
-	if value, ok := tu.mutation.AddedExpiration(); ok {
-		_spec.AddField(token.FieldExpiration, field.TypeInt, value)
-	}
 	if tu.mutation.ExpirationCleared() {
-		_spec.ClearField(token.FieldExpiration, field.TypeInt)
+		_spec.ClearField(token.FieldExpiration, field.TypeTime)
 	}
 	_spec.Node.Schema = tu.schemaConfig.Token
 	ctx = internal.NewSchemaConfigContext(ctx, tu.schemaConfig)
@@ -215,57 +118,6 @@ type TokenUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (tuo *TokenUpdateOne) SetUpdateTime(t time.Time) *TokenUpdateOne {
-	tuo.mutation.SetUpdateTime(t)
-	return tuo
-}
-
-// SetCasdoorTokenName sets the "casdoorTokenName" field.
-func (tuo *TokenUpdateOne) SetCasdoorTokenName(s string) *TokenUpdateOne {
-	tuo.mutation.SetCasdoorTokenName(s)
-	return tuo
-}
-
-// SetCasdoorTokenOwner sets the "casdoorTokenOwner" field.
-func (tuo *TokenUpdateOne) SetCasdoorTokenOwner(s string) *TokenUpdateOne {
-	tuo.mutation.SetCasdoorTokenOwner(s)
-	return tuo
-}
-
-// SetName sets the "name" field.
-func (tuo *TokenUpdateOne) SetName(s string) *TokenUpdateOne {
-	tuo.mutation.SetName(s)
-	return tuo
-}
-
-// SetExpiration sets the "expiration" field.
-func (tuo *TokenUpdateOne) SetExpiration(i int) *TokenUpdateOne {
-	tuo.mutation.ResetExpiration()
-	tuo.mutation.SetExpiration(i)
-	return tuo
-}
-
-// SetNillableExpiration sets the "expiration" field if the given value is not nil.
-func (tuo *TokenUpdateOne) SetNillableExpiration(i *int) *TokenUpdateOne {
-	if i != nil {
-		tuo.SetExpiration(*i)
-	}
-	return tuo
-}
-
-// AddExpiration adds i to the "expiration" field.
-func (tuo *TokenUpdateOne) AddExpiration(i int) *TokenUpdateOne {
-	tuo.mutation.AddExpiration(i)
-	return tuo
-}
-
-// ClearExpiration clears the value of the "expiration" field.
-func (tuo *TokenUpdateOne) ClearExpiration() *TokenUpdateOne {
-	tuo.mutation.ClearExpiration()
-	return tuo
-}
-
 // Mutation returns the TokenMutation object of the builder.
 func (tuo *TokenUpdateOne) Mutation() *TokenMutation {
 	return tuo.mutation
@@ -286,9 +138,6 @@ func (tuo *TokenUpdateOne) Select(field string, fields ...string) *TokenUpdateOn
 
 // Save executes the query and returns the updated Token entity.
 func (tuo *TokenUpdateOne) Save(ctx context.Context) (*Token, error) {
-	if err := tuo.defaults(); err != nil {
-		return nil, err
-	}
 	return withHooks[*Token, TokenMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
@@ -314,34 +163,10 @@ func (tuo *TokenUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (tuo *TokenUpdateOne) defaults() error {
-	if _, ok := tuo.mutation.UpdateTime(); !ok {
-		if token.UpdateDefaultUpdateTime == nil {
-			return fmt.Errorf("model: uninitialized token.UpdateDefaultUpdateTime (forgotten import model/runtime?)")
-		}
-		v := token.UpdateDefaultUpdateTime()
-		tuo.mutation.SetUpdateTime(v)
-	}
-	return nil
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (tuo *TokenUpdateOne) check() error {
-	if v, ok := tuo.mutation.CasdoorTokenName(); ok {
-		if err := token.CasdoorTokenNameValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenName", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenName": %w`, err)}
-		}
-	}
-	if v, ok := tuo.mutation.CasdoorTokenOwner(); ok {
-		if err := token.CasdoorTokenOwnerValidator(v); err != nil {
-			return &ValidationError{Name: "casdoorTokenOwner", err: fmt.Errorf(`model: validator failed for field "Token.casdoorTokenOwner": %w`, err)}
-		}
-	}
-	if v, ok := tuo.mutation.Name(); ok {
-		if err := token.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Token.name": %w`, err)}
-		}
+	if _, ok := tuo.mutation.SubjectID(); tuo.mutation.SubjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Token.subject"`)
 	}
 	return nil
 }
@@ -381,26 +206,8 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (_node *Token, err error
 			}
 		}
 	}
-	if value, ok := tuo.mutation.UpdateTime(); ok {
-		_spec.SetField(token.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := tuo.mutation.CasdoorTokenName(); ok {
-		_spec.SetField(token.FieldCasdoorTokenName, field.TypeString, value)
-	}
-	if value, ok := tuo.mutation.CasdoorTokenOwner(); ok {
-		_spec.SetField(token.FieldCasdoorTokenOwner, field.TypeString, value)
-	}
-	if value, ok := tuo.mutation.Name(); ok {
-		_spec.SetField(token.FieldName, field.TypeString, value)
-	}
-	if value, ok := tuo.mutation.Expiration(); ok {
-		_spec.SetField(token.FieldExpiration, field.TypeInt, value)
-	}
-	if value, ok := tuo.mutation.AddedExpiration(); ok {
-		_spec.AddField(token.FieldExpiration, field.TypeInt, value)
-	}
 	if tuo.mutation.ExpirationCleared() {
-		_spec.ClearField(token.FieldExpiration, field.TypeInt)
+		_spec.ClearField(token.FieldExpiration, field.TypeTime)
 	}
 	_spec.Node.Schema = tuo.schemaConfig.Token
 	ctx = internal.NewSchemaConfigContext(ctx, tuo.schemaConfig)

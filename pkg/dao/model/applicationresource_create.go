@@ -31,6 +31,12 @@ type ApplicationResourceCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetProjectID sets the "projectID" field.
+func (arc *ApplicationResourceCreate) SetProjectID(o oid.ID) *ApplicationResourceCreate {
+	arc.mutation.SetProjectID(o)
+	return arc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (arc *ApplicationResourceCreate) SetCreateTime(t time.Time) *ApplicationResourceCreate {
 	arc.mutation.SetCreateTime(t)
@@ -221,6 +227,14 @@ func (arc *ApplicationResourceCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (arc *ApplicationResourceCreate) check() error {
+	if _, ok := arc.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "ApplicationResource.projectID"`)}
+	}
+	if v, ok := arc.mutation.ProjectID(); ok {
+		if err := applicationresource.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "ApplicationResource.projectID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ApplicationResource.createTime"`)}
 	}
@@ -325,6 +339,10 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 	if id, ok := arc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := arc.mutation.ProjectID(); ok {
+		_spec.SetField(applicationresource.FieldProjectID, field.TypeString, value)
+		_node.ProjectID = value
 	}
 	if value, ok := arc.mutation.CreateTime(); ok {
 		_spec.SetField(applicationresource.FieldCreateTime, field.TypeTime, value)
@@ -436,7 +454,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 // of the `INSERT` statement. For example:
 //
 //	client.ApplicationResource.Create().
-//		SetCreateTime(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -445,7 +463,7 @@ func (arc *ApplicationResourceCreate) createSpec() (*ApplicationResource, *sqlgr
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationResourceUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (arc *ApplicationResourceCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationResourceUpsertOne {
@@ -527,6 +545,9 @@ func (u *ApplicationResourceUpsertOne) UpdateNewValues() *ApplicationResourceUps
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(applicationresource.FieldID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(applicationresource.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(applicationresource.FieldCreateTime)
@@ -753,7 +774,7 @@ func (arcb *ApplicationResourceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationResourceUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (arcb *ApplicationResourceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationResourceUpsertBulk {
@@ -799,6 +820,9 @@ func (u *ApplicationResourceUpsertBulk) UpdateNewValues() *ApplicationResourceUp
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(applicationresource.FieldID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(applicationresource.FieldProjectID)
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(applicationresource.FieldCreateTime)

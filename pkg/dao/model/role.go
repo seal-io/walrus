@@ -15,7 +15,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -23,24 +22,44 @@ import (
 type Role struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// It is also the name of the role.
+	ID string `json:"id,omitempty" sql:"id"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
-	// The domain of the role.
-	Domain string `json:"domain,omitempty" sql:"domain"`
-	// The name of the role.
-	Name string `json:"name,omitempty" sql:"name"`
+	// The kind of the role.
+	Kind string `json:"kind,omitempty" sql:"kind"`
 	// The detail of the role.
 	Description string `json:"description,omitempty" sql:"description"`
 	// The policy list of the role.
 	Policies types.RolePolicies `json:"policies,omitempty" sql:"policies"`
-	// Indicate whether the subject is builtin, decide when creating.
+	// Indicate whether the role is session level, decide when creating.
+	Session bool `json:"session,omitempty" sql:"session"`
+	// Indicate whether the role is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
-	// Indicate whether the subject is session level, decide when creating.
-	Session      bool `json:"session,omitempty" sql:"session"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the RoleQuery when eager-loading is set.
+	Edges        RoleEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
+}
+
+// RoleEdges holds the relations/edges for other nodes in the graph.
+type RoleEdges struct {
+	// Subjects holds the value of the subjects edge.
+	Subjects []*SubjectRoleRelationship `json:"subjects,omitempty" sql:"subjects"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SubjectsOrErr returns the Subjects value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) SubjectsOrErr() ([]*SubjectRoleRelationship, error) {
+	if e.loadedTypes[0] {
+		return e.Subjects, nil
+	}
+	return nil, &NotLoadedError{edge: "subjects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -50,11 +69,9 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case role.FieldPolicies:
 			values[i] = new([]byte)
-		case role.FieldID:
-			values[i] = new(oid.ID)
-		case role.FieldBuiltin, role.FieldSession:
+		case role.FieldSession, role.FieldBuiltin:
 			values[i] = new(sql.NullBool)
-		case role.FieldDomain, role.FieldName, role.FieldDescription:
+		case role.FieldID, role.FieldKind, role.FieldDescription:
 			values[i] = new(sql.NullString)
 		case role.FieldCreateTime, role.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -74,10 +91,10 @@ func (r *Role) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case role.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				r.ID = *value
+			} else if value.Valid {
+				r.ID = value.String
 			}
 		case role.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -93,17 +110,11 @@ func (r *Role) assignValues(columns []string, values []any) error {
 				r.UpdateTime = new(time.Time)
 				*r.UpdateTime = value.Time
 			}
-		case role.FieldDomain:
+		case role.FieldKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field domain", values[i])
+				return fmt.Errorf("unexpected type %T for field kind", values[i])
 			} else if value.Valid {
-				r.Domain = value.String
-			}
-		case role.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				r.Name = value.String
+				r.Kind = value.String
 			}
 		case role.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -119,17 +130,17 @@ func (r *Role) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field policies: %w", err)
 				}
 			}
-		case role.FieldBuiltin:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field builtin", values[i])
-			} else if value.Valid {
-				r.Builtin = value.Bool
-			}
 		case role.FieldSession:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field session", values[i])
 			} else if value.Valid {
 				r.Session = value.Bool
+			}
+		case role.FieldBuiltin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field builtin", values[i])
+			} else if value.Valid {
+				r.Builtin = value.Bool
 			}
 		default:
 			r.selectValues.Set(columns[i], values[i])
@@ -142,6 +153,11 @@ func (r *Role) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (r *Role) Value(name string) (ent.Value, error) {
 	return r.selectValues.Get(name)
+}
+
+// QuerySubjects queries the "subjects" edge of the Role entity.
+func (r *Role) QuerySubjects() *SubjectRoleRelationshipQuery {
+	return NewRoleClient(r.config).QuerySubjects(r)
 }
 
 // Update returns a builder for updating this Role.
@@ -177,11 +193,8 @@ func (r *Role) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("domain=")
-	builder.WriteString(r.Domain)
-	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(r.Name)
+	builder.WriteString("kind=")
+	builder.WriteString(r.Kind)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(r.Description)
@@ -189,11 +202,11 @@ func (r *Role) String() string {
 	builder.WriteString("policies=")
 	builder.WriteString(fmt.Sprintf("%v", r.Policies))
 	builder.WriteString(", ")
-	builder.WriteString("builtin=")
-	builder.WriteString(fmt.Sprintf("%v", r.Builtin))
-	builder.WriteString(", ")
 	builder.WriteString("session=")
 	builder.WriteString(fmt.Sprintf("%v", r.Session))
+	builder.WriteString(", ")
+	builder.WriteString("builtin=")
+	builder.WriteString(fmt.Sprintf("%v", r.Builtin))
 	builder.WriteByte(')')
 	return builder.String()
 }

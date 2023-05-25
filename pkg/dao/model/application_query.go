@@ -387,12 +387,12 @@ func (aq *ApplicationQuery) WithModules(opts ...func(*ApplicationModuleRelations
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty" sql:"name"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Application.Query().
-//		GroupBy(application.FieldName).
+//		GroupBy(application.FieldProjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (aq *ApplicationQuery) GroupBy(field string, fields ...string) *ApplicationGroupBy {
@@ -410,11 +410,11 @@ func (aq *ApplicationQuery) GroupBy(field string, fields ...string) *Application
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty" sql:"name"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //	}
 //
 //	client.Application.Query().
-//		Select(application.FieldName).
+//		Select(application.FieldProjectID).
 //		Scan(ctx, &v)
 func (aq *ApplicationQuery) Select(fields ...string) *ApplicationSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)

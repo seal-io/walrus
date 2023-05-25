@@ -33,6 +33,12 @@ type ApplicationRevisionCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetProjectID sets the "projectID" field.
+func (arc *ApplicationRevisionCreate) SetProjectID(o oid.ID) *ApplicationRevisionCreate {
+	arc.mutation.SetProjectID(o)
+	return arc
+}
+
 // SetStatus sets the "status" field.
 func (arc *ApplicationRevisionCreate) SetStatus(s string) *ApplicationRevisionCreate {
 	arc.mutation.SetStatus(s)
@@ -256,6 +262,14 @@ func (arc *ApplicationRevisionCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (arc *ApplicationRevisionCreate) check() error {
+	if _, ok := arc.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "ApplicationRevision.projectID"`)}
+	}
+	if v, ok := arc.mutation.ProjectID(); ok {
+		if err := applicationrevision.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "ApplicationRevision.projectID": %w`, err)}
+		}
+	}
 	if _, ok := arc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ApplicationRevision.createTime"`)}
 	}
@@ -344,6 +358,10 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 	if id, ok := arc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := arc.mutation.ProjectID(); ok {
+		_spec.SetField(applicationrevision.FieldProjectID, field.TypeString, value)
+		_node.ProjectID = value
 	}
 	if value, ok := arc.mutation.Status(); ok {
 		_spec.SetField(applicationrevision.FieldStatus, field.TypeString, value)
@@ -440,7 +458,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 // of the `INSERT` statement. For example:
 //
 //	client.ApplicationRevision.Create().
-//		SetStatus(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -449,7 +467,7 @@ func (arc *ApplicationRevisionCreate) createSpec() (*ApplicationRevision, *sqlgr
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationRevisionUpsert) {
-//			SetStatus(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (arc *ApplicationRevisionCreate) OnConflict(opts ...sql.ConflictOption) *ApplicationRevisionUpsertOne {
@@ -669,6 +687,9 @@ func (u *ApplicationRevisionUpsertOne) UpdateNewValues() *ApplicationRevisionUps
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(applicationrevision.FieldID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(applicationrevision.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(applicationrevision.FieldCreateTime)
@@ -1038,7 +1059,7 @@ func (arcb *ApplicationRevisionCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ApplicationRevisionUpsert) {
-//			SetStatus(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (arcb *ApplicationRevisionCreateBulk) OnConflict(opts ...sql.ConflictOption) *ApplicationRevisionUpsertBulk {
@@ -1084,6 +1105,9 @@ func (u *ApplicationRevisionUpsertBulk) UpdateNewValues() *ApplicationRevisionUp
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(applicationrevision.FieldID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(applicationrevision.FieldProjectID)
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(applicationrevision.FieldCreateTime)

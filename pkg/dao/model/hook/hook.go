@@ -228,6 +228,18 @@ func (f SubjectFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.SubjectMutation", m)
 }
 
+// The SubjectRoleRelationshipFunc type is an adapter to allow the use of ordinary
+// function as SubjectRoleRelationship mutator.
+type SubjectRoleRelationshipFunc func(context.Context, *model.SubjectRoleRelationshipMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubjectRoleRelationshipFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.SubjectRoleRelationshipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.SubjectRoleRelationshipMutation", m)
+}
+
 // The TokenFunc type is an adapter to allow the use of ordinary
 // function as Token mutator.
 type TokenFunc func(context.Context, *model.TokenMutation) (model.Value, error)

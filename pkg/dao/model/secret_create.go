@@ -30,6 +30,20 @@ type SecretCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetProjectID sets the "projectID" field.
+func (sc *SecretCreate) SetProjectID(o oid.ID) *SecretCreate {
+	sc.mutation.SetProjectID(o)
+	return sc
+}
+
+// SetNillableProjectID sets the "projectID" field if the given value is not nil.
+func (sc *SecretCreate) SetNillableProjectID(o *oid.ID) *SecretCreate {
+	if o != nil {
+		sc.SetProjectID(*o)
+	}
+	return sc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (sc *SecretCreate) SetCreateTime(t time.Time) *SecretCreate {
 	sc.mutation.SetCreateTime(t)
@@ -54,20 +68,6 @@ func (sc *SecretCreate) SetUpdateTime(t time.Time) *SecretCreate {
 func (sc *SecretCreate) SetNillableUpdateTime(t *time.Time) *SecretCreate {
 	if t != nil {
 		sc.SetUpdateTime(*t)
-	}
-	return sc
-}
-
-// SetProjectID sets the "projectID" field.
-func (sc *SecretCreate) SetProjectID(o oid.ID) *SecretCreate {
-	sc.mutation.SetProjectID(o)
-	return sc
-}
-
-// SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (sc *SecretCreate) SetNillableProjectID(o *oid.ID) *SecretCreate {
-	if o != nil {
-		sc.SetProjectID(*o)
 	}
 	return sc
 }
@@ -251,7 +251,7 @@ func (sc *SecretCreate) createSpec() (*Secret, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Secret.Create().
-//		SetCreateTime(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -260,7 +260,7 @@ func (sc *SecretCreate) createSpec() (*Secret, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SecretUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (sc *SecretCreate) OnConflict(opts ...sql.ConflictOption) *SecretUpsertOne {
@@ -337,11 +337,11 @@ func (u *SecretUpsertOne) UpdateNewValues() *SecretUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(secret.FieldID)
 		}
-		if _, exists := u.create.mutation.CreateTime(); exists {
-			s.SetIgnore(secret.FieldCreateTime)
-		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(secret.FieldProjectID)
+		}
+		if _, exists := u.create.mutation.CreateTime(); exists {
+			s.SetIgnore(secret.FieldCreateTime)
 		}
 		if _, exists := u.create.mutation.Name(); exists {
 			s.SetIgnore(secret.FieldName)
@@ -537,7 +537,7 @@ func (scb *SecretCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SecretUpsert) {
-//			SetCreateTime(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (scb *SecretCreateBulk) OnConflict(opts ...sql.ConflictOption) *SecretUpsertBulk {
@@ -584,11 +584,11 @@ func (u *SecretUpsertBulk) UpdateNewValues() *SecretUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(secret.FieldID)
 			}
-			if _, exists := b.mutation.CreateTime(); exists {
-				s.SetIgnore(secret.FieldCreateTime)
-			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(secret.FieldProjectID)
+			}
+			if _, exists := b.mutation.CreateTime(); exists {
+				s.SetIgnore(secret.FieldCreateTime)
 			}
 			if _, exists := b.mutation.Name(); exists {
 				s.SetIgnore(secret.FieldName)

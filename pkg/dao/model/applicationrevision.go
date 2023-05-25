@@ -28,6 +28,8 @@ type ApplicationRevision struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Status of the resource.
 	Status string `json:"status,omitempty" sql:"status"`
 	// Extra message for status, like error details.
@@ -110,7 +112,7 @@ func (*ApplicationRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case applicationrevision.FieldSecrets:
 			values[i] = new(crypto.Map[string, string])
-		case applicationrevision.FieldID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
+		case applicationrevision.FieldID, applicationrevision.FieldProjectID, applicationrevision.FieldInstanceID, applicationrevision.FieldEnvironmentID:
 			values[i] = new(oid.ID)
 		case applicationrevision.FieldVariables:
 			values[i] = new(property.Schemas)
@@ -142,6 +144,12 @@ func (ar *ApplicationRevision) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ar.ID = *value
+			}
+		case applicationrevision.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				ar.ProjectID = *value
 			}
 		case applicationrevision.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -286,6 +294,9 @@ func (ar *ApplicationRevision) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationRevision(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ar.ID))
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", ar.ProjectID))
+	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(ar.Status)
 	builder.WriteString(", ")

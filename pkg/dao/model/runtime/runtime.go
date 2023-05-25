@@ -26,6 +26,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -137,48 +138,66 @@ func init() {
 	allocationcost.RamByteUsageMaxValidator = allocationcostDescRamByteUsageMax.Validators[0].(func(float64) error)
 	applicationMixin := schema.Application{}.Mixin()
 	applicationMixinHooks0 := applicationMixin[0].Hooks()
+	applicationMixinHooks1 := applicationMixin[1].Hooks()
 	application.Hooks[0] = applicationMixinHooks0[0]
+	application.Hooks[1] = applicationMixinHooks1[0]
+	application.Hooks[2] = applicationMixinHooks1[1]
+	applicationMixinInters1 := applicationMixin[1].Interceptors()
+	application.Interceptors[0] = applicationMixinInters1[0]
 	applicationMixinFields1 := applicationMixin[1].Fields()
 	_ = applicationMixinFields1
 	applicationMixinFields2 := applicationMixin[2].Fields()
 	_ = applicationMixinFields2
+	applicationMixinFields3 := applicationMixin[3].Fields()
+	_ = applicationMixinFields3
 	applicationFields := schema.Application{}.Fields()
 	_ = applicationFields
+	// applicationDescProjectID is the schema descriptor for projectID field.
+	applicationDescProjectID := applicationMixinFields1[0].Descriptor()
+	// application.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	application.ProjectIDValidator = applicationDescProjectID.Validators[0].(func(string) error)
 	// applicationDescName is the schema descriptor for name field.
-	applicationDescName := applicationMixinFields1[0].Descriptor()
+	applicationDescName := applicationMixinFields2[0].Descriptor()
 	// application.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	application.NameValidator = applicationDescName.Validators[0].(func(string) error)
 	// applicationDescLabels is the schema descriptor for labels field.
-	applicationDescLabels := applicationMixinFields1[2].Descriptor()
+	applicationDescLabels := applicationMixinFields2[2].Descriptor()
 	// application.DefaultLabels holds the default value on creation for the labels field.
 	application.DefaultLabels = applicationDescLabels.Default.(map[string]string)
 	// applicationDescCreateTime is the schema descriptor for createTime field.
-	applicationDescCreateTime := applicationMixinFields2[0].Descriptor()
+	applicationDescCreateTime := applicationMixinFields3[0].Descriptor()
 	// application.DefaultCreateTime holds the default value on creation for the createTime field.
 	application.DefaultCreateTime = applicationDescCreateTime.Default.(func() time.Time)
 	// applicationDescUpdateTime is the schema descriptor for updateTime field.
-	applicationDescUpdateTime := applicationMixinFields2[1].Descriptor()
+	applicationDescUpdateTime := applicationMixinFields3[1].Descriptor()
 	// application.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	application.DefaultUpdateTime = applicationDescUpdateTime.Default.(func() time.Time)
 	// application.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	application.UpdateDefaultUpdateTime = applicationDescUpdateTime.UpdateDefault.(func() time.Time)
-	// applicationDescProjectID is the schema descriptor for projectID field.
-	applicationDescProjectID := applicationFields[0].Descriptor()
-	// application.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
-	application.ProjectIDValidator = applicationDescProjectID.Validators[0].(func(string) error)
 	applicationinstanceMixin := schema.ApplicationInstance{}.Mixin()
 	applicationinstanceMixinHooks0 := applicationinstanceMixin[0].Hooks()
+	applicationinstanceMixinHooks1 := applicationinstanceMixin[1].Hooks()
 	applicationinstance.Hooks[0] = applicationinstanceMixinHooks0[0]
+	applicationinstance.Hooks[1] = applicationinstanceMixinHooks1[0]
+	applicationinstance.Hooks[2] = applicationinstanceMixinHooks1[1]
+	applicationinstanceMixinInters1 := applicationinstanceMixin[1].Interceptors()
+	applicationinstance.Interceptors[0] = applicationinstanceMixinInters1[0]
 	applicationinstanceMixinFields1 := applicationinstanceMixin[1].Fields()
 	_ = applicationinstanceMixinFields1
+	applicationinstanceMixinFields2 := applicationinstanceMixin[2].Fields()
+	_ = applicationinstanceMixinFields2
 	applicationinstanceFields := schema.ApplicationInstance{}.Fields()
 	_ = applicationinstanceFields
+	// applicationinstanceDescProjectID is the schema descriptor for projectID field.
+	applicationinstanceDescProjectID := applicationinstanceMixinFields1[0].Descriptor()
+	// applicationinstance.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	applicationinstance.ProjectIDValidator = applicationinstanceDescProjectID.Validators[0].(func(string) error)
 	// applicationinstanceDescCreateTime is the schema descriptor for createTime field.
-	applicationinstanceDescCreateTime := applicationinstanceMixinFields1[0].Descriptor()
+	applicationinstanceDescCreateTime := applicationinstanceMixinFields2[0].Descriptor()
 	// applicationinstance.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationinstance.DefaultCreateTime = applicationinstanceDescCreateTime.Default.(func() time.Time)
 	// applicationinstanceDescUpdateTime is the schema descriptor for updateTime field.
-	applicationinstanceDescUpdateTime := applicationinstanceMixinFields1[1].Descriptor()
+	applicationinstanceDescUpdateTime := applicationinstanceMixinFields2[1].Descriptor()
 	// applicationinstance.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	applicationinstance.DefaultUpdateTime = applicationinstanceDescUpdateTime.Default.(func() time.Time)
 	// applicationinstance.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
@@ -228,19 +247,30 @@ func init() {
 	applicationmodulerelationship.NameValidator = applicationmodulerelationshipDescName.Validators[0].(func(string) error)
 	applicationresourceMixin := schema.ApplicationResource{}.Mixin()
 	applicationresourceMixinHooks0 := applicationresourceMixin[0].Hooks()
+	applicationresourceMixinHooks1 := applicationresourceMixin[1].Hooks()
 	applicationresource.Hooks[0] = applicationresourceMixinHooks0[0]
+	applicationresource.Hooks[1] = applicationresourceMixinHooks1[0]
+	applicationresource.Hooks[2] = applicationresourceMixinHooks1[1]
+	applicationresourceMixinInters1 := applicationresourceMixin[1].Interceptors()
 	applicationresourceInters := schema.ApplicationResource{}.Interceptors()
-	applicationresource.Interceptors[0] = applicationresourceInters[0]
+	applicationresource.Interceptors[0] = applicationresourceMixinInters1[0]
+	applicationresource.Interceptors[1] = applicationresourceInters[0]
 	applicationresourceMixinFields1 := applicationresourceMixin[1].Fields()
 	_ = applicationresourceMixinFields1
+	applicationresourceMixinFields2 := applicationresourceMixin[2].Fields()
+	_ = applicationresourceMixinFields2
 	applicationresourceFields := schema.ApplicationResource{}.Fields()
 	_ = applicationresourceFields
+	// applicationresourceDescProjectID is the schema descriptor for projectID field.
+	applicationresourceDescProjectID := applicationresourceMixinFields1[0].Descriptor()
+	// applicationresource.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	applicationresource.ProjectIDValidator = applicationresourceDescProjectID.Validators[0].(func(string) error)
 	// applicationresourceDescCreateTime is the schema descriptor for createTime field.
-	applicationresourceDescCreateTime := applicationresourceMixinFields1[0].Descriptor()
+	applicationresourceDescCreateTime := applicationresourceMixinFields2[0].Descriptor()
 	// applicationresource.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationresource.DefaultCreateTime = applicationresourceDescCreateTime.Default.(func() time.Time)
 	// applicationresourceDescUpdateTime is the schema descriptor for updateTime field.
-	applicationresourceDescUpdateTime := applicationresourceMixinFields1[1].Descriptor()
+	applicationresourceDescUpdateTime := applicationresourceMixinFields2[1].Descriptor()
 	// applicationresource.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	applicationresource.DefaultUpdateTime = applicationresourceDescUpdateTime.Default.(func() time.Time)
 	// applicationresource.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
@@ -275,13 +305,24 @@ func init() {
 	applicationresource.DeployerTypeValidator = applicationresourceDescDeployerType.Validators[0].(func(string) error)
 	applicationrevisionMixin := schema.ApplicationRevision{}.Mixin()
 	applicationrevisionMixinHooks0 := applicationrevisionMixin[0].Hooks()
+	applicationrevisionMixinHooks1 := applicationrevisionMixin[1].Hooks()
 	applicationrevision.Hooks[0] = applicationrevisionMixinHooks0[0]
-	applicationrevisionMixinFields2 := applicationrevisionMixin[2].Fields()
-	_ = applicationrevisionMixinFields2
+	applicationrevision.Hooks[1] = applicationrevisionMixinHooks1[0]
+	applicationrevision.Hooks[2] = applicationrevisionMixinHooks1[1]
+	applicationrevisionMixinInters1 := applicationrevisionMixin[1].Interceptors()
+	applicationrevision.Interceptors[0] = applicationrevisionMixinInters1[0]
+	applicationrevisionMixinFields1 := applicationrevisionMixin[1].Fields()
+	_ = applicationrevisionMixinFields1
+	applicationrevisionMixinFields3 := applicationrevisionMixin[3].Fields()
+	_ = applicationrevisionMixinFields3
 	applicationrevisionFields := schema.ApplicationRevision{}.Fields()
 	_ = applicationrevisionFields
+	// applicationrevisionDescProjectID is the schema descriptor for projectID field.
+	applicationrevisionDescProjectID := applicationrevisionMixinFields1[0].Descriptor()
+	// applicationrevision.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	applicationrevision.ProjectIDValidator = applicationrevisionDescProjectID.Validators[0].(func(string) error)
 	// applicationrevisionDescCreateTime is the schema descriptor for createTime field.
-	applicationrevisionDescCreateTime := applicationrevisionMixinFields2[0].Descriptor()
+	applicationrevisionDescCreateTime := applicationrevisionMixinFields3[0].Descriptor()
 	// applicationrevision.DefaultCreateTime holds the default value on creation for the createTime field.
 	applicationrevision.DefaultCreateTime = applicationrevisionDescCreateTime.Default.(func() time.Time)
 	// applicationrevisionDescInstanceID is the schema descriptor for instanceID field.
@@ -566,65 +607,68 @@ func init() {
 	// project.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	project.UpdateDefaultUpdateTime = projectDescUpdateTime.UpdateDefault.(func() time.Time)
 	roleMixin := schema.Role{}.Mixin()
-	roleMixinHooks0 := roleMixin[0].Hooks()
-	role.Hooks[0] = roleMixinHooks0[0]
-	roleMixinFields1 := roleMixin[1].Fields()
-	_ = roleMixinFields1
+	roleMixinFields0 := roleMixin[0].Fields()
+	_ = roleMixinFields0
 	roleFields := schema.Role{}.Fields()
 	_ = roleFields
 	// roleDescCreateTime is the schema descriptor for createTime field.
-	roleDescCreateTime := roleMixinFields1[0].Descriptor()
+	roleDescCreateTime := roleMixinFields0[0].Descriptor()
 	// role.DefaultCreateTime holds the default value on creation for the createTime field.
 	role.DefaultCreateTime = roleDescCreateTime.Default.(func() time.Time)
 	// roleDescUpdateTime is the schema descriptor for updateTime field.
-	roleDescUpdateTime := roleMixinFields1[1].Descriptor()
+	roleDescUpdateTime := roleMixinFields0[1].Descriptor()
 	// role.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	role.DefaultUpdateTime = roleDescUpdateTime.Default.(func() time.Time)
 	// role.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	role.UpdateDefaultUpdateTime = roleDescUpdateTime.UpdateDefault.(func() time.Time)
-	// roleDescDomain is the schema descriptor for domain field.
-	roleDescDomain := roleFields[0].Descriptor()
-	// role.DefaultDomain holds the default value on creation for the domain field.
-	role.DefaultDomain = roleDescDomain.Default.(string)
-	// roleDescName is the schema descriptor for name field.
-	roleDescName := roleFields[1].Descriptor()
-	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	role.NameValidator = roleDescName.Validators[0].(func(string) error)
+	// roleDescKind is the schema descriptor for kind field.
+	roleDescKind := roleFields[1].Descriptor()
+	// role.DefaultKind holds the default value on creation for the kind field.
+	role.DefaultKind = roleDescKind.Default.(string)
 	// roleDescPolicies is the schema descriptor for policies field.
 	roleDescPolicies := roleFields[3].Descriptor()
 	// role.DefaultPolicies holds the default value on creation for the policies field.
 	role.DefaultPolicies = roleDescPolicies.Default.(types.RolePolicies)
-	// roleDescBuiltin is the schema descriptor for builtin field.
-	roleDescBuiltin := roleFields[4].Descriptor()
-	// role.DefaultBuiltin holds the default value on creation for the builtin field.
-	role.DefaultBuiltin = roleDescBuiltin.Default.(bool)
 	// roleDescSession is the schema descriptor for session field.
-	roleDescSession := roleFields[5].Descriptor()
+	roleDescSession := roleFields[4].Descriptor()
 	// role.DefaultSession holds the default value on creation for the session field.
 	role.DefaultSession = roleDescSession.Default.(bool)
+	// roleDescBuiltin is the schema descriptor for builtin field.
+	roleDescBuiltin := roleFields[5].Descriptor()
+	// role.DefaultBuiltin holds the default value on creation for the builtin field.
+	role.DefaultBuiltin = roleDescBuiltin.Default.(bool)
+	// roleDescID is the schema descriptor for id field.
+	roleDescID := roleFields[0].Descriptor()
+	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	role.IDValidator = roleDescID.Validators[0].(func(string) error)
 	secretMixin := schema.Secret{}.Mixin()
 	secretMixinHooks0 := secretMixin[0].Hooks()
+	secretMixinHooks1 := secretMixin[1].Hooks()
 	secret.Hooks[0] = secretMixinHooks0[0]
-	secretMixinFields1 := secretMixin[1].Fields()
-	_ = secretMixinFields1
+	secret.Hooks[1] = secretMixinHooks1[0]
+	secret.Hooks[2] = secretMixinHooks1[1]
+	secretMixinInters1 := secretMixin[1].Interceptors()
+	secret.Interceptors[0] = secretMixinInters1[0]
+	secretMixinFields2 := secretMixin[2].Fields()
+	_ = secretMixinFields2
 	secretFields := schema.Secret{}.Fields()
 	_ = secretFields
 	// secretDescCreateTime is the schema descriptor for createTime field.
-	secretDescCreateTime := secretMixinFields1[0].Descriptor()
+	secretDescCreateTime := secretMixinFields2[0].Descriptor()
 	// secret.DefaultCreateTime holds the default value on creation for the createTime field.
 	secret.DefaultCreateTime = secretDescCreateTime.Default.(func() time.Time)
 	// secretDescUpdateTime is the schema descriptor for updateTime field.
-	secretDescUpdateTime := secretMixinFields1[1].Descriptor()
+	secretDescUpdateTime := secretMixinFields2[1].Descriptor()
 	// secret.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	secret.DefaultUpdateTime = secretDescUpdateTime.Default.(func() time.Time)
 	// secret.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
 	secret.UpdateDefaultUpdateTime = secretDescUpdateTime.UpdateDefault.(func() time.Time)
 	// secretDescName is the schema descriptor for name field.
-	secretDescName := secretFields[1].Descriptor()
+	secretDescName := secretFields[0].Descriptor()
 	// secret.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	secret.NameValidator = secretDescName.Validators[0].(func(string) error)
 	// secretDescValue is the schema descriptor for value field.
-	secretDescValue := secretFields[2].Descriptor()
+	secretDescValue := secretFields[1].Descriptor()
 	// secret.ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	secret.ValueValidator = secretDescValue.Validators[0].(func(string) error)
 	settingMixin := schema.Setting{}.Mixin()
@@ -681,63 +725,76 @@ func init() {
 	subjectDescKind := subjectFields[0].Descriptor()
 	// subject.DefaultKind holds the default value on creation for the kind field.
 	subject.DefaultKind = subjectDescKind.Default.(string)
-	// subjectDescGroup is the schema descriptor for group field.
-	subjectDescGroup := subjectFields[1].Descriptor()
-	// subject.DefaultGroup holds the default value on creation for the group field.
-	subject.DefaultGroup = subjectDescGroup.Default.(string)
+	// subjectDescDomain is the schema descriptor for domain field.
+	subjectDescDomain := subjectFields[1].Descriptor()
+	// subject.DefaultDomain holds the default value on creation for the domain field.
+	subject.DefaultDomain = subjectDescDomain.Default.(string)
 	// subjectDescName is the schema descriptor for name field.
 	subjectDescName := subjectFields[2].Descriptor()
 	// subject.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	subject.NameValidator = subjectDescName.Validators[0].(func(string) error)
-	// subjectDescMountTo is the schema descriptor for mountTo field.
-	subjectDescMountTo := subjectFields[4].Descriptor()
-	// subject.DefaultMountTo holds the default value on creation for the mountTo field.
-	subject.DefaultMountTo = subjectDescMountTo.Default.(bool)
-	// subjectDescLoginTo is the schema descriptor for loginTo field.
-	subjectDescLoginTo := subjectFields[5].Descriptor()
-	// subject.DefaultLoginTo holds the default value on creation for the loginTo field.
-	subject.DefaultLoginTo = subjectDescLoginTo.Default.(bool)
-	// subjectDescRoles is the schema descriptor for roles field.
-	subjectDescRoles := subjectFields[6].Descriptor()
-	// subject.DefaultRoles holds the default value on creation for the roles field.
-	subject.DefaultRoles = subjectDescRoles.Default.(types.SubjectRoles)
-	// subjectDescPaths is the schema descriptor for paths field.
-	subjectDescPaths := subjectFields[7].Descriptor()
-	// subject.DefaultPaths holds the default value on creation for the paths field.
-	subject.DefaultPaths = subjectDescPaths.Default.([]string)
 	// subjectDescBuiltin is the schema descriptor for builtin field.
-	subjectDescBuiltin := subjectFields[8].Descriptor()
+	subjectDescBuiltin := subjectFields[4].Descriptor()
 	// subject.DefaultBuiltin holds the default value on creation for the builtin field.
 	subject.DefaultBuiltin = subjectDescBuiltin.Default.(bool)
+	subjectrolerelationshipMixin := schema.SubjectRoleRelationship{}.Mixin()
+	subjectrolerelationshipMixinHooks0 := subjectrolerelationshipMixin[0].Hooks()
+	subjectrolerelationshipMixinHooks1 := subjectrolerelationshipMixin[1].Hooks()
+	subjectrolerelationship.Hooks[0] = subjectrolerelationshipMixinHooks0[0]
+	subjectrolerelationship.Hooks[1] = subjectrolerelationshipMixinHooks1[0]
+	subjectrolerelationship.Hooks[2] = subjectrolerelationshipMixinHooks1[1]
+	subjectrolerelationshipMixinInters1 := subjectrolerelationshipMixin[1].Interceptors()
+	subjectrolerelationship.Interceptors[0] = subjectrolerelationshipMixinInters1[0]
+	subjectrolerelationshipMixinFields2 := subjectrolerelationshipMixin[2].Fields()
+	_ = subjectrolerelationshipMixinFields2
+	subjectrolerelationshipFields := schema.SubjectRoleRelationship{}.Fields()
+	_ = subjectrolerelationshipFields
+	// subjectrolerelationshipDescCreateTime is the schema descriptor for createTime field.
+	subjectrolerelationshipDescCreateTime := subjectrolerelationshipMixinFields2[0].Descriptor()
+	// subjectrolerelationship.DefaultCreateTime holds the default value on creation for the createTime field.
+	subjectrolerelationship.DefaultCreateTime = subjectrolerelationshipDescCreateTime.Default.(func() time.Time)
+	// subjectrolerelationshipDescSubjectID is the schema descriptor for subject_id field.
+	subjectrolerelationshipDescSubjectID := subjectrolerelationshipFields[0].Descriptor()
+	// subjectrolerelationship.SubjectIDValidator is a validator for the "subject_id" field. It is called by the builders before save.
+	subjectrolerelationship.SubjectIDValidator = subjectrolerelationshipDescSubjectID.Validators[0].(func(string) error)
+	// subjectrolerelationshipDescRoleID is the schema descriptor for role_id field.
+	subjectrolerelationshipDescRoleID := subjectrolerelationshipFields[1].Descriptor()
+	// subjectrolerelationship.RoleIDValidator is a validator for the "role_id" field. It is called by the builders before save.
+	subjectrolerelationship.RoleIDValidator = subjectrolerelationshipDescRoleID.Validators[0].(func(string) error)
 	tokenMixin := schema.Token{}.Mixin()
 	tokenMixinHooks0 := tokenMixin[0].Hooks()
+	tokenMixinHooks1 := tokenMixin[1].Hooks()
 	token.Hooks[0] = tokenMixinHooks0[0]
+	token.Hooks[1] = tokenMixinHooks1[0]
+	token.Hooks[2] = tokenMixinHooks1[1]
+	tokenMixinInters1 := tokenMixin[1].Interceptors()
+	token.Interceptors[0] = tokenMixinInters1[0]
 	tokenMixinFields1 := tokenMixin[1].Fields()
 	_ = tokenMixinFields1
+	tokenMixinFields2 := tokenMixin[2].Fields()
+	_ = tokenMixinFields2
 	tokenFields := schema.Token{}.Fields()
 	_ = tokenFields
+	// tokenDescSubjectID is the schema descriptor for subjectID field.
+	tokenDescSubjectID := tokenMixinFields1[0].Descriptor()
+	// token.SubjectIDValidator is a validator for the "subjectID" field. It is called by the builders before save.
+	token.SubjectIDValidator = tokenDescSubjectID.Validators[0].(func(string) error)
 	// tokenDescCreateTime is the schema descriptor for createTime field.
-	tokenDescCreateTime := tokenMixinFields1[0].Descriptor()
+	tokenDescCreateTime := tokenMixinFields2[0].Descriptor()
 	// token.DefaultCreateTime holds the default value on creation for the createTime field.
 	token.DefaultCreateTime = tokenDescCreateTime.Default.(func() time.Time)
-	// tokenDescUpdateTime is the schema descriptor for updateTime field.
-	tokenDescUpdateTime := tokenMixinFields1[1].Descriptor()
-	// token.DefaultUpdateTime holds the default value on creation for the updateTime field.
-	token.DefaultUpdateTime = tokenDescUpdateTime.Default.(func() time.Time)
-	// token.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
-	token.UpdateDefaultUpdateTime = tokenDescUpdateTime.UpdateDefault.(func() time.Time)
-	// tokenDescCasdoorTokenName is the schema descriptor for casdoorTokenName field.
-	tokenDescCasdoorTokenName := tokenFields[0].Descriptor()
-	// token.CasdoorTokenNameValidator is a validator for the "casdoorTokenName" field. It is called by the builders before save.
-	token.CasdoorTokenNameValidator = tokenDescCasdoorTokenName.Validators[0].(func(string) error)
-	// tokenDescCasdoorTokenOwner is the schema descriptor for casdoorTokenOwner field.
-	tokenDescCasdoorTokenOwner := tokenFields[1].Descriptor()
-	// token.CasdoorTokenOwnerValidator is a validator for the "casdoorTokenOwner" field. It is called by the builders before save.
-	token.CasdoorTokenOwnerValidator = tokenDescCasdoorTokenOwner.Validators[0].(func(string) error)
+	// tokenDescKind is the schema descriptor for kind field.
+	tokenDescKind := tokenFields[0].Descriptor()
+	// token.DefaultKind holds the default value on creation for the kind field.
+	token.DefaultKind = tokenDescKind.Default.(string)
 	// tokenDescName is the schema descriptor for name field.
-	tokenDescName := tokenFields[2].Descriptor()
+	tokenDescName := tokenFields[1].Descriptor()
 	// token.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	token.NameValidator = tokenDescName.Validators[0].(func(string) error)
+	// tokenDescValue is the schema descriptor for value field.
+	tokenDescValue := tokenFields[3].Descriptor()
+	// token.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	token.ValueValidator = tokenDescValue.Validators[0].(func(string) error)
 }
 
 const (

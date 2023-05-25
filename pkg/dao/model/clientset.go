@@ -63,6 +63,9 @@ type ClientSet interface {
 	// Subjects returns the client for interacting with the Subject builders.
 	Subjects() *SubjectClient
 
+	// SubjectRoleRelationships returns the client for interacting with the SubjectRoleRelationship builders.
+	SubjectRoleRelationships() *SubjectRoleRelationshipClient
+
 	// Tokens returns the client for interacting with the Token builders.
 	Tokens() *TokenClient
 
@@ -186,6 +189,12 @@ type SettingClientGetter interface {
 type SubjectClientGetter interface {
 	// Subjects returns the client for interacting with the Subject builders.
 	Subjects() *SubjectClient
+}
+
+// SubjectRoleRelationshipClientGetter is an interface that allows getting SubjectRoleRelationshipClient.
+type SubjectRoleRelationshipClientGetter interface {
+	// SubjectRoleRelationships returns the client for interacting with the SubjectRoleRelationship builders.
+	SubjectRoleRelationships() *SubjectRoleRelationshipClient
 }
 
 // TokenClientGetter is an interface that allows getting TokenClient.

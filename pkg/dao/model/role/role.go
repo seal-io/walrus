@@ -8,8 +8,8 @@ package role
 import (
 	"time"
 
-	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -23,20 +23,27 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldDomain holds the string denoting the domain field in the database.
-	FieldDomain = "domain"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
+	// FieldKind holds the string denoting the kind field in the database.
+	FieldKind = "kind"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldPolicies holds the string denoting the policies field in the database.
 	FieldPolicies = "policies"
-	// FieldBuiltin holds the string denoting the builtin field in the database.
-	FieldBuiltin = "builtin"
 	// FieldSession holds the string denoting the session field in the database.
 	FieldSession = "session"
+	// FieldBuiltin holds the string denoting the builtin field in the database.
+	FieldBuiltin = "builtin"
+	// EdgeSubjects holds the string denoting the subjects edge name in mutations.
+	EdgeSubjects = "subjects"
 	// Table holds the table name of the role in the database.
 	Table = "roles"
+	// SubjectsTable is the table that holds the subjects relation/edge.
+	SubjectsTable = "subject_role_relationships"
+	// SubjectsInverseTable is the table name for the SubjectRoleRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "subjectrolerelationship" package.
+	SubjectsInverseTable = "subject_role_relationships"
+	// SubjectsColumn is the table column denoting the subjects relation/edge.
+	SubjectsColumn = "role_id"
 )
 
 // Columns holds all SQL columns for role fields.
@@ -44,12 +51,11 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldDomain,
-	FieldName,
+	FieldKind,
 	FieldDescription,
 	FieldPolicies,
-	FieldBuiltin,
 	FieldSession,
+	FieldBuiltin,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -62,29 +68,23 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Note that the variables below are initialized by the runtime
-// package on the initialization of the application. Therefore,
-// it should be imported in the main as follows:
-//
-//	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// DefaultDomain holds the default value on creation for the "domain" field.
-	DefaultDomain string
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	// DefaultKind holds the default value on creation for the "kind" field.
+	DefaultKind string
 	// DefaultPolicies holds the default value on creation for the "policies" field.
 	DefaultPolicies types.RolePolicies
-	// DefaultBuiltin holds the default value on creation for the "builtin" field.
-	DefaultBuiltin bool
 	// DefaultSession holds the default value on creation for the "session" field.
 	DefaultSession bool
+	// DefaultBuiltin holds the default value on creation for the "builtin" field.
+	DefaultBuiltin bool
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Role queries.
@@ -105,14 +105,9 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
 }
 
-// ByDomain orders the results by the domain field.
-func ByDomain(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDomain, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
+// ByKind orders the results by the kind field.
+func ByKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKind, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.
@@ -120,14 +115,35 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
+// BySession orders the results by the session field.
+func BySession(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSession, opts...).ToFunc()
+}
+
 // ByBuiltin orders the results by the builtin field.
 func ByBuiltin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBuiltin, opts...).ToFunc()
 }
 
-// BySession orders the results by the session field.
-func BySession(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSession, opts...).ToFunc()
+// BySubjectsCount orders the results by subjects count.
+func BySubjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubjectsStep(), opts...)
+	}
+}
+
+// BySubjects orders the results by subjects terms.
+func BySubjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newSubjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, SubjectsTable, SubjectsColumn),
+	)
 }
 
 // WithoutFields returns the fields ignored the given list.

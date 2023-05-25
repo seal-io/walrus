@@ -28,6 +28,8 @@ func (in ApplicationInstanceQueryInput) Model() *ApplicationInstance {
 
 // ApplicationInstanceCreateInput is the input for the ApplicationInstance creation.
 type ApplicationInstanceCreateInput struct {
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID"`
 	// Name of the instance.
 	Name string `json:"name"`
 	// Variables of the instance.
@@ -43,6 +45,7 @@ type ApplicationInstanceCreateInput struct {
 // Model converts the ApplicationInstanceCreateInput to ApplicationInstance.
 func (in ApplicationInstanceCreateInput) Model() *ApplicationInstance {
 	var entity = &ApplicationInstance{
+		ProjectID: in.ProjectID,
 		Name:      in.Name,
 		Variables: in.Variables,
 		Status:    in.Status,
@@ -76,6 +79,8 @@ func (in ApplicationInstanceUpdateInput) Model() *ApplicationInstance {
 type ApplicationInstanceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -90,7 +95,7 @@ type ApplicationInstanceOutput struct {
 	Application *ApplicationOutput `json:"application,omitempty"`
 	// Environment to which the instance belongs.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
-	// Application revisions that belong to this instance.
+	// Application revisions that belong to the instance.
 	Revisions []*ApplicationRevisionOutput `json:"revisions,omitempty"`
 	// Application resources that belong to the instance.
 	Resources []*ApplicationResourceOutput `json:"resources,omitempty"`
@@ -103,6 +108,7 @@ func ExposeApplicationInstance(in *ApplicationInstance) *ApplicationInstanceOutp
 	}
 	var entity = &ApplicationInstanceOutput{
 		ID:          in.ID,
+		ProjectID:   in.ProjectID,
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
 		Name:        in.Name,

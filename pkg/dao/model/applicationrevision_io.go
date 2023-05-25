@@ -29,6 +29,8 @@ func (in ApplicationRevisionQueryInput) Model() *ApplicationRevision {
 
 // ApplicationRevisionCreateInput is the input for the ApplicationRevision creation.
 type ApplicationRevisionCreateInput struct {
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -62,6 +64,7 @@ type ApplicationRevisionCreateInput struct {
 // Model converts the ApplicationRevisionCreateInput to ApplicationRevision.
 func (in ApplicationRevisionCreateInput) Model() *ApplicationRevision {
 	var entity = &ApplicationRevision{
+		ProjectID:                 in.ProjectID,
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		Modules:                   in.Modules,
@@ -134,6 +137,8 @@ func (in ApplicationRevisionUpdateInput) Model() *ApplicationRevision {
 type ApplicationRevisionOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty"`
 	// Status of the resource.
 	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
@@ -167,6 +172,7 @@ func ExposeApplicationRevision(in *ApplicationRevision) *ApplicationRevisionOutp
 	}
 	var entity = &ApplicationRevisionOutput{
 		ID:                        in.ID,
+		ProjectID:                 in.ProjectID,
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		CreateTime:                in.CreateTime,

@@ -85,6 +85,8 @@ type ProjectOutput struct {
 	Applications []*ApplicationOutput `json:"applications,omitempty"`
 	// Secrets that belong to the project.
 	Secrets []*SecretOutput `json:"secrets,omitempty"`
+	// Subject roles that belong to the project.
+	SubjectRoles []*SubjectRoleRelationshipOutput `json:"subjectRoles,omitempty"`
 }
 
 // ExposeProject converts the Project to ProjectOutput.
@@ -101,6 +103,7 @@ func ExposeProject(in *Project) *ProjectOutput {
 		UpdateTime:   in.UpdateTime,
 		Applications: ExposeApplications(in.Edges.Applications),
 		Secrets:      ExposeSecrets(in.Edges.Secrets),
+		SubjectRoles: ExposeSubjectRoleRelationships(in.Edges.SubjectRoles),
 	}
 	return entity
 }

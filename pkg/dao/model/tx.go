@@ -53,6 +53,8 @@ type Tx struct {
 	Setting *SettingClient
 	// Subject is the client for interacting with the Subject builders.
 	Subject *SubjectClient
+	// SubjectRoleRelationship is the client for interacting with the SubjectRoleRelationship builders.
+	SubjectRoleRelationship *SubjectRoleRelationshipClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 
@@ -204,6 +206,7 @@ func (tx *Tx) init() {
 	tx.Secret = NewSecretClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
+	tx.SubjectRoleRelationship = NewSubjectRoleRelationshipClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
 }
 
@@ -358,6 +361,11 @@ func (tx *Tx) Subjects() *SubjectClient {
 	return tx.Subject
 }
 
+// SubjectRoleRelationships implements the ClientSet.
+func (tx *Tx) SubjectRoleRelationships() *SubjectRoleRelationshipClient {
+	return tx.SubjectRoleRelationship
+}
+
 // Tokens implements the ClientSet.
 func (tx *Tx) Tokens() *TokenClient {
 	return tx.Token
@@ -417,6 +425,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Secret.Use(hooks...)
 	tx.Setting.Use(hooks...)
 	tx.Subject.Use(hooks...)
+	tx.SubjectRoleRelationship.Use(hooks...)
 	tx.Token.Use(hooks...)
 }
 

@@ -10,8 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-
-	"github.com/seal-io/seal/pkg/dao/types"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -25,24 +24,34 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldKind holds the string denoting the kind field in the database.
 	FieldKind = "kind"
-	// FieldGroup holds the string denoting the group field in the database.
-	FieldGroup = "group"
+	// FieldDomain holds the string denoting the domain field in the database.
+	FieldDomain = "domain"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldMountTo holds the string denoting the mountto field in the database.
-	FieldMountTo = "mount_to"
-	// FieldLoginTo holds the string denoting the loginto field in the database.
-	FieldLoginTo = "login_to"
-	// FieldRoles holds the string denoting the roles field in the database.
-	FieldRoles = "roles"
-	// FieldPaths holds the string denoting the paths field in the database.
-	FieldPaths = "paths"
 	// FieldBuiltin holds the string denoting the builtin field in the database.
 	FieldBuiltin = "builtin"
+	// EdgeTokens holds the string denoting the tokens edge name in mutations.
+	EdgeTokens = "tokens"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// Table holds the table name of the subject in the database.
 	Table = "subjects"
+	// TokensTable is the table that holds the tokens relation/edge.
+	TokensTable = "tokens"
+	// TokensInverseTable is the table name for the Token entity.
+	// It exists in this package in order to avoid circular dependency with the "token" package.
+	TokensInverseTable = "tokens"
+	// TokensColumn is the table column denoting the tokens relation/edge.
+	TokensColumn = "subject_id"
+	// RolesTable is the table that holds the roles relation/edge.
+	RolesTable = "subject_role_relationships"
+	// RolesInverseTable is the table name for the SubjectRoleRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "subjectrolerelationship" package.
+	RolesInverseTable = "subject_role_relationships"
+	// RolesColumn is the table column denoting the roles relation/edge.
+	RolesColumn = "subject_id"
 )
 
 // Columns holds all SQL columns for subject fields.
@@ -51,13 +60,9 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldKind,
-	FieldGroup,
+	FieldDomain,
 	FieldName,
 	FieldDescription,
-	FieldMountTo,
-	FieldLoginTo,
-	FieldRoles,
-	FieldPaths,
 	FieldBuiltin,
 }
 
@@ -86,18 +91,10 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultKind holds the default value on creation for the "kind" field.
 	DefaultKind string
-	// DefaultGroup holds the default value on creation for the "group" field.
-	DefaultGroup string
+	// DefaultDomain holds the default value on creation for the "domain" field.
+	DefaultDomain string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultMountTo holds the default value on creation for the "mountTo" field.
-	DefaultMountTo bool
-	// DefaultLoginTo holds the default value on creation for the "loginTo" field.
-	DefaultLoginTo bool
-	// DefaultRoles holds the default value on creation for the "roles" field.
-	DefaultRoles types.SubjectRoles
-	// DefaultPaths holds the default value on creation for the "paths" field.
-	DefaultPaths []string
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.
 	DefaultBuiltin bool
 )
@@ -125,9 +122,9 @@ func ByKind(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldKind, opts...).ToFunc()
 }
 
-// ByGroup orders the results by the group field.
-func ByGroup(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldGroup, opts...).ToFunc()
+// ByDomain orders the results by the domain field.
+func ByDomain(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDomain, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -140,19 +137,51 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByMountTo orders the results by the mountTo field.
-func ByMountTo(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMountTo, opts...).ToFunc()
-}
-
-// ByLoginTo orders the results by the loginTo field.
-func ByLoginTo(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLoginTo, opts...).ToFunc()
-}
-
 // ByBuiltin orders the results by the builtin field.
 func ByBuiltin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBuiltin, opts...).ToFunc()
+}
+
+// ByTokensCount orders the results by tokens count.
+func ByTokensCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTokensStep(), opts...)
+	}
+}
+
+// ByTokens orders the results by tokens terms.
+func ByTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRolesCount orders the results by roles count.
+func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRolesStep(), opts...)
+	}
+}
+
+// ByRoles orders the results by roles terms.
+func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newTokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TokensTable, TokensColumn),
+	)
+}
+func newRolesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, RolesTable, RolesColumn),
+	)
 }
 
 // WithoutFields returns the fields ignored the given list.

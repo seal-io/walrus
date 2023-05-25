@@ -29,6 +29,8 @@ func (in ApplicationResourceQueryInput) Model() *ApplicationResource {
 
 // ApplicationResourceCreateInput is the input for the ApplicationResource creation.
 type ApplicationResourceCreateInput struct {
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID"`
 	// Name of the module that generates the resource.
 	Module string `json:"module"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
@@ -52,6 +54,7 @@ type ApplicationResourceCreateInput struct {
 // Model converts the ApplicationResourceCreateInput to ApplicationResource.
 func (in ApplicationResourceCreateInput) Model() *ApplicationResource {
 	var entity = &ApplicationResource{
+		ProjectID:    in.ProjectID,
 		Module:       in.Module,
 		Mode:         in.Mode,
 		Type:         in.Type,
@@ -88,6 +91,8 @@ func (in ApplicationResourceUpdateInput) Model() *ApplicationResource {
 type ApplicationResourceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -110,7 +115,7 @@ type ApplicationResourceOutput struct {
 	Connector *ConnectorOutput `json:"connector,omitempty"`
 	// Application resource to which the resource makes up.
 	Composition *ApplicationResourceOutput `json:"composition,omitempty"`
-	// Application resources that make up this resource.
+	// Application resources that make up the resource.
 	Components []*ApplicationResourceOutput `json:"components,omitempty"`
 }
 
@@ -137,6 +142,7 @@ func ExposeApplicationResource(in *ApplicationResource) *ApplicationResourceOutp
 	}
 	var entity = &ApplicationResourceOutput{
 		ID:           in.ID,
+		ProjectID:    in.ProjectID,
 		CreateTime:   in.CreateTime,
 		UpdateTime:   in.UpdateTime,
 		Module:       in.Module,

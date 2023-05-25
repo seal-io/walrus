@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -18,17 +19,18 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 )
 
 // RoleQuery is the builder for querying Role entities.
 type RoleQuery struct {
 	config
-	ctx        *QueryContext
-	order      []role.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Role
-	modifiers  []func(*sql.Selector)
+	ctx          *QueryContext
+	order        []role.OrderOption
+	inters       []Interceptor
+	predicates   []predicate.Role
+	withSubjects *SubjectRoleRelationshipQuery
+	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -65,6 +67,31 @@ func (rq *RoleQuery) Order(o ...role.OrderOption) *RoleQuery {
 	return rq
 }
 
+// QuerySubjects chains the current query on the "subjects" edge.
+func (rq *RoleQuery) QuerySubjects() *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, selector),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, role.SubjectsTable, role.SubjectsColumn),
+		)
+		schemaConfig := rq.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Role entity from the query.
 // Returns a *NotFoundError when no Role was found.
 func (rq *RoleQuery) First(ctx context.Context) (*Role, error) {
@@ -89,8 +116,8 @@ func (rq *RoleQuery) FirstX(ctx context.Context) *Role {
 
 // FirstID returns the first Role ID from the query.
 // Returns a *NotFoundError when no Role ID was found.
-func (rq *RoleQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (rq *RoleQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +129,7 @@ func (rq *RoleQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rq *RoleQuery) FirstIDX(ctx context.Context) oid.ID {
+func (rq *RoleQuery) FirstIDX(ctx context.Context) string {
 	id, err := rq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +167,8 @@ func (rq *RoleQuery) OnlyX(ctx context.Context) *Role {
 // OnlyID is like Only, but returns the only Role ID in the query.
 // Returns a *NotSingularError when more than one Role ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rq *RoleQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (rq *RoleQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +184,7 @@ func (rq *RoleQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rq *RoleQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (rq *RoleQuery) OnlyIDX(ctx context.Context) string {
 	id, err := rq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,7 +212,7 @@ func (rq *RoleQuery) AllX(ctx context.Context) []*Role {
 }
 
 // IDs executes the query and returns a list of Role IDs.
-func (rq *RoleQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (rq *RoleQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if rq.ctx.Unique == nil && rq.path != nil {
 		rq.Unique(true)
 	}
@@ -197,7 +224,7 @@ func (rq *RoleQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rq *RoleQuery) IDsX(ctx context.Context) []oid.ID {
+func (rq *RoleQuery) IDsX(ctx context.Context) []string {
 	ids, err := rq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -252,15 +279,27 @@ func (rq *RoleQuery) Clone() *RoleQuery {
 		return nil
 	}
 	return &RoleQuery{
-		config:     rq.config,
-		ctx:        rq.ctx.Clone(),
-		order:      append([]role.OrderOption{}, rq.order...),
-		inters:     append([]Interceptor{}, rq.inters...),
-		predicates: append([]predicate.Role{}, rq.predicates...),
+		config:       rq.config,
+		ctx:          rq.ctx.Clone(),
+		order:        append([]role.OrderOption{}, rq.order...),
+		inters:       append([]Interceptor{}, rq.inters...),
+		predicates:   append([]predicate.Role{}, rq.predicates...),
+		withSubjects: rq.withSubjects.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
 	}
+}
+
+// WithSubjects tells the query-builder to eager-load the nodes that are connected to
+// the "subjects" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoleQuery) WithSubjects(opts ...func(*SubjectRoleRelationshipQuery)) *RoleQuery {
+	query := (&SubjectRoleRelationshipClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withSubjects = query
+	return rq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -339,8 +378,11 @@ func (rq *RoleQuery) prepareQuery(ctx context.Context) error {
 
 func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, error) {
 	var (
-		nodes = []*Role{}
-		_spec = rq.querySpec()
+		nodes       = []*Role{}
+		_spec       = rq.querySpec()
+		loadedTypes = [1]bool{
+			rq.withSubjects != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Role).scanValues(nil, columns)
@@ -348,6 +390,7 @@ func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Role{config: rq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	_spec.Node.Schema = rq.schemaConfig.Role
@@ -364,7 +407,45 @@ func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := rq.withSubjects; query != nil {
+		if err := rq.loadSubjects(ctx, query, nodes,
+			func(n *Role) { n.Edges.Subjects = []*SubjectRoleRelationship{} },
+			func(n *Role, e *SubjectRoleRelationship) { n.Edges.Subjects = append(n.Edges.Subjects, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (rq *RoleQuery) loadSubjects(ctx context.Context, query *SubjectRoleRelationshipQuery, nodes []*Role, init func(*Role), assign func(*Role, *SubjectRoleRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Role)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(subjectrolerelationship.FieldRoleID)
+	}
+	query.Where(predicate.SubjectRoleRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(role.SubjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "role_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (rq *RoleQuery) sqlCount(ctx context.Context) (int, error) {

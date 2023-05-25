@@ -18,6 +18,8 @@ const (
 	Label = "application"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -28,8 +30,6 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldProjectID holds the string denoting the projectid field in the database.
-	FieldProjectID = "project_id"
 	// FieldVariables holds the string denoting the variables field in the database.
 	FieldVariables = "variables"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -66,12 +66,12 @@ const (
 // Columns holds all SQL columns for application fields.
 var Columns = []string{
 	FieldID,
+	FieldProjectID,
 	FieldName,
 	FieldDescription,
 	FieldLabels,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldProjectID,
 	FieldVariables,
 }
 
@@ -91,7 +91,10 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks        [3]ent.Hook
+	Interceptors [1]ent.Interceptor
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultLabels holds the default value on creation for the "labels" field.
@@ -102,8 +105,6 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
-	ProjectIDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Application queries.
@@ -112,6 +113,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -132,11 +138,6 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the updateTime field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
-}
-
-// ByProjectID orders the results by the projectID field.
-func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByVariables orders the results by the variables field.

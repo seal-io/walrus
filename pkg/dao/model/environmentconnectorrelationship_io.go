@@ -29,9 +29,9 @@ func (in EnvironmentConnectorRelationshipQueryInput) Model() *EnvironmentConnect
 
 // EnvironmentConnectorRelationshipCreateInput is the input for the EnvironmentConnectorRelationship creation.
 type EnvironmentConnectorRelationshipCreateInput struct {
-	// Environments that connect to the relationship.
+	// Environment that connect to the relationship.
 	Environment EnvironmentQueryInput `json:"environment"`
-	// Connectors that connect to the relationship.
+	// Connector that connect to the relationship.
 	Connector ConnectorQueryInput `json:"connector"`
 }
 
@@ -45,9 +45,9 @@ func (in EnvironmentConnectorRelationshipCreateInput) Model() *EnvironmentConnec
 
 // EnvironmentConnectorRelationshipUpdateInput is the input for the EnvironmentConnectorRelationship modification.
 type EnvironmentConnectorRelationshipUpdateInput struct {
-	// Environments that connect to the relationship.
+	// Environment that connect to the relationship.
 	Environment EnvironmentQueryInput `json:"environment,omitempty"`
-	// Connectors that connect to the relationship.
+	// Connector that connect to the relationship.
 	Connector ConnectorQueryInput `json:"connector,omitempty"`
 }
 
@@ -63,9 +63,9 @@ func (in EnvironmentConnectorRelationshipUpdateInput) Model() *EnvironmentConnec
 type EnvironmentConnectorRelationshipOutput struct {
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Environments that connect to the relationship.
+	// Environment that connect to the relationship.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
-	// Connectors that connect to the relationship.
+	// Connector that connect to the relationship.
 	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
 

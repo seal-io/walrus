@@ -27,6 +27,8 @@ type ApplicationInstance struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -53,7 +55,7 @@ type ApplicationInstanceEdges struct {
 	Application *Application `json:"application,omitempty" sql:"application"`
 	// Environment to which the instance belongs.
 	Environment *Environment `json:"environment,omitempty" sql:"environment"`
-	// Application revisions that belong to this instance.
+	// Application revisions that belong to the instance.
 	Revisions []*ApplicationRevision `json:"revisions,omitempty" sql:"revisions"`
 	// Application resources that belong to the instance.
 	Resources []*ApplicationResource `json:"resources,omitempty" sql:"resources"`
@@ -113,7 +115,7 @@ func (*ApplicationInstance) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case applicationinstance.FieldStatus:
 			values[i] = new([]byte)
-		case applicationinstance.FieldID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
+		case applicationinstance.FieldID, applicationinstance.FieldProjectID, applicationinstance.FieldApplicationID, applicationinstance.FieldEnvironmentID:
 			values[i] = new(oid.ID)
 		case applicationinstance.FieldVariables:
 			values[i] = new(property.Values)
@@ -141,6 +143,12 @@ func (ai *ApplicationInstance) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ai.ID = *value
+			}
+		case applicationinstance.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				ai.ProjectID = *value
 			}
 		case applicationinstance.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -244,6 +252,9 @@ func (ai *ApplicationInstance) String() string {
 	var builder strings.Builder
 	builder.WriteString("ApplicationInstance(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ai.ID))
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", ai.ProjectID))
+	builder.WriteString(", ")
 	if v := ai.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
