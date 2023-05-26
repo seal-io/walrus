@@ -63,13 +63,12 @@ func (in *StatusSyncer) SyncStatus(ctx context.Context, conn *model.Connector) e
 
 	// Set status and message.
 	for _, sc := range statusChecker {
-		// Init with unknown.
-		sc.status.Unknown(conn, "")
-
 		related, successMsg, err := sc.check(ctx, *conn)
 		if !related {
 			continue
 		}
+		// Init with unknown.
+		sc.status.Unknown(conn, "")
 
 		if err != nil {
 			sc.status.Status(conn, status.ConditionStatusFalse)
