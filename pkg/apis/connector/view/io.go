@@ -151,7 +151,8 @@ type CollectionGetRequest struct {
 func (r *CollectionGetRequest) Validate() error {
 	if r.Category != "" {
 		switch r.Category {
-		case types.ConnectorCategoryKubernetes, types.ConnectorCategoryCustom, types.ConnectorCategoryVersionControl:
+		case types.ConnectorCategoryKubernetes, types.ConnectorCategoryCustom,
+			types.ConnectorCategoryVersionControl, types.ConnectorCategoryCloudProvider:
 		default:
 			return fmt.Errorf("invalid category: %s", r.Category)
 		}
