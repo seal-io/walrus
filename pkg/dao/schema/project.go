@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
@@ -17,6 +18,13 @@ func (Project) Mixin() []ent.Mixin {
 		mixin.ID{},
 		mixin.Meta{},
 		mixin.Time{},
+	}
+}
+
+func (Project) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name").
+			Unique(),
 	}
 }
 
