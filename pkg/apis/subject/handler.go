@@ -1,6 +1,8 @@
 package subject
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -148,7 +150,10 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 
 		err = updates[0].Exec(ctx)
 		if err != nil {
-			return err
+			if !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+			// Maybe nothing change but password.
 		}
 
 		if entity.Kind != types.SubjectKindUser ||
