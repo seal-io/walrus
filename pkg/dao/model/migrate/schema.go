@@ -506,6 +506,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{ProjectsColumns[5]},
 			},
+			{
+				Name:    "project_name",
+				Unique:  true,
+				Columns: []*schema.Column{ProjectsColumns[1]},
+			},
 		},
 	}
 	// RolesColumns holds the columns for the "roles" table.
