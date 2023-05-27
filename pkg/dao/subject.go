@@ -77,11 +77,6 @@ func (sc *WrappedSubjectCreate) Save(ctx context.Context) (created *model.Subjec
 			SetSubjectID(created.ID).
 			SetRoleID(rs.RoleID)
 
-		// Optional.
-		if rs.ProjectID.IsNaive() {
-			c.SetProjectID(rs.ProjectID)
-		}
-
 		createRss[i] = c
 	}
 
@@ -164,11 +159,11 @@ func (su *WrappedSubjectUpdate) Save(ctx context.Context) (updated int, err erro
 		Where(su.entityPredicates...).
 		Select(subject.FieldID).
 		WithRoles(func(rq *model.SubjectRoleRelationshipQuery) {
-			rq.Select(
-				subjectrolerelationship.FieldProjectID,
-				subjectrolerelationship.FieldSubjectID,
-				subjectrolerelationship.FieldRoleID,
-			)
+			rq.Where(subjectrolerelationship.ProjectIDIsNil()).
+				Select(
+					subjectrolerelationship.FieldSubjectID,
+					subjectrolerelationship.FieldRoleID,
+				)
 		}).
 		Only(ctx)
 	if err != nil {
@@ -181,39 +176,22 @@ func (su *WrappedSubjectUpdate) Save(ctx context.Context) (updated int, err erro
 	newRss := su.entity.Edges.Roles
 
 	for _, rs := range newRss {
-		newRsKeys.Insert(strs.Join("/", string(subjectID), rs.RoleID, string(rs.ProjectID)))
+		newRsKeys.Insert(strs.Join("/", string(subjectID), rs.RoleID))
 
 		// Required.
 		c := mc.SubjectRoleRelationships().Create().
 			SetSubjectID(subjectID).
 			SetRoleID(rs.RoleID)
 
-		// Optional.
-		var cc []sql.ConflictOption
-
-		if rs.ProjectID.IsNaive() {
-			c.SetProjectID(rs.ProjectID)
-			cc = []sql.ConflictOption{
-				sql.ConflictColumns(
-					subjectrolerelationship.FieldProjectID,
-					subjectrolerelationship.FieldSubjectID,
-					subjectrolerelationship.FieldRoleID,
-				),
-				sql.ConflictWhere(sql.P().
-					NotNull(subjectrolerelationship.FieldProjectID)),
-			}
-		} else {
-			cc = []sql.ConflictOption{
+		err = c.
+			OnConflict(
 				sql.ConflictColumns(
 					subjectrolerelationship.FieldSubjectID,
 					subjectrolerelationship.FieldRoleID,
 				),
 				sql.ConflictWhere(sql.P().
 					IsNull(subjectrolerelationship.FieldProjectID)),
-			}
-		}
-
-		err = c.OnConflict(cc...).
+			).
 			DoNothing().
 			Exec(ctx)
 		if err != nil {
@@ -224,28 +202,16 @@ func (su *WrappedSubjectUpdate) Save(ctx context.Context) (updated int, err erro
 	// Delete stale relationship.
 	oldRss := oldEntity.Edges.Roles
 	for _, rs := range oldRss {
-		if newRsKeys.Has(strs.Join("/", string(rs.SubjectID), rs.RoleID, string(rs.ProjectID))) {
+		if newRsKeys.Has(strs.Join("/", string(rs.SubjectID), rs.RoleID)) {
 			continue
 		}
 
-		var ps []predicate.SubjectRoleRelationship
-
-		if rs.ProjectID.IsNaive() {
-			ps = []predicate.SubjectRoleRelationship{
-				subjectrolerelationship.ProjectID(rs.ProjectID),
-				subjectrolerelationship.SubjectID(rs.SubjectID),
-				subjectrolerelationship.RoleID(rs.RoleID),
-			}
-		} else {
-			ps = []predicate.SubjectRoleRelationship{
+		_, err = mc.SubjectRoleRelationships().Delete().
+			Where(
 				subjectrolerelationship.ProjectIDIsNil(),
 				subjectrolerelationship.SubjectID(rs.SubjectID),
 				subjectrolerelationship.RoleID(rs.RoleID),
-			}
-		}
-
-		_, err = mc.SubjectRoleRelationships().Delete().
-			Where(ps...).
+			).
 			Exec(ctx)
 		if err != nil {
 			return
