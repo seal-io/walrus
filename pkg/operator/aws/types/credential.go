@@ -1,8 +1,7 @@
-package resourcestatus
+package types
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -40,32 +39,11 @@ func (a Credential) Config() (*aws.Config, error) {
 
 // ConfigFromCtx get credential from context and creates an AWS SDK V2 Config.
 func ConfigFromCtx(ctx context.Context) (*aws.Config, error) {
-	cred, err := credentialFromCtx(ctx)
+	cred, err := types.CredentialFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	wrap := Credential(*cred)
 
 	return wrap.Config()
-}
-
-func credentialFromCtx(ctx context.Context) (*types.Credential, error) {
-	cred, ok := ctx.Value(types.CredentialKey).(*types.Credential)
-	if !ok {
-		return nil, errors.New("not found credential from context")
-	}
-
-	if cred.AccessKey == "" {
-		return nil, errors.New("accessKey is empty")
-	}
-
-	if cred.AccessSecret == "" {
-		return nil, errors.New("secretKey is empty")
-	}
-
-	if cred.Region == "" {
-		return nil, errors.New("region is empty")
-	}
-
-	return cred, nil
 }
