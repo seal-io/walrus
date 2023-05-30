@@ -10,7 +10,10 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/operator/aws/key"
+	"github.com/seal-io/seal/pkg/operator/aws/resourceexec"
 	"github.com/seal-io/seal/pkg/operator/aws/resourcestatus"
+	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
@@ -41,7 +44,7 @@ func (o Operator) Type() optypes.Type {
 }
 
 func (o Operator) IsConnected(ctx context.Context) error {
-	cred := resourcestatus.Credential(*o.cred)
+	cred := opawstypes.Credential(*o.cred)
 
 	cfg, err := cred.Config()
 	if err != nil {
@@ -76,7 +79,32 @@ func (o Operator) GetStatus(ctx context.Context, resource *model.ApplicationReso
 }
 
 func (o Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
-	return nil, nil
+	var (
+		loggable = false
+		subCtx   = context.WithValue(ctx, optypes.CredentialKey, o.cred)
+		keyName  = key.Encode(resource.Type, resource.Name)
+	)
+
+	executable, err := resourceexec.Supported(subCtx, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	k := optypes.Key{
+		Name:       keyName,
+		Executable: &executable,
+		Loggable:   &loggable,
+	}
+
+	return &optypes.Keys{
+		Keys:   []optypes.Key{k},
+		Labels: []string{"Resource"},
+	}, nil
+}
+
+func (o Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions) error {
+	newCtx := context.WithValue(ctx, optypes.CredentialKey, o.cred)
+	return resourceexec.Exec(newCtx, s, options)
 }
 
 func (o Operator) GetEndpoints(
@@ -95,10 +123,6 @@ func (o Operator) GetComponents(
 
 func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions) error {
 	return errors.New("cannot log")
-}
-
-func (o Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions) error {
-	return errors.New("cannot execute")
 }
 
 func (o Operator) Label(ctx context.Context, resource *model.ApplicationResource, m map[string]string) error {

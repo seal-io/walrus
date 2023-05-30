@@ -12,10 +12,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elbv2"
+
+	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
+	"github.com/seal-io/seal/pkg/operator/types"
 )
 
 func ec2Client(ctx context.Context) (*ec2.Client, error) {
-	cfg, err := ConfigFromCtx(ctx)
+	cfg, err := opawstypes.ConfigFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +27,7 @@ func ec2Client(ctx context.Context) (*ec2.Client, error) {
 }
 
 func rdsClient(ctx context.Context) (*rds.Client, error) {
-	cfg, err := ConfigFromCtx(ctx)
+	cfg, err := opawstypes.ConfigFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +36,7 @@ func rdsClient(ctx context.Context) (*rds.Client, error) {
 }
 
 func cloudfrontClient(ctx context.Context) (*cloudfront.Client, error) {
-	cfg, err := ConfigFromCtx(ctx)
+	cfg, err := opawstypes.ConfigFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +45,7 @@ func cloudfrontClient(ctx context.Context) (*cloudfront.Client, error) {
 }
 
 func elasticCacheClient(ctx context.Context) (*elasticache.Client, error) {
-	cfg, err := ConfigFromCtx(ctx)
+	cfg, err := opawstypes.ConfigFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +54,7 @@ func elasticCacheClient(ctx context.Context) (*elasticache.Client, error) {
 }
 
 func elbClient(ctx context.Context) (*elbv2.ELBV2, error) {
-	cred, err := credentialFromCtx(ctx)
+	cred, err := types.CredentialFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +71,7 @@ func elbClient(ctx context.Context) (*elbv2.ELBV2, error) {
 }
 
 func eksClient(ctx context.Context) (*eks.Client, error) {
-	cfg, err := ConfigFromCtx(ctx)
+	cfg, err := opawstypes.ConfigFromCtx(ctx)
 	if err != nil {
 		return nil, err
 	}

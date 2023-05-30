@@ -10,6 +10,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/operator/alibaba/key"
+	"github.com/seal-io/seal/pkg/operator/alibaba/resourceexec"
 	"github.com/seal-io/seal/pkg/operator/alibaba/resourcestatus"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
@@ -79,7 +81,34 @@ func (o Operator) GetStatus(_ context.Context, resource *model.ApplicationResour
 }
 
 func (o Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
-	return nil, nil
+	var (
+		loggable = false
+		subCtx   = context.WithValue(ctx, optypes.CredentialKey, o.cred)
+		keyName  = key.Encode(resource.Type, resource.Name)
+	)
+
+	executable, err := resourceexec.Supported(subCtx, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	k := optypes.Key{
+		Name:       keyName,
+		Executable: &executable,
+		Loggable:   &loggable,
+	}
+
+	return &optypes.Keys{
+		Keys:   []optypes.Key{k},
+		Labels: []string{"Resource"},
+	}, nil
+}
+
+func (o Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions) (err error) {
+	subCtx := context.WithValue(ctx, optypes.CredentialKey, o.cred)
+	err = resourceexec.Exec(subCtx, s, options)
+
+	return err
 }
 
 func (o Operator) GetEndpoints(
@@ -97,10 +126,6 @@ func (o Operator) GetComponents(
 }
 
 func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions) error {
-	return errors.New("cannot log")
-}
-
-func (o Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions) error {
 	return errors.New("cannot execute")
 }
 
