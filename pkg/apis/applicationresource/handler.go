@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/applicationresource/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -18,7 +19,6 @@ import (
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -247,8 +247,6 @@ func getCollection(
 	query *model.ApplicationResourceQuery,
 	withoutKeys bool,
 ) (view.CollectionGetResponse, error) {
-	logger := log.WithName("api").WithName("application-resource")
-
 	// Allow returning without sorting keys.
 	entities, err := query.Unique(false).
 		// Must extract connector.
@@ -273,41 +271,5 @@ func getCollection(
 	}
 
 	// Expose resources.
-	resp := make(view.CollectionGetResponse, len(entities))
-	for i := 0; i < len(entities); i++ {
-		resp[i].Resource = model.ExposeApplicationResource(entities[i])
-	}
-
-	// Fetch keys for each resource without error returning.
-	if !withoutKeys {
-		// NB(thxCode): we can safety index the connector with its pointer here,
-		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
-		m := make(map[*model.Connector][]int)
-		for i := 0; i < len(entities); i++ {
-			m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
-		}
-
-		for c, idxs := range m {
-			// Get operator by connector.
-			op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
-			if err != nil {
-				logger.Warnf("cannot get operator of connector: %v", err)
-				continue
-			}
-
-			if err = op.IsConnected(ctx); err != nil {
-				logger.Warnf("unreachable connector: %v", err)
-				continue
-			}
-			// Fetch keys for the resources that related to same connector.
-			for _, i := range idxs {
-				resp[i].Keys, err = op.GetKeys(ctx, entities[i])
-				if err != nil {
-					logger.Errorf("error getting keys: %v", err)
-				}
-			}
-		}
-	}
-
-	return resp, nil
+	return applicationresources.GetResourcesDetail(ctx, entities, withoutKeys), nil
 }

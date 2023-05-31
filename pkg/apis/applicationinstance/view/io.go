@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/graph"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -484,3 +485,19 @@ type DiffLatestResponse struct {
 	Old *Diff `json:"old,omitempty"`
 	New *Diff `json:"new,omitempty"`
 }
+
+type GetGraphRequest struct {
+	_ struct{} `route:"GET=/graph"`
+
+	ID oid.ID `uri:"id"`
+}
+
+func (r *GetGraphRequest) Validate() error {
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}
+
+type GetGraphResponse = *graph.Graph

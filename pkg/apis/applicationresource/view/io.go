@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/applicationresources"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
 	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
@@ -13,7 +14,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/json"
 )
 
 // ApplicationResourceQuery loads model.ApplicationResource with the request ID in validating.
@@ -115,26 +115,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	return nil
 }
 
-type ApplicationResource struct {
-	Resource *model.ApplicationResourceOutput
-	Keys     *optypes.Keys
-}
-
-// MarshalJSON implements the json.Marshaler to avoid the impact from model.ApplicationResourceOutput's marshaller.
-func (in ApplicationResource) MarshalJSON() ([]byte, error) {
-	type (
-		AliasResource model.ApplicationResourceOutput
-		Alias         struct {
-			*AliasResource `json:",inline"`
-			Keys           *optypes.Keys `json:"keys"`
-		}
-	)
-
-	return json.Marshal(&Alias{
-		AliasResource: (*AliasResource)(in.Resource.Normalize()),
-		Keys:          in.Keys,
-	})
-}
+type ApplicationResource = applicationresources.ApplicationResourceDetail
 
 type CollectionGetResponse = []ApplicationResource
 

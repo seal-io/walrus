@@ -28,6 +28,7 @@ import (
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
+	"github.com/seal-io/seal/pkg/graph"
 	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -915,4 +916,8 @@ func (h Handler) GetDiffLatest(ctx *gin.Context, req view.DiffLatestRequest) (*v
 			Variables: app.Variables,
 		},
 	}, nil
+}
+
+func (h Handler) RouteGraph(ctx *gin.Context, req view.GetGraphRequest) (view.GetGraphResponse, error) {
+	return graph.GetInstanceResourceGraph(ctx, h.modelClient, req.ID)
 }
