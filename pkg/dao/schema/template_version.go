@@ -9,47 +9,47 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 )
 
-type ModuleVersion struct {
+type TemplateVersion struct {
 	ent.Schema
 }
 
-func (ModuleVersion) Mixin() []ent.Mixin {
+func (TemplateVersion) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.Time{},
 	}
 }
 
-func (ModuleVersion) Fields() []ent.Field {
+func (TemplateVersion) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("moduleID").
-			Comment("ID of the module.").
+		field.String("templateID").
+			Comment("ID of the template.").
 			NotEmpty().
 			Immutable(),
 		field.String("version").
-			Comment("Module version.").
+			Comment("Template version.").
 			NotEmpty().
 			Immutable(),
 		// This is the normalized terraform module source that can be directly applied to terraform configuration.
 		// For example, when we store multiple versions of a module in a mono repo,
-		//   Module.Source = "github.com/foo/bar"
-		//   ModuleVersion.Source = "github.com/foo/bar/1.0.0"
+		//   Template.Source = "github.com/foo/bar"
+		//   TemplateVersion.Source = "github.com/foo/bar/1.0.0"
 		field.String("source").
-			Comment("Module version source.").
+			Comment("Template version source.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("schema", &types.ModuleSchema{}).
-			Comment("Schema of the module.").
-			Default(&types.ModuleSchema{}),
+		field.JSON("schema", &types.TemplateSchema{}).
+			Comment("Schema of the template.").
+			Default(&types.TemplateSchema{}),
 	}
 }
 
-func (ModuleVersion) Edges() []ent.Edge {
+func (TemplateVersion) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Module 1-* module versions.
-		edge.From("module", Module.Type).
+		// Template 1-* template versions.
+		edge.From("template", Template.Type).
 			Ref("versions").
-			Field("moduleID").
+			Field("templateID").
 			Unique().
 			Required().
 			Immutable(),

@@ -9,50 +9,45 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
-type Module struct {
+type Template struct {
 	ent.Schema
 }
 
-func (Module) Mixin() []ent.Mixin {
+func (Template) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Status{},
 		mixin.Time{},
 	}
 }
 
-func (Module) Fields() []ent.Field {
+func (Template) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").
-			Comment("It is also the name of the module.").
+			Comment("It is also the name of the template.").
 			Unique().
 			NotEmpty().
 			Immutable(),
 		field.String("description").
-			Comment("Description of the module.").
+			Comment("Description of the template.").
 			Optional(),
 		field.String("icon").
 			Comment("A URL to an SVG or PNG image to be used as an icon.").
 			Optional(),
 		field.JSON("labels", map[string]string{}).
-			Comment("Labels of the module.").
+			Comment("Labels of the template.").
 			Default(map[string]string{}),
 		// For terraform deployer, this is a superset of terraform module git source.
 		field.String("source").
-			Comment("Source of the module.").
+			Comment("Source of the template.").
 			NotEmpty(),
 	}
 }
 
-func (Module) Edges() []ent.Edge {
+func (Template) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Applications *-* modules.
-		edge.From("applications", Application.Type).
-			Ref("modules").
-			Comment("Applications to which the module configures.").
-			Through("applicationModuleRelationships", ApplicationModuleRelationship.Type),
-		// Module 1-* module versions.
-		edge.To("versions", ModuleVersion.Type).
-			Comment("versions of the module.").
+		// Template 1-* template versions.
+		edge.To("versions", TemplateVersion.Type).
+			Comment("versions of the template.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),

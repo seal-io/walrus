@@ -20,6 +20,7 @@ func (Connector) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.Meta{},
+		mixin.OwnByProject{}.AsOptional(),
 		mixin.Time{},
 		mixin.State{},
 	}
@@ -57,14 +58,21 @@ func (Connector) Fields() []ent.Field {
 
 func (Connector) Edges() []ent.Edge {
 	return []ent.Edge{
+		// Project 1-* connectors.
+		edge.From("project", Project.Type).
+			Ref("connectors").
+			Field("projectID").
+			Comment("Project to which the connector belongs.").
+			Unique().
+			Immutable(),
 		// Environments *-* connectors.
 		edge.From("environments", Environment.Type).
 			Ref("connectors").
 			Comment("Environments to which the connector configures.").
 			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type),
-		// Connector 1-* application resources.
-		edge.To("resources", ApplicationResource.Type).
-			Comment("Resources that belong to the application.").
+		// Connector 1-* service resources.
+		edge.To("resources", ServiceResource.Type).
+			Comment("Service resources that use the connector.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Restrict,
 			}),
