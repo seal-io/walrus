@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -23,6 +24,8 @@ type Environment struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
+	// ID of the project to which the resource belongs.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Name of the resource.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description of the resource.
@@ -41,42 +44,57 @@ type Environment struct {
 
 // EnvironmentEdges holds the relations/edges for other nodes in the graph.
 type EnvironmentEdges struct {
+	// Project to which the environment belongs.
+	Project *Project `json:"project,omitempty" sql:"project"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty" sql:"connectors"`
-	// Application instances that belong to the environment.
-	Instances []*ApplicationInstance `json:"instances,omitempty" sql:"instances"`
-	// Application revisions that belong to the environment.
-	Revisions []*ApplicationRevision `json:"revisions,omitempty" sql:"revisions"`
+	// Services that belong to the environment.
+	Services []*Service `json:"services,omitempty" sql:"services"`
+	// Services revisions that belong to the environment.
+	ServiceRevisions []*ServiceRevision `json:"serviceRevisions,omitempty" sql:"serviceRevisions"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EnvironmentEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[0] {
+		if e.Project == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // ConnectorsOrErr returns the Connectors value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnvironmentEdges) ConnectorsOrErr() ([]*EnvironmentConnectorRelationship, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Connectors, nil
 	}
 	return nil, &NotLoadedError{edge: "connectors"}
 }
 
-// InstancesOrErr returns the Instances value or an error if the edge
+// ServicesOrErr returns the Services value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) InstancesOrErr() ([]*ApplicationInstance, error) {
-	if e.loadedTypes[1] {
-		return e.Instances, nil
+func (e EnvironmentEdges) ServicesOrErr() ([]*Service, error) {
+	if e.loadedTypes[2] {
+		return e.Services, nil
 	}
-	return nil, &NotLoadedError{edge: "instances"}
+	return nil, &NotLoadedError{edge: "services"}
 }
 
-// RevisionsOrErr returns the Revisions value or an error if the edge
+// ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EnvironmentEdges) RevisionsOrErr() ([]*ApplicationRevision, error) {
-	if e.loadedTypes[2] {
-		return e.Revisions, nil
+func (e EnvironmentEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
+	if e.loadedTypes[3] {
+		return e.ServiceRevisions, nil
 	}
-	return nil, &NotLoadedError{edge: "revisions"}
+	return nil, &NotLoadedError{edge: "serviceRevisions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -86,7 +104,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case environment.FieldLabels:
 			values[i] = new([]byte)
-		case environment.FieldID:
+		case environment.FieldID, environment.FieldProjectID:
 			values[i] = new(oid.ID)
 		case environment.FieldName, environment.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -112,6 +130,12 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				e.ID = *value
+			}
+		case environment.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				e.ProjectID = *value
 			}
 		case environment.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -160,19 +184,24 @@ func (e *Environment) Value(name string) (ent.Value, error) {
 	return e.selectValues.Get(name)
 }
 
+// QueryProject queries the "project" edge of the Environment entity.
+func (e *Environment) QueryProject() *ProjectQuery {
+	return NewEnvironmentClient(e.config).QueryProject(e)
+}
+
 // QueryConnectors queries the "connectors" edge of the Environment entity.
 func (e *Environment) QueryConnectors() *EnvironmentConnectorRelationshipQuery {
 	return NewEnvironmentClient(e.config).QueryConnectors(e)
 }
 
-// QueryInstances queries the "instances" edge of the Environment entity.
-func (e *Environment) QueryInstances() *ApplicationInstanceQuery {
-	return NewEnvironmentClient(e.config).QueryInstances(e)
+// QueryServices queries the "services" edge of the Environment entity.
+func (e *Environment) QueryServices() *ServiceQuery {
+	return NewEnvironmentClient(e.config).QueryServices(e)
 }
 
-// QueryRevisions queries the "revisions" edge of the Environment entity.
-func (e *Environment) QueryRevisions() *ApplicationRevisionQuery {
-	return NewEnvironmentClient(e.config).QueryRevisions(e)
+// QueryServiceRevisions queries the "serviceRevisions" edge of the Environment entity.
+func (e *Environment) QueryServiceRevisions() *ServiceRevisionQuery {
+	return NewEnvironmentClient(e.config).QueryServiceRevisions(e)
 }
 
 // Update returns a builder for updating this Environment.
@@ -198,6 +227,9 @@ func (e *Environment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Environment(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", e.ID))
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", e.ProjectID))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(e.Name)
 	builder.WriteString(", ")

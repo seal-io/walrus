@@ -17,24 +17,22 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
-	"github.com/seal-io/seal/pkg/dao/model/applicationmodulerelationship"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
-	"github.com/seal-io/seal/pkg/dao/model/module"
-	"github.com/seal-io/seal/pkg/dao/model/moduleversion"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/template"
+	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 )
 
@@ -97,24 +95,22 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			allocationcost.Table:                   allocationcost.ValidColumn,
-			application.Table:                      application.ValidColumn,
-			applicationinstance.Table:              applicationinstance.ValidColumn,
-			applicationmodulerelationship.Table:    applicationmodulerelationship.ValidColumn,
-			applicationresource.Table:              applicationresource.ValidColumn,
-			applicationrevision.Table:              applicationrevision.ValidColumn,
 			clustercost.Table:                      clustercost.ValidColumn,
 			connector.Table:                        connector.ValidColumn,
 			environment.Table:                      environment.ValidColumn,
 			environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
-			module.Table:                           module.ValidColumn,
-			moduleversion.Table:                    moduleversion.ValidColumn,
 			perspective.Table:                      perspective.ValidColumn,
 			project.Table:                          project.ValidColumn,
 			role.Table:                             role.ValidColumn,
 			secret.Table:                           secret.ValidColumn,
+			service.Table:                          service.ValidColumn,
+			serviceresource.Table:                  serviceresource.ValidColumn,
+			servicerevision.Table:                  servicerevision.ValidColumn,
 			setting.Table:                          setting.ValidColumn,
 			subject.Table:                          subject.ValidColumn,
 			subjectrolerelationship.Table:          subjectrolerelationship.ValidColumn,
+			template.Table:                         template.ValidColumn,
+			templateversion.Table:                  templateversion.ValidColumn,
 			token.Table:                            token.ValidColumn,
 		})
 	})

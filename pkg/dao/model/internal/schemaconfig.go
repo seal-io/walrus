@@ -11,24 +11,22 @@ import "context"
 // that can be passed at runtime.
 type SchemaConfig struct {
 	AllocationCost                   string // AllocationCost table.
-	Application                      string // Application table.
-	ApplicationInstance              string // ApplicationInstance table.
-	ApplicationModuleRelationship    string // ApplicationModuleRelationship table.
-	ApplicationResource              string // ApplicationResource table.
-	ApplicationRevision              string // ApplicationRevision table.
 	ClusterCost                      string // ClusterCost table.
 	Connector                        string // Connector table.
 	Environment                      string // Environment table.
 	EnvironmentConnectorRelationship string // EnvironmentConnectorRelationship table.
-	Module                           string // Module table.
-	ModuleVersion                    string // ModuleVersion table.
 	Perspective                      string // Perspective table.
 	Project                          string // Project table.
 	Role                             string // Role table.
 	Secret                           string // Secret table.
+	Service                          string // Service table.
+	ServiceResource                  string // ServiceResource table.
+	ServiceRevision                  string // ServiceRevision table.
 	Setting                          string // Setting table.
 	Subject                          string // Subject table.
 	SubjectRoleRelationship          string // SubjectRoleRelationship table.
+	Template                         string // Template table.
+	TemplateVersion                  string // TemplateVersion table.
 	Token                            string // Token table.
 }
 

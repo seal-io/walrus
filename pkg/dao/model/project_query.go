@@ -16,11 +16,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -28,14 +31,17 @@ import (
 // ProjectQuery is the builder for querying Project entities.
 type ProjectQuery struct {
 	config
-	ctx              *QueryContext
-	order            []project.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Project
-	withApplications *ApplicationQuery
-	withSecrets      *SecretQuery
-	withSubjectRoles *SubjectRoleRelationshipQuery
-	modifiers        []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []project.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Project
+	withEnvironments     *EnvironmentQuery
+	withConnectors       *ConnectorQuery
+	withSecrets          *SecretQuery
+	withServices         *ServiceQuery
+	withServiceRevisions *ServiceRevisionQuery
+	withSubjectRoles     *SubjectRoleRelationshipQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -72,9 +78,9 @@ func (pq *ProjectQuery) Order(o ...project.OrderOption) *ProjectQuery {
 	return pq
 }
 
-// QueryApplications chains the current query on the "applications" edge.
-func (pq *ProjectQuery) QueryApplications() *ApplicationQuery {
-	query := (&ApplicationClient{config: pq.config}).Query()
+// QueryEnvironments chains the current query on the "environments" edge.
+func (pq *ProjectQuery) QueryEnvironments() *EnvironmentQuery {
+	query := (&EnvironmentClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -85,12 +91,37 @@ func (pq *ProjectQuery) QueryApplications() *ApplicationQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(project.Table, project.FieldID, selector),
-			sqlgraph.To(application.Table, application.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.ApplicationsTable, project.ApplicationsColumn),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.EnvironmentsTable, project.EnvironmentsColumn),
 		)
 		schemaConfig := pq.schemaConfig
-		step.To.Schema = schemaConfig.Application
-		step.Edge.Schema = schemaConfig.Application
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Environment
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConnectors chains the current query on the "connectors" edge.
+func (pq *ProjectQuery) QueryConnectors() *ConnectorQuery {
+	query := (&ConnectorClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(connector.Table, connector.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ConnectorsTable, project.ConnectorsColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Connector
+		step.Edge.Schema = schemaConfig.Connector
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -116,6 +147,56 @@ func (pq *ProjectQuery) QuerySecrets() *SecretQuery {
 		schemaConfig := pq.schemaConfig
 		step.To.Schema = schemaConfig.Secret
 		step.Edge.Schema = schemaConfig.Secret
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryServices chains the current query on the "services" edge.
+func (pq *ProjectQuery) QueryServices() *ServiceQuery {
+	query := (&ServiceClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ServicesTable, project.ServicesColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryServiceRevisions chains the current query on the "serviceRevisions" edge.
+func (pq *ProjectQuery) QueryServiceRevisions() *ServiceRevisionQuery {
+	query := (&ServiceRevisionClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceRevisionsTable, project.ServiceRevisionsColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceRevision
+		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -334,28 +415,42 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		return nil
 	}
 	return &ProjectQuery{
-		config:           pq.config,
-		ctx:              pq.ctx.Clone(),
-		order:            append([]project.OrderOption{}, pq.order...),
-		inters:           append([]Interceptor{}, pq.inters...),
-		predicates:       append([]predicate.Project{}, pq.predicates...),
-		withApplications: pq.withApplications.Clone(),
-		withSecrets:      pq.withSecrets.Clone(),
-		withSubjectRoles: pq.withSubjectRoles.Clone(),
+		config:               pq.config,
+		ctx:                  pq.ctx.Clone(),
+		order:                append([]project.OrderOption{}, pq.order...),
+		inters:               append([]Interceptor{}, pq.inters...),
+		predicates:           append([]predicate.Project{}, pq.predicates...),
+		withEnvironments:     pq.withEnvironments.Clone(),
+		withConnectors:       pq.withConnectors.Clone(),
+		withSecrets:          pq.withSecrets.Clone(),
+		withServices:         pq.withServices.Clone(),
+		withServiceRevisions: pq.withServiceRevisions.Clone(),
+		withSubjectRoles:     pq.withSubjectRoles.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
-// WithApplications tells the query-builder to eager-load the nodes that are connected to
-// the "applications" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProjectQuery) WithApplications(opts ...func(*ApplicationQuery)) *ProjectQuery {
-	query := (&ApplicationClient{config: pq.config}).Query()
+// WithEnvironments tells the query-builder to eager-load the nodes that are connected to
+// the "environments" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithEnvironments(opts ...func(*EnvironmentQuery)) *ProjectQuery {
+	query := (&EnvironmentClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withApplications = query
+	pq.withEnvironments = query
+	return pq
+}
+
+// WithConnectors tells the query-builder to eager-load the nodes that are connected to
+// the "connectors" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithConnectors(opts ...func(*ConnectorQuery)) *ProjectQuery {
+	query := (&ConnectorClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withConnectors = query
 	return pq
 }
 
@@ -367,6 +462,28 @@ func (pq *ProjectQuery) WithSecrets(opts ...func(*SecretQuery)) *ProjectQuery {
 		opt(query)
 	}
 	pq.withSecrets = query
+	return pq
+}
+
+// WithServices tells the query-builder to eager-load the nodes that are connected to
+// the "services" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithServices(opts ...func(*ServiceQuery)) *ProjectQuery {
+	query := (&ServiceClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withServices = query
+	return pq
+}
+
+// WithServiceRevisions tells the query-builder to eager-load the nodes that are connected to
+// the "serviceRevisions" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQuery)) *ProjectQuery {
+	query := (&ServiceRevisionClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withServiceRevisions = query
 	return pq
 }
 
@@ -459,9 +576,12 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [3]bool{
-			pq.withApplications != nil,
+		loadedTypes = [6]bool{
+			pq.withEnvironments != nil,
+			pq.withConnectors != nil,
 			pq.withSecrets != nil,
+			pq.withServices != nil,
+			pq.withServiceRevisions != nil,
 			pq.withSubjectRoles != nil,
 		}
 	)
@@ -488,10 +608,17 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withApplications; query != nil {
-		if err := pq.loadApplications(ctx, query, nodes,
-			func(n *Project) { n.Edges.Applications = []*Application{} },
-			func(n *Project, e *Application) { n.Edges.Applications = append(n.Edges.Applications, e) }); err != nil {
+	if query := pq.withEnvironments; query != nil {
+		if err := pq.loadEnvironments(ctx, query, nodes,
+			func(n *Project) { n.Edges.Environments = []*Environment{} },
+			func(n *Project, e *Environment) { n.Edges.Environments = append(n.Edges.Environments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withConnectors; query != nil {
+		if err := pq.loadConnectors(ctx, query, nodes,
+			func(n *Project) { n.Edges.Connectors = []*Connector{} },
+			func(n *Project, e *Connector) { n.Edges.Connectors = append(n.Edges.Connectors, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -499,6 +626,20 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadSecrets(ctx, query, nodes,
 			func(n *Project) { n.Edges.Secrets = []*Secret{} },
 			func(n *Project, e *Secret) { n.Edges.Secrets = append(n.Edges.Secrets, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withServices; query != nil {
+		if err := pq.loadServices(ctx, query, nodes,
+			func(n *Project) { n.Edges.Services = []*Service{} },
+			func(n *Project, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withServiceRevisions; query != nil {
+		if err := pq.loadServiceRevisions(ctx, query, nodes,
+			func(n *Project) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
+			func(n *Project, e *ServiceRevision) { n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -512,7 +653,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	return nodes, nil
 }
 
-func (pq *ProjectQuery) loadApplications(ctx context.Context, query *ApplicationQuery, nodes []*Project, init func(*Project), assign func(*Project, *Application)) error {
+func (pq *ProjectQuery) loadEnvironments(ctx context.Context, query *EnvironmentQuery, nodes []*Project, init func(*Project), assign func(*Project, *Environment)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[oid.ID]*Project)
 	for i := range nodes {
@@ -523,10 +664,40 @@ func (pq *ProjectQuery) loadApplications(ctx context.Context, query *Application
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(application.FieldProjectID)
+		query.ctx.AppendFieldOnce(environment.FieldProjectID)
 	}
-	query.Where(predicate.Application(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(project.ApplicationsColumn), fks...))
+	query.Where(predicate.Environment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.EnvironmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadConnectors(ctx context.Context, query *ConnectorQuery, nodes []*Project, init func(*Project), assign func(*Project, *Connector)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(connector.FieldProjectID)
+	}
+	query.Where(predicate.Connector(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ConnectorsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -557,6 +728,66 @@ func (pq *ProjectQuery) loadSecrets(ctx context.Context, query *SecretQuery, nod
 	}
 	query.Where(predicate.Secret(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(project.SecretsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*Project, init func(*Project), assign func(*Project, *Service)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(service.FieldProjectID)
+	}
+	query.Where(predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ServicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Project, init func(*Project), assign func(*Project, *ServiceRevision)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(servicerevision.FieldProjectID)
+	}
+	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ServiceRevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

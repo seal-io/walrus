@@ -28,21 +28,34 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// EdgeApplications holds the string denoting the applications edge name in mutations.
-	EdgeApplications = "applications"
+	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
+	EdgeEnvironments = "environments"
+	// EdgeConnectors holds the string denoting the connectors edge name in mutations.
+	EdgeConnectors = "connectors"
 	// EdgeSecrets holds the string denoting the secrets edge name in mutations.
 	EdgeSecrets = "secrets"
+	// EdgeServices holds the string denoting the services edge name in mutations.
+	EdgeServices = "services"
+	// EdgeServiceRevisions holds the string denoting the servicerevisions edge name in mutations.
+	EdgeServiceRevisions = "serviceRevisions"
 	// EdgeSubjectRoles holds the string denoting the subjectroles edge name in mutations.
 	EdgeSubjectRoles = "subjectRoles"
 	// Table holds the table name of the project in the database.
 	Table = "projects"
-	// ApplicationsTable is the table that holds the applications relation/edge.
-	ApplicationsTable = "applications"
-	// ApplicationsInverseTable is the table name for the Application entity.
-	// It exists in this package in order to avoid circular dependency with the "application" package.
-	ApplicationsInverseTable = "applications"
-	// ApplicationsColumn is the table column denoting the applications relation/edge.
-	ApplicationsColumn = "project_id"
+	// EnvironmentsTable is the table that holds the environments relation/edge.
+	EnvironmentsTable = "environments"
+	// EnvironmentsInverseTable is the table name for the Environment entity.
+	// It exists in this package in order to avoid circular dependency with the "environment" package.
+	EnvironmentsInverseTable = "environments"
+	// EnvironmentsColumn is the table column denoting the environments relation/edge.
+	EnvironmentsColumn = "project_id"
+	// ConnectorsTable is the table that holds the connectors relation/edge.
+	ConnectorsTable = "connectors"
+	// ConnectorsInverseTable is the table name for the Connector entity.
+	// It exists in this package in order to avoid circular dependency with the "connector" package.
+	ConnectorsInverseTable = "connectors"
+	// ConnectorsColumn is the table column denoting the connectors relation/edge.
+	ConnectorsColumn = "project_id"
 	// SecretsTable is the table that holds the secrets relation/edge.
 	SecretsTable = "secrets"
 	// SecretsInverseTable is the table name for the Secret entity.
@@ -50,6 +63,20 @@ const (
 	SecretsInverseTable = "secrets"
 	// SecretsColumn is the table column denoting the secrets relation/edge.
 	SecretsColumn = "project_id"
+	// ServicesTable is the table that holds the services relation/edge.
+	ServicesTable = "services"
+	// ServicesInverseTable is the table name for the Service entity.
+	// It exists in this package in order to avoid circular dependency with the "service" package.
+	ServicesInverseTable = "services"
+	// ServicesColumn is the table column denoting the services relation/edge.
+	ServicesColumn = "project_id"
+	// ServiceRevisionsTable is the table that holds the serviceRevisions relation/edge.
+	ServiceRevisionsTable = "service_revisions"
+	// ServiceRevisionsInverseTable is the table name for the ServiceRevision entity.
+	// It exists in this package in order to avoid circular dependency with the "servicerevision" package.
+	ServiceRevisionsInverseTable = "service_revisions"
+	// ServiceRevisionsColumn is the table column denoting the serviceRevisions relation/edge.
+	ServiceRevisionsColumn = "project_id"
 	// SubjectRolesTable is the table that holds the subjectRoles relation/edge.
 	SubjectRolesTable = "subject_role_relationships"
 	// SubjectRolesInverseTable is the table name for the SubjectRoleRelationship entity.
@@ -126,17 +153,31 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
 }
 
-// ByApplicationsCount orders the results by applications count.
-func ByApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByEnvironmentsCount orders the results by environments count.
+func ByEnvironmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newApplicationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newEnvironmentsStep(), opts...)
 	}
 }
 
-// ByApplications orders the results by applications terms.
-func ByApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByEnvironments orders the results by environments terms.
+func ByEnvironments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByConnectorsCount orders the results by connectors count.
+func ByConnectorsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConnectorsStep(), opts...)
+	}
+}
+
+// ByConnectors orders the results by connectors terms.
+func ByConnectors(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConnectorsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -154,6 +195,34 @@ func BySecrets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByServicesCount orders the results by services count.
+func ByServicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServicesStep(), opts...)
+	}
+}
+
+// ByServices orders the results by services terms.
+func ByServices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByServiceRevisionsCount orders the results by serviceRevisions count.
+func ByServiceRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServiceRevisionsStep(), opts...)
+	}
+}
+
+// ByServiceRevisions orders the results by serviceRevisions terms.
+func ByServiceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServiceRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // BySubjectRolesCount orders the results by subjectRoles count.
 func BySubjectRolesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -167,11 +236,18 @@ func BySubjectRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSubjectRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newApplicationsStep() *sqlgraph.Step {
+func newEnvironmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ApplicationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ApplicationsTable, ApplicationsColumn),
+		sqlgraph.To(EnvironmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnvironmentsTable, EnvironmentsColumn),
+	)
+}
+func newConnectorsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConnectorsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConnectorsTable, ConnectorsColumn),
 	)
 }
 func newSecretsStep() *sqlgraph.Step {
@@ -179,6 +255,20 @@ func newSecretsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SecretsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
+	)
+}
+func newServicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServicesTable, ServicesColumn),
+	)
+}
+func newServiceRevisionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServiceRevisionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServiceRevisionsTable, ServiceRevisionsColumn),
 	)
 }
 func newSubjectRolesStep() *sqlgraph.Step {

@@ -12,21 +12,6 @@ import (
 // AllocationCost is the predicate function for allocationcost builders.
 type AllocationCost func(*sql.Selector)
 
-// Application is the predicate function for application builders.
-type Application func(*sql.Selector)
-
-// ApplicationInstance is the predicate function for applicationinstance builders.
-type ApplicationInstance func(*sql.Selector)
-
-// ApplicationModuleRelationship is the predicate function for applicationmodulerelationship builders.
-type ApplicationModuleRelationship func(*sql.Selector)
-
-// ApplicationResource is the predicate function for applicationresource builders.
-type ApplicationResource func(*sql.Selector)
-
-// ApplicationRevision is the predicate function for applicationrevision builders.
-type ApplicationRevision func(*sql.Selector)
-
 // ClusterCost is the predicate function for clustercost builders.
 type ClusterCost func(*sql.Selector)
 
@@ -38,12 +23,6 @@ type Environment func(*sql.Selector)
 
 // EnvironmentConnectorRelationship is the predicate function for environmentconnectorrelationship builders.
 type EnvironmentConnectorRelationship func(*sql.Selector)
-
-// Module is the predicate function for module builders.
-type Module func(*sql.Selector)
-
-// ModuleVersion is the predicate function for moduleversion builders.
-type ModuleVersion func(*sql.Selector)
 
 // Perspective is the predicate function for perspective builders.
 type Perspective func(*sql.Selector)
@@ -57,6 +36,15 @@ type Role func(*sql.Selector)
 // Secret is the predicate function for secret builders.
 type Secret func(*sql.Selector)
 
+// Service is the predicate function for service builders.
+type Service func(*sql.Selector)
+
+// ServiceResource is the predicate function for serviceresource builders.
+type ServiceResource func(*sql.Selector)
+
+// ServiceRevision is the predicate function for servicerevision builders.
+type ServiceRevision func(*sql.Selector)
+
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
 
@@ -65,6 +53,12 @@ type Subject func(*sql.Selector)
 
 // SubjectRoleRelationship is the predicate function for subjectrolerelationship builders.
 type SubjectRoleRelationship func(*sql.Selector)
+
+// Template is the predicate function for template builders.
+type Template func(*sql.Selector)
+
+// TemplateVersion is the predicate function for templateversion builders.
+type TemplateVersion func(*sql.Selector)
 
 // Token is the predicate function for token builders.
 type Token func(*sql.Selector)

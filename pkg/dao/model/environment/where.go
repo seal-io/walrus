@@ -61,6 +61,11 @@ func IDLTE(id oid.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldID, id))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldEQ(FieldProjectID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldName, v))
@@ -79,6 +84,76 @@ func CreateTime(v time.Time) predicate.Environment {
 // UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.Environment {
+	return predicate.Environment(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.Environment {
+	vc := string(v)
+	return predicate.Environment(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.Environment {
+	vc := string(v)
+	return predicate.Environment(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.Environment {
+	vc := string(v)
+	return predicate.Environment(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.Environment {
+	vc := string(v)
+	return predicate.Environment(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.Environment {
+	vc := string(v)
+	return predicate.Environment(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -301,6 +376,35 @@ func UpdateTimeLTE(v time.Time) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldUpdateTime, v))
 }
 
+// HasProject applies the HasEdge predicate on the "project" edge.
+func HasProject() predicate.Environment {
+	return predicate.Environment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Environment
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
+func HasProjectWith(preds ...predicate.Project) predicate.Environment {
+	return predicate.Environment(func(s *sql.Selector) {
+		step := newProjectStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Environment
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasConnectors applies the HasEdge predicate on the "connectors" edge.
 func HasConnectors() predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
@@ -330,27 +434,27 @@ func HasConnectorsWith(preds ...predicate.EnvironmentConnectorRelationship) pred
 	})
 }
 
-// HasInstances applies the HasEdge predicate on the "instances" edge.
-func HasInstances() predicate.Environment {
+// HasServices applies the HasEdge predicate on the "services" edge.
+func HasServices() predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServicesTable, ServicesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationInstance
-		step.Edge.Schema = schemaConfig.ApplicationInstance
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
-func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Environment {
+// HasServicesWith applies the HasEdge predicate on the "services" edge with a given conditions (other predicates).
+func HasServicesWith(preds ...predicate.Service) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
-		step := newInstancesStep()
+		step := newServicesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationInstance
-		step.Edge.Schema = schemaConfig.ApplicationInstance
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -359,27 +463,27 @@ func HasInstancesWith(preds ...predicate.ApplicationInstance) predicate.Environm
 	})
 }
 
-// HasRevisions applies the HasEdge predicate on the "revisions" edge.
-func HasRevisions() predicate.Environment {
+// HasServiceRevisions applies the HasEdge predicate on the "serviceRevisions" edge.
+func HasServiceRevisions() predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServiceRevisionsTable, ServiceRevisionsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ServiceRevision
+		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
-func HasRevisionsWith(preds ...predicate.ApplicationRevision) predicate.Environment {
+// HasServiceRevisionsWith applies the HasEdge predicate on the "serviceRevisions" edge with a given conditions (other predicates).
+func HasServiceRevisionsWith(preds ...predicate.ServiceRevision) predicate.Environment {
 	return predicate.Environment(func(s *sql.Selector) {
-		step := newRevisionsStep()
+		step := newServiceRevisionsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ServiceRevision
+		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

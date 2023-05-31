@@ -81,10 +81,16 @@ type ProjectOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Applications that belong to the project.
-	Applications []*ApplicationOutput `json:"applications,omitempty"`
+	// Environments that belong to the project.
+	Environments []*EnvironmentOutput `json:"environments,omitempty"`
+	// Connectors that belong to the project.
+	Connectors []*ConnectorOutput `json:"connectors,omitempty"`
 	// Secrets that belong to the project.
 	Secrets []*SecretOutput `json:"secrets,omitempty"`
+	// Services that belong to the project.
+	Services []*ServiceOutput `json:"services,omitempty"`
+	// Service revisions that belong to the project.
+	ServiceRevisions []*ServiceRevisionOutput `json:"serviceRevisions,omitempty"`
 	// Subject roles that belong to the project.
 	SubjectRoles []*SubjectRoleRelationshipOutput `json:"subjectRoles,omitempty"`
 }
@@ -95,15 +101,18 @@ func ExposeProject(in *Project) *ProjectOutput {
 		return nil
 	}
 	var entity = &ProjectOutput{
-		ID:           in.ID,
-		Name:         in.Name,
-		Description:  in.Description,
-		Labels:       in.Labels,
-		CreateTime:   in.CreateTime,
-		UpdateTime:   in.UpdateTime,
-		Applications: ExposeApplications(in.Edges.Applications),
-		Secrets:      ExposeSecrets(in.Edges.Secrets),
-		SubjectRoles: ExposeSubjectRoleRelationships(in.Edges.SubjectRoles),
+		ID:               in.ID,
+		Name:             in.Name,
+		Description:      in.Description,
+		Labels:           in.Labels,
+		CreateTime:       in.CreateTime,
+		UpdateTime:       in.UpdateTime,
+		Environments:     ExposeEnvironments(in.Edges.Environments),
+		Connectors:       ExposeConnectors(in.Edges.Connectors),
+		Secrets:          ExposeSecrets(in.Edges.Secrets),
+		Services:         ExposeServices(in.Edges.Services),
+		ServiceRevisions: ExposeServiceRevisions(in.Edges.ServiceRevisions),
+		SubjectRoles:     ExposeSubjectRoleRelationships(in.Edges.SubjectRoles),
 	}
 	return entity
 }

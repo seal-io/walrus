@@ -49,6 +49,8 @@ type ConnectorCreateInput struct {
 	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Category of the connector.
 	Category string `json:"category"`
+	// Project to which the connector belongs.
+	Project *ProjectQueryInput `json:"project,omitempty"`
 }
 
 // Model converts the ConnectorCreateInput to Connector.
@@ -64,6 +66,9 @@ func (in ConnectorCreateInput) Model() *Connector {
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Category:            in.Category,
+	}
+	if in.Project != nil {
+		entity.ProjectID = in.Project.ID
 	}
 	return entity
 }
@@ -137,10 +142,12 @@ type ConnectorOutput struct {
 	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
 	// Category of the connector.
 	Category string `json:"category,omitempty"`
+	// Project to which the connector belongs.
+	Project *ProjectOutput `json:"project,omitempty"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationshipOutput `json:"environments,omitempty"`
-	// Resources that belong to the application.
-	Resources []*ApplicationResourceOutput `json:"resources,omitempty"`
+	// Service resources that use the connector.
+	Resources []*ServiceResourceOutput `json:"resources,omitempty"`
 	// Cluster costs that linked to the connection
 	ClusterCosts []*ClusterCostOutput `json:"clusterCosts,omitempty"`
 	// Cluster allocation resource costs that linked to the connection.
@@ -166,10 +173,17 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		EnableFinOps:        in.EnableFinOps,
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Category:            in.Category,
+		Project:             ExposeProject(in.Edges.Project),
 		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
-		Resources:           ExposeApplicationResources(in.Edges.Resources),
+		Resources:           ExposeServiceResources(in.Edges.Resources),
 		ClusterCosts:        ExposeClusterCosts(in.Edges.ClusterCosts),
 		AllocationCosts:     ExposeAllocationCosts(in.Edges.AllocationCosts),
+	}
+	if in.ProjectID != "" {
+		if entity.Project == nil {
+			entity.Project = &ProjectOutput{}
+		}
+		entity.Project.ID = in.ProjectID
 	}
 	return entity
 }

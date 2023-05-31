@@ -41,39 +41,72 @@ type Project struct {
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
 type ProjectEdges struct {
-	// Applications that belong to the project.
-	Applications []*Application `json:"applications,omitempty" sql:"applications"`
+	// Environments that belong to the project.
+	Environments []*Environment `json:"environments,omitempty" sql:"environments"`
+	// Connectors that belong to the project.
+	Connectors []*Connector `json:"connectors,omitempty" sql:"connectors"`
 	// Secrets that belong to the project.
 	Secrets []*Secret `json:"secrets,omitempty" sql:"secrets"`
+	// Services that belong to the project.
+	Services []*Service `json:"services,omitempty" sql:"services"`
+	// Service revisions that belong to the project.
+	ServiceRevisions []*ServiceRevision `json:"serviceRevisions,omitempty" sql:"serviceRevisions"`
 	// Subject roles that belong to the project.
 	SubjectRoles []*SubjectRoleRelationship `json:"subjectRoles,omitempty" sql:"subjectRoles"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 }
 
-// ApplicationsOrErr returns the Applications value or an error if the edge
+// EnvironmentsOrErr returns the Environments value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectEdges) ApplicationsOrErr() ([]*Application, error) {
+func (e ProjectEdges) EnvironmentsOrErr() ([]*Environment, error) {
 	if e.loadedTypes[0] {
-		return e.Applications, nil
+		return e.Environments, nil
 	}
-	return nil, &NotLoadedError{edge: "applications"}
+	return nil, &NotLoadedError{edge: "environments"}
+}
+
+// ConnectorsOrErr returns the Connectors value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) ConnectorsOrErr() ([]*Connector, error) {
+	if e.loadedTypes[1] {
+		return e.Connectors, nil
+	}
+	return nil, &NotLoadedError{edge: "connectors"}
 }
 
 // SecretsOrErr returns the Secrets value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) SecretsOrErr() ([]*Secret, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Secrets, nil
 	}
 	return nil, &NotLoadedError{edge: "secrets"}
 }
 
+// ServicesOrErr returns the Services value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
+	if e.loadedTypes[3] {
+		return e.Services, nil
+	}
+	return nil, &NotLoadedError{edge: "services"}
+}
+
+// ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
+	if e.loadedTypes[4] {
+		return e.ServiceRevisions, nil
+	}
+	return nil, &NotLoadedError{edge: "serviceRevisions"}
+}
+
 // SubjectRolesOrErr returns the SubjectRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[5] {
 		return e.SubjectRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "subjectRoles"}
@@ -160,14 +193,29 @@ func (pr *Project) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
 }
 
-// QueryApplications queries the "applications" edge of the Project entity.
-func (pr *Project) QueryApplications() *ApplicationQuery {
-	return NewProjectClient(pr.config).QueryApplications(pr)
+// QueryEnvironments queries the "environments" edge of the Project entity.
+func (pr *Project) QueryEnvironments() *EnvironmentQuery {
+	return NewProjectClient(pr.config).QueryEnvironments(pr)
+}
+
+// QueryConnectors queries the "connectors" edge of the Project entity.
+func (pr *Project) QueryConnectors() *ConnectorQuery {
+	return NewProjectClient(pr.config).QueryConnectors(pr)
 }
 
 // QuerySecrets queries the "secrets" edge of the Project entity.
 func (pr *Project) QuerySecrets() *SecretQuery {
 	return NewProjectClient(pr.config).QuerySecrets(pr)
+}
+
+// QueryServices queries the "services" edge of the Project entity.
+func (pr *Project) QueryServices() *ServiceQuery {
+	return NewProjectClient(pr.config).QueryServices(pr)
+}
+
+// QueryServiceRevisions queries the "serviceRevisions" edge of the Project entity.
+func (pr *Project) QueryServiceRevisions() *ServiceRevisionQuery {
+	return NewProjectClient(pr.config).QueryServiceRevisions(pr)
 }
 
 // QuerySubjectRoles queries the "subjectRoles" edge of the Project entity.

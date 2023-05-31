@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -32,6 +33,8 @@ type Connector struct {
 	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// ID of the project to which the resource belongs, empty means using for global level.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -58,23 +61,38 @@ type Connector struct {
 
 // ConnectorEdges holds the relations/edges for other nodes in the graph.
 type ConnectorEdges struct {
+	// Project to which the connector belongs.
+	Project *Project `json:"project,omitempty" sql:"project"`
 	// Environments holds the value of the environments edge.
 	Environments []*EnvironmentConnectorRelationship `json:"environments,omitempty" sql:"environments"`
-	// Resources that belong to the application.
-	Resources []*ApplicationResource `json:"resources,omitempty" sql:"resources"`
+	// Service resources that use the connector.
+	Resources []*ServiceResource `json:"resources,omitempty" sql:"resources"`
 	// Cluster costs that linked to the connection
 	ClusterCosts []*ClusterCost `json:"clusterCosts,omitempty" sql:"clusterCosts"`
 	// Cluster allocation resource costs that linked to the connection.
 	AllocationCosts []*AllocationCost `json:"allocationCosts,omitempty" sql:"allocationCosts"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ConnectorEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[0] {
+		if e.Project == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
 // was not loaded in eager-loading.
 func (e ConnectorEdges) EnvironmentsOrErr() ([]*EnvironmentConnectorRelationship, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Environments, nil
 	}
 	return nil, &NotLoadedError{edge: "environments"}
@@ -82,8 +100,8 @@ func (e ConnectorEdges) EnvironmentsOrErr() ([]*EnvironmentConnectorRelationship
 
 // ResourcesOrErr returns the Resources value or an error if the edge
 // was not loaded in eager-loading.
-func (e ConnectorEdges) ResourcesOrErr() ([]*ApplicationResource, error) {
-	if e.loadedTypes[1] {
+func (e ConnectorEdges) ResourcesOrErr() ([]*ServiceResource, error) {
+	if e.loadedTypes[2] {
 		return e.Resources, nil
 	}
 	return nil, &NotLoadedError{edge: "resources"}
@@ -92,7 +110,7 @@ func (e ConnectorEdges) ResourcesOrErr() ([]*ApplicationResource, error) {
 // ClusterCostsOrErr returns the ClusterCosts value or an error if the edge
 // was not loaded in eager-loading.
 func (e ConnectorEdges) ClusterCostsOrErr() ([]*ClusterCost, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.ClusterCosts, nil
 	}
 	return nil, &NotLoadedError{edge: "clusterCosts"}
@@ -101,7 +119,7 @@ func (e ConnectorEdges) ClusterCostsOrErr() ([]*ClusterCost, error) {
 // AllocationCostsOrErr returns the AllocationCosts value or an error if the edge
 // was not loaded in eager-loading.
 func (e ConnectorEdges) AllocationCostsOrErr() ([]*AllocationCost, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.AllocationCosts, nil
 	}
 	return nil, &NotLoadedError{edge: "allocationCosts"}
@@ -116,7 +134,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case connector.FieldConfigData:
 			values[i] = new(crypto.Properties)
-		case connector.FieldID:
+		case connector.FieldID, connector.FieldProjectID:
 			values[i] = new(oid.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
@@ -164,6 +182,12 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &c.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
+			}
+		case connector.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				c.ProjectID = *value
 			}
 		case connector.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -238,13 +262,18 @@ func (c *Connector) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
 }
 
+// QueryProject queries the "project" edge of the Connector entity.
+func (c *Connector) QueryProject() *ProjectQuery {
+	return NewConnectorClient(c.config).QueryProject(c)
+}
+
 // QueryEnvironments queries the "environments" edge of the Connector entity.
 func (c *Connector) QueryEnvironments() *EnvironmentConnectorRelationshipQuery {
 	return NewConnectorClient(c.config).QueryEnvironments(c)
 }
 
 // QueryResources queries the "resources" edge of the Connector entity.
-func (c *Connector) QueryResources() *ApplicationResourceQuery {
+func (c *Connector) QueryResources() *ServiceResourceQuery {
 	return NewConnectorClient(c.config).QueryResources(c)
 }
 
@@ -289,6 +318,9 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", c.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
 	builder.WriteString(", ")
 	if v := c.CreateTime; v != nil {
 		builder.WriteString("createTime=")

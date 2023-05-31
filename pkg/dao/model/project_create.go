@@ -16,9 +16,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/application"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -91,19 +94,34 @@ func (pc *ProjectCreate) SetID(o oid.ID) *ProjectCreate {
 	return pc
 }
 
-// AddApplicationIDs adds the "applications" edge to the Application entity by IDs.
-func (pc *ProjectCreate) AddApplicationIDs(ids ...oid.ID) *ProjectCreate {
-	pc.mutation.AddApplicationIDs(ids...)
+// AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
+func (pc *ProjectCreate) AddEnvironmentIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddEnvironmentIDs(ids...)
 	return pc
 }
 
-// AddApplications adds the "applications" edges to the Application entity.
-func (pc *ProjectCreate) AddApplications(a ...*Application) *ProjectCreate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddEnvironments adds the "environments" edges to the Environment entity.
+func (pc *ProjectCreate) AddEnvironments(e ...*Environment) *ProjectCreate {
+	ids := make([]oid.ID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return pc.AddApplicationIDs(ids...)
+	return pc.AddEnvironmentIDs(ids...)
+}
+
+// AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
+func (pc *ProjectCreate) AddConnectorIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddConnectorIDs(ids...)
+	return pc
+}
+
+// AddConnectors adds the "connectors" edges to the Connector entity.
+func (pc *ProjectCreate) AddConnectors(c ...*Connector) *ProjectCreate {
+	ids := make([]oid.ID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddConnectorIDs(ids...)
 }
 
 // AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
@@ -119,6 +137,36 @@ func (pc *ProjectCreate) AddSecrets(s ...*Secret) *ProjectCreate {
 		ids[i] = s[i].ID
 	}
 	return pc.AddSecretIDs(ids...)
+}
+
+// AddServiceIDs adds the "services" edge to the Service entity by IDs.
+func (pc *ProjectCreate) AddServiceIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddServiceIDs(ids...)
+	return pc
+}
+
+// AddServices adds the "services" edges to the Service entity.
+func (pc *ProjectCreate) AddServices(s ...*Service) *ProjectCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pc.AddServiceIDs(ids...)
+}
+
+// AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
+func (pc *ProjectCreate) AddServiceRevisionIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddServiceRevisionIDs(ids...)
+	return pc
+}
+
+// AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
+func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pc.AddServiceRevisionIDs(ids...)
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
@@ -270,18 +318,35 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if nodes := pc.mutation.ApplicationsIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.EnvironmentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   project.ApplicationsTable,
-			Columns: []string{project.ApplicationsColumn},
+			Table:   project.EnvironmentsTable,
+			Columns: []string{project.EnvironmentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(application.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = pc.schemaConfig.Application
+		edge.Schema = pc.schemaConfig.Environment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.ConnectorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConnectorsTable,
+			Columns: []string{project.ConnectorsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(connector.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.Connector
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -299,6 +364,40 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.Secret
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.ServicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServicesTable,
+			Columns: []string{project.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceRevisionsTable,
+			Columns: []string{project.ServiceRevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

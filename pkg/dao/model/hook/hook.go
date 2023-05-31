@@ -24,66 +24,6 @@ func (f AllocationCostFunc) Mutate(ctx context.Context, m model.Mutation) (model
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.AllocationCostMutation", m)
 }
 
-// The ApplicationFunc type is an adapter to allow the use of ordinary
-// function as Application mutator.
-type ApplicationFunc func(context.Context, *model.ApplicationMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ApplicationFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ApplicationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationMutation", m)
-}
-
-// The ApplicationInstanceFunc type is an adapter to allow the use of ordinary
-// function as ApplicationInstance mutator.
-type ApplicationInstanceFunc func(context.Context, *model.ApplicationInstanceMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ApplicationInstanceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ApplicationInstanceMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationInstanceMutation", m)
-}
-
-// The ApplicationModuleRelationshipFunc type is an adapter to allow the use of ordinary
-// function as ApplicationModuleRelationship mutator.
-type ApplicationModuleRelationshipFunc func(context.Context, *model.ApplicationModuleRelationshipMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ApplicationModuleRelationshipFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ApplicationModuleRelationshipMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationModuleRelationshipMutation", m)
-}
-
-// The ApplicationResourceFunc type is an adapter to allow the use of ordinary
-// function as ApplicationResource mutator.
-type ApplicationResourceFunc func(context.Context, *model.ApplicationResourceMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ApplicationResourceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ApplicationResourceMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationResourceMutation", m)
-}
-
-// The ApplicationRevisionFunc type is an adapter to allow the use of ordinary
-// function as ApplicationRevision mutator.
-type ApplicationRevisionFunc func(context.Context, *model.ApplicationRevisionMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ApplicationRevisionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ApplicationRevisionMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ApplicationRevisionMutation", m)
-}
-
 // The ClusterCostFunc type is an adapter to allow the use of ordinary
 // function as ClusterCost mutator.
 type ClusterCostFunc func(context.Context, *model.ClusterCostMutation) (model.Value, error)
@@ -130,30 +70,6 @@ func (f EnvironmentConnectorRelationshipFunc) Mutate(ctx context.Context, m mode
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.EnvironmentConnectorRelationshipMutation", m)
-}
-
-// The ModuleFunc type is an adapter to allow the use of ordinary
-// function as Module mutator.
-type ModuleFunc func(context.Context, *model.ModuleMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ModuleFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ModuleMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleMutation", m)
-}
-
-// The ModuleVersionFunc type is an adapter to allow the use of ordinary
-// function as ModuleVersion mutator.
-type ModuleVersionFunc func(context.Context, *model.ModuleVersionMutation) (model.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ModuleVersionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
-	if mv, ok := m.(*model.ModuleVersionMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ModuleVersionMutation", m)
 }
 
 // The PerspectiveFunc type is an adapter to allow the use of ordinary
@@ -204,6 +120,42 @@ func (f SecretFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.SecretMutation", m)
 }
 
+// The ServiceFunc type is an adapter to allow the use of ordinary
+// function as Service mutator.
+type ServiceFunc func(context.Context, *model.ServiceMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ServiceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ServiceMutation", m)
+}
+
+// The ServiceResourceFunc type is an adapter to allow the use of ordinary
+// function as ServiceResource mutator.
+type ServiceResourceFunc func(context.Context, *model.ServiceResourceMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceResourceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ServiceResourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ServiceResourceMutation", m)
+}
+
+// The ServiceRevisionFunc type is an adapter to allow the use of ordinary
+// function as ServiceRevision mutator.
+type ServiceRevisionFunc func(context.Context, *model.ServiceRevisionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceRevisionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ServiceRevisionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ServiceRevisionMutation", m)
+}
+
 // The SettingFunc type is an adapter to allow the use of ordinary
 // function as Setting mutator.
 type SettingFunc func(context.Context, *model.SettingMutation) (model.Value, error)
@@ -238,6 +190,30 @@ func (f SubjectRoleRelationshipFunc) Mutate(ctx context.Context, m model.Mutatio
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.SubjectRoleRelationshipMutation", m)
+}
+
+// The TemplateFunc type is an adapter to allow the use of ordinary
+// function as Template mutator.
+type TemplateFunc func(context.Context, *model.TemplateMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TemplateFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.TemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.TemplateMutation", m)
+}
+
+// The TemplateVersionFunc type is an adapter to allow the use of ordinary
+// function as TemplateVersion mutator.
+type TemplateVersionFunc func(context.Context, *model.TemplateVersionMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TemplateVersionFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.TemplateVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.TemplateVersionMutation", m)
 }
 
 // The TokenFunc type is an adapter to allow the use of ordinary
