@@ -32,6 +32,8 @@ type EnvironmentCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Project to which the environment belongs.
+	Project ProjectQueryInput `json:"project"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipCreateInput `json:"connectors,omitempty"`
 }
@@ -43,6 +45,7 @@ func (in EnvironmentCreateInput) Model() *Environment {
 		Description: in.Description,
 		Labels:      in.Labels,
 	}
+	entity.ProjectID = in.Project.ID
 	for i := 0; i < len(in.Connectors); i++ {
 		if in.Connectors[i] == nil {
 			continue
@@ -97,12 +100,14 @@ type EnvironmentOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Project to which the environment belongs.
+	Project *ProjectOutput `json:"project,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipOutput `json:"connectors,omitempty"`
-	// Application instances that belong to the environment.
-	Instances []*ApplicationInstanceOutput `json:"instances,omitempty"`
-	// Application revisions that belong to the environment.
-	Revisions []*ApplicationRevisionOutput `json:"revisions,omitempty"`
+	// Services that belong to the environment.
+	Services []*ServiceOutput `json:"services,omitempty"`
+	// Services revisions that belong to the environment.
+	ServiceRevisions []*ServiceRevisionOutput `json:"serviceRevisions,omitempty"`
 }
 
 // ExposeEnvironment converts the Environment to EnvironmentOutput.
@@ -111,15 +116,22 @@ func ExposeEnvironment(in *Environment) *EnvironmentOutput {
 		return nil
 	}
 	var entity = &EnvironmentOutput{
-		ID:          in.ID,
-		Name:        in.Name,
-		Description: in.Description,
-		Labels:      in.Labels,
-		CreateTime:  in.CreateTime,
-		UpdateTime:  in.UpdateTime,
-		Connectors:  ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
-		Instances:   ExposeApplicationInstances(in.Edges.Instances),
-		Revisions:   ExposeApplicationRevisions(in.Edges.Revisions),
+		ID:               in.ID,
+		Name:             in.Name,
+		Description:      in.Description,
+		Labels:           in.Labels,
+		CreateTime:       in.CreateTime,
+		UpdateTime:       in.UpdateTime,
+		Project:          ExposeProject(in.Edges.Project),
+		Connectors:       ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
+		Services:         ExposeServices(in.Edges.Services),
+		ServiceRevisions: ExposeServiceRevisions(in.Edges.ServiceRevisions),
+	}
+	if in.ProjectID != "" {
+		if entity.Project == nil {
+			entity.Project = &ProjectOutput{}
+		}
+		entity.Project.ID = in.ProjectID
 	}
 	return entity
 }

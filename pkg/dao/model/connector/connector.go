@@ -26,6 +26,8 @@ const (
 	FieldDescription = "description"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -44,6 +46,8 @@ const (
 	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
 	// FieldCategory holds the string denoting the category field in the database.
 	FieldCategory = "category"
+	// EdgeProject holds the string denoting the project edge name in mutations.
+	EdgeProject = "project"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
 	EdgeEnvironments = "environments"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -54,6 +58,13 @@ const (
 	EdgeAllocationCosts = "allocationCosts"
 	// Table holds the table name of the connector in the database.
 	Table = "connectors"
+	// ProjectTable is the table that holds the project relation/edge.
+	ProjectTable = "connectors"
+	// ProjectInverseTable is the table name for the Project entity.
+	// It exists in this package in order to avoid circular dependency with the "project" package.
+	ProjectInverseTable = "projects"
+	// ProjectColumn is the table column denoting the project relation/edge.
+	ProjectColumn = "project_id"
 	// EnvironmentsTable is the table that holds the environments relation/edge.
 	EnvironmentsTable = "environment_connector_relationships"
 	// EnvironmentsInverseTable is the table name for the EnvironmentConnectorRelationship entity.
@@ -62,10 +73,10 @@ const (
 	// EnvironmentsColumn is the table column denoting the environments relation/edge.
 	EnvironmentsColumn = "connector_id"
 	// ResourcesTable is the table that holds the resources relation/edge.
-	ResourcesTable = "application_resources"
-	// ResourcesInverseTable is the table name for the ApplicationResource entity.
-	// It exists in this package in order to avoid circular dependency with the "applicationresource" package.
-	ResourcesInverseTable = "application_resources"
+	ResourcesTable = "service_resources"
+	// ResourcesInverseTable is the table name for the ServiceResource entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceresource" package.
+	ResourcesInverseTable = "service_resources"
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "connector_id"
 	// ClusterCostsTable is the table that holds the clusterCosts relation/edge.
@@ -90,6 +101,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldLabels,
+	FieldProjectID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldStatus,
@@ -117,7 +129,8 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks        [3]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultLabels holds the default value on creation for the "labels" field.
@@ -156,6 +169,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
@@ -189,6 +207,13 @@ func ByEnableFinOps(opts ...sql.OrderTermOption) OrderOption {
 // ByCategory orders the results by the category field.
 func ByCategory(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
+// ByProjectField orders the results by project field.
+func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+	}
 }
 
 // ByEnvironmentsCount orders the results by environments count.
@@ -245,6 +270,13 @@ func ByAllocationCosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAllocationCostsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newProjectStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProjectInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+	)
 }
 func newEnvironmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

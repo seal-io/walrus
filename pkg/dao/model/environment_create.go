@@ -16,9 +16,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -28,6 +29,12 @@ type EnvironmentCreate struct {
 	mutation *EnvironmentMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetProjectID sets the "projectID" field.
+func (ec *EnvironmentCreate) SetProjectID(o oid.ID) *EnvironmentCreate {
+	ec.mutation.SetProjectID(o)
+	return ec
 }
 
 // SetName sets the "name" field.
@@ -90,34 +97,39 @@ func (ec *EnvironmentCreate) SetID(o oid.ID) *EnvironmentCreate {
 	return ec
 }
 
-// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (ec *EnvironmentCreate) AddInstanceIDs(ids ...oid.ID) *EnvironmentCreate {
-	ec.mutation.AddInstanceIDs(ids...)
+// SetProject sets the "project" edge to the Project entity.
+func (ec *EnvironmentCreate) SetProject(p *Project) *EnvironmentCreate {
+	return ec.SetProjectID(p.ID)
+}
+
+// AddServiceIDs adds the "services" edge to the Service entity by IDs.
+func (ec *EnvironmentCreate) AddServiceIDs(ids ...oid.ID) *EnvironmentCreate {
+	ec.mutation.AddServiceIDs(ids...)
 	return ec
 }
 
-// AddInstances adds the "instances" edges to the ApplicationInstance entity.
-func (ec *EnvironmentCreate) AddInstances(a ...*ApplicationInstance) *EnvironmentCreate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServices adds the "services" edges to the Service entity.
+func (ec *EnvironmentCreate) AddServices(s ...*Service) *EnvironmentCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return ec.AddInstanceIDs(ids...)
+	return ec.AddServiceIDs(ids...)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (ec *EnvironmentCreate) AddRevisionIDs(ids ...oid.ID) *EnvironmentCreate {
-	ec.mutation.AddRevisionIDs(ids...)
+// AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
+func (ec *EnvironmentCreate) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentCreate {
+	ec.mutation.AddServiceRevisionIDs(ids...)
 	return ec
 }
 
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (ec *EnvironmentCreate) AddRevisions(a ...*ApplicationRevision) *EnvironmentCreate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
+func (ec *EnvironmentCreate) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return ec.AddRevisionIDs(ids...)
+	return ec.AddServiceRevisionIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -180,6 +192,14 @@ func (ec *EnvironmentCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ec *EnvironmentCreate) check() error {
+	if _, ok := ec.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Environment.projectID"`)}
+	}
+	if v, ok := ec.mutation.ProjectID(); ok {
+		if err := environment.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Environment.projectID": %w`, err)}
+		}
+	}
 	if _, ok := ec.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Environment.name"`)}
 	}
@@ -196,6 +216,9 @@ func (ec *EnvironmentCreate) check() error {
 	}
 	if _, ok := ec.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Environment.updateTime"`)}
+	}
+	if _, ok := ec.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Environment.project"`)}
 	}
 	return nil
 }
@@ -254,35 +277,53 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if nodes := ec.mutation.InstancesIDs(); len(nodes) > 0 {
+	if nodes := ec.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   environment.ProjectTable,
+			Columns: []string{environment.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = ec.schemaConfig.Environment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ec.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ec.schemaConfig.ApplicationInstance
+		edge.Schema = ec.schemaConfig.Service
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := ec.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = ec.schemaConfig.ApplicationRevision
+		edge.Schema = ec.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -295,7 +336,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Environment.Create().
-//		SetName(v).
+//		SetProjectID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -304,7 +345,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetName(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (ec *EnvironmentCreate) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertOne {
@@ -410,6 +451,9 @@ func (u *EnvironmentUpsertOne) UpdateNewValues() *EnvironmentUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(environment.FieldID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(environment.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(environment.FieldCreateTime)
@@ -640,7 +684,7 @@ func (ecb *EnvironmentCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetName(v+v).
+//			SetProjectID(v+v).
 //		}).
 //		Exec(ctx)
 func (ecb *EnvironmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertBulk {
@@ -686,6 +730,9 @@ func (u *EnvironmentUpsertBulk) UpdateNewValues() *EnvironmentUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(environment.FieldID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(environment.FieldProjectID)
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(environment.FieldCreateTime)

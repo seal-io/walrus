@@ -15,11 +15,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -75,34 +75,34 @@ func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 	return eu
 }
 
-// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (eu *EnvironmentUpdate) AddInstanceIDs(ids ...oid.ID) *EnvironmentUpdate {
-	eu.mutation.AddInstanceIDs(ids...)
+// AddServiceIDs adds the "services" edge to the Service entity by IDs.
+func (eu *EnvironmentUpdate) AddServiceIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.AddServiceIDs(ids...)
 	return eu
 }
 
-// AddInstances adds the "instances" edges to the ApplicationInstance entity.
-func (eu *EnvironmentUpdate) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServices adds the "services" edges to the Service entity.
+func (eu *EnvironmentUpdate) AddServices(s ...*Service) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return eu.AddInstanceIDs(ids...)
+	return eu.AddServiceIDs(ids...)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (eu *EnvironmentUpdate) AddRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
-	eu.mutation.AddRevisionIDs(ids...)
+// AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
+func (eu *EnvironmentUpdate) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.AddServiceRevisionIDs(ids...)
 	return eu
 }
 
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (eu *EnvironmentUpdate) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
+func (eu *EnvironmentUpdate) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return eu.AddRevisionIDs(ids...)
+	return eu.AddServiceRevisionIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -110,46 +110,46 @@ func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
 }
 
-// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
-func (eu *EnvironmentUpdate) ClearInstances() *EnvironmentUpdate {
-	eu.mutation.ClearInstances()
+// ClearServices clears all "services" edges to the Service entity.
+func (eu *EnvironmentUpdate) ClearServices() *EnvironmentUpdate {
+	eu.mutation.ClearServices()
 	return eu
 }
 
-// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (eu *EnvironmentUpdate) RemoveInstanceIDs(ids ...oid.ID) *EnvironmentUpdate {
-	eu.mutation.RemoveInstanceIDs(ids...)
+// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
+func (eu *EnvironmentUpdate) RemoveServiceIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveServiceIDs(ids...)
 	return eu
 }
 
-// RemoveInstances removes "instances" edges to ApplicationInstance entities.
-func (eu *EnvironmentUpdate) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveServices removes "services" edges to Service entities.
+func (eu *EnvironmentUpdate) RemoveServices(s ...*Service) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return eu.RemoveInstanceIDs(ids...)
+	return eu.RemoveServiceIDs(ids...)
 }
 
-// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
-func (eu *EnvironmentUpdate) ClearRevisions() *EnvironmentUpdate {
-	eu.mutation.ClearRevisions()
+// ClearServiceRevisions clears all "serviceRevisions" edges to the ServiceRevision entity.
+func (eu *EnvironmentUpdate) ClearServiceRevisions() *EnvironmentUpdate {
+	eu.mutation.ClearServiceRevisions()
 	return eu
 }
 
-// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (eu *EnvironmentUpdate) RemoveRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
-	eu.mutation.RemoveRevisionIDs(ids...)
+// RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
+func (eu *EnvironmentUpdate) RemoveServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveServiceRevisionIDs(ids...)
 	return eu
 }
 
-// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
-func (eu *EnvironmentUpdate) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
+func (eu *EnvironmentUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return eu.RemoveRevisionIDs(ids...)
+	return eu.RemoveServiceRevisionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -201,6 +201,9 @@ func (eu *EnvironmentUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
 		}
 	}
+	if _, ok := eu.mutation.ProjectID(); eu.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Environment.project"`)
+	}
 	return nil
 }
 
@@ -237,97 +240,97 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 	}
-	if eu.mutation.InstancesCleared() {
+	if eu.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationInstance
+		edge.Schema = eu.schemaConfig.Service
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !eu.mutation.InstancesCleared() {
+	if nodes := eu.mutation.RemovedServicesIDs(); len(nodes) > 0 && !eu.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationInstance
+		edge.Schema = eu.schemaConfig.Service
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.InstancesIDs(); len(nodes) > 0 {
+	if nodes := eu.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationInstance
+		edge.Schema = eu.schemaConfig.Service
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if eu.mutation.RevisionsCleared() {
+	if eu.mutation.ServiceRevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationRevision
+		edge.Schema = eu.schemaConfig.ServiceRevision
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !eu.mutation.RevisionsCleared() {
+	if nodes := eu.mutation.RemovedServiceRevisionsIDs(); len(nodes) > 0 && !eu.mutation.ServiceRevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationRevision
+		edge.Schema = eu.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := eu.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = eu.schemaConfig.ApplicationRevision
+		edge.Schema = eu.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -395,34 +398,34 @@ func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOn
 	return euo
 }
 
-// AddInstanceIDs adds the "instances" edge to the ApplicationInstance entity by IDs.
-func (euo *EnvironmentUpdateOne) AddInstanceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.AddInstanceIDs(ids...)
+// AddServiceIDs adds the "services" edge to the Service entity by IDs.
+func (euo *EnvironmentUpdateOne) AddServiceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddServiceIDs(ids...)
 	return euo
 }
 
-// AddInstances adds the "instances" edges to the ApplicationInstance entity.
-func (euo *EnvironmentUpdateOne) AddInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServices adds the "services" edges to the Service entity.
+func (euo *EnvironmentUpdateOne) AddServices(s ...*Service) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return euo.AddInstanceIDs(ids...)
+	return euo.AddServiceIDs(ids...)
 }
 
-// AddRevisionIDs adds the "revisions" edge to the ApplicationRevision entity by IDs.
-func (euo *EnvironmentUpdateOne) AddRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.AddRevisionIDs(ids...)
+// AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
+func (euo *EnvironmentUpdateOne) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddServiceRevisionIDs(ids...)
 	return euo
 }
 
-// AddRevisions adds the "revisions" edges to the ApplicationRevision entity.
-func (euo *EnvironmentUpdateOne) AddRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
+func (euo *EnvironmentUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return euo.AddRevisionIDs(ids...)
+	return euo.AddServiceRevisionIDs(ids...)
 }
 
 // Mutation returns the EnvironmentMutation object of the builder.
@@ -430,46 +433,46 @@ func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
 }
 
-// ClearInstances clears all "instances" edges to the ApplicationInstance entity.
-func (euo *EnvironmentUpdateOne) ClearInstances() *EnvironmentUpdateOne {
-	euo.mutation.ClearInstances()
+// ClearServices clears all "services" edges to the Service entity.
+func (euo *EnvironmentUpdateOne) ClearServices() *EnvironmentUpdateOne {
+	euo.mutation.ClearServices()
 	return euo
 }
 
-// RemoveInstanceIDs removes the "instances" edge to ApplicationInstance entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveInstanceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.RemoveInstanceIDs(ids...)
+// RemoveServiceIDs removes the "services" edge to Service entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveServiceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveServiceIDs(ids...)
 	return euo
 }
 
-// RemoveInstances removes "instances" edges to ApplicationInstance entities.
-func (euo *EnvironmentUpdateOne) RemoveInstances(a ...*ApplicationInstance) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveServices removes "services" edges to Service entities.
+func (euo *EnvironmentUpdateOne) RemoveServices(s ...*Service) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return euo.RemoveInstanceIDs(ids...)
+	return euo.RemoveServiceIDs(ids...)
 }
 
-// ClearRevisions clears all "revisions" edges to the ApplicationRevision entity.
-func (euo *EnvironmentUpdateOne) ClearRevisions() *EnvironmentUpdateOne {
-	euo.mutation.ClearRevisions()
+// ClearServiceRevisions clears all "serviceRevisions" edges to the ServiceRevision entity.
+func (euo *EnvironmentUpdateOne) ClearServiceRevisions() *EnvironmentUpdateOne {
+	euo.mutation.ClearServiceRevisions()
 	return euo
 }
 
-// RemoveRevisionIDs removes the "revisions" edge to ApplicationRevision entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
-	euo.mutation.RemoveRevisionIDs(ids...)
+// RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveServiceRevisionIDs(ids...)
 	return euo
 }
 
-// RemoveRevisions removes "revisions" edges to ApplicationRevision entities.
-func (euo *EnvironmentUpdateOne) RemoveRevisions(a ...*ApplicationRevision) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
+func (euo *EnvironmentUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return euo.RemoveRevisionIDs(ids...)
+	return euo.RemoveServiceRevisionIDs(ids...)
 }
 
 // Where appends a list predicates to the EnvironmentUpdate builder.
@@ -534,6 +537,9 @@ func (euo *EnvironmentUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
 		}
 	}
+	if _, ok := euo.mutation.ProjectID(); euo.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Environment.project"`)
+	}
 	return nil
 }
 
@@ -587,97 +593,97 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 	}
-	if euo.mutation.InstancesCleared() {
+	if euo.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationInstance
+		edge.Schema = euo.schemaConfig.Service
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.RemovedInstancesIDs(); len(nodes) > 0 && !euo.mutation.InstancesCleared() {
+	if nodes := euo.mutation.RemovedServicesIDs(); len(nodes) > 0 && !euo.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationInstance
+		edge.Schema = euo.schemaConfig.Service
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.InstancesIDs(); len(nodes) > 0 {
+	if nodes := euo.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.InstancesTable,
-			Columns: []string{environment.InstancesColumn},
+			Table:   environment.ServicesTable,
+			Columns: []string{environment.ServicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationinstance.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationInstance
+		edge.Schema = euo.schemaConfig.Service
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if euo.mutation.RevisionsCleared() {
+	if euo.mutation.ServiceRevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationRevision
+		edge.Schema = euo.schemaConfig.ServiceRevision
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !euo.mutation.RevisionsCleared() {
+	if nodes := euo.mutation.RemovedServiceRevisionsIDs(); len(nodes) > 0 && !euo.mutation.ServiceRevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationRevision
+		edge.Schema = euo.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.mutation.RevisionsIDs(); len(nodes) > 0 {
+	if nodes := euo.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   environment.RevisionsTable,
-			Columns: []string{environment.RevisionsColumn},
+			Table:   environment.ServiceRevisionsTable,
+			Columns: []string{environment.ServiceRevisionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationrevision.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerevision.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = euo.schemaConfig.ApplicationRevision
+		edge.Schema = euo.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

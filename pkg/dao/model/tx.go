@@ -19,16 +19,6 @@ type Tx struct {
 	config
 	// AllocationCost is the client for interacting with the AllocationCost builders.
 	AllocationCost *AllocationCostClient
-	// Application is the client for interacting with the Application builders.
-	Application *ApplicationClient
-	// ApplicationInstance is the client for interacting with the ApplicationInstance builders.
-	ApplicationInstance *ApplicationInstanceClient
-	// ApplicationModuleRelationship is the client for interacting with the ApplicationModuleRelationship builders.
-	ApplicationModuleRelationship *ApplicationModuleRelationshipClient
-	// ApplicationResource is the client for interacting with the ApplicationResource builders.
-	ApplicationResource *ApplicationResourceClient
-	// ApplicationRevision is the client for interacting with the ApplicationRevision builders.
-	ApplicationRevision *ApplicationRevisionClient
 	// ClusterCost is the client for interacting with the ClusterCost builders.
 	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
@@ -37,10 +27,6 @@ type Tx struct {
 	Environment *EnvironmentClient
 	// EnvironmentConnectorRelationship is the client for interacting with the EnvironmentConnectorRelationship builders.
 	EnvironmentConnectorRelationship *EnvironmentConnectorRelationshipClient
-	// Module is the client for interacting with the Module builders.
-	Module *ModuleClient
-	// ModuleVersion is the client for interacting with the ModuleVersion builders.
-	ModuleVersion *ModuleVersionClient
 	// Perspective is the client for interacting with the Perspective builders.
 	Perspective *PerspectiveClient
 	// Project is the client for interacting with the Project builders.
@@ -49,12 +35,22 @@ type Tx struct {
 	Role *RoleClient
 	// Secret is the client for interacting with the Secret builders.
 	Secret *SecretClient
+	// Service is the client for interacting with the Service builders.
+	Service *ServiceClient
+	// ServiceResource is the client for interacting with the ServiceResource builders.
+	ServiceResource *ServiceResourceClient
+	// ServiceRevision is the client for interacting with the ServiceRevision builders.
+	ServiceRevision *ServiceRevisionClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
 	// Subject is the client for interacting with the Subject builders.
 	Subject *SubjectClient
 	// SubjectRoleRelationship is the client for interacting with the SubjectRoleRelationship builders.
 	SubjectRoleRelationship *SubjectRoleRelationshipClient
+	// Template is the client for interacting with the Template builders.
+	Template *TemplateClient
+	// TemplateVersion is the client for interacting with the TemplateVersion builders.
+	TemplateVersion *TemplateVersionClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 
@@ -189,24 +185,22 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AllocationCost = NewAllocationCostClient(tx.config)
-	tx.Application = NewApplicationClient(tx.config)
-	tx.ApplicationInstance = NewApplicationInstanceClient(tx.config)
-	tx.ApplicationModuleRelationship = NewApplicationModuleRelationshipClient(tx.config)
-	tx.ApplicationResource = NewApplicationResourceClient(tx.config)
-	tx.ApplicationRevision = NewApplicationRevisionClient(tx.config)
 	tx.ClusterCost = NewClusterCostClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
 	tx.Environment = NewEnvironmentClient(tx.config)
 	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
-	tx.Module = NewModuleClient(tx.config)
-	tx.ModuleVersion = NewModuleVersionClient(tx.config)
 	tx.Perspective = NewPerspectiveClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Secret = NewSecretClient(tx.config)
+	tx.Service = NewServiceClient(tx.config)
+	tx.ServiceResource = NewServiceResourceClient(tx.config)
+	tx.ServiceRevision = NewServiceRevisionClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
 	tx.SubjectRoleRelationship = NewSubjectRoleRelationshipClient(tx.config)
+	tx.Template = NewTemplateClient(tx.config)
+	tx.TemplateVersion = NewTemplateVersionClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
 }
 
@@ -276,31 +270,6 @@ func (tx *Tx) AllocationCosts() *AllocationCostClient {
 	return tx.AllocationCost
 }
 
-// Applications implements the ClientSet.
-func (tx *Tx) Applications() *ApplicationClient {
-	return tx.Application
-}
-
-// ApplicationInstances implements the ClientSet.
-func (tx *Tx) ApplicationInstances() *ApplicationInstanceClient {
-	return tx.ApplicationInstance
-}
-
-// ApplicationModuleRelationships implements the ClientSet.
-func (tx *Tx) ApplicationModuleRelationships() *ApplicationModuleRelationshipClient {
-	return tx.ApplicationModuleRelationship
-}
-
-// ApplicationResources implements the ClientSet.
-func (tx *Tx) ApplicationResources() *ApplicationResourceClient {
-	return tx.ApplicationResource
-}
-
-// ApplicationRevisions implements the ClientSet.
-func (tx *Tx) ApplicationRevisions() *ApplicationRevisionClient {
-	return tx.ApplicationRevision
-}
-
 // ClusterCosts implements the ClientSet.
 func (tx *Tx) ClusterCosts() *ClusterCostClient {
 	return tx.ClusterCost
@@ -319,16 +288,6 @@ func (tx *Tx) Environments() *EnvironmentClient {
 // EnvironmentConnectorRelationships implements the ClientSet.
 func (tx *Tx) EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient {
 	return tx.EnvironmentConnectorRelationship
-}
-
-// Modules implements the ClientSet.
-func (tx *Tx) Modules() *ModuleClient {
-	return tx.Module
-}
-
-// ModuleVersions implements the ClientSet.
-func (tx *Tx) ModuleVersions() *ModuleVersionClient {
-	return tx.ModuleVersion
 }
 
 // Perspectives implements the ClientSet.
@@ -351,6 +310,21 @@ func (tx *Tx) Secrets() *SecretClient {
 	return tx.Secret
 }
 
+// Services implements the ClientSet.
+func (tx *Tx) Services() *ServiceClient {
+	return tx.Service
+}
+
+// ServiceResources implements the ClientSet.
+func (tx *Tx) ServiceResources() *ServiceResourceClient {
+	return tx.ServiceResource
+}
+
+// ServiceRevisions implements the ClientSet.
+func (tx *Tx) ServiceRevisions() *ServiceRevisionClient {
+	return tx.ServiceRevision
+}
+
 // Settings implements the ClientSet.
 func (tx *Tx) Settings() *SettingClient {
 	return tx.Setting
@@ -364,6 +338,16 @@ func (tx *Tx) Subjects() *SubjectClient {
 // SubjectRoleRelationships implements the ClientSet.
 func (tx *Tx) SubjectRoleRelationships() *SubjectRoleRelationshipClient {
 	return tx.SubjectRoleRelationship
+}
+
+// Templates implements the ClientSet.
+func (tx *Tx) Templates() *TemplateClient {
+	return tx.Template
+}
+
+// TemplateVersions implements the ClientSet.
+func (tx *Tx) TemplateVersions() *TemplateVersionClient {
+	return tx.TemplateVersion
 }
 
 // Tokens implements the ClientSet.
@@ -408,24 +392,22 @@ func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any)
 // Use adds the mutation hooks to all the entity clients.
 func (tx *Tx) Use(hooks ...Hook) {
 	tx.AllocationCost.Use(hooks...)
-	tx.Application.Use(hooks...)
-	tx.ApplicationInstance.Use(hooks...)
-	tx.ApplicationModuleRelationship.Use(hooks...)
-	tx.ApplicationResource.Use(hooks...)
-	tx.ApplicationRevision.Use(hooks...)
 	tx.ClusterCost.Use(hooks...)
 	tx.Connector.Use(hooks...)
 	tx.Environment.Use(hooks...)
 	tx.EnvironmentConnectorRelationship.Use(hooks...)
-	tx.Module.Use(hooks...)
-	tx.ModuleVersion.Use(hooks...)
 	tx.Perspective.Use(hooks...)
 	tx.Project.Use(hooks...)
 	tx.Role.Use(hooks...)
 	tx.Secret.Use(hooks...)
+	tx.Service.Use(hooks...)
+	tx.ServiceResource.Use(hooks...)
+	tx.ServiceRevision.Use(hooks...)
 	tx.Setting.Use(hooks...)
 	tx.Subject.Use(hooks...)
 	tx.SubjectRoleRelationship.Use(hooks...)
+	tx.Template.Use(hooks...)
+	tx.TemplateVersion.Use(hooks...)
 	tx.Token.Use(hooks...)
 }
 

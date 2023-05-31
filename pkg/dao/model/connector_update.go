@@ -16,11 +16,11 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -135,17 +135,17 @@ func (cu *ConnectorUpdate) SetCategory(s string) *ConnectorUpdate {
 	return cu
 }
 
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+// AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
 func (cu *ConnectorUpdate) AddResourceIDs(ids ...oid.ID) *ConnectorUpdate {
 	cu.mutation.AddResourceIDs(ids...)
 	return cu
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (cu *ConnectorUpdate) AddResources(a ...*ApplicationResource) *ConnectorUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddResources adds the "resources" edges to the ServiceResource entity.
+func (cu *ConnectorUpdate) AddResources(s ...*ServiceResource) *ConnectorUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
 	return cu.AddResourceIDs(ids...)
 }
@@ -185,23 +185,23 @@ func (cu *ConnectorUpdate) Mutation() *ConnectorMutation {
 	return cu.mutation
 }
 
-// ClearResources clears all "resources" edges to the ApplicationResource entity.
+// ClearResources clears all "resources" edges to the ServiceResource entity.
 func (cu *ConnectorUpdate) ClearResources() *ConnectorUpdate {
 	cu.mutation.ClearResources()
 	return cu
 }
 
-// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
+// RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
 func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdate {
 	cu.mutation.RemoveResourceIDs(ids...)
 	return cu
 }
 
-// RemoveResources removes "resources" edges to ApplicationResource entities.
-func (cu *ConnectorUpdate) RemoveResources(a ...*ApplicationResource) *ConnectorUpdate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveResources removes "resources" edges to ServiceResource entities.
+func (cu *ConnectorUpdate) RemoveResources(s ...*ServiceResource) *ConnectorUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
 	return cu.RemoveResourceIDs(ids...)
 }
@@ -375,10 +375,10 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ApplicationResource
+		edge.Schema = cu.schemaConfig.ServiceResource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cu.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !cu.mutation.ResourcesCleared() {
@@ -389,10 +389,10 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ApplicationResource
+		edge.Schema = cu.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -406,10 +406,10 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ApplicationResource
+		edge.Schema = cu.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -629,17 +629,17 @@ func (cuo *ConnectorUpdateOne) SetCategory(s string) *ConnectorUpdateOne {
 	return cuo
 }
 
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+// AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
 func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddResourceIDs(ids...)
 	return cuo
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (cuo *ConnectorUpdateOne) AddResources(a ...*ApplicationResource) *ConnectorUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddResources adds the "resources" edges to the ServiceResource entity.
+func (cuo *ConnectorUpdateOne) AddResources(s ...*ServiceResource) *ConnectorUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
 	return cuo.AddResourceIDs(ids...)
 }
@@ -679,23 +679,23 @@ func (cuo *ConnectorUpdateOne) Mutation() *ConnectorMutation {
 	return cuo.mutation
 }
 
-// ClearResources clears all "resources" edges to the ApplicationResource entity.
+// ClearResources clears all "resources" edges to the ServiceResource entity.
 func (cuo *ConnectorUpdateOne) ClearResources() *ConnectorUpdateOne {
 	cuo.mutation.ClearResources()
 	return cuo
 }
 
-// RemoveResourceIDs removes the "resources" edge to ApplicationResource entities by IDs.
+// RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
 func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
 	cuo.mutation.RemoveResourceIDs(ids...)
 	return cuo
 }
 
-// RemoveResources removes "resources" edges to ApplicationResource entities.
-func (cuo *ConnectorUpdateOne) RemoveResources(a ...*ApplicationResource) *ConnectorUpdateOne {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// RemoveResources removes "resources" edges to ServiceResource entities.
+func (cuo *ConnectorUpdateOne) RemoveResources(s ...*ServiceResource) *ConnectorUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
 	return cuo.RemoveResourceIDs(ids...)
 }
@@ -899,10 +899,10 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ApplicationResource
+		edge.Schema = cuo.schemaConfig.ServiceResource
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cuo.mutation.RemovedResourcesIDs(); len(nodes) > 0 && !cuo.mutation.ResourcesCleared() {
@@ -913,10 +913,10 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ApplicationResource
+		edge.Schema = cuo.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -930,10 +930,10 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ApplicationResource
+		edge.Schema = cuo.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

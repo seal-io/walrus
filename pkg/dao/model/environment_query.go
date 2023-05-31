@@ -16,26 +16,28 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // EnvironmentQuery is the builder for querying Environment entities.
 type EnvironmentQuery struct {
 	config
-	ctx            *QueryContext
-	order          []environment.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.Environment
-	withConnectors *EnvironmentConnectorRelationshipQuery
-	withInstances  *ApplicationInstanceQuery
-	withRevisions  *ApplicationRevisionQuery
-	modifiers      []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []environment.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Environment
+	withProject          *ProjectQuery
+	withConnectors       *EnvironmentConnectorRelationshipQuery
+	withServices         *ServiceQuery
+	withServiceRevisions *ServiceRevisionQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -72,6 +74,31 @@ func (eq *EnvironmentQuery) Order(o ...environment.OrderOption) *EnvironmentQuer
 	return eq
 }
 
+// QueryProject chains the current query on the "project" edge.
+func (eq *EnvironmentQuery) QueryProject() *ProjectQuery {
+	query := (&ProjectClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, selector),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, environment.ProjectTable, environment.ProjectColumn),
+		)
+		schemaConfig := eq.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Environment
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryConnectors chains the current query on the "connectors" edge.
 func (eq *EnvironmentQuery) QueryConnectors() *EnvironmentConnectorRelationshipQuery {
 	query := (&EnvironmentConnectorRelationshipClient{config: eq.config}).Query()
@@ -97,9 +124,9 @@ func (eq *EnvironmentQuery) QueryConnectors() *EnvironmentConnectorRelationshipQ
 	return query
 }
 
-// QueryInstances chains the current query on the "instances" edge.
-func (eq *EnvironmentQuery) QueryInstances() *ApplicationInstanceQuery {
-	query := (&ApplicationInstanceClient{config: eq.config}).Query()
+// QueryServices chains the current query on the "services" edge.
+func (eq *EnvironmentQuery) QueryServices() *ServiceQuery {
+	query := (&ServiceClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -110,21 +137,21 @@ func (eq *EnvironmentQuery) QueryInstances() *ApplicationInstanceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(applicationinstance.Table, applicationinstance.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.InstancesTable, environment.InstancesColumn),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServicesTable, environment.ServicesColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationInstance
-		step.Edge.Schema = schemaConfig.ApplicationInstance
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryRevisions chains the current query on the "revisions" edge.
-func (eq *EnvironmentQuery) QueryRevisions() *ApplicationRevisionQuery {
-	query := (&ApplicationRevisionClient{config: eq.config}).Query()
+// QueryServiceRevisions chains the current query on the "serviceRevisions" edge.
+func (eq *EnvironmentQuery) QueryServiceRevisions() *ServiceRevisionQuery {
+	query := (&ServiceRevisionClient{config: eq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -135,12 +162,12 @@ func (eq *EnvironmentQuery) QueryRevisions() *ApplicationRevisionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(environment.Table, environment.FieldID, selector),
-			sqlgraph.To(applicationrevision.Table, applicationrevision.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, environment.RevisionsTable, environment.RevisionsColumn),
+			sqlgraph.To(servicerevision.Table, servicerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.ServiceRevisionsTable, environment.ServiceRevisionsColumn),
 		)
 		schemaConfig := eq.schemaConfig
-		step.To.Schema = schemaConfig.ApplicationRevision
-		step.Edge.Schema = schemaConfig.ApplicationRevision
+		step.To.Schema = schemaConfig.ServiceRevision
+		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -334,18 +361,30 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		return nil
 	}
 	return &EnvironmentQuery{
-		config:         eq.config,
-		ctx:            eq.ctx.Clone(),
-		order:          append([]environment.OrderOption{}, eq.order...),
-		inters:         append([]Interceptor{}, eq.inters...),
-		predicates:     append([]predicate.Environment{}, eq.predicates...),
-		withConnectors: eq.withConnectors.Clone(),
-		withInstances:  eq.withInstances.Clone(),
-		withRevisions:  eq.withRevisions.Clone(),
+		config:               eq.config,
+		ctx:                  eq.ctx.Clone(),
+		order:                append([]environment.OrderOption{}, eq.order...),
+		inters:               append([]Interceptor{}, eq.inters...),
+		predicates:           append([]predicate.Environment{}, eq.predicates...),
+		withProject:          eq.withProject.Clone(),
+		withConnectors:       eq.withConnectors.Clone(),
+		withServices:         eq.withServices.Clone(),
+		withServiceRevisions: eq.withServiceRevisions.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
 		path: eq.path,
 	}
+}
+
+// WithProject tells the query-builder to eager-load the nodes that are connected to
+// the "project" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithProject(opts ...func(*ProjectQuery)) *EnvironmentQuery {
+	query := (&ProjectClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withProject = query
+	return eq
 }
 
 // WithConnectors tells the query-builder to eager-load the nodes that are connected to
@@ -359,25 +398,25 @@ func (eq *EnvironmentQuery) WithConnectors(opts ...func(*EnvironmentConnectorRel
 	return eq
 }
 
-// WithInstances tells the query-builder to eager-load the nodes that are connected to
-// the "instances" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithInstances(opts ...func(*ApplicationInstanceQuery)) *EnvironmentQuery {
-	query := (&ApplicationInstanceClient{config: eq.config}).Query()
+// WithServices tells the query-builder to eager-load the nodes that are connected to
+// the "services" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithServices(opts ...func(*ServiceQuery)) *EnvironmentQuery {
+	query := (&ServiceClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withInstances = query
+	eq.withServices = query
 	return eq
 }
 
-// WithRevisions tells the query-builder to eager-load the nodes that are connected to
-// the "revisions" edge. The optional arguments are used to configure the query builder of the edge.
-func (eq *EnvironmentQuery) WithRevisions(opts ...func(*ApplicationRevisionQuery)) *EnvironmentQuery {
-	query := (&ApplicationRevisionClient{config: eq.config}).Query()
+// WithServiceRevisions tells the query-builder to eager-load the nodes that are connected to
+// the "serviceRevisions" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQuery)) *EnvironmentQuery {
+	query := (&ServiceRevisionClient{config: eq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	eq.withRevisions = query
+	eq.withServiceRevisions = query
 	return eq
 }
 
@@ -387,12 +426,12 @@ func (eq *EnvironmentQuery) WithRevisions(opts ...func(*ApplicationRevisionQuery
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty" sql:"name"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Environment.Query().
-//		GroupBy(environment.FieldName).
+//		GroupBy(environment.FieldProjectID).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (eq *EnvironmentQuery) GroupBy(field string, fields ...string) *EnvironmentGroupBy {
@@ -410,11 +449,11 @@ func (eq *EnvironmentQuery) GroupBy(field string, fields ...string) *Environment
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty" sql:"name"`
+//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 //	}
 //
 //	client.Environment.Query().
-//		Select(environment.FieldName).
+//		Select(environment.FieldProjectID).
 //		Scan(ctx, &v)
 func (eq *EnvironmentQuery) Select(fields ...string) *EnvironmentSelect {
 	eq.ctx.Fields = append(eq.ctx.Fields, fields...)
@@ -459,10 +498,11 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Environment{}
 		_spec       = eq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
+			eq.withProject != nil,
 			eq.withConnectors != nil,
-			eq.withInstances != nil,
-			eq.withRevisions != nil,
+			eq.withServices != nil,
+			eq.withServiceRevisions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -488,6 +528,12 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := eq.withProject; query != nil {
+		if err := eq.loadProject(ctx, query, nodes, nil,
+			func(n *Environment, e *Project) { n.Edges.Project = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := eq.withConnectors; query != nil {
 		if err := eq.loadConnectors(ctx, query, nodes,
 			func(n *Environment) { n.Edges.Connectors = []*EnvironmentConnectorRelationship{} },
@@ -497,23 +543,54 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
-	if query := eq.withInstances; query != nil {
-		if err := eq.loadInstances(ctx, query, nodes,
-			func(n *Environment) { n.Edges.Instances = []*ApplicationInstance{} },
-			func(n *Environment, e *ApplicationInstance) { n.Edges.Instances = append(n.Edges.Instances, e) }); err != nil {
+	if query := eq.withServices; query != nil {
+		if err := eq.loadServices(ctx, query, nodes,
+			func(n *Environment) { n.Edges.Services = []*Service{} },
+			func(n *Environment, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := eq.withRevisions; query != nil {
-		if err := eq.loadRevisions(ctx, query, nodes,
-			func(n *Environment) { n.Edges.Revisions = []*ApplicationRevision{} },
-			func(n *Environment, e *ApplicationRevision) { n.Edges.Revisions = append(n.Edges.Revisions, e) }); err != nil {
+	if query := eq.withServiceRevisions; query != nil {
+		if err := eq.loadServiceRevisions(ctx, query, nodes,
+			func(n *Environment) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
+			func(n *Environment, e *ServiceRevision) {
+				n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
+func (eq *EnvironmentQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Project)) error {
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*Environment)
+	for i := range nodes {
+		fk := nodes[i].ProjectID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(project.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *EnvironmentConnectorRelationshipQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *EnvironmentConnectorRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[oid.ID]*Environment)
@@ -544,7 +621,7 @@ func (eq *EnvironmentQuery) loadConnectors(ctx context.Context, query *Environme
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *ApplicationInstanceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationInstance)) error {
+func (eq *EnvironmentQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Service)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[oid.ID]*Environment)
 	for i := range nodes {
@@ -555,10 +632,10 @@ func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *Applicatio
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(applicationinstance.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(service.FieldEnvironmentID)
 	}
-	query.Where(predicate.ApplicationInstance(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.InstancesColumn), fks...))
+	query.Where(predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ServicesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -574,7 +651,7 @@ func (eq *EnvironmentQuery) loadInstances(ctx context.Context, query *Applicatio
 	}
 	return nil
 }
-func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *ApplicationRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ApplicationRevision)) error {
+func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *ServiceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[oid.ID]*Environment)
 	for i := range nodes {
@@ -585,10 +662,10 @@ func (eq *EnvironmentQuery) loadRevisions(ctx context.Context, query *Applicatio
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(applicationrevision.FieldEnvironmentID)
+		query.ctx.AppendFieldOnce(servicerevision.FieldEnvironmentID)
 	}
-	query.Where(predicate.ApplicationRevision(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(environment.RevisionsColumn), fks...))
+	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.ServiceRevisionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -634,6 +711,9 @@ func (eq *EnvironmentQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != environment.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if eq.withProject != nil {
+			_spec.Node.AddColumnOnce(environment.FieldProjectID)
 		}
 	}
 	if ps := eq.predicates; len(ps) > 0 {

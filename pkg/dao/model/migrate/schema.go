@@ -72,213 +72,6 @@ var (
 			},
 		},
 	}
-	// ApplicationsColumns holds the columns for the "applications" table.
-	ApplicationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// ApplicationsTable holds the schema information for the "applications" table.
-	ApplicationsTable = &schema.Table{
-		Name:       "applications",
-		Columns:    ApplicationsColumns,
-		PrimaryKey: []*schema.Column{ApplicationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "applications_projects_applications",
-				Columns:    []*schema.Column{ApplicationsColumns[7]},
-				RefColumns: []*schema.Column{ProjectsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "application_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ApplicationsColumns[5]},
-			},
-			{
-				Name:    "application_project_id_name",
-				Unique:  true,
-				Columns: []*schema.Column{ApplicationsColumns[7], ApplicationsColumns[1]},
-			},
-		},
-	}
-	// ApplicationInstancesColumns holds the columns for the "application_instances" table.
-	ApplicationInstancesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "status", Type: field.TypeJSON, Nullable: true},
-		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// ApplicationInstancesTable holds the schema information for the "application_instances" table.
-	ApplicationInstancesTable = &schema.Table{
-		Name:       "application_instances",
-		Columns:    ApplicationInstancesColumns,
-		PrimaryKey: []*schema.Column{ApplicationInstancesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "application_instances_applications_instances",
-				Columns:    []*schema.Column{ApplicationInstancesColumns[7]},
-				RefColumns: []*schema.Column{ApplicationsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-			{
-				Symbol:     "application_instances_environments_instances",
-				Columns:    []*schema.Column{ApplicationInstancesColumns[8]},
-				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "applicationinstance_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ApplicationInstancesColumns[3]},
-			},
-			{
-				Name:    "applicationinstance_application_id_environment_id_name",
-				Unique:  true,
-				Columns: []*schema.Column{ApplicationInstancesColumns[7], ApplicationInstancesColumns[8], ApplicationInstancesColumns[4]},
-			},
-		},
-	}
-	// ApplicationModuleRelationshipsColumns holds the columns for the "application_module_relationships" table.
-	ApplicationModuleRelationshipsColumns = []*schema.Column{
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "version", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "application_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "module_id", Type: field.TypeString},
-	}
-	// ApplicationModuleRelationshipsTable holds the schema information for the "application_module_relationships" table.
-	ApplicationModuleRelationshipsTable = &schema.Table{
-		Name:       "application_module_relationships",
-		Columns:    ApplicationModuleRelationshipsColumns,
-		PrimaryKey: []*schema.Column{ApplicationModuleRelationshipsColumns[5], ApplicationModuleRelationshipsColumns[6], ApplicationModuleRelationshipsColumns[3]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "application_module_relationships_applications_application",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[5]},
-				RefColumns: []*schema.Column{ApplicationsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "application_module_relationships_modules_module",
-				Columns:    []*schema.Column{ApplicationModuleRelationshipsColumns[6]},
-				RefColumns: []*schema.Column{ModulesColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "applicationmodulerelationship_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ApplicationModuleRelationshipsColumns[1]},
-			},
-		},
-	}
-	// ApplicationResourcesColumns holds the columns for the "application_resources" table.
-	ApplicationResourcesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "module", Type: field.TypeString},
-		{Name: "mode", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "deployer_type", Type: field.TypeString},
-		{Name: "status", Type: field.TypeJSON, Nullable: true},
-		{Name: "instance_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// ApplicationResourcesTable holds the schema information for the "application_resources" table.
-	ApplicationResourcesTable = &schema.Table{
-		Name:       "application_resources",
-		Columns:    ApplicationResourcesColumns,
-		PrimaryKey: []*schema.Column{ApplicationResourcesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "application_resources_application_instances_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[10]},
-				RefColumns: []*schema.Column{ApplicationInstancesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "application_resources_application_resources_components",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[11]},
-				RefColumns: []*schema.Column{ApplicationResourcesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "application_resources_connectors_resources",
-				Columns:    []*schema.Column{ApplicationResourcesColumns[12]},
-				RefColumns: []*schema.Column{ConnectorsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "applicationresource_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ApplicationResourcesColumns[3]},
-			},
-		},
-	}
-	// ApplicationRevisionsColumns holds the columns for the "application_revisions" table.
-	ApplicationRevisionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "modules", Type: field.TypeJSON},
-		{Name: "secrets", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
-		{Name: "variables", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "input_variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "input_plan", Type: field.TypeString},
-		{Name: "output", Type: field.TypeString},
-		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
-		{Name: "duration", Type: field.TypeInt, Default: 0},
-		{Name: "previous_required_providers", Type: field.TypeJSON},
-		{Name: "tags", Type: field.TypeJSON},
-		{Name: "instance_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// ApplicationRevisionsTable holds the schema information for the "application_revisions" table.
-	ApplicationRevisionsTable = &schema.Table{
-		Name:       "application_revisions",
-		Columns:    ApplicationRevisionsColumns,
-		PrimaryKey: []*schema.Column{ApplicationRevisionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "application_revisions_application_instances_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[15]},
-				RefColumns: []*schema.Column{ApplicationInstancesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "application_revisions_environments_revisions",
-				Columns:    []*schema.Column{ApplicationRevisionsColumns[16]},
-				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
-	}
 	// ClusterCostsColumns holds the columns for the "cluster_costs" table.
 	ClusterCostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -329,12 +122,21 @@ var (
 		{Name: "enable_fin_ops", Type: field.TypeBool},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
 		{Name: "category", Type: field.TypeString},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ConnectorsTable holds the schema information for the "connectors" table.
 	ConnectorsTable = &schema.Table{
 		Name:       "connectors",
 		Columns:    ConnectorsColumns,
 		PrimaryKey: []*schema.Column{ConnectorsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "connectors_projects_connectors",
+				Columns:    []*schema.Column{ConnectorsColumns[13]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "connector_update_time",
@@ -356,12 +158,21 @@ var (
 		{Name: "labels", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// EnvironmentsTable holds the schema information for the "environments" table.
 	EnvironmentsTable = &schema.Table{
 		Name:       "environments",
 		Columns:    EnvironmentsColumns,
 		PrimaryKey: []*schema.Column{EnvironmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "environments_projects_environments",
+				Columns:    []*schema.Column{EnvironmentsColumns[6]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "environment_update_time",
@@ -369,9 +180,9 @@ var (
 				Columns: []*schema.Column{EnvironmentsColumns[5]},
 			},
 			{
-				Name:    "environment_name",
+				Name:    "environment_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{EnvironmentsColumns[1]},
+				Columns: []*schema.Column{EnvironmentsColumns[6], EnvironmentsColumns[1]},
 			},
 		},
 	}
@@ -398,62 +209,6 @@ var (
 				Columns:    []*schema.Column{EnvironmentConnectorRelationshipsColumns[2]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
-			},
-		},
-	}
-	// ModulesColumns holds the columns for the "modules" table.
-	ModulesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "icon", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "source", Type: field.TypeString},
-	}
-	// ModulesTable holds the schema information for the "modules" table.
-	ModulesTable = &schema.Table{
-		Name:       "modules",
-		Columns:    ModulesColumns,
-		PrimaryKey: []*schema.Column{ModulesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "module_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ModulesColumns[4]},
-			},
-		},
-	}
-	// ModuleVersionsColumns holds the columns for the "module_versions" table.
-	ModuleVersionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "version", Type: field.TypeString},
-		{Name: "source", Type: field.TypeString},
-		{Name: "schema", Type: field.TypeJSON},
-		{Name: "module_id", Type: field.TypeString},
-	}
-	// ModuleVersionsTable holds the schema information for the "module_versions" table.
-	ModuleVersionsTable = &schema.Table{
-		Name:       "module_versions",
-		Columns:    ModuleVersionsColumns,
-		PrimaryKey: []*schema.Column{ModuleVersionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "module_versions_modules_versions",
-				Columns:    []*schema.Column{ModuleVersionsColumns[6]},
-				RefColumns: []*schema.Column{ModulesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "moduleversion_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ModuleVersionsColumns[2]},
 			},
 		},
 	}
@@ -583,6 +338,144 @@ var (
 			},
 		},
 	}
+	// ServicesColumns holds the columns for the "services" table.
+	ServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "template", Type: field.TypeJSON},
+		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ServicesTable holds the schema information for the "services" table.
+	ServicesTable = &schema.Table{
+		Name:       "services",
+		Columns:    ServicesColumns,
+		PrimaryKey: []*schema.Column{ServicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "services_environments_services",
+				Columns:    []*schema.Column{ServicesColumns[7]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "services_projects_services",
+				Columns:    []*schema.Column{ServicesColumns[8]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "service_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{ServicesColumns[2]},
+			},
+			{
+				Name:    "service_environment_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ServicesColumns[7], ServicesColumns[5]},
+			},
+		},
+	}
+	// ServiceResourcesColumns holds the columns for the "service_resources" table.
+	ServiceResourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "mode", Type: field.TypeString},
+		{Name: "type", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "deployer_type", Type: field.TypeString},
+		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ServiceResourcesTable holds the schema information for the "service_resources" table.
+	ServiceResourcesTable = &schema.Table{
+		Name:       "service_resources",
+		Columns:    ServiceResourcesColumns,
+		PrimaryKey: []*schema.Column{ServiceResourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "service_resources_connectors_resources",
+				Columns:    []*schema.Column{ServiceResourcesColumns[9]},
+				RefColumns: []*schema.Column{ConnectorsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "service_resources_services_resources",
+				Columns:    []*schema.Column{ServiceResourcesColumns[10]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "service_resources_service_resources_components",
+				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
+				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "serviceresource_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{ServiceResourcesColumns[3]},
+			},
+		},
+	}
+	// ServiceRevisionsColumns holds the columns for the "service_revisions" table.
+	ServiceRevisionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "status", Type: field.TypeString, Nullable: true},
+		{Name: "status_message", Type: field.TypeString, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "template_id", Type: field.TypeString},
+		{Name: "template_version", Type: field.TypeString},
+		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "secrets", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "input_plan", Type: field.TypeString},
+		{Name: "output", Type: field.TypeString},
+		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "previous_required_providers", Type: field.TypeJSON},
+		{Name: "tags", Type: field.TypeJSON},
+		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ServiceRevisionsTable holds the schema information for the "service_revisions" table.
+	ServiceRevisionsTable = &schema.Table{
+		Name:       "service_revisions",
+		Columns:    ServiceRevisionsColumns,
+		PrimaryKey: []*schema.Column{ServiceRevisionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "service_revisions_environments_serviceRevisions",
+				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "service_revisions_projects_serviceRevisions",
+				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "service_revisions_services_revisions",
+				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -693,6 +586,62 @@ var (
 			},
 		},
 	}
+	// TemplatesColumns holds the columns for the "templates" table.
+	TemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeString, Nullable: true},
+		{Name: "status_message", Type: field.TypeString, Nullable: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "icon", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON},
+		{Name: "source", Type: field.TypeString},
+	}
+	// TemplatesTable holds the schema information for the "templates" table.
+	TemplatesTable = &schema.Table{
+		Name:       "templates",
+		Columns:    TemplatesColumns,
+		PrimaryKey: []*schema.Column{TemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "template_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{TemplatesColumns[4]},
+			},
+		},
+	}
+	// TemplateVersionsColumns holds the columns for the "template_versions" table.
+	TemplateVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "version", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString},
+		{Name: "schema", Type: field.TypeJSON},
+		{Name: "template_id", Type: field.TypeString},
+	}
+	// TemplateVersionsTable holds the schema information for the "template_versions" table.
+	TemplateVersionsTable = &schema.Table{
+		Name:       "template_versions",
+		Columns:    TemplateVersionsColumns,
+		PrimaryKey: []*schema.Column{TemplateVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "template_versions_templates_versions",
+				Columns:    []*schema.Column{TemplateVersionsColumns[6]},
+				RefColumns: []*schema.Column{TemplatesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "templateversion_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{TemplateVersionsColumns[2]},
+			},
+		},
+	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -720,47 +669,45 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AllocationCostsTable,
-		ApplicationsTable,
-		ApplicationInstancesTable,
-		ApplicationModuleRelationshipsTable,
-		ApplicationResourcesTable,
-		ApplicationRevisionsTable,
 		ClusterCostsTable,
 		ConnectorsTable,
 		EnvironmentsTable,
 		EnvironmentConnectorRelationshipsTable,
-		ModulesTable,
-		ModuleVersionsTable,
 		PerspectivesTable,
 		ProjectsTable,
 		RolesTable,
 		SecretsTable,
+		ServicesTable,
+		ServiceResourcesTable,
+		ServiceRevisionsTable,
 		SettingsTable,
 		SubjectsTable,
 		SubjectRoleRelationshipsTable,
+		TemplatesTable,
+		TemplateVersionsTable,
 		TokensTable,
 	}
 )
 
 func init() {
 	AllocationCostsTable.ForeignKeys[0].RefTable = ConnectorsTable
-	ApplicationsTable.ForeignKeys[0].RefTable = ProjectsTable
-	ApplicationInstancesTable.ForeignKeys[0].RefTable = ApplicationsTable
-	ApplicationInstancesTable.ForeignKeys[1].RefTable = EnvironmentsTable
-	ApplicationModuleRelationshipsTable.ForeignKeys[0].RefTable = ApplicationsTable
-	ApplicationModuleRelationshipsTable.ForeignKeys[1].RefTable = ModulesTable
-	ApplicationResourcesTable.ForeignKeys[0].RefTable = ApplicationInstancesTable
-	ApplicationResourcesTable.ForeignKeys[1].RefTable = ApplicationResourcesTable
-	ApplicationResourcesTable.ForeignKeys[2].RefTable = ConnectorsTable
-	ApplicationRevisionsTable.ForeignKeys[0].RefTable = ApplicationInstancesTable
-	ApplicationRevisionsTable.ForeignKeys[1].RefTable = EnvironmentsTable
 	ClusterCostsTable.ForeignKeys[0].RefTable = ConnectorsTable
+	ConnectorsTable.ForeignKeys[0].RefTable = ProjectsTable
+	EnvironmentsTable.ForeignKeys[0].RefTable = ProjectsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
-	ModuleVersionsTable.ForeignKeys[0].RefTable = ModulesTable
 	SecretsTable.ForeignKeys[0].RefTable = ProjectsTable
+	ServicesTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	ServicesTable.ForeignKeys[1].RefTable = ProjectsTable
+	ServiceResourcesTable.ForeignKeys[0].RefTable = ConnectorsTable
+	ServiceResourcesTable.ForeignKeys[1].RefTable = ServicesTable
+	ServiceResourcesTable.ForeignKeys[2].RefTable = ServiceResourcesTable
+	ServiceRevisionsTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	ServiceRevisionsTable.ForeignKeys[1].RefTable = ProjectsTable
+	ServiceRevisionsTable.ForeignKeys[2].RefTable = ServicesTable
 	SubjectRoleRelationshipsTable.ForeignKeys[0].RefTable = ProjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[1].RefTable = SubjectsTable
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable
+	TemplateVersionsTable.ForeignKeys[0].RefTable = TemplatesTable
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
 }

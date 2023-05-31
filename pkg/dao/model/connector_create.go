@@ -17,9 +17,10 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/applicationresource"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -57,6 +58,20 @@ func (cc *ConnectorCreate) SetNillableDescription(s *string) *ConnectorCreate {
 // SetLabels sets the "labels" field.
 func (cc *ConnectorCreate) SetLabels(m map[string]string) *ConnectorCreate {
 	cc.mutation.SetLabels(m)
+	return cc
+}
+
+// SetProjectID sets the "projectID" field.
+func (cc *ConnectorCreate) SetProjectID(o oid.ID) *ConnectorCreate {
+	cc.mutation.SetProjectID(o)
+	return cc
+}
+
+// SetNillableProjectID sets the "projectID" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableProjectID(o *oid.ID) *ConnectorCreate {
+	if o != nil {
+		cc.SetProjectID(*o)
+	}
 	return cc
 }
 
@@ -144,17 +159,22 @@ func (cc *ConnectorCreate) SetID(o oid.ID) *ConnectorCreate {
 	return cc
 }
 
-// AddResourceIDs adds the "resources" edge to the ApplicationResource entity by IDs.
+// SetProject sets the "project" edge to the Project entity.
+func (cc *ConnectorCreate) SetProject(p *Project) *ConnectorCreate {
+	return cc.SetProjectID(p.ID)
+}
+
+// AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
 func (cc *ConnectorCreate) AddResourceIDs(ids ...oid.ID) *ConnectorCreate {
 	cc.mutation.AddResourceIDs(ids...)
 	return cc
 }
 
-// AddResources adds the "resources" edges to the ApplicationResource entity.
-func (cc *ConnectorCreate) AddResources(a ...*ApplicationResource) *ConnectorCreate {
-	ids := make([]oid.ID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// AddResources adds the "resources" edges to the ServiceResource entity.
+func (cc *ConnectorCreate) AddResources(s ...*ServiceResource) *ConnectorCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
 	return cc.AddResourceIDs(ids...)
 }
@@ -385,6 +405,24 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldCategory, field.TypeString, value)
 		_node.Category = value
 	}
+	if nodes := cc.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   connector.ProjectTable,
+			Columns: []string{connector.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = cc.schemaConfig.Connector
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := cc.mutation.ResourcesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -393,10 +431,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 			Columns: []string{connector.ResourcesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(applicationresource.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = cc.schemaConfig.ApplicationResource
+		edge.Schema = cc.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -642,6 +680,9 @@ func (u *ConnectorUpsertOne) UpdateNewValues() *ConnectorUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(connector.FieldID)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(connector.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(connector.FieldCreateTime)
@@ -1019,6 +1060,9 @@ func (u *ConnectorUpsertBulk) UpdateNewValues() *ConnectorUpsertBulk {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(connector.FieldID)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(connector.FieldProjectID)
 			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(connector.FieldCreateTime)

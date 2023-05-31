@@ -12,21 +12,6 @@ type ClientSet interface {
 	// AllocationCosts returns the client for interacting with the AllocationCost builders.
 	AllocationCosts() *AllocationCostClient
 
-	// Applications returns the client for interacting with the Application builders.
-	Applications() *ApplicationClient
-
-	// ApplicationInstances returns the client for interacting with the ApplicationInstance builders.
-	ApplicationInstances() *ApplicationInstanceClient
-
-	// ApplicationModuleRelationships returns the client for interacting with the ApplicationModuleRelationship builders.
-	ApplicationModuleRelationships() *ApplicationModuleRelationshipClient
-
-	// ApplicationResources returns the client for interacting with the ApplicationResource builders.
-	ApplicationResources() *ApplicationResourceClient
-
-	// ApplicationRevisions returns the client for interacting with the ApplicationRevision builders.
-	ApplicationRevisions() *ApplicationRevisionClient
-
 	// ClusterCosts returns the client for interacting with the ClusterCost builders.
 	ClusterCosts() *ClusterCostClient
 
@@ -38,12 +23,6 @@ type ClientSet interface {
 
 	// EnvironmentConnectorRelationships returns the client for interacting with the EnvironmentConnectorRelationship builders.
 	EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient
-
-	// Modules returns the client for interacting with the Module builders.
-	Modules() *ModuleClient
-
-	// ModuleVersions returns the client for interacting with the ModuleVersion builders.
-	ModuleVersions() *ModuleVersionClient
 
 	// Perspectives returns the client for interacting with the Perspective builders.
 	Perspectives() *PerspectiveClient
@@ -57,6 +36,15 @@ type ClientSet interface {
 	// Secrets returns the client for interacting with the Secret builders.
 	Secrets() *SecretClient
 
+	// Services returns the client for interacting with the Service builders.
+	Services() *ServiceClient
+
+	// ServiceResources returns the client for interacting with the ServiceResource builders.
+	ServiceResources() *ServiceResourceClient
+
+	// ServiceRevisions returns the client for interacting with the ServiceRevision builders.
+	ServiceRevisions() *ServiceRevisionClient
+
 	// Settings returns the client for interacting with the Setting builders.
 	Settings() *SettingClient
 
@@ -65,6 +53,12 @@ type ClientSet interface {
 
 	// SubjectRoleRelationships returns the client for interacting with the SubjectRoleRelationship builders.
 	SubjectRoleRelationships() *SubjectRoleRelationshipClient
+
+	// Templates returns the client for interacting with the Template builders.
+	Templates() *TemplateClient
+
+	// TemplateVersions returns the client for interacting with the TemplateVersion builders.
+	TemplateVersions() *TemplateVersionClient
 
 	// Tokens returns the client for interacting with the Token builders.
 	Tokens() *TokenClient
@@ -87,36 +81,6 @@ type ClientSet interface {
 type AllocationCostClientGetter interface {
 	// AllocationCosts returns the client for interacting with the AllocationCost builders.
 	AllocationCosts() *AllocationCostClient
-}
-
-// ApplicationClientGetter is an interface that allows getting ApplicationClient.
-type ApplicationClientGetter interface {
-	// Applications returns the client for interacting with the Application builders.
-	Applications() *ApplicationClient
-}
-
-// ApplicationInstanceClientGetter is an interface that allows getting ApplicationInstanceClient.
-type ApplicationInstanceClientGetter interface {
-	// ApplicationInstances returns the client for interacting with the ApplicationInstance builders.
-	ApplicationInstances() *ApplicationInstanceClient
-}
-
-// ApplicationModuleRelationshipClientGetter is an interface that allows getting ApplicationModuleRelationshipClient.
-type ApplicationModuleRelationshipClientGetter interface {
-	// ApplicationModuleRelationships returns the client for interacting with the ApplicationModuleRelationship builders.
-	ApplicationModuleRelationships() *ApplicationModuleRelationshipClient
-}
-
-// ApplicationResourceClientGetter is an interface that allows getting ApplicationResourceClient.
-type ApplicationResourceClientGetter interface {
-	// ApplicationResources returns the client for interacting with the ApplicationResource builders.
-	ApplicationResources() *ApplicationResourceClient
-}
-
-// ApplicationRevisionClientGetter is an interface that allows getting ApplicationRevisionClient.
-type ApplicationRevisionClientGetter interface {
-	// ApplicationRevisions returns the client for interacting with the ApplicationRevision builders.
-	ApplicationRevisions() *ApplicationRevisionClient
 }
 
 // ClusterCostClientGetter is an interface that allows getting ClusterCostClient.
@@ -143,18 +107,6 @@ type EnvironmentConnectorRelationshipClientGetter interface {
 	EnvironmentConnectorRelationships() *EnvironmentConnectorRelationshipClient
 }
 
-// ModuleClientGetter is an interface that allows getting ModuleClient.
-type ModuleClientGetter interface {
-	// Modules returns the client for interacting with the Module builders.
-	Modules() *ModuleClient
-}
-
-// ModuleVersionClientGetter is an interface that allows getting ModuleVersionClient.
-type ModuleVersionClientGetter interface {
-	// ModuleVersions returns the client for interacting with the ModuleVersion builders.
-	ModuleVersions() *ModuleVersionClient
-}
-
 // PerspectiveClientGetter is an interface that allows getting PerspectiveClient.
 type PerspectiveClientGetter interface {
 	// Perspectives returns the client for interacting with the Perspective builders.
@@ -179,6 +131,24 @@ type SecretClientGetter interface {
 	Secrets() *SecretClient
 }
 
+// ServiceClientGetter is an interface that allows getting ServiceClient.
+type ServiceClientGetter interface {
+	// Services returns the client for interacting with the Service builders.
+	Services() *ServiceClient
+}
+
+// ServiceResourceClientGetter is an interface that allows getting ServiceResourceClient.
+type ServiceResourceClientGetter interface {
+	// ServiceResources returns the client for interacting with the ServiceResource builders.
+	ServiceResources() *ServiceResourceClient
+}
+
+// ServiceRevisionClientGetter is an interface that allows getting ServiceRevisionClient.
+type ServiceRevisionClientGetter interface {
+	// ServiceRevisions returns the client for interacting with the ServiceRevision builders.
+	ServiceRevisions() *ServiceRevisionClient
+}
+
 // SettingClientGetter is an interface that allows getting SettingClient.
 type SettingClientGetter interface {
 	// Settings returns the client for interacting with the Setting builders.
@@ -195,6 +165,18 @@ type SubjectClientGetter interface {
 type SubjectRoleRelationshipClientGetter interface {
 	// SubjectRoleRelationships returns the client for interacting with the SubjectRoleRelationship builders.
 	SubjectRoleRelationships() *SubjectRoleRelationshipClient
+}
+
+// TemplateClientGetter is an interface that allows getting TemplateClient.
+type TemplateClientGetter interface {
+	// Templates returns the client for interacting with the Template builders.
+	Templates() *TemplateClient
+}
+
+// TemplateVersionClientGetter is an interface that allows getting TemplateVersionClient.
+type TemplateVersionClientGetter interface {
+	// TemplateVersions returns the client for interacting with the TemplateVersion builders.
+	TemplateVersions() *TemplateVersionClient
 }
 
 // TokenClientGetter is an interface that allows getting TokenClient.
