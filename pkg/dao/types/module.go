@@ -18,3 +18,8 @@ type ModuleSchema struct {
 	Outputs           property.Schemas      `json:"outputs"`
 	RequiredProviders []ProviderRequirement `json:"requiredProviders"`
 }
+
+type TemplateVersionRef struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}

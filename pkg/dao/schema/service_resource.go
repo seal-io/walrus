@@ -14,11 +14,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
-type ApplicationResource struct {
+type ServiceResource struct {
 	ent.Schema
 }
 
-func (ApplicationResource) Mixin() []ent.Mixin {
+func (ServiceResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.OwnByProject{},
@@ -26,10 +26,10 @@ func (ApplicationResource) Mixin() []ent.Mixin {
 	}
 }
 
-func (ApplicationResource) Fields() []ent.Field {
+func (ServiceResource) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("instanceID").
-			Comment("ID of the application instance to which the resource belongs.").
+		oid.Field("serviceID").
+			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
 		oid.Field("connectorID").
@@ -37,13 +37,9 @@ func (ApplicationResource) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		oid.Field("compositionID").
-			Comment("ID of the application resource to which the resource makes up, " +
+			Comment("ID of the parent resource, " +
 				"it presents when mode is discovered.").
 			Optional().
-			Immutable(),
-		field.String("module").
-			Comment("Name of the module that generates the resource.").
-			NotEmpty().
 			Immutable(),
 		field.String("mode").
 			Comment("Mode that manages the generated resource, " +
@@ -67,23 +63,23 @@ func (ApplicationResource) Fields() []ent.Field {
 			Comment("Type of deployer.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("status", types.ApplicationResourceStatus{}).
+		field.JSON("status", types.ServiceResourceStatus{}).
 			Comment("Status of the resource.").
 			Optional(),
 	}
 }
 
-func (ApplicationResource) Edges() []ent.Edge {
+func (ServiceResource) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Application instance 1-* application resources.
-		edge.From("instance", ApplicationInstance.Type).
+		// Service 1-* service resources.
+		edge.From("service", Service.Type).
 			Ref("resources").
-			Field("instanceID").
-			Comment("Application instance to which the resource belongs.").
+			Field("serviceID").
+			Comment("Service to which the resource belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// Connector 1-* application resources.
+		// Connector 1-* service resources.
 		edge.From("connector", Connector.Type).
 			Ref("resources").
 			Field("connectorID").
@@ -91,21 +87,21 @@ func (ApplicationResource) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// Application resource(!discovered) 1-* application resources(discovered).
-		edge.To("components", ApplicationResource.Type).
-			Comment("Application resources that make up the resource.").
+		// Service resource(!discovered) 1-* service resources(discovered).
+		edge.To("components", ServiceResource.Type).
+			Comment("Sub-resources that make up the resource.").
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}).
 			From("composition").
 			Field("compositionID").
-			Comment("Application resource to which the resource makes up.").
+			Comment("Service resource to which the resource makes up.").
 			Unique().
 			Immutable(),
 	}
 }
 
-func (ApplicationResource) Interceptors() []ent.Interceptor {
+func (ServiceResource) Interceptors() []ent.Interceptor {
 	type target interface {
 		WhereP(...func(*sql.Selector))
 	}

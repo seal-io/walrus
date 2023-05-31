@@ -115,9 +115,23 @@ func (p OwnByProject) filterWith(sj session.Subject, t interface{ WhereP(...func
 	// Filter with `projectID` query value if found.
 	pid := sj.Ctx.Query("projectID")
 	if pid != "" {
-		t.WhereP(func(ss *sql.Selector) {
+		sltFunc := func(ss *sql.Selector) {
 			ss.Where(sql.EQ(ss.C("project_id"), pid))
-		})
+		}
+
+		if p.optional {
+			// Query both project and global scope for optionally own-by-project resources.
+			sltFunc = func(ss *sql.Selector) {
+				ss.Where(
+					sql.Or(
+						sql.EQ(ss.C("project_id"), pid),
+						sql.IsNull(ss.C("project_id")),
+					),
+				)
+			}
+		}
+
+		t.WhereP(sltFunc)
 
 		return
 	}

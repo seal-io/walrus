@@ -12,11 +12,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
-type ApplicationRevision struct {
+type ServiceRevision struct {
 	ent.Schema
 }
 
-func (ApplicationRevision) Mixin() []ent.Mixin {
+func (ServiceRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.OwnByProject{},
@@ -25,29 +25,29 @@ func (ApplicationRevision) Mixin() []ent.Mixin {
 	}
 }
 
-func (ApplicationRevision) Fields() []ent.Field {
+func (ServiceRevision) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("instanceID").
-			Comment("ID of the application instance to which the revision belongs.").
+		oid.Field("serviceID").
+			Comment("ID of the service to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
 		oid.Field("environmentID").
-			Comment("ID of the environment to which the application deploys.").
+			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("modules", []types.ApplicationModule{}).
-			Comment("Application modules.").
-			Default([]types.ApplicationModule{}),
+		field.String("templateID").
+			Comment("ID of the template.").
+			NotEmpty().
+			Immutable(),
+		field.String("templateVersion").
+			Comment("Version of the template.").
+			NotEmpty(),
+		property.ValuesField("attributes").
+			Comment("Attributes to configure the template.").
+			Optional(),
 		crypto.MapField[string, string]("secrets").
 			Comment("Secrets of the revision.").
 			Default(crypto.Map[string, string]{}),
-		property.SchemasField("variables").
-			Comment("Application variables schema of the revision.").
-			Optional(),
-		property.ValuesField("inputVariables").
-			Comment("Input variables of the revision.").
-			Default(property.Values{}).
-			Sensitive(),
 		field.String("inputPlan").
 			Comment("Input plan of the revision.").
 			Sensitive(),
@@ -69,21 +69,29 @@ func (ApplicationRevision) Fields() []ent.Field {
 	}
 }
 
-func (ApplicationRevision) Edges() []ent.Edge {
+func (ServiceRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Application instance 1-* application revisions.
-		edge.From("instance", ApplicationInstance.Type).
+		// Service 1-* service revisions.
+		edge.From("service", Service.Type).
 			Ref("revisions").
-			Field("instanceID").
-			Comment("Application instance to which the revision belongs.").
+			Field("serviceID").
+			Comment("Service to which the revision belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// Environment 1-* application revisions.
+		// Environment 1-* service revisions.
 		edge.From("environment", Environment.Type).
-			Ref("revisions").
+			Ref("serviceRevisions").
 			Field("environmentID").
 			Comment("Environment to which the revision deploys.").
+			Unique().
+			Required().
+			Immutable(),
+		// Project 1-* service revisions.
+		edge.From("project", Project.Type).
+			Ref("serviceRevisions").
+			Field("projectID").
+			Comment("Project to which the revision belongs.").
 			Unique().
 			Required().
 			Immutable(),
