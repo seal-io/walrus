@@ -113,7 +113,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 						"secrets", "connectors", "environments",
 						"modules", "moduleVersions", "moduleCompletions",
 						"settings", "roles", "subjects",
-						"subjectRoles"),
+						"subjectRoles", "perspectives"),
 				},
 			},
 			Session: false,
