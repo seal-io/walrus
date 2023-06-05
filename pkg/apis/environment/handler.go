@@ -9,6 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -70,6 +71,9 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	entity, err := h.modelClient.Environments().Query().
 		Where(environment.ID(req.ID)).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
 		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
 			rq.Order(model.Desc(environmentconnectorrelationship.FieldCreateTime)).
 				Select(environmentconnectorrelationship.FieldEnvironmentID).

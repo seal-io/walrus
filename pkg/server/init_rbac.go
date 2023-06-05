@@ -63,7 +63,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
 						"secrets", "connectors", "environments",
-						"modules", "moduleVersions", "moduleCompletions",
+						"templates", "templateVersions", "templateCompletions",
 						"perspectives", "settings", "roles"),
 				},
 				{
@@ -92,8 +92,8 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"secrets", "connectors", "environments",
-						"modules", "moduleVersions", "moduleCompletions",
+						"secrets", "connectors", "templates",
+						"templateVersions", "templateCompletions",
 						"settings"),
 				},
 			},
@@ -110,8 +110,8 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"secrets", "connectors", "environments",
-						"modules", "moduleVersions", "moduleCompletions",
+						"secrets", "connectors", "templates",
+						"templateVersions", "templateCompletions",
 						"settings", "roles", "subjects",
 						"subjectRoles", "perspectives"),
 				},
@@ -129,8 +129,8 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"applications", "applicationInstances", "applicationRevisions",
-						"applicationResources", "secrets"),
+						"services", "serviceRevisions",
+						"serviceResources", "environments", "connectors", "secrets"),
 				},
 			},
 			Session: false,
@@ -146,8 +146,8 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"applications", "applicationInstances", "applicationRevisions",
-						"applicationResources", "secrets"),
+						"services", "serviceRevisions",
+						"serviceResources", "environments", "connectors", "secrets"),
 				},
 			},
 			Session: false,
@@ -163,8 +163,9 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"projects", "applications", "applicationInstances",
-						"applicationRevisions", "applicationResources", "secrets",
+						"projects", "services",
+						"serviceRevisions", "serviceResources",
+						"environments", "connectors", "secrets",
 						"subjectRoles"),
 				},
 				{

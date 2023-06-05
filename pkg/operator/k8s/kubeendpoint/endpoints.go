@@ -21,7 +21,7 @@ func GetServiceEndpoints(
 	kubeCli *kubernetes.Clientset,
 	ns,
 	n string,
-) ([]types.ApplicationResourceEndpoint, error) {
+) ([]types.ServiceResourceEndpoint, error) {
 	svc, err := kubeCli.CoreV1().Services(ns).
 		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
@@ -58,7 +58,7 @@ func GetServiceEndpoints(
 		return nil, nil
 	}
 
-	return []types.ApplicationResourceEndpoint{
+	return []types.ServiceResourceEndpoint{
 		{
 			EndpointType: resourceSubKind,
 			Endpoints:    endpoints,
@@ -148,14 +148,14 @@ func serviceLoadBalancerIP(svc apicorev1.Service) string {
 
 func GetIngressEndpoints(
 	ctx context.Context, kubeCli *kubernetes.Clientset, ns, n string,
-) ([]types.ApplicationResourceEndpoint, error) {
+) ([]types.ServiceResourceEndpoint, error) {
 	ing, err := kubeCli.NetworkingV1().Ingresses(ns).
 		Get(ctx, n, metav1.GetOptions{ResourceVersion: "0"})
 	if err != nil {
 		return nil, err
 	}
 
-	return []types.ApplicationResourceEndpoint{
+	return []types.ServiceResourceEndpoint{
 		{
 			Endpoints: ingressEndpoints(*ing),
 		},

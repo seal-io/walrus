@@ -19,7 +19,7 @@ import (
 )
 
 // GetStatus implements operator.Operator.
-func (op Operator) GetStatus(ctx context.Context, res *model.ApplicationResource) (*status.Status, error) {
+func (op Operator) GetStatus(ctx context.Context, res *model.ServiceResource) (*status.Status, error) {
 	if res == nil {
 		return kubestatus.StatusError(""), nil
 	}

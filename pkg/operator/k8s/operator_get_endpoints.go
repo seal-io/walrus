@@ -15,8 +15,8 @@ import (
 // GetEndpoints implements operator.Operator.
 func (op Operator) GetEndpoints(
 	ctx context.Context,
-	res *model.ApplicationResource,
-) ([]types.ApplicationResourceEndpoint, error) {
+	res *model.ServiceResource,
+) ([]types.ServiceResourceEndpoint, error) {
 	if res == nil {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func (op Operator) GetEndpoints(
 		return nil, fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	var eps []types.ApplicationResourceEndpoint
+	var eps []types.ServiceResourceEndpoint
 
 	for _, r := range rs {
 		switch r.Resource {

@@ -224,15 +224,15 @@ type RouteResourceHandleErrorMetadata struct {
 // outputs example as below.
 // E.g.
 //
-//	Resource:   applicationInstances
+//	Resource:   service
 //	Name:       Get
 //	            CollectionGet
-//	            RouteUpgradeInstance
+//	            RouteUpgradeService
 //	            StreamLog
-//	Output:     failed to get application instance
-//	            failed to get application instances
-//	            failed to upgrade instance
-//	            failed to stream log application instance
+//	Output:     failed to get service
+//	            failed to get services
+//	            failed to upgrade service
+//	            failed to stream log service
 func (m RouteResourceHandleErrorMetadata) String() string {
 	var sb strings.Builder
 

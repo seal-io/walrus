@@ -15,7 +15,7 @@ type RevisionStatusCount struct {
 	Succeed int `json:"succeed"`
 }
 
-// RevisionStatusStats is the statistics of application revision status.
+// RevisionStatusStats is the statistics of service revision status.
 type RevisionStatusStats struct {
 	RevisionStatusCount
 
@@ -23,15 +23,13 @@ type RevisionStatusStats struct {
 }
 
 type BasicInformation struct {
-	// Application number.
-	Application int `json:"application"`
-	//  module number
-	Module int `json:"module"`
-	// Instance number.
-	Instance int `json:"instance"`
-	// Application resource number.
+	// Template number.
+	Template int `json:"template"`
+	// Service number.
+	Service int `json:"service"`
+	// Service resource number.
 	Resource int `json:"resource"`
-	// Application revision number.
+	// Service revision number.
 	Revision int `json:"revision"`
 	// Environment number.
 	Environment int `json:"environment"`
@@ -43,9 +41,9 @@ type BasicInformation struct {
 
 // Batch APIs.
 
-type CollectionGetLatestApplicationRevisionsRequest struct{}
+type CollectionGetLatestServiceRevisionsRequest struct{}
 
-type CollectionGetLatestApplicationRevisionsResponse = []*model.ApplicationRevisionOutput
+type CollectionGetLatestServiceRevisionsResponse = []*model.ServiceRevisionOutput
 
 // Extensional APIs.
 
@@ -55,15 +53,15 @@ type BasicInfoRequest struct {
 
 type BasicInfoResponse = BasicInformation
 
-type ApplicationRevisionStatisticsRequest struct {
-	_ struct{} `route:"POST=/application-revision-statistics"`
+type ServiceRevisionStatisticsRequest struct {
+	_ struct{} `route:"POST=/service-revision-statistics"`
 
 	Step      string    `json:"step"`
 	StartTime time.Time `json:"startTime"`
 	EndTime   time.Time `json:"endTime"`
 }
 
-func (r *ApplicationRevisionStatisticsRequest) Validate() error {
+func (r *ServiceRevisionStatisticsRequest) Validate() error {
 	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
@@ -75,7 +73,7 @@ func (r *ApplicationRevisionStatisticsRequest) Validate() error {
 	return nil
 }
 
-type ApplicationRevisionStatisticsResponse struct {
+type ServiceRevisionStatisticsResponse struct {
 	StatusCount *RevisionStatusCount   `json:"statusCount"`
 	StatusStats []*RevisionStatusStats `json:"statusStats"`
 }

@@ -33,6 +33,10 @@ func ConnectorCreates(mc model.ClientSet, input ...*model.Connector) ([]*model.C
 		// Optional.
 		c.SetDescription(r.Description)
 
+		if r.ProjectID.IsNaive() {
+			c.SetProjectID(r.ProjectID)
+		}
+
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
 		}

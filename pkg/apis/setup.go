@@ -8,29 +8,28 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/apis/application"
-	"github.com/seal-io/seal/pkg/apis/applicationinstance"
-	"github.com/seal-io/seal/pkg/apis/applicationresource"
-	"github.com/seal-io/seal/pkg/apis/applicationrevision"
 	"github.com/seal-io/seal/pkg/apis/connector"
 	"github.com/seal-io/seal/pkg/apis/cost"
 	"github.com/seal-io/seal/pkg/apis/dashboard"
 	"github.com/seal-io/seal/pkg/apis/debug"
 	"github.com/seal-io/seal/pkg/apis/environment"
 	"github.com/seal-io/seal/pkg/apis/health"
-	"github.com/seal-io/seal/pkg/apis/module"
-	"github.com/seal-io/seal/pkg/apis/modulecompletion"
-	"github.com/seal-io/seal/pkg/apis/moduleversion"
 	"github.com/seal-io/seal/pkg/apis/openapi"
 	"github.com/seal-io/seal/pkg/apis/perspective"
 	"github.com/seal-io/seal/pkg/apis/project"
 	"github.com/seal-io/seal/pkg/apis/role"
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/secret"
+	"github.com/seal-io/seal/pkg/apis/service"
+	"github.com/seal-io/seal/pkg/apis/serviceresource"
+	"github.com/seal-io/seal/pkg/apis/servicerevision"
 	"github.com/seal-io/seal/pkg/apis/setting"
 	"github.com/seal-io/seal/pkg/apis/subject"
 	"github.com/seal-io/seal/pkg/apis/subjectrole"
 	"github.com/seal-io/seal/pkg/apis/swagger"
+	"github.com/seal-io/seal/pkg/apis/template"
+	"github.com/seal-io/seal/pkg/apis/templatecompletion"
+	"github.com/seal-io/seal/pkg/apis/templateversion"
 	"github.com/seal-io/seal/pkg/apis/token"
 	"github.com/seal-io/seal/pkg/apis/ui"
 	"github.com/seal-io/seal/pkg/auths"
@@ -98,18 +97,17 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		account.Filter)
 	{
 		r := resourceApis
-		runtime.MustRouteResource(r, application.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
-		runtime.MustRouteResource(r, applicationinstance.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
+		runtime.MustRouteResource(r, service.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r.Group("", rectifier, wsCounter),
-			applicationresource.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, applicationrevision.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
+			serviceresource.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, servicerevision.Handle(opts.ModelClient, opts.K8sConfig, opts.TlsCertified))
 		runtime.MustRouteResource(r, connector.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, cost.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, dashboard.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, environment.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, module.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, modulecompletion.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, moduleversion.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, template.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, templatecompletion.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, templateversion.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, project.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))

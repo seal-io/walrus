@@ -13,15 +13,15 @@ const (
 )
 
 const (
-	ModuleStatusInitializing = "Initializing"
-	ModuleStatusReady        = "Ready"
-	ModuleStatusError        = "Error"
+	TemplateStatusInitializing = "Initializing"
+	TemplateStatusReady        = "Ready"
+	TemplateStatusError        = "Error"
 )
 
 const (
-	ApplicationRevisionStatusRunning   = "Running"
-	ApplicationRevisionStatusSucceeded = "Succeeded"
-	ApplicationRevisionStatusFailed    = "Failed"
+	ServiceRevisionStatusRunning   = "Running"
+	ServiceRevisionStatusSucceeded = "Succeeded"
+	ServiceRevisionStatusFailed    = "Failed"
 )
 
 // Status wrap the summary of conditions and condition details.

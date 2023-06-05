@@ -27,7 +27,7 @@ import (
 // GetKeys implements operator.Operator.
 func (op Operator) GetKeys(
 	ctx context.Context,
-	res *model.ApplicationResource,
+	res *model.ServiceResource,
 ) (*optypes.Keys, error) {
 	psp, err := op.getPods(ctx, res)
 	if err != nil {
@@ -85,7 +85,7 @@ func (op Operator) GetKeys(
 
 func (op Operator) getPods(
 	ctx context.Context,
-	res *model.ApplicationResource,
+	res *model.ServiceResource,
 ) (*[]core.Pod, error) {
 	if res == nil {
 		return nil, nil

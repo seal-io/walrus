@@ -62,7 +62,7 @@ func (o Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
-func (o Operator) GetStatus(ctx context.Context, resource *model.ApplicationResource) (*status.Status, error) {
+func (o Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) (*status.Status, error) {
 	st := &status.Status{}
 	if !resourcestatus.IsSupported(resource.Type) {
 		return st, nil
@@ -78,7 +78,7 @@ func (o Operator) GetStatus(ctx context.Context, resource *model.ApplicationReso
 	return nst, nil
 }
 
-func (o Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
+func (o Operator) GetKeys(ctx context.Context, resource *model.ServiceResource) (*optypes.Keys, error) {
 	var (
 		subCtx  = context.WithValue(ctx, optypes.CredentialKey, o.cred)
 		keyName = key.Encode(resource.Type, resource.Name)
@@ -118,18 +118,18 @@ func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions)
 
 func (o Operator) GetEndpoints(
 	ctx context.Context,
-	resource *model.ApplicationResource,
-) ([]types.ApplicationResourceEndpoint, error) {
+	resource *model.ServiceResource,
+) ([]types.ServiceResourceEndpoint, error) {
 	return nil, nil
 }
 
 func (o Operator) GetComponents(
 	ctx context.Context,
-	resource *model.ApplicationResource,
-) ([]*model.ApplicationResource, error) {
+	resource *model.ServiceResource,
+) ([]*model.ServiceResource, error) {
 	return nil, nil
 }
 
-func (o Operator) Label(ctx context.Context, resource *model.ApplicationResource, m map[string]string) error {
+func (o Operator) Label(ctx context.Context, resource *model.ServiceResource, m map[string]string) error {
 	return nil
 }

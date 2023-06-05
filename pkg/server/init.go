@@ -36,10 +36,9 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "rbac", init: r.initRbac},
 	}
 	inits = append(inits,
-		initor{name: "modules", init: r.initModules},
+		initor{name: "modules", init: r.initTemplates},
 		initor{name: "perspective", init: r.initPerspectives},
 		initor{name: "projects", init: r.initProjects},
-		initor{name: "environments", init: r.initEnvironments},
 	)
 
 	if r.EnableAuthn {

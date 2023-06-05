@@ -18,7 +18,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	revisionbus "github.com/seal-io/seal/pkg/bus/applicationrevision"
+	revisionbus "github.com/seal-io/seal/pkg/bus/servicerevision"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -36,9 +36,9 @@ const (
 
 type JobCreateOptions struct {
 	// Type is the deployment type of job, apply or destroy or other.
-	Type                  string
-	ApplicationRevisionID string
-	Image                 string
+	Type              string
+	ServiceRevisionID string
+	Image             string
 }
 
 type StreamJobLogsOptions struct {
@@ -112,12 +112,12 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	appRevision, err := r.ModelClient.ApplicationRevisions().Get(ctx, oid.ID(appRevisionID))
+	appRevision, err := r.ModelClient.ServiceRevisions().Get(ctx, oid.ID(appRevisionID))
 	if err != nil {
 		return err
 	}
 	// If the application revision status is not running, then skip it.
-	if appRevision.Status != status.ApplicationRevisionStatusRunning {
+	if appRevision.Status != status.ServiceRevisionStatusRunning {
 		return nil
 	}
 
@@ -125,7 +125,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 		return nil
 	}
 
-	revisionStatus := status.ApplicationRevisionStatusSucceeded
+	revisionStatus := status.ServiceRevisionStatusSucceeded
 	// Get job pods logs.
 	revisionStatusMessage, rerr := r.getJobPodsLogs(ctx, job.Name)
 	if rerr != nil {
@@ -139,7 +139,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 
 	if job.Status.Failed > 0 {
 		r.Logger.Info("failed", "application-revision", appRevisionID)
-		revisionStatus = status.ApplicationRevisionStatusFailed
+		revisionStatus = status.ServiceRevisionStatusFailed
 	}
 
 	// Report to application revision.
@@ -147,7 +147,7 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	appRevision.StatusMessage = revisionStatusMessage
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
 
-	update, err := dao.ApplicationRevisionUpdate(r.ModelClient, appRevision)
+	update, err := dao.ServiceRevisionUpdate(r.ModelClient, appRevision)
 	if err != nil {
 		return err
 	}
@@ -198,8 +198,8 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 
 		backoffLimit            int32 = 0
 		ttlSecondsAfterFinished int32 = 60
-		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ApplicationRevisionID)
-		configName                    = _jobSecretPrefix + opts.ApplicationRevisionID
+		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ServiceRevisionID)
+		configName                    = _jobSecretPrefix + opts.ServiceRevisionID
 	)
 
 	secret, err := clientSet.CoreV1().Secrets(types.SealSystemNamespace).Get(ctx, configName, metav1.GetOptions{})
@@ -207,7 +207,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		return err
 	}
 
-	podTemplate := getPodTemplate(opts.ApplicationRevisionID, configName, opts)
+	podTemplate := getPodTemplate(opts.ServiceRevisionID, configName, opts)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,

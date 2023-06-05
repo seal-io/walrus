@@ -3,13 +3,13 @@ package bus
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/bus/applicationrevision"
-	"github.com/seal-io/seal/pkg/bus/module"
+	"github.com/seal-io/seal/pkg/bus/servicerevision"
 	"github.com/seal-io/seal/pkg/bus/setting"
+	"github.com/seal-io/seal/pkg/bus/template"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
-	"github.com/seal-io/seal/pkg/modules"
+	"github.com/seal-io/seal/pkg/templates"
 )
 
 type SetupOptions struct {
@@ -17,15 +17,15 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
-	// Application revision.
-	err = applicationrevision.AddSubscriber("terraform-sync-application-revision-status",
-		terraform.SyncApplicationRevisionStatus)
+	// Service revision.
+	err = servicerevision.AddSubscriber("terraform-sync-service-revision-status",
+		terraform.SyncServiceRevisionStatus)
 	if err != nil {
 		return
 	}
 
-	// Module.
-	err = module.AddSubscriber("module-sync-schema", modules.SchemaSync(opts.ModelClient).Do)
+	// Template.
+	err = template.AddSubscriber("sync-template-schema", templates.SchemaSync(opts.ModelClient).Do)
 	if err != nil {
 		return
 	}

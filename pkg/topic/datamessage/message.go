@@ -9,25 +9,22 @@ import (
 	"github.com/seal-io/seal/utils/topic"
 )
 
-// Application topics.
+// Topics.
 const (
-	// Application is the topic for application.
-	Application topic.Topic = "Application"
+	// Service is the topic for service.
+	Service topic.Topic = "Service"
 
-	// ApplicationInstance is the topic for application instance.
-	ApplicationInstance topic.Topic = "ApplicationInstance"
+	// ServiceRevision is the topic for service revision.
+	ServiceRevision topic.Topic = "ServiceRevision"
 
-	// ApplicationRevision is the topic for application revision.
-	ApplicationRevision topic.Topic = "ApplicationRevision"
-
-	// ApplicationResource is the topic for application resource.
-	ApplicationResource topic.Topic = "ApplicationResource"
+	// ServiceResource is the topic for service resource.
+	ServiceResource topic.Topic = "ServiceResource"
 
 	// Connector is the topic for connector.
 	Connector topic.Topic = "Connector"
 
 	// Module is the topic for module.
-	Module topic.Topic = "Module"
+	Module topic.Topic = "Template"
 )
 
 type Message[T any] struct {
@@ -36,10 +33,9 @@ type Message[T any] struct {
 }
 
 var allowed = sets.New(
-	Application,
-	ApplicationResource,
-	ApplicationInstance,
-	ApplicationRevision,
+	ServiceResource,
+	Service,
+	ServiceRevision,
 	Connector,
 	Module,
 )

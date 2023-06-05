@@ -146,6 +146,9 @@ type CollectionGetRequest struct {
 
 	Category string `query:"category,omitempty"`
 	Type     string `query:"type,omitempty"`
+
+	ProjectID  oid.ID `query:"projectID,omitempty"`
+	WithGlobal bool   `query:"withGlobal,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
@@ -156,6 +159,12 @@ func (r *CollectionGetRequest) Validate() error {
 		default:
 			return fmt.Errorf("invalid category: %s", r.Category)
 		}
+	}
+
+	// Query global scope connectors if the given `ProjectID` is empty,
+	// otherwise, query project scope connectors.
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id")
 	}
 
 	return nil

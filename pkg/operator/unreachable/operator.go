@@ -27,11 +27,11 @@ func (Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
-func (Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
+func (Operator) GetKeys(ctx context.Context, resource *model.ServiceResource) (*optypes.Keys, error) {
 	return nil, nil
 }
 
-func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResource) (*status.Status, error) {
+func (Operator) GetStatus(ctx context.Context, resource *model.ServiceResource) (*status.Status, error) {
 	return &status.Status{
 		Summary: status.Summary{
 			SummaryStatus:        "Unknown",
@@ -43,15 +43,15 @@ func (Operator) GetStatus(ctx context.Context, resource *model.ApplicationResour
 
 func (Operator) GetEndpoints(
 	ctx context.Context,
-	resource *model.ApplicationResource,
-) ([]types.ApplicationResourceEndpoint, error) {
+	resource *model.ServiceResource,
+) ([]types.ServiceResourceEndpoint, error) {
 	return nil, nil
 }
 
 func (Operator) GetComponents(
 	ctx context.Context,
-	resource *model.ApplicationResource,
-) ([]*model.ApplicationResource, error) {
+	resource *model.ServiceResource,
+) ([]*model.ServiceResource, error) {
 	return nil, nil
 }
 
@@ -63,6 +63,6 @@ func (Operator) Exec(ctx context.Context, s string, options optypes.ExecOptions)
 	return errors.New("cannot execute")
 }
 
-func (Operator) Label(ctx context.Context, resource *model.ApplicationResource, m map[string]string) error {
+func (Operator) Label(ctx context.Context, resource *model.ServiceResource, m map[string]string) error {
 	return nil
 }
