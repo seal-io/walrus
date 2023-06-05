@@ -9,12 +9,10 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/dashboard/view"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/application"
-	"github.com/seal-io/seal/pkg/dao/model/applicationinstance"
-	"github.com/seal-io/seal/pkg/dao/model/applicationrevision"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/sqlx"
 	"github.com/seal-io/seal/utils/timex"
@@ -38,37 +36,34 @@ func (h Handler) Kind() string {
 
 // Batch APIs.
 
-var getApplicationRevisionFields = applicationrevision.WithoutFields(
-	applicationrevision.FieldStatusMessage,
-	applicationrevision.FieldInputPlan,
-	applicationrevision.FieldOutput,
-	applicationrevision.FieldInputVariables,
-	applicationrevision.FieldModules,
-	applicationrevision.FieldVariables,
-	applicationrevision.FieldSecrets,
+var getServiceRevisionFields = servicerevision.WithoutFields(
+	servicerevision.FieldStatusMessage,
+	servicerevision.FieldInputPlan,
+	servicerevision.FieldOutput,
+	servicerevision.FieldTemplateID,
+	servicerevision.FieldTemplateVersion,
+	servicerevision.FieldAttributes,
+	servicerevision.FieldSecrets,
 )
 
-func (h Handler) CollectionGetLatestApplicationRevisions(
+func (h Handler) CollectionGetLatestServiceRevisions(
 	ctx *gin.Context,
-	_ view.CollectionGetLatestApplicationRevisionsRequest,
-) (view.CollectionGetLatestApplicationRevisionsResponse, int, error) {
-	entities, err := h.modelClient.ApplicationRevisions().Query().
-		Order(model.Desc(applicationrevision.FieldCreateTime)).
-		Select(getApplicationRevisionFields...).
-		WithInstance(func(aiq *model.ApplicationInstanceQuery) {
-			aiq.Select(
-				applicationinstance.FieldID,
-				applicationinstance.FieldName,
-				applicationinstance.FieldApplicationID,
-			).WithApplication(func(aq *model.ApplicationQuery) {
-				aq.Select(
-					application.FieldID,
-					application.FieldName,
-					application.FieldProjectID).
-					WithProject(func(pq *model.ProjectQuery) {
-						pq.Select(project.FieldID, project.FieldName)
-					})
-			})
+	_ view.CollectionGetLatestServiceRevisionsRequest,
+) (view.CollectionGetLatestServiceRevisionsResponse, int, error) {
+	entities, err := h.modelClient.ServiceRevisions().Query().
+		Order(model.Desc(servicerevision.FieldCreateTime)).
+		Select(getServiceRevisionFields...).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(
+				service.FieldID,
+				service.FieldName,
+			)
+		}).
+		WithService(func(sq *model.ServiceQuery) {
+			sq.Select(
+				service.FieldID,
+				service.FieldName,
+			)
 		}).
 		WithEnvironment(
 			func(eq *model.EnvironmentQuery) {
@@ -82,7 +77,7 @@ func (h Handler) CollectionGetLatestApplicationRevisions(
 		return nil, 0, err
 	}
 
-	return model.ExposeApplicationRevisions(entities), len(entities), nil
+	return model.ExposeServiceRevisions(entities), len(entities), nil
 }
 
 // Extensional APIs.
@@ -91,27 +86,22 @@ func (h Handler) CollectionRouteBasicInformation(
 	ctx *gin.Context,
 	_ view.BasicInfoRequest,
 ) (*view.BasicInfoResponse, error) {
-	applicationNum, err := h.modelClient.Applications().Query().Count(ctx)
+	serviceRevisionNum, err := h.modelClient.ServiceRevisions().Query().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	applicationRevisionNum, err := h.modelClient.ApplicationRevisions().Query().Count(ctx)
+	templateNum, err := h.modelClient.Templates().Query().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	moduleNum, err := h.modelClient.Modules().Query().Count(ctx)
+	serviceNum, err := h.modelClient.Services().Query().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	instanceNum, err := h.modelClient.ApplicationInstances().Query().Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	applicationResourceNum, err := h.modelClient.ApplicationResources().Query().Count(ctx)
+	serviceResourceNum, err := h.modelClient.ServiceResources().Query().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -127,20 +117,19 @@ func (h Handler) CollectionRouteBasicInformation(
 	}
 
 	return &view.BasicInfoResponse{
-		Application: applicationNum,
-		Module:      moduleNum,
-		Instance:    instanceNum,
-		Resource:    applicationResourceNum,
-		Revision:    applicationRevisionNum,
+		Template:    templateNum,
+		Service:     serviceNum,
+		Resource:    serviceResourceNum,
+		Revision:    serviceRevisionNum,
 		Environment: environmentNum,
 		Connector:   connectorNum,
 	}, nil
 }
 
-func (h Handler) CollectionRouteApplicationRevisionStatistics(
+func (h Handler) CollectionRouteServiceRevisionStatistics(
 	ctx *gin.Context,
-	req view.ApplicationRevisionStatisticsRequest,
-) (*view.ApplicationRevisionStatisticsResponse, error) {
+	req view.ServiceRevisionStatisticsRequest,
+) (*view.ServiceRevisionStatisticsResponse, error) {
 	var (
 		// StatMap map of statistics.
 		statMap = make(map[string]*view.RevisionStatusStats, 0)
@@ -150,9 +139,9 @@ func (h Handler) CollectionRouteApplicationRevisionStatistics(
 			CreateTime time.Time `json:"create_time"`
 			Status     string    `json:"status"`
 		}
-		ps = []predicate.ApplicationRevision{
-			applicationrevision.CreateTimeGTE(req.StartTime),
-			applicationrevision.CreateTimeLTE(req.EndTime),
+		ps = []predicate.ServiceRevision{
+			servicerevision.CreateTimeGTE(req.StartTime),
+			servicerevision.CreateTimeLTE(req.EndTime),
 		}
 	)
 
@@ -182,23 +171,23 @@ func (h Handler) CollectionRouteApplicationRevisionStatistics(
 		statMap[timeString] = &view.RevisionStatusStats{}
 	}
 
-	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(applicationrevision.FieldCreateTime, req.Step, offset)
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(servicerevision.FieldCreateTime, req.Step, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	// Group by.
-	err = h.modelClient.ApplicationRevisions().Query().
+	err = h.modelClient.ServiceRevisions().Query().
 		Where(ps...).
 		Modify(func(q *sql.Selector) {
 			// Count.
 			q.Select(
-				sql.As(sql.Count(applicationrevision.FieldStatus), "count"),
-				sql.As(groupBy, applicationrevision.FieldCreateTime),
-				applicationrevision.FieldStatus,
+				sql.As(sql.Count(servicerevision.FieldStatus), "count"),
+				sql.As(groupBy, servicerevision.FieldCreateTime),
+				servicerevision.FieldStatus,
 			).
 				GroupBy(groupBy).
-				GroupBy(applicationrevision.FieldStatus)
+				GroupBy(servicerevision.FieldStatus)
 		}).
 		Scan(ctx, &counts)
 	if err != nil {
@@ -212,11 +201,11 @@ func (h Handler) CollectionRouteApplicationRevisionStatistics(
 		}
 
 		switch c.Status {
-		case status.ApplicationRevisionStatusFailed:
+		case status.ServiceRevisionStatusFailed:
 			statMap[t].Failed = c.Count
-		case status.ApplicationRevisionStatusSucceeded:
+		case status.ServiceRevisionStatusSucceeded:
 			statMap[t].Succeed = c.Count
-		case status.ApplicationRevisionStatusRunning:
+		case status.ServiceRevisionStatusRunning:
 			statMap[t].Running = c.Count
 		}
 	}
@@ -239,19 +228,19 @@ func (h Handler) CollectionRouteApplicationRevisionStatistics(
 		return statusStatistics[i].StartTime < statusStatistics[j].StartTime
 	})
 
-	statusCount, err := h.getApplicationRevisionStatusCount(ctx)
+	statusCount, err := h.getServiceRevisionStatusCount(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &view.ApplicationRevisionStatisticsResponse{
+	return &view.ServiceRevisionStatisticsResponse{
 		StatusStats: statusStatistics,
 		StatusCount: statusCount,
 	}, nil
 }
 
-// getApplicationRevisionStatusCount returns the count of each status of application revisions.
-func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.RevisionStatusCount, error) {
+// getServiceRevisionStatusCount returns the count of each status of service revisions.
+func (h Handler) getServiceRevisionStatusCount(ctx *gin.Context) (*view.RevisionStatusCount, error) {
 	var (
 		currentStatusCount = &view.RevisionStatusCount{}
 		statusCount        []struct {
@@ -260,8 +249,8 @@ func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.Revi
 		}
 	)
 
-	err := h.modelClient.ApplicationRevisions().Query().
-		GroupBy(applicationrevision.FieldStatus).
+	err := h.modelClient.ServiceRevisions().Query().
+		GroupBy(servicerevision.FieldStatus).
 		Aggregate(
 			model.Count(),
 		).
@@ -272,11 +261,11 @@ func (h Handler) getApplicationRevisionStatusCount(ctx *gin.Context) (*view.Revi
 
 	for _, s := range statusCount {
 		switch s.Status {
-		case status.ApplicationRevisionStatusFailed:
+		case status.ServiceRevisionStatusFailed:
 			currentStatusCount.Failed = s.Count
-		case status.ApplicationRevisionStatusSucceeded:
+		case status.ServiceRevisionStatusSucceeded:
 			currentStatusCount.Succeed = s.Count
-		case status.ApplicationRevisionStatusRunning:
+		case status.ServiceRevisionStatusRunning:
 			currentStatusCount.Running = s.Count
 		}
 	}

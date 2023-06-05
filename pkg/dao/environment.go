@@ -80,6 +80,7 @@ func EnvironmentCreates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 
 		// Required.
 		c := mc.Environments().Create().
+			SetProjectID(r.ProjectID).
 			SetName(r.Name)
 
 		// Optional.

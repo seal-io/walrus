@@ -3,7 +3,6 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -36,17 +35,17 @@ type AbsProviderConfig struct {
 
 type Parser struct{}
 
-// ParseAppRevision parse the application revision output(terraform state) to application resources,
+// ParseServiceRevision parse the service revision output(terraform state) to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseAppRevision(revision *model.ApplicationRevision) (model.ApplicationResources, error) {
+func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (model.ServiceResources, error) {
 	return p.ParseState(revision.Output, revision)
 }
 
-// ParseState parse the terraform state to application resources,
+// ParseState parse the terraform state to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision) (model.ApplicationResources, error) {
+func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (model.ServiceResources, error) {
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 
 	var revisionState state
@@ -54,7 +53,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 		return nil, err
 	}
 
-	applicationResources := make(model.ApplicationResources, 0)
+	applicationResources := make(model.ServiceResources, 0)
 
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
@@ -73,13 +72,6 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 
 		if connector == "" {
 			logger.Warnf("connector is empty, provider: %v", rs.Provider)
-			continue
-		}
-
-		// "module": "module.singleton[0]" or "module": "module.singleton".
-		moduleName, err := ParseInstanceModuleName(rs.Module)
-		if err != nil {
-			logger.Errorf("invalid module format: %s", rs.Module)
 			continue
 		}
 
@@ -117,11 +109,10 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 				}
 			}
 
-			applicationResource := &model.ApplicationResource{
-				InstanceID:   revision.InstanceID,
+			applicationResource := &model.ServiceResource{
+				ServiceID:    revision.ServiceID,
 				ConnectorID:  oid.ID(connector),
 				Mode:         rs.Mode,
-				Module:       moduleName,
 				Type:         rs.Type,
 				Name:         instanceID,
 				DeployerType: revision.DeployerType,
@@ -133,7 +124,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ApplicationRevision)
 	return applicationResources, nil
 }
 
-func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue, error) {
+func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, error) {
 	if len(revision.Output) == 0 {
 		return nil, nil
 	}
@@ -143,86 +134,29 @@ func ParseStateOutput(revision *model.ApplicationRevision) ([]types.OutputValue,
 		return nil, err
 	}
 
-	// Sort by the module name length.
-	moduleNames := make([]string, len(revision.Modules))
-	for i, v := range revision.Modules {
-		moduleNames[i] = v.Name
-	}
-
-	sort.SliceStable(moduleNames, func(i, j int) bool {
-		return len(moduleNames[i]) > len(moduleNames[j])
-	})
+	sn := revision.Edges.Service.Name
 
 	var outputs []types.OutputValue
 
 	for n, o := range revisionState.Outputs {
-		for _, mn := range moduleNames {
-			if strings.Index(n, mn) == 0 {
-				val := o.Value
-				if o.Sensitive {
-					val = []byte(`"<sensitive>"`)
-				}
-
-				outputs = append(outputs, types.OutputValue{
-					Name:       strings.TrimPrefix(n, mn+"_"), // Name format is moduleName_outputName.
-					Value:      val,
-					Type:       o.Type,
-					Sensitive:  o.Sensitive,
-					ModuleName: mn,
-				})
-
-				break
+		if strings.Index(n, sn) == 0 {
+			val := o.Value
+			if o.Sensitive {
+				val = []byte(`"<sensitive>"`)
 			}
+
+			outputs = append(outputs, types.OutputValue{
+				Name:      strings.TrimPrefix(n, sn+"_"), // Name format is serviceName_outputName.
+				Value:     val,
+				Type:      o.Type,
+				Sensitive: o.Sensitive,
+			})
+
+			break
 		}
 	}
 
 	return outputs, nil
-}
-
-// ParseInstanceModuleName get the module name from the module instance string.
-func ParseInstanceModuleName(str string) (string, error) {
-	if str == "" {
-		return "", nil
-	}
-
-	traversal, parseDiags := hclsyntax.ParseTraversalAbs([]byte(str), "", hcl.Pos{Line: 1, Column: 1})
-	if parseDiags.HasErrors() {
-		return "", fmt.Errorf("invalid module format: %s", str)
-	}
-
-	var names []string
-
-	for len(traversal) > 0 {
-		var next string
-		switch tt := traversal[0].(type) {
-		case hcl.TraverseRoot:
-			next = tt.Name
-		case hcl.TraverseAttr:
-			next = tt.Name
-		}
-		traversal = traversal[1:]
-
-		if next != "module" {
-			continue
-		}
-
-		if len(traversal) == 0 {
-			return "", errors.New("prefix \"module.\" must be followed by a module name")
-		}
-
-		var moduleName string
-		switch tt := traversal[0].(type) {
-		case hcl.TraverseAttr:
-			moduleName = tt.Name
-		default:
-			return "", errors.New("prefix \"module.\" must be followed by a module name")
-		}
-		traversal = traversal[1:]
-
-		names = append(names, moduleName)
-	}
-
-	return strs.Join("/", names...), nil
 }
 
 // ParseInstanceProviderConnector get the provider connector from the provider instance string.

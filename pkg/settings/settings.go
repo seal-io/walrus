@@ -46,8 +46,8 @@ var (
 		initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
 		modifyWith(anyUrl),
 	)
-	// ServeModuleRefer keeps the branch name of github.com/seal-io/modules repo for serving module.
-	ServeModuleRefer = newValue("ServeModuleRefer", private, initializeFromEnv("main"), nil)
+	// ServeTemplateRefer keeps the branch name of github.com/seal-io/modules repo for serving templates.
+	ServeTemplateRefer = newValue("ServeTemplateRefer", private, initializeFromEnv("main"), nil)
 	// TerraformDeployerImage indicates the image for terraform deployment.
 	TerraformDeployerImage = newValue(
 		"TerraformDeployerImage",
@@ -84,7 +84,7 @@ var (
 		initializeFrom("0 */5 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceStatusSyncCronExpr indicates the cron expression of sync application resource status,
+	// ResourceStatusSyncCronExpr indicates the cron expression of sync service resource status,
 	// default cron expression means stating every 1 minute.
 	ResourceStatusSyncCronExpr = newValue(
 		"ResourceStatusSyncCronExpr",
@@ -92,7 +92,7 @@ var (
 		initializeFrom("0 */1 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to application resource,
+	// ResourceLabelApplyCronExpr indicates the cron expression of set labels to service resource,
 	// default cron expression means setting every 2 minutes.
 	ResourceLabelApplyCronExpr = newValue(
 		"ResourceLabelApplyCronExpr",
@@ -100,7 +100,7 @@ var (
 		initializeFrom("0 */2 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
-	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover application resource basics,
+	// ResourceComponentsDiscoverCronExpr indicates the cron expression of discover service resource basics,
 	// default cron expression means discovering every 1 minute.
 	ResourceComponentsDiscoverCronExpr = newValue(
 		"ResourceComponentsDiscoverCronExpr",

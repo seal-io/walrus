@@ -184,8 +184,20 @@ func (h Handler) CollectionGet(
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.Connectors().Query()
-	if queries, ok := req.Querying(queryFields); ok {
-		query.Where(queries)
+
+	if req.ProjectID != "" {
+		if req.WithGlobal {
+			// With global scope.
+			query.Where(connector.Or(
+				connector.ProjectIDIsNil(),
+				connector.ProjectIDEQ(req.ProjectID)))
+		} else {
+			// Project scope only.
+			query.Where(connector.ProjectIDEQ(req.ProjectID))
+		}
+	} else {
+		// Global scope.
+		query.Where(connector.ProjectIDIsNil())
 	}
 
 	if req.Category != "" {
@@ -194,6 +206,10 @@ func (h Handler) CollectionGet(
 
 	if req.Type != "" {
 		query.Where(connector.Type(req.Type))
+	}
+
+	if queries, ok := req.Querying(queryFields); ok {
+		query.Where(queries)
 	}
 
 	// Get count.

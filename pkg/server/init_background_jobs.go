@@ -5,8 +5,8 @@ import (
 
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
-	appresskd "github.com/seal-io/seal/pkg/scheduler/applicationresource"
 	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
+	appresskd "github.com/seal-io/seal/pkg/scheduler/serviceresource"
 	tokenskd "github.com/seal-io/seal/pkg/scheduler/token"
 	"github.com/seal-io/seal/pkg/settings"
 )

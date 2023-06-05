@@ -15,23 +15,21 @@ type Deployer interface {
 	// Type returns Type.
 	Type() Type
 
-	// Apply creates/updates the resources of the given application instance,
-	// also cleans stale resources of the given application.
-	Apply(context.Context, *model.ApplicationInstance, ApplyOptions) error
+	// Apply creates/updates the resources of the given service,
+	// also cleans stale resources.
+	Apply(context.Context, *model.Service, ApplyOptions) error
 
-	// Destroy cleans all resources of the given application instance.
-	Destroy(context.Context, *model.ApplicationInstance, DestroyOptions) error
+	// Destroy cleans all resources of the given service.
+	Destroy(context.Context, *model.Service, DestroyOptions) error
 
-	// Rollback application instance with options.
-	Rollback(context.Context, *model.ApplicationInstance, RollbackOptions) error
+	// Rollback service with options.
+	Rollback(context.Context, *model.Service, RollbackOptions) error
 }
 
 // ApplyOptions holds the options of Deployer's Apply action.
 type ApplyOptions struct {
 	SkipTLSVerify bool
-	// CloneFrom is the application revision to clone from.
-	CloneFrom *model.ApplicationRevision
-	// Tags is the application revision tags.
+	// Tags is the service revision tags.
 	Tags []string
 }
 
@@ -43,8 +41,8 @@ type DestroyOptions struct {
 // RollbackOptions hold the options of Deployer's Rollback action.
 type RollbackOptions struct {
 	SkipTLSVerify bool
-	// CloneFrom is the application revision to clone from.
-	CloneFrom *model.ApplicationRevision
-	// Tags is the application revision tags.
+	// CloneFrom is the service revision to clone from.
+	CloneFrom *model.ServiceRevision
+	// Tags is the service revision tags.
 	Tags []string
 }

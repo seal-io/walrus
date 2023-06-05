@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types"
 )
 
 const (
@@ -11,11 +12,14 @@ const (
 	FileVars = "terraform.tfvars"
 )
 
-// ModuleConfig is a struct with model.Module and its variables.
+// ModuleConfig is a struct with model.Template and its variables.
 type ModuleConfig struct {
-	// Name is the name of the app module relationship.
-	Name          string
-	ModuleVersion *model.ModuleVersion
+	// Name is the module name.
+	Name string
+	// Source is the module source.
+	Source string
+	// Schema is the variable schema.
+	Schema *types.TemplateSchema
 	// Attributes is the attributes of the module.
 	Attributes map[string]interface{}
 	// Outputs is the module outputs.
@@ -80,8 +84,8 @@ type (
 	OutputOptions []Output
 	// Output indicate the output name and module.
 	Output struct {
-		ModuleName string
-		Name       string
-		Sensitive  bool
+		ServiceName string
+		Name        string
+		Sensitive   bool
 	}
 )

@@ -17,7 +17,7 @@ import (
 )
 
 // Label implements operator.Operator.
-func (op Operator) Label(ctx context.Context, res *model.ApplicationResource, labels map[string]string) error {
+func (op Operator) Label(ctx context.Context, res *model.ServiceResource, labels map[string]string) error {
 	if res == nil {
 		return nil
 	}

@@ -22,19 +22,19 @@ type Operator interface {
 	IsConnected(context.Context) error
 
 	// GetKeys returns keys from the given resource.
-	GetKeys(context.Context, *model.ApplicationResource) (*Keys, error)
+	GetKeys(context.Context, *model.ServiceResource) (*Keys, error)
 
 	// GetStatus gets status of the given resource,
 	// must returns GeneralStatusError if raises error.
-	GetStatus(context.Context, *model.ApplicationResource) (*status.Status, error)
+	GetStatus(context.Context, *model.ServiceResource) (*status.Status, error)
 
 	// GetEndpoints gets endpoints of the given resource.
-	GetEndpoints(context.Context, *model.ApplicationResource) ([]types.ApplicationResourceEndpoint, error)
+	GetEndpoints(context.Context, *model.ServiceResource) ([]types.ServiceResourceEndpoint, error)
 
 	// GetComponents gets components of the given resource,
 	// returns list must not be `nil` unless unexpected input or raising error,
 	// it can be used to clean stale items safety if got an empty list.
-	GetComponents(context.Context, *model.ApplicationResource) ([]*model.ApplicationResource, error)
+	GetComponents(context.Context, *model.ServiceResource) ([]*model.ServiceResource, error)
 
 	// Log gets logs from the given key.
 	Log(context.Context, string, LogOptions) error
@@ -43,7 +43,7 @@ type Operator interface {
 	Exec(context.Context, string, ExecOptions) error
 
 	// Label apply labels to the resource.
-	Label(context.Context, *model.ApplicationResource, map[string]string) error
+	Label(context.Context, *model.ServiceResource, map[string]string) error
 }
 
 // Keys holds key for next query,

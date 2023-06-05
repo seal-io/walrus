@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/terraform/block"
 )
 
@@ -38,24 +37,24 @@ var1    = "ami-0c55b159cbfafe1f0"
 			option: CreateOptions{
 				OutputOptions: []Output{
 					{
-						ModuleName: "test-module",
-						Name:       "test-output",
+						ServiceName: "test-service",
+						Name:        "test-output",
 					},
 					{
-						ModuleName: "test-module",
-						Name:       "test-output-sensitive",
-						Sensitive:  true,
+						ServiceName: "test-service",
+						Name:        "test-output-sensitive",
+						Sensitive:   true,
 					},
 				},
 			},
-			expected: []byte(`output "test-module_test-output" {
+			expected: []byte(`output "test-service_test-output" {
   sensitive = false
-  value     = module.test-module.test-output
+  value     = module.test-service.test-output
 }
 
-output "test-module_test-output-sensitive" {
+output "test-service_test-output-sensitive" {
   sensitive = true
-  value     = module.test-module.test-output-sensitive
+  value     = module.test-service.test-output-sensitive
 }
 
 `),
@@ -81,13 +80,9 @@ func TestToModuleBlock(t *testing.T) {
 		Expected     block.Block
 	}{
 		{
-			Name: "Module with no attributes",
+			Name: "Template with no attributes",
 			ModuleConfig: &ModuleConfig{
-				Name: "test1",
-				ModuleVersion: &model.ModuleVersion{
-					ModuleID: "test",
-					Version:  "0.0.0",
-				},
+				Name:       "test1",
 				Attributes: map[string]interface{}{},
 			},
 			Expected: block.Block{
@@ -97,13 +92,9 @@ func TestToModuleBlock(t *testing.T) {
 			},
 		},
 		{
-			Name: "Module with attributes",
+			Name: "Template with attributes",
 			ModuleConfig: &ModuleConfig{
 				Name: "test2",
-				ModuleVersion: &model.ModuleVersion{
-					ModuleID: "test",
-					Version:  "0.0.0",
-				},
 				Attributes: map[string]interface{}{
 					"test": "test",
 				},
@@ -117,13 +108,9 @@ func TestToModuleBlock(t *testing.T) {
 			},
 		},
 		{
-			Name: "Module with null attributes",
+			Name: "Template with null attributes",
 			ModuleConfig: &ModuleConfig{
 				Name: "test3",
-				ModuleVersion: &model.ModuleVersion{
-					ModuleID: "test",
-					Version:  "0.0.0",
-				},
 				Attributes: map[string]interface{}{
 					"test": nil,
 				},
@@ -135,13 +122,9 @@ func TestToModuleBlock(t *testing.T) {
 			},
 		},
 		{
-			Name: "Module with nested attributes and null keys",
+			Name: "Template with nested attributes and null keys",
 			ModuleConfig: &ModuleConfig{
 				Name: "test4",
-				ModuleVersion: &model.ModuleVersion{
-					ModuleID: "test",
-					Version:  "0.0.0",
-				},
 				Attributes: map[string]interface{}{
 					"test": map[string]interface{}{
 						"test": "test",

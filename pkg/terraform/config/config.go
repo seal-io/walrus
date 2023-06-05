@@ -324,10 +324,10 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 			continue
 		}
 		// Inject providers alias to the module.
-		if mc.ModuleVersion.Schema != nil {
+		if mc.Schema != nil {
 			moduleProviders := map[string]interface{}{}
 
-			for _, p := range mc.ModuleVersion.Schema.RequiredProviders {
+			for _, p := range mc.Schema.RequiredProviders {
 				if _, ok := providersMap[p.Name]; !ok {
 					logger.Warnf("provider not found, skip provider: %s", p.Name)
 					continue
@@ -376,13 +376,13 @@ func loadVariableBlocks(opts *VariableOptions) block.Blocks {
 // loadOutputBlocks returns terraform outputs config block.
 func loadOutputBlocks(opts OutputOptions) block.Blocks {
 	blockConfig := func(output Output) (string, string) {
-		label := fmt.Sprintf("%s_%s", output.ModuleName, output.Name)
-		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ModuleName, output.Name)
+		label := fmt.Sprintf("%s_%s", output.ServiceName, output.Name)
+		value := fmt.Sprintf(`{{module.%s.%s}}`, output.ServiceName, output.Name)
 
 		return label, value
 	}
 
-	// Module output.
+	// Template output.
 	blocks := make(block.Blocks, 0, len(opts))
 
 	for _, o := range opts {
@@ -405,15 +405,11 @@ func loadOutputBlocks(opts OutputOptions) block.Blocks {
 func ToModuleBlock(mc *ModuleConfig) (*block.Block, error) {
 	var b block.Block
 
-	if mc == nil || mc.ModuleVersion == nil {
-		return nil, fmt.Errorf("invalid module config: blank")
-	}
-
 	if mc.Attributes == nil {
 		mc.Attributes = make(map[string]interface{}, 0)
 	}
 
-	mc.Attributes["source"] = mc.ModuleVersion.Source
+	mc.Attributes["source"] = mc.Source
 	b = block.Block{
 		Type:       block.TypeModule,
 		Labels:     []string{mc.Name},
