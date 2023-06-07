@@ -53,3 +53,11 @@ func NormalizeSpecialChars(s string) string {
 
 	return buf.String()
 }
+
+func LastContent(content string, length int) string {
+	if len(content) < length {
+		return content
+	}
+
+	return content[len(content)-length:]
+}
