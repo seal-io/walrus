@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -12,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator/aws/key"
 	"github.com/seal-io/seal/pkg/operator/aws/resourceexec"
+	"github.com/seal-io/seal/pkg/operator/aws/resourcelog"
 	"github.com/seal-io/seal/pkg/operator/aws/resourcestatus"
 	opawstypes "github.com/seal-io/seal/pkg/operator/aws/types"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
@@ -80,12 +80,16 @@ func (o Operator) GetStatus(ctx context.Context, resource *model.ApplicationReso
 
 func (o Operator) GetKeys(ctx context.Context, resource *model.ApplicationResource) (*optypes.Keys, error) {
 	var (
-		loggable = false
-		subCtx   = context.WithValue(ctx, optypes.CredentialKey, o.cred)
-		keyName  = key.Encode(resource.Type, resource.Name)
+		subCtx  = context.WithValue(ctx, optypes.CredentialKey, o.cred)
+		keyName = key.Encode(resource.Type, resource.Name)
 	)
 
 	executable, err := resourceexec.Supported(subCtx, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	loggable, err := resourcelog.Supported(subCtx, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +111,11 @@ func (o Operator) Exec(ctx context.Context, s string, options optypes.ExecOption
 	return resourceexec.Exec(newCtx, s, options)
 }
 
+func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions) error {
+	newCtx := context.WithValue(ctx, optypes.CredentialKey, o.cred)
+	return resourcelog.Log(newCtx, s, options)
+}
+
 func (o Operator) GetEndpoints(
 	ctx context.Context,
 	resource *model.ApplicationResource,
@@ -119,10 +128,6 @@ func (o Operator) GetComponents(
 	resource *model.ApplicationResource,
 ) ([]*model.ApplicationResource, error) {
 	return nil, nil
-}
-
-func (o Operator) Log(ctx context.Context, s string, options optypes.LogOptions) error {
-	return errors.New("cannot log")
 }
 
 func (o Operator) Label(ctx context.Context, resource *model.ApplicationResource, m map[string]string) error {
