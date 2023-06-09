@@ -6,30 +6,34 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/ogen-go/ogen"
-	"github.com/ogen-go/ogen/jsonschema"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func OpenAPI(i *ogen.Info) ogen.Spec {
+func OpenAPI(i *openapi3.Info) openapi3.T {
 	sc := *spec
 	if i != nil {
-		sc.SetInfo(i)
+		sc.Info = i
 	}
 
 	return sc
 }
 
-var spec = ogen.NewSpec().
-	SetOpenAPI("3.0.3").
-	SetInfo(ogen.NewInfo().
-		SetTitle("Restful APIs").
-		SetDescription("API to manage resources").
-		SetVersion("dev")).
-	AddNamedResponses(getSchemaHTTPResponses()...)
+var spec = &openapi3.T{
+	OpenAPI: "3.0.3",
+	Info: &openapi3.Info{
+		Title:       "Restful APIs",
+		Description: "API to manage resources",
+		Version:     "dev",
+	},
+	Components: &openapi3.Components{
+		Responses: getSchemaHTTPResponses(),
+		Schemas:   make(map[string]*openapi3.SchemaRef),
+	},
+}
 
 func getSchemaResponseHTTPs() []int {
 	return []int{
@@ -52,29 +56,29 @@ func getSchemaResponseHTTPs() []int {
 	}
 }
 
-func getSchemaHTTPResponses() []*ogen.NamedResponse {
+func getSchemaHTTPResponses() openapi3.Responses {
 	httpc := getSchemaResponseHTTPs()
-	resps := make([]*ogen.NamedResponse, 0, len(httpc))
+	resps := openapi3.Responses{}
 
 	for i := range httpc {
 		c := strconv.Itoa(httpc[i])
 		t := http.StatusText(httpc[i])
-		resps = append(resps, ogen.NewNamedResponse(
-			c,
-			ogen.NewResponse().
-				SetDescription(t).
-				SetJSONContent(ogen.NewSchema().
-					AddRequiredProperties(
-						ogen.Int().SetDefault([]byte(c)).
-							ToProperty("status"),
-						ogen.String().SetDefault([]byte(`"`+t+`"`)).
-							ToProperty("statusText"),
-					).
-					AddOptionalProperties(
-						ogen.String().ToProperty("message"),
+		resps[c] = &openapi3.ResponseRef{
+			Value: openapi3.NewResponse().
+				WithDescription(t).
+				WithContent(
+					openapi3.NewContentWithJSONSchema(
+						&openapi3.Schema{
+							Properties: map[string]*openapi3.SchemaRef{
+								"status":     {Value: openapi3.NewIntegerSchema().WithDefault(c)},
+								"statusText": {Value: openapi3.NewStringSchema().WithDefault(`"` + t + `"`)},
+								"message":    {Value: openapi3.NewStringSchema()},
+							},
+							Required: []string{"status", "statusText"},
+						},
 					),
 				),
-		))
+		}
 	}
 
 	return resps
@@ -93,7 +97,7 @@ func schemeRoute(resource, handle, method, path string, ip *InputProfile, op *Ou
 	}
 }
 
-func toSchemaPath(path string) *ogen.PathItem {
+func toSchemaPath(path string) *openapi3.PathItem {
 	paths := strings.Split(path, "/")
 	for i := range paths {
 		if paths[i] == "" || paths[i][0] != ':' {
@@ -104,11 +108,11 @@ func toSchemaPath(path string) *ogen.PathItem {
 	path = strings.Join(paths, "/")
 
 	if spec.Paths == nil {
-		spec.Paths = make(ogen.Paths)
+		spec.Paths = make(openapi3.Paths)
 	}
 
 	if _, ok := spec.Paths[path]; !ok {
-		spec.Paths[path] = ogen.NewPathItem()
+		spec.Paths[path] = &openapi3.PathItem{}
 	}
 
 	return spec.Paths[path]
@@ -121,32 +125,40 @@ func toSchemaOperation(
 	path string,
 	ip *InputProfile,
 	op *OutputProfile,
-) *ogen.Operation {
+) *openapi3.Operation {
 	r := getRoute(method, path)
 
-	o := ogen.NewOperation().
-		SetTags([]string{strs.Camelize(resource)}).
-		SetOperationID(handle).
-		SetParameters(toSchemaParameters(r, ip)).
-		SetRequestBody(toSchemaRequestBody(r, ip)).
-		SetSummary(toSchemaSummary(resource, handle, method))
-	for _, c := range getSchemaResponseHTTPs() {
-		o.AddNamedResponses(spec.RefResponse(strconv.Itoa(c)))
+	o := &openapi3.Operation{
+		Tags:        []string{strs.Camelize(resource)},
+		OperationID: handle,
+		Parameters:  toSchemaParameters(r, ip),
+		RequestBody: toSchemaRequestBody(r, ip),
+		Summary:     toSchemaSummary(resource, handle, method),
 	}
 
-	o.AddNamedResponses(toSchemaResponses(r, op)...)
+	resp := getSchemaHTTPResponses()
+
+	for k := range resp {
+		resp[k].Ref = "#/components/responses/" + k
+	}
+
+	for k, v := range toSchemaResponses(r, op) {
+		resp[k] = v
+	}
+
+	o.Responses = resp
 
 	return o
 }
 
-func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
+func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 	if ip == nil {
 		return nil
 	}
 
 	props := ip.Flat(ProfileCategoryHeader, ProfileCategoryUri, ProfileCategoryQuery)
 
-	var params []*ogen.Parameter
+	var params []*openapi3.ParameterRef
 
 	for i := 0; i < len(props); i++ {
 		var in string
@@ -169,11 +181,13 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 				continue
 			}
 		}
-		param := &ogen.Parameter{
-			In:       in,
-			Name:     props[i].Name,
-			Required: props[i].Required,
-			Schema:   toSchemaSchema(ProfileCategoryQuery, &props[i]),
+		param := &openapi3.ParameterRef{
+			Value: &openapi3.Parameter{
+				In:       in,
+				Name:     props[i].Name,
+				Required: props[i].Required,
+				Schema:   toSchemaSchema(ProfileCategoryQuery, &props[i]),
+			},
 		}
 		params = append(params, param)
 	}
@@ -181,7 +195,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*ogen.Parameter {
 	return params
 }
 
-func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
+func toSchemaRequestBody(r route, ip *InputProfile) *openapi3.RequestBodyRef {
 	if r.method == http.MethodGet || ip == nil {
 		return nil
 	}
@@ -194,7 +208,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 		delete(categoryContentTypes, ProfileCategoryForm)
 	}
 
-	content := make(map[string]ogen.Media, len(categoryContentTypes))
+	content := make(map[string]*openapi3.MediaType, len(categoryContentTypes))
 
 	for category, contentType := range categoryContentTypes {
 		props := ip.Filter(category)
@@ -205,18 +219,17 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 		if _, exist := content[contentType]; !exist {
 			schema := basicSchemas[ip.TypeDescriptor]
 			if schema == nil {
-				schema = ogen.NewSchema().
-					SetType(string(jsonschema.Object))
+				schema = openapi3.NewObjectSchema()
 			}
-			content[contentType] = ogen.Media{
-				Schema: schema,
+			content[contentType] = &openapi3.MediaType{
+				Schema: schema.NewRef(),
 			}
 		}
 
 		if len(props) == 1 && ip.Type == ProfileTypeArray {
 			schema := toSchemaSchema(category, &props[0])
 			if schema != nil {
-				content[contentType] = ogen.Media{
+				content[contentType] = &openapi3.MediaType{
 					Schema: schema,
 				}
 			}
@@ -224,33 +237,41 @@ func toSchemaRequestBody(r route, ip *InputProfile) *ogen.RequestBody {
 			continue
 		}
 
+		content[contentType].Schema.Value.Properties = openapi3.Schemas{}
+
 		for i := 0; i < len(props); i++ {
 			if r.pathParams.Has(props[i].Name) {
 				continue
 			}
 
-			var add func(...*ogen.Property) *ogen.Schema
-			if props[i].Required {
-				add = content[contentType].Schema.AddRequiredProperties
-			} else {
-				add = content[contentType].Schema.AddOptionalProperties
+			ps := toSchemaProperty(category, &props[i])
+			if ps == nil {
+				continue
 			}
 
-			add(toSchemaProperty(category, &props[i]))
+			content[contentType].Schema.Value.Properties[props[i].Name] = ps
+			if props[i].Required {
+				content[contentType].Schema.Value.Required = append(
+					content[contentType].Schema.Value.Required,
+					props[i].Name,
+				)
+			}
 		}
 	}
 
 	if len(content) == 0 {
 		return nil
 	}
-	req := ogen.NewRequestBody().
-		SetRequired(true).
-		SetContent(content)
+	req := &openapi3.RequestBodyRef{}
+	req.Value = &openapi3.RequestBody{
+		Content:  content,
+		Required: true,
+	}
 
 	return req
 }
 
-func toSchemaResponses(r route, op *OutputProfile) []*ogen.NamedResponse {
+func toSchemaResponses(r route, op *OutputProfile) map[string]*openapi3.ResponseRef {
 	c := http.StatusOK
 	if r.method == http.MethodPost {
 		c = http.StatusCreated
@@ -261,16 +282,17 @@ func toSchemaResponses(r route, op *OutputProfile) []*ogen.NamedResponse {
 		if r.method == http.MethodPost {
 			c = http.StatusNoContent
 		}
-		resp = ogen.NewResponse().
-			SetDescription(http.StatusText(c))
+		resp = openapi3.NewResponse().WithDescription(http.StatusText(c))
 	}
 
-	return []*ogen.NamedResponse{
-		ogen.NewNamedResponse(strconv.Itoa(c), resp),
+	return map[string]*openapi3.ResponseRef{
+		strconv.Itoa(c): {
+			Value: resp,
+		},
 	}
 }
 
-func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
+func toSchemaResponse(_ route, op *OutputProfile) *openapi3.Response {
 	if op == nil {
 		return nil
 	}
@@ -279,7 +301,7 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 		ProfileCategoryJson: binding.MIMEJSON,
 	}
 
-	content := make(map[string]ogen.Media, 1)
+	content := make(map[string]*openapi3.MediaType, 1)
 
 	for category, contentType := range categoryContentTypes {
 		props := op.Filter(category)
@@ -287,54 +309,70 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 		if _, exist := content[contentType]; !exist {
 			schema := basicSchemas[op.TypeDescriptor]
 			if schema == nil {
-				schema = ogen.NewSchema().
-					SetType(string(jsonschema.Object))
+				schema = openapi3.NewObjectSchema()
 			}
-			content[contentType] = ogen.Media{
-				Schema: schema,
+			content[contentType] = &openapi3.MediaType{
+				Schema: schema.NewRef(),
 			}
 		}
 
 		if len(props) == 1 && (op.Type == ProfileTypeArray || op.TypeDescriptor == "render.Render") {
-			content[contentType] = ogen.Media{
+			content[contentType] = &openapi3.MediaType{
 				Schema: toSchemaSchema(category, &props[0]),
 			}
 
 			continue
 		}
 
+		content[contentType].Schema.Value.Properties = openapi3.Schemas{}
+
 		for i := 0; i < len(props); i++ {
-			var add func(...*ogen.Property) *ogen.Schema
 			if props[i].Required {
-				add = content[contentType].Schema.AddRequiredProperties
-			} else {
-				add = content[contentType].Schema.AddOptionalProperties
+				content[contentType].Schema.Value.Required = append(
+					content[contentType].Schema.Value.Required,
+					props[i].Name,
+				)
 			}
 
-			add(toSchemaProperty(category, &props[i]))
+			ps := toSchemaProperty(category, &props[i])
+			if ps != nil {
+				content[contentType].Schema.Value.Properties[props[i].Name] = ps
+			}
 		}
 	}
 
 	if op.Page {
 		for c := range content {
 			media := content[c]
-			media.Schema = ogen.NewSchema().
-				AddRequiredProperties(
-					media.Schema.ToProperty("items"),
-					ogen.NewSchema().
-						AddRequiredProperties(
-							ogen.Int().ToProperty("page"),
-							ogen.Int().ToProperty("perPage"),
-							ogen.Int().ToProperty("total"),
-							ogen.Int().ToProperty("totalPage"),
-							ogen.Bool().ToProperty("partial"),
-						).
-						AddOptionalProperties(
-							ogen.Bool().ToProperty("group"),
-							ogen.Int().ToProperty("nextPage"),
-						).
-						ToProperty("pagination"),
-				)
+			itemSchema := openapi3.Schema{
+				Type:  openapi3.TypeArray,
+				Items: media.Schema,
+			}
+			s := openapi3.Schema{
+				Required: []string{
+					"items",
+					"pagination",
+				},
+				Properties: map[string]*openapi3.SchemaRef{
+					"items": itemSchema.NewRef(),
+					"pagination": {
+						Value: &openapi3.Schema{
+							Properties: map[string]*openapi3.SchemaRef{
+								"page":      openapi3.NewInt32Schema().NewRef(),
+								"perPage":   openapi3.NewInt32Schema().NewRef(),
+								"total":     openapi3.NewInt32Schema().NewRef(),
+								"totalPage": openapi3.NewInt32Schema().NewRef(),
+								"partial":   openapi3.NewBoolSchema().NewRef(),
+								"group":     openapi3.NewBoolSchema().NewRef(),
+								"nextPage":  openapi3.NewInt32Schema().NewRef(),
+							},
+							Required: []string{"page", "perPage", "total", "totalPage", "partial"},
+						},
+					},
+				},
+			}
+
+			media.Schema = s.NewRef()
 			content[c] = media
 		}
 	}
@@ -347,18 +385,18 @@ func toSchemaResponse(_ route, op *OutputProfile) *ogen.Response {
 		content["application/octet-stream"] = content[binding.MIMEJSON]
 		delete(content, binding.MIMEJSON)
 	}
-	resp := ogen.NewResponse().
-		SetContent(content)
+	resp := openapi3.NewResponse().
+		WithContent(content)
 
 	return resp
 }
 
-func toSchemaProperty(category string, prop *ProfileProperty) *ogen.Property {
+func toSchemaProperty(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil || prop.Name == "" {
 		return nil
 	}
 
-	return toSchemaSchema(category, prop).ToProperty(prop.Name)
+	return toSchemaSchema(category, prop)
 }
 
 func toSchemaSummary(resource, handle, method string) string {
@@ -436,89 +474,87 @@ func toSchemaSummary(resource, handle, method string) string {
 	return summary
 }
 
-var basicSchemas = map[string]*ogen.Schema{
-	"bool":                 ogen.Bool(),
-	"string":               ogen.String(),
-	"int":                  ogen.Int(),
-	"int8":                 ogen.Int32(),
-	"int16":                ogen.Int32(),
-	"int32":                ogen.Int32(),
-	"uint":                 ogen.Int32(),
-	"uint8":                ogen.Int32(),
-	"uint16":               ogen.Int32(),
-	"uint32":               ogen.Int32(),
-	"int64":                ogen.Int64(),
-	"uint64":               ogen.Int64(),
-	"float32":              ogen.Float(),
-	"float64":              ogen.Double(),
-	"time.Time":            ogen.DateTime(),
-	"multipart.FileHeader": ogen.Binary(),
-	"[]byte":               ogen.Bytes(),
-	"uuid.NullUUID":        ogen.UUID(),
-	"uuid.UUID":            ogen.UUID(),
-	"render.Render":        ogen.Binary(),
-	"json.RawMessage":      ogen.NewSchema().SetType(string(jsonschema.Object)),
+var basicSchemas = map[string]*openapi3.Schema{
+	"bool":                 openapi3.NewBoolSchema(),
+	"string":               openapi3.NewStringSchema(),
+	"int":                  openapi3.NewIntegerSchema(),
+	"int8":                 openapi3.NewInt32Schema(),
+	"int16":                openapi3.NewInt32Schema(),
+	"int32":                openapi3.NewInt32Schema(),
+	"uint":                 openapi3.NewInt32Schema(),
+	"uint8":                openapi3.NewInt32Schema(),
+	"uint16":               openapi3.NewInt32Schema(),
+	"uint32":               openapi3.NewInt32Schema(),
+	"int64":                openapi3.NewInt64Schema(),
+	"uint64":               openapi3.NewInt64Schema(),
+	"float32":              openapi3.NewFloat64Schema(),
+	"float64":              openapi3.NewFloat64Schema(),
+	"time.Time":            openapi3.NewDateTimeSchema(),
+	"multipart.FileHeader": {Type: "string", Format: "binary"},
+	"[]byte":               openapi3.NewBytesSchema(),
+	"uuid.NullUUID":        openapi3.NewUUIDSchema(),
+	"uuid.UUID":            openapi3.NewUUIDSchema(),
+	"render.Render":        {Type: "string", Format: "binary"},
+	"json.RawMessage":      openapi3.NewObjectSchema(),
 }
 
-func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
+func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil {
 		return nil
 	}
 
 	switch prop.Type {
 	default:
-		return ogen.NewSchema().
-			SetType(string(jsonschema.Object))
+		return openapi3.NewObjectSchema().NewRef()
 	case ProfileTypeBasic:
-		return basicSchemas[prop.TypeDescriptor]
+		return basicSchemas[prop.TypeDescriptor].NewRef()
 	case ProfileTypeArray:
 		schema, exist := basicSchemas[prop.TypeDescriptor]
 		if exist {
-			schema = schema.AsArray()
+			schema = openapi3.NewArraySchema().WithItems(schema)
 
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
-				schema.SetMinItems(&items)
-				schema.SetMaxItems(&items)
+				schema.MinLength = items
+				schema.MaxLength = &items
 			}
 
-			return schema
+			return schema.NewRef()
 		}
 	case ProfileTypeObject:
 	}
 
 	switch prop.TypeDescriptor {
 	case "object":
-		schema := ogen.NewSchema().
-			SetType(string(jsonschema.Object))
+		schema := openapi3.NewObjectSchema()
 		if prop.Type == ProfileTypeArray {
-			schema = schema.AsArray()
+			schema = openapi3.NewArraySchema().WithItems(schema)
 
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
-				schema.SetMinItems(&items)
-				schema.SetMaxItems(&items)
+				schema.MinLength = items
+				schema.MaxLength = &items
 			}
 		}
 
-		return schema
+		return schema.NewRef()
 	case "array":
-		schema := ogen.NewSchema().
-			SetType(string(jsonschema.Object))
+		schema := openapi3.NewObjectSchema().NewRef()
 		if len(prop.Properties) == 1 {
 			schema = toSchemaSchema(category, &prop.Properties[0])
 		}
 
 		if prop.Type == ProfileTypeArray {
-			schema = schema.AsArray()
-
+			s := openapi3.Schema{
+				Type:  openapi3.TypeArray,
+				Items: schema,
+			}
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
-				schema.SetMinItems(&items)
-				schema.SetMaxItems(&items)
+				s.MinLength = items
+				s.MaxLength = &items
 			}
-
-			return schema
+			return s.NewRef()
 		}
 	}
 
@@ -528,44 +564,60 @@ func toSchemaSchema(category string, prop *ProfileProperty) *ogen.Schema {
 	}
 
 	if prop.TypeRefer {
-		schema := ogen.NewSchema().
-			SetRef("#/components/schemas/" + schemaID)
+		schema := openapi3.NewSchemaRef("#/components/schemas/"+schemaID, openapi3.NewSchema())
 		if prop.Type == ProfileTypeArray {
-			schema = schema.AsArray()
+			schema = &openapi3.SchemaRef{
+				Value: &openapi3.Schema{
+					Type:  openapi3.TypeArray,
+					Items: schema,
+				},
+			}
 
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
-				schema.SetMinItems(&items)
-				schema.SetMaxItems(&items)
+				schema.Value.MinLength = items
+				schema.Value.MaxLength = &items
 			}
 		}
 
 		return schema
 	}
 
-	namedSchema := ogen.NewNamedSchema(schemaID,
-		ogen.NewSchema().SetType(string(jsonschema.Object)))
+	namedSchema := &openapi3.Schema{
+		Properties: map[string]*openapi3.SchemaRef{},
+		Type:       openapi3.TypeObject,
+	}
 
 	for i := 0; i < len(prop.Properties); i++ {
-		var add func(...*ogen.Property) *ogen.Schema
 		if prop.Properties[i].Required {
-			add = namedSchema.Schema.AddRequiredProperties
-		} else {
-			add = namedSchema.Schema.AddOptionalProperties
+			namedSchema.Required = append(namedSchema.Required, prop.Properties[i].Name)
 		}
 
-		add(toSchemaProperty(category, &prop.Properties[i]))
-	}
-	spec.AddNamedSchemas(namedSchema)
+		ps := toSchemaProperty(category, &prop.Properties[i])
+		if ps == nil {
+			continue
+		}
 
-	schema := namedSchema.AsLocalRef()
+		namedSchema.Properties[prop.Properties[i].Name] = ps
+	}
+
+	spec.Components.Schemas[schemaID] = &openapi3.SchemaRef{
+		Value: namedSchema,
+	}
+
+	schema := openapi3.NewSchemaRef("#/components/schemas/"+schemaID, namedSchema)
 	if prop.Type == ProfileTypeArray {
-		schema = schema.AsArray()
+		schema = &openapi3.SchemaRef{
+			Value: &openapi3.Schema{
+				Type:  openapi3.TypeArray,
+				Items: schema,
+			},
+		}
 
 		if prop.TypeArrayLength != 0 {
 			items := uint64(prop.TypeArrayLength)
-			schema.SetMinItems(&items)
-			schema.SetMaxItems(&items)
+			schema.Value.MinLength = items
+			schema.Value.MaxLength = &items
 		}
 	}
 
