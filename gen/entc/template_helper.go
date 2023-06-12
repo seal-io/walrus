@@ -28,7 +28,7 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		return fs
 	}
 
-	ignoreSet := sets.New[string]("createTime", "updateTime")
+	ignoreSet := sets.New[string]("createTime", "updateTime", "status")
 
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
