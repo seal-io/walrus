@@ -49,6 +49,7 @@ type Server struct {
 	BootstrapPassword  string
 	ConnQPS            int
 	ConnBurst          int
+	GopoolWorkerFactor int
 
 	KubeConfig      string
 	KubeConnTimeout time.Duration
@@ -82,6 +83,7 @@ func New() *Server {
 		DataSourceConnMaxLife: 10 * time.Minute,
 		EnableAuthn:           true,
 		AuthnSessionMaxIdle:   30 * time.Minute,
+		GopoolWorkerFactor:    100,
 	}
 }
 
@@ -306,6 +308,13 @@ func (r *Server) Flags(cmd *cli.Command) {
 			Destination: &r.CasdoorServer,
 			Value:       r.CasdoorServer,
 		},
+		&cli.IntFlag{
+			Name: "gopool-worker-factor",
+			Usage: "The gopool worker factor determines the number of tasks of the goroutine worker pool," +
+				"it is calculated by the number of CPU cores multiplied by this factor.",
+			Destination: &r.GopoolWorkerFactor,
+			Value:       r.GopoolWorkerFactor,
+		},
 	}
 	for i := range flags {
 		cmd.Flags = append(cmd.Flags, flags[i])
@@ -331,6 +340,7 @@ func (r *Server) Action(cmd *cli.Command) {
 }
 
 func (r *Server) Run(c context.Context) error {
+	gopool.ResetPool(r.GopoolWorkerFactor)
 	g, ctx := gopool.GroupWithContext(c)
 
 	// Get kubernetes config.

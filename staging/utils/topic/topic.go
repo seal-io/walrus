@@ -3,10 +3,11 @@ package topic
 import (
 	"context"
 	"errors"
-	"runtime"
 	"sync"
 
 	"github.com/google/uuid"
+
+	"github.com/seal-io/seal/utils/runtimex"
 )
 
 type Event struct {
@@ -51,7 +52,7 @@ func (h *hub) Subscribe(t Topic) (Subscriber, error) {
 		// Topic scope.
 		var (
 			n = uuid.NewString()
-			c = make(chan Event, runtime.NumCPU()*2)
+			c = make(chan Event, runtimex.NumCPU()*2)
 		)
 
 		h.m.Store(n, c)

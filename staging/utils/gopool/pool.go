@@ -1,17 +1,34 @@
 package gopool
 
 import (
-	"runtime"
+	"sync"
 
 	"github.com/alitto/pond"
 
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/runtimex"
 )
 
-var gp = pond.New(runtime.NumCPU()*10, runtime.NumCPU()*1000,
-	pond.MinWorkers(runtime.NumCPU()*10),
-	pond.Strategy(pond.Eager()),
-	pond.PanicHandler(func(i interface{}) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
+var (
+	once sync.Once
+	gp   = setPool(100)
+)
+
+func setPool(factor int) *pond.WorkerPool {
+	b := runtimex.NumCPU()
+
+	return pond.New(b*factor, b*factor*100,
+		pond.MinWorkers(b*factor),
+		pond.Strategy(pond.Eager()),
+		pond.PanicHandler(func(i interface{}) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
+}
+
+func ResetPool(factor int) {
+	once.Do(func() {
+		gp.Stop()
+		gp = setPool(factor)
+	})
+}
 
 func printState() {
 	if !log.Enabled(log.DebugLevel) {
