@@ -37,8 +37,6 @@ type ServiceResourceCreateInput struct {
 	Name string `json:"name"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType"`
-	// Status of the resource.
-	Status types.ServiceResourceStatus `json:"status,omitempty"`
 	// Service to which the resource belongs.
 	Service ServiceQueryInput `json:"service"`
 	// Connector to which the resource deploys.
@@ -55,7 +53,6 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 		Type:         in.Type,
 		Name:         in.Name,
 		DeployerType: in.DeployerType,
-		Status:       in.Status,
 	}
 	entity.ServiceID = in.Service.ID
 	entity.ConnectorID = in.Connector.ID
@@ -69,15 +66,12 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 type ServiceResourceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Status of the resource.
-	Status types.ServiceResourceStatus `json:"status,omitempty"`
 }
 
 // Model converts the ServiceResourceUpdateInput to ServiceResource.
 func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 	var entity = &ServiceResource{
-		ID:     in.ID,
-		Status: in.Status,
+		ID: in.ID,
 	}
 	return entity
 }
