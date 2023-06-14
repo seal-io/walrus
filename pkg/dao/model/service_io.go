@@ -39,8 +39,6 @@ type ServiceCreateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
 	// Project to which the service belongs.
@@ -55,7 +53,6 @@ func (in ServiceCreateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-		Status:      in.Status,
 	}
 	entity.EnvironmentID = in.Environment.ID
 	entity.ProjectID = in.Project.ID
@@ -76,8 +73,6 @@ type ServiceUpdateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty"`
 }
 
 // Model converts the ServiceUpdateInput to Service.
@@ -89,7 +84,6 @@ func (in ServiceUpdateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-		Status:      in.Status,
 	}
 	return entity
 }

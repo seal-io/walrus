@@ -29,8 +29,6 @@ func (in ServiceRevisionQueryInput) Model() *ServiceRevision {
 
 // ServiceRevisionCreateInput is the input for the ServiceRevision creation.
 type ServiceRevisionCreateInput struct {
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// ID of the template.
@@ -64,7 +62,6 @@ type ServiceRevisionCreateInput struct {
 // Model converts the ServiceRevisionCreateInput to ServiceRevision.
 func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
-		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
@@ -87,8 +84,6 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 type ServiceRevisionUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Version of the template.
@@ -115,7 +110,6 @@ type ServiceRevisionUpdateInput struct {
 func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
 		ID:                        in.ID,
-		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,

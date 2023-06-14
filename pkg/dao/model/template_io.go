@@ -22,8 +22,6 @@ func (in TemplateQueryInput) Model() *Template {
 
 // TemplateCreateInput is the input for the Template creation.
 type TemplateCreateInput struct {
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the template.
@@ -39,7 +37,6 @@ type TemplateCreateInput struct {
 // Model converts the TemplateCreateInput to Template.
 func (in TemplateCreateInput) Model() *Template {
 	var entity = &Template{
-		Status:        in.Status,
 		StatusMessage: in.StatusMessage,
 		Description:   in.Description,
 		Icon:          in.Icon,
@@ -53,8 +50,6 @@ func (in TemplateCreateInput) Model() *Template {
 type TemplateUpdateInput struct {
 	// It is also the name of the template.
 	ID string `uri:"id" json:"-"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
 	// Extra message for status, like error details.
 	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the template.
@@ -71,7 +66,6 @@ type TemplateUpdateInput struct {
 func (in TemplateUpdateInput) Model() *Template {
 	var entity = &Template{
 		ID:            in.ID,
-		Status:        in.Status,
 		StatusMessage: in.StatusMessage,
 		Description:   in.Description,
 		Icon:          in.Icon,
