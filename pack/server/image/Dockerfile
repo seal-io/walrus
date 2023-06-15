@@ -120,6 +120,32 @@ RUN set -eux; \
     axel -n 16 -o /tmp/etcdctl.tar.gz ${ETCDCTL_URL} && \
     tar -xzvf /tmp/etcdctl.tar.gz --directory /usr/bin/ --strip-components=1 --no-same-owner etcd-${ETCDCTL_VER}-linux-${TARGETARCH}/etcdctl
 
+# get crane
+RUN set -exo pipefail; \
+    case "${TARGETARCH}" in \
+      amd64|x86_64) \
+        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.15.2/go-containerregistry_Linux_x86_64.tar.gz'; \
+        ;; \
+      aarch64|arm64) \
+        CRANE_URL='https://github.com/google/go-containerregistry/releases/download/v0.15.2/go-containerregistry_Linux_arm64.tar.gz'; \
+        ;; \
+      *) \
+        echo "Unsupported arch: ${TARGETARCH}"; \
+        exit 1; \
+        ;; \
+    esac; \
+    \
+    axel -n 16 -o /tmp/crane.tar.gz ${CRANE_URL} && \
+      tar -xzf /tmp/crane.tar.gz --directory /usr/bin/ crane && \
+      chmod a+x /usr/bin/crane && \
+      rm -f /tmp/crane.tar.gz;
+
+# get deployer image
+RUN set -exo pipefail; \
+        DEPLOYER_IMAGE="sealio/terraform-deployer:v0.1.2"; \
+        crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/seal-terraform-deployer.tar;
+
+
 # get casdoor
 ENV BEEGO_CONFIG_PATH="/etc/casdoor/app.conf"
 COPY --from=sealio/casdoor:v1.197.0-seal.3 \
