@@ -10,7 +10,7 @@ env:
   VERSION: "${{ github.ref_name }}"
   BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   PARALLELIZE: "false"
-  GO_VERSION: "1.19.9"
+  GO_VERSION: "1.19.10"
 
 defaults:
   run:
