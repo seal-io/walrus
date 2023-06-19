@@ -135,8 +135,9 @@ type CollectionGetRequest struct {
 	runtime.RequestExtracting                           `query:",inline"`
 	runtime.RequestSorting[servicerevision.OrderOption] `query:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
-	ServiceID oid.ID `query:"serviceID,omitempty"`
+	ProjectID   oid.ID `query:"projectID"`
+	ServiceID   oid.ID `query:"serviceID,omitempty"`
+	ServiceName string `query:"serviceName,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {

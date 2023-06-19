@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/operator"
@@ -147,11 +148,12 @@ type CollectionGetRequest struct {
 	Category string `query:"category,omitempty"`
 	Type     string `query:"type,omitempty"`
 
-	ProjectID  oid.ID `query:"projectID,omitempty"`
-	WithGlobal bool   `query:"withGlobal,omitempty"`
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
+	WithGlobal  bool   `query:"withGlobal,omitempty"`
 }
 
-func (r *CollectionGetRequest) Validate() error {
+func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
 	if r.Category != "" {
 		switch r.Category {
 		case types.ConnectorCategoryKubernetes, types.ConnectorCategoryCustom,
@@ -163,8 +165,20 @@ func (r *CollectionGetRequest) Validate() error {
 
 	// Query global scope connectors if the given `ProjectID` is empty,
 	// otherwise, query project scope connectors.
-	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
-		return errors.New("invalid project id")
+	modelClient := input.(model.ClientSet)
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err == nil {
+			r.ProjectID = projectID
+		}
 	}
 
 	return nil

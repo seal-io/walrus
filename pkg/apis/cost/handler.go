@@ -157,7 +157,7 @@ func (h Handler) CollectionRouteSummaryCost(
 	}, nil
 }
 
-func (h Handler) CollectionRouteSummaryClusterCost(
+func (h Handler) RouteSummaryClusterCost(
 	ctx *gin.Context,
 	req view.SummaryClusterCostRequest,
 ) (*view.SummaryClusterCostResponse, error) {
@@ -215,7 +215,7 @@ func (h Handler) CollectionRouteSummaryClusterCost(
 	return &summary, nil
 }
 
-func (h Handler) CollectionRouteSummaryProjectCost(
+func (h Handler) RouteSummaryProjectCost(
 	ctx *gin.Context,
 	req view.SummaryProjectCostRequest,
 ) (*view.SummaryCostCommonResponse, error) {
@@ -270,7 +270,7 @@ func (h Handler) CollectionRouteSummaryProjectCost(
 	return &summary, nil
 }
 
-func (h Handler) CollectionRouteSummaryQueriedCost(
+func (h Handler) RouteSummaryQueriedCost(
 	ctx *gin.Context,
 	req view.SummaryQueriedCostRequest,
 ) (*view.SummaryQueriedCostResponse, error) {

@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -31,11 +32,30 @@ import (
 type CreateRequest struct {
 	*model.ServiceCreateInput `json:",inline"`
 
-	ProjectID  oid.ID   `query:"projectID"`
-	RemarkTags []string `json:"remarkTags,omitempty"`
+	ProjectID   oid.ID   `query:"projectID"`
+	ProjectName string   `query:"projectName"`
+	RemarkTags  []string `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
 	if !r.ProjectID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
@@ -49,7 +69,6 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	// Verify module version.
-	modelClient := input.(model.ClientSet)
 
 	templateVersion, err := modelClient.TemplateVersions().Query().
 		Where(templateversion.TemplateID(r.Template.ID), templateversion.Version(r.Template.Version)).
@@ -186,8 +205,9 @@ type StreamResponse struct {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Service, service.OrderOption] `query:",inline"`
 
-	ProjectID     oid.ID `query:"projectID"`
-	EnvironmentID oid.ID `query:"environmentID"`
+	ProjectID       oid.ID `query:"projectID"`
+	EnvironmentID   oid.ID `query:"environmentID"`
+	EnvironmentName string `query:"environmentName,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -195,17 +215,34 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.EnvironmentID.Valid(0) {
-		return errors.New("invalid environment id: blank")
-	}
-
 	modelClient := input.(model.ClientSet)
 
-	_, err := modelClient.Environments().Query().
-		Where(environment.ID(r.EnvironmentID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Errorw(err, "failed to get environment")
+	switch {
+	case r.EnvironmentID != "":
+		if !r.EnvironmentID.Valid(0) {
+			return errors.New("invalid environment id: blank")
+		}
+
+		_, err := modelClient.Environments().Query().
+			Where(environment.ID(r.EnvironmentID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get environment")
+		}
+	case r.EnvironmentName != "":
+		envID, err := modelClient.Environments().Query().
+			Where(
+				environment.ProjectID(r.ProjectID),
+				environment.Name(r.EnvironmentName),
+			).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get environment")
+		}
+
+		r.EnvironmentID = envID
+	default:
+		return errors.New("both environment id and environment name are blank")
 	}
 
 	return nil

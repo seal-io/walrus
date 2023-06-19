@@ -174,6 +174,10 @@ func (h Handler) CollectionGet(
 		query.Where(servicerevision.ServiceID(req.ServiceID))
 	}
 
+	if req.ServiceName != "" {
+		query.QueryService().Where(service.Name(req.ServiceName))
+	}
+
 	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {
