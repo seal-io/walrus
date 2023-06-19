@@ -35,18 +35,24 @@ func (r *Server) initTemplates(ctx context.Context, opts initOptions) error {
 				"opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_containerimage.svg",
 		},
 		{
-			ID:          "aws-rds",
-			Description: "An AWS RDS instance.",
-			Source:      "github.com/seal-io/modules//aws-rds?ref=" + ref,
-			Icon: "https://raw.githubusercontent.com/sashee/aws-svg-icons/" +
-				"ddf2928b65d8f18c20c6a792740ec934804e7a25/docs/" +
-				"Architecture-Service-Icons_07302021/Arch_Database/64/Arch_Amazon-RDS_64.svg",
+			ID:          "rds",
+			Description: "Provide a RDS instance of Kubernetes via Bitnami Charts.",
+			Source:      "github.com/seal-io/modules//rds?ref=" + ref,
 		},
 		{
-			ID:          "mysql",
-			Description: "A containerized mysql instance.",
-			Source:      "github.com/seal-io/modules//mysql?ref=" + ref,
-			Icon:        "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
+			ID:          "aws-rds",
+			Description: "Provide a RDS instance of AWS Cloud.",
+			Source:      "github.com/seal-io/modules//aws-rds?ref=" + ref,
+		},
+		{
+			ID:          "alicloud-rds",
+			Description: "Provide a RDS instance of Alibaba Cloud.",
+			Source:      "github.com/seal-io/modules//alicloud-rds?ref=" + ref,
+		},
+		{
+			ID:          "rds-seeder",
+			Description: "Seed any RDS instances for Development or Testing.",
+			Source:      "github.com/seal-io/modules//rds-seeder?ref=" + ref,
 		},
 	}
 
