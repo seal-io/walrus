@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -441,6 +442,29 @@ func init() {
 	serviceDescEnvironmentID := serviceFields[0].Descriptor()
 	// service.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
 	service.EnvironmentIDValidator = serviceDescEnvironmentID.Validators[0].(func(string) error)
+	servicedependencyMixin := schema.ServiceDependency{}.Mixin()
+	servicedependencyMixinHooks0 := servicedependencyMixin[0].Hooks()
+	servicedependency.Hooks[0] = servicedependencyMixinHooks0[0]
+	servicedependencyMixinFields1 := servicedependencyMixin[1].Fields()
+	_ = servicedependencyMixinFields1
+	servicedependencyFields := schema.ServiceDependency{}.Fields()
+	_ = servicedependencyFields
+	// servicedependencyDescCreateTime is the schema descriptor for createTime field.
+	servicedependencyDescCreateTime := servicedependencyMixinFields1[0].Descriptor()
+	// servicedependency.DefaultCreateTime holds the default value on creation for the createTime field.
+	servicedependency.DefaultCreateTime = servicedependencyDescCreateTime.Default.(func() time.Time)
+	// servicedependencyDescServiceID is the schema descriptor for serviceID field.
+	servicedependencyDescServiceID := servicedependencyFields[0].Descriptor()
+	// servicedependency.ServiceIDValidator is a validator for the "serviceID" field. It is called by the builders before save.
+	servicedependency.ServiceIDValidator = servicedependencyDescServiceID.Validators[0].(func(string) error)
+	// servicedependencyDescDependentID is the schema descriptor for dependentID field.
+	servicedependencyDescDependentID := servicedependencyFields[1].Descriptor()
+	// servicedependency.DependentIDValidator is a validator for the "dependentID" field. It is called by the builders before save.
+	servicedependency.DependentIDValidator = servicedependencyDescDependentID.Validators[0].(func(string) error)
+	// servicedependencyDescType is the schema descriptor for type field.
+	servicedependencyDescType := servicedependencyFields[3].Descriptor()
+	// servicedependency.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	servicedependency.TypeValidator = servicedependencyDescType.Validators[0].(func(string) error)
 	serviceresourceMixin := schema.ServiceResource{}.Mixin()
 	serviceresourceMixinHooks0 := serviceresourceMixin[0].Hooks()
 	serviceresourceMixinHooks1 := serviceresourceMixin[1].Hooks()

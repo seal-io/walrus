@@ -29,6 +29,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -68,6 +69,8 @@ type Client struct {
 	Secret *SecretClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceDependency is the client for interacting with the ServiceDependency builders.
+	ServiceDependency *ServiceDependencyClient
 	// ServiceResource is the client for interacting with the ServiceResource builders.
 	ServiceResource *ServiceResourceClient
 	// ServiceRevision is the client for interacting with the ServiceRevision builders.
@@ -107,6 +110,7 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.Secret = NewSecretClient(c.config)
 	c.Service = NewServiceClient(c.config)
+	c.ServiceDependency = NewServiceDependencyClient(c.config)
 	c.ServiceResource = NewServiceResourceClient(c.config)
 	c.ServiceRevision = NewServiceRevisionClient(c.config)
 	c.Setting = NewSettingClient(c.config)
@@ -209,6 +213,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:                             NewRoleClient(cfg),
 		Secret:                           NewSecretClient(cfg),
 		Service:                          NewServiceClient(cfg),
+		ServiceDependency:                NewServiceDependencyClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
 		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
@@ -246,6 +251,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:                             NewRoleClient(cfg),
 		Secret:                           NewSecretClient(cfg),
 		Service:                          NewServiceClient(cfg),
+		ServiceDependency:                NewServiceDependencyClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
 		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
@@ -285,8 +291,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
-		c.Service, c.ServiceResource, c.ServiceRevision, c.Setting, c.Subject,
-		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token,
+		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
+		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
+		c.Token,
 	} {
 		n.Use(hooks...)
 	}
@@ -298,8 +305,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
-		c.Service, c.ServiceResource, c.ServiceRevision, c.Setting, c.Subject,
-		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token,
+		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
+		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
+		c.Token,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -353,6 +361,11 @@ func (c *Client) Secrets() *SecretClient {
 // Services implements the ClientSet.
 func (c *Client) Services() *ServiceClient {
 	return c.Service
+}
+
+// ServiceDependencies implements the ClientSet.
+func (c *Client) ServiceDependencies() *ServiceDependencyClient {
+	return c.ServiceDependency
 }
 
 // ServiceResources implements the ClientSet.
@@ -456,6 +469,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Secret.mutate(ctx, m)
 	case *ServiceMutation:
 		return c.Service.mutate(ctx, m)
+	case *ServiceDependencyMutation:
+		return c.ServiceDependency.mutate(ctx, m)
 	case *ServiceResourceMutation:
 		return c.ServiceResource.mutate(ctx, m)
 	case *ServiceRevisionMutation:
@@ -2060,6 +2075,25 @@ func (c *ServiceClient) QueryResources(s *Service) *ServiceResourceQuery {
 	return query
 }
 
+// QueryDependencies queries the dependencies edge of a Service.
+func (c *ServiceClient) QueryDependencies(s *Service) *ServiceDependencyQuery {
+	query := (&ServiceDependencyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, id),
+			sqlgraph.To(servicedependency.Table, servicedependency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, service.DependenciesTable, service.DependenciesColumn),
+		)
+		schemaConfig := s.schemaConfig
+		step.To.Schema = schemaConfig.ServiceDependency
+		step.Edge.Schema = schemaConfig.ServiceDependency
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ServiceClient) Hooks() []Hook {
 	hooks := c.hooks.Service
@@ -2084,6 +2118,144 @@ func (c *ServiceClient) mutate(ctx context.Context, m *ServiceMutation) (Value, 
 		return (&ServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Service mutation op: %q", m.Op())
+	}
+}
+
+// ServiceDependencyClient is a client for the ServiceDependency schema.
+type ServiceDependencyClient struct {
+	config
+}
+
+// NewServiceDependencyClient returns a client for the ServiceDependency from the given config.
+func NewServiceDependencyClient(c config) *ServiceDependencyClient {
+	return &ServiceDependencyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `servicedependency.Hooks(f(g(h())))`.
+func (c *ServiceDependencyClient) Use(hooks ...Hook) {
+	c.hooks.ServiceDependency = append(c.hooks.ServiceDependency, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `servicedependency.Intercept(f(g(h())))`.
+func (c *ServiceDependencyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ServiceDependency = append(c.inters.ServiceDependency, interceptors...)
+}
+
+// Create returns a builder for creating a ServiceDependency entity.
+func (c *ServiceDependencyClient) Create() *ServiceDependencyCreate {
+	mutation := newServiceDependencyMutation(c.config, OpCreate)
+	return &ServiceDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ServiceDependency entities.
+func (c *ServiceDependencyClient) CreateBulk(builders ...*ServiceDependencyCreate) *ServiceDependencyCreateBulk {
+	return &ServiceDependencyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ServiceDependency.
+func (c *ServiceDependencyClient) Update() *ServiceDependencyUpdate {
+	mutation := newServiceDependencyMutation(c.config, OpUpdate)
+	return &ServiceDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceDependencyClient) UpdateOne(sd *ServiceDependency) *ServiceDependencyUpdateOne {
+	mutation := newServiceDependencyMutation(c.config, OpUpdateOne, withServiceDependency(sd))
+	return &ServiceDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceDependencyClient) UpdateOneID(id oid.ID) *ServiceDependencyUpdateOne {
+	mutation := newServiceDependencyMutation(c.config, OpUpdateOne, withServiceDependencyID(id))
+	return &ServiceDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ServiceDependency.
+func (c *ServiceDependencyClient) Delete() *ServiceDependencyDelete {
+	mutation := newServiceDependencyMutation(c.config, OpDelete)
+	return &ServiceDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ServiceDependencyClient) DeleteOne(sd *ServiceDependency) *ServiceDependencyDeleteOne {
+	return c.DeleteOneID(sd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ServiceDependencyClient) DeleteOneID(id oid.ID) *ServiceDependencyDeleteOne {
+	builder := c.Delete().Where(servicedependency.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ServiceDependencyDeleteOne{builder}
+}
+
+// Query returns a query builder for ServiceDependency.
+func (c *ServiceDependencyClient) Query() *ServiceDependencyQuery {
+	return &ServiceDependencyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeServiceDependency},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ServiceDependency entity by its id.
+func (c *ServiceDependencyClient) Get(ctx context.Context, id oid.ID) (*ServiceDependency, error) {
+	return c.Query().Where(servicedependency.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceDependencyClient) GetX(ctx context.Context, id oid.ID) *ServiceDependency {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryService queries the service edge of a ServiceDependency.
+func (c *ServiceDependencyClient) QueryService(sd *ServiceDependency) *ServiceQuery {
+	query := (&ServiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicedependency.Table, servicedependency.FieldID, id),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, servicedependency.ServiceTable, servicedependency.ServiceColumn),
+		)
+		schemaConfig := sd.schemaConfig
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.ServiceDependency
+		fromV = sqlgraph.Neighbors(sd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ServiceDependencyClient) Hooks() []Hook {
+	hooks := c.hooks.ServiceDependency
+	return append(hooks[:len(hooks):len(hooks)], servicedependency.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ServiceDependencyClient) Interceptors() []Interceptor {
+	return c.inters.ServiceDependency
+}
+
+func (c *ServiceDependencyClient) mutate(ctx context.Context, m *ServiceDependencyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ServiceDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ServiceDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ServiceDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ServiceDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ServiceDependency mutation op: %q", m.Op())
 	}
 }
 
@@ -3332,14 +3504,14 @@ type (
 	hooks struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
-		ServiceResource, ServiceRevision, Setting, Subject, SubjectRoleRelationship,
-		Template, TemplateVersion, Token []ent.Hook
+		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
+		SubjectRoleRelationship, Template, TemplateVersion, Token []ent.Hook
 	}
 	inters struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
-		ServiceResource, ServiceRevision, Setting, Subject, SubjectRoleRelationship,
-		Template, TemplateVersion, Token []ent.Interceptor
+		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
+		SubjectRoleRelationship, Template, TemplateVersion, Token []ent.Interceptor
 	}
 )
 

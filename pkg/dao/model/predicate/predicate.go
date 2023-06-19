@@ -39,6 +39,9 @@ type Secret func(*sql.Selector)
 // Service is the predicate function for service builders.
 type Service func(*sql.Selector)
 
+// ServiceDependency is the predicate function for servicedependency builders.
+type ServiceDependency func(*sql.Selector)
+
 // ServiceResource is the predicate function for serviceresource builders.
 type ServiceResource func(*sql.Selector)
 

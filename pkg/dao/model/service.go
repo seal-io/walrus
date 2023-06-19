@@ -64,9 +64,11 @@ type ServiceEdges struct {
 	Revisions []*ServiceRevision `json:"revisions,omitempty" sql:"revisions"`
 	// Resources that belong to the service.
 	Resources []*ServiceResource `json:"resources,omitempty" sql:"resources"`
+	// Services dependencies of the service.
+	Dependencies []*ServiceDependency `json:"dependencies,omitempty" sql:"dependencies"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // EnvironmentOrErr returns the Environment value or an error if the edge
@@ -111,6 +113,15 @@ func (e ServiceEdges) ResourcesOrErr() ([]*ServiceResource, error) {
 		return e.Resources, nil
 	}
 	return nil, &NotLoadedError{edge: "resources"}
+}
+
+// DependenciesOrErr returns the Dependencies value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) DependenciesOrErr() ([]*ServiceDependency, error) {
+	if e.loadedTypes[4] {
+		return e.Dependencies, nil
+	}
+	return nil, &NotLoadedError{edge: "dependencies"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -248,6 +259,11 @@ func (s *Service) QueryRevisions() *ServiceRevisionQuery {
 // QueryResources queries the "resources" edge of the Service entity.
 func (s *Service) QueryResources() *ServiceResourceQuery {
 	return NewServiceClient(s.config).QueryResources(s)
+}
+
+// QueryDependencies queries the "dependencies" edge of the Service entity.
+func (s *Service) QueryDependencies() *ServiceDependencyQuery {
+	return NewServiceClient(s.config).QueryDependencies(s)
 }
 
 // Update returns a builder for updating this Service.

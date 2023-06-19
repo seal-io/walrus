@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -146,6 +147,21 @@ func (su *ServiceUpdate) AddResources(s ...*ServiceResource) *ServiceUpdate {
 	return su.AddResourceIDs(ids...)
 }
 
+// AddDependencyIDs adds the "dependencies" edge to the ServiceDependency entity by IDs.
+func (su *ServiceUpdate) AddDependencyIDs(ids ...oid.ID) *ServiceUpdate {
+	su.mutation.AddDependencyIDs(ids...)
+	return su
+}
+
+// AddDependencies adds the "dependencies" edges to the ServiceDependency entity.
+func (su *ServiceUpdate) AddDependencies(s ...*ServiceDependency) *ServiceUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.AddDependencyIDs(ids...)
+}
+
 // Mutation returns the ServiceMutation object of the builder.
 func (su *ServiceUpdate) Mutation() *ServiceMutation {
 	return su.mutation
@@ -191,6 +207,27 @@ func (su *ServiceUpdate) RemoveResources(s ...*ServiceResource) *ServiceUpdate {
 		ids[i] = s[i].ID
 	}
 	return su.RemoveResourceIDs(ids...)
+}
+
+// ClearDependencies clears all "dependencies" edges to the ServiceDependency entity.
+func (su *ServiceUpdate) ClearDependencies() *ServiceUpdate {
+	su.mutation.ClearDependencies()
+	return su
+}
+
+// RemoveDependencyIDs removes the "dependencies" edge to ServiceDependency entities by IDs.
+func (su *ServiceUpdate) RemoveDependencyIDs(ids ...oid.ID) *ServiceUpdate {
+	su.mutation.RemoveDependencyIDs(ids...)
+	return su
+}
+
+// RemoveDependencies removes "dependencies" edges to ServiceDependency entities.
+func (su *ServiceUpdate) RemoveDependencies(s ...*ServiceDependency) *ServiceUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveDependencyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -395,6 +432,54 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if su.mutation.DependenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.ServiceDependency
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !su.mutation.DependenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.ServiceDependency
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.DependenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.ServiceDependency
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = su.schemaConfig.Service
 	ctx = internal.NewSchemaConfigContext(ctx, su.schemaConfig)
 	_spec.AddModifiers(su.modifiers...)
@@ -525,6 +610,21 @@ func (suo *ServiceUpdateOne) AddResources(s ...*ServiceResource) *ServiceUpdateO
 	return suo.AddResourceIDs(ids...)
 }
 
+// AddDependencyIDs adds the "dependencies" edge to the ServiceDependency entity by IDs.
+func (suo *ServiceUpdateOne) AddDependencyIDs(ids ...oid.ID) *ServiceUpdateOne {
+	suo.mutation.AddDependencyIDs(ids...)
+	return suo
+}
+
+// AddDependencies adds the "dependencies" edges to the ServiceDependency entity.
+func (suo *ServiceUpdateOne) AddDependencies(s ...*ServiceDependency) *ServiceUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.AddDependencyIDs(ids...)
+}
+
 // Mutation returns the ServiceMutation object of the builder.
 func (suo *ServiceUpdateOne) Mutation() *ServiceMutation {
 	return suo.mutation
@@ -570,6 +670,27 @@ func (suo *ServiceUpdateOne) RemoveResources(s ...*ServiceResource) *ServiceUpda
 		ids[i] = s[i].ID
 	}
 	return suo.RemoveResourceIDs(ids...)
+}
+
+// ClearDependencies clears all "dependencies" edges to the ServiceDependency entity.
+func (suo *ServiceUpdateOne) ClearDependencies() *ServiceUpdateOne {
+	suo.mutation.ClearDependencies()
+	return suo
+}
+
+// RemoveDependencyIDs removes the "dependencies" edge to ServiceDependency entities by IDs.
+func (suo *ServiceUpdateOne) RemoveDependencyIDs(ids ...oid.ID) *ServiceUpdateOne {
+	suo.mutation.RemoveDependencyIDs(ids...)
+	return suo
+}
+
+// RemoveDependencies removes "dependencies" edges to ServiceDependency entities.
+func (suo *ServiceUpdateOne) RemoveDependencies(s ...*ServiceDependency) *ServiceUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveDependencyIDs(ids...)
 }
 
 // Where appends a list predicates to the ServiceUpdate builder.
@@ -799,6 +920,54 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 			},
 		}
 		edge.Schema = suo.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.DependenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.ServiceDependency
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !suo.mutation.DependenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.ServiceDependency
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.DependenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.ServiceDependency
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
