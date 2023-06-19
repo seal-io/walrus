@@ -19,13 +19,19 @@ function check_dirty() {
 
 function lint() {
   local path="$1"
-
-  shift 1
+  local path_ignored="$2"
+  shift 2
+  # shellcheck disable=SC2206
+  local build_tags=(${*})
 
   [[ "${path}" == "${ROOT_DIR}" ]] || pushd "${path}" >/dev/null 2>&1
 
-  seal::format::run -w -local "$(head -n 1 "${path}/go.mod" | cut -d " " -f 2 2>&1)" "${path}"
-  GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run --build-tags="$*" "${path}/..."
+  seal::format::run "${path}" "${path_ignored}"
+  if [[ ${#build_tags[@]} -gt 0 ]]; then
+    GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run --build-tags="\"${build_tags[*]}\"" "${path}/..."
+  else
+    GOLANGCI_LINT_CACHE="$(go env GOCACHE)" seal::lint::run "${path}/..."
+  fi
 
   [[ "${path}" == "${ROOT_DIR}" ]] || popd >/dev/null 2>&1
 }
@@ -33,8 +39,9 @@ function lint() {
 function dispatch() {
   local target="$1"
   local path="$2"
+  local path_ignored="$3"
 
-  shift 2
+  shift 3
   local specified_targets="$*"
   if [[ -n ${specified_targets} ]] && [[ ! ${specified_targets} =~ ${target} ]]; then
     return
@@ -42,9 +49,9 @@ function dispatch() {
 
   seal::log::debug "linting ${target}"
   if [[ "${PARALLELIZE:-false}" != "true" ]]; then
-    lint "${path}" "$(seal::target::build_tags "${target}")"
+    lint "${path}" "${path_ignored}" "$(seal::target::build_tags "${target}")"
   else
-    lint "${path}" "$(seal::target::build_tags "${target}")" &
+    lint "${path}" "${path_ignored}" "$(seal::target::build_tags "${target}")" &
   fi
 }
 
@@ -60,8 +67,8 @@ seal::log::info "+++ LINT +++"
 
 seal::commit::lint "${ROOT_DIR}"
 
-dispatch "utils" "${ROOT_DIR}/staging/utils" "$@"
-dispatch "seal" "${ROOT_DIR}" "$@"
+dispatch "utils" "${ROOT_DIR}/staging/utils" "" "$@"
+dispatch "seal" "${ROOT_DIR}" "pkg/dao/model pkg/i18n" "$@"
 
 after
 
