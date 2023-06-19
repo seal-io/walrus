@@ -1,11 +1,13 @@
 package view
 
 import (
+	"context"
 	"errors"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -97,16 +99,27 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
 
-	ProjectIDs []oid.ID `query:"projectID,omitempty"`
-	WithGlobal bool     `query:"withGlobal,omitempty"`
+	ProjectIDs   []oid.ID `query:"projectID,omitempty"`
+	ProjectNames []string `query:"projectName,omitempty"`
+	WithGlobal   bool     `query:"withGlobal,omitempty"`
 }
 
-func (r *CollectionGetRequest) Validate() error {
+func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
 	// Query global scope secrets if the given `ProjectIDs` is empty,
 	// otherwise, query project scope secrets.
 	for i := range r.ProjectIDs {
 		if !r.ProjectIDs[i].Valid(0) {
 			return errors.New("invalid project id: blank")
+		}
+	}
+
+	modelClient := input.(model.ClientSet)
+	if len(r.ProjectNames) != 0 {
+		ids, err := modelClient.Projects().Query().
+			Where(project.NameIn(r.ProjectNames...)).
+			IDs(ctx)
+		if err == nil {
+			r.ProjectIDs = append(r.ProjectIDs, ids...)
 		}
 	}
 

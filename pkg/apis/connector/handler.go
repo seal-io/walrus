@@ -323,7 +323,7 @@ func (h Handler) RouteApplyCostTools(ctx *gin.Context, req view.ApplyCostToolsRe
 	return nil
 }
 
-func (h Handler) RouteSyncCostOpsData(ctx *gin.Context, req view.SyncCostDataRequest) error {
+func (h Handler) RouteSyncCostData(ctx *gin.Context, req view.SyncCostDataRequest) error {
 	entity, err := h.modelClient.Connectors().Get(ctx, req.ID)
 	if err != nil {
 		return err

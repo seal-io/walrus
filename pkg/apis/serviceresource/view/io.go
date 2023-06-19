@@ -90,6 +90,7 @@ type CollectionGetRequest struct {
 
 	ProjectID   oid.ID `query:"projectID"`
 	ServiceID   oid.ID `query:"serviceID"`
+	ServiceName string `query:"serviceName,omitempty"`
 	WithoutKeys bool   `query:"withoutKeys,omitempty"`
 }
 
@@ -98,25 +99,31 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ServiceID.Valid(0) {
-		return errors.New("invalid service id: blank")
-	}
-
 	modelClient := input.(model.ClientSet)
 
-	_, err := modelClient.Services().Query().
-		Where(service.ID(r.ServiceID)).
-		OnlyID(ctx)
-	if err != nil {
-		return runtime.Errorw(err, "failed to get service")
+	switch {
+	case r.ServiceID != "":
+		if !r.ServiceID.Valid(0) {
+			return errors.New("invalid service id: blank")
+		}
+
+		_, err := modelClient.Services().Query().
+			Where(service.ID(r.ServiceID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get service")
+		}
+	case r.ServiceName != "":
+	default:
+		return errors.New("both service id and service name are blank")
 	}
 
 	return nil
 }
 
 type ServiceResource struct {
-	Resource *model.ServiceResourceOutput `json:",inline"`
-	Keys     *optypes.Keys                `json:"keys"`
+	*model.ServiceResourceOutput `json:",inline"`
+	Keys                         *optypes.Keys `json:"keys"`
 }
 
 type CollectionGetResponse = []ServiceResource
