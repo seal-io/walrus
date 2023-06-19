@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -29,15 +30,16 @@ import (
 // ServiceQuery is the builder for querying Service entities.
 type ServiceQuery struct {
 	config
-	ctx             *QueryContext
-	order           []service.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Service
-	withEnvironment *EnvironmentQuery
-	withProject     *ProjectQuery
-	withRevisions   *ServiceRevisionQuery
-	withResources   *ServiceResourceQuery
-	modifiers       []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []service.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Service
+	withEnvironment  *EnvironmentQuery
+	withProject      *ProjectQuery
+	withRevisions    *ServiceRevisionQuery
+	withResources    *ServiceResourceQuery
+	withDependencies *ServiceDependencyQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -168,6 +170,31 @@ func (sq *ServiceQuery) QueryResources() *ServiceResourceQuery {
 		schemaConfig := sq.schemaConfig
 		step.To.Schema = schemaConfig.ServiceResource
 		step.Edge.Schema = schemaConfig.ServiceResource
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDependencies chains the current query on the "dependencies" edge.
+func (sq *ServiceQuery) QueryDependencies() *ServiceDependencyQuery {
+	query := (&ServiceDependencyClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, selector),
+			sqlgraph.To(servicedependency.Table, servicedependency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, service.DependenciesTable, service.DependenciesColumn),
+		)
+		schemaConfig := sq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceDependency
+		step.Edge.Schema = schemaConfig.ServiceDependency
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -361,15 +388,16 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		return nil
 	}
 	return &ServiceQuery{
-		config:          sq.config,
-		ctx:             sq.ctx.Clone(),
-		order:           append([]service.OrderOption{}, sq.order...),
-		inters:          append([]Interceptor{}, sq.inters...),
-		predicates:      append([]predicate.Service{}, sq.predicates...),
-		withEnvironment: sq.withEnvironment.Clone(),
-		withProject:     sq.withProject.Clone(),
-		withRevisions:   sq.withRevisions.Clone(),
-		withResources:   sq.withResources.Clone(),
+		config:           sq.config,
+		ctx:              sq.ctx.Clone(),
+		order:            append([]service.OrderOption{}, sq.order...),
+		inters:           append([]Interceptor{}, sq.inters...),
+		predicates:       append([]predicate.Service{}, sq.predicates...),
+		withEnvironment:  sq.withEnvironment.Clone(),
+		withProject:      sq.withProject.Clone(),
+		withRevisions:    sq.withRevisions.Clone(),
+		withResources:    sq.withResources.Clone(),
+		withDependencies: sq.withDependencies.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -417,6 +445,17 @@ func (sq *ServiceQuery) WithResources(opts ...func(*ServiceResourceQuery)) *Serv
 		opt(query)
 	}
 	sq.withResources = query
+	return sq
+}
+
+// WithDependencies tells the query-builder to eager-load the nodes that are connected to
+// the "dependencies" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithDependencies(opts ...func(*ServiceDependencyQuery)) *ServiceQuery {
+	query := (&ServiceDependencyClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withDependencies = query
 	return sq
 }
 
@@ -498,11 +537,12 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	var (
 		nodes       = []*Service{}
 		_spec       = sq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			sq.withEnvironment != nil,
 			sq.withProject != nil,
 			sq.withRevisions != nil,
 			sq.withResources != nil,
+			sq.withDependencies != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -551,6 +591,13 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 		if err := sq.loadResources(ctx, query, nodes,
 			func(n *Service) { n.Edges.Resources = []*ServiceResource{} },
 			func(n *Service, e *ServiceResource) { n.Edges.Resources = append(n.Edges.Resources, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withDependencies; query != nil {
+		if err := sq.loadDependencies(ctx, query, nodes,
+			func(n *Service) { n.Edges.Dependencies = []*ServiceDependency{} },
+			func(n *Service, e *ServiceDependency) { n.Edges.Dependencies = append(n.Edges.Dependencies, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -660,6 +707,36 @@ func (sq *ServiceQuery) loadResources(ctx context.Context, query *ServiceResourc
 	}
 	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(service.ResourcesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ServiceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "serviceID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (sq *ServiceQuery) loadDependencies(ctx context.Context, query *ServiceDependencyQuery, nodes []*Service, init func(*Service), assign func(*Service, *ServiceDependency)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Service)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(servicedependency.FieldServiceID)
+	}
+	query.Where(predicate.ServiceDependency(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(service.DependenciesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

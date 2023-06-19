@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -171,6 +172,21 @@ func (sc *ServiceCreate) AddResources(s ...*ServiceResource) *ServiceCreate {
 		ids[i] = s[i].ID
 	}
 	return sc.AddResourceIDs(ids...)
+}
+
+// AddDependencyIDs adds the "dependencies" edge to the ServiceDependency entity by IDs.
+func (sc *ServiceCreate) AddDependencyIDs(ids ...oid.ID) *ServiceCreate {
+	sc.mutation.AddDependencyIDs(ids...)
+	return sc
+}
+
+// AddDependencies adds the "dependencies" edges to the ServiceDependency entity.
+func (sc *ServiceCreate) AddDependencies(s ...*ServiceDependency) *ServiceCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddDependencyIDs(ids...)
 }
 
 // Mutation returns the ServiceMutation object of the builder.
@@ -409,6 +425,23 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = sc.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.DependenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.DependenciesTable,
+			Columns: []string{service.DependenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = sc.schemaConfig.ServiceDependency
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

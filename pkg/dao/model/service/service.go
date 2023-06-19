@@ -46,6 +46,8 @@ const (
 	EdgeRevisions = "revisions"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
 	EdgeResources = "resources"
+	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
+	EdgeDependencies = "dependencies"
 	// Table holds the table name of the service in the database.
 	Table = "services"
 	// EnvironmentTable is the table that holds the environment relation/edge.
@@ -76,6 +78,13 @@ const (
 	ResourcesInverseTable = "service_resources"
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "service_id"
+	// DependenciesTable is the table that holds the dependencies relation/edge.
+	DependenciesTable = "service_dependencies"
+	// DependenciesInverseTable is the table name for the ServiceDependency entity.
+	// It exists in this package in order to avoid circular dependency with the "servicedependency" package.
+	DependenciesInverseTable = "service_dependencies"
+	// DependenciesColumn is the table column denoting the dependencies relation/edge.
+	DependenciesColumn = "service_id"
 )
 
 // Columns holds all SQL columns for service fields.
@@ -211,6 +220,20 @@ func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDependenciesCount orders the results by dependencies count.
+func ByDependenciesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDependenciesStep(), opts...)
+	}
+}
+
+// ByDependencies orders the results by dependencies terms.
+func ByDependencies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDependenciesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEnvironmentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -237,6 +260,13 @@ func newResourcesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ResourcesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
+	)
+}
+func newDependenciesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DependenciesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DependenciesTable, DependenciesColumn),
 	)
 }
 

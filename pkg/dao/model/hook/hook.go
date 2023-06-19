@@ -132,6 +132,18 @@ func (f ServiceFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ServiceMutation", m)
 }
 
+// The ServiceDependencyFunc type is an adapter to allow the use of ordinary
+// function as ServiceDependency mutator.
+type ServiceDependencyFunc func(context.Context, *model.ServiceDependencyMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceDependencyFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.ServiceDependencyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ServiceDependencyMutation", m)
+}
+
 // The ServiceResourceFunc type is an adapter to allow the use of ordinary
 // function as ServiceResource mutator.
 type ServiceResourceFunc func(context.Context, *model.ServiceResourceMutation) (model.Value, error)

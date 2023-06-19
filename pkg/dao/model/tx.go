@@ -37,6 +37,8 @@ type Tx struct {
 	Secret *SecretClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceDependency is the client for interacting with the ServiceDependency builders.
+	ServiceDependency *ServiceDependencyClient
 	// ServiceResource is the client for interacting with the ServiceResource builders.
 	ServiceResource *ServiceResourceClient
 	// ServiceRevision is the client for interacting with the ServiceRevision builders.
@@ -194,6 +196,7 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.Secret = NewSecretClient(tx.config)
 	tx.Service = NewServiceClient(tx.config)
+	tx.ServiceDependency = NewServiceDependencyClient(tx.config)
 	tx.ServiceResource = NewServiceResourceClient(tx.config)
 	tx.ServiceRevision = NewServiceRevisionClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
@@ -315,6 +318,11 @@ func (tx *Tx) Services() *ServiceClient {
 	return tx.Service
 }
 
+// ServiceDependencies implements the ClientSet.
+func (tx *Tx) ServiceDependencies() *ServiceDependencyClient {
+	return tx.ServiceDependency
+}
+
 // ServiceResources implements the ClientSet.
 func (tx *Tx) ServiceResources() *ServiceResourceClient {
 	return tx.ServiceResource
@@ -401,6 +409,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Role.Use(hooks...)
 	tx.Secret.Use(hooks...)
 	tx.Service.Use(hooks...)
+	tx.ServiceDependency.Use(hooks...)
 	tx.ServiceResource.Use(hooks...)
 	tx.ServiceRevision.Use(hooks...)
 	tx.Setting.Use(hooks...)

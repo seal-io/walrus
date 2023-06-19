@@ -20,6 +20,7 @@ type SchemaConfig struct {
 	Role                             string // Role table.
 	Secret                           string // Secret table.
 	Service                          string // Service table.
+	ServiceDependency                string // ServiceDependency table.
 	ServiceResource                  string // ServiceResource table.
 	ServiceRevision                  string // ServiceRevision table.
 	Setting                          string // Setting table.

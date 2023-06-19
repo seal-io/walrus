@@ -122,6 +122,8 @@ type ServiceOutput struct {
 	Revisions []*ServiceRevisionOutput `json:"revisions,omitempty"`
 	// Resources that belong to the service.
 	Resources []*ServiceResourceOutput `json:"resources,omitempty"`
+	// Services dependencies of the service.
+	Dependencies []*ServiceDependencyOutput `json:"dependencies,omitempty"`
 }
 
 // ExposeService converts the Service to ServiceOutput.
@@ -130,19 +132,20 @@ func ExposeService(in *Service) *ServiceOutput {
 		return nil
 	}
 	var entity = &ServiceOutput{
-		ID:          in.ID,
-		Name:        in.Name,
-		Description: in.Description,
-		Labels:      in.Labels,
-		CreateTime:  in.CreateTime,
-		UpdateTime:  in.UpdateTime,
-		Template:    in.Template,
-		Attributes:  in.Attributes,
-		Status:      in.Status,
-		Environment: ExposeEnvironment(in.Edges.Environment),
-		Project:     ExposeProject(in.Edges.Project),
-		Revisions:   ExposeServiceRevisions(in.Edges.Revisions),
-		Resources:   ExposeServiceResources(in.Edges.Resources),
+		ID:           in.ID,
+		Name:         in.Name,
+		Description:  in.Description,
+		Labels:       in.Labels,
+		CreateTime:   in.CreateTime,
+		UpdateTime:   in.UpdateTime,
+		Template:     in.Template,
+		Attributes:   in.Attributes,
+		Status:       in.Status,
+		Environment:  ExposeEnvironment(in.Edges.Environment),
+		Project:      ExposeProject(in.Edges.Project),
+		Revisions:    ExposeServiceRevisions(in.Edges.Revisions),
+		Resources:    ExposeServiceResources(in.Edges.Resources),
+		Dependencies: ExposeServiceDependencies(in.Edges.Dependencies),
 	}
 	if in.EnvironmentID != "" {
 		if entity.Environment == nil {

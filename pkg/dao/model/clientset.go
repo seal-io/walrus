@@ -39,6 +39,9 @@ type ClientSet interface {
 	// Services returns the client for interacting with the Service builders.
 	Services() *ServiceClient
 
+	// ServiceDependencies returns the client for interacting with the ServiceDependency builders.
+	ServiceDependencies() *ServiceDependencyClient
+
 	// ServiceResources returns the client for interacting with the ServiceResource builders.
 	ServiceResources() *ServiceResourceClient
 
@@ -135,6 +138,12 @@ type SecretClientGetter interface {
 type ServiceClientGetter interface {
 	// Services returns the client for interacting with the Service builders.
 	Services() *ServiceClient
+}
+
+// ServiceDependencyClientGetter is an interface that allows getting ServiceDependencyClient.
+type ServiceDependencyClientGetter interface {
+	// ServiceDependencies returns the client for interacting with the ServiceDependency builders.
+	ServiceDependencies() *ServiceDependencyClient
 }
 
 // ServiceResourceClientGetter is an interface that allows getting ServiceResourceClient.

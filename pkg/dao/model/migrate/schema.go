@@ -384,6 +384,36 @@ var (
 			},
 		},
 	}
+	// ServiceDependenciesColumns holds the columns for the "service_dependencies" table.
+	ServiceDependenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "dependent_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "path", Type: field.TypeJSON},
+		{Name: "type", Type: field.TypeString},
+		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// ServiceDependenciesTable holds the schema information for the "service_dependencies" table.
+	ServiceDependenciesTable = &schema.Table{
+		Name:       "service_dependencies",
+		Columns:    ServiceDependenciesColumns,
+		PrimaryKey: []*schema.Column{ServiceDependenciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "service_dependencies_services_dependencies",
+				Columns:    []*schema.Column{ServiceDependenciesColumns[5]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "servicedependency_service_id_dependent_id_path",
+				Unique:  true,
+				Columns: []*schema.Column{ServiceDependenciesColumns[5], ServiceDependenciesColumns[2], ServiceDependenciesColumns[3]},
+			},
+		},
+	}
 	// ServiceResourcesColumns holds the columns for the "service_resources" table.
 	ServiceResourcesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -680,6 +710,7 @@ var (
 		RolesTable,
 		SecretsTable,
 		ServicesTable,
+		ServiceDependenciesTable,
 		ServiceResourcesTable,
 		ServiceRevisionsTable,
 		SettingsTable,
@@ -701,6 +732,7 @@ func init() {
 	SecretsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ServicesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ServicesTable.ForeignKeys[1].RefTable = ProjectsTable
+	ServiceDependenciesTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[0].RefTable = ConnectorsTable
 	ServiceResourcesTable.ForeignKeys[1].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[2].RefTable = ServiceResourcesTable
