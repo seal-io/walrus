@@ -172,41 +172,86 @@ function seal::format::wsl::bin() {
 }
 
 function seal::format::run() {
+  local path=$1
+  shift 1
+  # shellcheck disable=SC2206
+  local path_ignored=(${*})
+
+  # goimports
   if ! seal::format::goimports::validate; then
     seal::log::fatal "cannot execute goimports as client is not found"
   fi
 
-  seal::log::debug "goimports $*"
-  $(seal::format::goimports::bin) "$@"
+  # shellcheck disable=SC2155
+  local goimports_opts=(
+    "-w"
+    "-local"
+    "$(head -n 1 "${path}/go.mod" | cut -d " " -f 2 2>&1)"
+    "${path}"
+  )
+  seal::log::debug "goimports ${goimports_opts[*]}"
+  $(seal::format::goimports::bin) "${goimports_opts[@]}"
 
-  # format go files
-  set +e
-  local path=$4
-  
+  # gofumpt
   if ! seal::format::gofumpt::validate; then
     seal::log::fatal "cannot execute gofumpt as client is not found"
   fi
 
-  seal::log::debug "gofumpt -extra -l -w  $path"
-  $(seal::format::gofumpt::bin) -extra -l -w "$path"
+  local gofumpt_opts=(
+    "-extra"
+    "-l"
+    "-w"
+    "${path}"
+  )
+  seal::log::debug "gofumpt ${gofumpt_opts[*]}"
+  $(seal::format::gofumpt::bin) "${gofumpt_opts[@]}"
 
+  # golines
   if ! seal::format::golines::validate; then
     seal::log::fatal "cannot execute golines as client is not found"
   fi
 
-  local golines_opts="-w -m 120 --no-reformat-tags --base-formatter=$(seal::format::gofumpt::bin)"
-  seal::log::debug "golines $golines_opts $path"
-  $(seal::format::golines::bin) $golines_opts "$path"
+  local golines_opts=(
+    "-w"
+    "--max-len=120"
+    "--no-reformat-tags"
+    "--ignore-generated"
+    "--base-formatter=$(seal::format::gofumpt::bin)"
+  )
+  if [[ ${#path_ignored[@]} -gt 0 ]]; then
+    local _path_ignored=("${path_ignored[*]}")
+    _path_ignored+=(
+      ".git"
+      "node_modules"
+      "vendor"
+    )
+    golines_opts+=(
+      "--ignored-dirs=\"$(seal::util::join_array " " "${_path_ignored[@]}")\""
+    )
+  fi
+  golines_opts+=("${path}")
+  seal::log::debug "golines ${golines_opts[*]}"
+  $(seal::format::golines::bin) "${golines_opts[@]}"
 
+  # wsl
   if ! seal::format::wsl::validate; then
     seal::log::fatal "cannot execute wsl as client is not found"
   fi
 
-  local generated_pkgs="pkg/dao/model|pkg/i18n"
-  local wsl_opts="--allow-assign-and-anything --allow-trailing-comment --force-short-decl-cuddling=false --fix"
-  seal::log::debug "wsl $wsl_opts $path/..."
-  go list $path/... | grep -v -E "$generated_pkgs" | xargs $(seal::format::wsl::bin) $wsl_opts >/dev/null 2>&1
-
+  local wsl_opts=(
+    "--allow-assign-and-anything"
+    "--allow-trailing-comment"
+    "--force-short-decl-cuddling=false"
+    "--fix"
+  )
+  set +e
+  if [[ ${#path_ignored[@]} -gt 0 ]]; then
+    seal::log::debug "go list ${path}/... | grep -v -E $(seal::util::join_array "|" "${path_ignored[@]}") | xargs wsl ${wsl_opts[*]}"
+    go list "${path}"/... | grep -v -E "$(seal::util::join_array "|" "${path_ignored[@]}")" | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}" >/dev/null 2>&1
+  else
+    seal::log::debug "go list ${path}/... | xargs wsl ${wsl_opts[*]}"
+    go list "${path}"/... | xargs "$(seal::format::wsl::bin)" "${wsl_opts[@]}"
+  fi
   set -e
 }
 

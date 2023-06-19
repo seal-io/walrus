@@ -15,6 +15,9 @@ function seal::target::build_tags() {
     IFS="," read -r -a tags <<<"${BUILD_TAGS}"
   else
     case "${target}" in
+    utils)
+      tags=()
+      ;;
     *)
       tags=("${DEFAULT_BUILD_TAGS[@]}")
       ;;
