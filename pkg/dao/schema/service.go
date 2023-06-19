@@ -81,5 +81,13 @@ func (Service) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		// Service 1-* service dependencies.
+		edge.To("dependencies", ServiceDependency.Type).
+			Comment("Services dependencies of the service.").
+			Annotations(
+				entsql.Annotation{
+					OnDelete: entsql.Cascade,
+				},
+			),
 	}
 }
