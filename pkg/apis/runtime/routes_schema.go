@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -134,6 +135,7 @@ func toSchemaOperation(
 		Parameters:  toSchemaParameters(r, ip),
 		RequestBody: toSchemaRequestBody(r, ip),
 		Summary:     toSchemaSummary(resource, handle, method),
+		Extensions:  toSchemaExtension(resource, handle, path),
 	}
 
 	resp := getSchemaHTTPResponses()
@@ -474,6 +476,78 @@ func toSchemaSummary(resource, handle, method string) string {
 	return summary
 }
 
+const (
+	// ExtCliIgnore define the extension key to ignore an operation.
+	extCliIgnore = "x-cli-ignore"
+
+	// ExtCliOperationName define the extension key to set the CLI operation name.
+	extCliOperationName = "x-cli-operation-name"
+
+	// ExtSchemaTypeName define the extension key to set the CLI operation params schema type.
+	extSchemaTypeName = "x-cli-schema-type"
+)
+
+var (
+	cliIgnoreResources = []string{
+		"subjects",
+		"tokens",
+		"subjectRoles",
+		"dashboards",
+		"templateCompletions",
+		"costs",
+	}
+	cliIgnorePaths = []string{
+		"/service-revisions/:id/terraform-states",
+		"/connectors/:id/repositories",
+		"/connectors/:id/repository-branches",
+		"/perspectives/_/field-values",
+		"/perspectives/_/fields",
+	}
+)
+
+func toSchemaExtension(resource, handle, path string) map[string]interface{} {
+	var (
+		ext              = make(map[string]interface{})
+		_, handleName, _ = strings.Cut(handle, ".")
+	)
+
+	switch {
+	case slice.ContainsAll(cliIgnoreResources, resource):
+		ext[extCliIgnore] = true
+	case slice.ContainsAll(cliIgnorePaths, path):
+		ext[extCliIgnore] = true
+	case handleName == collectionGetPrefix:
+		ext[extCliOperationName] = "list"
+	case handleName == collectionCreatePrefix:
+		ext[extCliIgnore] = true
+	case handleName == collectionUpdatePrefix:
+		ext[extCliIgnore] = true
+	case handleName == collectionDeletePrefix:
+		ext[extCliIgnore] = true
+	case handleName == collectionStreamPrefix:
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, streamPrefix):
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, collectionGetPrefix):
+		subresource := strings.TrimPrefix(handleName, collectionGetPrefix)
+		ext[extCliOperationName] = fmt.Sprintf("list-%s", strs.Pluralize(strs.Dasherize(subresource)))
+	case strings.HasPrefix(handleName, collectionCreatePrefix):
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, collectionUpdatePrefix):
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, collectionDeletePrefix):
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, collectionStreamPrefix):
+		ext[extCliIgnore] = true
+	case strings.HasPrefix(handleName, routePrefix):
+		ext[extCliOperationName] = strs.Dasherize(strings.TrimPrefix(handleName, routePrefix))
+	case strings.HasPrefix(handleName, collectionRoutePrefix):
+		ext[extCliIgnore] = true
+	}
+
+	return ext
+}
+
 var basicSchemas = map[string]*openapi3.Schema{
 	"bool":                 openapi3.NewBoolSchema(),
 	"string":               openapi3.NewStringSchema(),
@@ -497,6 +571,61 @@ var basicSchemas = map[string]*openapi3.Schema{
 	"render.Render":        {Type: "string", Format: "binary"},
 	"json.RawMessage":      openapi3.NewObjectSchema(),
 }
+
+var (
+	stringToStringSchema = &openapi3.SchemaRef{
+		Value: &openapi3.Schema{
+			Type: "object",
+			AdditionalProperties: openapi3.AdditionalProperties{
+				Schema: &openapi3.SchemaRef{
+					Value: openapi3.NewStringSchema(),
+				},
+			},
+			Extensions: map[string]interface{}{
+				extSchemaTypeName: "map[string]string",
+			},
+		},
+	}
+	stringToIntSchema = &openapi3.SchemaRef{
+		Value: &openapi3.Schema{
+			Type: "object",
+			AdditionalProperties: openapi3.AdditionalProperties{
+				Schema: &openapi3.SchemaRef{
+					Value: openapi3.NewIntegerSchema(),
+				},
+			},
+			Extensions: map[string]interface{}{
+				extSchemaTypeName: "map[string]int",
+			},
+		},
+	}
+	stringToInt32Schema = &openapi3.SchemaRef{
+		Value: &openapi3.Schema{
+			Type: "object",
+			AdditionalProperties: openapi3.AdditionalProperties{
+				Schema: &openapi3.SchemaRef{
+					Value: openapi3.NewInt32Schema(),
+				},
+			},
+			Extensions: map[string]interface{}{
+				extSchemaTypeName: "map[string]int32",
+			},
+		},
+	}
+	stringToInt64Schema = &openapi3.SchemaRef{
+		Value: &openapi3.Schema{
+			Type: "object",
+			AdditionalProperties: openapi3.AdditionalProperties{
+				Schema: &openapi3.SchemaRef{
+					Value: openapi3.NewInt64Schema(),
+				},
+			},
+			Extensions: map[string]interface{}{
+				extSchemaTypeName: "map[string]int64",
+			},
+		},
+	}
+)
 
 func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil {
@@ -549,13 +678,67 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 				Type:  openapi3.TypeArray,
 				Items: schema,
 			}
+
 			if prop.TypeArrayLength != 0 {
 				items := uint64(prop.TypeArrayLength)
 				s.MinLength = items
 				s.MaxLength = &items
 			}
+
 			return s.NewRef()
 		}
+	case "map[string]string":
+		schema := stringToStringSchema.Value
+		if prop.Type == ProfileTypeArray {
+			schema = openapi3.NewArraySchema().WithItems(schema)
+
+			if prop.TypeArrayLength != 0 {
+				items := uint64(prop.TypeArrayLength)
+				schema.MinLength = items
+				schema.MaxLength = &items
+			}
+		}
+
+		return schema.NewRef()
+	case "map[string]int":
+		schema := stringToIntSchema.Value
+		if prop.Type == ProfileTypeArray {
+			schema = openapi3.NewArraySchema().WithItems(schema)
+
+			if prop.TypeArrayLength != 0 {
+				items := uint64(prop.TypeArrayLength)
+				schema.MinLength = items
+				schema.MaxLength = &items
+			}
+		}
+
+		return schema.NewRef()
+	case "map[string]int32":
+		schema := stringToInt32Schema.Value
+		if prop.Type == ProfileTypeArray {
+			schema = openapi3.NewArraySchema().WithItems(schema)
+
+			if prop.TypeArrayLength != 0 {
+				items := uint64(prop.TypeArrayLength)
+				schema.MinLength = items
+				schema.MaxLength = &items
+			}
+		}
+
+		return schema.NewRef()
+	case "map[string]int64":
+		schema := stringToInt64Schema.Value
+		if prop.Type == ProfileTypeArray {
+			schema = openapi3.NewArraySchema().WithItems(schema)
+
+			if prop.TypeArrayLength != 0 {
+				items := uint64(prop.TypeArrayLength)
+				schema.MinLength = items
+				schema.MaxLength = &items
+			}
+		}
+
+		return schema.NewRef()
 	}
 
 	schemaID := prop.TypeDescriptor
