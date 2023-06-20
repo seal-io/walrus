@@ -352,7 +352,22 @@ func getProfileProperty(
 		p.TypeDescriptor = typeDescriptorFloat64
 	case reflect.Chan, reflect.Func:
 		p.TypeDescriptor = typeDescriptorString
-	case reflect.Interface, reflect.Map:
+	case reflect.Map:
+		p.Type = ProfileTypeObject
+
+		switch t.Elem().Kind() {
+		case reflect.String:
+			p.TypeDescriptor = "map[string]string"
+		case reflect.Int, reflect.Uint:
+			p.TypeDescriptor = "map[string]int"
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint8, reflect.Uint16, reflect.Uint32:
+			p.TypeDescriptor = "map[string]int32"
+		case reflect.Int64, reflect.Uint64:
+			p.TypeDescriptor = "map[string]int64"
+		default:
+			p.TypeDescriptor = typeDescriptorObject
+		}
+	case reflect.Interface:
 		p.Type = ProfileTypeObject
 		p.TypeDescriptor = typeDescriptorObject
 	case reflect.Pointer:
