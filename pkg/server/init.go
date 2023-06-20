@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"k8s.io/client-go/rest"
@@ -11,8 +12,11 @@ import (
 
 type initOptions struct {
 	K8sConfig     *rest.Config
+	K8sCacheReady chan struct{}
 	ModelClient   *model.Client
 	SkipTLSVerify bool
+	RdsDialect    string
+	RdsDriver     *sql.DB
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
@@ -32,6 +36,8 @@ func (r *Server) init(ctx context.Context, opts initOptions) error {
 		{name: "settings", init: r.initSettings},
 		{name: "configs", init: r.initConfigs},
 		{name: "dispatches", init: r.initDispatches},
+		{name: "metrics", init: r.initMetrics},
+		{name: "healthCheckers", init: r.initHealthCheckers},
 		{name: "backgroundJobs", init: r.initBackgroundJobs},
 		{name: "subscribers", init: r.initSubscribers},
 		{name: "rbac", init: r.initRbac},

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -124,13 +125,20 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 			e error
 		})
 		proxy = RequestBidiStream{
-			firstReadOnce: &sync.Once{},
-			firstReadChan: frc,
-			ctx:           ctx,
-			ctxCancel:     cancel,
-			conn:          conn,
+			firstReadOnce:  &sync.Once{},
+			firstReadChan:  frc,
+			ctx:            ctx,
+			ctxCancel:      cancel,
+			conn:           conn,
+			connReadBytes:  &atomic.Int64{},
+			connWriteBytes: &atomic.Int64{},
 		}
 	)
+
+	defer func() {
+		c.Set("request_size", proxy.connReadBytes.Load())
+		c.Set("response_size", proxy.connWriteBytes.Load())
+	}()
 
 	// In order to avoid downstream connection leaking,
 	// we need configuring a handler to close the upstream context.
@@ -197,7 +205,10 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		if !isBidiDownstreamCloseError(err) {
 			var we *websocket.CloseError
 			if errors.As(err, &we) {
-				closeMsg = websocket.FormatCloseMessage(we.Code, we.Text)
+				closeMsg = websocket.FormatCloseMessage(
+					we.Code, we.Text)
+
+				c.Set("response_status", we.Code)
 			} else {
 				logger.Errorf("error processing bidirectional stream request: %v", err)
 				if ue := errors.Unwrap(err); ue != nil {
@@ -205,6 +216,7 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 				}
 				closeMsg = websocket.FormatCloseMessage(
 					websocket.CloseInternalServerErr, err.Error())
+				c.Set("response_status", websocket.CloseInternalServerErr)
 			}
 		}
 	}

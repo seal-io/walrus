@@ -240,6 +240,14 @@ func (l DelegatedLogger) PrintS(msg string, keysAndValues ...interface{}) {
 	l.Delegate.PrintS(msg, keysAndValues...)
 }
 
+func (l DelegatedLogger) Println(args ...interface{}) {
+	if l.Delegate == nil {
+		return
+	}
+
+	l.Delegate.Println(args...)
+}
+
 func (l DelegatedLogger) Enabled(v LoggingLevel) bool {
 	if l.Delegate == nil {
 		return false

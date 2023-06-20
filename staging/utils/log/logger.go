@@ -73,6 +73,7 @@ type PrinterLogger interface {
 	Print(args ...interface{})
 	Printf(format string, args ...interface{})
 	PrintS(msg string, keysAndValues ...interface{})
+	Println(args ...interface{})
 }
 
 type VerbosityLogger interface {

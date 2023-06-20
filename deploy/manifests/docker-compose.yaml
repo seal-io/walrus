@@ -54,6 +54,43 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    healthcheck:
+      test: [ "CMD", "curl", "-ksf", "https://localhost/livez" ]
+      interval: "10s"
+      timeout: "5s"
+      retries: 10
+      start_period: "30s"
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    restart: always
+    container_name: prometheus
+    user: "nobody"
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus/etc/prometheus:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana-oss:10.0.0
+    restart: always
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/etc/grafana:/etc/grafana
+      - ./grafana/var/lib/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
 
 volumes:
-  seal-data: {}
+  seal-data: { }
+  prometheus-data: { }
+  grafana-data: { }

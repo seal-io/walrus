@@ -58,3 +58,11 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 
 	return mgr.Start(ctx)
 }
+
+func (m *Manager) IsReady(ctx context.Context) bool {
+	if m.mgr == nil {
+		return false
+	}
+
+	return m.mgr.GetCache().WaitForCacheSync(ctx)
+}
