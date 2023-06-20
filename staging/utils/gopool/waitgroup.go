@@ -106,7 +106,6 @@ func (g contextWaitGroup) Go(f func() error) {
 	}
 
 	g.g.Submit(wf)
-	printState()
 }
 
 // GroupWithContextIn is similar as GroupWithContext but doesn't return a derived context,

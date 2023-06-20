@@ -149,17 +149,12 @@ func (s *certState) Get() (*tls.Certificate, error) {
 func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	name := hello.ServerName
 	if name != "" {
-		// Allow localhost hostname.
-		if name != "localhost" && !strings.Contains(strings.Trim(name, "."), ".") {
-			return nil, errors.New("dynacert: server name component count invalid")
-		}
 		// Validate invalid character.
-		var err error
-
-		name, err = idna.Lookup.ToASCII(name)
+		n, err := idna.Lookup.ToASCII(name)
 		if err != nil {
 			return nil, errors.New("dynacert: server name contains invalid character")
 		}
+		name = n
 	} else {
 		addr := hello.Conn.LocalAddr()
 		if addr == nil {

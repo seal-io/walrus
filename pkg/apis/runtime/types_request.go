@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -416,9 +417,11 @@ type RequestBidiStream struct {
 		r io.Reader
 		e error
 	}
-	ctx       context.Context
-	ctxCancel func()
-	conn      *websocket.Conn
+	ctx            context.Context
+	ctxCancel      func()
+	conn           *websocket.Conn
+	connReadBytes  *atomic.Int64
+	connWriteBytes *atomic.Int64
 }
 
 // SendMsg sends the given data to client.
@@ -461,7 +464,13 @@ func (r RequestBidiStream) Write(p []byte) (n int, err error) {
 
 	defer func() { _ = msgWriter.Close() }()
 
-	return msgWriter.Write(p)
+	n, err = msgWriter.Write(p)
+	if err == nil {
+		// Measure write bytes.
+		r.connWriteBytes.Add(int64(n))
+	}
+
+	return
 }
 
 // Read implements io.Reader.
@@ -500,7 +509,13 @@ func (r RequestBidiStream) Read(p []byte) (n int, err error) {
 	case websocket.TextMessage:
 	}
 
-	return msgReader.Read(p)
+	n, err = msgReader.Read(p)
+	if err == nil {
+		// Measure read bytes.
+		r.connReadBytes.Add(int64(n))
+	}
+
+	return
 }
 
 // Cancel cancels the underlay context.Context.

@@ -1,6 +1,7 @@
 package gopool
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/alitto/pond"
@@ -30,31 +31,35 @@ func ResetPool(factor int) {
 	})
 }
 
-func printState() {
-	if !log.Enabled(log.DebugLevel) {
-		return
-	}
-
-	log.WithName("gopool").Debugf("state: tasks %d/%d workers %d/%d",
-		gp.WaitingTasks(), gp.SubmittedTasks(),
-		gp.IdleWorkers(), gp.RunningWorkers())
-}
-
 // Go submits a task as goroutine.
 func Go(f func()) {
 	if !gp.TrySubmit(f) {
 		log.WithName("gopool").Warn("goroutine pool full")
 		gp.Submit(f)
 	}
-
-	printState()
 }
 
 // TryGo tries to submit a task as goroutine.
 func TryGo(f func()) bool {
 	r := gp.TrySubmit(f)
 
-	printState()
-
 	return r
+}
+
+// IsHealthy returns true if the pool has plenty workers.
+func IsHealthy(atLeast ...int) error {
+	watermark := 0
+	if len(atLeast) > 0 {
+		watermark = atLeast[0]
+	}
+
+	if watermark < 0 {
+		watermark = 0
+	}
+
+	if gp.IdleWorkers() > watermark {
+		return nil
+	}
+
+	return errors.New("goroutine pool full")
 }

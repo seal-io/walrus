@@ -129,6 +129,24 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
 	defer cancel()
 
+	// Record scheduled task.
+	_statsCollector.scheduledTasks.
+		WithLabelValues(in.name).
+		Inc()
+
+	// Record processing task.
+	_statsCollector.processingTasks.
+		WithLabelValues(in.name).
+		Inc()
+
+	defer func() {
+		_statsCollector.processingTasks.
+			WithLabelValues(in.name).
+			Dec()
+	}()
+
+	start := time.Now()
+
 	var err error
 	if len(args) == 0 {
 		err = in.task.Process(ctx)
@@ -141,9 +159,22 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 		}
 	}
 
+	// Record task consumption.
+	_statsCollector.taskDurations.
+		WithLabelValues(in.name).
+		Observe(time.Since(start).Seconds())
+
 	if err != nil {
+		// Record failed task.
+		_statsCollector.failedTasks.
+			WithLabelValues(in.name).
+			Inc()
 		logger.Errorf("error executing task: %s: %v", in.task.Name(), err)
 	} else {
+		// Record succeeded task.
+		_statsCollector.succeededTasks.
+			WithLabelValues(in.name).
+			Inc()
 		logger.Debugf("executed task: %s", in.task.Name())
 	}
 
@@ -165,6 +196,21 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 	if err != nil && !errors.Is(err, gocron.ErrJobNotFoundWithTag) {
 		return
 	}
+
+	// Record scheduled job.
+	_statsCollector.schedulingJobs.
+		WithLabelValues(name).
+		Set(0)
+
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		_statsCollector.schedulingJobs.
+			WithLabelValues(name).
+			Set(1)
+	}()
 
 	if ceParsed == nil {
 		return

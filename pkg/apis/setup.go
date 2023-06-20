@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/dashboard"
 	"github.com/seal-io/seal/pkg/apis/debug"
 	"github.com/seal-io/seal/pkg/apis/environment"
-	"github.com/seal-io/seal/pkg/apis/health"
+	"github.com/seal-io/seal/pkg/apis/measure"
 	"github.com/seal-io/seal/pkg/apis/openapi"
 	"github.com/seal-io/seal/pkg/apis/perspective"
 	"github.com/seal-io/seal/pkg/apis/project"
@@ -67,11 +67,12 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	apis.NoMethod(runtime.NoMethod())
 	apis.NoRoute(ui.Index(ctx, opts.ModelClient), runtime.NotFound())
 	apis.Use(
-		runtime.Logging(
+		runtime.Observing(
 			"/",
 			"/assets/*any",
 			"/verify-auth",
 			"/livez",
+			"/metrics",
 			"/openapi",
 			"/swagger/*any",
 			"/debug/version"),
@@ -80,8 +81,16 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.I18n(),
 	)
 
-	runtime.MustRouteGet(apis, "/livez", health.Livez())
 	runtime.MustRouteGet(apis, "/cli", cli.Index())
+
+	measureApis := apis.Group("",
+		throttler)
+	{
+		r := measureApis
+		runtime.MustRouteGet(r, "/readyz", measure.Readyz())
+		runtime.MustRouteGet(r, "/livez", measure.Livez())
+		runtime.MustRouteGet(r, "/metrics", measure.Metrics())
+	}
 
 	accountApis := apis.Group("/account",
 		rectifier,

@@ -435,8 +435,11 @@ func (r *Server) Run(c context.Context) error {
 
 	initOpts := initOptions{
 		K8sConfig:     k8sCfg,
+		K8sCacheReady: make(chan struct{}),
 		ModelClient:   modelClient,
 		SkipTLSVerify: len(r.TlsAutoCertDomains) != 0,
+		RdsDialect:    rdsDrvDialect,
+		RdsDriver:     rdsDrv,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -445,8 +448,9 @@ func (r *Server) Run(c context.Context) error {
 
 	// Setup k8s controllers.
 	setupK8sCtrlsOpts := setupK8sCtrlsOptions{
-		K8sConfig:   k8sCfg,
-		ModelClient: modelClient,
+		K8sConfig:     k8sCfg,
+		K8sCacheReady: initOpts.K8sCacheReady,
+		ModelClient:   modelClient,
 	}
 
 	g.Go(func() error {

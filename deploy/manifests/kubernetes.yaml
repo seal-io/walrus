@@ -635,16 +635,16 @@ spec:
             periodSeconds: 5
             httpGet:
               port: 80
-              path: /livez
+              path: /readyz
           readinessProbe:
             failureThreshold: 3
             timeoutSeconds: 5
             periodSeconds: 5
             httpGet:
               port: 80
-              path: /livez
+              path: /readyz
           livenessProbe:
-            failureThreshold: 3
+            failureThreshold: 10
             timeoutSeconds: 5
             periodSeconds: 10
             httpGet:

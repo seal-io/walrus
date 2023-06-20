@@ -192,6 +192,10 @@ func (z zapLogger) PrintS(msg string, keysAndValues ...interface{}) {
 	z.s.Infow(msg, keysAndValues...)
 }
 
+func (z zapLogger) Println(args ...interface{}) {
+	z.s.Infoln(args...)
+}
+
 func (z zapLogger) Enabled(v LoggingLevel) bool {
 	lvl := toZapLevel(v)
 	return z.l.Core().Enabled(lvl)
