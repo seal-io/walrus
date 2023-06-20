@@ -22,6 +22,7 @@ func (Service) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID{},
 		mixin.OwnByProject{},
+		mixin.Meta{},
 		mixin.Time{},
 	}
 }
@@ -44,10 +45,6 @@ func (Service) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
-		field.String("name").
-			Comment("Name of the service.").
-			NotEmpty().
-			Immutable(),
 		field.JSON("status", status.Status{}).
 			Comment("Status of the service.").
 			Optional(),
