@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/seal/pkg/apis/cli"
 	"github.com/seal-io/seal/pkg/apis/connector"
 	"github.com/seal-io/seal/pkg/apis/cost"
 	"github.com/seal-io/seal/pkg/apis/dashboard"
@@ -80,6 +81,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 	)
 
 	runtime.MustRouteGet(apis, "/livez", health.Livez())
+	runtime.MustRouteGet(apis, "/cli", cli.Index())
 
 	accountApis := apis.Group("/account",
 		rectifier,
