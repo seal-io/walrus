@@ -411,18 +411,28 @@ func init() {
 	_ = serviceMixinFields1
 	serviceMixinFields2 := serviceMixin[2].Fields()
 	_ = serviceMixinFields2
+	serviceMixinFields3 := serviceMixin[3].Fields()
+	_ = serviceMixinFields3
 	serviceFields := schema.Service{}.Fields()
 	_ = serviceFields
 	// serviceDescProjectID is the schema descriptor for projectID field.
 	serviceDescProjectID := serviceMixinFields1[0].Descriptor()
 	// service.ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
 	service.ProjectIDValidator = serviceDescProjectID.Validators[0].(func(string) error)
+	// serviceDescName is the schema descriptor for name field.
+	serviceDescName := serviceMixinFields2[0].Descriptor()
+	// service.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	service.NameValidator = serviceDescName.Validators[0].(func(string) error)
+	// serviceDescLabels is the schema descriptor for labels field.
+	serviceDescLabels := serviceMixinFields2[2].Descriptor()
+	// service.DefaultLabels holds the default value on creation for the labels field.
+	service.DefaultLabels = serviceDescLabels.Default.(map[string]string)
 	// serviceDescCreateTime is the schema descriptor for createTime field.
-	serviceDescCreateTime := serviceMixinFields2[0].Descriptor()
+	serviceDescCreateTime := serviceMixinFields3[0].Descriptor()
 	// service.DefaultCreateTime holds the default value on creation for the createTime field.
 	service.DefaultCreateTime = serviceDescCreateTime.Default.(func() time.Time)
 	// serviceDescUpdateTime is the schema descriptor for updateTime field.
-	serviceDescUpdateTime := serviceMixinFields2[1].Descriptor()
+	serviceDescUpdateTime := serviceMixinFields3[1].Descriptor()
 	// service.DefaultUpdateTime holds the default value on creation for the updateTime field.
 	service.DefaultUpdateTime = serviceDescUpdateTime.Default.(func() time.Time)
 	// service.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
@@ -431,10 +441,6 @@ func init() {
 	serviceDescEnvironmentID := serviceFields[0].Descriptor()
 	// service.EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
 	service.EnvironmentIDValidator = serviceDescEnvironmentID.Validators[0].(func(string) error)
-	// serviceDescName is the schema descriptor for name field.
-	serviceDescName := serviceFields[3].Descriptor()
-	// service.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	service.NameValidator = serviceDescName.Validators[0].(func(string) error)
 	serviceresourceMixin := schema.ServiceResource{}.Mixin()
 	serviceresourceMixinHooks0 := serviceresourceMixin[0].Hooks()
 	serviceresourceMixinHooks1 := serviceresourceMixin[1].Hooks()

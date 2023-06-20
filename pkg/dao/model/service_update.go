@@ -40,6 +40,38 @@ func (su *ServiceUpdate) Where(ps ...predicate.Service) *ServiceUpdate {
 	return su
 }
 
+// SetName sets the "name" field.
+func (su *ServiceUpdate) SetName(s string) *ServiceUpdate {
+	su.mutation.SetName(s)
+	return su
+}
+
+// SetDescription sets the "description" field.
+func (su *ServiceUpdate) SetDescription(s string) *ServiceUpdate {
+	su.mutation.SetDescription(s)
+	return su
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (su *ServiceUpdate) SetNillableDescription(s *string) *ServiceUpdate {
+	if s != nil {
+		su.SetDescription(*s)
+	}
+	return su
+}
+
+// ClearDescription clears the value of the "description" field.
+func (su *ServiceUpdate) ClearDescription() *ServiceUpdate {
+	su.mutation.ClearDescription()
+	return su
+}
+
+// SetLabels sets the "labels" field.
+func (su *ServiceUpdate) SetLabels(m map[string]string) *ServiceUpdate {
+	su.mutation.SetLabels(m)
+	return su
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (su *ServiceUpdate) SetUpdateTime(t time.Time) *ServiceUpdate {
 	su.mutation.SetUpdateTime(t)
@@ -205,6 +237,11 @@ func (su *ServiceUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (su *ServiceUpdate) check() error {
+	if v, ok := su.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
+		}
+	}
 	if _, ok := su.mutation.EnvironmentID(); su.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.environment"`)
 	}
@@ -231,6 +268,18 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := su.mutation.Name(); ok {
+		_spec.SetField(service.FieldName, field.TypeString, value)
+	}
+	if value, ok := su.mutation.Description(); ok {
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
+	}
+	if su.mutation.DescriptionCleared() {
+		_spec.ClearField(service.FieldDescription, field.TypeString)
+	}
+	if value, ok := su.mutation.Labels(); ok {
+		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 	}
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
@@ -368,6 +417,38 @@ type ServiceUpdateOne struct {
 	hooks     []Hook
 	mutation  *ServiceMutation
 	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetName sets the "name" field.
+func (suo *ServiceUpdateOne) SetName(s string) *ServiceUpdateOne {
+	suo.mutation.SetName(s)
+	return suo
+}
+
+// SetDescription sets the "description" field.
+func (suo *ServiceUpdateOne) SetDescription(s string) *ServiceUpdateOne {
+	suo.mutation.SetDescription(s)
+	return suo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (suo *ServiceUpdateOne) SetNillableDescription(s *string) *ServiceUpdateOne {
+	if s != nil {
+		suo.SetDescription(*s)
+	}
+	return suo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (suo *ServiceUpdateOne) ClearDescription() *ServiceUpdateOne {
+	suo.mutation.ClearDescription()
+	return suo
+}
+
+// SetLabels sets the "labels" field.
+func (suo *ServiceUpdateOne) SetLabels(m map[string]string) *ServiceUpdateOne {
+	suo.mutation.SetLabels(m)
+	return suo
 }
 
 // SetUpdateTime sets the "updateTime" field.
@@ -548,6 +629,11 @@ func (suo *ServiceUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (suo *ServiceUpdateOne) check() error {
+	if v, ok := suo.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
+		}
+	}
 	if _, ok := suo.mutation.EnvironmentID(); suo.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.environment"`)
 	}
@@ -591,6 +677,18 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := suo.mutation.Name(); ok {
+		_spec.SetField(service.FieldName, field.TypeString, value)
+	}
+	if value, ok := suo.mutation.Description(); ok {
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
+	}
+	if suo.mutation.DescriptionCleared() {
+		_spec.ClearField(service.FieldDescription, field.TypeString)
+	}
+	if value, ok := suo.mutation.Labels(); ok {
+		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 	}
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)

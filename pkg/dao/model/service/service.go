@@ -20,6 +20,12 @@ const (
 	FieldID = "id"
 	// FieldProjectID holds the string denoting the projectid field in the database.
 	FieldProjectID = "project_id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
@@ -30,8 +36,6 @@ const (
 	FieldTemplate = "template"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -78,12 +82,14 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldProjectID,
+	FieldName,
+	FieldDescription,
+	FieldLabels,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldEnvironmentID,
 	FieldTemplate,
 	FieldAttributes,
-	FieldName,
 	FieldStatus,
 }
 
@@ -107,6 +113,10 @@ var (
 	Interceptors [1]ent.Interceptor
 	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
 	ProjectIDValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels map[string]string
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
@@ -115,8 +125,6 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Service queries.
@@ -130,6 +138,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByProjectID orders the results by the projectID field.
 func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the createTime field.
@@ -150,11 +168,6 @@ func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByEnvironmentField orders the results by environment field.

@@ -9577,11 +9577,13 @@ type ServiceMutation struct {
 	op                 Op
 	typ                string
 	id                 *oid.ID
+	name               *string
+	description        *string
+	labels             *map[string]string
 	createTime         *time.Time
 	updateTime         *time.Time
 	template           *types.TemplateVersionRef
 	attributes         *property.Values
-	name               *string
 	status             *status.Status
 	clearedFields      map[string]struct{}
 	environment        *oid.ID
@@ -9737,6 +9739,127 @@ func (m *ServiceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error
 // ResetProjectID resets all changes to the "projectID" field.
 func (m *ServiceMutation) ResetProjectID() {
 	m.project = nil
+}
+
+// SetName sets the "name" field.
+func (m *ServiceMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ServiceMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ServiceMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ServiceMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ServiceMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ServiceMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[service.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ServiceMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[service.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ServiceMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, service.FieldDescription)
+}
+
+// SetLabels sets the "labels" field.
+func (m *ServiceMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *ServiceMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *ServiceMutation) ResetLabels() {
+	m.labels = nil
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -9930,42 +10053,6 @@ func (m *ServiceMutation) AttributesCleared() bool {
 func (m *ServiceMutation) ResetAttributes() {
 	m.attributes = nil
 	delete(m.clearedFields, service.FieldAttributes)
-}
-
-// SetName sets the "name" field.
-func (m *ServiceMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *ServiceMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Service entity.
-// If the Service object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *ServiceMutation) ResetName() {
-	m.name = nil
 }
 
 // SetStatus sets the "status" field.
@@ -10211,9 +10298,18 @@ func (m *ServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.project != nil {
 		fields = append(fields, service.FieldProjectID)
+	}
+	if m.name != nil {
+		fields = append(fields, service.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, service.FieldDescription)
+	}
+	if m.labels != nil {
+		fields = append(fields, service.FieldLabels)
 	}
 	if m.createTime != nil {
 		fields = append(fields, service.FieldCreateTime)
@@ -10230,9 +10326,6 @@ func (m *ServiceMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, service.FieldAttributes)
 	}
-	if m.name != nil {
-		fields = append(fields, service.FieldName)
-	}
 	if m.status != nil {
 		fields = append(fields, service.FieldStatus)
 	}
@@ -10246,6 +10339,12 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case service.FieldProjectID:
 		return m.ProjectID()
+	case service.FieldName:
+		return m.Name()
+	case service.FieldDescription:
+		return m.Description()
+	case service.FieldLabels:
+		return m.Labels()
 	case service.FieldCreateTime:
 		return m.CreateTime()
 	case service.FieldUpdateTime:
@@ -10256,8 +10355,6 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Template()
 	case service.FieldAttributes:
 		return m.Attributes()
-	case service.FieldName:
-		return m.Name()
 	case service.FieldStatus:
 		return m.Status()
 	}
@@ -10271,6 +10368,12 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 	switch name {
 	case service.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case service.FieldName:
+		return m.OldName(ctx)
+	case service.FieldDescription:
+		return m.OldDescription(ctx)
+	case service.FieldLabels:
+		return m.OldLabels(ctx)
 	case service.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case service.FieldUpdateTime:
@@ -10281,8 +10384,6 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldTemplate(ctx)
 	case service.FieldAttributes:
 		return m.OldAttributes(ctx)
-	case service.FieldName:
-		return m.OldName(ctx)
 	case service.FieldStatus:
 		return m.OldStatus(ctx)
 	}
@@ -10300,6 +10401,27 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProjectID(v)
+		return nil
+	case service.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case service.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case service.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
 		return nil
 	case service.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -10335,13 +10457,6 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttributes(v)
-		return nil
-	case service.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
 		return nil
 	case service.FieldStatus:
 		v, ok := value.(status.Status)
@@ -10380,6 +10495,9 @@ func (m *ServiceMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *ServiceMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(service.FieldDescription) {
+		fields = append(fields, service.FieldDescription)
+	}
 	if m.FieldCleared(service.FieldAttributes) {
 		fields = append(fields, service.FieldAttributes)
 	}
@@ -10400,6 +10518,9 @@ func (m *ServiceMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ServiceMutation) ClearField(name string) error {
 	switch name {
+	case service.FieldDescription:
+		m.ClearDescription()
+		return nil
 	case service.FieldAttributes:
 		m.ClearAttributes()
 		return nil
@@ -10417,6 +10538,15 @@ func (m *ServiceMutation) ResetField(name string) error {
 	case service.FieldProjectID:
 		m.ResetProjectID()
 		return nil
+	case service.FieldName:
+		m.ResetName()
+		return nil
+	case service.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case service.FieldLabels:
+		m.ResetLabels()
+		return nil
 	case service.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
@@ -10431,9 +10561,6 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldAttributes:
 		m.ResetAttributes()
-		return nil
-	case service.FieldName:
-		m.ResetName()
 		return nil
 	case service.FieldStatus:
 		m.ResetStatus()

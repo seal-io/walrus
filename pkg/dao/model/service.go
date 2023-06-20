@@ -30,6 +30,12 @@ type Service struct {
 	ID oid.ID `json:"id,omitempty" sql:"id"`
 	// ID of the project to which the resource belongs.
 	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	// Name of the resource.
+	Name string `json:"name,omitempty" sql:"name"`
+	// Description of the resource.
+	Description string `json:"description,omitempty" sql:"description"`
+	// Labels of the resource.
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -40,8 +46,6 @@ type Service struct {
 	Template types.TemplateVersionRef `json:"template,omitempty" sql:"template"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
-	// Name of the service.
-	Name string `json:"name,omitempty" sql:"name"`
 	// Status of the service.
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -114,13 +118,13 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case service.FieldTemplate, service.FieldStatus:
+		case service.FieldLabels, service.FieldTemplate, service.FieldStatus:
 			values[i] = new([]byte)
 		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
 			values[i] = new(oid.ID)
 		case service.FieldAttributes:
 			values[i] = new(property.Values)
-		case service.FieldName:
+		case service.FieldName, service.FieldDescription:
 			values[i] = new(sql.NullString)
 		case service.FieldCreateTime, service.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -150,6 +154,26 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				s.ProjectID = *value
+			}
+		case service.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				s.Name = value.String
+			}
+		case service.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				s.Description = value.String
+			}
+		case service.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &s.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
 			}
 		case service.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -184,12 +208,6 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				s.Attributes = *value
-			}
-		case service.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				s.Name = value.String
 			}
 		case service.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -258,6 +276,15 @@ func (s *Service) String() string {
 	builder.WriteString("projectID=")
 	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
 	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(s.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(s.Description)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(fmt.Sprintf("%v", s.Labels))
+	builder.WriteString(", ")
 	if v := s.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -276,9 +303,6 @@ func (s *Service) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", s.Attributes))
-	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(s.Name)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", s.Status))

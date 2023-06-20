@@ -341,11 +341,13 @@ var (
 	// ServicesColumns holds the columns for the "services" table.
 	ServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "template", Type: field.TypeJSON},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -358,13 +360,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "services_environments_services",
-				Columns:    []*schema.Column{ServicesColumns[7]},
+				Columns:    []*schema.Column{ServicesColumns[9]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "services_projects_services",
-				Columns:    []*schema.Column{ServicesColumns[8]},
+				Columns:    []*schema.Column{ServicesColumns[10]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -373,12 +375,12 @@ var (
 			{
 				Name:    "service_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ServicesColumns[2]},
+				Columns: []*schema.Column{ServicesColumns[5]},
 			},
 			{
 				Name:    "service_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ServicesColumns[7], ServicesColumns[5]},
+				Columns: []*schema.Column{ServicesColumns[9], ServicesColumns[1]},
 			},
 		},
 	}

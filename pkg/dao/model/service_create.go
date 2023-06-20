@@ -41,6 +41,32 @@ func (sc *ServiceCreate) SetProjectID(o oid.ID) *ServiceCreate {
 	return sc
 }
 
+// SetName sets the "name" field.
+func (sc *ServiceCreate) SetName(s string) *ServiceCreate {
+	sc.mutation.SetName(s)
+	return sc
+}
+
+// SetDescription sets the "description" field.
+func (sc *ServiceCreate) SetDescription(s string) *ServiceCreate {
+	sc.mutation.SetDescription(s)
+	return sc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableDescription(s *string) *ServiceCreate {
+	if s != nil {
+		sc.SetDescription(*s)
+	}
+	return sc
+}
+
+// SetLabels sets the "labels" field.
+func (sc *ServiceCreate) SetLabels(m map[string]string) *ServiceCreate {
+	sc.mutation.SetLabels(m)
+	return sc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (sc *ServiceCreate) SetCreateTime(t time.Time) *ServiceCreate {
 	sc.mutation.SetCreateTime(t)
@@ -84,12 +110,6 @@ func (sc *ServiceCreate) SetTemplate(tvr types.TemplateVersionRef) *ServiceCreat
 // SetAttributes sets the "attributes" field.
 func (sc *ServiceCreate) SetAttributes(pr property.Values) *ServiceCreate {
 	sc.mutation.SetAttributes(pr)
-	return sc
-}
-
-// SetName sets the "name" field.
-func (sc *ServiceCreate) SetName(s string) *ServiceCreate {
-	sc.mutation.SetName(s)
 	return sc
 }
 
@@ -190,6 +210,10 @@ func (sc *ServiceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *ServiceCreate) defaults() error {
+	if _, ok := sc.mutation.Labels(); !ok {
+		v := service.DefaultLabels
+		sc.mutation.SetLabels(v)
+	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		if service.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized service.DefaultCreateTime (forgotten import model/runtime?)")
@@ -217,6 +241,17 @@ func (sc *ServiceCreate) check() error {
 			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Service.projectID": %w`, err)}
 		}
 	}
+	if _, ok := sc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Service.name"`)}
+	}
+	if v, ok := sc.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
+		}
+	}
+	if _, ok := sc.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Service.labels"`)}
+	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Service.createTime"`)}
 	}
@@ -233,14 +268,6 @@ func (sc *ServiceCreate) check() error {
 	}
 	if _, ok := sc.mutation.Template(); !ok {
 		return &ValidationError{Name: "template", err: errors.New(`model: missing required field "Service.template"`)}
-	}
-	if _, ok := sc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Service.name"`)}
-	}
-	if v, ok := sc.mutation.Name(); ok {
-		if err := service.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
-		}
 	}
 	if _, ok := sc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Service.environment"`)}
@@ -285,6 +312,18 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := sc.mutation.Name(); ok {
+		_spec.SetField(service.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := sc.mutation.Description(); ok {
+		_spec.SetField(service.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := sc.mutation.Labels(); ok {
+		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
 	if value, ok := sc.mutation.CreateTime(); ok {
 		_spec.SetField(service.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -300,10 +339,6 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Attributes(); ok {
 		_spec.SetField(service.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
-	}
-	if value, ok := sc.mutation.Name(); ok {
-		_spec.SetField(service.FieldName, field.TypeString, value)
-		_node.Name = value
 	}
 	if value, ok := sc.mutation.Status(); ok {
 		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
@@ -431,6 +466,48 @@ type (
 	}
 )
 
+// SetName sets the "name" field.
+func (u *ServiceUpsert) SetName(v string) *ServiceUpsert {
+	u.Set(service.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateName() *ServiceUpsert {
+	u.SetExcluded(service.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *ServiceUpsert) SetDescription(v string) *ServiceUpsert {
+	u.Set(service.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateDescription() *ServiceUpsert {
+	u.SetExcluded(service.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ServiceUpsert) ClearDescription() *ServiceUpsert {
+	u.SetNull(service.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *ServiceUpsert) SetLabels(v map[string]string) *ServiceUpsert {
+	u.Set(service.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateLabels() *ServiceUpsert {
+	u.SetExcluded(service.FieldLabels)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ServiceUpsert) SetUpdateTime(v time.Time) *ServiceUpsert {
 	u.Set(service.FieldUpdateTime, v)
@@ -517,9 +594,6 @@ func (u *ServiceUpsertOne) UpdateNewValues() *ServiceUpsertOne {
 		if _, exists := u.create.mutation.EnvironmentID(); exists {
 			s.SetIgnore(service.FieldEnvironmentID)
 		}
-		if _, exists := u.create.mutation.Name(); exists {
-			s.SetIgnore(service.FieldName)
-		}
 	}))
 	return u
 }
@@ -549,6 +623,55 @@ func (u *ServiceUpsertOne) Update(set func(*ServiceUpsert)) *ServiceUpsertOne {
 		set(&ServiceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *ServiceUpsertOne) SetName(v string) *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateName() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ServiceUpsertOne) SetDescription(v string) *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateDescription() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ServiceUpsertOne) ClearDescription() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ServiceUpsertOne) SetLabels(v map[string]string) *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateLabels() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateLabels()
+	})
 }
 
 // SetUpdateTime sets the "updateTime" field.
@@ -809,9 +932,6 @@ func (u *ServiceUpsertBulk) UpdateNewValues() *ServiceUpsertBulk {
 			if _, exists := b.mutation.EnvironmentID(); exists {
 				s.SetIgnore(service.FieldEnvironmentID)
 			}
-			if _, exists := b.mutation.Name(); exists {
-				s.SetIgnore(service.FieldName)
-			}
 		}
 	}))
 	return u
@@ -842,6 +962,55 @@ func (u *ServiceUpsertBulk) Update(set func(*ServiceUpsert)) *ServiceUpsertBulk 
 		set(&ServiceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *ServiceUpsertBulk) SetName(v string) *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateName() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *ServiceUpsertBulk) SetDescription(v string) *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateDescription() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *ServiceUpsertBulk) ClearDescription() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *ServiceUpsertBulk) SetLabels(v map[string]string) *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateLabels() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateLabels()
+	})
 }
 
 // SetUpdateTime sets the "updateTime" field.
