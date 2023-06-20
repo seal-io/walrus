@@ -29,12 +29,16 @@ func (in ServiceQueryInput) Model() *Service {
 
 // ServiceCreateInput is the input for the Service creation.
 type ServiceCreateInput struct {
+	// Name of the resource.
+	Name string `json:"name"`
+	// Description of the resource.
+	Description string `json:"description,omitempty"`
+	// Labels of the resource.
+	Labels map[string]string `json:"labels,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Name of the service.
-	Name string `json:"name"`
 	// Status of the service.
 	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
@@ -46,10 +50,12 @@ type ServiceCreateInput struct {
 // Model converts the ServiceCreateInput to Service.
 func (in ServiceCreateInput) Model() *Service {
 	var entity = &Service{
-		Template:   in.Template,
-		Attributes: in.Attributes,
-		Name:       in.Name,
-		Status:     in.Status,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		Template:    in.Template,
+		Attributes:  in.Attributes,
+		Status:      in.Status,
 	}
 	entity.EnvironmentID = in.Environment.ID
 	entity.ProjectID = in.Project.ID
@@ -60,6 +66,12 @@ func (in ServiceCreateInput) Model() *Service {
 type ServiceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
+	// Name of the resource.
+	Name string `json:"name,omitempty"`
+	// Description of the resource.
+	Description string `json:"description,omitempty"`
+	// Labels of the resource.
+	Labels map[string]string `json:"labels,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
@@ -71,10 +83,13 @@ type ServiceUpdateInput struct {
 // Model converts the ServiceUpdateInput to Service.
 func (in ServiceUpdateInput) Model() *Service {
 	var entity = &Service{
-		ID:         in.ID,
-		Template:   in.Template,
-		Attributes: in.Attributes,
-		Status:     in.Status,
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		Template:    in.Template,
+		Attributes:  in.Attributes,
+		Status:      in.Status,
 	}
 	return entity
 }
@@ -83,6 +98,12 @@ func (in ServiceUpdateInput) Model() *Service {
 type ServiceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
+	// Name of the resource.
+	Name string `json:"name,omitempty"`
+	// Description of the resource.
+	Description string `json:"description,omitempty"`
+	// Labels of the resource.
+	Labels map[string]string `json:"labels,omitempty"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Describe modification time.
@@ -91,8 +112,6 @@ type ServiceOutput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Name of the service.
-	Name string `json:"name,omitempty"`
 	// Status of the service.
 	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
@@ -112,11 +131,13 @@ func ExposeService(in *Service) *ServiceOutput {
 	}
 	var entity = &ServiceOutput{
 		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
 		CreateTime:  in.CreateTime,
 		UpdateTime:  in.UpdateTime,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-		Name:        in.Name,
 		Status:      in.Status,
 		Environment: ExposeEnvironment(in.Edges.Environment),
 		Project:     ExposeProject(in.Edges.Project),
