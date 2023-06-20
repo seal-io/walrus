@@ -22,6 +22,7 @@ type TableFormatter struct{}
 
 func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(resp.Body)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	if err != nil {
