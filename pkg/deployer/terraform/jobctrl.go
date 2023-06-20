@@ -66,9 +66,9 @@ const (
 	// _jobSecretPrefix the prefix of secret name.
 	_jobSecretPrefix = "tf-secret-"
 	// _secretMountPath the path to mount the secret.
-	_secretMountPath = "/seal/secrets"
+	_secretMountPath = "/var/terraform/secrets"
 	// _workdir the working directory of the job.
-	_workdir = "/seal/deployment"
+	_workdir = "/var/terraform/workspace"
 )
 
 const (
