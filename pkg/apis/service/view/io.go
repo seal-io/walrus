@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
@@ -99,14 +100,25 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 
+	modelClient := input.(model.ClientSet)
+
+	ids, err := modelClient.ServiceDependencies().Query().
+		Where(servicedependency.DependentID(r.ID)).
+		IDs(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get service dependencies")
+	}
+
+	if len(ids) > 0 {
+		return runtime.Error(http.StatusConflict, "service has dependencies")
+	}
+
 	if r.Force == nil {
 		// By default, clean deployed native resources too.
 		r.Force = pointer.Bool(true)
 	}
 
 	if *r.Force {
-		modelClient := input.(model.ClientSet)
-
 		err := validateRevisionStatus(ctx, modelClient, r.ID, "delete")
 		if err != nil {
 			return err

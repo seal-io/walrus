@@ -9,16 +9,15 @@ import (
 	"github.com/zclconf/go-cty/cty"
 	"k8s.io/client-go/rest"
 
-	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/service/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
@@ -27,6 +26,7 @@ import (
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
+	pkgservice "github.com/seal-io/seal/pkg/service"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
@@ -67,28 +67,26 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.CreateResponse, err error) {
 	entity := req.Model()
 
-	return h.createService(ctx, createServiceOptions{
-		Tags:    req.RemarkTags,
-		Service: entity,
-	})
+	dp, err := h.getDeployer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	createOpts := pkgservice.Options{
+		TlsCertified: h.tlsCertified,
+		Tags:         req.RemarkTags,
+	}
+
+	return pkgservice.Create(ctx,
+		h.modelClient,
+		dp,
+		entity,
+		createOpts,
+	)
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
-	logger := log.WithName("api").WithName("service")
 	entity := req.Model()
-
-	// Get deployer.
-	createOpts := deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-
-	dp, err := deployer.Get(ctx, createOpts)
-	if err != nil {
-		return err
-	}
-
 	if req.Force != nil && !*req.Force {
 		// Do not clean deployed native resources.
 		return h.modelClient.Services().DeleteOne(entity).
@@ -108,26 +106,16 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 		return err
 	}
 
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Update a failure status.
-		status.ServiceStatusDeleted.False(entity, err.Error())
-
-		uerr := h.updateServiceStatus(ctx, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of service %s: %v",
-				entity.ID, uerr)
-		}
-	}()
-
-	// Destroy service.
-	destroyOpts := deptypes.DestroyOptions{
-		SkipTLSVerify: !h.tlsCertified,
+	dp, err := h.getDeployer(ctx)
+	if err != nil {
+		return err
 	}
 
-	return dp.Destroy(ctx, entity, destroyOpts)
+	destroyOpts := pkgservice.Options{
+		TlsCertified: h.tlsCertified,
+	}
+
+	return pkgservice.Destroy(ctx, h.modelClient, dp, entity, destroyOpts)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
@@ -336,55 +324,39 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs.
 
 func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
-	logger := log.WithName("api").WithName("service")
 	entity := req.Model()
-
-	// Get deployer.
-	createOpts := deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-
-	dp, err := deployer.Get(ctx, createOpts)
-	if err != nil {
-		return err
-	}
-
 	// Update service, mark status from deploying.
 	status.ServiceStatusDeployed.Reset(entity, "Upgrading")
 
-	update, err := dao.ServiceUpdate(h.modelClient, entity)
+	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		update, err := dao.ServiceUpdate(tx, entity)
+		if err != nil {
+			return err
+		}
+
+		entity, err = update.Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	entity, err = update.Save(ctx)
+	dp, err := h.getDeployer(ctx)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Update a failure status.
-		status.ServiceStatusDeployed.False(entity, err.Error())
-
-		uerr := h.updateServiceStatus(ctx, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of service %s: %v",
-				entity.ID, uerr)
-		}
-	}()
 
 	// Apply service.
-	applyOpts := deptypes.ApplyOptions{
-		SkipTLSVerify: !h.tlsCertified,
-		Tags:          req.RemarkTags,
+	applyOpts := pkgservice.Options{
+		TlsCertified: h.tlsCertified,
+		Tags:         req.RemarkTags,
 	}
 
-	return dp.Apply(ctx, entity, applyOpts)
+	return pkgservice.Apply(ctx, h.modelClient, dp, entity, applyOpts)
 }
 
 func (h Handler) RouteAccessEndpoints(
@@ -800,4 +772,12 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 			}
 		}
 	}
+}
+
+func (h Handler) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
+	return deployer.Get(ctx, deptypes.CreateOptions{
+		Type:        deployertf.DeployerType,
+		ModelClient: h.modelClient,
+		KubeConfig:  h.kubeConfig,
+	})
 }
