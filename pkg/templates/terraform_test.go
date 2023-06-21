@@ -150,6 +150,17 @@ func TestLoadTerraformSchema(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name:  "With description",
+			input: "testdata/with_description",
+			expectedOutput: &types.TemplateSchema{
+				Variables: property.Schemas{
+					property.StringSchema("foo", pointer.String("bar")).
+						WithDescription("description of foo."),
+				},
+			},
+			expectedError: false,
+		},
+		{
 			name:  "Full schema",
 			input: "testdata/full_schema",
 			expectedOutput: &types.TemplateSchema{
@@ -184,6 +195,7 @@ func TestLoadTerraformSchema(t *testing.T) {
 						WithLabel("Foo Label").
 						WithOptions(json.MustMarshal("F1"), json.MustMarshal("F2"), json.MustMarshal("F3")),
 					property.StringSchema("bar", pointer.String("bar")).
+						WithDescription("description of bar.").
 						WithGroup("Test Group").
 						WithLabel("Bar Label").
 						WithOptions(json.MustMarshal("B1"), json.MustMarshal("B2"), json.MustMarshal("B3")).
