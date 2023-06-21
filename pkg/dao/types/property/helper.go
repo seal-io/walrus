@@ -516,7 +516,8 @@ func GuessSchema(n, t string, d any) (Schema, error) {
 		// Guess schema from data.
 		ty, err := gocty.ImpliedType(d)
 		if err != nil {
-			return Schema{}, err
+			// If we cannot guess the type, consider it to be dynamic.
+			ty = cty.DynamicPseudoType
 		}
 
 		return Schema{
