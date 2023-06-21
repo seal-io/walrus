@@ -142,7 +142,7 @@ RUN set -exo pipefail; \
 
 # get deployer image
 RUN set -exo pipefail; \
-        DEPLOYER_IMAGE="sealio/terraform-deployer:v0.1.2"; \
+        DEPLOYER_IMAGE="sealio/terraform-deployer:v0.1.3"; \
         crane pull --platform=${TARGETPLATFORM} ${DEPLOYER_IMAGE} ${K3S_DATA_DIR}/agent/images/seal-terraform-deployer.tar;
 
 
