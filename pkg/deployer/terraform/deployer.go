@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/pointer"
@@ -282,7 +283,12 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
-	jobImage, err := settings.TerraformDeployerImage.Value(ctx, d.modelClient)
+	jobImage, err := settings.DeployerImage.Value(ctx, d.modelClient)
+	if err != nil {
+		return err
+	}
+
+	jobEnv, err := d.getProxyEnv(ctx)
 	if err != nil {
 		return err
 	}
@@ -292,9 +298,64 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		Type:              opts.Type,
 		ServiceRevisionID: opts.ServiceRevision.ID.String(),
 		Image:             jobImage,
+		Env:               jobEnv,
 	}
 
 	return CreateJob(ctx, d.clientSet, jobOpts)
+}
+
+func (d Deployer) getProxyEnv(ctx context.Context) ([]corev1.EnvVar, error) {
+	var env []corev1.EnvVar
+
+	allProxy, err := settings.DeployerAllProxy.Value(ctx, d.modelClient)
+	if err != nil {
+		return nil, err
+	}
+
+	if allProxy != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "ALL_PROXY",
+			Value: allProxy,
+		})
+	}
+
+	httpProxy, err := settings.DeployerHttpProxy.Value(ctx, d.modelClient)
+	if err != nil {
+		return nil, err
+	}
+
+	if httpProxy != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "HTTP_PROXY",
+			Value: httpProxy,
+		})
+	}
+
+	httpsProxy, err := settings.DeployerHttpsProxy.Value(ctx, d.modelClient)
+	if err != nil {
+		return nil, err
+	}
+
+	if httpsProxy != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "HTTPS_PROXY",
+			Value: httpsProxy,
+		})
+	}
+
+	noProxy, err := settings.DeployerNoProxy.Value(ctx, d.modelClient)
+	if err != nil {
+		return nil, err
+	}
+
+	if noProxy != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "NO_PROXY",
+			Value: noProxy,
+		})
+	}
+
+	return env, nil
 }
 
 func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRevision, s, m string) error {
