@@ -83,17 +83,17 @@ type CreateJobOptions struct {
 // Terraform will get and update deployment states from this API.
 const _backendAPI = "/v1/service-revisions/%s/terraform-states?projectID=%s"
 
-// _varPrefix the prefix of the variable name.
-const _varPrefix = "_seal_var_"
-
 // _secretPrefix the prefix of the secret name.
 const _secretPrefix = "_seal_secret_"
+
+// _servicePrefix the prefix of the service output name.
+const _servicePrefix = "_seal_service_"
 
 var (
 	// _secretReg the regexp to match the secret variable.
 	_secretReg = regexp.MustCompile(`\${secret\.([a-zA-Z0-9_]+)}`)
-	// _varReg the regexp to match the variable.
-	_varReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_]+)}`)
+	// _serviceReg the regexp to match the service output.
+	_serviceReg = regexp.MustCompile(`\${service\.([^.}]+)\.([^.}]+)}`)
 )
 
 func NewDeployer(_ context.Context, opts deptypes.CreateOptions) (deptypes.Deployer, error) {
@@ -479,8 +479,8 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		}
 	}
 
-	// Parse module secrets.
-	secrets, err := d.parseModuleSecrets(ctx, moduleConfigs, opts)
+	// Parse module attributes.
+	secrets, dependencyOutputs, err := d.parseModuleAttributes(ctx, moduleConfigs, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -545,13 +545,14 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 				ModuleConfigs: moduleConfigs,
 			},
 			VariableOptions: &config.VariableOptions{
-				VarPrefix:    _varPrefix,
-				SecretPrefix: _secretPrefix,
-				SecretNames:  secretNames,
+				SecretPrefix:      _secretPrefix,
+				ServicePrefix:     _servicePrefix,
+				SecretNames:       secretNames,
+				DependencyOutputs: dependencyOutputs,
 			},
 			OutputOptions: outputs,
 		},
-		config.FileVars: getVarConfigOptions(secrets, nil),
+		config.FileVars: getVarConfigOptions(secrets, dependencyOutputs),
 	}
 	secretMaps := make(map[string][]byte, 0)
 
@@ -682,19 +683,23 @@ func (d Deployer) getConnectors(ctx context.Context, ai *model.Service) (model.C
 	return cs, nil
 }
 
-// parseModuleSecrets parse module secrets, and return matched model.Secrets.
-func (d Deployer) parseModuleSecrets(
+// parseModuleAttributes parse module secrets and dependencies, return matched model.Secrets and service output.
+func (d Deployer) parseModuleAttributes(
 	ctx context.Context,
-	moduleConfigs []*config.ModuleConfig,
+	templateConfig []*config.ModuleConfig,
 	opts CreateSecretsOptions,
-) (model.Secrets, error) {
+) (secrets model.Secrets, outputs map[string]parser.OutputState, err error) {
 	var (
-		moduleSecrets []string
-		secrets       model.Secrets
+		templateSecrets          []string
+		dependencyServiceOutputs []string
 	)
 
-	for _, moduleConfig := range moduleConfigs {
-		moduleSecrets = parseAttributeReplace(moduleConfig.Attributes, moduleSecrets)
+	for _, moduleConfig := range templateConfig {
+		templateSecrets, dependencyServiceOutputs = parseAttributeReplace(
+			moduleConfig.Attributes,
+			templateSecrets,
+			dependencyServiceOutputs,
+		)
 	}
 	// If service revision has secrets that inherit from cloned revision, use them directly.
 	if len(opts.ServiceRevision.Secrets) > 0 {
@@ -704,12 +709,26 @@ func (d Deployer) parseModuleSecrets(
 				Value: crypto.String(v),
 			})
 		}
-
-		return secrets, nil
+	} else {
+		secrets, err = d.getSecrets(ctx, templateSecrets, opts.ProjectID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
-	nameIn := make([]interface{}, len(moduleSecrets))
-	for i, name := range moduleSecrets {
+	outputs, err = d.getServiceDependencyOutputs(ctx, opts.ServiceRevision.ServiceID, dependencyServiceOutputs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return secrets, outputs, nil
+}
+
+func (d Deployer) getSecrets(ctx context.Context, secretNames []string, projectID oid.ID) (model.Secrets, error) {
+	var secrets model.Secrets
+
+	nameIn := make([]interface{}, len(secretNames))
+	for i, name := range secretNames {
 		nameIn[i] = name
 	}
 	// This query is used to distinct the secrets with the same name.
@@ -747,7 +766,7 @@ func (d Deployer) parseModuleSecrets(
 				// Select secrets without project id or not in project.
 				subQuery := sql.Select(secret.FieldName).
 					From(sql.Table(secret.Table)).
-					Where(sql.EQ(secret.FieldProjectID, opts.ProjectID))
+					Where(sql.EQ(secret.FieldProjectID, projectID))
 				s.Select(secret.FieldID, secret.FieldName, secret.FieldValue).
 					Where(
 						sql.And(
@@ -756,7 +775,7 @@ func (d Deployer) parseModuleSecrets(
 									sql.IsNull(secret.FieldProjectID),
 									sql.NotIn(secret.FieldName, subQuery),
 								),
-								sql.EQ(secret.FieldProjectID, opts.ProjectID),
+								sql.EQ(secret.FieldProjectID, projectID),
 							),
 							sql.In(secret.FieldName, nameIn...),
 						),
@@ -773,7 +792,7 @@ func (d Deployer) parseModuleSecrets(
 	for _, s := range secrets {
 		foundSecretSet.Insert(s.Name)
 	}
-	requiredSecretSet := sets.NewString(moduleSecrets...)
+	requiredSecretSet := sets.NewString(secretNames...)
 
 	missingSecretSet := requiredSecretSet.Difference(foundSecretSet)
 	if missingSecretSet.Len() > 0 {
@@ -818,6 +837,78 @@ func (d Deployer) getPreviousRequiredProviders(
 	}
 
 	return prevRequiredProviders, nil
+}
+
+// GetServiceDependencyOutputs gets the dependency outputs of the service.
+func (d Deployer) getServiceDependencyOutputs(
+	ctx context.Context,
+	serviceID oid.ID,
+	dependOutputs []string,
+) (map[string]parser.OutputState, error) {
+	service, err := d.modelClient.Services().Query().
+		Where(service.ID(serviceID)).
+		WithDependencies().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	dependantIDs := make([]oid.ID, 0, len(service.Edges.Dependencies))
+
+	for _, d := range service.Edges.Dependencies {
+		if d.Type != types.ServiceDependencyTypeImplicit {
+			continue
+		}
+
+		dependantIDs = append(dependantIDs, d.DependentID)
+	}
+
+	dependencyRevisions, err := d.modelClient.ServiceRevisions().Query().
+		Select(
+			servicerevision.FieldID,
+			servicerevision.FieldAttributes,
+			servicerevision.FieldOutput,
+			servicerevision.FieldServiceID,
+			servicerevision.FieldProjectID,
+		).
+		Where(func(s *sql.Selector) {
+			sq := s.Clone().
+				AppendSelectExprAs(
+					sql.RowNumber().
+						PartitionBy(servicerevision.FieldServiceID).
+						OrderBy(sql.Desc(servicerevision.FieldCreateTime)),
+					"row_number",
+				).
+				Where(s.P()).
+				From(s.Table()).
+				As(servicerevision.Table)
+
+				// Query the latest revision of the service.
+			s.Where(sql.EQ(s.C("row_number"), 1)).
+				From(sq)
+		}).Where(servicerevision.ServiceIDIn(dependantIDs...)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	outputs := make(map[string]parser.OutputState, 0)
+	dependSets := sets.NewString(dependOutputs...)
+
+	for _, r := range dependencyRevisions {
+		revisionOutput, err := parser.ParseStateOutputRawMap(r)
+		if err != nil {
+			return nil, err
+		}
+
+		for n, o := range revisionOutput {
+			if dependSets.Has(n) {
+				outputs[n] = o
+			}
+		}
+	}
+
+	return outputs, nil
 }
 
 func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (err error) {
@@ -872,12 +963,14 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 	return err
 }
 
-// parseAttributeReplace parses attribute secrets ${secret.name} replaces it with ${var._varprefix+name},
-// and returns secret names.
+// parseAttributeReplace parses attribute secrets ${secret.name} replaces it with ${var._secretPrefix+name},
+// service reference ${service.name.output} replaces it with ${var._servicePrefix+name}
+// and returns secret names and service names.
 func parseAttributeReplace(
 	attributes map[string]interface{},
 	secretNames []string,
-) []string {
+	serviceOutputs []string,
+) ([]string, []string) {
 	for key, value := range attributes {
 		if value == nil {
 			continue
@@ -889,10 +982,15 @@ func parseAttributeReplace(
 				continue
 			}
 
-			secretNames = parseAttributeReplace(value.(map[string]interface{}), secretNames)
+			secretNames, serviceOutputs = parseAttributeReplace(
+				value.(map[string]interface{}),
+				secretNames,
+				serviceOutputs,
+			)
 		case reflect.String:
 			str := value.(string)
 			matches := _secretReg.FindAllStringSubmatch(str, -1)
+			serviceMatches := _serviceReg.FindAllStringSubmatch(str, -1)
 
 			var matched []string
 
@@ -902,12 +1000,22 @@ func parseAttributeReplace(
 				}
 			}
 
-			secretNames = append(secretNames, matched...)
-			varRepl := "${var." + _varPrefix + "${1}}"
-			str = _varReg.ReplaceAllString(str, varRepl)
+			var serviceMatched []string
 
+			for _, match := range serviceMatches {
+				if len(match) > 1 {
+					serviceMatched = append(serviceMatched, match[1]+"_"+match[2])
+				}
+			}
+
+			secretNames = append(secretNames, matched...)
 			secretRepl := "${var." + _secretPrefix + "${1}}"
-			attributes[key] = _secretReg.ReplaceAllString(str, secretRepl)
+			str = _secretReg.ReplaceAllString(str, secretRepl)
+
+			serviceOutputs = append(serviceOutputs, serviceMatched...)
+			serviceRepl := "${var." + _servicePrefix + "${1}_${2}}"
+
+			attributes[key] = _serviceReg.ReplaceAllString(str, serviceRepl)
 		case reflect.Slice:
 			if _, ok := value.([]interface{}); !ok {
 				continue
@@ -917,15 +1025,19 @@ func parseAttributeReplace(
 				if _, ok := v.(map[string]interface{}); !ok {
 					continue
 				}
-				secretNames = parseAttributeReplace(v.(map[string]interface{}), secretNames)
+				secretNames, serviceOutputs = parseAttributeReplace(
+					v.(map[string]interface{}),
+					secretNames,
+					serviceOutputs,
+				)
 			}
 		}
 	}
 
-	return secretNames
+	return secretNames, serviceOutputs
 }
 
-func getVarConfigOptions(secrets model.Secrets, variables property.Values) config.CreateOptions {
+func getVarConfigOptions(secrets model.Secrets, serviceOutputs map[string]parser.OutputState) config.CreateOptions {
 	varsConfigOpts := config.CreateOptions{
 		Attributes: map[string]interface{}{},
 	}
@@ -934,8 +1046,9 @@ func getVarConfigOptions(secrets model.Secrets, variables property.Values) confi
 		varsConfigOpts.Attributes[_secretPrefix+v.Name] = v.Value
 	}
 
-	for k, v := range variables {
-		varsConfigOpts.Attributes[_varPrefix+k] = v
+	// Setup service outputs.
+	for n, v := range serviceOutputs {
+		varsConfigOpts.Attributes[_servicePrefix+n] = v.Value
 	}
 
 	return varsConfigOpts

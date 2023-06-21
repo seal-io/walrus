@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/terraform/parser"
 )
 
 const (
@@ -70,14 +71,14 @@ type (
 
 	// VariableOptions is the options to create variables blocks.
 	VariableOptions struct {
-		// VarPrefix is the prefix of the variable name.
-		VarPrefix string
 		// SecretPrefix is the prefix of the secret name.
 		SecretPrefix string
+		// SecretServicePrefix is the prefix of the secret service name.
+		ServicePrefix string
 		// SecretNames is the list of the secret name, type is always string.
 		SecretNames []string
-		// VariableNameAndTypes is the map of the variable name and type.
-		VariableNameAndTypes map[string]string
+		// DependencyOutputs is the map of the variable name and value.
+		DependencyOutputs map[string]parser.OutputState
 	}
 
 	// OutputOptions is the options to create outputs blocks.
