@@ -251,7 +251,7 @@ func perspectiveProject() *model.Perspective {
 		EndTime:   "now",
 		Builtin:   true,
 		AllocationQueries: []types.QueryCondition{
-			// App cost.
+			// Service cost.
 			{
 				Filters: types.AllocationCostFilters{
 					{
@@ -262,7 +262,7 @@ func perspectiveProject() *model.Perspective {
 						},
 					},
 				},
-				GroupBy: types.GroupByFieldApplication,
+				GroupBy: types.GroupByFieldServicePath,
 				Step:    types.StepDay,
 			},
 		},

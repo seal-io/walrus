@@ -32,9 +32,9 @@ var (
 // labelMapping indicate the relation between opencost converted label and original label.
 var (
 	labelMapping = map[string]string{
-		"seal_io_project":     types.LabelSealProject,
-		"seal_io_environment": types.LabelSealEnvironment,
-		"seal_io_app":         types.LabelSealApplication,
+		"seal_io_project_name":     types.LabelSealProjectName,
+		"seal_io_environment_name": types.LabelSealEnvironmentName,
+		"seal_io_service_name":     types.LabelSealServiceName,
 	}
 )
 
@@ -388,6 +388,15 @@ func toLabels(origin map[string]string) map[string]string {
 		if ok {
 			labels[mapping] = v
 		}
+	}
+
+	proj, ok1 := labels[types.LabelSealProjectName]
+	env, ok2 := labels[types.LabelSealEnvironmentName]
+	svc, ok3 := labels[types.LabelSealServiceName]
+
+	if ok1 && ok2 && ok3 {
+		labels[types.LabelSealEnvironmentPath] = fmt.Sprintf("%s/%s", proj, env)
+		labels[types.LabelSealServicePath] = fmt.Sprintf("%s/%s/%s", proj, env, svc)
 	}
 
 	return labels

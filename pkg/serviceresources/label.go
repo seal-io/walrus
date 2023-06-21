@@ -19,7 +19,8 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 	for i := range candidates {
 		// Get label values.
 		var (
-			appName     string
+			// Name.
+			svcName     string
 			projectName string
 			envName     string
 		)
@@ -27,10 +28,14 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 		if ins := candidates[i].Edges.Service; ins == nil {
 			continue
 		} else {
+			// Service name.
+			svcName = ins.Name
+
 			// Project name.
 			if proj := ins.Edges.Project; proj != nil {
 				projectName = proj.Name
 			}
+
 			// Environment name.
 			if env := ins.Edges.Environment; env != nil {
 				envName = env.Name
@@ -38,9 +43,10 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 		}
 
 		ls := map[string]string{
-			types.LabelSealEnvironment: envName,
-			types.LabelSealProject:     projectName,
-			types.LabelSealApplication: appName,
+			// Name.
+			types.LabelSealEnvironmentName: envName,
+			types.LabelSealProjectName:     projectName,
+			types.LabelSealServiceName:     svcName,
 		}
 
 		err := op.Label(ctx, candidates[i], ls)

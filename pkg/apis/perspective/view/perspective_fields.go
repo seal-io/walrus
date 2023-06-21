@@ -7,8 +7,8 @@ import (
 var BuiltInPerspectiveFilterFields = []PerspectiveField{
 	FilterPerspectiveField("Connector", types.FilterFieldConnectorID),
 	FilterPerspectiveField("Project", types.FilterFieldProject),
-	FilterPerspectiveField("Environment", types.FilterFieldEnvironment),
-	FilterPerspectiveField("Application", types.FilterFieldApplication),
+	FilterPerspectiveField("Environment", types.FilterFieldEnvironmentPath),
+	FilterPerspectiveField("Service", types.FilterFieldServicePath),
 	FilterPerspectiveField("Cluster Name", types.FilterFieldClusterName),
 	FilterPerspectiveField("Namespace", types.FilterFieldNamespace),
 	FilterPerspectiveField("Node", types.FilterFieldNode),
@@ -21,8 +21,8 @@ var BuiltInPerspectiveFilterFields = []PerspectiveField{
 var BuiltInPerspectiveGroupFields = []PerspectiveField{
 	GroupByPerspectiveField("Connector", types.GroupByFieldConnectorID),
 	GroupByPerspectiveField("Project", types.GroupByFieldProject),
-	GroupByPerspectiveField("Environment", types.GroupByFieldEnvironment),
-	GroupByPerspectiveField("Application", types.GroupByFieldApplication),
+	GroupByPerspectiveField("Environment", types.GroupByFieldEnvironmentPath),
+	GroupByPerspectiveField("Service", types.GroupByFieldServicePath),
 	GroupByPerspectiveField("Cluster Name", types.GroupByFieldClusterName),
 	GroupByPerspectiveField("Namespace", types.GroupByFieldNamespace),
 	GroupByPerspectiveField("Node", types.GroupByFieldNode),

@@ -54,7 +54,9 @@ func ValidateAllocationQuery(query types.QueryCondition) error {
 		types.GroupByFieldMonth,
 		types.GroupByFieldProject,
 		types.GroupByFieldEnvironment,
-		types.GroupByFieldApplication,
+		types.GroupByFieldService,
+		types.GroupByFieldEnvironmentPath,
+		types.GroupByFieldServicePath,
 	}, query.GroupBy) {
 		return errors.New("invalid group by: unsupported")
 	}

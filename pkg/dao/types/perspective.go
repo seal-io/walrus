@@ -76,9 +76,15 @@ const (
 	FilterFieldControllerKind FilterField = "controller_kind"
 	FilterFieldPod            FilterField = "pod"
 	FilterFieldContainer      FilterField = "container"
-	FilterFieldProject                    = FilterField("label:" + LabelSealProject)     // "label:seal.io/project".
-	FilterFieldEnvironment                = FilterField("label:" + LabelSealEnvironment) // "label:seal.io/environment".
-	FilterFieldApplication                = FilterField("label:" + LabelSealApplication) // "label:seal.io/app".
+
+	// FilterFieldProject is "label:seal.io/project-name".
+	FilterFieldProject = FilterField("label:" + LabelSealProjectName)
+
+	// FilterFieldEnvironmentPath is "label:seal.io/environment-name".
+	FilterFieldEnvironmentPath = FilterField("label:" + LabelSealEnvironmentPath)
+
+	// FilterFieldServicePath is "label:seal.io/service-name".
+	FilterFieldServicePath = FilterField("label:" + LabelSealServicePath)
 )
 
 func (f *FilterField) IsLabel() bool {
@@ -111,9 +117,11 @@ const (
 	GroupByFieldMonth GroupByField = "month"
 
 	// Built-in labels.
-	GroupByFieldProject     = GroupByField("label:" + LabelSealProject)     // "label:seal.io/project".
-	GroupByFieldEnvironment = GroupByField("label:" + LabelSealEnvironment) // "label:seal.io/environment".
-	GroupByFieldApplication = GroupByField("label:" + LabelSealApplication) // "label:seal.io/app".
+	GroupByFieldProject         = GroupByField("label:" + LabelSealProjectName)     // "label:seal.io/project-name".
+	GroupByFieldEnvironment     = GroupByField("label:" + LabelSealEnvironmentName) // "label:seal.io/environment-name".
+	GroupByFieldService         = GroupByField("label:" + LabelSealServiceName)     // "label:seal.io/service-name".
+	GroupByFieldEnvironmentPath = GroupByField("label:" + LabelSealEnvironmentPath) // "label:seal.io/environment-path".
+	GroupByFieldServicePath     = GroupByField("label:" + LabelSealServicePath)     // "label:seal.io/service-path".
 )
 
 func (f *GroupByField) IsLabel() bool {
