@@ -8,20 +8,44 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// the built-in settings for system.
+// the built-in settings for deployer.
 var (
-	// HttpProxy indicates the address for proxying none SSL http outbound traffic,
+	// DeployerHttpProxy indicates the address for proxying none SSL http outbound traffic used by deployer,
 	// it's in form of http(s)://[user:password@]address[:port].
-	HttpProxy = newValue("HttpProxy", editable, initializeFromSpecifiedEnv("HTTP_PROXY", ""), modifyWith(httpUrl))
-	// HttpsProxy indicates the address for proxying SSL http outbound traffic,
+	DeployerHttpProxy = newValue(
+		"DeployerHttpProxy",
+		editable,
+		initializeFromSpecifiedEnv("HTTP_PROXY", ""),
+		modifyWith(httpUrl),
+	)
+	// DeployerHttpsProxy indicates the address for proxying SSL http outbound traffic used by deployer,
 	// it's in form of http(s)://[user:password@]address[:port].
-	HttpsProxy = newValue("HttpsProxy", editable, initializeFromSpecifiedEnv("HTTPS_PROXY", ""), modifyWith(httpUrl))
-	// AllProxy indicates the address for proxying outbound traffic,
+	DeployerHttpsProxy = newValue(
+		"DeployerHttpsProxy",
+		editable,
+		initializeFromSpecifiedEnv("HTTPS_PROXY", ""),
+		modifyWith(httpUrl),
+	)
+	// DeployerAllProxy indicates the address for proxying outbound traffic used by deployer,
 	// it's in form of scheme://[user:password@]address[:port].
-	AllProxy = newValue("AllProxy", editable, initializeFromSpecifiedEnv("ALL_PROXY", ""), modifyWith(sockUrl))
-	// NoProxy indicates the host exclusion list when proxying outbound traffic,
+	DeployerAllProxy = newValue(
+		"DeployerAllProxy",
+		editable,
+		initializeFromSpecifiedEnv("ALL_PROXY", ""),
+		modifyWith(sockUrl),
+	)
+	// DeployerNoProxy indicates the host exclusion list when proxying outbound traffic used by deployer,
 	// it's a comma-separated string.
-	NoProxy = newValue("NoProxy", editable, initializeFromSpecifiedEnv("NO_PROXY", ""), nil)
+	DeployerNoProxy = newValue("DeployerNoProxy", editable, initializeFromSpecifiedEnv("NO_PROXY", ""), nil)
+	// DeployerImage indicates the image used by deployer.
+	DeployerImage = newValue(
+		"DeployerImage",
+		editable,
+		// When the image is updated, sync the one in server Dockerfile.
+		// TODO change when deployer image with packaged plugins is ready.
+		initializeFrom("sealio/terraform-deployer:v0.1.2"),
+		modifyWith(notBlank, containerImageReference),
+	)
 )
 
 // the built-in settings for server.
@@ -48,15 +72,6 @@ var (
 	)
 	// ServeTemplateRefer keeps the branch name of github.com/seal-io/modules repo for serving templates.
 	ServeTemplateRefer = newValue("ServeTemplateRefer", private, initializeFromEnv("main"), nil)
-	// TerraformDeployerImage indicates the image for terraform deployment.
-	TerraformDeployerImage = newValue(
-		"TerraformDeployerImage",
-		editable,
-		// When the image is updated, sync the one in server Dockerfile.
-		// TODO change when deployer image with packaged plugins is ready.
-		initializeFrom("sealio/terraform-deployer:v0.1.2"),
-		modifyWith(notBlank, containerImageReference),
-	)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
 	// AuthsEncryptionAesGcmKey keeps the key for encrypting public token value with AES-GCM algorithm.

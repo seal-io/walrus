@@ -39,6 +39,7 @@ type JobCreateOptions struct {
 	Type              string
 	ServiceRevisionID string
 	Image             string
+	Env               []corev1.EnvVar
 }
 
 type StreamJobLogsOptions struct {
@@ -308,6 +309,7 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 							ReadOnly:  false,
 						},
 					},
+					Env: opts.Env,
 				},
 			},
 			Volumes: []corev1.Volume{
