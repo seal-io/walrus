@@ -9,7 +9,13 @@ const (
 
 // built-in labels.
 const (
-	LabelSealProject     string = "seal.io/project"
-	LabelSealEnvironment string = "seal.io/environment"
-	LabelSealApplication string = "seal.io/app"
+	LabelSealProjectName     string = "seal.io/project-name"
+	LabelSealEnvironmentName string = "seal.io/environment-name"
+	LabelSealServiceName     string = "seal.io/service-name"
+
+	// LabelSealEnvironmentPath indicate environment with project name, format: projectName/environmentName.
+	LabelSealEnvironmentPath string = "seal.io/environment-path"
+	// LabelSealServicePath indicate service with project name and environment name,
+	// format: projectName/environmentName/serviceName
+	LabelSealServicePath string = "seal.io/service-path"
 )

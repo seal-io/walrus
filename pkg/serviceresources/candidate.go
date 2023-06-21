@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -50,12 +51,21 @@ func queryCandidates(modelClient model.ClientSet) *model.ServiceResourceQuery {
 			serviceresource.FieldDeployerType).
 		WithService(func(sq *model.ServiceQuery) {
 			sq.Select(
+				service.FieldName,
 				service.FieldEnvironmentID,
+				service.FieldProjectID,
 			).WithEnvironment(
 				func(eq *model.EnvironmentQuery) {
 					eq.Select(
 						environment.FieldID,
 						environment.FieldName,
+					)
+				},
+			).WithProject(
+				func(pq *model.ProjectQuery) {
+					pq.Select(
+						project.FieldID,
+						project.FieldName,
 					)
 				},
 			)
