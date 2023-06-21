@@ -359,6 +359,51 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	return pkgservice.Apply(ctx, h.modelClient, dp, entity, applyOpts)
 }
 
+// RouteRollback rolls back a service to a specific revision.
+func (h Handler) RouteRollback(ctx *gin.Context, req view.RouteRollbackRequest) error {
+	service, err := h.modelClient.Services().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	serviceRevision, err := h.modelClient.ServiceRevisions().Get(ctx, req.RevisionID)
+	if err != nil {
+		return err
+	}
+
+	service.Template.Version = serviceRevision.TemplateVersion
+	service.Attributes = serviceRevision.Attributes
+	status.ServiceStatusDeployed.Reset(service, "Rolling back")
+
+	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		update, err := dao.ServiceUpdate(tx, service)
+		if err != nil {
+			return err
+		}
+
+		service, err = update.Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	dp, err := h.getDeployer(ctx)
+	if err != nil {
+		return err
+	}
+
+	applyOpts := pkgservice.Options{
+		TlsCertified: h.tlsCertified,
+	}
+
+	return pkgservice.Apply(ctx, h.modelClient, dp, service, applyOpts)
+}
+
 func (h Handler) RouteAccessEndpoints(
 	ctx *gin.Context,
 	req view.AccessEndpointRequest,

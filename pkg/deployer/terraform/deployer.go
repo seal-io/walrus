@@ -185,72 +185,6 @@ func (d Deployer) Destroy(
 	})
 }
 
-// Rollback service to a specific revision.
-func (d Deployer) Rollback(
-	ctx context.Context,
-	service *model.Service,
-	opts deptypes.RollbackOptions,
-) (err error) {
-	if opts.CloneFrom == nil || opts.CloneFrom.ServiceID != service.ID {
-		return errors.New("rollback failed: invalid revision")
-	}
-
-	status.ServiceStatusDeployed.Reset(service, "Rolling back")
-
-	update, err := dao.ServiceUpdate(d.modelClient, service)
-	if err != nil {
-		return err
-	}
-
-	service, err = update.Save(ctx)
-	if err != nil {
-		return err
-	}
-
-	sr, err := d.CreateServiceRevision(ctx,
-		CreateRevisionOptions{
-			JobType: JobTypeApply,
-			Tags:    opts.Tags,
-			Service: service,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err == nil {
-			return
-		}
-
-		if sr != nil {
-			// Report to service revision.
-			_ = d.updateRevisionStatus(ctx, sr, status.ServiceRevisionStatusFailed, err.Error())
-			return
-		}
-
-		status.ServiceStatusDeployed.False(service, err.Error())
-
-		serviceUpdate, updateErr := dao.ServiceUpdate(d.modelClient, service)
-		if updateErr != nil {
-			d.logger.Error(err)
-			return
-		}
-
-		updateErr = serviceUpdate.Exec(ctx)
-		if updateErr != nil {
-			d.logger.Errorf("update service status failed: %v", updateErr)
-		}
-	}()
-
-	return d.CreateK8sJob(ctx, CreateJobOptions{
-		Type:            JobTypeApply,
-		SkipTLSVerify:   opts.SkipTLSVerify,
-		Service:         service,
-		ServiceRevision: sr,
-	})
-}
-
 // CreateK8sJob will create a k8s job to deploy、destroy or rollback the service.
 func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error {
 	connectors, err := d.getConnectors(ctx, opts.Service)
@@ -944,7 +878,7 @@ func (d Deployer) getServiceDependencyOutputs(
 				From(s.Table()).
 				As(servicerevision.Table)
 
-				// Query the latest revision of the service.
+			// Query the latest revision of the service.
 			s.Where(sql.EQ(s.C("row_number"), 1)).
 				From(sq)
 		}).Where(servicerevision.ServiceIDIn(dependantIDs...)).

@@ -24,9 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	"github.com/seal-io/seal/pkg/deployer"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
-	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/serviceresources"
@@ -588,38 +586,6 @@ func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogReq
 		JobType:    req.JobType,
 		Out:        ctx,
 	})
-}
-
-// RouteRollbackService rollback service to a specific revision.
-func (h Handler) RouteRollbackService(ctx *gin.Context, req view.RollbackServiceRequest) error {
-	serviceRevision, err := h.modelClient.ServiceRevisions().Get(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-
-	service, err := h.modelClient.Services().
-		Get(ctx, serviceRevision.ServiceID)
-	if err != nil {
-		return err
-	}
-
-	createOpts := deptypes.CreateOptions{
-		Type:        terraform.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-
-	dp, err := deployer.Get(ctx, createOpts)
-	if err != nil {
-		return err
-	}
-
-	rollbackOpts := deptypes.RollbackOptions{
-		SkipTLSVerify: !h.tlsCertified,
-		CloneFrom:     serviceRevision,
-	}
-
-	return dp.Rollback(ctx, service, rollbackOpts)
 }
 
 // GetDiffLatest get the revision with the service latest revision diff.
