@@ -399,7 +399,7 @@ func getVariableSchema(v *tfconfig.Variable) (property.Schema, error) {
 		return property.Schema{}, fmt.Errorf("unresolved variable %s schema: %w", v.Name, err)
 	}
 
-	variable.WithDescription(v.Description)
+	variable.Description = v.Description
 
 	if v.Required {
 		variable = variable.WithRequired()
