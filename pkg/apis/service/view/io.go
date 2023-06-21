@@ -338,6 +338,47 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 	return nil
 }
 
+type RouteRollbackRequest struct {
+	_ struct{} `route:"POST=/rollback"`
+
+	*model.ServiceQueryInput `uri:",inline" json:",inline"`
+
+	ProjectID  oid.ID `query:"projectID"`
+	RevisionID oid.ID `query:"revisionID"`
+}
+
+func (r *RouteRollbackRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	if !r.RevisionID.Valid(0) {
+		return errors.New("invalid revision id: blank")
+	}
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	// Check if the latest revision is running.
+	modelClient := input.(model.ClientSet)
+
+	latestRevision, err := modelClient.ServiceRevisions().Query().
+		Select(servicerevision.FieldStatus).
+		Where(servicerevision.ServiceID(r.ID)).
+		Order(model.Desc(servicerevision.FieldCreateTime)).
+		First(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return runtime.Errorw(err, "failed to get the latest revision")
+	}
+
+	if latestRevision.Status == status.ServiceRevisionStatusRunning {
+		return errors.New("latest revision is running")
+	}
+
+	return nil
+}
+
 func IsEndpointOutput(outputName string) bool {
 	return strings.HasPrefix(outputName, "endpoint")
 }

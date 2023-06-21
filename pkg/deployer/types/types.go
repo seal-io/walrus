@@ -21,9 +21,6 @@ type Deployer interface {
 
 	// Destroy cleans all resources of the given service.
 	Destroy(context.Context, *model.Service, DestroyOptions) error
-
-	// Rollback service with options.
-	Rollback(context.Context, *model.Service, RollbackOptions) error
 }
 
 // ApplyOptions holds the options of Deployer's Apply action.
@@ -36,13 +33,4 @@ type ApplyOptions struct {
 // DestroyOptions holds the options of Deployer's Destroy action.
 type DestroyOptions struct {
 	SkipTLSVerify bool
-}
-
-// RollbackOptions hold the options of Deployer's Rollback action.
-type RollbackOptions struct {
-	SkipTLSVerify bool
-	// CloneFrom is the service revision to clone from.
-	CloneFrom *model.ServiceRevision
-	// Tags is the service revision tags.
-	Tags []string
 }

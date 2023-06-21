@@ -11,7 +11,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/json"
@@ -260,47 +259,6 @@ func (r *StreamLogRequest) Validate() error {
 
 	if r.JobType != terraform.JobTypeApply && r.JobType != terraform.JobTypeDestroy {
 		return errors.New("invalid job type")
-	}
-
-	return nil
-}
-
-type RollbackServiceRequest struct {
-	_ struct{} `route:"POST=/rollback-service"`
-
-	*model.ServiceRevisionQueryInput `uri:",inline"`
-
-	ProjectID oid.ID `query:"projectID"`
-}
-
-func (r *RollbackServiceRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
-		return errors.New("invalid project id: blank")
-	}
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-
-	// Check latest revision if running.
-	modelClient := input.(model.ClientSet)
-
-	entity, err := modelClient.ServiceRevisions().Get(ctx, r.ID)
-	if err != nil {
-		return runtime.Errorw(err, "failed to get service revision")
-	}
-
-	latestRevision, err := modelClient.ServiceRevisions().Query().
-		Select(servicerevision.FieldStatus).
-		Where(servicerevision.ServiceID(entity.ServiceID)).
-		Order(model.Desc(servicerevision.FieldCreateTime)).
-		First(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return runtime.Errorw(err, "failed to get latest revision")
-	}
-
-	if latestRevision.Status == status.ServiceRevisionStatusRunning {
-		return errors.New("latest revision is running")
 	}
 
 	return nil
