@@ -16,7 +16,7 @@ func getElbLoadBalancer(ctx context.Context, resourceType, name string) (*status
 	}
 
 	resp, err := cli.DescribeLoadBalancers(&elbv2.DescribeLoadBalancersInput{
-		Names: []*string{&name},
+		LoadBalancerArns: []*string{&name},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error describe aws resource %s %s: %w", resourceType, name, err)
@@ -27,7 +27,7 @@ func getElbLoadBalancer(ctx context.Context, resourceType, name string) (*status
 	}
 
 	lb := resp.LoadBalancers[0]
-	if lb.State == nil {
+	if lb.State == nil || lb.State.Code == nil {
 		return &status.Status{}, nil
 	}
 
@@ -36,7 +36,7 @@ func getElbLoadBalancer(ctx context.Context, resourceType, name string) (*status
 		msg = *lb.State.Reason
 	}
 
-	st := elbLoadBalancerStatusConverter.Convert(lb.State.String(), msg)
+	st := elbLoadBalancerStatusConverter.Convert(*lb.State.Code, msg)
 
 	return st, nil
 }
