@@ -29,7 +29,7 @@ func Supported(ctx context.Context, k string) (bool, error) {
 
 	fs, exist := resourceTypes[resourceType]
 	if !exist {
-		return false, errUnsupported
+		return false, nil
 	}
 
 	res, err := fs(ctx)
@@ -43,7 +43,7 @@ func Supported(ctx context.Context, k string) (bool, error) {
 	}
 
 	if !supported {
-		return false, errUnsupported
+		return false, nil
 	}
 
 	return supported, nil
@@ -57,7 +57,7 @@ func Exec(ctx context.Context, k string, opts types.ExecOptions) error {
 	}
 
 	if !supported {
-		return errUnsupported
+		return errors.New("unsupported resource type")
 	}
 
 	resourceType, name, ok := key.Decode(k)
