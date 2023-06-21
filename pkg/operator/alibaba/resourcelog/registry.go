@@ -29,7 +29,7 @@ func Supported(_ context.Context, k string) (bool, error) {
 
 	_, exist := resourceTypes[resourceType]
 	if !exist {
-		return false, errUnsupported
+		return false, nil
 	}
 
 	return true, nil
@@ -43,7 +43,7 @@ func Log(ctx context.Context, k string, options types.LogOptions) error {
 	}
 
 	if !supported {
-		return errUnsupported
+		return errors.New("unsupported resource type")
 	}
 
 	resourceType, name, ok := key.Decode(k)
