@@ -124,6 +124,19 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (mo
 	return applicationResources, nil
 }
 
+func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputState, error) {
+	if len(revision.Output) == 0 {
+		return nil, nil
+	}
+
+	var revisionState state
+	if err := json.Unmarshal([]byte(revision.Output), &revisionState); err != nil {
+		return nil, err
+	}
+
+	return revisionState.Outputs, nil
+}
+
 func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, error) {
 	if len(revision.Output) == 0 {
 		return nil, nil
@@ -151,8 +164,6 @@ func ParseStateOutput(revision *model.ServiceRevision) ([]types.OutputValue, err
 				Type:      o.Type,
 				Sensitive: o.Sensitive,
 			})
-
-			break
 		}
 	}
 

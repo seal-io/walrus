@@ -10,12 +10,12 @@ type state struct {
 	TerraformVersion string                 `json:"terraform_version"`
 	Serial           int                    `json:"serial"`
 	Lineage          string                 `json:"lineage"`
-	Outputs          map[string]outputState `json:"outputs"`
+	Outputs          map[string]OutputState `json:"outputs"`
 	Resources        []resourceState        `json:"resources"`
 	CheckResults     checkResults           `json:"check_results"`
 }
 
-type outputState struct {
+type OutputState struct {
 	Value     property.Value `json:"value"`
 	Type      property.Type  `json:"type"`
 	Sensitive bool           `json:"sensitive,omitempty"`
