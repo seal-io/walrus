@@ -48,6 +48,8 @@ batchSize = 100
 ldapServerPort = 389
 languages = en,zh,es,fr,de,ja,ko,ru
 quota = {"organization": -1, "user": -1, "application": -1, "provider": -1}
+logConfig = {"filename": "logs/casdoor.log", "maxdays":99999, "perm":"0770"}
+initDataFile = "./init_data.json"
 sessionConfig = {"enableSetCookie":true,"cookieName":"casdoor_session_id","cookieLifeTime":3600,"providerConfig":"{{ .DataDir }}","gclifetime":3600,"domain":"","secure":false,"disableHTTPOnly":false}
 `
 

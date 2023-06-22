@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   casdoor:
-    image: "sealio/casdoor:v1.197.0-seal.3"
+    image: "sealio/casdoor:v1.344.0-seal.1"
     restart: always
     privileged: true
     container_name: casdoor
