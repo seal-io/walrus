@@ -148,7 +148,7 @@ RUN set -exo pipefail; \
 
 # get casdoor
 ENV BEEGO_CONFIG_PATH="/etc/casdoor/app.conf"
-COPY --from=sealio/casdoor:v1.197.0-seal.3 \
+COPY --from=sealio/casdoor:v1.344.0-seal.1 \
     /casdoor \
     /usr/bin/
 

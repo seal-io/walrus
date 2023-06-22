@@ -362,7 +362,7 @@ spec:
       restartPolicy: Always
       initContainers:
         - name: init
-          image: sealio/casdoor:v1.197.0-seal.3
+          image: sealio/casdoor:v1.344.0-seal.1
           imagePullPolicy: IfNotPresent
           workingDir: /tmp/conf
           command:
@@ -397,7 +397,7 @@ spec:
               mountPath: /tmp/conf
       containers:
         - name: casdoor
-          image: sealio/casdoor:v1.197.0-seal.3
+          image: sealio/casdoor:v1.344.0-seal.1
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -416,6 +416,7 @@ spec:
           startupProbe:
             failureThreshold: 10
             periodSeconds: 5
+
             tcpSocket:
               port: 8000
           readinessProbe:
