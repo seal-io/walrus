@@ -12,7 +12,7 @@ type state struct {
 	Lineage          string                 `json:"lineage"`
 	Outputs          map[string]OutputState `json:"outputs"`
 	Resources        []resourceState        `json:"resources"`
-	CheckResults     checkResults           `json:"check_results"`
+	CheckResults     []checkResults         `json:"check_results"`
 }
 
 type OutputState struct {
