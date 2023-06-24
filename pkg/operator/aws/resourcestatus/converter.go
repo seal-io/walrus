@@ -138,21 +138,21 @@ var ec2SubnetStatusConverter = status.NewConverter(
 // ref: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html#Overview.DBInstance.Status
 var rdsDBInstanceStatusConverter = status.NewConverter(
 	[]string{
-		"Available",
-		"Stopped",
+		"available",
+		"stopped",
 	},
 
 	[]string{
-		"Failed",
-		"Inaccessible-encryption-credentials",
-		"Inaccessible-encryption-credentials-recoverable",
-		"Incompatible-network",
-		"Incompatible-option-group",
-		"Incompatible-parameters",
-		"Incompatible-restore",
-		"Insufficient-capacity",
-		"Restore-error",
-		"Storage-full",
+		"failed",
+		"inaccessible-encryption-credentials",
+		"inaccessible-encryption-credentials-recoverable",
+		"incompatible-network",
+		"incompatible-option-group",
+		"incompatible-parameters",
+		"incompatible-restore",
+		"insufficient-capacity",
+		"restore-error",
+		"storage-full",
 	},
 )
 
@@ -171,17 +171,17 @@ var rdsDBInstanceStatusConverter = status.NewConverter(
 // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/accessing-monitoring.html#Aurora.Status
 var rdsDBClusterStatusConverter = status.NewConverter(
 	[]string{
-		"Available",
-		"Maintenance",
-		"Stopped",
+		"available",
+		"maintenance",
+		"stopped",
 	},
 
 	[]string{
-		"Cloning-failed",
-		"Failing-over",
-		"Inaccessible-encryption-credentials",
-		"Inaccessible-encryption-credentials-recoverable",
-		"Migration-failed",
+		"cloning-failed",
+		"failing-over",
+		"inaccessible-encryption-credentials",
+		"inaccessible-encryption-credentials-recoverable",
+		"migration-failed",
 	},
 )
 
@@ -193,7 +193,7 @@ var rdsDBClusterStatusConverter = status.NewConverter(
 // ref: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-returned.html
 var cloudFrontStatusConverter = status.NewConverter(
 	[]string{
-		"Deployed",
+		"deployed",
 	},
 
 	nil,
