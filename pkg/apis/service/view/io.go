@@ -302,7 +302,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 
 	modelClient := input.(model.ClientSet)
 
-	service, err := modelClient.Services().Query().
+	svc, err := modelClient.Services().Query().
 		Select(
 			service.FieldTemplate,
 		).
@@ -312,7 +312,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return runtime.Errorw(err, "failed to get service")
 	}
 
-	if r.Template.ID != service.Template.ID {
+	if r.Template.ID != svc.Template.ID {
 		return errors.New("invalid template id: immutable")
 	}
 
@@ -345,7 +345,7 @@ func IsEndpointOutput(outputName string) bool {
 	return strings.HasPrefix(outputName, "endpoint")
 }
 
-type AccessEndpointRequest struct {
+type RouteAccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
 
 	*model.ServiceQueryInput `uri:",inline"`
@@ -353,7 +353,7 @@ type AccessEndpointRequest struct {
 	ProjectID oid.ID `query:"projectID"`
 }
 
-func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *RouteAccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ProjectID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
@@ -374,16 +374,16 @@ func (r *AccessEndpointRequest) ValidateWith(ctx context.Context, input any) err
 	return nil
 }
 
-type AccessEndpointResponse = []Endpoint
+type RouteAccessEndpointResponse = []AccessEndpoint
 
-type Endpoint struct {
+type AccessEndpoint struct {
 	// Name is identifier for the endpoint.
 	Name string `json:"name,omitempty"`
 	// Endpoint is access endpoint.
 	Endpoints []string `json:"endpoints,omitempty"`
 }
 
-type OutputRequest struct {
+type RouteOutputRequest struct {
 	_ struct{} `route:"GET=/outputs"`
 
 	*model.ServiceQueryInput `uri:",inline"`
@@ -391,7 +391,7 @@ type OutputRequest struct {
 	ProjectID oid.ID `query:"projectID"`
 }
 
-func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
+func (r *RouteOutputRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ProjectID.Valid(0) {
 		return errors.New("invalid project id: blank")
 	}
@@ -412,11 +412,9 @@ func (r *OutputRequest) ValidateWith(ctx context.Context, input any) error {
 	return nil
 }
 
-type OutputResponse = []types.OutputValue
+type RouteOutputResponse = []types.OutputValue
 
 type CreateCloneRequest struct {
-	_ struct{} `route:"POST=/clone"`
-
 	ID            oid.ID   `uri:"id"`
 	EnvironmentID oid.ID   `json:"environmentID"`
 	Name          string   `json:"name"`
@@ -497,11 +495,11 @@ func validateRevisionStatus(
 }
 
 type StreamAccessEndpointResponse struct {
-	Type       datamessage.EventType  `json:"type"`
-	Collection AccessEndpointResponse `json:"collection,omitempty"`
+	Type       datamessage.EventType       `json:"type"`
+	Collection RouteAccessEndpointResponse `json:"collection,omitempty"`
 }
 
 type StreamOutputResponse struct {
 	Type       datamessage.EventType `json:"type"`
-	Collection OutputResponse        `json:"collection,omitempty"`
+	Collection RouteOutputResponse   `json:"collection,omitempty"`
 }

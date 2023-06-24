@@ -361,12 +361,12 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 
 func (h Handler) RouteAccessEndpoints(
 	ctx *gin.Context,
-	req view.AccessEndpointRequest,
-) (view.AccessEndpointResponse, error) {
+	req view.RouteAccessEndpointRequest,
+) (view.RouteAccessEndpointResponse, error) {
 	return h.accessEndpoints(ctx, req.ID)
 }
 
-func (h Handler) accessEndpoints(ctx context.Context, serviceID oid.ID) (view.AccessEndpointResponse, error) {
+func (h Handler) accessEndpoints(ctx context.Context, serviceID oid.ID) (view.RouteAccessEndpointResponse, error) {
 	// Endpoints from output.
 	endpoints, err := h.endpointsFromOutput(ctx, serviceID)
 	if err != nil {
@@ -381,7 +381,7 @@ func (h Handler) accessEndpoints(ctx context.Context, serviceID oid.ID) (view.Ac
 	return h.endpointsFromResources(ctx, serviceID)
 }
 
-func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (view.AccessEndpointResponse, error) {
+func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (view.RouteAccessEndpointResponse, error) {
 	outputs, err := h.getServiceOutputs(ctx, serviceID, true)
 	if err != nil {
 		return nil, err
@@ -390,7 +390,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (vie
 	var (
 		invalidTypeErr = runtime.Error(http.StatusBadRequest,
 			"element type of output endpoints should be string")
-		endpoints = make([]view.Endpoint, 0, len(outputs))
+		endpoints = make([]view.AccessEndpoint, 0, len(outputs))
 	)
 
 	for _, v := range outputs {
@@ -414,7 +414,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (vie
 				return nil, runtime.Error(http.StatusBadRequest, err)
 			}
 
-			endpoints = append(endpoints, view.Endpoint{
+			endpoints = append(endpoints, view.AccessEndpoint{
 				Endpoints: []string{ep},
 				Name:      v.Name,
 			})
@@ -440,7 +440,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (vie
 				return nil, runtime.Error(http.StatusBadRequest, err)
 			}
 
-			endpoints = append(endpoints, view.Endpoint{
+			endpoints = append(endpoints, view.AccessEndpoint{
 				Endpoints: eps,
 				Name:      v.Name,
 			})
@@ -450,7 +450,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (vie
 	return endpoints, nil
 }
 
-func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) ([]view.Endpoint, error) {
+func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) ([]view.AccessEndpoint, error) {
 	res, err := h.modelClient.ServiceResources().Query().
 		Where(
 			serviceresource.ServiceID(serviceID),
@@ -473,11 +473,11 @@ func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) (
 		return nil, nil
 	}
 
-	var endpoints []view.Endpoint
+	var endpoints []view.AccessEndpoint
 
 	for _, v := range res {
 		for _, eps := range v.Status.ResourceEndpoints {
-			endpoints = append(endpoints, view.Endpoint{
+			endpoints = append(endpoints, view.AccessEndpoint{
 				Name:      strs.Join("/", eps.EndpointType, v.Name),
 				Endpoints: eps.Endpoints,
 			})
@@ -487,7 +487,7 @@ func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) (
 	return endpoints, nil
 }
 
-func (h Handler) RouteOutputs(ctx *gin.Context, req view.OutputRequest) (view.OutputResponse, error) {
+func (h Handler) RouteOutputs(ctx *gin.Context, req view.RouteOutputRequest) (view.RouteOutputResponse, error) {
 	return h.getServiceOutputs(ctx, req.ID, true)
 }
 
