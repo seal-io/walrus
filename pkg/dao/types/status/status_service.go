@@ -1,15 +1,19 @@
 package status
 
 const (
-	ServiceStatusDeployed ConditionType = "Deployed"
-	ServiceStatusDeleted  ConditionType = "Deleted"
-	ServiceStatusReady    ConditionType = "Ready"
+	ServiceStatusDeployed    ConditionType = "Deployed"
+	ServiceStatusDeleted     ConditionType = "Deleted"
+	ServiceStatusReady       ConditionType = "Ready"
+	ServiceStatusProgressing ConditionType = "Progressing"
 )
 
 // serviceStatusPaths makes the following decision.
 //
 //	|  Condition Type  |     Condition Status    | Human Readable Status | Human Sensible Status |
 //	| ---------------- | ----------------------- | --------------------- | --------------------- |
+//	| Progressing      | Unknown                 | Progressing           | Transitioning         |
+//	| Progressing      | False                   | Progressing           | Error                 |
+//	| Progressing      | True                    | Progressed            |                       |
 //	| Deployed         | Unknown                 | Deploying             | Transitioning         |
 //	| Deployed         | False                   | DeployFailed          | Error                 |
 //	| Deployed         | True                    | Deployed              |                       |
@@ -22,6 +26,7 @@ const (
 var serviceStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
+			ServiceStatusProgressing,
 			ServiceStatusDeployed,
 			ServiceStatusReady,
 		},

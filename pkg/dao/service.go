@@ -51,6 +51,10 @@ func ServiceCreates(
 			c.SetAttributes(r.Attributes)
 		}
 
+		if r.Annotations != nil {
+			c.SetAnnotations(r.Annotations)
+		}
+
 		status.ServiceStatusDeployed.Unknown(r, "Deploying service")
 		r.Status.SetSummary(status.WalkService(&r.Status))
 		c.SetStatus(r.Status)
@@ -80,7 +84,8 @@ func ServiceUpdate(
 	}
 
 	c := mc.Services().UpdateOne(input).
-		SetTemplate(input.Template)
+		SetTemplate(input.Template).
+		SetAnnotations(input.Annotations)
 
 	c.SetDescription(input.Description)
 
