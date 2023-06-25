@@ -10,6 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	pkgservice "github.com/seal-io/seal/pkg/service"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -40,7 +41,26 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		if err != nil {
 			return err
 		}
+
 		entity, err = creates[0].Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		serviceInputs := make(model.Services, 0, len(req.Services))
+
+		for _, s := range req.Services {
+			svc := s.Model()
+			svc.EnvironmentID = entity.ID
+			serviceInputs = append(serviceInputs, svc)
+		}
+
+		services, err := pkgservice.CreateScheduledServices(ctx, tx, serviceInputs)
+		if err != nil {
+			return err
+		}
+
+		entity.Edges.Services = services
 
 		return err
 	})

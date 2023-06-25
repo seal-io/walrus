@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -24,6 +25,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -243,6 +245,114 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		r.EnvironmentID = envID
 	default:
 		return errors.New("both environment id and environment name are blank")
+	}
+
+	return nil
+}
+
+type CollectionCreateRequest struct {
+	EnvironmentIDs []oid.ID                    `json:"environmentIDs"`
+	Services       []*model.ServiceCreateInput `json:"services"`
+}
+
+func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) error {
+	if len(r.EnvironmentIDs) == 0 {
+		return errors.New("invalid environment ids: blank")
+	}
+
+	if len(r.Services) == 0 {
+		return errors.New("invalid services: blank")
+	}
+
+	for _, envID := range r.EnvironmentIDs {
+		if !envID.Valid(0) {
+			return errors.New("invalid environment id: blank")
+		}
+	}
+
+	modelClient := input.(model.ClientSet)
+
+	environments, err := modelClient.Environments().Query().
+		Select(environment.FieldID).
+		Where(environment.IDIn(r.EnvironmentIDs...)).
+		WithConnectors().
+		All(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(environments) != len(r.EnvironmentIDs) {
+		return errors.New("invalid environment IDs")
+	}
+
+	for _, env := range environments {
+		if len(env.Edges.Connectors) == 0 {
+			return fmt.Errorf("environment %s has no connectors", env.ID)
+		}
+	}
+
+	// Get template versions.
+	templateVersionKeys := sets.NewString()
+	templateVersionPredicates := make([]predicate.TemplateVersion, 0)
+
+	for _, s := range r.Services {
+		key := strs.Join("/", s.Template.ID, s.Template.Version)
+		if templateVersionKeys.Has(key) {
+			continue
+		}
+
+		templateVersionKeys.Insert(key)
+
+		templateVersionPredicates = append(templateVersionPredicates, templateversion.And(
+			templateversion.TemplateID(s.Template.ID),
+			templateversion.Version(s.Template.Version),
+		))
+	}
+
+	templateVersions, err := modelClient.TemplateVersions().Query().
+		Select(
+			templateversion.FieldTemplateID,
+			templateversion.FieldVersion,
+			templateversion.FieldSchema,
+		).
+		Where(templateversion.Or(
+			templateVersionPredicates...,
+		)).
+		All(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get template version")
+	}
+	templateVersionMap := make(map[string]*model.TemplateVersion, len(templateVersions))
+
+	for _, tv := range templateVersions {
+		key := strs.Join("/", tv.TemplateID, tv.Version)
+		if _, ok := templateVersionMap[key]; !ok {
+			templateVersionMap[key] = tv
+		}
+	}
+
+	for _, s := range r.Services {
+		if s.Name == "" {
+			return errors.New("invalid service name: blank")
+		}
+
+		if err := validation.IsDNSSubdomainName(s.Name); err != nil {
+			return fmt.Errorf("invalid name: %w", err)
+		}
+
+		// Verify template version.
+		key := strs.Join("/", s.Template.ID, s.Template.Version)
+
+		templateVersion, ok := templateVersionMap[key]
+		if !ok {
+			return runtime.Errorw(err, "failed to get template version")
+		}
+
+		// Verify variables with variables schema that defined on the template version.
+		err = s.Attributes.ValidateWith(templateVersion.Schema.Variables)
+		if err != nil {
+			return fmt.Errorf("invalid variables: %w", err)
+		}
 	}
 
 	return nil
