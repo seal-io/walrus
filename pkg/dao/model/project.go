@@ -29,6 +29,8 @@ type Project struct {
 	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"-" sql:"annotations"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -117,7 +119,7 @@ func (*Project) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case project.FieldLabels:
+		case project.FieldLabels, project.FieldAnnotations:
 			values[i] = new([]byte)
 		case project.FieldID:
 			values[i] = new(oid.ID)
@@ -164,6 +166,14 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &pr.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
+		case project.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
 		case project.FieldCreateTime:
@@ -254,6 +264,8 @@ func (pr *Project) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=<sensitive>")
 	builder.WriteString(", ")
 	if v := pr.CreateTime; v != nil {
 		builder.WriteString("createTime=")

@@ -113,6 +113,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
+		{Name: "annotations", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
@@ -132,7 +133,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "connectors_projects_connectors",
-				Columns:    []*schema.Column{ConnectorsColumns[13]},
+				Columns:    []*schema.Column{ConnectorsColumns[14]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -141,7 +142,7 @@ var (
 			{
 				Name:    "connector_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ConnectorsColumns[5]},
+				Columns: []*schema.Column{ConnectorsColumns[6]},
 			},
 			{
 				Name:    "connector_name",
@@ -156,6 +157,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
+		{Name: "annotations", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -168,7 +170,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "environments_projects_environments",
-				Columns:    []*schema.Column{EnvironmentsColumns[6]},
+				Columns:    []*schema.Column{EnvironmentsColumns[7]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -177,12 +179,12 @@ var (
 			{
 				Name:    "environment_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{EnvironmentsColumns[5]},
+				Columns: []*schema.Column{EnvironmentsColumns[6]},
 			},
 			{
 				Name:    "environment_project_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{EnvironmentsColumns[6], EnvironmentsColumns[1]},
+				Columns: []*schema.Column{EnvironmentsColumns[7], EnvironmentsColumns[1]},
 			},
 		},
 	}
@@ -247,6 +249,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
+		{Name: "annotations", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 	}
@@ -259,7 +262,7 @@ var (
 			{
 				Name:    "project_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ProjectsColumns[5]},
+				Columns: []*schema.Column{ProjectsColumns[6]},
 			},
 			{
 				Name:    "project_name",
@@ -344,6 +347,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
+		{Name: "annotations", Type: field.TypeJSON},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "template", Type: field.TypeJSON},
@@ -360,13 +364,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "services_environments_services",
-				Columns:    []*schema.Column{ServicesColumns[9]},
+				Columns:    []*schema.Column{ServicesColumns[10]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "services_projects_services",
-				Columns:    []*schema.Column{ServicesColumns[10]},
+				Columns:    []*schema.Column{ServicesColumns[11]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -375,12 +379,12 @@ var (
 			{
 				Name:    "service_update_time",
 				Unique:  false,
-				Columns: []*schema.Column{ServicesColumns[5]},
+				Columns: []*schema.Column{ServicesColumns[6]},
 			},
 			{
 				Name:    "service_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ServicesColumns[9], ServicesColumns[1]},
+				Columns: []*schema.Column{ServicesColumns[10], ServicesColumns[1]},
 			},
 		},
 	}

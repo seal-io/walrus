@@ -73,6 +73,12 @@ func (pu *ProjectUpdate) SetLabels(m map[string]string) *ProjectUpdate {
 	return pu
 }
 
+// SetAnnotations sets the "annotations" field.
+func (pu *ProjectUpdate) SetAnnotations(m map[string]string) *ProjectUpdate {
+	pu.mutation.SetAnnotations(m)
+	return pu
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (pu *ProjectUpdate) SetUpdateTime(t time.Time) *ProjectUpdate {
 	pu.mutation.SetUpdateTime(t)
@@ -381,6 +387,9 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.Annotations(); ok {
+		_spec.SetField(project.FieldAnnotations, field.TypeJSON, value)
 	}
 	if value, ok := pu.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
@@ -729,6 +738,12 @@ func (puo *ProjectUpdateOne) SetLabels(m map[string]string) *ProjectUpdateOne {
 	return puo
 }
 
+// SetAnnotations sets the "annotations" field.
+func (puo *ProjectUpdateOne) SetAnnotations(m map[string]string) *ProjectUpdateOne {
+	puo.mutation.SetAnnotations(m)
+	return puo
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (puo *ProjectUpdateOne) SetUpdateTime(t time.Time) *ProjectUpdateOne {
 	puo.mutation.SetUpdateTime(t)
@@ -1067,6 +1082,9 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 	}
 	if value, ok := puo.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.Annotations(); ok {
+		_spec.SetField(project.FieldAnnotations, field.TypeJSON, value)
 	}
 	if value, ok := puo.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)

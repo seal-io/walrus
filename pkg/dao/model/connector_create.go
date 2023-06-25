@@ -61,6 +61,12 @@ func (cc *ConnectorCreate) SetLabels(m map[string]string) *ConnectorCreate {
 	return cc
 }
 
+// SetAnnotations sets the "annotations" field.
+func (cc *ConnectorCreate) SetAnnotations(m map[string]string) *ConnectorCreate {
+	cc.mutation.SetAnnotations(m)
+	return cc
+}
+
 // SetProjectID sets the "projectID" field.
 func (cc *ConnectorCreate) SetProjectID(o oid.ID) *ConnectorCreate {
 	cc.mutation.SetProjectID(o)
@@ -250,6 +256,10 @@ func (cc *ConnectorCreate) defaults() error {
 		v := connector.DefaultLabels
 		cc.mutation.SetLabels(v)
 	}
+	if _, ok := cc.mutation.Annotations(); !ok {
+		v := connector.DefaultAnnotations
+		cc.mutation.SetAnnotations(v)
+	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		if connector.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized connector.DefaultCreateTime (forgotten import model/runtime?)")
@@ -283,6 +293,9 @@ func (cc *ConnectorCreate) check() error {
 	}
 	if _, ok := cc.mutation.Labels(); !ok {
 		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Connector.labels"`)}
+	}
+	if _, ok := cc.mutation.Annotations(); !ok {
+		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Connector.annotations"`)}
 	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Connector.createTime"`)}
@@ -368,6 +381,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
+	}
+	if value, ok := cc.mutation.Annotations(); ok {
+		_spec.SetField(connector.FieldAnnotations, field.TypeJSON, value)
+		_node.Annotations = value
 	}
 	if value, ok := cc.mutation.CreateTime(); ok {
 		_spec.SetField(connector.FieldCreateTime, field.TypeTime, value)
@@ -565,6 +582,18 @@ func (u *ConnectorUpsert) SetLabels(v map[string]string) *ConnectorUpsert {
 // UpdateLabels sets the "labels" field to the value that was provided on create.
 func (u *ConnectorUpsert) UpdateLabels() *ConnectorUpsert {
 	u.SetExcluded(connector.FieldLabels)
+	return u
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ConnectorUpsert) SetAnnotations(v map[string]string) *ConnectorUpsert {
+	u.Set(connector.FieldAnnotations, v)
+	return u
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ConnectorUpsert) UpdateAnnotations() *ConnectorUpsert {
+	u.SetExcluded(connector.FieldAnnotations)
 	return u
 }
 
@@ -767,6 +796,20 @@ func (u *ConnectorUpsertOne) SetLabels(v map[string]string) *ConnectorUpsertOne 
 func (u *ConnectorUpsertOne) UpdateLabels() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ConnectorUpsertOne) SetAnnotations(v map[string]string) *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ConnectorUpsertOne) UpdateAnnotations() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
@@ -1148,6 +1191,20 @@ func (u *ConnectorUpsertBulk) SetLabels(v map[string]string) *ConnectorUpsertBul
 func (u *ConnectorUpsertBulk) UpdateLabels() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ConnectorUpsertBulk) SetAnnotations(v map[string]string) *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ConnectorUpsertBulk) UpdateAnnotations() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 

@@ -3802,6 +3802,7 @@ type ConnectorMutation struct {
 	name                   *string
 	description            *string
 	labels                 *map[string]string
+	annotations            *map[string]string
 	createTime             *time.Time
 	updateTime             *time.Time
 	status                 *status.Status
@@ -4051,6 +4052,42 @@ func (m *ConnectorMutation) OldLabels(ctx context.Context) (v map[string]string,
 // ResetLabels resets all changes to the "labels" field.
 func (m *ConnectorMutation) ResetLabels() {
 	m.labels = nil
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *ConnectorMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *ConnectorMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *ConnectorMutation) ResetAnnotations() {
+	m.annotations = nil
 }
 
 // SetProjectID sets the "projectID" field.
@@ -4674,7 +4711,7 @@ func (m *ConnectorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConnectorMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, connector.FieldName)
 	}
@@ -4683,6 +4720,9 @@ func (m *ConnectorMutation) Fields() []string {
 	}
 	if m.labels != nil {
 		fields = append(fields, connector.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, connector.FieldAnnotations)
 	}
 	if m.project != nil {
 		fields = append(fields, connector.FieldProjectID)
@@ -4728,6 +4768,8 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case connector.FieldLabels:
 		return m.Labels()
+	case connector.FieldAnnotations:
+		return m.Annotations()
 	case connector.FieldProjectID:
 		return m.ProjectID()
 	case connector.FieldCreateTime:
@@ -4763,6 +4805,8 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDescription(ctx)
 	case connector.FieldLabels:
 		return m.OldLabels(ctx)
+	case connector.FieldAnnotations:
+		return m.OldAnnotations(ctx)
 	case connector.FieldProjectID:
 		return m.OldProjectID(ctx)
 	case connector.FieldCreateTime:
@@ -4812,6 +4856,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case connector.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
 		return nil
 	case connector.FieldProjectID:
 		v, ok := value.(oid.ID)
@@ -4967,6 +5018,9 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case connector.FieldAnnotations:
+		m.ResetAnnotations()
 		return nil
 	case connector.FieldProjectID:
 		m.ResetProjectID()
@@ -5165,6 +5219,7 @@ type EnvironmentMutation struct {
 	name                    *string
 	description             *string
 	labels                  *map[string]string
+	annotations             *map[string]string
 	createTime              *time.Time
 	updateTime              *time.Time
 	clearedFields           map[string]struct{}
@@ -5442,6 +5497,42 @@ func (m *EnvironmentMutation) ResetLabels() {
 	m.labels = nil
 }
 
+// SetAnnotations sets the "annotations" field.
+func (m *EnvironmentMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *EnvironmentMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Environment entity.
+// If the Environment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnvironmentMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *EnvironmentMutation) ResetAnnotations() {
+	m.annotations = nil
+}
+
 // SetCreateTime sets the "createTime" field.
 func (m *EnvironmentMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -5682,7 +5773,7 @@ func (m *EnvironmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnvironmentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.project != nil {
 		fields = append(fields, environment.FieldProjectID)
 	}
@@ -5694,6 +5785,9 @@ func (m *EnvironmentMutation) Fields() []string {
 	}
 	if m.labels != nil {
 		fields = append(fields, environment.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, environment.FieldAnnotations)
 	}
 	if m.createTime != nil {
 		fields = append(fields, environment.FieldCreateTime)
@@ -5717,6 +5811,8 @@ func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case environment.FieldLabels:
 		return m.Labels()
+	case environment.FieldAnnotations:
+		return m.Annotations()
 	case environment.FieldCreateTime:
 		return m.CreateTime()
 	case environment.FieldUpdateTime:
@@ -5738,6 +5834,8 @@ func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldDescription(ctx)
 	case environment.FieldLabels:
 		return m.OldLabels(ctx)
+	case environment.FieldAnnotations:
+		return m.OldAnnotations(ctx)
 	case environment.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case environment.FieldUpdateTime:
@@ -5778,6 +5876,13 @@ func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case environment.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
 		return nil
 	case environment.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -5862,6 +5967,9 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 		return nil
 	case environment.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case environment.FieldAnnotations:
+		m.ResetAnnotations()
 		return nil
 	case environment.FieldCreateTime:
 		m.ResetCreateTime()
@@ -7094,6 +7202,7 @@ type ProjectMutation struct {
 	name                    *string
 	description             *string
 	labels                  *map[string]string
+	annotations             *map[string]string
 	createTime              *time.Time
 	updateTime              *time.Time
 	clearedFields           map[string]struct{}
@@ -7343,6 +7452,42 @@ func (m *ProjectMutation) OldLabels(ctx context.Context) (v map[string]string, e
 // ResetLabels resets all changes to the "labels" field.
 func (m *ProjectMutation) ResetLabels() {
 	m.labels = nil
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *ProjectMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *ProjectMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Project entity.
+// If the Project object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProjectMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *ProjectMutation) ResetAnnotations() {
+	m.annotations = nil
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -7775,7 +7920,7 @@ func (m *ProjectMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProjectMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, project.FieldName)
 	}
@@ -7784,6 +7929,9 @@ func (m *ProjectMutation) Fields() []string {
 	}
 	if m.labels != nil {
 		fields = append(fields, project.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, project.FieldAnnotations)
 	}
 	if m.createTime != nil {
 		fields = append(fields, project.FieldCreateTime)
@@ -7805,6 +7953,8 @@ func (m *ProjectMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case project.FieldLabels:
 		return m.Labels()
+	case project.FieldAnnotations:
+		return m.Annotations()
 	case project.FieldCreateTime:
 		return m.CreateTime()
 	case project.FieldUpdateTime:
@@ -7824,6 +7974,8 @@ func (m *ProjectMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDescription(ctx)
 	case project.FieldLabels:
 		return m.OldLabels(ctx)
+	case project.FieldAnnotations:
+		return m.OldAnnotations(ctx)
 	case project.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case project.FieldUpdateTime:
@@ -7857,6 +8009,13 @@ func (m *ProjectMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case project.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
 		return nil
 	case project.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -7938,6 +8097,9 @@ func (m *ProjectMutation) ResetField(name string) error {
 		return nil
 	case project.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case project.FieldAnnotations:
+		m.ResetAnnotations()
 		return nil
 	case project.FieldCreateTime:
 		m.ResetCreateTime()
@@ -9582,6 +9744,7 @@ type ServiceMutation struct {
 	name                *string
 	description         *string
 	labels              *map[string]string
+	annotations         *map[string]string
 	createTime          *time.Time
 	updateTime          *time.Time
 	template            *types.TemplateVersionRef
@@ -9865,6 +10028,42 @@ func (m *ServiceMutation) OldLabels(ctx context.Context) (v map[string]string, e
 // ResetLabels resets all changes to the "labels" field.
 func (m *ServiceMutation) ResetLabels() {
 	m.labels = nil
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *ServiceMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *ServiceMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *ServiceMutation) ResetAnnotations() {
+	m.annotations = nil
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -10357,7 +10556,7 @@ func (m *ServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.project != nil {
 		fields = append(fields, service.FieldProjectID)
 	}
@@ -10369,6 +10568,9 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.labels != nil {
 		fields = append(fields, service.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, service.FieldAnnotations)
 	}
 	if m.createTime != nil {
 		fields = append(fields, service.FieldCreateTime)
@@ -10404,6 +10606,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case service.FieldLabels:
 		return m.Labels()
+	case service.FieldAnnotations:
+		return m.Annotations()
 	case service.FieldCreateTime:
 		return m.CreateTime()
 	case service.FieldUpdateTime:
@@ -10433,6 +10637,8 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDescription(ctx)
 	case service.FieldLabels:
 		return m.OldLabels(ctx)
+	case service.FieldAnnotations:
+		return m.OldAnnotations(ctx)
 	case service.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case service.FieldUpdateTime:
@@ -10481,6 +10687,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case service.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
 		return nil
 	case service.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -10605,6 +10818,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case service.FieldAnnotations:
+		m.ResetAnnotations()
 		return nil
 	case service.FieldCreateTime:
 		m.ResetCreateTime()

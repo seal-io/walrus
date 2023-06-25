@@ -32,6 +32,8 @@ type EnvironmentCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Project to which the environment belongs.
 	Project ProjectQueryInput `json:"project"`
 	// Connectors holds the value of the connectors edge.
@@ -44,6 +46,7 @@ func (in EnvironmentCreateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 	}
 	entity.ProjectID = in.Project.ID
 	for i := 0; i < len(in.Connectors); i++ {
@@ -65,6 +68,8 @@ type EnvironmentUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipUpdateInput `json:"connectors,omitempty"`
 }
@@ -76,6 +81,7 @@ func (in EnvironmentUpdateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 	}
 	for i := 0; i < len(in.Connectors); i++ {
 		if in.Connectors[i] == nil {

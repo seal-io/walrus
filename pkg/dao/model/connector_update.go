@@ -73,6 +73,12 @@ func (cu *ConnectorUpdate) SetLabels(m map[string]string) *ConnectorUpdate {
 	return cu
 }
 
+// SetAnnotations sets the "annotations" field.
+func (cu *ConnectorUpdate) SetAnnotations(m map[string]string) *ConnectorUpdate {
+	cu.mutation.SetAnnotations(m)
+	return cu
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (cu *ConnectorUpdate) SetUpdateTime(t time.Time) *ConnectorUpdate {
 	cu.mutation.SetUpdateTime(t)
@@ -340,6 +346,9 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
 	}
+	if value, ok := cu.mutation.Annotations(); ok {
+		_spec.SetField(connector.FieldAnnotations, field.TypeJSON, value)
+	}
 	if value, ok := cu.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -564,6 +573,12 @@ func (cuo *ConnectorUpdateOne) ClearDescription() *ConnectorUpdateOne {
 // SetLabels sets the "labels" field.
 func (cuo *ConnectorUpdateOne) SetLabels(m map[string]string) *ConnectorUpdateOne {
 	cuo.mutation.SetLabels(m)
+	return cuo
+}
+
+// SetAnnotations sets the "annotations" field.
+func (cuo *ConnectorUpdateOne) SetAnnotations(m map[string]string) *ConnectorUpdateOne {
+	cuo.mutation.SetAnnotations(m)
 	return cuo
 }
 
@@ -863,6 +878,9 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if value, ok := cuo.mutation.Labels(); ok {
 		_spec.SetField(connector.FieldLabels, field.TypeJSON, value)
+	}
+	if value, ok := cuo.mutation.Annotations(); ok {
+		_spec.SetField(connector.FieldAnnotations, field.TypeJSON, value)
 	}
 	if value, ok := cuo.mutation.UpdateTime(); ok {
 		_spec.SetField(connector.FieldUpdateTime, field.TypeTime, value)

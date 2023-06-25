@@ -26,6 +26,8 @@ const (
 	FieldDescription = "description"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldAnnotations holds the string denoting the annotations field in the database.
+	FieldAnnotations = "annotations"
 	// FieldProjectID holds the string denoting the projectid field in the database.
 	FieldProjectID = "project_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
@@ -101,6 +103,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldLabels,
+	FieldAnnotations,
 	FieldProjectID,
 	FieldCreateTime,
 	FieldUpdateTime,
@@ -135,6 +138,8 @@ var (
 	NameValidator func(string) error
 	// DefaultLabels holds the default value on creation for the "labels" field.
 	DefaultLabels map[string]string
+	// DefaultAnnotations holds the default value on creation for the "annotations" field.
+	DefaultAnnotations map[string]string
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.

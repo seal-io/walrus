@@ -60,6 +60,12 @@ func (pc *ProjectCreate) SetLabels(m map[string]string) *ProjectCreate {
 	return pc
 }
 
+// SetAnnotations sets the "annotations" field.
+func (pc *ProjectCreate) SetAnnotations(m map[string]string) *ProjectCreate {
+	pc.mutation.SetAnnotations(m)
+	return pc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (pc *ProjectCreate) SetCreateTime(t time.Time) *ProjectCreate {
 	pc.mutation.SetCreateTime(t)
@@ -225,6 +231,10 @@ func (pc *ProjectCreate) defaults() error {
 		v := project.DefaultLabels
 		pc.mutation.SetLabels(v)
 	}
+	if _, ok := pc.mutation.Annotations(); !ok {
+		v := project.DefaultAnnotations
+		pc.mutation.SetAnnotations(v)
+	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		if project.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized project.DefaultCreateTime (forgotten import model/runtime?)")
@@ -254,6 +264,9 @@ func (pc *ProjectCreate) check() error {
 	}
 	if _, ok := pc.mutation.Labels(); !ok {
 		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Project.labels"`)}
+	}
+	if _, ok := pc.mutation.Annotations(); !ok {
+		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Project.annotations"`)}
 	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Project.createTime"`)}
@@ -309,6 +322,10 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
+	}
+	if value, ok := pc.mutation.Annotations(); ok {
+		_spec.SetField(project.FieldAnnotations, field.TypeJSON, value)
+		_node.Annotations = value
 	}
 	if value, ok := pc.mutation.CreateTime(); ok {
 		_spec.SetField(project.FieldCreateTime, field.TypeTime, value)
@@ -514,6 +531,18 @@ func (u *ProjectUpsert) UpdateLabels() *ProjectUpsert {
 	return u
 }
 
+// SetAnnotations sets the "annotations" field.
+func (u *ProjectUpsert) SetAnnotations(v map[string]string) *ProjectUpsert {
+	u.Set(project.FieldAnnotations, v)
+	return u
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateAnnotations() *ProjectUpsert {
+	u.SetExcluded(project.FieldAnnotations)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ProjectUpsert) SetUpdateTime(v time.Time) *ProjectUpsert {
 	u.Set(project.FieldUpdateTime, v)
@@ -623,6 +652,20 @@ func (u *ProjectUpsertOne) SetLabels(v map[string]string) *ProjectUpsertOne {
 func (u *ProjectUpsertOne) UpdateLabels() *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ProjectUpsertOne) SetAnnotations(v map[string]string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateAnnotations() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
@@ -900,6 +943,20 @@ func (u *ProjectUpsertBulk) SetLabels(v map[string]string) *ProjectUpsertBulk {
 func (u *ProjectUpsertBulk) UpdateLabels() *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ProjectUpsertBulk) SetAnnotations(v map[string]string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateAnnotations() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
