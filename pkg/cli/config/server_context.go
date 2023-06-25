@@ -55,7 +55,9 @@ func (c *ServerContext) Inject(cmd *cobra.Command) error {
 	}
 
 	fe := cmd.Flags().Lookup("environment-id")
-	if fe != nil && c.EnvironmentID != "" {
+	fn := cmd.Flags().Lookup("environment-name")
+
+	if fe == nil && fn == nil && c.EnvironmentID != "" {
 		err := fe.Value.Set(c.EnvironmentID)
 		if err != nil {
 			return err
