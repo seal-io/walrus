@@ -12,7 +12,6 @@ import (
 	"github.com/seal-io/seal/pkg/apis/serviceresource/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -64,14 +63,10 @@ func (h Handler) CollectionGet(
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.ServiceResources().Query().
-		Where(serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered))
-
-	switch {
-	case req.ServiceID != "":
-		query.Where(serviceresource.ServiceID(req.ServiceID))
-	case req.ServiceName != "":
-		query.QueryService().Where(service.Name(req.ServiceName))
-	}
+		Where(
+			serviceresource.ServiceID(req.ServiceID),
+			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
+		)
 
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)

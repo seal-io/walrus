@@ -206,7 +206,7 @@ type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Service, service.OrderOption] `query:",inline"`
 
 	ProjectID       oid.ID `query:"projectID"`
-	EnvironmentID   oid.ID `query:"environmentID"`
+	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
 	EnvironmentName string `query:"environmentName,omitempty"`
 }
 
@@ -218,11 +218,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.EnvironmentID != "":
-		if !r.EnvironmentID.Valid(0) {
-			return errors.New("invalid environment id: blank")
-		}
-
+	case r.EnvironmentID.Valid(0):
 		_, err := modelClient.Environments().Query().
 			Where(environment.ID(r.EnvironmentID)).
 			OnlyID(ctx)
