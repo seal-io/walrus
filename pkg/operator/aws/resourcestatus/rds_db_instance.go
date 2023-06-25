@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -18,7 +20,12 @@ func getRdsDBInstance(ctx context.Context, resourceType, name string) (*status.S
 	resp, err := cli.DescribeDBInstances(
 		ctx,
 		&rds.DescribeDBInstancesInput{
-			DBInstanceIdentifier: &name,
+			Filters: []types.Filter{
+				{
+					Name:   aws.String("dbi-resource-id"),
+					Values: []string{name},
+				},
+			},
 		})
 	if err != nil {
 		return nil, fmt.Errorf("error describe aws resource %s %s: %w", resourceType, name, err)

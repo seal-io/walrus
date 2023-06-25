@@ -123,36 +123,39 @@ var ec2SubnetStatusConverter = status.NewConverter(
 //
 // | Human Readable Status                           | Human Sensible Status |
 // | ----------------------------------------------- | --------------------- |
-// | Available                                       |                       |
-// | Failed                                          | Error                 |
-// | Inaccessible-encryption-credentials             | Error                 |
-// | Inaccessible-encryption-credentials-recoverable | Error                 |
-// | Incompatible-network                            | Error                 |
-// | Incompatible-option-group                       | Error                 |
-// | Incompatible-parameters                         | Error                 |
-// | Incompatible-restore                            | Error                 |
-// | Insufficient-capacity                           | Error                 |
-// | Restore-error                                   | Error                 |
-// | Stopped                                         |                       |
-// | Storage-full                                    | Error                 |
+// | available                                       |                       |
+// | failed                                          | Error                 |
+// | inaccessible-encryption-credentials             | Error                 |
+// | inaccessible-encryption-credentials-recoverable | Error                 |
+// | incompatible-network                            | Error                 |
+// | incompatible-option-group                       | Error                 |
+// | incompatible-parameters                         | Error                 |
+// | incompatible-restore                            | Error                 |
+// | insufficient-capacity                           | Error                 |
+// | restore-error                                   | Error                 |
+// | stopped                                         |                       |
+// | storage-full                                    | Error                 |
 // ref: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html#Overview.DBInstance.Status
+// The status of above is capitalized, but it doesn't reflect the actual situation, see terraform ref instead,
+//nolint: lll
+// terraform ref: https://github.com/hashicorp/terraform-provider-aws/blob/8aea8f1e15c0fdb11036c816c2abc3afea451320/internal/service/rds/consts.go#L67-L98
 var rdsDBInstanceStatusConverter = status.NewConverter(
 	[]string{
-		"Available",
-		"Stopped",
+		"available",
+		"stopped",
 	},
 
 	[]string{
-		"Failed",
-		"Inaccessible-encryption-credentials",
-		"Inaccessible-encryption-credentials-recoverable",
-		"Incompatible-network",
-		"Incompatible-option-group",
-		"Incompatible-parameters",
-		"Incompatible-restore",
-		"Insufficient-capacity",
-		"Restore-error",
-		"Storage-full",
+		"failed",
+		"inaccessible-encryption-credentials",
+		"inaccessible-encryption-credentials-recoverable",
+		"incompatible-network",
+		"incompatible-option-group",
+		"incompatible-parameters",
+		"incompatible-restore",
+		"insufficient-capacity",
+		"restore-error",
+		"storage-full",
 	},
 )
 
