@@ -21,6 +21,10 @@ const (
 // ConditionType is the type of status.
 type ConditionType string
 
+func (ct ConditionType) String() string {
+	return string(ct)
+}
+
 // True set status value to True for object field .Status.Conditions,
 // object must be a pointer.
 func (ct ConditionType) True(obj interface{}, message string) {

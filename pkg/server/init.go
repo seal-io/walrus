@@ -10,8 +10,9 @@ import (
 )
 
 type initOptions struct {
-	K8sConfig   *rest.Config
-	ModelClient *model.Client
+	K8sConfig     *rest.Config
+	ModelClient   *model.Client
+	SkipTLSVerify bool
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {

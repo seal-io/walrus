@@ -132,6 +132,14 @@ var (
 		initializeFrom("0 */30 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)
+	// ServiceDependencyCheckCronExpr indicates the cron expression of deploy scheduled service,
+	// default cron expression means deploying every 30 seconds.
+	ServiceDependencyCheckCronExpr = newValue(
+		"ServiceDependencyCheckCronExpr",
+		editable,
+		initializeFrom("*/30 * * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
 )
 
 // setting property list.
