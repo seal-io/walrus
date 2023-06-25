@@ -7,6 +7,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -88,10 +89,12 @@ type StreamResponse struct {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.ServiceResource, serviceresource.OrderOption] `query:",inline"`
 
-	ProjectID   oid.ID `query:"projectID"`
-	ServiceID   oid.ID `query:"serviceID"`
-	ServiceName string `query:"serviceName,omitempty"`
-	WithoutKeys bool   `query:"withoutKeys,omitempty"`
+	ProjectID       oid.ID `query:"projectID"`
+	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
+	EnvironmentName string `query:"environmentName,omitempty"`
+	ServiceID       oid.ID `query:"serviceID,omitempty"`
+	ServiceName     string `query:"serviceName,omitempty"`
+	WithoutKeys     bool   `query:"withoutKeys,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -102,11 +105,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.ServiceID != "":
-		if !r.ServiceID.Valid(0) {
-			return errors.New("invalid service id: blank")
-		}
-
+	case r.ServiceID.Valid(0):
 		_, err := modelClient.Services().Query().
 			Where(service.ID(r.ServiceID)).
 			OnlyID(ctx)
@@ -114,6 +113,37 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 			return runtime.Errorw(err, "failed to get service")
 		}
 	case r.ServiceName != "":
+		switch {
+		case r.EnvironmentID.Valid(0):
+			id, err := modelClient.Services().Query().
+				Where(
+					service.ProjectID(r.ProjectID),
+					service.EnvironmentID(r.EnvironmentID),
+					service.Name(r.ServiceName),
+				).
+				OnlyID(ctx)
+			if err != nil {
+				return runtime.Errorw(err, "failed to get service by name")
+			}
+
+			r.ServiceID = id
+		case r.EnvironmentName != "":
+			id, err := modelClient.Services().Query().
+				Where(
+					service.ProjectID(r.ProjectID),
+					service.HasEnvironmentWith(environment.Name(r.EnvironmentName)),
+					service.Name(r.ServiceName),
+				).
+				OnlyID(ctx)
+			if err != nil {
+				return runtime.Errorw(err, "failed to get service by name")
+			}
+
+			r.ServiceID = id
+		default:
+			return errors.New("both environment id and environment name are blank, " +
+				"one of them is required while query by service name")
+		}
 	default:
 		return errors.New("both service id and service name are blank")
 	}
