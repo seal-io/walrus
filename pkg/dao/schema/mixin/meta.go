@@ -20,5 +20,9 @@ func (Meta) Fields() []ent.Field {
 		field.JSON("labels", map[string]string{}).
 			Comment("Labels of the resource.").
 			Default(map[string]string{}),
+		field.JSON("annotations", map[string]string{}).
+			Comment("Annotation of the resource.").
+			Sensitive().
+			Default(map[string]string{}),
 	}
 }
