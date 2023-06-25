@@ -10,6 +10,7 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	serviceresourceview "github.com/seal-io/seal/pkg/apis/serviceresource/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -499,3 +500,55 @@ type StreamOutputResponse struct {
 	Type       datamessage.EventType `json:"type"`
 	Collection RouteOutputResponse   `json:"collection,omitempty"`
 }
+
+type CollectionGetGraphRequest struct {
+	ProjectID       oid.ID `query:"projectID"`
+	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
+	EnvironmentName string `query:"environmentName,omitempty"`
+}
+
+func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any) error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	modelClient := input.(model.ClientSet)
+
+	switch {
+	case r.EnvironmentID.Valid(0):
+		_, err := modelClient.Environments().Query().
+			Where(environment.ID(r.EnvironmentID)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get environment")
+		}
+	case r.EnvironmentName != "":
+		envID, err := modelClient.Environments().Query().
+			Where(
+				environment.ProjectID(r.ProjectID),
+				environment.Name(r.EnvironmentName),
+			).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get environment")
+		}
+
+		r.EnvironmentID = envID
+	default:
+		return errors.New("both environment id and environment name are blank")
+	}
+
+	return nil
+}
+
+type (
+	CollectionGetGraphResponse = serviceresourceview.CollectionGetGraphResponse
+
+	// GraphVertexID defines the identifier of the vertex,
+	// which uniquely represents an API resource.
+	GraphVertexID = serviceresourceview.GraphVertexID
+	// GraphVertex defines the vertex of graph.
+	GraphVertex = serviceresourceview.GraphVertex
+	// GraphEdge defines the edge of graph.
+	GraphEdge = serviceresourceview.GraphEdge
+)
