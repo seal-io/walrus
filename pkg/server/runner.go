@@ -434,8 +434,9 @@ func (r *Server) Run(c context.Context) error {
 	modelClient := getModelClient(rdsDrvDialect, rdsDrv)
 
 	initOpts := initOptions{
-		K8sConfig:   k8sCfg,
-		ModelClient: modelClient,
+		K8sConfig:     k8sCfg,
+		ModelClient:   modelClient,
+		SkipTLSVerify: len(r.TlsAutoCertDomains) != 0,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)

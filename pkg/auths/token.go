@@ -97,13 +97,15 @@ type AccessToken struct {
 func CreateAccessToken(
 	ctx context.Context,
 	mc model.ClientSet,
+	subjectID oid.ID,
 	kind, name string,
 	expirationSeconds *int,
 ) (*AccessToken, error) {
 	entity := &model.Token{
-		Kind:  kind,
-		Name:  name,
-		Value: crypto.String(strs.String(32)),
+		SubjectID: subjectID,
+		Kind:      kind,
+		Name:      name,
+		Value:     crypto.String(strs.String(32)),
 	}
 
 	if expirationSeconds != nil {

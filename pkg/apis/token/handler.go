@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/token/view"
 	"github.com/seal-io/seal/pkg/auths"
+	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -27,8 +28,10 @@ func (h Handler) Kind() string {
 // Basic APIs.
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateResponse, error) {
+	sj := session.MustGetSubject(ctx)
+
 	at, err := auths.CreateAccessToken(ctx,
-		h.modelClient, types.TokenKindAPI, req.Name, req.ExpirationSeconds)
+		h.modelClient, sj.ID, types.TokenKindAPI, req.Name, req.ExpirationSeconds)
 	if err != nil {
 		return nil, err
 	}

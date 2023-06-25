@@ -35,6 +35,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
+	pkgservice "github.com/seal-io/seal/pkg/service"
 	"github.com/seal-io/seal/pkg/settings"
 	"github.com/seal-io/seal/pkg/terraform/config"
 	"github.com/seal-io/seal/pkg/terraform/parser"
@@ -65,6 +66,7 @@ type CreateSecretsOptions struct {
 	ServiceRevision *model.ServiceRevision
 	Connectors      model.Connectors
 	ProjectID       oid.ID
+	SubjectID       oid.ID
 	// Metadata.
 	ProjectName     string
 	EnvironmentName string
@@ -268,12 +270,29 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
+	var subjectID oid.ID
+
+	sj, _ := session.GetSubject(ctx)
+	if sj.ID != "" {
+		subjectID = sj.ID
+	} else {
+		subjectID, err = pkgservice.GetSubjectID(opts.Service)
+		if err != nil {
+			return err
+		}
+	}
+
+	if subjectID == "" {
+		return errors.New("subject id is empty")
+	}
+
 	// Prepare tfConfig for deployment.
 	secretOpts := CreateSecretsOptions{
 		SkipTLSVerify:   opts.SkipTLSVerify,
 		ServiceRevision: opts.ServiceRevision,
 		Connectors:      connectors,
 		ProjectID:       opts.Service.ProjectID,
+		SubjectID:       subjectID,
 		// Metadata.
 		ProjectName:     project.Name,
 		EnvironmentName: environment.Name,
@@ -562,7 +581,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	const _30mins = 1800
 
 	at, err := auths.CreateAccessToken(ctx,
-		d.modelClient, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_30mins))
+		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_30mins))
 	if err != nil {
 		return nil, err
 	}

@@ -21,6 +21,19 @@ import (
 
 var serviceRegexp = regexp.MustCompile(`\${service\.([^.\s]+)\.[^}]+}`)
 
+func GetDependencyNames(entity *model.Service) []string {
+	var names []string
+
+	for _, d := range entity.Attributes {
+		matches := serviceRegexp.FindAllSubmatch(d, -1)
+		for _, m := range matches {
+			names = append(names, string(m[1]))
+		}
+	}
+
+	return names
+}
+
 // GetNewDependencies returns the new dependencies of the given service.
 func GetNewDependencies(
 	ctx context.Context,
@@ -29,15 +42,8 @@ func GetNewDependencies(
 ) ([]*model.ServiceDependency, error) {
 	var (
 		dependencies []*model.ServiceDependency
-		serviceNames []string
+		serviceNames = GetDependencyNames(entity)
 	)
-
-	for _, d := range entity.Attributes {
-		matches := serviceRegexp.FindAllSubmatch(d, -1)
-		for _, m := range matches {
-			serviceNames = append(serviceNames, string(m[1]))
-		}
-	}
 
 	// Get the service IDs of the service names in same project and environment.
 	serviceIDs, err := mc.Services().Query().
