@@ -119,7 +119,7 @@ func setAPIToCache(api *api.API) error {
 // setServerContextToCache set context to cache.
 func setServerContextToCache(s config.ServerContext) error {
 	filename := path.Join(getConfigDir(), configFileName)
-	content, err := json.MarshalIndent(s, "", "\t")
+	content, err := json.MarshalIndent(s, "", " ")
 	if err != nil {
 		return fmt.Errorf("error decode config file %s: %w", filename, err)
 	}
