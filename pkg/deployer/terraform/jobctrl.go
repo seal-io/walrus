@@ -350,16 +350,17 @@ func StreamJobLogs(ctx context.Context, opts StreamJobLogsOptions) error {
 
 	jobPod := podList.Items[0]
 
-	err = wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
-		pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
-			ResourceVersion: "0",
-		})
-		if getErr != nil {
-			return false, getErr
-		}
+	err = wait.PollUntilContextTimeout(ctx, 1*time.Second, 1*time.Minute, true,
+		func(ctx context.Context) (bool, error) {
+			pod, getErr := opts.Cli.Pods(types.SealSystemNamespace).Get(ctx, jobPod.Name, metav1.GetOptions{
+				ResourceVersion: "0",
+			})
+			if getErr != nil {
+				return false, getErr
+			}
 
-		return kube.IsPodReady(pod), nil
-	})
+			return kube.IsPodReady(pod), nil
+		})
 	if err != nil {
 		return err
 	}

@@ -137,9 +137,10 @@ func (Embedded) GetConfig(ctx context.Context) (string, *rest.Config, error) {
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 	defer cancel()
 
-	err := wait.PollUntilWithContext(ctx, time.Second, func(ctx context.Context) (bool, error) {
-		return files.Exists(embeddedKubeConfigPath), nil
-	})
+	err := wait.PollUntilContextCancel(ctx, time.Second, true,
+		func(ctx context.Context) (bool, error) {
+			return files.Exists(embeddedKubeConfigPath), nil
+		})
 	if err != nil {
 		return "", nil, err
 	}

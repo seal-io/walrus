@@ -53,7 +53,7 @@ func LoadDriver(dataSourceAddress string) (drvDialect string, drv *sql.DB, err e
 func Wait(ctx context.Context, drv *sql.DB) (err error) {
 	var lastErr error
 
-	err = wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
+	err = wait.PollUntilContextCancel(ctx, 2*time.Second, true,
 		func(ctx context.Context) (bool, error) {
 			lastErr = IsConnected(ctx, drv)
 			if lastErr != nil {
