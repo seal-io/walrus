@@ -28,7 +28,7 @@ function build() {
 
   local platforms=()
   # shellcheck disable=SC2086
-  IFS=" " read -r -a platforms <<<"$(seal::target::build_platforms ${target})"
+  IFS=" " read -r -a platforms <<<"$(seal::target::build_platforms ${target} ${task})"
 
   for platform in "${platforms[@]}"; do
     local os_arch
