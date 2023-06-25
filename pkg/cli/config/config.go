@@ -213,7 +213,6 @@ func (c *Config) listResource(resourceName string, queries map[string]string) ([
 		return nil, err
 	}
 
-	var items resourceItems
 	body, err := io.ReadAll(resp.Body)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -221,6 +220,16 @@ func (c *Config) listResource(resourceName string, queries map[string]string) ([
 	if err != nil {
 		return nil, err
 	}
+
+	switch {
+	default:
+	case resp.StatusCode == http.StatusUnauthorized:
+		return nil, fmt.Errorf("unauthorized, please check the validity of the token")
+	case resp.StatusCode < 200 || resp.StatusCode >= 300:
+		return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
+	}
+
+	var items resourceItems
 
 	err = json.Unmarshal(body, &items)
 	if err != nil {
