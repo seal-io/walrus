@@ -50,15 +50,26 @@ func LoadDriver(dataSourceAddress string) (drvDialect string, drv *sql.DB, err e
 	return
 }
 
-func Wait(ctx context.Context, drv *sql.DB) error {
-	return wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
+func Wait(ctx context.Context, drv *sql.DB) (err error) {
+	var lastErr error
+
+	err = wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
 		func(ctx context.Context) (bool, error) {
-			err := drv.PingContext(ctx)
-			if err != nil {
-				log.Warnf("waiting for database to be ready: %v", err)
+			lastErr = IsConnected(ctx, drv)
+			if lastErr != nil {
+				log.Warnf("waiting for database to be ready: %v", lastErr)
 			}
 
-			return err == nil, ctx.Err()
+			return lastErr == nil, ctx.Err()
 		},
 	)
+	if err != nil && lastErr != nil {
+		err = lastErr // Use last error to overwrite context error while existed.
+	}
+
+	return
+}
+
+func IsConnected(ctx context.Context, db *sql.DB) error {
+	return db.PingContext(ctx)
 }
