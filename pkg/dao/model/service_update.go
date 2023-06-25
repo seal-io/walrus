@@ -73,6 +73,12 @@ func (su *ServiceUpdate) SetLabels(m map[string]string) *ServiceUpdate {
 	return su
 }
 
+// SetAnnotations sets the "annotations" field.
+func (su *ServiceUpdate) SetAnnotations(m map[string]string) *ServiceUpdate {
+	su.mutation.SetAnnotations(m)
+	return su
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (su *ServiceUpdate) SetUpdateTime(t time.Time) *ServiceUpdate {
 	su.mutation.SetUpdateTime(t)
@@ -318,6 +324,9 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Labels(); ok {
 		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 	}
+	if value, ok := su.mutation.Annotations(); ok {
+		_spec.SetField(service.FieldAnnotations, field.TypeJSON, value)
+	}
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -533,6 +542,12 @@ func (suo *ServiceUpdateOne) ClearDescription() *ServiceUpdateOne {
 // SetLabels sets the "labels" field.
 func (suo *ServiceUpdateOne) SetLabels(m map[string]string) *ServiceUpdateOne {
 	suo.mutation.SetLabels(m)
+	return suo
+}
+
+// SetAnnotations sets the "annotations" field.
+func (suo *ServiceUpdateOne) SetAnnotations(m map[string]string) *ServiceUpdateOne {
+	suo.mutation.SetAnnotations(m)
 	return suo
 }
 
@@ -810,6 +825,9 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	}
 	if value, ok := suo.mutation.Labels(); ok {
 		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
+	}
+	if value, ok := suo.mutation.Annotations(); ok {
+		_spec.SetField(service.FieldAnnotations, field.TypeJSON, value)
 	}
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)

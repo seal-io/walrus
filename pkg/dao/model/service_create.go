@@ -68,6 +68,12 @@ func (sc *ServiceCreate) SetLabels(m map[string]string) *ServiceCreate {
 	return sc
 }
 
+// SetAnnotations sets the "annotations" field.
+func (sc *ServiceCreate) SetAnnotations(m map[string]string) *ServiceCreate {
+	sc.mutation.SetAnnotations(m)
+	return sc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (sc *ServiceCreate) SetCreateTime(t time.Time) *ServiceCreate {
 	sc.mutation.SetCreateTime(t)
@@ -230,6 +236,10 @@ func (sc *ServiceCreate) defaults() error {
 		v := service.DefaultLabels
 		sc.mutation.SetLabels(v)
 	}
+	if _, ok := sc.mutation.Annotations(); !ok {
+		v := service.DefaultAnnotations
+		sc.mutation.SetAnnotations(v)
+	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		if service.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized service.DefaultCreateTime (forgotten import model/runtime?)")
@@ -267,6 +277,9 @@ func (sc *ServiceCreate) check() error {
 	}
 	if _, ok := sc.mutation.Labels(); !ok {
 		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Service.labels"`)}
+	}
+	if _, ok := sc.mutation.Annotations(); !ok {
+		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Service.annotations"`)}
 	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Service.createTime"`)}
@@ -339,6 +352,10 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Labels(); ok {
 		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
+	}
+	if value, ok := sc.mutation.Annotations(); ok {
+		_spec.SetField(service.FieldAnnotations, field.TypeJSON, value)
+		_node.Annotations = value
 	}
 	if value, ok := sc.mutation.CreateTime(); ok {
 		_spec.SetField(service.FieldCreateTime, field.TypeTime, value)
@@ -541,6 +558,18 @@ func (u *ServiceUpsert) UpdateLabels() *ServiceUpsert {
 	return u
 }
 
+// SetAnnotations sets the "annotations" field.
+func (u *ServiceUpsert) SetAnnotations(v map[string]string) *ServiceUpsert {
+	u.Set(service.FieldAnnotations, v)
+	return u
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateAnnotations() *ServiceUpsert {
+	u.SetExcluded(service.FieldAnnotations)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *ServiceUpsert) SetUpdateTime(v time.Time) *ServiceUpsert {
 	u.Set(service.FieldUpdateTime, v)
@@ -704,6 +733,20 @@ func (u *ServiceUpsertOne) SetLabels(v map[string]string) *ServiceUpsertOne {
 func (u *ServiceUpsertOne) UpdateLabels() *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ServiceUpsertOne) SetAnnotations(v map[string]string) *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateAnnotations() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
@@ -1043,6 +1086,20 @@ func (u *ServiceUpsertBulk) SetLabels(v map[string]string) *ServiceUpsertBulk {
 func (u *ServiceUpsertBulk) UpdateLabels() *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *ServiceUpsertBulk) SetAnnotations(v map[string]string) *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateAnnotations() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 

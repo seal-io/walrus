@@ -35,6 +35,8 @@ type ConnectorCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Type of the connector.
 	Type string `json:"type"`
 	// Connector config version.
@@ -57,6 +59,7 @@ func (in ConnectorCreateInput) Model() *Connector {
 		Name:                in.Name,
 		Description:         in.Description,
 		Labels:              in.Labels,
+		Annotations:         in.Annotations,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
@@ -80,6 +83,8 @@ type ConnectorUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
@@ -99,6 +104,7 @@ func (in ConnectorUpdateInput) Model() *Connector {
 		Name:                in.Name,
 		Description:         in.Description,
 		Labels:              in.Labels,
+		Annotations:         in.Annotations,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,

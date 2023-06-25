@@ -69,6 +69,12 @@ func (eu *EnvironmentUpdate) SetLabels(m map[string]string) *EnvironmentUpdate {
 	return eu
 }
 
+// SetAnnotations sets the "annotations" field.
+func (eu *EnvironmentUpdate) SetAnnotations(m map[string]string) *EnvironmentUpdate {
+	eu.mutation.SetAnnotations(m)
+	return eu
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 	eu.mutation.SetUpdateTime(t)
@@ -237,6 +243,9 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eu.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
 	}
+	if value, ok := eu.mutation.Annotations(); ok {
+		_spec.SetField(environment.FieldAnnotations, field.TypeJSON, value)
+	}
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
 	}
@@ -389,6 +398,12 @@ func (euo *EnvironmentUpdateOne) ClearDescription() *EnvironmentUpdateOne {
 // SetLabels sets the "labels" field.
 func (euo *EnvironmentUpdateOne) SetLabels(m map[string]string) *EnvironmentUpdateOne {
 	euo.mutation.SetLabels(m)
+	return euo
+}
+
+// SetAnnotations sets the "annotations" field.
+func (euo *EnvironmentUpdateOne) SetAnnotations(m map[string]string) *EnvironmentUpdateOne {
+	euo.mutation.SetAnnotations(m)
 	return euo
 }
 
@@ -589,6 +604,9 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 	}
 	if value, ok := euo.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
+	}
+	if value, ok := euo.mutation.Annotations(); ok {
+		_spec.SetField(environment.FieldAnnotations, field.TypeJSON, value)
 	}
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)

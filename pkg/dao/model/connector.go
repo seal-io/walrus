@@ -33,6 +33,8 @@ type Connector struct {
 	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"-" sql:"annotations"`
 	// ID of the project to which the resource belongs, empty means using for global level.
 	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Describe creation time.
@@ -130,7 +132,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case connector.FieldLabels, connector.FieldStatus, connector.FieldFinOpsCustomPricing:
+		case connector.FieldLabels, connector.FieldAnnotations, connector.FieldStatus, connector.FieldFinOpsCustomPricing:
 			values[i] = new([]byte)
 		case connector.FieldConfigData:
 			values[i] = new(crypto.Properties)
@@ -181,6 +183,14 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &c.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
+		case connector.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
 		case connector.FieldProjectID:
@@ -318,6 +328,8 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", c.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("projectID=")
 	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))

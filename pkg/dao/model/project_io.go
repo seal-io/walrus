@@ -32,6 +32,8 @@ type ProjectCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Model converts the ProjectCreateInput to Project.
@@ -40,6 +42,7 @@ func (in ProjectCreateInput) Model() *Project {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 	}
 	return entity
 }
@@ -54,6 +57,8 @@ type ProjectUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Model converts the ProjectUpdateInput to Project.
@@ -63,6 +68,7 @@ func (in ProjectUpdateInput) Model() *Project {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 	}
 	return entity
 }

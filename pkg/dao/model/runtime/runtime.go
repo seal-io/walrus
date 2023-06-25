@@ -190,6 +190,10 @@ func init() {
 	connectorDescLabels := connectorMixinFields1[2].Descriptor()
 	// connector.DefaultLabels holds the default value on creation for the labels field.
 	connector.DefaultLabels = connectorDescLabels.Default.(map[string]string)
+	// connectorDescAnnotations is the schema descriptor for annotations field.
+	connectorDescAnnotations := connectorMixinFields1[3].Descriptor()
+	// connector.DefaultAnnotations holds the default value on creation for the annotations field.
+	connector.DefaultAnnotations = connectorDescAnnotations.Default.(map[string]string)
 	// connectorDescCreateTime is the schema descriptor for createTime field.
 	connectorDescCreateTime := connectorMixinFields3[0].Descriptor()
 	// connector.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -244,6 +248,10 @@ func init() {
 	environmentDescLabels := environmentMixinFields2[2].Descriptor()
 	// environment.DefaultLabels holds the default value on creation for the labels field.
 	environment.DefaultLabels = environmentDescLabels.Default.(map[string]string)
+	// environmentDescAnnotations is the schema descriptor for annotations field.
+	environmentDescAnnotations := environmentMixinFields2[3].Descriptor()
+	// environment.DefaultAnnotations holds the default value on creation for the annotations field.
+	environment.DefaultAnnotations = environmentDescAnnotations.Default.(map[string]string)
 	// environmentDescCreateTime is the schema descriptor for createTime field.
 	environmentDescCreateTime := environmentMixinFields3[0].Descriptor()
 	// environment.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -325,6 +333,10 @@ func init() {
 	projectDescLabels := projectMixinFields1[2].Descriptor()
 	// project.DefaultLabels holds the default value on creation for the labels field.
 	project.DefaultLabels = projectDescLabels.Default.(map[string]string)
+	// projectDescAnnotations is the schema descriptor for annotations field.
+	projectDescAnnotations := projectMixinFields1[3].Descriptor()
+	// project.DefaultAnnotations holds the default value on creation for the annotations field.
+	project.DefaultAnnotations = projectDescAnnotations.Default.(map[string]string)
 	// projectDescCreateTime is the schema descriptor for createTime field.
 	projectDescCreateTime := projectMixinFields2[0].Descriptor()
 	// project.DefaultCreateTime holds the default value on creation for the createTime field.
@@ -428,6 +440,10 @@ func init() {
 	serviceDescLabels := serviceMixinFields2[2].Descriptor()
 	// service.DefaultLabels holds the default value on creation for the labels field.
 	service.DefaultLabels = serviceDescLabels.Default.(map[string]string)
+	// serviceDescAnnotations is the schema descriptor for annotations field.
+	serviceDescAnnotations := serviceMixinFields2[3].Descriptor()
+	// service.DefaultAnnotations holds the default value on creation for the annotations field.
+	service.DefaultAnnotations = serviceDescAnnotations.Default.(map[string]string)
 	// serviceDescCreateTime is the schema descriptor for createTime field.
 	serviceDescCreateTime := serviceMixinFields3[0].Descriptor()
 	// service.DefaultCreateTime holds the default value on creation for the createTime field.

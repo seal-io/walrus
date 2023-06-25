@@ -35,6 +35,8 @@ type ServiceCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
@@ -51,6 +53,7 @@ func (in ServiceCreateInput) Model() *Service {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
 	}
@@ -69,6 +72,8 @@ type ServiceUpdateInput struct {
 	Description string `json:"description,omitempty"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"annotations,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
@@ -82,6 +87,7 @@ func (in ServiceUpdateInput) Model() *Service {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
+		Annotations: in.Annotations,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
 	}

@@ -36,6 +36,8 @@ type Service struct {
 	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"-" sql:"annotations"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -129,7 +131,7 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case service.FieldLabels, service.FieldTemplate, service.FieldStatus:
+		case service.FieldLabels, service.FieldAnnotations, service.FieldTemplate, service.FieldStatus:
 			values[i] = new([]byte)
 		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
 			values[i] = new(oid.ID)
@@ -184,6 +186,14 @@ func (s *Service) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &s.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
+		case service.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &s.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
 		case service.FieldCreateTime:
@@ -300,6 +310,8 @@ func (s *Service) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", s.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=<sensitive>")
 	builder.WriteString(", ")
 	if v := s.CreateTime; v != nil {
 		builder.WriteString("createTime=")

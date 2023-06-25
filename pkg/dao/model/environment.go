@@ -32,6 +32,8 @@ type Environment struct {
 	Description string `json:"description,omitempty" sql:"description"`
 	// Labels of the resource.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// Annotation of the resource.
+	Annotations map[string]string `json:"-" sql:"annotations"`
 	// Describe creation time.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// Describe modification time.
@@ -102,7 +104,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case environment.FieldLabels:
+		case environment.FieldLabels, environment.FieldAnnotations:
 			values[i] = new([]byte)
 		case environment.FieldID, environment.FieldProjectID:
 			values[i] = new(oid.ID)
@@ -155,6 +157,14 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &e.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
+		case environment.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &e.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
 		case environment.FieldCreateTime:
@@ -238,6 +248,8 @@ func (e *Environment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", e.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=<sensitive>")
 	builder.WriteString(", ")
 	if v := e.CreateTime; v != nil {
 		builder.WriteString("createTime=")

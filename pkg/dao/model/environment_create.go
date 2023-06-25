@@ -63,6 +63,12 @@ func (ec *EnvironmentCreate) SetLabels(m map[string]string) *EnvironmentCreate {
 	return ec
 }
 
+// SetAnnotations sets the "annotations" field.
+func (ec *EnvironmentCreate) SetAnnotations(m map[string]string) *EnvironmentCreate {
+	ec.mutation.SetAnnotations(m)
+	return ec
+}
+
 // SetCreateTime sets the "createTime" field.
 func (ec *EnvironmentCreate) SetCreateTime(t time.Time) *EnvironmentCreate {
 	ec.mutation.SetCreateTime(t)
@@ -173,6 +179,10 @@ func (ec *EnvironmentCreate) defaults() error {
 		v := environment.DefaultLabels
 		ec.mutation.SetLabels(v)
 	}
+	if _, ok := ec.mutation.Annotations(); !ok {
+		v := environment.DefaultAnnotations
+		ec.mutation.SetAnnotations(v)
+	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		if environment.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized environment.DefaultCreateTime (forgotten import model/runtime?)")
@@ -210,6 +220,9 @@ func (ec *EnvironmentCreate) check() error {
 	}
 	if _, ok := ec.mutation.Labels(); !ok {
 		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Environment.labels"`)}
+	}
+	if _, ok := ec.mutation.Annotations(); !ok {
+		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Environment.annotations"`)}
 	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Environment.createTime"`)}
@@ -268,6 +281,10 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 	if value, ok := ec.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
+	}
+	if value, ok := ec.mutation.Annotations(); ok {
+		_spec.SetField(environment.FieldAnnotations, field.TypeJSON, value)
+		_node.Annotations = value
 	}
 	if value, ok := ec.mutation.CreateTime(); ok {
 		_spec.SetField(environment.FieldCreateTime, field.TypeTime, value)
@@ -423,6 +440,18 @@ func (u *EnvironmentUpsert) UpdateLabels() *EnvironmentUpsert {
 	return u
 }
 
+// SetAnnotations sets the "annotations" field.
+func (u *EnvironmentUpsert) SetAnnotations(v map[string]string) *EnvironmentUpsert {
+	u.Set(environment.FieldAnnotations, v)
+	return u
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *EnvironmentUpsert) UpdateAnnotations() *EnvironmentUpsert {
+	u.SetExcluded(environment.FieldAnnotations)
+	return u
+}
+
 // SetUpdateTime sets the "updateTime" field.
 func (u *EnvironmentUpsert) SetUpdateTime(v time.Time) *EnvironmentUpsert {
 	u.Set(environment.FieldUpdateTime, v)
@@ -535,6 +564,20 @@ func (u *EnvironmentUpsertOne) SetLabels(v map[string]string) *EnvironmentUpsert
 func (u *EnvironmentUpsertOne) UpdateLabels() *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *EnvironmentUpsertOne) SetAnnotations(v map[string]string) *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *EnvironmentUpsertOne) UpdateAnnotations() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
@@ -815,6 +858,20 @@ func (u *EnvironmentUpsertBulk) SetLabels(v map[string]string) *EnvironmentUpser
 func (u *EnvironmentUpsertBulk) UpdateLabels() *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *EnvironmentUpsertBulk) SetAnnotations(v map[string]string) *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *EnvironmentUpsertBulk) UpdateAnnotations() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.UpdateAnnotations()
 	})
 }
 
