@@ -16,7 +16,7 @@ func Wait(ctx context.Context, serverUrl string) (err error) {
 
 	var lastErr error
 
-	err = wait.PollImmediateUntilWithContext(ctx, 2*time.Second,
+	err = wait.PollUntilContextCancel(ctx, 2*time.Second, true,
 		func(ctx context.Context) (bool, error) {
 			lastErr = IsConnected(ctx)
 			if lastErr != nil {

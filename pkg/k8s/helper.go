@@ -61,7 +61,7 @@ func Wait(ctx context.Context, cfg *rest.Config, callback ...func(context.Contex
 
 	var lastErr error
 
-	err = wait.PollImmediateUntilWithContext(ctx, 1*time.Second,
+	err = wait.PollUntilContextCancel(ctx, 1*time.Second, true,
 		func(ctx context.Context) (bool, error) {
 			lastErr = IsConnected(ctx, cli.RESTClient())
 			if lastErr != nil {
