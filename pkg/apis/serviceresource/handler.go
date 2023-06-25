@@ -317,3 +317,112 @@ func getCollection(
 
 	return resp, nil
 }
+
+func (h Handler) CollectionGetGraph(
+	ctx *gin.Context,
+	req view.CollectionGetGraphRequest,
+) (*view.CollectionGetGraphResponse, error) {
+	// Fetch entities.
+	entities, err := h.modelClient.ServiceResources().Query().
+		Order(model.Asc(serviceresource.FieldCreateTime)).
+		Where(
+			serviceresource.ServiceID(req.ServiceID),
+			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered)).
+		Select(
+			serviceresource.FieldServiceID,
+			serviceresource.FieldType,
+			serviceresource.FieldID,
+			serviceresource.FieldName,
+			serviceresource.FieldCreateTime,
+			serviceresource.FieldUpdateTime,
+			serviceresource.FieldStatus).
+		WithComponents(func(rq *model.ServiceResourceQuery) {
+			rq.Order(model.Asc(serviceresource.FieldCreateTime)).
+				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
+				Select(
+					serviceresource.FieldServiceID,
+					serviceresource.FieldType,
+					serviceresource.FieldID,
+					serviceresource.FieldName,
+					serviceresource.FieldCreateTime,
+					serviceresource.FieldUpdateTime,
+					serviceresource.FieldStatus)
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate capacity for allocation.
+	var verticesCap, edgesCap int
+	{
+		// Count the number of ServiceResource.
+		verticesCap = len(entities)
+		for i := 0; i < len(entities); i++ {
+			// Count the vertex size of sub ServiceResource,
+			// and the edge size from ServiceResource to sub ServiceResource.
+			verticesCap += len(entities[i].Edges.Components)
+			edgesCap += len(entities[i].Edges.Components)
+		}
+	}
+
+	// Construct response.
+	var (
+		vertices = make([]view.GraphVertex, 0, verticesCap)
+		edges    = make([]view.GraphEdge, 0, edgesCap)
+	)
+
+	for i := 0; i < len(entities); i++ {
+		// Append ServiceResource to vertices.
+		vertices = append(vertices, view.GraphVertex{
+			GraphVertexID: view.GraphVertexID{
+				Kind: "ServiceResource",
+				ID:   entities[i].ID,
+			},
+			Name:       entities[i].Name,
+			CreateTime: entities[i].CreateTime,
+			UpdateTime: entities[i].UpdateTime,
+			Status:     entities[i].Status.Summary,
+			Extensions: map[string]any{
+				"type": entities[i].Type,
+			},
+		})
+
+		for j := 0; j < len(entities[i].Edges.Components); j++ {
+			// Append sub ServiceResource to vertices.
+			vertices = append(vertices, view.GraphVertex{
+				GraphVertexID: view.GraphVertexID{
+					Kind: "ServiceResource",
+					ID:   entities[i].Edges.Components[j].ID,
+				},
+				Name:       entities[i].Edges.Components[j].Name,
+				CreateTime: entities[i].Edges.Components[j].CreateTime,
+				UpdateTime: entities[i].Edges.Components[j].UpdateTime,
+				Status:     entities[i].Edges.Components[j].Status.Summary,
+				Extensions: map[string]any{
+					"type": entities[i].Edges.Components[j].Type,
+				},
+			})
+
+			// Append the edge of ServiceResource to sub ServiceResource.
+			edges = append(edges, view.GraphEdge{
+				Type: "Composition",
+				Start: view.GraphVertexID{
+					Kind: "ServiceResource",
+					ID:   entities[i].ID,
+				},
+				End: view.GraphVertexID{
+					Kind: "ServiceResource",
+					ID:   entities[i].Edges.Components[j].ID,
+				},
+			})
+		}
+	}
+
+	// TODO(thxCode): return operation keys.
+
+	return &view.CollectionGetGraphResponse{
+		Vertices: vertices,
+		Edges:    edges,
+	}, nil
+}
