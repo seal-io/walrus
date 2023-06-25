@@ -55,9 +55,10 @@ func (c *ServerContext) Inject(cmd *cobra.Command) error {
 	}
 
 	fe := cmd.Flags().Lookup("environment-id")
-	fn := cmd.Flags().Lookup("environment-name")
+	fen := cmd.Flags().Lookup("environment-name")
 
-	if fe == nil && fn == nil && c.EnvironmentID != "" {
+	// Inject environment id while user doesn't set environment name.
+	if fe != nil && c.EnvironmentID != "" && (fen == nil || fen.Value.String() == "") {
 		err := fe.Value.Set(c.EnvironmentID)
 		if err != nil {
 			return err
@@ -91,8 +92,12 @@ func (c *ServerContext) Merge(ns ServerContext, flags *pflag.FlagSet) ServerCont
 		merged.ProjectID = ns.ProjectID
 	}
 
-	if ns.ProjectName != "" && flags.Changed("project-name") {
+	if ns.ProjectName != "" && flags.Changed("project-name") && ns.ProjectName != merged.ProjectName {
 		merged.ProjectName = ns.ProjectName
+
+		// Reset environment while project changed.
+		merged.EnvironmentID = ""
+		merged.EnvironmentName = ""
 	}
 
 	if ns.EnvironmentID != "" {
