@@ -5,12 +5,17 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/strs"
 )
+
+const annotationSubjectIDName = "seal.io/subject-id"
 
 // Options for deploy or destroy.
 type Options struct {
@@ -147,4 +152,106 @@ func Destroy(
 	}
 
 	return dp.Destroy(ctx, entity, destroyOpts)
+}
+
+func GetSubjectID(entity *model.Service) (oid.ID, error) {
+	if entity == nil {
+		return "", fmt.Errorf("service is nil")
+	}
+
+	subjectIDStr := entity.Annotations[annotationSubjectIDName]
+
+	return oid.ID(subjectIDStr), nil
+}
+
+// SetServiceStatusScheduled sets the status of the service to scheduled.
+func SetServiceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *model.Service) error {
+	if entity == nil {
+		return fmt.Errorf("service is nil")
+	}
+
+	names := dao.GetDependencyNames(entity)
+
+	status.ServiceStatusProgressing.Reset(
+		entity,
+		fmt.Sprintf(
+			"Waiting for dependent services to be ready: %s",
+			strs.Join(",", names...),
+		),
+	)
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
+
+	subject, err := session.GetSubject(ctx)
+	if err != nil {
+		return err
+	}
+
+	entity.Annotations[annotationSubjectIDName] = string(subject.ID)
+
+	update, err := dao.ServiceUpdate(mc, entity)
+	if err != nil {
+		return err
+	}
+
+	return update.Exec(ctx)
+}
+
+// CreateScheduledServices creates scheduled services.
+func CreateScheduledServices(ctx context.Context, mc model.ClientSet, entities model.Services) (model.Services, error) {
+	results := make(model.Services, 0, len(entities))
+
+	sortedServices, err := TopologicalSortServices(entities)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entity := range sortedServices {
+		creates, err := dao.ServiceCreates(mc, entity)
+		if err != nil {
+			return nil, err
+		}
+
+		entity, err = creates[0].Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		err = SetServiceStatusScheduled(ctx, mc, entity)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, entity)
+	}
+
+	return results, nil
+}
+
+// IsStatusReady returns true if the service is ready.
+func IsStatusReady(entity *model.Service) bool {
+	return entity.Status.SummaryStatus == status.ServiceStatusReady.String() &&
+		!entity.Status.Transitioning &&
+		!entity.Status.Error
+}
+
+// IsStatusFalse returns true if the service is in error status.
+func IsStatusFalse(entity *model.Service) bool {
+	switch entity.Status.SummaryStatus {
+	case "DeployFailed", "DeleteFailed", "Unready":
+		return true
+	case "Progressing":
+		return entity.Status.Error
+	}
+
+	return false
+}
+
+// IsStatusDeleted returns true if the service is deleted.
+func IsStatusDeleted(entity *model.Service) bool {
+	switch entity.Status.SummaryStatus {
+	case "Deleted", "Deleting":
+		return true
+	}
+
+	return false
 }
