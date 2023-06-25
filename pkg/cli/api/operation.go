@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -15,6 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/cli/config"
 	"github.com/seal-io/seal/pkg/cli/formatter"
 	"github.com/seal-io/seal/utils/json"
+	"github.com/seal-io/seal/utils/log"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.
@@ -59,9 +61,28 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		Hidden:     o.Hidden,
 		Deprecated: o.Deprecated,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			err := sc.Inject(cmd)
+			var err error
+
+			debug := cmd.Flags().Lookup("debug")
+			if debug != nil {
+				sc.Debug, err = strconv.ParseBool(debug.Value.String())
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				}
+			}
+			log.SetLevel(log.InfoLevel)
+			if sc.Debug {
+				log.SetLevel(log.DebugLevel)
+			}
+
+			format := cmd.Flags().Lookup("output")
+			if format != nil {
+				sc.Format = format.Value.String()
+			}
+
+			err = sc.Inject(cmd)
 			if err != nil {
-				fmt.Fprintln(os.Stderr)
+				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
 		},
