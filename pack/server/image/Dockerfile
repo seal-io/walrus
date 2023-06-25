@@ -155,7 +155,7 @@ COPY --from=sealio/casdoor:v1.197.0-seal.3 \
 # seal cli
 RUN set -eux; \
     mkdir -p /var/lib/seal/cli
-COPY /build/cli-${TARGETOS}-${TARGETARCH} /var/lib/seal/cli/seal-cli
+COPY /build/cli* /var/lib/seal/cli/
 
 
 ARG SERVE_UI_INDEX="file:///var/lib/seal/ui"
