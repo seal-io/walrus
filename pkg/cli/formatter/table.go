@@ -69,6 +69,10 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 
 		its, ok := m["items"]
 		if ok {
+			if its == nil {
+				return []byte{}, nil
+			}
+
 			items, ok := its.([]interface{})
 			if ok {
 				formatted := f.resourceItems(items)

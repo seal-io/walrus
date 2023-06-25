@@ -106,6 +106,7 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 			}
 
 			os.Stdout.Write(b)
+			os.Stdout.Write([]byte{'\n'})
 		},
 	}
 
