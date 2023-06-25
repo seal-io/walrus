@@ -253,6 +253,27 @@ func (h Handler) CollectionGet(
 	return model.ExposeServices(entities), cnt, nil
 }
 
+func (h Handler) CollectionCreate(ctx *gin.Context, req view.CollectionCreateRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		var services model.Services
+
+		for _, envID := range req.EnvironmentIDs {
+			for _, s := range req.Services {
+				svc := s.Model()
+				svc.EnvironmentID = envID
+				services = append(services, svc)
+			}
+		}
+
+		_, err := pkgservice.CreateScheduledServices(ctx, h.modelClient, services)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.CollectionStreamRequest) error {
 	t, err := topic.Subscribe(datamessage.Service)
 	if err != nil {
