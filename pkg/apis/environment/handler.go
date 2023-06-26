@@ -153,6 +153,10 @@ func (h Handler) CollectionGet(
 		query.Where(queries)
 	}
 
+	if req.ProjectID != "" {
+		query.Where(environment.ProjectID(req.ProjectID))
+	}
+
 	// Get count.
 	cnt, err := query.Clone().Count(ctx)
 	if err != nil {

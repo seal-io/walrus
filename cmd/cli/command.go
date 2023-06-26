@@ -108,7 +108,7 @@ func NewConfigCmd() *cobra.Command {
 	configCmd := &cobra.Command{
 		GroupID: "config",
 		Use:     "config",
-		Short:   "Command set for initializing and viewing configuration",
+		Short:   "Command set for manage CLI configuration",
 	}
 	configCmd.AddCommand(
 		setupCmd,
