@@ -5,39 +5,43 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
-type OwnByProject struct {
-	schema
+func OwnByProject() ownByProject {
+	return ownByProject{}
+}
+
+type ownByProject struct {
+	mixin.Schema
 
 	optional bool
 }
 
-func (p OwnByProject) AsOptional() OwnByProject {
-	p.optional = true
-	return p
+func (i ownByProject) Optional() ownByProject {
+	i.optional = true
+	return i
 }
 
-func (p OwnByProject) Fields() []ent.Field {
-	// Keep the json tag in camel case.
+func (i ownByProject) Fields() []ent.Field {
 	f := oid.Field("projectID").
 		Immutable()
 
-	if p.optional {
-		f.Comment("ID of the project to which the resource belongs, empty means using for global level.").
+	if i.optional {
+		f.Comment("ID of the project to belong, empty means for all projects.").
 			Optional()
 	} else {
-		f.Comment("ID of the project to which the resource belongs.").
+		f.Comment("ID of the project to belong.").
 			NotEmpty()
 	}
 
 	return []ent.Field{f}
 }
 
-func (p OwnByProject) Hooks() []ent.Hook {
+func (i ownByProject) Hooks() []ent.Hook {
 	type target interface {
 		SetProjectID(oid.ID)
 		ProjectID() (oid.ID, bool)
@@ -54,7 +58,7 @@ func (p OwnByProject) Hooks() []ent.Hook {
 			sj, err := session.GetSubject(ctx)
 			if err == nil {
 				t := m.(target)
-				p.injectWith(sj, t)
+				i.injectWith(sj, t)
 			}
 
 			return n.Mutate(ctx, m)
@@ -70,7 +74,7 @@ func (p OwnByProject) Hooks() []ent.Hook {
 
 			sj, err := session.GetSubject(ctx)
 			if err == nil {
-				p.filterWith(sj, m.(target))
+				i.filterWith(sj, m.(target))
 			}
 
 			return n.Mutate(ctx, m)
@@ -83,7 +87,7 @@ func (p OwnByProject) Hooks() []ent.Hook {
 	}
 }
 
-func (p OwnByProject) Interceptors() []ent.Interceptor {
+func (i ownByProject) Interceptors() []ent.Interceptor {
 	type target interface {
 		WhereP(...func(*sql.Selector))
 	}
@@ -92,7 +96,7 @@ func (p OwnByProject) Interceptors() []ent.Interceptor {
 	filter := ent.TraverseFunc(func(ctx context.Context, q ent.Query) error {
 		sj, err := session.GetSubject(ctx)
 		if err == nil {
-			p.filterWith(sj, q.(target))
+			i.filterWith(sj, q.(target))
 		}
 
 		return nil
@@ -103,7 +107,7 @@ func (p OwnByProject) Interceptors() []ent.Interceptor {
 	}
 }
 
-func (p OwnByProject) injectWith(sj session.Subject, t interface{ SetProjectID(oid.ID) }) {
+func (i ownByProject) injectWith(sj session.Subject, t interface{ SetProjectID(oid.ID) }) {
 	// Inject `projectID` query value if found.
 	pid := sj.Ctx.Query("projectID")
 	if pid != "" {
@@ -111,7 +115,7 @@ func (p OwnByProject) injectWith(sj session.Subject, t interface{ SetProjectID(o
 	}
 }
 
-func (p OwnByProject) filterWith(sj session.Subject, t interface{ WhereP(...func(*sql.Selector)) }) {
+func (i ownByProject) filterWith(sj session.Subject, t interface{ WhereP(...func(*sql.Selector)) }) {
 	// Filter with `projectID` query value if found.
 	pid := sj.Ctx.Query("projectID")
 	if pid != "" {
@@ -119,7 +123,7 @@ func (p OwnByProject) filterWith(sj session.Subject, t interface{ WhereP(...func
 			ss.Where(sql.EQ(ss.C("project_id"), pid))
 		}
 
-		if p.optional {
+		if i.optional {
 			// Query both project and global scope for optionally own-by-project resources.
 			sltFunc = func(ss *sql.Selector) {
 				ss.Where(

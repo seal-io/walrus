@@ -1,71 +1,57 @@
 package mixin
 
 import (
-	"time"
+	stdtime "time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"entgo.io/ent/schema/mixin"
+
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 )
 
-type Time struct {
-	schema
+func Time() time {
+	return time{}
 }
 
-func (Time) Indexes() []ent.Index {
+type time struct {
+	mixin.Schema
+
+	withoutUpdateTime bool
+}
+
+func (i time) WithoutUpdateTime() time {
+	i.withoutUpdateTime = true
+	return i
+}
+
+func (time) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("updateTime"),
+		index.Fields("createTime"),
 	}
 }
 
-func (Time) Fields() []ent.Field {
-	// Keep the json tag in camel case.
-	return []ent.Field{
+func (i time) Fields() []ent.Field {
+	fs := []ent.Field{
 		field.Time("createTime").
-			Comment("Describe creation time.").
 			Nillable().
-			Default(time.Now).
-			Immutable(),
-		field.Time("updateTime").
-			Comment("Describe modification time.").
-			Nillable().
-			Default(time.Now).
-			UpdateDefault(time.Now),
+			Default(stdtime.Now).
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
-}
 
-type CreateTime struct {
-	schema
-}
-
-func (CreateTime) Fields() []ent.Field {
-	// Keep the json tag in camel case.
-	return []ent.Field{
-		field.Time("createTime").
-			Comment("Describe creation time.").
-			Nillable().
-			Default(time.Now).
-			Immutable(),
+	if !i.withoutUpdateTime {
+		fs = append(fs,
+			field.Time("updateTime").
+				Nillable().
+				Default(stdtime.Now).
+				UpdateDefault(stdtime.Now).
+				Annotations(
+					io.DisableInput()),
+		)
 	}
-}
 
-type UpdateTime struct {
-	schema
-}
-
-func (UpdateTime) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("updateTime"),
-	}
-}
-
-func (UpdateTime) Fields() []ent.Field {
-	// Keep the json tag in camel case.
-	return []ent.Field{
-		field.Time("updateTime").
-			Comment("Describe modification time.").
-			Nillable().
-			Default(time.Now).
-			UpdateDefault(time.Now),
-	}
+	return fs
 }
