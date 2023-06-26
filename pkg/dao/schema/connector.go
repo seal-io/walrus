@@ -27,8 +27,17 @@ func (Connector) Mixin() []ent.Mixin {
 
 func (Connector) Indexes() []ent.Index {
 	return []ent.Index{
+		// NB(thxCode): since null project connector belongs to the organization(beyond any project),
+		// single unique constraint index cannot cover null column value,
+		// so we leverage conditional indexes to run this case.
+		index.Fields("projectID", "name").
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NOT NULL")),
 		index.Fields("name").
-			Unique(),
+			Unique().
+			Annotations(
+				entsql.IndexWhere("project_id IS NULL")),
 	}
 }
 
