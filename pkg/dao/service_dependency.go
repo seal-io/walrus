@@ -40,10 +40,7 @@ func GetNewDependencies(
 	mc model.ClientSet,
 	entity *model.Service,
 ) ([]*model.ServiceDependency, error) {
-	var (
-		dependencies []*model.ServiceDependency
-		serviceNames = GetDependencyNames(entity)
-	)
+	serviceNames := GetDependencyNames(entity)
 
 	// Get the service IDs of the service names in same project and environment.
 	serviceIDs, err := mc.Services().Query().
@@ -64,34 +61,45 @@ func GetNewDependencies(
 		return nil, err
 	}
 
+	dependencies := make([]*model.ServiceDependency, 0, len(parentDependencies)+len(serviceIDs))
+
 	// TODO (alex): handle the case for user add explicit dependency.
-	if len(parentDependencies) == 0 {
-		for _, id := range serviceIDs {
-			dependencies = append(dependencies, &model.ServiceDependency{
-				ServiceID:   entity.ID,
-				DependentID: id,
-				Path:        []oid.ID{id, entity.ID},
-				Type:        types.ServiceDependencyTypeImplicit,
-			})
-		}
-	} else {
-		for _, d := range parentDependencies {
-			path := d.Path
-			path = append(path, entity.ID)
+	// Service that already have dependencies.
+	serviceWithDeps := sets.NewString()
 
-			denpendency := &model.ServiceDependency{
-				ServiceID:   entity.ID,
-				DependentID: d.ServiceID,
-				Type:        types.ServiceDependencyTypeImplicit,
-				Path:        path,
-			}
+	for _, d := range parentDependencies {
+		path := make([]oid.ID, 0, len(d.Path)+1)
+		copy(path, d.Path)
+		path = append(path, entity.ID)
 
-			// Check if there is a dependency cycle.
-			if existCycle := CheckDependencyCycle(denpendency); existCycle {
-				return nil, errors.New("service dependency contains cycle")
-			}
-			dependencies = append(dependencies, denpendency)
+		serviceWithDeps.Insert(d.ServiceID.String())
+
+		denpendency := &model.ServiceDependency{
+			ServiceID:   entity.ID,
+			DependentID: d.ServiceID,
+			Type:        types.ServiceDependencyTypeImplicit,
+			Path:        path,
 		}
+
+		// Check if there is a dependency cycle.
+		if existCycle := CheckDependencyCycle(denpendency); existCycle {
+			return nil, errors.New("service dependency contains cycle")
+		}
+
+		dependencies = append(dependencies, denpendency)
+	}
+
+	for _, id := range serviceIDs {
+		if serviceWithDeps.Has(id.String()) {
+			continue
+		}
+
+		dependencies = append(dependencies, &model.ServiceDependency{
+			ServiceID:   entity.ID,
+			DependentID: id,
+			Path:        []oid.ID{id, entity.ID},
+			Type:        types.ServiceDependencyTypeImplicit,
+		})
 	}
 
 	return dependencies, nil

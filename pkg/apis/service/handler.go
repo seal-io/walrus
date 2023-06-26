@@ -255,19 +255,19 @@ func (h Handler) CollectionGet(
 
 func (h Handler) CollectionCreate(ctx *gin.Context, req view.CollectionCreateRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		var services model.Services
-
 		for _, envID := range req.EnvironmentIDs {
+			var services model.Services
+
 			for _, s := range req.Services {
 				svc := s.Model()
 				svc.EnvironmentID = envID
 				services = append(services, svc)
 			}
-		}
 
-		_, err := pkgservice.CreateScheduledServices(ctx, h.modelClient, services)
-		if err != nil {
-			return err
+			_, err := pkgservice.CreateScheduledServices(ctx, tx, services)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

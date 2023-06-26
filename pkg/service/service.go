@@ -229,15 +229,13 @@ func CreateScheduledServices(ctx context.Context, mc model.ClientSet, entities m
 
 // IsStatusReady returns true if the service is ready.
 func IsStatusReady(entity *model.Service) bool {
-	return entity.Status.SummaryStatus == status.ServiceStatusReady.String() &&
-		!entity.Status.Transitioning &&
-		!entity.Status.Error
+	return entity.Status.SummaryStatus == status.ServiceStatusReady.String()
 }
 
 // IsStatusFalse returns true if the service is in error status.
 func IsStatusFalse(entity *model.Service) bool {
 	switch entity.Status.SummaryStatus {
-	case "DeployFailed", "DeleteFailed", "Unready":
+	case "DeployFailed", "DeleteFailed":
 		return true
 	case "Progressing":
 		return entity.Status.Error

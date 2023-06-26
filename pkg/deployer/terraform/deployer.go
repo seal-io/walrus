@@ -735,6 +735,13 @@ func (d Deployer) parseModuleAttributes(
 		return nil, nil, err
 	}
 
+	// Check if all dependency service outputs are found.
+	for _, o := range dependencyServiceOutputs {
+		if _, ok := outputs[o]; !ok {
+			return nil, nil, fmt.Errorf("service %s dependency output %s not found", opts.ServiceName, o)
+		}
+	}
+
 	return secrets, outputs, nil
 }
 
