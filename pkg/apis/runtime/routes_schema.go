@@ -502,6 +502,9 @@ var (
 		"/connectors/:id/repository-branches",
 		"/perspectives/_/field-values",
 		"/perspectives/_/fields",
+		"/services/_/graph",
+		"/service-resources/:id/keys",
+		"/service-resources/_/graph",
 	}
 )
 
