@@ -57,7 +57,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type GetRequest struct {
-	*model.SettingQueryInput `uri:",inline"`
+	model.SettingQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {

@@ -38,7 +38,7 @@ type CreateResponse struct {
 }
 
 type DeleteRequest struct {
-	*model.TokenQueryInput `uri:",inline"`
+	model.TokenQueryInput `uri:",inline"`
 }
 
 func (r *DeleteRequest) Validate() error {

@@ -20,7 +20,7 @@ import (
 
 // ServiceResourceQuery loads model.ServiceResource with the request ID in validating.
 type ServiceResourceQuery struct {
-	*model.ServiceResourceQueryInput `uri:",inline"`
+	model.ServiceResourceQueryInput `uri:",inline"`
 
 	Entity *model.ServiceResource `uri:"-" json:"-"`
 }
@@ -155,7 +155,8 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 
 type ServiceResource struct {
 	*model.ServiceResourceOutput `json:",inline"`
-	Keys                         *optypes.Keys `json:"keys"`
+
+	Keys *optypes.Keys `json:"keys"`
 }
 
 type CollectionGetResponse = []ServiceResource

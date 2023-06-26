@@ -18,7 +18,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.PerspectiveCreateInput `json:",inline"`
+	model.PerspectiveCreateInput `json:",inline"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -43,7 +43,7 @@ type CreateResponse = *model.PerspectiveOutput
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.PerspectiveUpdateInput `uri:",inline" json:",inline"`
+	model.PerspectiveUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -75,7 +75,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type GetRequest struct {
-	*model.PerspectiveQueryInput `uri:",inline"`
+	model.PerspectiveQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {

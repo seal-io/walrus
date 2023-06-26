@@ -18,7 +18,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.TemplateCreateInput `json:",inline"`
+	model.TemplateCreateInput `json:",inline"`
 
 	ID string `json:"id"`
 }
@@ -39,7 +39,7 @@ type CreateResponse = *model.TemplateOutput
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.TemplateUpdateInput `uri:",inline" json:",inline"`
+	model.TemplateUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) Validate() error {
@@ -65,7 +65,7 @@ func validate(m *model.Template) error {
 }
 
 type GetRequest struct {
-	*model.TemplateQueryInput `uri:",inline"`
+	model.TemplateQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {

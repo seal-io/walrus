@@ -12,7 +12,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.SubjectRoleRelationshipCreateInput `json:",inline"`
+	model.SubjectRoleRelationshipCreateInput `json:",inline"`
 
 	ProjectID oid.ID `query:"projectID,omitempty"`
 }
@@ -36,7 +36,7 @@ func (r *CreateRequest) Validate() error {
 type CreateResponse = *model.SubjectRoleRelationshipOutput
 
 type DeleteRequest struct {
-	*model.SubjectRoleRelationshipQueryInput `uri:",inline"`
+	model.SubjectRoleRelationshipQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID,omitempty"`
 }

@@ -19,7 +19,7 @@ import (
 // Basic APIs.
 
 type GetRequest struct {
-	*model.ServiceRevisionQueryInput `uri:",inline"`
+	model.ServiceRevisionQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID"`
 }

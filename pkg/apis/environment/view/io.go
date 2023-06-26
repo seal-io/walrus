@@ -19,9 +19,9 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.EnvironmentCreateInput `json:",inline"`
+	model.EnvironmentCreateInput `json:",inline"`
 
-	Services []*model.ServiceCreateInput `json:"services"`
+	Services []model.ServiceCreateInput `json:"services"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -103,7 +103,7 @@ type CreateResponse = *model.EnvironmentOutput
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.EnvironmentUpdateInput `uri:",inline" json:",inline"`
+	model.EnvironmentUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) Validate() error {
@@ -115,7 +115,7 @@ func (r *UpdateRequest) Validate() error {
 }
 
 type GetRequest struct {
-	*model.EnvironmentQueryInput `uri:",inline"`
+	model.EnvironmentQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {

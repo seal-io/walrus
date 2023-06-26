@@ -15,7 +15,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.SecretCreateInput `json:",inline"`
+	model.SecretCreateInput `json:",inline"`
 
 	ProjectID oid.ID `query:"projectID,omitempty"`
 }
@@ -39,7 +39,7 @@ func (r *CreateRequest) Validate() error {
 type CreateResponse = *model.SecretOutput
 
 type DeleteRequest struct {
-	*model.SecretQueryInput `uri:",inline"`
+	model.SecretQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID,omitempty"`
 }
@@ -57,7 +57,7 @@ func (r *DeleteRequest) Validate() error {
 }
 
 type UpdateRequest struct {
-	*model.SecretUpdateInput `uri:",inline" json:",inline"`
+	model.SecretUpdateInput `uri:",inline" json:",inline"`
 
 	ProjectID oid.ID `query:"projectID,omitempty"`
 }

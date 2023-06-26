@@ -14,7 +14,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.ProjectCreateInput `json:",inline"`
+	model.ProjectCreateInput `json:",inline"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -30,7 +30,7 @@ type CreateResponse = *model.ProjectOutput
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.ProjectUpdateInput `uri:",inline" json:",inline"`
+	model.ProjectUpdateInput `uri:",inline" json:",inline"`
 }
 
 func (r *UpdateRequest) Validate() error {
@@ -46,7 +46,7 @@ func (r *UpdateRequest) Validate() error {
 }
 
 type GetRequest struct {
-	*model.ProjectQueryInput `uri:",inline"`
+	model.ProjectQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {
