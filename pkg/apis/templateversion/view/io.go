@@ -12,7 +12,7 @@ import (
 // Basic APIs.
 
 type GetRequest struct {
-	*model.TemplateVersionQueryInput `uri:",inline"`
+	model.TemplateVersionQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {

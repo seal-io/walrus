@@ -23,7 +23,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.ConnectorCreateInput `json:",inline"`
+	model.ConnectorCreateInput `json:",inline"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -48,7 +48,7 @@ type CreateResponse = *model.ConnectorOutput
 type DeleteRequest = GetRequest
 
 type UpdateRequest struct {
-	*model.ConnectorUpdateInput `uri:",inline" json:",inline"`
+	model.ConnectorUpdateInput `uri:",inline" json:",inline"`
 
 	Type string `json:"type"`
 }
@@ -84,7 +84,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type GetRequest struct {
-	*model.ConnectorQueryInput `uri:",inline"`
+	model.ConnectorQueryInput `uri:",inline"`
 }
 
 func (r *GetRequest) Validate() error {
@@ -244,7 +244,8 @@ type GetRepositoriesRequest struct {
 	_ struct{} `route:"GET=/repositories"`
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
-	ID                                                                    oid.ID `uri:"id"`
+
+	ID oid.ID `uri:"id"`
 }
 
 type GetRepositoriesResponse = []*scm.Repository
@@ -253,8 +254,9 @@ type GetBranchesRequest struct {
 	_ struct{} `route:"GET=/repository-branches"`
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
-	ID                                                                    oid.ID `uri:"id"`
-	Repository                                                            string `query:"repository"`
+
+	ID         oid.ID `uri:"id"`
+	Repository string `query:"repository"`
 }
 
 type GetBranchesResponse = []*scm.Reference

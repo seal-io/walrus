@@ -33,7 +33,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.ServiceCreateInput `json:",inline"`
+	model.ServiceCreateInput `json:",inline"`
 
 	ProjectID   oid.ID   `query:"projectID"`
 	ProjectName string   `query:"projectName"`
@@ -107,7 +107,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 type CreateResponse = *model.ServiceOutput
 
 type DeleteRequest struct {
-	*model.ServiceQueryInput `uri:",inline"`
+	model.ServiceQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID"`
 	Force     *bool  `query:"force,default=true"`
@@ -151,7 +151,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 type GetRequest struct {
-	*model.ServiceQueryInput `uri:",inline"`
+	model.ServiceQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID"`
 }
@@ -248,8 +248,8 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 }
 
 type CollectionCreateRequest struct {
-	EnvironmentIDs []oid.ID                    `json:"environmentIDs"`
-	Services       []*model.ServiceCreateInput `json:"services"`
+	EnvironmentIDs []oid.ID                   `json:"environmentIDs"`
+	Services       []model.ServiceCreateInput `json:"services"`
 }
 
 func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -392,7 +392,7 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 type RouteUpgradeRequest struct {
 	_ struct{} `route:"PUT=/upgrade"`
 
-	*model.ServiceUpdateInput `uri:",inline" json:",inline"`
+	model.ServiceUpdateInput `uri:",inline" json:",inline"`
 
 	ProjectID  oid.ID   `query:"projectID"`
 	RemarkTags []string `json:"remarkTags,omitempty"`
@@ -451,7 +451,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 type RouteRollbackRequest struct {
 	_ struct{} `route:"POST=/rollback"`
 
-	*model.ServiceQueryInput `uri:",inline" json:",inline"`
+	model.ServiceQueryInput `uri:",inline" json:",inline"`
 
 	ProjectID  oid.ID `query:"projectID"`
 	RevisionID oid.ID `query:"revisionID"`
@@ -496,7 +496,7 @@ func IsEndpointOutput(outputName string) bool {
 type RouteAccessEndpointRequest struct {
 	_ struct{} `route:"GET=/access-endpoints"`
 
-	*model.ServiceQueryInput `uri:",inline"`
+	model.ServiceQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID"`
 }
@@ -534,7 +534,7 @@ type AccessEndpoint struct {
 type RouteOutputRequest struct {
 	_ struct{} `route:"GET=/outputs"`
 
-	*model.ServiceQueryInput `uri:",inline"`
+	model.ServiceQueryInput `uri:",inline"`
 
 	ProjectID oid.ID `query:"projectID"`
 }

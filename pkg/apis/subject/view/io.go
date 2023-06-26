@@ -13,7 +13,7 @@ import (
 // Basic APIs.
 
 type CreateRequest struct {
-	*model.SubjectCreateInput `json:",inline"`
+	model.SubjectCreateInput `json:",inline"`
 
 	Password string `json:"password"`
 }
@@ -39,7 +39,7 @@ func (r *CreateRequest) Validate() error {
 type CreateResponse = *model.SubjectOutput
 
 type DeleteRequest struct {
-	*model.SubjectQueryInput `uri:",inline"`
+	model.SubjectQueryInput `uri:",inline"`
 }
 
 func (r *DeleteRequest) Validate() error {
@@ -51,7 +51,7 @@ func (r *DeleteRequest) Validate() error {
 }
 
 type UpdateRequest struct {
-	*model.SubjectUpdateInput `uri:",inline" json:",inline"`
+	model.SubjectUpdateInput `uri:",inline" json:",inline"`
 
 	Password string `json:"password,omitempty"` // Allow to reset password.
 }
