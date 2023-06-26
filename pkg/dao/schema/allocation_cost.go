@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -157,6 +158,8 @@ func (AllocationCost) Edges() []ent.Edge {
 			Field("connectorID").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.Disable()),
 	}
 }

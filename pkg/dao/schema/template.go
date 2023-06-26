@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
@@ -15,8 +16,8 @@ type Template struct {
 
 func (Template) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.Status{},
-		mixin.Time{},
+		mixin.Time(),
+		mixin.LegacyStatus(),
 	}
 }
 
@@ -48,8 +49,8 @@ func (Template) Edges() []ent.Edge {
 		// Template 1-* template versions.
 		edge.To("versions", TemplateVersion.Type).
 			Comment("versions of the template.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 	}
 }

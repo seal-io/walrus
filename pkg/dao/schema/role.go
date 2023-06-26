@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -15,7 +16,7 @@ type Role struct {
 
 func (Role) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.Time{},
+		mixin.Time(),
 	}
 }
 
@@ -39,11 +40,15 @@ func (Role) Fields() []ent.Field {
 		field.Bool("session").
 			Comment("Indicate whether the role is session level, decide when creating.").
 			Default(false).
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.Disable()),
 		field.Bool("builtin").
 			Comment("Indicate whether the role is builtin, decide when creating.").
 			Default(false).
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
 }
 
@@ -53,6 +58,8 @@ func (Role) Edges() []ent.Edge {
 		edge.From("subjects", Subject.Type).
 			Ref("roles").
 			Comment("Subjects to which the role configures.").
-			Through("subjectRoleRelationships", SubjectRoleRelationship.Type),
+			Through("subjectRoleRelationships", SubjectRoleRelationship.Type).
+			Annotations(
+				io.Disable()),
 	}
 }

@@ -14,8 +14,8 @@ type Setting struct {
 
 func (Setting) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.Time{},
+		mixin.ID(),
+		mixin.Time(),
 	}
 }
 

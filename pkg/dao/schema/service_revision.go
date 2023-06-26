@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -18,10 +19,10 @@ type ServiceRevision struct {
 
 func (ServiceRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{},
-		mixin.Status{},
-		mixin.CreateTime{},
+		mixin.ID(),
+		mixin.Time().WithoutUpdateTime(),
+		mixin.OwnByProject(),
+		mixin.LegacyStatus(),
 	}
 }
 
@@ -71,22 +72,6 @@ func (ServiceRevision) Fields() []ent.Field {
 
 func (ServiceRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Service 1-* service revisions.
-		edge.From("service", Service.Type).
-			Ref("revisions").
-			Field("serviceID").
-			Comment("Service to which the revision belongs.").
-			Unique().
-			Required().
-			Immutable(),
-		// Environment 1-* service revisions.
-		edge.From("environment", Environment.Type).
-			Ref("serviceRevisions").
-			Field("environmentID").
-			Comment("Environment to which the revision deploys.").
-			Unique().
-			Required().
-			Immutable(),
 		// Project 1-* service revisions.
 		edge.From("project", Project.Type).
 			Ref("serviceRevisions").
@@ -94,6 +79,28 @@ func (ServiceRevision) Edges() []ent.Edge {
 			Comment("Project to which the revision belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
+		// Environment 1-* service revisions.
+		edge.From("environment", Environment.Type).
+			Ref("serviceRevisions").
+			Field("environmentID").
+			Comment("Environment to which the revision deploys.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(
+				io.DisableInput()),
+		// Service 1-* service revisions.
+		edge.From("service", Service.Type).
+			Ref("revisions").
+			Field("serviceID").
+			Comment("Service to which the revision belongs.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
 }

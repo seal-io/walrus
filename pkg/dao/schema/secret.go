@@ -17,9 +17,9 @@ type Secret struct {
 
 func (Secret) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{}.AsOptional(),
-		mixin.Time{},
+		mixin.ID(),
+		mixin.Time(),
+		mixin.OwnByProject().Optional(),
 	}
 }
 
@@ -30,14 +30,12 @@ func (Secret) Indexes() []ent.Index {
 		// so we leverage conditional indexes to run this case.
 		index.Fields("projectID", "name").
 			Unique().
-			Annotations(entsql.IndexAnnotation{
-				Where: "project_id IS NOT NULL",
-			}),
+			Annotations(
+				entsql.IndexWhere("project_id IS NOT NULL")),
 		index.Fields("name").
 			Unique().
-			Annotations(entsql.IndexAnnotation{
-				Where: "project_id IS NULL",
-			}),
+			Annotations(
+				entsql.IndexWhere("project_id IS NULL")),
 	}
 }
 

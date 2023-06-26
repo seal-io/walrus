@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
@@ -15,10 +16,8 @@ type Environment struct {
 
 func (Environment) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{},
-		mixin.Meta{},
-		mixin.Time{},
+		mixin.Metadata(),
+		mixin.OwnByProject(),
 	}
 }
 
@@ -46,14 +45,14 @@ func (Environment) Edges() []ent.Edge {
 		// Environment 1-* services.
 		edge.To("services", Service.Type).
 			Comment("Services that belong to the environment.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Restrict,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Restrict),
+				io.Disable()),
 		// Environment 1-* service revisions.
 		edge.To("serviceRevisions", ServiceRevision.Type).
 			Comment("Services revisions that belong to the environment.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Restrict,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.NoAction),
+				io.Disable()),
 	}
 }
