@@ -11,7 +11,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -148,6 +150,30 @@ func (r CollectionDeleteRequest) Validate() error {
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Environment, environment.OrderOption] `query:",inline"`
+	ProjectID                                                                 oid.ID `query:"projectID,omitempty"`
+	ProjectName                                                               string `query:"projectName,omitempty"`
+}
+
+func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
+	return nil
 }
 
 type CollectionGetResponse = []*model.EnvironmentOutput
