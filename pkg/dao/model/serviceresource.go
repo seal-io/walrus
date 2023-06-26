@@ -26,12 +26,12 @@ type ServiceResource struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the project to which the resource belongs.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// ID of the project to belong.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// ID of the service to which the resource belongs.
 	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
 	// ID of the connector to which the resource deploys.
@@ -50,7 +50,7 @@ type ServiceResource struct {
 	Status types.ServiceResourceStatus `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceResourceQuery when eager-loading is set.
-	Edges        ServiceResourceEdges `json:"edges,omitempty"`
+	Edges        ServiceResourceEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -151,12 +151,6 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				sr.ID = *value
 			}
-		case serviceresource.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				sr.ProjectID = *value
-			}
 		case serviceresource.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -170,6 +164,12 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sr.UpdateTime = new(time.Time)
 				*sr.UpdateTime = value.Time
+			}
+		case serviceresource.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				sr.ProjectID = *value
 			}
 		case serviceresource.FieldServiceID:
 			if value, ok := values[i].(*oid.ID); !ok {
@@ -277,9 +277,6 @@ func (sr *ServiceResource) String() string {
 	var builder strings.Builder
 	builder.WriteString("ServiceResource(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", sr.ID))
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
-	builder.WriteString(", ")
 	if v := sr.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -289,6 +286,9 @@ func (sr *ServiceResource) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("serviceID=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ServiceID))

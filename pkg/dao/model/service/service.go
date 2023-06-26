@@ -18,8 +18,6 @@ const (
 	Label = "service"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldProjectID holds the string denoting the projectid field in the database.
-	FieldProjectID = "project_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -32,6 +30,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
 	FieldEnvironmentID = "environment_id"
 	// FieldTemplate holds the string denoting the template field in the database.
@@ -40,10 +40,10 @@ const (
 	FieldAttributes = "attributes"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
-	EdgeEnvironment = "environment"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
+	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
+	EdgeEnvironment = "environment"
 	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
 	EdgeRevisions = "revisions"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -52,13 +52,6 @@ const (
 	EdgeDependencies = "dependencies"
 	// Table holds the table name of the service in the database.
 	Table = "services"
-	// EnvironmentTable is the table that holds the environment relation/edge.
-	EnvironmentTable = "services"
-	// EnvironmentInverseTable is the table name for the Environment entity.
-	// It exists in this package in order to avoid circular dependency with the "environment" package.
-	EnvironmentInverseTable = "environments"
-	// EnvironmentColumn is the table column denoting the environment relation/edge.
-	EnvironmentColumn = "environment_id"
 	// ProjectTable is the table that holds the project relation/edge.
 	ProjectTable = "services"
 	// ProjectInverseTable is the table name for the Project entity.
@@ -66,6 +59,13 @@ const (
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
 	ProjectColumn = "project_id"
+	// EnvironmentTable is the table that holds the environment relation/edge.
+	EnvironmentTable = "services"
+	// EnvironmentInverseTable is the table name for the Environment entity.
+	// It exists in this package in order to avoid circular dependency with the "environment" package.
+	EnvironmentInverseTable = "environments"
+	// EnvironmentColumn is the table column denoting the environment relation/edge.
+	EnvironmentColumn = "environment_id"
 	// RevisionsTable is the table that holds the revisions relation/edge.
 	RevisionsTable = "service_revisions"
 	// RevisionsInverseTable is the table name for the ServiceRevision entity.
@@ -92,13 +92,13 @@ const (
 // Columns holds all SQL columns for service fields.
 var Columns = []string{
 	FieldID,
-	FieldProjectID,
 	FieldName,
 	FieldDescription,
 	FieldLabels,
 	FieldAnnotations,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldProjectID,
 	FieldEnvironmentID,
 	FieldTemplate,
 	FieldAttributes,
@@ -123,8 +123,6 @@ func ValidColumn(column string) bool {
 var (
 	Hooks        [3]ent.Hook
 	Interceptors [1]ent.Interceptor
-	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
-	ProjectIDValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultLabels holds the default value on creation for the "labels" field.
@@ -137,6 +135,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
 )
@@ -147,11 +147,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByProjectID orders the results by the projectID field.
-func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -174,6 +169,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
 }
 
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
+}
+
 // ByEnvironmentID orders the results by the environmentID field.
 func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
@@ -184,17 +184,17 @@ func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
 }
 
-// ByEnvironmentField orders the results by environment field.
-func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
-	}
-}
-
 // ByProjectField orders the results by project field.
 func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByEnvironmentField orders the results by environment field.
+func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -239,18 +239,18 @@ func ByDependencies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDependenciesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newEnvironmentStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EnvironmentInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
-	)
-}
 func newProjectStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProjectInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+	)
+}
+func newEnvironmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnvironmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
 	)
 }
 func newRevisionsStep() *sqlgraph.Step {

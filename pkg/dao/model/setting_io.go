@@ -83,9 +83,9 @@ func (in SettingUpdateInput) Model() *Setting {
 type SettingOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The name of system setting.
 	Name string `json:"name,omitempty"`

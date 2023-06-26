@@ -23,21 +23,21 @@ type Project struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty" sql:"description"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"-" sql:"annotations"`
-	// Describe creation time.
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty" sql:"annotations"`
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
-	Edges        ProjectEdges `json:"edges,omitempty"`
+	Edges        ProjectEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -49,12 +49,12 @@ type ProjectEdges struct {
 	Connectors []*Connector `json:"connectors,omitempty" sql:"connectors"`
 	// Secrets that belong to the project.
 	Secrets []*Secret `json:"secrets,omitempty" sql:"secrets"`
+	// Subject roles that belong to the project.
+	SubjectRoles []*SubjectRoleRelationship `json:"subjectRoles,omitempty" sql:"subjectRoles"`
 	// Services that belong to the project.
 	Services []*Service `json:"services,omitempty" sql:"services"`
 	// Service revisions that belong to the project.
 	ServiceRevisions []*ServiceRevision `json:"serviceRevisions,omitempty" sql:"serviceRevisions"`
-	// Subject roles that belong to the project.
-	SubjectRoles []*SubjectRoleRelationship `json:"subjectRoles,omitempty" sql:"subjectRoles"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [6]bool
@@ -87,10 +87,19 @@ func (e ProjectEdges) SecretsOrErr() ([]*Secret, error) {
 	return nil, &NotLoadedError{edge: "secrets"}
 }
 
+// SubjectRolesOrErr returns the SubjectRoles value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
+	if e.loadedTypes[3] {
+		return e.SubjectRoles, nil
+	}
+	return nil, &NotLoadedError{edge: "subjectRoles"}
+}
+
 // ServicesOrErr returns the Services value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Services, nil
 	}
 	return nil, &NotLoadedError{edge: "services"}
@@ -99,19 +108,10 @@ func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
 // ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.ServiceRevisions, nil
 	}
 	return nil, &NotLoadedError{edge: "serviceRevisions"}
-}
-
-// SubjectRolesOrErr returns the SubjectRoles value or an error if the edge
-// was not loaded in eager-loading.
-func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
-	if e.loadedTypes[5] {
-		return e.SubjectRoles, nil
-	}
-	return nil, &NotLoadedError{edge: "subjectRoles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -218,6 +218,11 @@ func (pr *Project) QuerySecrets() *SecretQuery {
 	return NewProjectClient(pr.config).QuerySecrets(pr)
 }
 
+// QuerySubjectRoles queries the "subjectRoles" edge of the Project entity.
+func (pr *Project) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
+	return NewProjectClient(pr.config).QuerySubjectRoles(pr)
+}
+
 // QueryServices queries the "services" edge of the Project entity.
 func (pr *Project) QueryServices() *ServiceQuery {
 	return NewProjectClient(pr.config).QueryServices(pr)
@@ -226,11 +231,6 @@ func (pr *Project) QueryServices() *ServiceQuery {
 // QueryServiceRevisions queries the "serviceRevisions" edge of the Project entity.
 func (pr *Project) QueryServiceRevisions() *ServiceRevisionQuery {
 	return NewProjectClient(pr.config).QueryServiceRevisions(pr)
-}
-
-// QuerySubjectRoles queries the "subjectRoles" edge of the Project entity.
-func (pr *Project) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
-	return NewProjectClient(pr.config).QuerySubjectRoles(pr)
 }
 
 // Update returns a builder for updating this Project.
@@ -265,7 +265,8 @@ func (pr *Project) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Labels))
 	builder.WriteString(", ")
-	builder.WriteString("annotations=<sensitive>")
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Annotations))
 	builder.WriteString(", ")
 	if v := pr.CreateTime; v != nil {
 		builder.WriteString("createTime=")

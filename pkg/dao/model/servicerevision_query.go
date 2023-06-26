@@ -31,9 +31,9 @@ type ServiceRevisionQuery struct {
 	order           []servicerevision.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ServiceRevision
-	withService     *ServiceQuery
-	withEnvironment *EnvironmentQuery
 	withProject     *ProjectQuery
+	withEnvironment *EnvironmentQuery
+	withService     *ServiceQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -71,9 +71,9 @@ func (srq *ServiceRevisionQuery) Order(o ...servicerevision.OrderOption) *Servic
 	return srq
 }
 
-// QueryService chains the current query on the "service" edge.
-func (srq *ServiceRevisionQuery) QueryService() *ServiceQuery {
-	query := (&ServiceClient{config: srq.config}).Query()
+// QueryProject chains the current query on the "project" edge.
+func (srq *ServiceRevisionQuery) QueryProject() *ProjectQuery {
+	query := (&ProjectClient{config: srq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := srq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -84,11 +84,11 @@ func (srq *ServiceRevisionQuery) QueryService() *ServiceQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, selector),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ServiceTable, servicerevision.ServiceColumn),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ProjectTable, servicerevision.ProjectColumn),
 		)
 		schemaConfig := srq.schemaConfig
-		step.To.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
 		return fromU, nil
@@ -121,9 +121,9 @@ func (srq *ServiceRevisionQuery) QueryEnvironment() *EnvironmentQuery {
 	return query
 }
 
-// QueryProject chains the current query on the "project" edge.
-func (srq *ServiceRevisionQuery) QueryProject() *ProjectQuery {
-	query := (&ProjectClient{config: srq.config}).Query()
+// QueryService chains the current query on the "service" edge.
+func (srq *ServiceRevisionQuery) QueryService() *ServiceQuery {
+	query := (&ServiceClient{config: srq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := srq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -134,11 +134,11 @@ func (srq *ServiceRevisionQuery) QueryProject() *ProjectQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, selector),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ProjectTable, servicerevision.ProjectColumn),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ServiceTable, servicerevision.ServiceColumn),
 		)
 		schemaConfig := srq.schemaConfig
-		step.To.Schema = schemaConfig.Project
+		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
 		return fromU, nil
@@ -338,23 +338,23 @@ func (srq *ServiceRevisionQuery) Clone() *ServiceRevisionQuery {
 		order:           append([]servicerevision.OrderOption{}, srq.order...),
 		inters:          append([]Interceptor{}, srq.inters...),
 		predicates:      append([]predicate.ServiceRevision{}, srq.predicates...),
-		withService:     srq.withService.Clone(),
-		withEnvironment: srq.withEnvironment.Clone(),
 		withProject:     srq.withProject.Clone(),
+		withEnvironment: srq.withEnvironment.Clone(),
+		withService:     srq.withService.Clone(),
 		// clone intermediate query.
 		sql:  srq.sql.Clone(),
 		path: srq.path,
 	}
 }
 
-// WithService tells the query-builder to eager-load the nodes that are connected to
-// the "service" edge. The optional arguments are used to configure the query builder of the edge.
-func (srq *ServiceRevisionQuery) WithService(opts ...func(*ServiceQuery)) *ServiceRevisionQuery {
-	query := (&ServiceClient{config: srq.config}).Query()
+// WithProject tells the query-builder to eager-load the nodes that are connected to
+// the "project" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *ServiceRevisionQuery) WithProject(opts ...func(*ProjectQuery)) *ServiceRevisionQuery {
+	query := (&ProjectClient{config: srq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	srq.withService = query
+	srq.withProject = query
 	return srq
 }
 
@@ -369,14 +369,14 @@ func (srq *ServiceRevisionQuery) WithEnvironment(opts ...func(*EnvironmentQuery)
 	return srq
 }
 
-// WithProject tells the query-builder to eager-load the nodes that are connected to
-// the "project" edge. The optional arguments are used to configure the query builder of the edge.
-func (srq *ServiceRevisionQuery) WithProject(opts ...func(*ProjectQuery)) *ServiceRevisionQuery {
-	query := (&ProjectClient{config: srq.config}).Query()
+// WithService tells the query-builder to eager-load the nodes that are connected to
+// the "service" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *ServiceRevisionQuery) WithService(opts ...func(*ServiceQuery)) *ServiceRevisionQuery {
+	query := (&ServiceClient{config: srq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	srq.withProject = query
+	srq.withService = query
 	return srq
 }
 
@@ -386,12 +386,12 @@ func (srq *ServiceRevisionQuery) WithProject(opts ...func(*ProjectQuery)) *Servi
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ServiceRevision.Query().
-//		GroupBy(servicerevision.FieldProjectID).
+//		GroupBy(servicerevision.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (srq *ServiceRevisionQuery) GroupBy(field string, fields ...string) *ServiceRevisionGroupBy {
@@ -409,11 +409,11 @@ func (srq *ServiceRevisionQuery) GroupBy(field string, fields ...string) *Servic
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.ServiceRevision.Query().
-//		Select(servicerevision.FieldProjectID).
+//		Select(servicerevision.FieldCreateTime).
 //		Scan(ctx, &v)
 func (srq *ServiceRevisionQuery) Select(fields ...string) *ServiceRevisionSelect {
 	srq.ctx.Fields = append(srq.ctx.Fields, fields...)
@@ -459,9 +459,9 @@ func (srq *ServiceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		nodes       = []*ServiceRevision{}
 		_spec       = srq.querySpec()
 		loadedTypes = [3]bool{
-			srq.withService != nil,
-			srq.withEnvironment != nil,
 			srq.withProject != nil,
+			srq.withEnvironment != nil,
+			srq.withService != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -487,9 +487,9 @@ func (srq *ServiceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := srq.withService; query != nil {
-		if err := srq.loadService(ctx, query, nodes, nil,
-			func(n *ServiceRevision, e *Service) { n.Edges.Service = e }); err != nil {
+	if query := srq.withProject; query != nil {
+		if err := srq.loadProject(ctx, query, nodes, nil,
+			func(n *ServiceRevision, e *Project) { n.Edges.Project = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -499,20 +499,20 @@ func (srq *ServiceRevisionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 			return nil, err
 		}
 	}
-	if query := srq.withProject; query != nil {
-		if err := srq.loadProject(ctx, query, nodes, nil,
-			func(n *ServiceRevision, e *Project) { n.Edges.Project = e }); err != nil {
+	if query := srq.withService; query != nil {
+		if err := srq.loadService(ctx, query, nodes, nil,
+			func(n *ServiceRevision, e *Service) { n.Edges.Service = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (srq *ServiceRevisionQuery) loadService(ctx context.Context, query *ServiceQuery, nodes []*ServiceRevision, init func(*ServiceRevision), assign func(*ServiceRevision, *Service)) error {
+func (srq *ServiceRevisionQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*ServiceRevision, init func(*ServiceRevision), assign func(*ServiceRevision, *Project)) error {
 	ids := make([]oid.ID, 0, len(nodes))
 	nodeids := make(map[oid.ID][]*ServiceRevision)
 	for i := range nodes {
-		fk := nodes[i].ServiceID
+		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -521,7 +521,7 @@ func (srq *ServiceRevisionQuery) loadService(ctx context.Context, query *Service
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(service.IDIn(ids...))
+	query.Where(project.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -529,7 +529,7 @@ func (srq *ServiceRevisionQuery) loadService(ctx context.Context, query *Service
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "serviceID" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -566,11 +566,11 @@ func (srq *ServiceRevisionQuery) loadEnvironment(ctx context.Context, query *Env
 	}
 	return nil
 }
-func (srq *ServiceRevisionQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*ServiceRevision, init func(*ServiceRevision), assign func(*ServiceRevision, *Project)) error {
+func (srq *ServiceRevisionQuery) loadService(ctx context.Context, query *ServiceQuery, nodes []*ServiceRevision, init func(*ServiceRevision), assign func(*ServiceRevision, *Service)) error {
 	ids := make([]oid.ID, 0, len(nodes))
 	nodeids := make(map[oid.ID][]*ServiceRevision)
 	for i := range nodes {
-		fk := nodes[i].ProjectID
+		fk := nodes[i].ServiceID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -579,7 +579,7 @@ func (srq *ServiceRevisionQuery) loadProject(ctx context.Context, query *Project
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(project.IDIn(ids...))
+	query.Where(service.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -587,7 +587,7 @@ func (srq *ServiceRevisionQuery) loadProject(ctx context.Context, query *Project
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "serviceID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -626,14 +626,14 @@ func (srq *ServiceRevisionQuery) querySpec() *sqlgraph.QuerySpec {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if srq.withService != nil {
-			_spec.Node.AddColumnOnce(servicerevision.FieldServiceID)
+		if srq.withProject != nil {
+			_spec.Node.AddColumnOnce(servicerevision.FieldProjectID)
 		}
 		if srq.withEnvironment != nil {
 			_spec.Node.AddColumnOnce(servicerevision.FieldEnvironmentID)
 		}
-		if srq.withProject != nil {
-			_spec.Node.AddColumnOnce(servicerevision.FieldProjectID)
+		if srq.withService != nil {
+			_spec.Node.AddColumnOnce(servicerevision.FieldServiceID)
 		}
 	}
 	if ps := srq.predicates; len(ps) > 0 {

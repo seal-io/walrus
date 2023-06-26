@@ -29,34 +29,6 @@ type TemplateCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetStatus sets the "status" field.
-func (tc *TemplateCreate) SetStatus(s string) *TemplateCreate {
-	tc.mutation.SetStatus(s)
-	return tc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tc *TemplateCreate) SetNillableStatus(s *string) *TemplateCreate {
-	if s != nil {
-		tc.SetStatus(*s)
-	}
-	return tc
-}
-
-// SetStatusMessage sets the "statusMessage" field.
-func (tc *TemplateCreate) SetStatusMessage(s string) *TemplateCreate {
-	tc.mutation.SetStatusMessage(s)
-	return tc
-}
-
-// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
-func (tc *TemplateCreate) SetNillableStatusMessage(s *string) *TemplateCreate {
-	if s != nil {
-		tc.SetStatusMessage(*s)
-	}
-	return tc
-}
-
 // SetCreateTime sets the "createTime" field.
 func (tc *TemplateCreate) SetCreateTime(t time.Time) *TemplateCreate {
 	tc.mutation.SetCreateTime(t)
@@ -81,6 +53,34 @@ func (tc *TemplateCreate) SetUpdateTime(t time.Time) *TemplateCreate {
 func (tc *TemplateCreate) SetNillableUpdateTime(t *time.Time) *TemplateCreate {
 	if t != nil {
 		tc.SetUpdateTime(*t)
+	}
+	return tc
+}
+
+// SetStatus sets the "status" field.
+func (tc *TemplateCreate) SetStatus(s string) *TemplateCreate {
+	tc.mutation.SetStatus(s)
+	return tc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tc *TemplateCreate) SetNillableStatus(s *string) *TemplateCreate {
+	if s != nil {
+		tc.SetStatus(*s)
+	}
+	return tc
+}
+
+// SetStatusMessage sets the "statusMessage" field.
+func (tc *TemplateCreate) SetStatusMessage(s string) *TemplateCreate {
+	tc.mutation.SetStatusMessage(s)
+	return tc
+}
+
+// SetNillableStatusMessage sets the "statusMessage" field if the given value is not nil.
+func (tc *TemplateCreate) SetNillableStatusMessage(s *string) *TemplateCreate {
+	if s != nil {
+		tc.SetStatusMessage(*s)
 	}
 	return tc
 }
@@ -256,14 +256,6 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := tc.mutation.Status(); ok {
-		_spec.SetField(template.FieldStatus, field.TypeString, value)
-		_node.Status = value
-	}
-	if value, ok := tc.mutation.StatusMessage(); ok {
-		_spec.SetField(template.FieldStatusMessage, field.TypeString, value)
-		_node.StatusMessage = value
-	}
 	if value, ok := tc.mutation.CreateTime(); ok {
 		_spec.SetField(template.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -271,6 +263,14 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.UpdateTime(); ok {
 		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
+	}
+	if value, ok := tc.mutation.Status(); ok {
+		_spec.SetField(template.FieldStatus, field.TypeString, value)
+		_node.Status = value
+	}
+	if value, ok := tc.mutation.StatusMessage(); ok {
+		_spec.SetField(template.FieldStatusMessage, field.TypeString, value)
+		_node.StatusMessage = value
 	}
 	if value, ok := tc.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)
@@ -312,7 +312,7 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Template.Create().
-//		SetStatus(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -321,7 +321,7 @@ func (tc *TemplateCreate) createSpec() (*Template, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TemplateUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (tc *TemplateCreate) OnConflict(opts ...sql.ConflictOption) *TemplateUpsertOne {
@@ -357,6 +357,18 @@ type (
 	}
 )
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *TemplateUpsert) SetUpdateTime(v time.Time) *TemplateUpsert {
+	u.Set(template.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *TemplateUpsert) UpdateUpdateTime() *TemplateUpsert {
+	u.SetExcluded(template.FieldUpdateTime)
+	return u
+}
+
 // SetStatus sets the "status" field.
 func (u *TemplateUpsert) SetStatus(v string) *TemplateUpsert {
 	u.Set(template.FieldStatus, v)
@@ -390,18 +402,6 @@ func (u *TemplateUpsert) UpdateStatusMessage() *TemplateUpsert {
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (u *TemplateUpsert) ClearStatusMessage() *TemplateUpsert {
 	u.SetNull(template.FieldStatusMessage)
-	return u
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *TemplateUpsert) SetUpdateTime(v time.Time) *TemplateUpsert {
-	u.Set(template.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateUpdateTime() *TemplateUpsert {
-	u.SetExcluded(template.FieldUpdateTime)
 	return u
 }
 
@@ -516,6 +516,20 @@ func (u *TemplateUpsertOne) Update(set func(*TemplateUpsert)) *TemplateUpsertOne
 	return u
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *TemplateUpsertOne) SetUpdateTime(v time.Time) *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *TemplateUpsertOne) UpdateUpdateTime() *TemplateUpsertOne {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
 func (u *TemplateUpsertOne) SetStatus(v string) *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
@@ -555,20 +569,6 @@ func (u *TemplateUpsertOne) UpdateStatusMessage() *TemplateUpsertOne {
 func (u *TemplateUpsertOne) ClearStatusMessage() *TemplateUpsertOne {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *TemplateUpsertOne) SetUpdateTime(v time.Time) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateUpdateTime() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 
@@ -774,7 +774,7 @@ func (tcb *TemplateCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TemplateUpsert) {
-//			SetStatus(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (tcb *TemplateCreateBulk) OnConflict(opts ...sql.ConflictOption) *TemplateUpsertBulk {
@@ -856,6 +856,20 @@ func (u *TemplateUpsertBulk) Update(set func(*TemplateUpsert)) *TemplateUpsertBu
 	return u
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (u *TemplateUpsertBulk) SetUpdateTime(v time.Time) *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *TemplateUpsertBulk) UpdateUpdateTime() *TemplateUpsertBulk {
+	return u.Update(func(s *TemplateUpsert) {
+		s.UpdateUpdateTime()
+	})
+}
+
 // SetStatus sets the "status" field.
 func (u *TemplateUpsertBulk) SetStatus(v string) *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
@@ -895,20 +909,6 @@ func (u *TemplateUpsertBulk) UpdateStatusMessage() *TemplateUpsertBulk {
 func (u *TemplateUpsertBulk) ClearStatusMessage() *TemplateUpsertBulk {
 	return u.Update(func(s *TemplateUpsert) {
 		s.ClearStatusMessage()
-	})
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (u *TemplateUpsertBulk) SetUpdateTime(v time.Time) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateUpdateTime() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateUpdateTime()
 	})
 }
 

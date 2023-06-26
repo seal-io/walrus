@@ -24,25 +24,25 @@ type ServiceDependency struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the service.
 	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
-	// service ID is dependent by the service.
+	// ID of the service that dependent by the service specified by serviceID.
 	DependentID oid.ID `json:"dependentID,omitempty" sql:"dependentID"`
-	// dependency path of service.
+	// ID list (from root to leaf) of the service that dependent by the service specified by serviceID.
 	Path []oid.ID `json:"path,omitempty" sql:"path"`
 	// Type of the service dependency.
 	Type string `json:"type,omitempty" sql:"type"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceDependencyQuery when eager-loading is set.
-	Edges        ServiceDependencyEdges `json:"edges,omitempty"`
+	Edges        ServiceDependencyEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
 // ServiceDependencyEdges holds the relations/edges for other nodes in the graph.
 type ServiceDependencyEdges struct {
-	// Services of the dependency.
+	// Service to which the dependency belongs.
 	Service *Service `json:"service,omitempty" sql:"service"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

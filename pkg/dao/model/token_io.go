@@ -35,8 +35,6 @@ type TokenCreateInput struct {
 	Expiration *time.Time `json:"expiration,omitempty"`
 	// The value of token, store in string.
 	Value crypto.String `json:"value,omitempty"`
-	// Subject to which the token belongs.
-	Subject SubjectQueryInput `json:"subject"`
 }
 
 // Model converts the TokenCreateInput to Token.
@@ -47,7 +45,6 @@ func (in TokenCreateInput) Model() *Token {
 		Expiration: in.Expiration,
 		Value:      in.Value,
 	}
-	entity.SubjectID = in.Subject.ID
 	return entity
 }
 
@@ -69,7 +66,7 @@ func (in TokenUpdateInput) Model() *Token {
 type TokenOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// The kind of token.
 	Kind string `json:"kind,omitempty"`

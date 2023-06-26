@@ -36,15 +36,59 @@ func (pu *PerspectiveUpdate) Where(ps ...predicate.Perspective) *PerspectiveUpda
 	return pu
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (pu *PerspectiveUpdate) SetUpdateTime(t time.Time) *PerspectiveUpdate {
-	pu.mutation.SetUpdateTime(t)
-	return pu
-}
-
 // SetName sets the "name" field.
 func (pu *PerspectiveUpdate) SetName(s string) *PerspectiveUpdate {
 	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetDescription sets the "description" field.
+func (pu *PerspectiveUpdate) SetDescription(s string) *PerspectiveUpdate {
+	pu.mutation.SetDescription(s)
+	return pu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pu *PerspectiveUpdate) SetNillableDescription(s *string) *PerspectiveUpdate {
+	if s != nil {
+		pu.SetDescription(*s)
+	}
+	return pu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (pu *PerspectiveUpdate) ClearDescription() *PerspectiveUpdate {
+	pu.mutation.ClearDescription()
+	return pu
+}
+
+// SetLabels sets the "labels" field.
+func (pu *PerspectiveUpdate) SetLabels(m map[string]string) *PerspectiveUpdate {
+	pu.mutation.SetLabels(m)
+	return pu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (pu *PerspectiveUpdate) ClearLabels() *PerspectiveUpdate {
+	pu.mutation.ClearLabels()
+	return pu
+}
+
+// SetAnnotations sets the "annotations" field.
+func (pu *PerspectiveUpdate) SetAnnotations(m map[string]string) *PerspectiveUpdate {
+	pu.mutation.SetAnnotations(m)
+	return pu
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (pu *PerspectiveUpdate) ClearAnnotations() *PerspectiveUpdate {
+	pu.mutation.ClearAnnotations()
+	return pu
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (pu *PerspectiveUpdate) SetUpdateTime(t time.Time) *PerspectiveUpdate {
+	pu.mutation.SetUpdateTime(t)
 	return pu
 }
 
@@ -171,11 +215,29 @@ func (pu *PerspectiveUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := pu.mutation.UpdateTime(); ok {
-		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
-	}
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(perspective.FieldName, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Description(); ok {
+		_spec.SetField(perspective.FieldDescription, field.TypeString, value)
+	}
+	if pu.mutation.DescriptionCleared() {
+		_spec.ClearField(perspective.FieldDescription, field.TypeString)
+	}
+	if value, ok := pu.mutation.Labels(); ok {
+		_spec.SetField(perspective.FieldLabels, field.TypeJSON, value)
+	}
+	if pu.mutation.LabelsCleared() {
+		_spec.ClearField(perspective.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.Annotations(); ok {
+		_spec.SetField(perspective.FieldAnnotations, field.TypeJSON, value)
+	}
+	if pu.mutation.AnnotationsCleared() {
+		_spec.ClearField(perspective.FieldAnnotations, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.UpdateTime(); ok {
+		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := pu.mutation.StartTime(); ok {
 		_spec.SetField(perspective.FieldStartTime, field.TypeString, value)
@@ -218,15 +280,59 @@ type PerspectiveUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (puo *PerspectiveUpdateOne) SetUpdateTime(t time.Time) *PerspectiveUpdateOne {
-	puo.mutation.SetUpdateTime(t)
-	return puo
-}
-
 // SetName sets the "name" field.
 func (puo *PerspectiveUpdateOne) SetName(s string) *PerspectiveUpdateOne {
 	puo.mutation.SetName(s)
+	return puo
+}
+
+// SetDescription sets the "description" field.
+func (puo *PerspectiveUpdateOne) SetDescription(s string) *PerspectiveUpdateOne {
+	puo.mutation.SetDescription(s)
+	return puo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (puo *PerspectiveUpdateOne) SetNillableDescription(s *string) *PerspectiveUpdateOne {
+	if s != nil {
+		puo.SetDescription(*s)
+	}
+	return puo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (puo *PerspectiveUpdateOne) ClearDescription() *PerspectiveUpdateOne {
+	puo.mutation.ClearDescription()
+	return puo
+}
+
+// SetLabels sets the "labels" field.
+func (puo *PerspectiveUpdateOne) SetLabels(m map[string]string) *PerspectiveUpdateOne {
+	puo.mutation.SetLabels(m)
+	return puo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (puo *PerspectiveUpdateOne) ClearLabels() *PerspectiveUpdateOne {
+	puo.mutation.ClearLabels()
+	return puo
+}
+
+// SetAnnotations sets the "annotations" field.
+func (puo *PerspectiveUpdateOne) SetAnnotations(m map[string]string) *PerspectiveUpdateOne {
+	puo.mutation.SetAnnotations(m)
+	return puo
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (puo *PerspectiveUpdateOne) ClearAnnotations() *PerspectiveUpdateOne {
+	puo.mutation.ClearAnnotations()
+	return puo
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (puo *PerspectiveUpdateOne) SetUpdateTime(t time.Time) *PerspectiveUpdateOne {
+	puo.mutation.SetUpdateTime(t)
 	return puo
 }
 
@@ -383,11 +489,29 @@ func (puo *PerspectiveUpdateOne) sqlSave(ctx context.Context) (_node *Perspectiv
 			}
 		}
 	}
-	if value, ok := puo.mutation.UpdateTime(); ok {
-		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
-	}
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(perspective.FieldName, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Description(); ok {
+		_spec.SetField(perspective.FieldDescription, field.TypeString, value)
+	}
+	if puo.mutation.DescriptionCleared() {
+		_spec.ClearField(perspective.FieldDescription, field.TypeString)
+	}
+	if value, ok := puo.mutation.Labels(); ok {
+		_spec.SetField(perspective.FieldLabels, field.TypeJSON, value)
+	}
+	if puo.mutation.LabelsCleared() {
+		_spec.ClearField(perspective.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.Annotations(); ok {
+		_spec.SetField(perspective.FieldAnnotations, field.TypeJSON, value)
+	}
+	if puo.mutation.AnnotationsCleared() {
+		_spec.ClearField(perspective.FieldAnnotations, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.UpdateTime(); ok {
+		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := puo.mutation.StartTime(); ok {
 		_spec.SetField(perspective.FieldStartTime, field.TypeString, value)

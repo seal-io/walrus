@@ -17,14 +17,14 @@ const (
 	Label = "template"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
-	FieldStatusMessage = "status_message"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
+	FieldStatusMessage = "status_message"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldIcon holds the string denoting the icon field in the database.
@@ -49,10 +49,10 @@ const (
 // Columns holds all SQL columns for template fields.
 var Columns = []string{
 	FieldID,
-	FieldStatus,
-	FieldStatusMessage,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldStatus,
+	FieldStatusMessage,
 	FieldDescription,
 	FieldIcon,
 	FieldLabels,
@@ -92,16 +92,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByStatusMessage orders the results by the statusMessage field.
-func ByStatusMessage(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatusMessage, opts...).ToFunc()
-}
-
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
@@ -110,6 +100,16 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the updateTime field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByStatusMessage orders the results by the statusMessage field.
+func ByStatusMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatusMessage, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

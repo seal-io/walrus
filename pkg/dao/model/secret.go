@@ -24,19 +24,19 @@ type Secret struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the project to which the resource belongs, empty means using for global level.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// ID of the project to belong, empty means for all projects.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// The name of secret.
 	Name string `json:"name,omitempty" sql:"name"`
 	// The value of secret, store in string.
 	Value crypto.String `json:"-" sql:"value"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SecretQuery when eager-loading is set.
-	Edges        SecretEdges `json:"edges,omitempty"`
+	Edges        SecretEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -96,12 +96,6 @@ func (s *Secret) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.ID = *value
 			}
-		case secret.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				s.ProjectID = *value
-			}
 		case secret.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -115,6 +109,12 @@ func (s *Secret) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.UpdateTime = new(time.Time)
 				*s.UpdateTime = value.Time
+			}
+		case secret.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				s.ProjectID = *value
 			}
 		case secret.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -169,9 +169,6 @@ func (s *Secret) String() string {
 	var builder strings.Builder
 	builder.WriteString("Secret(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
-	builder.WriteString(", ")
 	if v := s.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -181,6 +178,9 @@ func (s *Secret) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(s.Name)

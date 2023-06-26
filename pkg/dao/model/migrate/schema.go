@@ -112,8 +112,8 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "annotations", Type: field.TypeJSON},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
@@ -140,14 +140,20 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "connector_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ConnectorsColumns[6]},
+				Name:    "connector_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ConnectorsColumns[14], ConnectorsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL",
+				},
 			},
 			{
 				Name:    "connector_name",
 				Unique:  true,
 				Columns: []*schema.Column{ConnectorsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL",
+				},
 			},
 		},
 	}
@@ -156,8 +162,8 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "annotations", Type: field.TypeJSON},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -176,11 +182,6 @@ var (
 			},
 		},
 		Indexes: []*schema.Index{
-			{
-				Name:    "environment_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{EnvironmentsColumns[6]},
-			},
 			{
 				Name:    "environment_project_id_name",
 				Unique:  true,
@@ -213,13 +214,23 @@ var (
 				OnDelete:   schema.Restrict,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "environmentconnectorrelationship_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{EnvironmentConnectorRelationshipsColumns[0]},
+			},
+		},
 	}
 	// PerspectivesColumns holds the columns for the "perspectives" table.
 	PerspectivesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "start_time", Type: field.TypeString},
 		{Name: "end_time", Type: field.TypeString},
 		{Name: "builtin", Type: field.TypeBool, Default: false},
@@ -232,14 +243,9 @@ var (
 		PrimaryKey: []*schema.Column{PerspectivesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "perspective_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{PerspectivesColumns[2]},
-			},
-			{
 				Name:    "perspective_name",
 				Unique:  true,
-				Columns: []*schema.Column{PerspectivesColumns[3]},
+				Columns: []*schema.Column{PerspectivesColumns[1]},
 			},
 		},
 	}
@@ -248,8 +254,8 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "annotations", Type: field.TypeJSON},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 	}
@@ -259,11 +265,6 @@ var (
 		Columns:    ProjectsColumns,
 		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
 		Indexes: []*schema.Index{
-			{
-				Name:    "project_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ProjectsColumns[6]},
-			},
 			{
 				Name:    "project_name",
 				Unique:  true,
@@ -289,9 +290,9 @@ var (
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "role_update_time",
+				Name:    "role_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{RolesColumns[2]},
+				Columns: []*schema.Column{RolesColumns[1]},
 			},
 		},
 	}
@@ -319,9 +320,9 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "secret_update_time",
+				Name:    "secret_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{SecretsColumns[2]},
+				Columns: []*schema.Column{SecretsColumns[1]},
 			},
 			{
 				Name:    "secret_project_id_name",
@@ -346,8 +347,8 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "annotations", Type: field.TypeJSON},
+		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "annotations", Type: field.TypeJSON, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "template", Type: field.TypeJSON},
@@ -372,19 +373,14 @@ var (
 				Symbol:     "services_projects_services",
 				Columns:    []*schema.Column{ServicesColumns[11]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
-				OnDelete:   schema.Restrict,
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "service_update_time",
-				Unique:  false,
-				Columns: []*schema.Column{ServicesColumns[6]},
-			},
-			{
-				Name:    "service_environment_id_name",
+				Name:    "service_project_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ServicesColumns[10], ServicesColumns[1]},
+				Columns: []*schema.Column{ServicesColumns[11], ServicesColumns[10], ServicesColumns[1]},
 			},
 		},
 	}
@@ -412,6 +408,11 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
+				Name:    "servicedependency_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{ServiceDependenciesColumns[1]},
+			},
+			{
 				Name:    "servicedependency_service_id_dependent_id_path",
 				Unique:  true,
 				Columns: []*schema.Column{ServiceDependenciesColumns[5], ServiceDependenciesColumns[2], ServiceDependenciesColumns[3]},
@@ -421,9 +422,9 @@ var (
 	// ServiceResourcesColumns holds the columns for the "service_resources" table.
 	ServiceResourcesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "mode", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
@@ -455,23 +456,23 @@ var (
 				Symbol:     "service_resources_service_resources_components",
 				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
 				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "serviceresource_update_time",
+				Name:    "serviceresource_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{ServiceResourcesColumns[3]},
+				Columns: []*schema.Column{ServiceResourcesColumns[1]},
 			},
 		},
 	}
 	// ServiceRevisionsColumns holds the columns for the "service_revisions" table.
 	ServiceRevisionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
-		{Name: "create_time", Type: field.TypeTime},
 		{Name: "template_id", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
@@ -496,19 +497,26 @@ var (
 				Symbol:     "service_revisions_environments_serviceRevisions",
 				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
-				OnDelete:   schema.Restrict,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_projects_serviceRevisions",
 				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
-				OnDelete:   schema.Restrict,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_services_revisions",
 				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "servicerevision_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{ServiceRevisionsColumns[1]},
 			},
 		},
 	}
@@ -530,9 +538,9 @@ var (
 		PrimaryKey: []*schema.Column{SettingsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "setting_update_time",
+				Name:    "setting_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{SettingsColumns[2]},
+				Columns: []*schema.Column{SettingsColumns[1]},
 			},
 			{
 				Name:    "setting_name",
@@ -559,9 +567,9 @@ var (
 		PrimaryKey: []*schema.Column{SubjectsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "subject_update_time",
+				Name:    "subject_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{SubjectsColumns[2]},
+				Columns: []*schema.Column{SubjectsColumns[1]},
 			},
 			{
 				Name:    "subject_kind_domain_name",
@@ -605,6 +613,11 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
+				Name:    "subjectrolerelationship_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{SubjectRoleRelationshipsColumns[1]},
+			},
+			{
 				Name:    "subjectrolerelationship_project_id_subject_id_role_id",
 				Unique:  true,
 				Columns: []*schema.Column{SubjectRoleRelationshipsColumns[2], SubjectRoleRelationshipsColumns[3], SubjectRoleRelationshipsColumns[4]},
@@ -625,10 +638,10 @@ var (
 	// TemplatesColumns holds the columns for the "templates" table.
 	TemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "status", Type: field.TypeString, Nullable: true},
-		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeString, Nullable: true},
+		{Name: "status_message", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON},
@@ -641,9 +654,9 @@ var (
 		PrimaryKey: []*schema.Column{TemplatesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "template_update_time",
+				Name:    "template_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{TemplatesColumns[4]},
+				Columns: []*schema.Column{TemplatesColumns[1]},
 			},
 		},
 	}
@@ -672,9 +685,9 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "templateversion_update_time",
+				Name:    "templateversion_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{TemplateVersionsColumns[2]},
+				Columns: []*schema.Column{TemplateVersionsColumns[1]},
 			},
 		},
 	}
@@ -699,6 +712,13 @@ var (
 				Columns:    []*schema.Column{TokensColumns[6]},
 				RefColumns: []*schema.Column{SubjectsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "token_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{TokensColumns[1]},
 			},
 		},
 	}

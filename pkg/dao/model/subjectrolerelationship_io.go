@@ -26,8 +26,6 @@ func (in SubjectRoleRelationshipQueryInput) Model() *SubjectRoleRelationship {
 
 // SubjectRoleRelationshipCreateInput is the input for the SubjectRoleRelationship creation.
 type SubjectRoleRelationshipCreateInput struct {
-	// Project to which the subject role belongs.
-	Project *ProjectQueryInput `json:"project,omitempty"`
 	// Subject that connect to the relationship.
 	Subject SubjectQueryInput `json:"subject"`
 	// Role that connect to the relationship.
@@ -37,9 +35,6 @@ type SubjectRoleRelationshipCreateInput struct {
 // Model converts the SubjectRoleRelationshipCreateInput to SubjectRoleRelationship.
 func (in SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationship {
 	var entity = &SubjectRoleRelationship{}
-	if in.Project != nil {
-		entity.ProjectID = in.Project.ID
-	}
 	entity.SubjectID = in.Subject.ID
 	entity.RoleID = in.Role.ID
 	return entity
@@ -49,8 +44,6 @@ func (in SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationship {
 type SubjectRoleRelationshipUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Project to which the subject role belongs.
-	Project *ProjectQueryInput `json:"project,omitempty"`
 	// Subject that connect to the relationship.
 	Subject SubjectQueryInput `json:"subject,omitempty"`
 	// Role that connect to the relationship.
@@ -62,9 +55,6 @@ func (in SubjectRoleRelationshipUpdateInput) Model() *SubjectRoleRelationship {
 	var entity = &SubjectRoleRelationship{
 		ID: in.ID,
 	}
-	if in.Project != nil {
-		entity.ProjectID = in.Project.ID
-	}
 	entity.SubjectID = in.Subject.ID
 	entity.RoleID = in.Role.ID
 	return entity
@@ -74,7 +64,7 @@ func (in SubjectRoleRelationshipUpdateInput) Model() *SubjectRoleRelationship {
 type SubjectRoleRelationshipOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Project to which the subject role belongs.
 	Project *ProjectOutput `json:"project,omitempty"`

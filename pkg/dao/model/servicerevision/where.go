@@ -63,6 +63,11 @@ func IDLTE(id oid.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldID, id))
 }
 
+// CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
+}
+
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
 func ProjectID(v oid.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldProjectID, v))
@@ -76,11 +81,6 @@ func Status(v string) predicate.ServiceRevision {
 // StatusMessage applies equality check predicate on the "statusMessage" field. It's identical to StatusMessageEQ.
 func StatusMessage(v string) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldStatusMessage, v))
-}
-
-// CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
-func CreateTime(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
 }
 
 // ServiceID applies equality check predicate on the "serviceID" field. It's identical to ServiceIDEQ.
@@ -131,6 +131,46 @@ func DeployerType(v string) predicate.ServiceRevision {
 // Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
 func Duration(v int) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldDuration, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "createTime" field.
+func CreateTimeEQ(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
+func CreateTimeNEQ(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "createTime" field.
+func CreateTimeIn(vs ...time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "createTime" field.
+func CreateTimeGT(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "createTime" field.
+func CreateTimeGTE(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "createTime" field.
+func CreateTimeLT(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "createTime" field.
+func CreateTimeLTE(v time.Time) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLTE(FieldCreateTime, v))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
@@ -351,46 +391,6 @@ func StatusMessageEqualFold(v string) predicate.ServiceRevision {
 // StatusMessageContainsFold applies the ContainsFold predicate on the "statusMessage" field.
 func StatusMessageContainsFold(v string) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldStatusMessage, v))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "createTime" field.
-func CreateTimeEQ(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
-func CreateTimeNEQ(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "createTime" field.
-func CreateTimeIn(vs ...time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "createTime" field.
-func CreateTimeGT(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "createTime" field.
-func CreateTimeGTE(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "createTime" field.
-func CreateTimeLT(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "createTime" field.
-func CreateTimeLTE(v time.Time) predicate.ServiceRevision {
-	return predicate.ServiceRevision(sql.FieldLTE(FieldCreateTime, v))
 }
 
 // ServiceIDEQ applies the EQ predicate on the "serviceID" field.
@@ -988,26 +988,26 @@ func DurationLTE(v int) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldDuration, v))
 }
 
-// HasService applies the HasEdge predicate on the "service" edge.
-func HasService() predicate.ServiceRevision {
+// HasProject applies the HasEdge predicate on the "project" edge.
+func HasProject() predicate.ServiceRevision {
 	return predicate.ServiceRevision(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTable, ServiceColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasServiceWith applies the HasEdge predicate on the "service" edge with a given conditions (other predicates).
-func HasServiceWith(preds ...predicate.Service) predicate.ServiceRevision {
+// HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
+func HasProjectWith(preds ...predicate.Project) predicate.ServiceRevision {
 	return predicate.ServiceRevision(func(s *sql.Selector) {
-		step := newServiceStep()
+		step := newProjectStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1046,26 +1046,26 @@ func HasEnvironmentWith(preds ...predicate.Environment) predicate.ServiceRevisio
 	})
 }
 
-// HasProject applies the HasEdge predicate on the "project" edge.
-func HasProject() predicate.ServiceRevision {
+// HasService applies the HasEdge predicate on the "service" edge.
+func HasService() predicate.ServiceRevision {
 	return predicate.ServiceRevision(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTable, ServiceColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Project
+		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasProjectWith applies the HasEdge predicate on the "project" edge with a given conditions (other predicates).
-func HasProjectWith(preds ...predicate.Project) predicate.ServiceRevision {
+// HasServiceWith applies the HasEdge predicate on the "service" edge with a given conditions (other predicates).
+func HasServiceWith(preds ...predicate.Service) predicate.ServiceRevision {
 	return predicate.ServiceRevision(func(s *sql.Selector) {
-		step := newProjectStep()
+		step := newServiceStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Project
+		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

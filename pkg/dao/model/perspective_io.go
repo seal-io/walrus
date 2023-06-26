@@ -27,13 +27,17 @@ func (in PerspectiveQueryInput) Model() *Perspective {
 
 // PerspectiveCreateInput is the input for the Perspective creation.
 type PerspectiveCreateInput struct {
-	// Name for current perspective.
+	// Name holds the value of the "name" field.
 	Name string `json:"name"`
-	// Start time for current perspective.
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Start time for the perspective.
 	StartTime string `json:"startTime"`
-	// End time for current perspective.
+	// End time for the perspective.
 	EndTime string `json:"endTime"`
-	// Is builtin Perspective.
+	// Is builtin perspective.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
@@ -43,6 +47,8 @@ type PerspectiveCreateInput struct {
 func (in PerspectiveCreateInput) Model() *Perspective {
 	var entity = &Perspective{
 		Name:              in.Name,
+		Description:       in.Description,
+		Labels:            in.Labels,
 		StartTime:         in.StartTime,
 		EndTime:           in.EndTime,
 		Builtin:           in.Builtin,
@@ -55,13 +61,17 @@ func (in PerspectiveCreateInput) Model() *Perspective {
 type PerspectiveUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Name for current perspective.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Start time for current perspective.
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Start time for the perspective.
 	StartTime string `json:"startTime,omitempty"`
-	// End time for current perspective.
+	// End time for the perspective.
 	EndTime string `json:"endTime,omitempty"`
-	// Is builtin Perspective.
+	// Is builtin perspective.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
@@ -72,6 +82,8 @@ func (in PerspectiveUpdateInput) Model() *Perspective {
 	var entity = &Perspective{
 		ID:                in.ID,
 		Name:              in.Name,
+		Description:       in.Description,
+		Labels:            in.Labels,
 		StartTime:         in.StartTime,
 		EndTime:           in.EndTime,
 		Builtin:           in.Builtin,
@@ -84,17 +96,21 @@ func (in PerspectiveUpdateInput) Model() *Perspective {
 type PerspectiveOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Name for current perspective.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Start time for current perspective.
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty"`
+	// CreateTime holds the value of the "createTime" field.
+	CreateTime *time.Time `json:"createTime,omitempty"`
+	// UpdateTime holds the value of the "updateTime" field.
+	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Start time for the perspective.
 	StartTime string `json:"startTime,omitempty"`
-	// End time for current perspective.
+	// End time for the perspective.
 	EndTime string `json:"endTime,omitempty"`
-	// Is builtin Perspective.
+	// Is builtin perspective.
 	Builtin bool `json:"builtin,omitempty"`
 	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
@@ -107,9 +123,11 @@ func ExposePerspective(in *Perspective) *PerspectiveOutput {
 	}
 	var entity = &PerspectiveOutput{
 		ID:                in.ID,
+		Name:              in.Name,
+		Description:       in.Description,
+		Labels:            in.Labels,
 		CreateTime:        in.CreateTime,
 		UpdateTime:        in.UpdateTime,
-		Name:              in.Name,
 		StartTime:         in.StartTime,
 		EndTime:           in.EndTime,
 		Builtin:           in.Builtin,

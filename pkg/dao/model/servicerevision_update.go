@@ -211,14 +211,14 @@ func (sru *ServiceRevisionUpdate) check() error {
 			return &ValidationError{Name: "templateVersion", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.templateVersion": %w`, err)}
 		}
 	}
-	if _, ok := sru.mutation.ServiceID(); sru.mutation.ServiceCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ServiceRevision.service"`)
+	if _, ok := sru.mutation.ProjectID(); sru.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceRevision.project"`)
 	}
 	if _, ok := sru.mutation.EnvironmentID(); sru.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ServiceRevision.environment"`)
 	}
-	if _, ok := sru.mutation.ProjectID(); sru.mutation.ProjectCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ServiceRevision.project"`)
+	if _, ok := sru.mutation.ServiceID(); sru.mutation.ServiceCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceRevision.service"`)
 	}
 	return nil
 }
@@ -507,14 +507,14 @@ func (sruo *ServiceRevisionUpdateOne) check() error {
 			return &ValidationError{Name: "templateVersion", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.templateVersion": %w`, err)}
 		}
 	}
-	if _, ok := sruo.mutation.ServiceID(); sruo.mutation.ServiceCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ServiceRevision.service"`)
+	if _, ok := sruo.mutation.ProjectID(); sruo.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceRevision.project"`)
 	}
 	if _, ok := sruo.mutation.EnvironmentID(); sruo.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ServiceRevision.environment"`)
 	}
-	if _, ok := sruo.mutation.ProjectID(); sruo.mutation.ProjectCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "ServiceRevision.project"`)
+	if _, ok := sruo.mutation.ServiceID(); sruo.mutation.ServiceCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceRevision.service"`)
 	}
 	return nil
 }

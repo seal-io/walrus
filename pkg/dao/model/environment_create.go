@@ -31,12 +31,6 @@ type EnvironmentCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetProjectID sets the "projectID" field.
-func (ec *EnvironmentCreate) SetProjectID(o oid.ID) *EnvironmentCreate {
-	ec.mutation.SetProjectID(o)
-	return ec
-}
-
 // SetName sets the "name" field.
 func (ec *EnvironmentCreate) SetName(s string) *EnvironmentCreate {
 	ec.mutation.SetName(s)
@@ -94,6 +88,12 @@ func (ec *EnvironmentCreate) SetNillableUpdateTime(t *time.Time) *EnvironmentCre
 	if t != nil {
 		ec.SetUpdateTime(*t)
 	}
+	return ec
+}
+
+// SetProjectID sets the "projectID" field.
+func (ec *EnvironmentCreate) SetProjectID(o oid.ID) *EnvironmentCreate {
+	ec.mutation.SetProjectID(o)
 	return ec
 }
 
@@ -202,14 +202,6 @@ func (ec *EnvironmentCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (ec *EnvironmentCreate) check() error {
-	if _, ok := ec.mutation.ProjectID(); !ok {
-		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Environment.projectID"`)}
-	}
-	if v, ok := ec.mutation.ProjectID(); ok {
-		if err := environment.ProjectIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Environment.projectID": %w`, err)}
-		}
-	}
 	if _, ok := ec.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Environment.name"`)}
 	}
@@ -218,17 +210,19 @@ func (ec *EnvironmentCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
 		}
 	}
-	if _, ok := ec.mutation.Labels(); !ok {
-		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Environment.labels"`)}
-	}
-	if _, ok := ec.mutation.Annotations(); !ok {
-		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Environment.annotations"`)}
-	}
 	if _, ok := ec.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Environment.createTime"`)}
 	}
 	if _, ok := ec.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Environment.updateTime"`)}
+	}
+	if _, ok := ec.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Environment.projectID"`)}
+	}
+	if v, ok := ec.mutation.ProjectID(); ok {
+		if err := environment.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Environment.projectID": %w`, err)}
+		}
 	}
 	if _, ok := ec.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Environment.project"`)}
@@ -353,7 +347,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Environment.Create().
-//		SetProjectID(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -362,7 +356,7 @@ func (ec *EnvironmentCreate) createSpec() (*Environment, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetProjectID(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ec *EnvironmentCreate) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertOne {
@@ -440,6 +434,12 @@ func (u *EnvironmentUpsert) UpdateLabels() *EnvironmentUpsert {
 	return u
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsert) ClearLabels() *EnvironmentUpsert {
+	u.SetNull(environment.FieldLabels)
+	return u
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *EnvironmentUpsert) SetAnnotations(v map[string]string) *EnvironmentUpsert {
 	u.Set(environment.FieldAnnotations, v)
@@ -449,6 +449,12 @@ func (u *EnvironmentUpsert) SetAnnotations(v map[string]string) *EnvironmentUpse
 // UpdateAnnotations sets the "annotations" field to the value that was provided on create.
 func (u *EnvironmentUpsert) UpdateAnnotations() *EnvironmentUpsert {
 	u.SetExcluded(environment.FieldAnnotations)
+	return u
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *EnvironmentUpsert) ClearAnnotations() *EnvironmentUpsert {
+	u.SetNull(environment.FieldAnnotations)
 	return u
 }
 
@@ -481,11 +487,11 @@ func (u *EnvironmentUpsertOne) UpdateNewValues() *EnvironmentUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(environment.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(environment.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(environment.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(environment.FieldProjectID)
 		}
 	}))
 	return u
@@ -567,6 +573,13 @@ func (u *EnvironmentUpsertOne) UpdateLabels() *EnvironmentUpsertOne {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsertOne) ClearLabels() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *EnvironmentUpsertOne) SetAnnotations(v map[string]string) *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
@@ -578,6 +591,13 @@ func (u *EnvironmentUpsertOne) SetAnnotations(v map[string]string) *EnvironmentU
 func (u *EnvironmentUpsertOne) UpdateAnnotations() *EnvironmentUpsertOne {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *EnvironmentUpsertOne) ClearAnnotations() *EnvironmentUpsertOne {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearAnnotations()
 	})
 }
 
@@ -727,7 +747,7 @@ func (ecb *EnvironmentCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.EnvironmentUpsert) {
-//			SetProjectID(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (ecb *EnvironmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *EnvironmentUpsertBulk {
@@ -774,11 +794,11 @@ func (u *EnvironmentUpsertBulk) UpdateNewValues() *EnvironmentUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(environment.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(environment.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(environment.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(environment.FieldProjectID)
 			}
 		}
 	}))
@@ -861,6 +881,13 @@ func (u *EnvironmentUpsertBulk) UpdateLabels() *EnvironmentUpsertBulk {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *EnvironmentUpsertBulk) ClearLabels() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *EnvironmentUpsertBulk) SetAnnotations(v map[string]string) *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
@@ -872,6 +899,13 @@ func (u *EnvironmentUpsertBulk) SetAnnotations(v map[string]string) *Environment
 func (u *EnvironmentUpsertBulk) UpdateAnnotations() *EnvironmentUpsertBulk {
 	return u.Update(func(s *EnvironmentUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *EnvironmentUpsertBulk) ClearAnnotations() *EnvironmentUpsertBulk {
+	return u.Update(func(s *EnvironmentUpsert) {
+		s.ClearAnnotations()
 	})
 }
 

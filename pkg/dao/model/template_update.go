@@ -36,6 +36,12 @@ func (tu *TemplateUpdate) Where(ps ...predicate.Template) *TemplateUpdate {
 	return tu
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (tu *TemplateUpdate) SetUpdateTime(t time.Time) *TemplateUpdate {
+	tu.mutation.SetUpdateTime(t)
+	return tu
+}
+
 // SetStatus sets the "status" field.
 func (tu *TemplateUpdate) SetStatus(s string) *TemplateUpdate {
 	tu.mutation.SetStatus(s)
@@ -73,12 +79,6 @@ func (tu *TemplateUpdate) SetNillableStatusMessage(s *string) *TemplateUpdate {
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (tu *TemplateUpdate) ClearStatusMessage() *TemplateUpdate {
 	tu.mutation.ClearStatusMessage()
-	return tu
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (tu *TemplateUpdate) SetUpdateTime(t time.Time) *TemplateUpdate {
-	tu.mutation.SetUpdateTime(t)
 	return tu
 }
 
@@ -239,6 +239,9 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := tu.mutation.UpdateTime(); ok {
+		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := tu.mutation.Status(); ok {
 		_spec.SetField(template.FieldStatus, field.TypeString, value)
 	}
@@ -250,9 +253,6 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.StatusMessageCleared() {
 		_spec.ClearField(template.FieldStatusMessage, field.TypeString)
-	}
-	if value, ok := tu.mutation.UpdateTime(); ok {
-		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := tu.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)
@@ -344,6 +344,12 @@ type TemplateUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetUpdateTime sets the "updateTime" field.
+func (tuo *TemplateUpdateOne) SetUpdateTime(t time.Time) *TemplateUpdateOne {
+	tuo.mutation.SetUpdateTime(t)
+	return tuo
+}
+
 // SetStatus sets the "status" field.
 func (tuo *TemplateUpdateOne) SetStatus(s string) *TemplateUpdateOne {
 	tuo.mutation.SetStatus(s)
@@ -381,12 +387,6 @@ func (tuo *TemplateUpdateOne) SetNillableStatusMessage(s *string) *TemplateUpdat
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (tuo *TemplateUpdateOne) ClearStatusMessage() *TemplateUpdateOne {
 	tuo.mutation.ClearStatusMessage()
-	return tuo
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (tuo *TemplateUpdateOne) SetUpdateTime(t time.Time) *TemplateUpdateOne {
-	tuo.mutation.SetUpdateTime(t)
 	return tuo
 }
 
@@ -577,6 +577,9 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 			}
 		}
 	}
+	if value, ok := tuo.mutation.UpdateTime(); ok {
+		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
+	}
 	if value, ok := tuo.mutation.Status(); ok {
 		_spec.SetField(template.FieldStatus, field.TypeString, value)
 	}
@@ -588,9 +591,6 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 	}
 	if tuo.mutation.StatusMessageCleared() {
 		_spec.ClearField(template.FieldStatusMessage, field.TypeString)
-	}
-	if value, ok := tuo.mutation.UpdateTime(); ok {
-		_spec.SetField(template.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := tuo.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)

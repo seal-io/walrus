@@ -84,8 +84,6 @@ type AllocationCostCreateInput struct {
 	RamByteUsageAverage float64 `json:"ramByteUsageAverage,omitempty"`
 	// Ram max usage in byte.
 	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty"`
-	// Connector current cost linked.
-	Connector ConnectorQueryInput `json:"connector"`
 }
 
 // Model converts the AllocationCostCreateInput to AllocationCost.
@@ -121,7 +119,6 @@ func (in AllocationCostCreateInput) Model() *AllocationCost {
 		RamByteUsageAverage: in.RamByteUsageAverage,
 		RamByteUsageMax:     in.RamByteUsageMax,
 	}
-	entity.ConnectorID = in.Connector.ID
 	return entity
 }
 
@@ -237,8 +234,6 @@ type AllocationCostOutput struct {
 	RamByteUsageAverage float64 `json:"ramByteUsageAverage,omitempty"`
 	// Ram max usage in byte.
 	RamByteUsageMax float64 `json:"ramByteUsageMax,omitempty"`
-	// Connector current cost linked.
-	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
 
 // ExposeAllocationCost converts the AllocationCost to AllocationCostOutput.
@@ -277,13 +272,6 @@ func ExposeAllocationCost(in *AllocationCost) *AllocationCostOutput {
 		CpuCoreUsageMax:     in.CpuCoreUsageMax,
 		RamByteUsageAverage: in.RamByteUsageAverage,
 		RamByteUsageMax:     in.RamByteUsageMax,
-		Connector:           ExposeConnector(in.Edges.Connector),
-	}
-	if in.ConnectorID != "" {
-		if entity.Connector == nil {
-			entity.Connector = &ConnectorOutput{}
-		}
-		entity.Connector.ID = in.ConnectorID
 	}
 	return entity
 }

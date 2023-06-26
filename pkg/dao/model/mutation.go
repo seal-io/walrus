@@ -4049,9 +4049,22 @@ func (m *ConnectorMutation) OldLabels(ctx context.Context) (v map[string]string,
 	return oldValue.Labels, nil
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (m *ConnectorMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[connector.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *ConnectorMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[connector.FieldLabels]
+	return ok
+}
+
 // ResetLabels resets all changes to the "labels" field.
 func (m *ConnectorMutation) ResetLabels() {
 	m.labels = nil
+	delete(m.clearedFields, connector.FieldLabels)
 }
 
 // SetAnnotations sets the "annotations" field.
@@ -4085,58 +4098,22 @@ func (m *ConnectorMutation) OldAnnotations(ctx context.Context) (v map[string]st
 	return oldValue.Annotations, nil
 }
 
-// ResetAnnotations resets all changes to the "annotations" field.
-func (m *ConnectorMutation) ResetAnnotations() {
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *ConnectorMutation) ClearAnnotations() {
 	m.annotations = nil
+	m.clearedFields[connector.FieldAnnotations] = struct{}{}
 }
 
-// SetProjectID sets the "projectID" field.
-func (m *ConnectorMutation) SetProjectID(o oid.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ConnectorMutation) ProjectID() (r oid.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "projectID" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ClearProjectID clears the value of the "projectID" field.
-func (m *ConnectorMutation) ClearProjectID() {
-	m.project = nil
-	m.clearedFields[connector.FieldProjectID] = struct{}{}
-}
-
-// ProjectIDCleared returns if the "projectID" field was cleared in this mutation.
-func (m *ConnectorMutation) ProjectIDCleared() bool {
-	_, ok := m.clearedFields[connector.FieldProjectID]
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *ConnectorMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[connector.FieldAnnotations]
 	return ok
 }
 
-// ResetProjectID resets all changes to the "projectID" field.
-func (m *ConnectorMutation) ResetProjectID() {
-	m.project = nil
-	delete(m.clearedFields, connector.FieldProjectID)
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *ConnectorMutation) ResetAnnotations() {
+	m.annotations = nil
+	delete(m.clearedFields, connector.FieldAnnotations)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -4209,6 +4186,55 @@ func (m *ConnectorMutation) OldUpdateTime(ctx context.Context) (v *time.Time, er
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *ConnectorMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetProjectID sets the "projectID" field.
+func (m *ConnectorMutation) SetProjectID(o oid.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "projectID" field in the mutation.
+func (m *ConnectorMutation) ProjectID() (r oid.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "projectID" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ClearProjectID clears the value of the "projectID" field.
+func (m *ConnectorMutation) ClearProjectID() {
+	m.project = nil
+	m.clearedFields[connector.FieldProjectID] = struct{}{}
+}
+
+// ProjectIDCleared returns if the "projectID" field was cleared in this mutation.
+func (m *ConnectorMutation) ProjectIDCleared() bool {
+	_, ok := m.clearedFields[connector.FieldProjectID]
+	return ok
+}
+
+// ResetProjectID resets all changes to the "projectID" field.
+func (m *ConnectorMutation) ResetProjectID() {
+	m.project = nil
+	delete(m.clearedFields, connector.FieldProjectID)
 }
 
 // SetStatus sets the "status" field.
@@ -4724,14 +4750,14 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.annotations != nil {
 		fields = append(fields, connector.FieldAnnotations)
 	}
-	if m.project != nil {
-		fields = append(fields, connector.FieldProjectID)
-	}
 	if m.createTime != nil {
 		fields = append(fields, connector.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, connector.FieldUpdateTime)
+	}
+	if m.project != nil {
+		fields = append(fields, connector.FieldProjectID)
 	}
 	if m.status != nil {
 		fields = append(fields, connector.FieldStatus)
@@ -4770,12 +4796,12 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.Labels()
 	case connector.FieldAnnotations:
 		return m.Annotations()
-	case connector.FieldProjectID:
-		return m.ProjectID()
 	case connector.FieldCreateTime:
 		return m.CreateTime()
 	case connector.FieldUpdateTime:
 		return m.UpdateTime()
+	case connector.FieldProjectID:
+		return m.ProjectID()
 	case connector.FieldStatus:
 		return m.Status()
 	case connector.FieldType:
@@ -4807,12 +4833,12 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldLabels(ctx)
 	case connector.FieldAnnotations:
 		return m.OldAnnotations(ctx)
-	case connector.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case connector.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case connector.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case connector.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case connector.FieldStatus:
 		return m.OldStatus(ctx)
 	case connector.FieldType:
@@ -4864,13 +4890,6 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAnnotations(v)
 		return nil
-	case connector.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case connector.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4884,6 +4903,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case connector.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case connector.FieldStatus:
 		v, ok := value.(status.Status)
@@ -4967,6 +4993,12 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldDescription) {
 		fields = append(fields, connector.FieldDescription)
 	}
+	if m.FieldCleared(connector.FieldLabels) {
+		fields = append(fields, connector.FieldLabels)
+	}
+	if m.FieldCleared(connector.FieldAnnotations) {
+		fields = append(fields, connector.FieldAnnotations)
+	}
 	if m.FieldCleared(connector.FieldProjectID) {
 		fields = append(fields, connector.FieldProjectID)
 	}
@@ -4992,6 +5024,12 @@ func (m *ConnectorMutation) ClearField(name string) error {
 	switch name {
 	case connector.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case connector.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case connector.FieldAnnotations:
+		m.ClearAnnotations()
 		return nil
 	case connector.FieldProjectID:
 		m.ClearProjectID()
@@ -5022,14 +5060,14 @@ func (m *ConnectorMutation) ResetField(name string) error {
 	case connector.FieldAnnotations:
 		m.ResetAnnotations()
 		return nil
-	case connector.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case connector.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case connector.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case connector.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case connector.FieldStatus:
 		m.ResetStatus()
@@ -5340,42 +5378,6 @@ func (m *EnvironmentMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
-// SetProjectID sets the "projectID" field.
-func (m *EnvironmentMutation) SetProjectID(o oid.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "projectID" field in the mutation.
-func (m *EnvironmentMutation) ProjectID() (r oid.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "projectID" field's value of the Environment entity.
-// If the Environment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ResetProjectID resets all changes to the "projectID" field.
-func (m *EnvironmentMutation) ResetProjectID() {
-	m.project = nil
-}
-
 // SetName sets the "name" field.
 func (m *EnvironmentMutation) SetName(s string) {
 	m.name = &s
@@ -5492,9 +5494,22 @@ func (m *EnvironmentMutation) OldLabels(ctx context.Context) (v map[string]strin
 	return oldValue.Labels, nil
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (m *EnvironmentMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[environment.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *EnvironmentMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[environment.FieldLabels]
+	return ok
+}
+
 // ResetLabels resets all changes to the "labels" field.
 func (m *EnvironmentMutation) ResetLabels() {
 	m.labels = nil
+	delete(m.clearedFields, environment.FieldLabels)
 }
 
 // SetAnnotations sets the "annotations" field.
@@ -5528,9 +5543,22 @@ func (m *EnvironmentMutation) OldAnnotations(ctx context.Context) (v map[string]
 	return oldValue.Annotations, nil
 }
 
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *EnvironmentMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[environment.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *EnvironmentMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[environment.FieldAnnotations]
+	return ok
+}
+
 // ResetAnnotations resets all changes to the "annotations" field.
 func (m *EnvironmentMutation) ResetAnnotations() {
 	m.annotations = nil
+	delete(m.clearedFields, environment.FieldAnnotations)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -5603,6 +5631,42 @@ func (m *EnvironmentMutation) OldUpdateTime(ctx context.Context) (v *time.Time, 
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *EnvironmentMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetProjectID sets the "projectID" field.
+func (m *EnvironmentMutation) SetProjectID(o oid.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "projectID" field in the mutation.
+func (m *EnvironmentMutation) ProjectID() (r oid.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "projectID" field's value of the Environment entity.
+// If the Environment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnvironmentMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ResetProjectID resets all changes to the "projectID" field.
+func (m *EnvironmentMutation) ResetProjectID() {
+	m.project = nil
 }
 
 // ClearProject clears the "project" edge to the Project entity.
@@ -5774,9 +5838,6 @@ func (m *EnvironmentMutation) Type() string {
 // AddedFields().
 func (m *EnvironmentMutation) Fields() []string {
 	fields := make([]string, 0, 7)
-	if m.project != nil {
-		fields = append(fields, environment.FieldProjectID)
-	}
 	if m.name != nil {
 		fields = append(fields, environment.FieldName)
 	}
@@ -5795,6 +5856,9 @@ func (m *EnvironmentMutation) Fields() []string {
 	if m.updateTime != nil {
 		fields = append(fields, environment.FieldUpdateTime)
 	}
+	if m.project != nil {
+		fields = append(fields, environment.FieldProjectID)
+	}
 	return fields
 }
 
@@ -5803,8 +5867,6 @@ func (m *EnvironmentMutation) Fields() []string {
 // schema.
 func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case environment.FieldProjectID:
-		return m.ProjectID()
 	case environment.FieldName:
 		return m.Name()
 	case environment.FieldDescription:
@@ -5817,6 +5879,8 @@ func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case environment.FieldUpdateTime:
 		return m.UpdateTime()
+	case environment.FieldProjectID:
+		return m.ProjectID()
 	}
 	return nil, false
 }
@@ -5826,8 +5890,6 @@ func (m *EnvironmentMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case environment.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case environment.FieldName:
 		return m.OldName(ctx)
 	case environment.FieldDescription:
@@ -5840,6 +5902,8 @@ func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCreateTime(ctx)
 	case environment.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case environment.FieldProjectID:
+		return m.OldProjectID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Environment field %s", name)
 }
@@ -5849,13 +5913,6 @@ func (m *EnvironmentMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case environment.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case environment.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -5898,6 +5955,13 @@ func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
+	case environment.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
 }
@@ -5931,6 +5995,12 @@ func (m *EnvironmentMutation) ClearedFields() []string {
 	if m.FieldCleared(environment.FieldDescription) {
 		fields = append(fields, environment.FieldDescription)
 	}
+	if m.FieldCleared(environment.FieldLabels) {
+		fields = append(fields, environment.FieldLabels)
+	}
+	if m.FieldCleared(environment.FieldAnnotations) {
+		fields = append(fields, environment.FieldAnnotations)
+	}
 	return fields
 }
 
@@ -5948,6 +6018,12 @@ func (m *EnvironmentMutation) ClearField(name string) error {
 	case environment.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case environment.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case environment.FieldAnnotations:
+		m.ClearAnnotations()
+		return nil
 	}
 	return fmt.Errorf("unknown Environment nullable field %s", name)
 }
@@ -5956,9 +6032,6 @@ func (m *EnvironmentMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EnvironmentMutation) ResetField(name string) error {
 	switch name {
-	case environment.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case environment.FieldName:
 		m.ResetName()
 		return nil
@@ -5976,6 +6049,9 @@ func (m *EnvironmentMutation) ResetField(name string) error {
 		return nil
 	case environment.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case environment.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	}
 	return fmt.Errorf("unknown Environment field %s", name)
@@ -6527,9 +6603,12 @@ type PerspectiveMutation struct {
 	op                      Op
 	typ                     string
 	id                      *oid.ID
+	name                    *string
+	description             *string
+	labels                  *map[string]string
+	annotations             *map[string]string
 	createTime              *time.Time
 	updateTime              *time.Time
-	name                    *string
 	startTime               *string
 	endTime                 *string
 	builtin                 *bool
@@ -6645,6 +6724,189 @@ func (m *PerspectiveMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
+// SetName sets the "name" field.
+func (m *PerspectiveMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *PerspectiveMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Perspective entity.
+// If the Perspective object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PerspectiveMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *PerspectiveMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *PerspectiveMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PerspectiveMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Perspective entity.
+// If the Perspective object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PerspectiveMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *PerspectiveMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[perspective.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *PerspectiveMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[perspective.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PerspectiveMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, perspective.FieldDescription)
+}
+
+// SetLabels sets the "labels" field.
+func (m *PerspectiveMutation) SetLabels(value map[string]string) {
+	m.labels = &value
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *PerspectiveMutation) Labels() (r map[string]string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Perspective entity.
+// If the Perspective object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PerspectiveMutation) OldLabels(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *PerspectiveMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[perspective.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *PerspectiveMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[perspective.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *PerspectiveMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, perspective.FieldLabels)
+}
+
+// SetAnnotations sets the "annotations" field.
+func (m *PerspectiveMutation) SetAnnotations(value map[string]string) {
+	m.annotations = &value
+}
+
+// Annotations returns the value of the "annotations" field in the mutation.
+func (m *PerspectiveMutation) Annotations() (r map[string]string, exists bool) {
+	v := m.annotations
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnotations returns the old "annotations" field's value of the Perspective entity.
+// If the Perspective object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PerspectiveMutation) OldAnnotations(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnotations is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnotations requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnotations: %w", err)
+	}
+	return oldValue.Annotations, nil
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *PerspectiveMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[perspective.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *PerspectiveMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[perspective.FieldAnnotations]
+	return ok
+}
+
+// ResetAnnotations resets all changes to the "annotations" field.
+func (m *PerspectiveMutation) ResetAnnotations() {
+	m.annotations = nil
+	delete(m.clearedFields, perspective.FieldAnnotations)
+}
+
 // SetCreateTime sets the "createTime" field.
 func (m *PerspectiveMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -6715,42 +6977,6 @@ func (m *PerspectiveMutation) OldUpdateTime(ctx context.Context) (v *time.Time, 
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *PerspectiveMutation) ResetUpdateTime() {
 	m.updateTime = nil
-}
-
-// SetName sets the "name" field.
-func (m *PerspectiveMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *PerspectiveMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Perspective entity.
-// If the Perspective object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PerspectiveMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *PerspectiveMutation) ResetName() {
-	m.name = nil
 }
 
 // SetStartTime sets the "startTime" field.
@@ -6946,15 +7172,24 @@ func (m *PerspectiveMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PerspectiveMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 10)
+	if m.name != nil {
+		fields = append(fields, perspective.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, perspective.FieldDescription)
+	}
+	if m.labels != nil {
+		fields = append(fields, perspective.FieldLabels)
+	}
+	if m.annotations != nil {
+		fields = append(fields, perspective.FieldAnnotations)
+	}
 	if m.createTime != nil {
 		fields = append(fields, perspective.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, perspective.FieldUpdateTime)
-	}
-	if m.name != nil {
-		fields = append(fields, perspective.FieldName)
 	}
 	if m.startTime != nil {
 		fields = append(fields, perspective.FieldStartTime)
@@ -6976,12 +7211,18 @@ func (m *PerspectiveMutation) Fields() []string {
 // schema.
 func (m *PerspectiveMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case perspective.FieldName:
+		return m.Name()
+	case perspective.FieldDescription:
+		return m.Description()
+	case perspective.FieldLabels:
+		return m.Labels()
+	case perspective.FieldAnnotations:
+		return m.Annotations()
 	case perspective.FieldCreateTime:
 		return m.CreateTime()
 	case perspective.FieldUpdateTime:
 		return m.UpdateTime()
-	case perspective.FieldName:
-		return m.Name()
 	case perspective.FieldStartTime:
 		return m.StartTime()
 	case perspective.FieldEndTime:
@@ -6999,12 +7240,18 @@ func (m *PerspectiveMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *PerspectiveMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case perspective.FieldName:
+		return m.OldName(ctx)
+	case perspective.FieldDescription:
+		return m.OldDescription(ctx)
+	case perspective.FieldLabels:
+		return m.OldLabels(ctx)
+	case perspective.FieldAnnotations:
+		return m.OldAnnotations(ctx)
 	case perspective.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case perspective.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case perspective.FieldName:
-		return m.OldName(ctx)
 	case perspective.FieldStartTime:
 		return m.OldStartTime(ctx)
 	case perspective.FieldEndTime:
@@ -7022,6 +7269,34 @@ func (m *PerspectiveMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *PerspectiveMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case perspective.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case perspective.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case perspective.FieldLabels:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case perspective.FieldAnnotations:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnotations(v)
+		return nil
 	case perspective.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -7035,13 +7310,6 @@ func (m *PerspectiveMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
-		return nil
-	case perspective.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
 		return nil
 	case perspective.FieldStartTime:
 		v, ok := value.(string)
@@ -7100,7 +7368,17 @@ func (m *PerspectiveMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PerspectiveMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(perspective.FieldDescription) {
+		fields = append(fields, perspective.FieldDescription)
+	}
+	if m.FieldCleared(perspective.FieldLabels) {
+		fields = append(fields, perspective.FieldLabels)
+	}
+	if m.FieldCleared(perspective.FieldAnnotations) {
+		fields = append(fields, perspective.FieldAnnotations)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -7113,6 +7391,17 @@ func (m *PerspectiveMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PerspectiveMutation) ClearField(name string) error {
+	switch name {
+	case perspective.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case perspective.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case perspective.FieldAnnotations:
+		m.ClearAnnotations()
+		return nil
+	}
 	return fmt.Errorf("unknown Perspective nullable field %s", name)
 }
 
@@ -7120,14 +7409,23 @@ func (m *PerspectiveMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *PerspectiveMutation) ResetField(name string) error {
 	switch name {
+	case perspective.FieldName:
+		m.ResetName()
+		return nil
+	case perspective.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case perspective.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case perspective.FieldAnnotations:
+		m.ResetAnnotations()
+		return nil
 	case perspective.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case perspective.FieldUpdateTime:
 		m.ResetUpdateTime()
-		return nil
-	case perspective.FieldName:
-		m.ResetName()
 		return nil
 	case perspective.FieldStartTime:
 		m.ResetStartTime()
@@ -7215,15 +7513,15 @@ type ProjectMutation struct {
 	secrets                 map[oid.ID]struct{}
 	removedsecrets          map[oid.ID]struct{}
 	clearedsecrets          bool
+	subjectRoles            map[oid.ID]struct{}
+	removedsubjectRoles     map[oid.ID]struct{}
+	clearedsubjectRoles     bool
 	services                map[oid.ID]struct{}
 	removedservices         map[oid.ID]struct{}
 	clearedservices         bool
 	serviceRevisions        map[oid.ID]struct{}
 	removedserviceRevisions map[oid.ID]struct{}
 	clearedserviceRevisions bool
-	subjectRoles            map[oid.ID]struct{}
-	removedsubjectRoles     map[oid.ID]struct{}
-	clearedsubjectRoles     bool
 	done                    bool
 	oldValue                func(context.Context) (*Project, error)
 	predicates              []predicate.Project
@@ -7449,9 +7747,22 @@ func (m *ProjectMutation) OldLabels(ctx context.Context) (v map[string]string, e
 	return oldValue.Labels, nil
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (m *ProjectMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[project.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *ProjectMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[project.FieldLabels]
+	return ok
+}
+
 // ResetLabels resets all changes to the "labels" field.
 func (m *ProjectMutation) ResetLabels() {
 	m.labels = nil
+	delete(m.clearedFields, project.FieldLabels)
 }
 
 // SetAnnotations sets the "annotations" field.
@@ -7485,9 +7796,22 @@ func (m *ProjectMutation) OldAnnotations(ctx context.Context) (v map[string]stri
 	return oldValue.Annotations, nil
 }
 
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *ProjectMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[project.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *ProjectMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[project.FieldAnnotations]
+	return ok
+}
+
 // ResetAnnotations resets all changes to the "annotations" field.
 func (m *ProjectMutation) ResetAnnotations() {
 	m.annotations = nil
+	delete(m.clearedFields, project.FieldAnnotations)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -7724,6 +8048,60 @@ func (m *ProjectMutation) ResetSecrets() {
 	m.removedsecrets = nil
 }
 
+// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by ids.
+func (m *ProjectMutation) AddSubjectRoleIDs(ids ...oid.ID) {
+	if m.subjectRoles == nil {
+		m.subjectRoles = make(map[oid.ID]struct{})
+	}
+	for i := range ids {
+		m.subjectRoles[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSubjectRoles clears the "subjectRoles" edge to the SubjectRoleRelationship entity.
+func (m *ProjectMutation) ClearSubjectRoles() {
+	m.clearedsubjectRoles = true
+}
+
+// SubjectRolesCleared reports if the "subjectRoles" edge to the SubjectRoleRelationship entity was cleared.
+func (m *ProjectMutation) SubjectRolesCleared() bool {
+	return m.clearedsubjectRoles
+}
+
+// RemoveSubjectRoleIDs removes the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
+func (m *ProjectMutation) RemoveSubjectRoleIDs(ids ...oid.ID) {
+	if m.removedsubjectRoles == nil {
+		m.removedsubjectRoles = make(map[oid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.subjectRoles, ids[i])
+		m.removedsubjectRoles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSubjectRoles returns the removed IDs of the "subjectRoles" edge to the SubjectRoleRelationship entity.
+func (m *ProjectMutation) RemovedSubjectRolesIDs() (ids []oid.ID) {
+	for id := range m.removedsubjectRoles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SubjectRolesIDs returns the "subjectRoles" edge IDs in the mutation.
+func (m *ProjectMutation) SubjectRolesIDs() (ids []oid.ID) {
+	for id := range m.subjectRoles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSubjectRoles resets all changes to the "subjectRoles" edge.
+func (m *ProjectMutation) ResetSubjectRoles() {
+	m.subjectRoles = nil
+	m.clearedsubjectRoles = false
+	m.removedsubjectRoles = nil
+}
+
 // AddServiceIDs adds the "services" edge to the Service entity by ids.
 func (m *ProjectMutation) AddServiceIDs(ids ...oid.ID) {
 	if m.services == nil {
@@ -7830,60 +8208,6 @@ func (m *ProjectMutation) ResetServiceRevisions() {
 	m.serviceRevisions = nil
 	m.clearedserviceRevisions = false
 	m.removedserviceRevisions = nil
-}
-
-// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by ids.
-func (m *ProjectMutation) AddSubjectRoleIDs(ids ...oid.ID) {
-	if m.subjectRoles == nil {
-		m.subjectRoles = make(map[oid.ID]struct{})
-	}
-	for i := range ids {
-		m.subjectRoles[ids[i]] = struct{}{}
-	}
-}
-
-// ClearSubjectRoles clears the "subjectRoles" edge to the SubjectRoleRelationship entity.
-func (m *ProjectMutation) ClearSubjectRoles() {
-	m.clearedsubjectRoles = true
-}
-
-// SubjectRolesCleared reports if the "subjectRoles" edge to the SubjectRoleRelationship entity was cleared.
-func (m *ProjectMutation) SubjectRolesCleared() bool {
-	return m.clearedsubjectRoles
-}
-
-// RemoveSubjectRoleIDs removes the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (m *ProjectMutation) RemoveSubjectRoleIDs(ids ...oid.ID) {
-	if m.removedsubjectRoles == nil {
-		m.removedsubjectRoles = make(map[oid.ID]struct{})
-	}
-	for i := range ids {
-		delete(m.subjectRoles, ids[i])
-		m.removedsubjectRoles[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedSubjectRoles returns the removed IDs of the "subjectRoles" edge to the SubjectRoleRelationship entity.
-func (m *ProjectMutation) RemovedSubjectRolesIDs() (ids []oid.ID) {
-	for id := range m.removedsubjectRoles {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// SubjectRolesIDs returns the "subjectRoles" edge IDs in the mutation.
-func (m *ProjectMutation) SubjectRolesIDs() (ids []oid.ID) {
-	for id := range m.subjectRoles {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetSubjectRoles resets all changes to the "subjectRoles" edge.
-func (m *ProjectMutation) ResetSubjectRoles() {
-	m.subjectRoles = nil
-	m.clearedsubjectRoles = false
-	m.removedsubjectRoles = nil
 }
 
 // Where appends a list predicates to the ProjectMutation builder.
@@ -8064,6 +8388,12 @@ func (m *ProjectMutation) ClearedFields() []string {
 	if m.FieldCleared(project.FieldDescription) {
 		fields = append(fields, project.FieldDescription)
 	}
+	if m.FieldCleared(project.FieldLabels) {
+		fields = append(fields, project.FieldLabels)
+	}
+	if m.FieldCleared(project.FieldAnnotations) {
+		fields = append(fields, project.FieldAnnotations)
+	}
 	return fields
 }
 
@@ -8080,6 +8410,12 @@ func (m *ProjectMutation) ClearField(name string) error {
 	switch name {
 	case project.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case project.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case project.FieldAnnotations:
+		m.ClearAnnotations()
 		return nil
 	}
 	return fmt.Errorf("unknown Project nullable field %s", name)
@@ -8123,14 +8459,14 @@ func (m *ProjectMutation) AddedEdges() []string {
 	if m.secrets != nil {
 		edges = append(edges, project.EdgeSecrets)
 	}
+	if m.subjectRoles != nil {
+		edges = append(edges, project.EdgeSubjectRoles)
+	}
 	if m.services != nil {
 		edges = append(edges, project.EdgeServices)
 	}
 	if m.serviceRevisions != nil {
 		edges = append(edges, project.EdgeServiceRevisions)
-	}
-	if m.subjectRoles != nil {
-		edges = append(edges, project.EdgeSubjectRoles)
 	}
 	return edges
 }
@@ -8157,6 +8493,12 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeSubjectRoles:
+		ids := make([]ent.Value, 0, len(m.subjectRoles))
+		for id := range m.subjectRoles {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeServices:
 		ids := make([]ent.Value, 0, len(m.services))
 		for id := range m.services {
@@ -8166,12 +8508,6 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 	case project.EdgeServiceRevisions:
 		ids := make([]ent.Value, 0, len(m.serviceRevisions))
 		for id := range m.serviceRevisions {
-			ids = append(ids, id)
-		}
-		return ids
-	case project.EdgeSubjectRoles:
-		ids := make([]ent.Value, 0, len(m.subjectRoles))
-		for id := range m.subjectRoles {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8191,14 +8527,14 @@ func (m *ProjectMutation) RemovedEdges() []string {
 	if m.removedsecrets != nil {
 		edges = append(edges, project.EdgeSecrets)
 	}
+	if m.removedsubjectRoles != nil {
+		edges = append(edges, project.EdgeSubjectRoles)
+	}
 	if m.removedservices != nil {
 		edges = append(edges, project.EdgeServices)
 	}
 	if m.removedserviceRevisions != nil {
 		edges = append(edges, project.EdgeServiceRevisions)
-	}
-	if m.removedsubjectRoles != nil {
-		edges = append(edges, project.EdgeSubjectRoles)
 	}
 	return edges
 }
@@ -8225,6 +8561,12 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeSubjectRoles:
+		ids := make([]ent.Value, 0, len(m.removedsubjectRoles))
+		for id := range m.removedsubjectRoles {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeServices:
 		ids := make([]ent.Value, 0, len(m.removedservices))
 		for id := range m.removedservices {
@@ -8234,12 +8576,6 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 	case project.EdgeServiceRevisions:
 		ids := make([]ent.Value, 0, len(m.removedserviceRevisions))
 		for id := range m.removedserviceRevisions {
-			ids = append(ids, id)
-		}
-		return ids
-	case project.EdgeSubjectRoles:
-		ids := make([]ent.Value, 0, len(m.removedsubjectRoles))
-		for id := range m.removedsubjectRoles {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8259,14 +8595,14 @@ func (m *ProjectMutation) ClearedEdges() []string {
 	if m.clearedsecrets {
 		edges = append(edges, project.EdgeSecrets)
 	}
+	if m.clearedsubjectRoles {
+		edges = append(edges, project.EdgeSubjectRoles)
+	}
 	if m.clearedservices {
 		edges = append(edges, project.EdgeServices)
 	}
 	if m.clearedserviceRevisions {
 		edges = append(edges, project.EdgeServiceRevisions)
-	}
-	if m.clearedsubjectRoles {
-		edges = append(edges, project.EdgeSubjectRoles)
 	}
 	return edges
 }
@@ -8281,12 +8617,12 @@ func (m *ProjectMutation) EdgeCleared(name string) bool {
 		return m.clearedconnectors
 	case project.EdgeSecrets:
 		return m.clearedsecrets
+	case project.EdgeSubjectRoles:
+		return m.clearedsubjectRoles
 	case project.EdgeServices:
 		return m.clearedservices
 	case project.EdgeServiceRevisions:
 		return m.clearedserviceRevisions
-	case project.EdgeSubjectRoles:
-		return m.clearedsubjectRoles
 	}
 	return false
 }
@@ -8312,14 +8648,14 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 	case project.EdgeSecrets:
 		m.ResetSecrets()
 		return nil
+	case project.EdgeSubjectRoles:
+		m.ResetSubjectRoles()
+		return nil
 	case project.EdgeServices:
 		m.ResetServices()
 		return nil
 	case project.EdgeServiceRevisions:
 		m.ResetServiceRevisions()
-		return nil
-	case project.EdgeSubjectRoles:
-		m.ResetSubjectRoles()
 		return nil
 	}
 	return fmt.Errorf("unknown Project edge %s", name)
@@ -9234,55 +9570,6 @@ func (m *SecretMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
-// SetProjectID sets the "projectID" field.
-func (m *SecretMutation) SetProjectID(o oid.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "projectID" field in the mutation.
-func (m *SecretMutation) ProjectID() (r oid.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "projectID" field's value of the Secret entity.
-// If the Secret object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SecretMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ClearProjectID clears the value of the "projectID" field.
-func (m *SecretMutation) ClearProjectID() {
-	m.project = nil
-	m.clearedFields[secret.FieldProjectID] = struct{}{}
-}
-
-// ProjectIDCleared returns if the "projectID" field was cleared in this mutation.
-func (m *SecretMutation) ProjectIDCleared() bool {
-	_, ok := m.clearedFields[secret.FieldProjectID]
-	return ok
-}
-
-// ResetProjectID resets all changes to the "projectID" field.
-func (m *SecretMutation) ResetProjectID() {
-	m.project = nil
-	delete(m.clearedFields, secret.FieldProjectID)
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *SecretMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -9353,6 +9640,55 @@ func (m *SecretMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err e
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *SecretMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetProjectID sets the "projectID" field.
+func (m *SecretMutation) SetProjectID(o oid.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "projectID" field in the mutation.
+func (m *SecretMutation) ProjectID() (r oid.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "projectID" field's value of the Secret entity.
+// If the Secret object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SecretMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ClearProjectID clears the value of the "projectID" field.
+func (m *SecretMutation) ClearProjectID() {
+	m.project = nil
+	m.clearedFields[secret.FieldProjectID] = struct{}{}
+}
+
+// ProjectIDCleared returns if the "projectID" field was cleared in this mutation.
+func (m *SecretMutation) ProjectIDCleared() bool {
+	_, ok := m.clearedFields[secret.FieldProjectID]
+	return ok
+}
+
+// ResetProjectID resets all changes to the "projectID" field.
+func (m *SecretMutation) ResetProjectID() {
+	m.project = nil
+	delete(m.clearedFields, secret.FieldProjectID)
 }
 
 // SetName sets the "name" field.
@@ -9488,14 +9824,14 @@ func (m *SecretMutation) Type() string {
 // AddedFields().
 func (m *SecretMutation) Fields() []string {
 	fields := make([]string, 0, 5)
-	if m.project != nil {
-		fields = append(fields, secret.FieldProjectID)
-	}
 	if m.createTime != nil {
 		fields = append(fields, secret.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, secret.FieldUpdateTime)
+	}
+	if m.project != nil {
+		fields = append(fields, secret.FieldProjectID)
 	}
 	if m.name != nil {
 		fields = append(fields, secret.FieldName)
@@ -9511,12 +9847,12 @@ func (m *SecretMutation) Fields() []string {
 // schema.
 func (m *SecretMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case secret.FieldProjectID:
-		return m.ProjectID()
 	case secret.FieldCreateTime:
 		return m.CreateTime()
 	case secret.FieldUpdateTime:
 		return m.UpdateTime()
+	case secret.FieldProjectID:
+		return m.ProjectID()
 	case secret.FieldName:
 		return m.Name()
 	case secret.FieldValue:
@@ -9530,12 +9866,12 @@ func (m *SecretMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *SecretMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case secret.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case secret.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case secret.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case secret.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case secret.FieldName:
 		return m.OldName(ctx)
 	case secret.FieldValue:
@@ -9549,13 +9885,6 @@ func (m *SecretMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *SecretMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case secret.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case secret.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -9569,6 +9898,13 @@ func (m *SecretMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case secret.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case secret.FieldName:
 		v, ok := value.(string)
@@ -9642,14 +9978,14 @@ func (m *SecretMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *SecretMutation) ResetField(name string) error {
 	switch name {
-	case secret.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case secret.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case secret.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case secret.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case secret.FieldName:
 		m.ResetName()
@@ -9751,10 +10087,10 @@ type ServiceMutation struct {
 	attributes          *property.Values
 	status              *status.Status
 	clearedFields       map[string]struct{}
-	environment         *oid.ID
-	clearedenvironment  bool
 	project             *oid.ID
 	clearedproject      bool
+	environment         *oid.ID
+	clearedenvironment  bool
 	revisions           map[oid.ID]struct{}
 	removedrevisions    map[oid.ID]struct{}
 	clearedrevisions    bool
@@ -9873,42 +10209,6 @@ func (m *ServiceMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
-// SetProjectID sets the "projectID" field.
-func (m *ServiceMutation) SetProjectID(o oid.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ServiceMutation) ProjectID() (r oid.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "projectID" field's value of the Service entity.
-// If the Service object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ResetProjectID resets all changes to the "projectID" field.
-func (m *ServiceMutation) ResetProjectID() {
-	m.project = nil
-}
-
 // SetName sets the "name" field.
 func (m *ServiceMutation) SetName(s string) {
 	m.name = &s
@@ -10025,9 +10325,22 @@ func (m *ServiceMutation) OldLabels(ctx context.Context) (v map[string]string, e
 	return oldValue.Labels, nil
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (m *ServiceMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[service.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *ServiceMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[service.FieldLabels]
+	return ok
+}
+
 // ResetLabels resets all changes to the "labels" field.
 func (m *ServiceMutation) ResetLabels() {
 	m.labels = nil
+	delete(m.clearedFields, service.FieldLabels)
 }
 
 // SetAnnotations sets the "annotations" field.
@@ -10061,9 +10374,22 @@ func (m *ServiceMutation) OldAnnotations(ctx context.Context) (v map[string]stri
 	return oldValue.Annotations, nil
 }
 
+// ClearAnnotations clears the value of the "annotations" field.
+func (m *ServiceMutation) ClearAnnotations() {
+	m.annotations = nil
+	m.clearedFields[service.FieldAnnotations] = struct{}{}
+}
+
+// AnnotationsCleared returns if the "annotations" field was cleared in this mutation.
+func (m *ServiceMutation) AnnotationsCleared() bool {
+	_, ok := m.clearedFields[service.FieldAnnotations]
+	return ok
+}
+
 // ResetAnnotations resets all changes to the "annotations" field.
 func (m *ServiceMutation) ResetAnnotations() {
 	m.annotations = nil
+	delete(m.clearedFields, service.FieldAnnotations)
 }
 
 // SetCreateTime sets the "createTime" field.
@@ -10136,6 +10462,42 @@ func (m *ServiceMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err 
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *ServiceMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetProjectID sets the "projectID" field.
+func (m *ServiceMutation) SetProjectID(o oid.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "projectID" field in the mutation.
+func (m *ServiceMutation) ProjectID() (r oid.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "projectID" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ResetProjectID resets all changes to the "projectID" field.
+func (m *ServiceMutation) ResetProjectID() {
+	m.project = nil
 }
 
 // SetEnvironmentID sets the "environmentID" field.
@@ -10308,32 +10670,6 @@ func (m *ServiceMutation) ResetStatus() {
 	delete(m.clearedFields, service.FieldStatus)
 }
 
-// ClearEnvironment clears the "environment" edge to the Environment entity.
-func (m *ServiceMutation) ClearEnvironment() {
-	m.clearedenvironment = true
-}
-
-// EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
-func (m *ServiceMutation) EnvironmentCleared() bool {
-	return m.clearedenvironment
-}
-
-// EnvironmentIDs returns the "environment" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *ServiceMutation) EnvironmentIDs() (ids []oid.ID) {
-	if id := m.environment; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetEnvironment resets all changes to the "environment" edge.
-func (m *ServiceMutation) ResetEnvironment() {
-	m.environment = nil
-	m.clearedenvironment = false
-}
-
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ServiceMutation) ClearProject() {
 	m.clearedproject = true
@@ -10358,6 +10694,32 @@ func (m *ServiceMutation) ProjectIDs() (ids []oid.ID) {
 func (m *ServiceMutation) ResetProject() {
 	m.project = nil
 	m.clearedproject = false
+}
+
+// ClearEnvironment clears the "environment" edge to the Environment entity.
+func (m *ServiceMutation) ClearEnvironment() {
+	m.clearedenvironment = true
+}
+
+// EnvironmentCleared reports if the "environment" edge to the Environment entity was cleared.
+func (m *ServiceMutation) EnvironmentCleared() bool {
+	return m.clearedenvironment
+}
+
+// EnvironmentIDs returns the "environment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EnvironmentID instead. It exists only for internal usage by the builders.
+func (m *ServiceMutation) EnvironmentIDs() (ids []oid.ID) {
+	if id := m.environment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEnvironment resets all changes to the "environment" edge.
+func (m *ServiceMutation) ResetEnvironment() {
+	m.environment = nil
+	m.clearedenvironment = false
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by ids.
@@ -10557,9 +10919,6 @@ func (m *ServiceMutation) Type() string {
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
 	fields := make([]string, 0, 11)
-	if m.project != nil {
-		fields = append(fields, service.FieldProjectID)
-	}
 	if m.name != nil {
 		fields = append(fields, service.FieldName)
 	}
@@ -10577,6 +10936,9 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.updateTime != nil {
 		fields = append(fields, service.FieldUpdateTime)
+	}
+	if m.project != nil {
+		fields = append(fields, service.FieldProjectID)
 	}
 	if m.environment != nil {
 		fields = append(fields, service.FieldEnvironmentID)
@@ -10598,8 +10960,6 @@ func (m *ServiceMutation) Fields() []string {
 // schema.
 func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case service.FieldProjectID:
-		return m.ProjectID()
 	case service.FieldName:
 		return m.Name()
 	case service.FieldDescription:
@@ -10612,6 +10972,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case service.FieldUpdateTime:
 		return m.UpdateTime()
+	case service.FieldProjectID:
+		return m.ProjectID()
 	case service.FieldEnvironmentID:
 		return m.EnvironmentID()
 	case service.FieldTemplate:
@@ -10629,8 +10991,6 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case service.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case service.FieldName:
 		return m.OldName(ctx)
 	case service.FieldDescription:
@@ -10643,6 +11003,8 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreateTime(ctx)
 	case service.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case service.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case service.FieldEnvironmentID:
 		return m.OldEnvironmentID(ctx)
 	case service.FieldTemplate:
@@ -10660,13 +11022,6 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case service.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case service.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -10708,6 +11063,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case service.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case service.FieldEnvironmentID:
 		v, ok := value.(oid.ID)
@@ -10770,6 +11132,12 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldDescription) {
 		fields = append(fields, service.FieldDescription)
 	}
+	if m.FieldCleared(service.FieldLabels) {
+		fields = append(fields, service.FieldLabels)
+	}
+	if m.FieldCleared(service.FieldAnnotations) {
+		fields = append(fields, service.FieldAnnotations)
+	}
 	if m.FieldCleared(service.FieldAttributes) {
 		fields = append(fields, service.FieldAttributes)
 	}
@@ -10793,6 +11161,12 @@ func (m *ServiceMutation) ClearField(name string) error {
 	case service.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case service.FieldLabels:
+		m.ClearLabels()
+		return nil
+	case service.FieldAnnotations:
+		m.ClearAnnotations()
+		return nil
 	case service.FieldAttributes:
 		m.ClearAttributes()
 		return nil
@@ -10807,9 +11181,6 @@ func (m *ServiceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ServiceMutation) ResetField(name string) error {
 	switch name {
-	case service.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case service.FieldName:
 		m.ResetName()
 		return nil
@@ -10827,6 +11198,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case service.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case service.FieldEnvironmentID:
 		m.ResetEnvironmentID()
@@ -10847,11 +11221,11 @@ func (m *ServiceMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceMutation) AddedEdges() []string {
 	edges := make([]string, 0, 5)
-	if m.environment != nil {
-		edges = append(edges, service.EdgeEnvironment)
-	}
 	if m.project != nil {
 		edges = append(edges, service.EdgeProject)
+	}
+	if m.environment != nil {
+		edges = append(edges, service.EdgeEnvironment)
 	}
 	if m.revisions != nil {
 		edges = append(edges, service.EdgeRevisions)
@@ -10869,12 +11243,12 @@ func (m *ServiceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ServiceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case service.EdgeEnvironment:
-		if id := m.environment; id != nil {
-			return []ent.Value{*id}
-		}
 	case service.EdgeProject:
 		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
+	case service.EdgeEnvironment:
+		if id := m.environment; id != nil {
 			return []ent.Value{*id}
 		}
 	case service.EdgeRevisions:
@@ -10943,11 +11317,11 @@ func (m *ServiceMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 5)
-	if m.clearedenvironment {
-		edges = append(edges, service.EdgeEnvironment)
-	}
 	if m.clearedproject {
 		edges = append(edges, service.EdgeProject)
+	}
+	if m.clearedenvironment {
+		edges = append(edges, service.EdgeEnvironment)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, service.EdgeRevisions)
@@ -10965,10 +11339,10 @@ func (m *ServiceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ServiceMutation) EdgeCleared(name string) bool {
 	switch name {
-	case service.EdgeEnvironment:
-		return m.clearedenvironment
 	case service.EdgeProject:
 		return m.clearedproject
+	case service.EdgeEnvironment:
+		return m.clearedenvironment
 	case service.EdgeRevisions:
 		return m.clearedrevisions
 	case service.EdgeResources:
@@ -10983,11 +11357,11 @@ func (m *ServiceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ServiceMutation) ClearEdge(name string) error {
 	switch name {
-	case service.EdgeEnvironment:
-		m.ClearEnvironment()
-		return nil
 	case service.EdgeProject:
 		m.ClearProject()
+		return nil
+	case service.EdgeEnvironment:
+		m.ClearEnvironment()
 		return nil
 	}
 	return fmt.Errorf("unknown Service unique edge %s", name)
@@ -10997,11 +11371,11 @@ func (m *ServiceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ServiceMutation) ResetEdge(name string) error {
 	switch name {
-	case service.EdgeEnvironment:
-		m.ResetEnvironment()
-		return nil
 	case service.EdgeProject:
 		m.ResetProject()
+		return nil
+	case service.EdgeEnvironment:
+		m.ResetEnvironment()
 		return nil
 	case service.EdgeRevisions:
 		m.ResetRevisions()
@@ -11639,9 +12013,9 @@ type ServiceResourceMutation struct {
 	op                 Op
 	typ                string
 	id                 *oid.ID
-	projectID          *oid.ID
 	createTime         *time.Time
 	updateTime         *time.Time
+	projectID          *oid.ID
 	mode               *string
 	_type              *string
 	name               *string
@@ -11766,42 +12140,6 @@ func (m *ServiceResourceMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
-// SetProjectID sets the "projectID" field.
-func (m *ServiceResourceMutation) SetProjectID(o oid.ID) {
-	m.projectID = &o
-}
-
-// ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ServiceResourceMutation) ProjectID() (r oid.ID, exists bool) {
-	v := m.projectID
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "projectID" field's value of the ServiceResource entity.
-// If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ResetProjectID resets all changes to the "projectID" field.
-func (m *ServiceResourceMutation) ResetProjectID() {
-	m.projectID = nil
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *ServiceResourceMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -11872,6 +12210,42 @@ func (m *ServiceResourceMutation) OldUpdateTime(ctx context.Context) (v *time.Ti
 // ResetUpdateTime resets all changes to the "updateTime" field.
 func (m *ServiceResourceMutation) ResetUpdateTime() {
 	m.updateTime = nil
+}
+
+// SetProjectID sets the "projectID" field.
+func (m *ServiceResourceMutation) SetProjectID(o oid.ID) {
+	m.projectID = &o
+}
+
+// ProjectID returns the value of the "projectID" field in the mutation.
+func (m *ServiceResourceMutation) ProjectID() (r oid.ID, exists bool) {
+	v := m.projectID
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "projectID" field's value of the ServiceResource entity.
+// If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ResetProjectID resets all changes to the "projectID" field.
+func (m *ServiceResourceMutation) ResetProjectID() {
+	m.projectID = nil
 }
 
 // SetServiceID sets the "serviceID" field.
@@ -12355,14 +12729,14 @@ func (m *ServiceResourceMutation) Type() string {
 // AddedFields().
 func (m *ServiceResourceMutation) Fields() []string {
 	fields := make([]string, 0, 11)
-	if m.projectID != nil {
-		fields = append(fields, serviceresource.FieldProjectID)
-	}
 	if m.createTime != nil {
 		fields = append(fields, serviceresource.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, serviceresource.FieldUpdateTime)
+	}
+	if m.projectID != nil {
+		fields = append(fields, serviceresource.FieldProjectID)
 	}
 	if m.service != nil {
 		fields = append(fields, serviceresource.FieldServiceID)
@@ -12396,12 +12770,12 @@ func (m *ServiceResourceMutation) Fields() []string {
 // schema.
 func (m *ServiceResourceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case serviceresource.FieldProjectID:
-		return m.ProjectID()
 	case serviceresource.FieldCreateTime:
 		return m.CreateTime()
 	case serviceresource.FieldUpdateTime:
 		return m.UpdateTime()
+	case serviceresource.FieldProjectID:
+		return m.ProjectID()
 	case serviceresource.FieldServiceID:
 		return m.ServiceID()
 	case serviceresource.FieldConnectorID:
@@ -12427,12 +12801,12 @@ func (m *ServiceResourceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ServiceResourceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case serviceresource.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case serviceresource.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case serviceresource.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case serviceresource.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case serviceresource.FieldServiceID:
 		return m.OldServiceID(ctx)
 	case serviceresource.FieldConnectorID:
@@ -12458,13 +12832,6 @@ func (m *ServiceResourceMutation) OldField(ctx context.Context, name string) (en
 // type.
 func (m *ServiceResourceMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case serviceresource.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case serviceresource.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -12478,6 +12845,13 @@ func (m *ServiceResourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case serviceresource.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case serviceresource.FieldServiceID:
 		v, ok := value.(oid.ID)
@@ -12599,14 +12973,14 @@ func (m *ServiceResourceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ServiceResourceMutation) ResetField(name string) error {
 	switch name {
-	case serviceresource.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case serviceresource.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case serviceresource.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case serviceresource.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case serviceresource.FieldServiceID:
 		m.ResetServiceID()
@@ -12780,9 +13154,9 @@ type ServiceRevisionMutation struct {
 	op                              Op
 	typ                             string
 	id                              *oid.ID
+	createTime                      *time.Time
 	status                          *string
 	statusMessage                   *string
-	createTime                      *time.Time
 	templateID                      *string
 	templateVersion                 *string
 	attributes                      *property.Values
@@ -12797,12 +13171,12 @@ type ServiceRevisionMutation struct {
 	tags                            *[]string
 	appendtags                      []string
 	clearedFields                   map[string]struct{}
-	service                         *oid.ID
-	clearedservice                  bool
-	environment                     *oid.ID
-	clearedenvironment              bool
 	project                         *oid.ID
 	clearedproject                  bool
+	environment                     *oid.ID
+	clearedenvironment              bool
+	service                         *oid.ID
+	clearedservice                  bool
 	done                            bool
 	oldValue                        func(context.Context) (*ServiceRevision, error)
 	predicates                      []predicate.ServiceRevision
@@ -12910,6 +13284,42 @@ func (m *ServiceRevisionMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "createTime" field.
+func (m *ServiceRevisionMutation) SetCreateTime(t time.Time) {
+	m.createTime = &t
+}
+
+// CreateTime returns the value of the "createTime" field in the mutation.
+func (m *ServiceRevisionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.createTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "createTime" field's value of the ServiceRevision entity.
+// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceRevisionMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "createTime" field.
+func (m *ServiceRevisionMutation) ResetCreateTime() {
+	m.createTime = nil
 }
 
 // SetProjectID sets the "projectID" field.
@@ -13044,42 +13454,6 @@ func (m *ServiceRevisionMutation) StatusMessageCleared() bool {
 func (m *ServiceRevisionMutation) ResetStatusMessage() {
 	m.statusMessage = nil
 	delete(m.clearedFields, servicerevision.FieldStatusMessage)
-}
-
-// SetCreateTime sets the "createTime" field.
-func (m *ServiceRevisionMutation) SetCreateTime(t time.Time) {
-	m.createTime = &t
-}
-
-// CreateTime returns the value of the "createTime" field in the mutation.
-func (m *ServiceRevisionMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.createTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "createTime" field's value of the ServiceRevision entity.
-// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "createTime" field.
-func (m *ServiceRevisionMutation) ResetCreateTime() {
-	m.createTime = nil
 }
 
 // SetServiceID sets the "serviceID" field.
@@ -13577,30 +13951,30 @@ func (m *ServiceRevisionMutation) ResetTags() {
 	m.appendtags = nil
 }
 
-// ClearService clears the "service" edge to the Service entity.
-func (m *ServiceRevisionMutation) ClearService() {
-	m.clearedservice = true
+// ClearProject clears the "project" edge to the Project entity.
+func (m *ServiceRevisionMutation) ClearProject() {
+	m.clearedproject = true
 }
 
-// ServiceCleared reports if the "service" edge to the Service entity was cleared.
-func (m *ServiceRevisionMutation) ServiceCleared() bool {
-	return m.clearedservice
+// ProjectCleared reports if the "project" edge to the Project entity was cleared.
+func (m *ServiceRevisionMutation) ProjectCleared() bool {
+	return m.clearedproject
 }
 
-// ServiceIDs returns the "service" edge IDs in the mutation.
+// ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ServiceID instead. It exists only for internal usage by the builders.
-func (m *ServiceRevisionMutation) ServiceIDs() (ids []oid.ID) {
-	if id := m.service; id != nil {
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *ServiceRevisionMutation) ProjectIDs() (ids []oid.ID) {
+	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetService resets all changes to the "service" edge.
-func (m *ServiceRevisionMutation) ResetService() {
-	m.service = nil
-	m.clearedservice = false
+// ResetProject resets all changes to the "project" edge.
+func (m *ServiceRevisionMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
 }
 
 // ClearEnvironment clears the "environment" edge to the Environment entity.
@@ -13629,30 +14003,30 @@ func (m *ServiceRevisionMutation) ResetEnvironment() {
 	m.clearedenvironment = false
 }
 
-// ClearProject clears the "project" edge to the Project entity.
-func (m *ServiceRevisionMutation) ClearProject() {
-	m.clearedproject = true
+// ClearService clears the "service" edge to the Service entity.
+func (m *ServiceRevisionMutation) ClearService() {
+	m.clearedservice = true
 }
 
-// ProjectCleared reports if the "project" edge to the Project entity was cleared.
-func (m *ServiceRevisionMutation) ProjectCleared() bool {
-	return m.clearedproject
+// ServiceCleared reports if the "service" edge to the Service entity was cleared.
+func (m *ServiceRevisionMutation) ServiceCleared() bool {
+	return m.clearedservice
 }
 
-// ProjectIDs returns the "project" edge IDs in the mutation.
+// ServiceIDs returns the "service" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ProjectID instead. It exists only for internal usage by the builders.
-func (m *ServiceRevisionMutation) ProjectIDs() (ids []oid.ID) {
-	if id := m.project; id != nil {
+// ServiceID instead. It exists only for internal usage by the builders.
+func (m *ServiceRevisionMutation) ServiceIDs() (ids []oid.ID) {
+	if id := m.service; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetProject resets all changes to the "project" edge.
-func (m *ServiceRevisionMutation) ResetProject() {
-	m.project = nil
-	m.clearedproject = false
+// ResetService resets all changes to the "service" edge.
+func (m *ServiceRevisionMutation) ResetService() {
+	m.service = nil
+	m.clearedservice = false
 }
 
 // Where appends a list predicates to the ServiceRevisionMutation builder.
@@ -13690,6 +14064,9 @@ func (m *ServiceRevisionMutation) Type() string {
 // AddedFields().
 func (m *ServiceRevisionMutation) Fields() []string {
 	fields := make([]string, 0, 16)
+	if m.createTime != nil {
+		fields = append(fields, servicerevision.FieldCreateTime)
+	}
 	if m.project != nil {
 		fields = append(fields, servicerevision.FieldProjectID)
 	}
@@ -13698,9 +14075,6 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	}
 	if m.statusMessage != nil {
 		fields = append(fields, servicerevision.FieldStatusMessage)
-	}
-	if m.createTime != nil {
-		fields = append(fields, servicerevision.FieldCreateTime)
 	}
 	if m.service != nil {
 		fields = append(fields, servicerevision.FieldServiceID)
@@ -13746,14 +14120,14 @@ func (m *ServiceRevisionMutation) Fields() []string {
 // schema.
 func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case servicerevision.FieldCreateTime:
+		return m.CreateTime()
 	case servicerevision.FieldProjectID:
 		return m.ProjectID()
 	case servicerevision.FieldStatus:
 		return m.Status()
 	case servicerevision.FieldStatusMessage:
 		return m.StatusMessage()
-	case servicerevision.FieldCreateTime:
-		return m.CreateTime()
 	case servicerevision.FieldServiceID:
 		return m.ServiceID()
 	case servicerevision.FieldEnvironmentID:
@@ -13787,14 +14161,14 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case servicerevision.FieldCreateTime:
+		return m.OldCreateTime(ctx)
 	case servicerevision.FieldProjectID:
 		return m.OldProjectID(ctx)
 	case servicerevision.FieldStatus:
 		return m.OldStatus(ctx)
 	case servicerevision.FieldStatusMessage:
 		return m.OldStatusMessage(ctx)
-	case servicerevision.FieldCreateTime:
-		return m.OldCreateTime(ctx)
 	case servicerevision.FieldServiceID:
 		return m.OldServiceID(ctx)
 	case servicerevision.FieldEnvironmentID:
@@ -13828,6 +14202,13 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 // type.
 func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case servicerevision.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
 	case servicerevision.FieldProjectID:
 		v, ok := value.(oid.ID)
 		if !ok {
@@ -13848,13 +14229,6 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatusMessage(v)
-		return nil
-	case servicerevision.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
 		return nil
 	case servicerevision.FieldServiceID:
 		v, ok := value.(oid.ID)
@@ -14025,6 +14399,9 @@ func (m *ServiceRevisionMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ServiceRevisionMutation) ResetField(name string) error {
 	switch name {
+	case servicerevision.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
 	case servicerevision.FieldProjectID:
 		m.ResetProjectID()
 		return nil
@@ -14033,9 +14410,6 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 		return nil
 	case servicerevision.FieldStatusMessage:
 		m.ResetStatusMessage()
-		return nil
-	case servicerevision.FieldCreateTime:
-		m.ResetCreateTime()
 		return nil
 	case servicerevision.FieldServiceID:
 		m.ResetServiceID()
@@ -14080,14 +14454,14 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceRevisionMutation) AddedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.service != nil {
-		edges = append(edges, servicerevision.EdgeService)
+	if m.project != nil {
+		edges = append(edges, servicerevision.EdgeProject)
 	}
 	if m.environment != nil {
 		edges = append(edges, servicerevision.EdgeEnvironment)
 	}
-	if m.project != nil {
-		edges = append(edges, servicerevision.EdgeProject)
+	if m.service != nil {
+		edges = append(edges, servicerevision.EdgeService)
 	}
 	return edges
 }
@@ -14096,16 +14470,16 @@ func (m *ServiceRevisionMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ServiceRevisionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case servicerevision.EdgeService:
-		if id := m.service; id != nil {
+	case servicerevision.EdgeProject:
+		if id := m.project; id != nil {
 			return []ent.Value{*id}
 		}
 	case servicerevision.EdgeEnvironment:
 		if id := m.environment; id != nil {
 			return []ent.Value{*id}
 		}
-	case servicerevision.EdgeProject:
-		if id := m.project; id != nil {
+	case servicerevision.EdgeService:
+		if id := m.service; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -14127,14 +14501,14 @@ func (m *ServiceRevisionMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceRevisionMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.clearedservice {
-		edges = append(edges, servicerevision.EdgeService)
+	if m.clearedproject {
+		edges = append(edges, servicerevision.EdgeProject)
 	}
 	if m.clearedenvironment {
 		edges = append(edges, servicerevision.EdgeEnvironment)
 	}
-	if m.clearedproject {
-		edges = append(edges, servicerevision.EdgeProject)
+	if m.clearedservice {
+		edges = append(edges, servicerevision.EdgeService)
 	}
 	return edges
 }
@@ -14143,12 +14517,12 @@ func (m *ServiceRevisionMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ServiceRevisionMutation) EdgeCleared(name string) bool {
 	switch name {
-	case servicerevision.EdgeService:
-		return m.clearedservice
-	case servicerevision.EdgeEnvironment:
-		return m.clearedenvironment
 	case servicerevision.EdgeProject:
 		return m.clearedproject
+	case servicerevision.EdgeEnvironment:
+		return m.clearedenvironment
+	case servicerevision.EdgeService:
+		return m.clearedservice
 	}
 	return false
 }
@@ -14157,14 +14531,14 @@ func (m *ServiceRevisionMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ServiceRevisionMutation) ClearEdge(name string) error {
 	switch name {
-	case servicerevision.EdgeService:
-		m.ClearService()
+	case servicerevision.EdgeProject:
+		m.ClearProject()
 		return nil
 	case servicerevision.EdgeEnvironment:
 		m.ClearEnvironment()
 		return nil
-	case servicerevision.EdgeProject:
-		m.ClearProject()
+	case servicerevision.EdgeService:
+		m.ClearService()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceRevision unique edge %s", name)
@@ -14174,14 +14548,14 @@ func (m *ServiceRevisionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ServiceRevisionMutation) ResetEdge(name string) error {
 	switch name {
-	case servicerevision.EdgeService:
-		m.ResetService()
+	case servicerevision.EdgeProject:
+		m.ResetProject()
 		return nil
 	case servicerevision.EdgeEnvironment:
 		m.ResetEnvironment()
 		return nil
-	case servicerevision.EdgeProject:
-		m.ResetProject()
+	case servicerevision.EdgeService:
+		m.ResetService()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceRevision edge %s", name)
@@ -15820,6 +16194,42 @@ func (m *SubjectRoleRelationshipMutation) IDs(ctx context.Context) ([]oid.ID, er
 	}
 }
 
+// SetCreateTime sets the "createTime" field.
+func (m *SubjectRoleRelationshipMutation) SetCreateTime(t time.Time) {
+	m.createTime = &t
+}
+
+// CreateTime returns the value of the "createTime" field in the mutation.
+func (m *SubjectRoleRelationshipMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.createTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "createTime" field's value of the SubjectRoleRelationship entity.
+// If the SubjectRoleRelationship object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubjectRoleRelationshipMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "createTime" field.
+func (m *SubjectRoleRelationshipMutation) ResetCreateTime() {
+	m.createTime = nil
+}
+
 // SetProjectID sets the "projectID" field.
 func (m *SubjectRoleRelationshipMutation) SetProjectID(o oid.ID) {
 	m.project = &o
@@ -15867,42 +16277,6 @@ func (m *SubjectRoleRelationshipMutation) ProjectIDCleared() bool {
 func (m *SubjectRoleRelationshipMutation) ResetProjectID() {
 	m.project = nil
 	delete(m.clearedFields, subjectrolerelationship.FieldProjectID)
-}
-
-// SetCreateTime sets the "createTime" field.
-func (m *SubjectRoleRelationshipMutation) SetCreateTime(t time.Time) {
-	m.createTime = &t
-}
-
-// CreateTime returns the value of the "createTime" field in the mutation.
-func (m *SubjectRoleRelationshipMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.createTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "createTime" field's value of the SubjectRoleRelationship entity.
-// If the SubjectRoleRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SubjectRoleRelationshipMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "createTime" field.
-func (m *SubjectRoleRelationshipMutation) ResetCreateTime() {
-	m.createTime = nil
 }
 
 // SetSubjectID sets the "subject_id" field.
@@ -16090,11 +16464,11 @@ func (m *SubjectRoleRelationshipMutation) Type() string {
 // AddedFields().
 func (m *SubjectRoleRelationshipMutation) Fields() []string {
 	fields := make([]string, 0, 4)
-	if m.project != nil {
-		fields = append(fields, subjectrolerelationship.FieldProjectID)
-	}
 	if m.createTime != nil {
 		fields = append(fields, subjectrolerelationship.FieldCreateTime)
+	}
+	if m.project != nil {
+		fields = append(fields, subjectrolerelationship.FieldProjectID)
 	}
 	if m.subject != nil {
 		fields = append(fields, subjectrolerelationship.FieldSubjectID)
@@ -16110,10 +16484,10 @@ func (m *SubjectRoleRelationshipMutation) Fields() []string {
 // schema.
 func (m *SubjectRoleRelationshipMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case subjectrolerelationship.FieldProjectID:
-		return m.ProjectID()
 	case subjectrolerelationship.FieldCreateTime:
 		return m.CreateTime()
+	case subjectrolerelationship.FieldProjectID:
+		return m.ProjectID()
 	case subjectrolerelationship.FieldSubjectID:
 		return m.SubjectID()
 	case subjectrolerelationship.FieldRoleID:
@@ -16127,10 +16501,10 @@ func (m *SubjectRoleRelationshipMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *SubjectRoleRelationshipMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case subjectrolerelationship.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case subjectrolerelationship.FieldCreateTime:
 		return m.OldCreateTime(ctx)
+	case subjectrolerelationship.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case subjectrolerelationship.FieldSubjectID:
 		return m.OldSubjectID(ctx)
 	case subjectrolerelationship.FieldRoleID:
@@ -16144,19 +16518,19 @@ func (m *SubjectRoleRelationshipMutation) OldField(ctx context.Context, name str
 // type.
 func (m *SubjectRoleRelationshipMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case subjectrolerelationship.FieldProjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case subjectrolerelationship.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreateTime(v)
+		return nil
+	case subjectrolerelationship.FieldProjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case subjectrolerelationship.FieldSubjectID:
 		v, ok := value.(oid.ID)
@@ -16230,11 +16604,11 @@ func (m *SubjectRoleRelationshipMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *SubjectRoleRelationshipMutation) ResetField(name string) error {
 	switch name {
-	case subjectrolerelationship.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case subjectrolerelationship.FieldCreateTime:
 		m.ResetCreateTime()
+		return nil
+	case subjectrolerelationship.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case subjectrolerelationship.FieldSubjectID:
 		m.ResetSubjectID()
@@ -16362,10 +16736,10 @@ type TemplateMutation struct {
 	op              Op
 	typ             string
 	id              *string
-	status          *string
-	statusMessage   *string
 	createTime      *time.Time
 	updateTime      *time.Time
+	status          *string
+	statusMessage   *string
 	description     *string
 	icon            *string
 	labels          *map[string]string
@@ -16483,6 +16857,78 @@ func (m *TemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	}
 }
 
+// SetCreateTime sets the "createTime" field.
+func (m *TemplateMutation) SetCreateTime(t time.Time) {
+	m.createTime = &t
+}
+
+// CreateTime returns the value of the "createTime" field in the mutation.
+func (m *TemplateMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.createTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "createTime" field's value of the Template entity.
+// If the Template object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "createTime" field.
+func (m *TemplateMutation) ResetCreateTime() {
+	m.createTime = nil
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (m *TemplateMutation) SetUpdateTime(t time.Time) {
+	m.updateTime = &t
+}
+
+// UpdateTime returns the value of the "updateTime" field in the mutation.
+func (m *TemplateMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.updateTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "updateTime" field's value of the Template entity.
+// If the Template object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TemplateMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "updateTime" field.
+func (m *TemplateMutation) ResetUpdateTime() {
+	m.updateTime = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *TemplateMutation) SetStatus(s string) {
 	m.status = &s
@@ -16579,78 +17025,6 @@ func (m *TemplateMutation) StatusMessageCleared() bool {
 func (m *TemplateMutation) ResetStatusMessage() {
 	m.statusMessage = nil
 	delete(m.clearedFields, template.FieldStatusMessage)
-}
-
-// SetCreateTime sets the "createTime" field.
-func (m *TemplateMutation) SetCreateTime(t time.Time) {
-	m.createTime = &t
-}
-
-// CreateTime returns the value of the "createTime" field in the mutation.
-func (m *TemplateMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.createTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "createTime" field's value of the Template entity.
-// If the Template object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "createTime" field.
-func (m *TemplateMutation) ResetCreateTime() {
-	m.createTime = nil
-}
-
-// SetUpdateTime sets the "updateTime" field.
-func (m *TemplateMutation) SetUpdateTime(t time.Time) {
-	m.updateTime = &t
-}
-
-// UpdateTime returns the value of the "updateTime" field in the mutation.
-func (m *TemplateMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.updateTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "updateTime" field's value of the Template entity.
-// If the Template object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateMutation) OldUpdateTime(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "updateTime" field.
-func (m *TemplateMutation) ResetUpdateTime() {
-	m.updateTime = nil
 }
 
 // SetDescription sets the "description" field.
@@ -16912,17 +17286,17 @@ func (m *TemplateMutation) Type() string {
 // AddedFields().
 func (m *TemplateMutation) Fields() []string {
 	fields := make([]string, 0, 8)
-	if m.status != nil {
-		fields = append(fields, template.FieldStatus)
-	}
-	if m.statusMessage != nil {
-		fields = append(fields, template.FieldStatusMessage)
-	}
 	if m.createTime != nil {
 		fields = append(fields, template.FieldCreateTime)
 	}
 	if m.updateTime != nil {
 		fields = append(fields, template.FieldUpdateTime)
+	}
+	if m.status != nil {
+		fields = append(fields, template.FieldStatus)
+	}
+	if m.statusMessage != nil {
+		fields = append(fields, template.FieldStatusMessage)
 	}
 	if m.description != nil {
 		fields = append(fields, template.FieldDescription)
@@ -16944,14 +17318,14 @@ func (m *TemplateMutation) Fields() []string {
 // schema.
 func (m *TemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case template.FieldStatus:
-		return m.Status()
-	case template.FieldStatusMessage:
-		return m.StatusMessage()
 	case template.FieldCreateTime:
 		return m.CreateTime()
 	case template.FieldUpdateTime:
 		return m.UpdateTime()
+	case template.FieldStatus:
+		return m.Status()
+	case template.FieldStatusMessage:
+		return m.StatusMessage()
 	case template.FieldDescription:
 		return m.Description()
 	case template.FieldIcon:
@@ -16969,14 +17343,14 @@ func (m *TemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *TemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case template.FieldStatus:
-		return m.OldStatus(ctx)
-	case template.FieldStatusMessage:
-		return m.OldStatusMessage(ctx)
 	case template.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case template.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case template.FieldStatus:
+		return m.OldStatus(ctx)
+	case template.FieldStatusMessage:
+		return m.OldStatusMessage(ctx)
 	case template.FieldDescription:
 		return m.OldDescription(ctx)
 	case template.FieldIcon:
@@ -16994,20 +17368,6 @@ func (m *TemplateMutation) OldField(ctx context.Context, name string) (ent.Value
 // type.
 func (m *TemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case template.FieldStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case template.FieldStatusMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatusMessage(v)
-		return nil
 	case template.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -17021,6 +17381,20 @@ func (m *TemplateMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case template.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case template.FieldStatusMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatusMessage(v)
 		return nil
 	case template.FieldDescription:
 		v, ok := value.(string)
@@ -17126,17 +17500,17 @@ func (m *TemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *TemplateMutation) ResetField(name string) error {
 	switch name {
-	case template.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case template.FieldStatusMessage:
-		m.ResetStatusMessage()
-		return nil
 	case template.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
 	case template.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case template.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case template.FieldStatusMessage:
+		m.ResetStatusMessage()
 		return nil
 	case template.FieldDescription:
 		m.ResetDescription()
@@ -18016,42 +18390,6 @@ func (m *TokenMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	}
 }
 
-// SetSubjectID sets the "subjectID" field.
-func (m *TokenMutation) SetSubjectID(o oid.ID) {
-	m.subject = &o
-}
-
-// SubjectID returns the value of the "subjectID" field in the mutation.
-func (m *TokenMutation) SubjectID() (r oid.ID, exists bool) {
-	v := m.subject
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSubjectID returns the old "subjectID" field's value of the Token entity.
-// If the Token object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TokenMutation) OldSubjectID(ctx context.Context) (v oid.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSubjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSubjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSubjectID: %w", err)
-	}
-	return oldValue.SubjectID, nil
-}
-
-// ResetSubjectID resets all changes to the "subjectID" field.
-func (m *TokenMutation) ResetSubjectID() {
-	m.subject = nil
-}
-
 // SetCreateTime sets the "createTime" field.
 func (m *TokenMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
@@ -18086,6 +18424,42 @@ func (m *TokenMutation) OldCreateTime(ctx context.Context) (v *time.Time, err er
 // ResetCreateTime resets all changes to the "createTime" field.
 func (m *TokenMutation) ResetCreateTime() {
 	m.createTime = nil
+}
+
+// SetSubjectID sets the "subjectID" field.
+func (m *TokenMutation) SetSubjectID(o oid.ID) {
+	m.subject = &o
+}
+
+// SubjectID returns the value of the "subjectID" field in the mutation.
+func (m *TokenMutation) SubjectID() (r oid.ID, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubjectID returns the old "subjectID" field's value of the Token entity.
+// If the Token object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenMutation) OldSubjectID(ctx context.Context) (v oid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubjectID: %w", err)
+	}
+	return oldValue.SubjectID, nil
+}
+
+// ResetSubjectID resets all changes to the "subjectID" field.
+func (m *TokenMutation) ResetSubjectID() {
+	m.subject = nil
 }
 
 // SetKind sets the "kind" field.
@@ -18306,11 +18680,11 @@ func (m *TokenMutation) Type() string {
 // AddedFields().
 func (m *TokenMutation) Fields() []string {
 	fields := make([]string, 0, 6)
-	if m.subject != nil {
-		fields = append(fields, token.FieldSubjectID)
-	}
 	if m.createTime != nil {
 		fields = append(fields, token.FieldCreateTime)
+	}
+	if m.subject != nil {
+		fields = append(fields, token.FieldSubjectID)
 	}
 	if m.kind != nil {
 		fields = append(fields, token.FieldKind)
@@ -18332,10 +18706,10 @@ func (m *TokenMutation) Fields() []string {
 // schema.
 func (m *TokenMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case token.FieldSubjectID:
-		return m.SubjectID()
 	case token.FieldCreateTime:
 		return m.CreateTime()
+	case token.FieldSubjectID:
+		return m.SubjectID()
 	case token.FieldKind:
 		return m.Kind()
 	case token.FieldName:
@@ -18353,10 +18727,10 @@ func (m *TokenMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case token.FieldSubjectID:
-		return m.OldSubjectID(ctx)
 	case token.FieldCreateTime:
 		return m.OldCreateTime(ctx)
+	case token.FieldSubjectID:
+		return m.OldSubjectID(ctx)
 	case token.FieldKind:
 		return m.OldKind(ctx)
 	case token.FieldName:
@@ -18374,19 +18748,19 @@ func (m *TokenMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *TokenMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case token.FieldSubjectID:
-		v, ok := value.(oid.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSubjectID(v)
-		return nil
 	case token.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreateTime(v)
+		return nil
+	case token.FieldSubjectID:
+		v, ok := value.(oid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubjectID(v)
 		return nil
 	case token.FieldKind:
 		v, ok := value.(string)
@@ -18474,11 +18848,11 @@ func (m *TokenMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *TokenMutation) ResetField(name string) error {
 	switch name {
-	case token.FieldSubjectID:
-		m.ResetSubjectID()
-		return nil
 	case token.FieldCreateTime:
 		m.ResetCreateTime()
+		return nil
+	case token.FieldSubjectID:
+		m.ResetSubjectID()
 		return nil
 	case token.FieldKind:
 		m.ResetKind()

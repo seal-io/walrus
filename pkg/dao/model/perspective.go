@@ -24,17 +24,23 @@ type Perspective struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Describe creation time.
-	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
-	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
-	// Name for current perspective.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Start time for current perspective.
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty" sql:"description"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty" sql:"annotations"`
+	// CreateTime holds the value of the "createTime" field.
+	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
+	// UpdateTime holds the value of the "updateTime" field.
+	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// Start time for the perspective.
 	StartTime string `json:"startTime,omitempty" sql:"startTime"`
-	// End time for current perspective.
+	// End time for the perspective.
 	EndTime string `json:"endTime,omitempty" sql:"endTime"`
-	// Is builtin Perspective.
+	// Is builtin perspective.
 	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Indicated the perspective included allocation queries, record the used query condition.
 	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty" sql:"allocationQueries"`
@@ -46,13 +52,13 @@ func (*Perspective) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case perspective.FieldAllocationQueries:
+		case perspective.FieldLabels, perspective.FieldAnnotations, perspective.FieldAllocationQueries:
 			values[i] = new([]byte)
 		case perspective.FieldID:
 			values[i] = new(oid.ID)
 		case perspective.FieldBuiltin:
 			values[i] = new(sql.NullBool)
-		case perspective.FieldName, perspective.FieldStartTime, perspective.FieldEndTime:
+		case perspective.FieldName, perspective.FieldDescription, perspective.FieldStartTime, perspective.FieldEndTime:
 			values[i] = new(sql.NullString)
 		case perspective.FieldCreateTime, perspective.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -77,6 +83,34 @@ func (pe *Perspective) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				pe.ID = *value
 			}
+		case perspective.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				pe.Name = value.String
+			}
+		case perspective.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				pe.Description = value.String
+			}
+		case perspective.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pe.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
+		case perspective.FieldAnnotations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field annotations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pe.Annotations); err != nil {
+					return fmt.Errorf("unmarshal field annotations: %w", err)
+				}
+			}
 		case perspective.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -90,12 +124,6 @@ func (pe *Perspective) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pe.UpdateTime = new(time.Time)
 				*pe.UpdateTime = value.Time
-			}
-		case perspective.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				pe.Name = value.String
 			}
 		case perspective.FieldStartTime:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -159,6 +187,18 @@ func (pe *Perspective) String() string {
 	var builder strings.Builder
 	builder.WriteString("Perspective(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pe.ID))
+	builder.WriteString("name=")
+	builder.WriteString(pe.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(pe.Description)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(fmt.Sprintf("%v", pe.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", pe.Annotations))
+	builder.WriteString(", ")
 	if v := pe.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -168,9 +208,6 @@ func (pe *Perspective) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(pe.Name)
 	builder.WriteString(", ")
 	builder.WriteString("startTime=")
 	builder.WriteString(pe.StartTime)

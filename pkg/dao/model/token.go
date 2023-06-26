@@ -24,10 +24,10 @@ type Token struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the subject to which the token belongs.
-	SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
+	// ID of the subject to belong.
+	SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
 	// The kind of token.
 	Kind string `json:"kind,omitempty" sql:"kind"`
 	// The name of token.
@@ -38,7 +38,7 @@ type Token struct {
 	Value crypto.String `json:"-" sql:"value"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TokenQuery when eager-loading is set.
-	Edges        TokenEdges `json:"edges,omitempty"`
+	Edges        TokenEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -98,18 +98,18 @@ func (t *Token) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				t.ID = *value
 			}
-		case token.FieldSubjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field subjectID", values[i])
-			} else if value != nil {
-				t.SubjectID = *value
-			}
 		case token.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
 			} else if value.Valid {
 				t.CreateTime = new(time.Time)
 				*t.CreateTime = value.Time
+			}
+		case token.FieldSubjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field subjectID", values[i])
+			} else if value != nil {
+				t.SubjectID = *value
 			}
 		case token.FieldKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -177,13 +177,13 @@ func (t *Token) String() string {
 	var builder strings.Builder
 	builder.WriteString("Token(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
-	builder.WriteString("subjectID=")
-	builder.WriteString(fmt.Sprintf("%v", t.SubjectID))
-	builder.WriteString(", ")
 	if v := t.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("subjectID=")
+	builder.WriteString(fmt.Sprintf("%v", t.SubjectID))
 	builder.WriteString(", ")
 	builder.WriteString("kind=")
 	builder.WriteString(t.Kind)

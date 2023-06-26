@@ -90,9 +90,9 @@ func (in SubjectUpdateInput) Model() *Subject {
 type SubjectOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The kind of the subject.
 	Kind string `json:"kind,omitempty"`
@@ -104,8 +104,6 @@ type SubjectOutput struct {
 	Description string `json:"description,omitempty"`
 	// Indicate whether the subject is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
-	// Tokens that belong to the subject.
-	Tokens []*TokenOutput `json:"tokens,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*SubjectRoleRelationshipOutput `json:"roles,omitempty"`
 }
@@ -124,7 +122,6 @@ func ExposeSubject(in *Subject) *SubjectOutput {
 		Name:        in.Name,
 		Description: in.Description,
 		Builtin:     in.Builtin,
-		Tokens:      ExposeTokens(in.Edges.Tokens),
 		Roles:       ExposeSubjectRoleRelationships(in.Edges.Roles),
 	}
 	return entity

@@ -23,14 +23,14 @@ type Template struct {
 	// ID of the ent.
 	// It is also the name of the template.
 	ID string `json:"id,omitempty" sql:"id"`
-	// Status of the resource.
-	Status string `json:"status,omitempty" sql:"status"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty" sql:"status"`
+	// StatusMessage holds the value of the "statusMessage" field.
+	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// Description of the template.
 	Description string `json:"description,omitempty" sql:"description"`
 	// A URL to an SVG or PNG image to be used as an icon.
@@ -41,7 +41,7 @@ type Template struct {
 	Source string `json:"source,omitempty" sql:"source"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TemplateQuery when eager-loading is set.
-	Edges        TemplateEdges `json:"edges,omitempty"`
+	Edges        TemplateEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -95,18 +95,6 @@ func (t *Template) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.ID = value.String
 			}
-		case template.FieldStatus:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				t.Status = value.String
-			}
-		case template.FieldStatusMessage:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
-			} else if value.Valid {
-				t.StatusMessage = value.String
-			}
 		case template.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -120,6 +108,18 @@ func (t *Template) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.UpdateTime = new(time.Time)
 				*t.UpdateTime = value.Time
+			}
+		case template.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				t.Status = value.String
+			}
+		case template.FieldStatusMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
+			} else if value.Valid {
+				t.StatusMessage = value.String
 			}
 		case template.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -188,12 +188,6 @@ func (t *Template) String() string {
 	var builder strings.Builder
 	builder.WriteString("Template(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
-	builder.WriteString("status=")
-	builder.WriteString(t.Status)
-	builder.WriteString(", ")
-	builder.WriteString("statusMessage=")
-	builder.WriteString(t.StatusMessage)
-	builder.WriteString(", ")
 	if v := t.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
@@ -203,6 +197,12 @@ func (t *Template) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(t.Status)
+	builder.WriteString(", ")
+	builder.WriteString("statusMessage=")
+	builder.WriteString(t.StatusMessage)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(t.Description)

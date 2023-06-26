@@ -59,6 +59,16 @@ func IDLTE(id oid.ID) predicate.Perspective {
 	return predicate.Perspective(sql.FieldLTE(FieldID, id))
 }
 
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEQ(FieldName, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEQ(FieldDescription, v))
+}
+
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Perspective {
 	return predicate.Perspective(sql.FieldEQ(FieldCreateTime, v))
@@ -67,11 +77,6 @@ func CreateTime(v time.Time) predicate.Perspective {
 // UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.Perspective {
 	return predicate.Perspective(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldEQ(FieldName, v))
 }
 
 // StartTime applies equality check predicate on the "startTime" field. It's identical to StartTimeEQ.
@@ -87,6 +92,166 @@ func EndTime(v string) predicate.Perspective {
 // Builtin applies equality check predicate on the "builtin" field. It's identical to BuiltinEQ.
 func Builtin(v bool) predicate.Perspective {
 	return predicate.Perspective(sql.FieldEQ(FieldBuiltin, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldContainsFold(FieldName, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Perspective {
+	return predicate.Perspective(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldNotNull(FieldLabels))
+}
+
+// AnnotationsIsNil applies the IsNil predicate on the "annotations" field.
+func AnnotationsIsNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldIsNull(FieldAnnotations))
+}
+
+// AnnotationsNotNil applies the NotNil predicate on the "annotations" field.
+func AnnotationsNotNil() predicate.Perspective {
+	return predicate.Perspective(sql.FieldNotNull(FieldAnnotations))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -167,71 +332,6 @@ func UpdateTimeLT(v time.Time) predicate.Perspective {
 // UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
 func UpdateTimeLTE(v time.Time) predicate.Perspective {
 	return predicate.Perspective(sql.FieldLTE(FieldUpdateTime, v))
-}
-
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldEQ(FieldName, v))
-}
-
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldNEQ(FieldName, v))
-}
-
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldIn(FieldName, vs...))
-}
-
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldNotIn(FieldName, vs...))
-}
-
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldGT(FieldName, v))
-}
-
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldGTE(FieldName, v))
-}
-
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldLT(FieldName, v))
-}
-
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldLTE(FieldName, v))
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldContains(FieldName, v))
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldHasPrefix(FieldName, v))
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldHasSuffix(FieldName, v))
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldEqualFold(FieldName, v))
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Perspective {
-	return predicate.Perspective(sql.FieldContainsFold(FieldName, v))
 }
 
 // StartTimeEQ applies the EQ predicate on the "startTime" field.

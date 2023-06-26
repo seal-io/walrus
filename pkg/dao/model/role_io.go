@@ -32,10 +32,6 @@ type RoleCreateInput struct {
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
 	Policies types.RolePolicies `json:"policies,omitempty"`
-	// Indicate whether the role is session level, decide when creating.
-	Session bool `json:"session,omitempty"`
-	// Indicate whether the role is builtin, decide when creating.
-	Builtin bool `json:"builtin,omitempty"`
 }
 
 // Model converts the RoleCreateInput to Role.
@@ -44,8 +40,6 @@ func (in RoleCreateInput) Model() *Role {
 		Kind:        in.Kind,
 		Description: in.Description,
 		Policies:    in.Policies,
-		Session:     in.Session,
-		Builtin:     in.Builtin,
 	}
 	return entity
 }
@@ -74,9 +68,9 @@ func (in RoleUpdateInput) Model() *Role {
 type RoleOutput struct {
 	// It is also the name of the role.
 	ID string `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// The kind of the role.
 	Kind string `json:"kind,omitempty"`
@@ -84,12 +78,8 @@ type RoleOutput struct {
 	Description string `json:"description,omitempty"`
 	// The policy list of the role.
 	Policies types.RolePolicies `json:"policies,omitempty"`
-	// Indicate whether the role is session level, decide when creating.
-	Session bool `json:"session,omitempty"`
 	// Indicate whether the role is builtin, decide when creating.
 	Builtin bool `json:"builtin,omitempty"`
-	// Subjects holds the value of the subjects edge.
-	Subjects []*SubjectRoleRelationshipOutput `json:"subjects,omitempty"`
 }
 
 // ExposeRole converts the Role to RoleOutput.
@@ -104,9 +94,7 @@ func ExposeRole(in *Role) *RoleOutput {
 		Kind:        in.Kind,
 		Description: in.Description,
 		Policies:    in.Policies,
-		Session:     in.Session,
 		Builtin:     in.Builtin,
-		Subjects:    ExposeSubjectRoleRelationships(in.Edges.Subjects),
 	}
 	return entity
 }

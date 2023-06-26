@@ -29,8 +29,6 @@ func (in EnvironmentConnectorRelationshipQueryInput) Model() *EnvironmentConnect
 
 // EnvironmentConnectorRelationshipCreateInput is the input for the EnvironmentConnectorRelationship creation.
 type EnvironmentConnectorRelationshipCreateInput struct {
-	// Environment that connect to the relationship.
-	Environment EnvironmentQueryInput `json:"environment"`
 	// Connector that connect to the relationship.
 	Connector ConnectorQueryInput `json:"connector"`
 }
@@ -38,15 +36,12 @@ type EnvironmentConnectorRelationshipCreateInput struct {
 // Model converts the EnvironmentConnectorRelationshipCreateInput to EnvironmentConnectorRelationship.
 func (in EnvironmentConnectorRelationshipCreateInput) Model() *EnvironmentConnectorRelationship {
 	var entity = &EnvironmentConnectorRelationship{}
-	entity.EnvironmentID = in.Environment.ID
 	entity.ConnectorID = in.Connector.ID
 	return entity
 }
 
 // EnvironmentConnectorRelationshipUpdateInput is the input for the EnvironmentConnectorRelationship modification.
 type EnvironmentConnectorRelationshipUpdateInput struct {
-	// Environment that connect to the relationship.
-	Environment EnvironmentQueryInput `json:"environment,omitempty"`
 	// Connector that connect to the relationship.
 	Connector ConnectorQueryInput `json:"connector,omitempty"`
 }
@@ -54,14 +49,13 @@ type EnvironmentConnectorRelationshipUpdateInput struct {
 // Model converts the EnvironmentConnectorRelationshipUpdateInput to EnvironmentConnectorRelationship.
 func (in EnvironmentConnectorRelationshipUpdateInput) Model() *EnvironmentConnectorRelationship {
 	var entity = &EnvironmentConnectorRelationship{}
-	entity.EnvironmentID = in.Environment.ID
 	entity.ConnectorID = in.Connector.ID
 	return entity
 }
 
 // EnvironmentConnectorRelationshipOutput is the output for the EnvironmentConnectorRelationship.
 type EnvironmentConnectorRelationshipOutput struct {
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Environment that connect to the relationship.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`

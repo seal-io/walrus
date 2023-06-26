@@ -73,9 +73,21 @@ func (su *ServiceUpdate) SetLabels(m map[string]string) *ServiceUpdate {
 	return su
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (su *ServiceUpdate) ClearLabels() *ServiceUpdate {
+	su.mutation.ClearLabels()
+	return su
+}
+
 // SetAnnotations sets the "annotations" field.
 func (su *ServiceUpdate) SetAnnotations(m map[string]string) *ServiceUpdate {
 	su.mutation.SetAnnotations(m)
+	return su
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (su *ServiceUpdate) ClearAnnotations() *ServiceUpdate {
+	su.mutation.ClearAnnotations()
 	return su
 }
 
@@ -285,11 +297,11 @@ func (su *ServiceUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
 		}
 	}
-	if _, ok := su.mutation.EnvironmentID(); su.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Service.environment"`)
-	}
 	if _, ok := su.mutation.ProjectID(); su.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.project"`)
+	}
+	if _, ok := su.mutation.EnvironmentID(); su.mutation.EnvironmentCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Service.environment"`)
 	}
 	return nil
 }
@@ -324,8 +336,14 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Labels(); ok {
 		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 	}
+	if su.mutation.LabelsCleared() {
+		_spec.ClearField(service.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := su.mutation.Annotations(); ok {
 		_spec.SetField(service.FieldAnnotations, field.TypeJSON, value)
+	}
+	if su.mutation.AnnotationsCleared() {
+		_spec.ClearField(service.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
@@ -545,9 +563,21 @@ func (suo *ServiceUpdateOne) SetLabels(m map[string]string) *ServiceUpdateOne {
 	return suo
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (suo *ServiceUpdateOne) ClearLabels() *ServiceUpdateOne {
+	suo.mutation.ClearLabels()
+	return suo
+}
+
 // SetAnnotations sets the "annotations" field.
 func (suo *ServiceUpdateOne) SetAnnotations(m map[string]string) *ServiceUpdateOne {
 	suo.mutation.SetAnnotations(m)
+	return suo
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (suo *ServiceUpdateOne) ClearAnnotations() *ServiceUpdateOne {
+	suo.mutation.ClearAnnotations()
 	return suo
 }
 
@@ -770,11 +800,11 @@ func (suo *ServiceUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
 		}
 	}
-	if _, ok := suo.mutation.EnvironmentID(); suo.mutation.EnvironmentCleared() && !ok {
-		return errors.New(`model: clearing a required unique edge "Service.environment"`)
-	}
 	if _, ok := suo.mutation.ProjectID(); suo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.project"`)
+	}
+	if _, ok := suo.mutation.EnvironmentID(); suo.mutation.EnvironmentCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Service.environment"`)
 	}
 	return nil
 }
@@ -826,8 +856,14 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	if value, ok := suo.mutation.Labels(); ok {
 		_spec.SetField(service.FieldLabels, field.TypeJSON, value)
 	}
+	if suo.mutation.LabelsCleared() {
+		_spec.ClearField(service.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := suo.mutation.Annotations(); ok {
 		_spec.SetField(service.FieldAnnotations, field.TypeJSON, value)
+	}
+	if suo.mutation.AnnotationsCleared() {
+		_spec.ClearField(service.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)

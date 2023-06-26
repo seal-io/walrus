@@ -1547,6 +1547,25 @@ func (c *ProjectClient) QuerySecrets(pr *Project) *SecretQuery {
 	return query
 }
 
+// QuerySubjectRoles queries the subjectRoles edge of a Project.
+func (c *ProjectClient) QuerySubjectRoles(pr *Project) *SubjectRoleRelationshipQuery {
+	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.SubjectRolesTable, project.SubjectRolesColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryServices queries the services edge of a Project.
 func (c *ProjectClient) QueryServices(pr *Project) *ServiceQuery {
 	query := (&ServiceClient{config: c.config}).Query()
@@ -1579,25 +1598,6 @@ func (c *ProjectClient) QueryServiceRevisions(pr *Project) *ServiceRevisionQuery
 		schemaConfig := pr.schemaConfig
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
-		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySubjectRoles queries the subjectRoles edge of a Project.
-func (c *ProjectClient) QuerySubjectRoles(pr *Project) *SubjectRoleRelationshipQuery {
-	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(subjectrolerelationship.Table, subjectrolerelationship.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.SubjectRolesTable, project.SubjectRolesColumn),
-		)
-		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.SubjectRoleRelationship
-		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1999,25 +1999,6 @@ func (c *ServiceClient) GetX(ctx context.Context, id oid.ID) *Service {
 	return obj
 }
 
-// QueryEnvironment queries the environment edge of a Service.
-func (c *ServiceClient) QueryEnvironment(s *Service) *EnvironmentQuery {
-	query := (&EnvironmentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, id),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, service.EnvironmentTable, service.EnvironmentColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Service
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryProject queries the project edge of a Service.
 func (c *ServiceClient) QueryProject(s *Service) *ProjectQuery {
 	query := (&ProjectClient{config: c.config}).Query()
@@ -2030,6 +2011,25 @@ func (c *ServiceClient) QueryProject(s *Service) *ProjectQuery {
 		)
 		schemaConfig := s.schemaConfig
 		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Service
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a Service.
+func (c *ServiceClient) QueryEnvironment(s *Service) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, service.EnvironmentTable, service.EnvironmentColumn),
+		)
+		schemaConfig := s.schemaConfig
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.Service
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -2548,18 +2548,18 @@ func (c *ServiceRevisionClient) GetX(ctx context.Context, id oid.ID) *ServiceRev
 	return obj
 }
 
-// QueryService queries the service edge of a ServiceRevision.
-func (c *ServiceRevisionClient) QueryService(sr *ServiceRevision) *ServiceQuery {
-	query := (&ServiceClient{config: c.config}).Query()
+// QueryProject queries the project edge of a ServiceRevision.
+func (c *ServiceRevisionClient) QueryProject(sr *ServiceRevision) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := sr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, id),
-			sqlgraph.To(service.Table, service.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ServiceTable, servicerevision.ServiceColumn),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ProjectTable, servicerevision.ProjectColumn),
 		)
 		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Service
+		step.To.Schema = schemaConfig.Project
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
 		return fromV, nil
@@ -2586,18 +2586,18 @@ func (c *ServiceRevisionClient) QueryEnvironment(sr *ServiceRevision) *Environme
 	return query
 }
 
-// QueryProject queries the project edge of a ServiceRevision.
-func (c *ServiceRevisionClient) QueryProject(sr *ServiceRevision) *ProjectQuery {
-	query := (&ProjectClient{config: c.config}).Query()
+// QueryService queries the service edge of a ServiceRevision.
+func (c *ServiceRevisionClient) QueryService(sr *ServiceRevision) *ServiceQuery {
+	query := (&ServiceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := sr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(servicerevision.Table, servicerevision.FieldID, id),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ProjectTable, servicerevision.ProjectColumn),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, servicerevision.ServiceTable, servicerevision.ServiceColumn),
 		)
 		schemaConfig := sr.schemaConfig
-		step.To.Schema = schemaConfig.Project
+		step.To.Schema = schemaConfig.Service
 		step.Edge.Schema = schemaConfig.ServiceRevision
 		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
 		return fromV, nil

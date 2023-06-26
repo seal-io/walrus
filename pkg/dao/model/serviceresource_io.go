@@ -27,7 +27,7 @@ func (in ServiceResourceQueryInput) Model() *ServiceResource {
 
 // ServiceResourceCreateInput is the input for the ServiceResource creation.
 type ServiceResourceCreateInput struct {
-	// ID of the project to which the resource belongs.
+	// ID of the project to belong.
 	ProjectID oid.ID `json:"projectID"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode"`
@@ -37,10 +37,8 @@ type ServiceResourceCreateInput struct {
 	Name string `json:"name"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType"`
-	// Service to which the resource belongs.
-	Service ServiceQueryInput `json:"service"`
-	// Connector to which the resource deploys.
-	Connector ConnectorQueryInput `json:"connector"`
+	// Status of the resource.
+	Status types.ServiceResourceStatus `json:"status,omitempty"`
 	// Service resource to which the resource makes up.
 	Composition *ServiceResourceQueryInput `json:"composition,omitempty"`
 }
@@ -53,9 +51,8 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 		Type:         in.Type,
 		Name:         in.Name,
 		DeployerType: in.DeployerType,
+		Status:       in.Status,
 	}
-	entity.ServiceID = in.Service.ID
-	entity.ConnectorID = in.Connector.ID
 	if in.Composition != nil {
 		entity.CompositionID = in.Composition.ID
 	}
@@ -66,12 +63,15 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 type ServiceResourceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
+	// Status of the resource.
+	Status types.ServiceResourceStatus `json:"status,omitempty"`
 }
 
 // Model converts the ServiceResourceUpdateInput to ServiceResource.
 func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 	var entity = &ServiceResource{
-		ID: in.ID,
+		ID:     in.ID,
+		Status: in.Status,
 	}
 	return entity
 }
@@ -80,12 +80,12 @@ func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 type ServiceResourceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// ID of the project to which the resource belongs.
-	ProjectID oid.ID `json:"projectID,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// ID of the project to belong.
+	ProjectID oid.ID `json:"projectID,omitempty"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode,omitempty"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
@@ -113,9 +113,9 @@ func ExposeServiceResource(in *ServiceResource) *ServiceResourceOutput {
 	}
 	var entity = &ServiceResourceOutput{
 		ID:           in.ID,
-		ProjectID:    in.ProjectID,
 		CreateTime:   in.CreateTime,
 		UpdateTime:   in.UpdateTime,
+		ProjectID:    in.ProjectID,
 		Mode:         in.Mode,
 		Type:         in.Type,
 		Name:         in.Name,

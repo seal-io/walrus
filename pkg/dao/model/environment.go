@@ -24,23 +24,23 @@ type Environment struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the project to which the resource belongs.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty" sql:"description"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"-" sql:"annotations"`
-	// Describe creation time.
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty" sql:"annotations"`
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// ID of the project to belong.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
-	Edges        EnvironmentEdges `json:"edges,omitempty"`
+	Edges        EnvironmentEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -133,12 +133,6 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				e.ID = *value
 			}
-		case environment.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				e.ProjectID = *value
-			}
 		case environment.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -180,6 +174,12 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				e.UpdateTime = new(time.Time)
 				*e.UpdateTime = value.Time
+			}
+		case environment.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				e.ProjectID = *value
 			}
 		default:
 			e.selectValues.Set(columns[i], values[i])
@@ -237,9 +237,6 @@ func (e *Environment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Environment(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", e.ID))
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", e.ProjectID))
-	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(e.Name)
 	builder.WriteString(", ")
@@ -249,7 +246,8 @@ func (e *Environment) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", e.Labels))
 	builder.WriteString(", ")
-	builder.WriteString("annotations=<sensitive>")
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", e.Annotations))
 	builder.WriteString(", ")
 	if v := e.CreateTime; v != nil {
 		builder.WriteString("createTime=")
@@ -260,6 +258,9 @@ func (e *Environment) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", e.ProjectID))
 	builder.WriteByte(')')
 	return builder.String()
 }

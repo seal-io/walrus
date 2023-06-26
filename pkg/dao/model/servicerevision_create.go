@@ -34,6 +34,20 @@ type ServiceRevisionCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetCreateTime sets the "createTime" field.
+func (src *ServiceRevisionCreate) SetCreateTime(t time.Time) *ServiceRevisionCreate {
+	src.mutation.SetCreateTime(t)
+	return src
+}
+
+// SetNillableCreateTime sets the "createTime" field if the given value is not nil.
+func (src *ServiceRevisionCreate) SetNillableCreateTime(t *time.Time) *ServiceRevisionCreate {
+	if t != nil {
+		src.SetCreateTime(*t)
+	}
+	return src
+}
+
 // SetProjectID sets the "projectID" field.
 func (src *ServiceRevisionCreate) SetProjectID(o oid.ID) *ServiceRevisionCreate {
 	src.mutation.SetProjectID(o)
@@ -64,20 +78,6 @@ func (src *ServiceRevisionCreate) SetStatusMessage(s string) *ServiceRevisionCre
 func (src *ServiceRevisionCreate) SetNillableStatusMessage(s *string) *ServiceRevisionCreate {
 	if s != nil {
 		src.SetStatusMessage(*s)
-	}
-	return src
-}
-
-// SetCreateTime sets the "createTime" field.
-func (src *ServiceRevisionCreate) SetCreateTime(t time.Time) *ServiceRevisionCreate {
-	src.mutation.SetCreateTime(t)
-	return src
-}
-
-// SetNillableCreateTime sets the "createTime" field if the given value is not nil.
-func (src *ServiceRevisionCreate) SetNillableCreateTime(t *time.Time) *ServiceRevisionCreate {
-	if t != nil {
-		src.SetCreateTime(*t)
 	}
 	return src
 }
@@ -176,9 +176,9 @@ func (src *ServiceRevisionCreate) SetID(o oid.ID) *ServiceRevisionCreate {
 	return src
 }
 
-// SetService sets the "service" edge to the Service entity.
-func (src *ServiceRevisionCreate) SetService(s *Service) *ServiceRevisionCreate {
-	return src.SetServiceID(s.ID)
+// SetProject sets the "project" edge to the Project entity.
+func (src *ServiceRevisionCreate) SetProject(p *Project) *ServiceRevisionCreate {
+	return src.SetProjectID(p.ID)
 }
 
 // SetEnvironment sets the "environment" edge to the Environment entity.
@@ -186,9 +186,9 @@ func (src *ServiceRevisionCreate) SetEnvironment(e *Environment) *ServiceRevisio
 	return src.SetEnvironmentID(e.ID)
 }
 
-// SetProject sets the "project" edge to the Project entity.
-func (src *ServiceRevisionCreate) SetProject(p *Project) *ServiceRevisionCreate {
-	return src.SetProjectID(p.ID)
+// SetService sets the "service" edge to the Service entity.
+func (src *ServiceRevisionCreate) SetService(s *Service) *ServiceRevisionCreate {
+	return src.SetServiceID(s.ID)
 }
 
 // Mutation returns the ServiceRevisionMutation object of the builder.
@@ -260,6 +260,9 @@ func (src *ServiceRevisionCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (src *ServiceRevisionCreate) check() error {
+	if _, ok := src.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ServiceRevision.createTime"`)}
+	}
 	if _, ok := src.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "ServiceRevision.projectID"`)}
 	}
@@ -267,9 +270,6 @@ func (src *ServiceRevisionCreate) check() error {
 		if err := servicerevision.ProjectIDValidator(string(v)); err != nil {
 			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.projectID": %w`, err)}
 		}
-	}
-	if _, ok := src.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ServiceRevision.createTime"`)}
 	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "serviceID", err: errors.New(`model: missing required field "ServiceRevision.serviceID"`)}
@@ -324,14 +324,14 @@ func (src *ServiceRevisionCreate) check() error {
 	if _, ok := src.mutation.Tags(); !ok {
 		return &ValidationError{Name: "tags", err: errors.New(`model: missing required field "ServiceRevision.tags"`)}
 	}
-	if _, ok := src.mutation.ServiceID(); !ok {
-		return &ValidationError{Name: "service", err: errors.New(`model: missing required edge "ServiceRevision.service"`)}
+	if _, ok := src.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ServiceRevision.project"`)}
 	}
 	if _, ok := src.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "ServiceRevision.environment"`)}
 	}
-	if _, ok := src.mutation.ProjectID(); !ok {
-		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ServiceRevision.project"`)}
+	if _, ok := src.mutation.ServiceID(); !ok {
+		return &ValidationError{Name: "service", err: errors.New(`model: missing required edge "ServiceRevision.service"`)}
 	}
 	return nil
 }
@@ -370,6 +370,10 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := src.mutation.CreateTime(); ok {
+		_spec.SetField(servicerevision.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = &value
+	}
 	if value, ok := src.mutation.Status(); ok {
 		_spec.SetField(servicerevision.FieldStatus, field.TypeString, value)
 		_node.Status = value
@@ -377,10 +381,6 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 	if value, ok := src.mutation.StatusMessage(); ok {
 		_spec.SetField(servicerevision.FieldStatusMessage, field.TypeString, value)
 		_node.StatusMessage = value
-	}
-	if value, ok := src.mutation.CreateTime(); ok {
-		_spec.SetField(servicerevision.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = &value
 	}
 	if value, ok := src.mutation.TemplateID(); ok {
 		_spec.SetField(servicerevision.FieldTemplateID, field.TypeString, value)
@@ -422,22 +422,22 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 		_spec.SetField(servicerevision.FieldTags, field.TypeJSON, value)
 		_node.Tags = value
 	}
-	if nodes := src.mutation.ServiceIDs(); len(nodes) > 0 {
+	if nodes := src.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   servicerevision.ServiceTable,
-			Columns: []string{servicerevision.ServiceColumn},
+			Table:   servicerevision.ProjectTable,
+			Columns: []string{servicerevision.ProjectColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = src.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ServiceID = nodes[0]
+		_node.ProjectID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := src.mutation.EnvironmentIDs(); len(nodes) > 0 {
@@ -458,22 +458,22 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 		_node.EnvironmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := src.mutation.ProjectIDs(); len(nodes) > 0 {
+	if nodes := src.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   servicerevision.ProjectTable,
-			Columns: []string{servicerevision.ProjectColumn},
+			Table:   servicerevision.ServiceTable,
+			Columns: []string{servicerevision.ServiceColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = src.schemaConfig.ServiceRevision
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ProjectID = nodes[0]
+		_node.ServiceID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -483,7 +483,7 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 // of the `INSERT` statement. For example:
 //
 //	client.ServiceRevision.Create().
-//		SetProjectID(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -492,7 +492,7 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceRevisionUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (src *ServiceRevisionCreate) OnConflict(opts ...sql.ConflictOption) *ServiceRevisionUpsertOne {
@@ -701,11 +701,11 @@ func (u *ServiceRevisionUpsertOne) UpdateNewValues() *ServiceRevisionUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(servicerevision.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(servicerevision.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(servicerevision.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(servicerevision.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.ServiceID(); exists {
 			s.SetIgnore(servicerevision.FieldServiceID)
@@ -1061,7 +1061,7 @@ func (srcb *ServiceRevisionCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceRevisionUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (srcb *ServiceRevisionCreateBulk) OnConflict(opts ...sql.ConflictOption) *ServiceRevisionUpsertBulk {
@@ -1108,11 +1108,11 @@ func (u *ServiceRevisionUpsertBulk) UpdateNewValues() *ServiceRevisionUpsertBulk
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(servicerevision.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(servicerevision.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(servicerevision.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(servicerevision.FieldProjectID)
 			}
 			if _, exists := b.mutation.ServiceID(); exists {
 				s.SetIgnore(servicerevision.FieldServiceID)

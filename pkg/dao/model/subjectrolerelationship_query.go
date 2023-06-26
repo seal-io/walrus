@@ -386,12 +386,12 @@ func (srrq *SubjectRoleRelationshipQuery) WithRole(opts ...func(*RoleQuery)) *Su
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.SubjectRoleRelationship.Query().
-//		GroupBy(subjectrolerelationship.FieldProjectID).
+//		GroupBy(subjectrolerelationship.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (srrq *SubjectRoleRelationshipQuery) GroupBy(field string, fields ...string) *SubjectRoleRelationshipGroupBy {
@@ -409,11 +409,11 @@ func (srrq *SubjectRoleRelationshipQuery) GroupBy(field string, fields ...string
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.SubjectRoleRelationship.Query().
-//		Select(subjectrolerelationship.FieldProjectID).
+//		Select(subjectrolerelationship.FieldCreateTime).
 //		Scan(ctx, &v)
 func (srrq *SubjectRoleRelationshipQuery) Select(fields ...string) *SubjectRoleRelationshipSelect {
 	srrq.ctx.Fields = append(srrq.ctx.Fields, fields...)

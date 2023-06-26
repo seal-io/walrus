@@ -24,9 +24,9 @@ type Role struct {
 	// ID of the ent.
 	// It is also the name of the role.
 	ID string `json:"id,omitempty" sql:"id"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// The kind of the role.
 	Kind string `json:"kind,omitempty" sql:"kind"`
@@ -40,7 +40,7 @@ type Role struct {
 	Builtin bool `json:"builtin,omitempty" sql:"builtin"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoleQuery when eager-loading is set.
-	Edges        RoleEdges `json:"edges,omitempty"`
+	Edges        RoleEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 

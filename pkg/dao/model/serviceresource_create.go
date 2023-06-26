@@ -31,12 +31,6 @@ type ServiceResourceCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetProjectID sets the "projectID" field.
-func (src *ServiceResourceCreate) SetProjectID(o oid.ID) *ServiceResourceCreate {
-	src.mutation.SetProjectID(o)
-	return src
-}
-
 // SetCreateTime sets the "createTime" field.
 func (src *ServiceResourceCreate) SetCreateTime(t time.Time) *ServiceResourceCreate {
 	src.mutation.SetCreateTime(t)
@@ -62,6 +56,12 @@ func (src *ServiceResourceCreate) SetNillableUpdateTime(t *time.Time) *ServiceRe
 	if t != nil {
 		src.SetUpdateTime(*t)
 	}
+	return src
+}
+
+// SetProjectID sets the "projectID" field.
+func (src *ServiceResourceCreate) SetProjectID(o oid.ID) *ServiceResourceCreate {
+	src.mutation.SetProjectID(o)
 	return src
 }
 
@@ -221,6 +221,12 @@ func (src *ServiceResourceCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (src *ServiceResourceCreate) check() error {
+	if _, ok := src.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ServiceResource.createTime"`)}
+	}
+	if _, ok := src.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "ServiceResource.updateTime"`)}
+	}
 	if _, ok := src.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "ServiceResource.projectID"`)}
 	}
@@ -228,12 +234,6 @@ func (src *ServiceResourceCreate) check() error {
 		if err := serviceresource.ProjectIDValidator(string(v)); err != nil {
 			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "ServiceResource.projectID": %w`, err)}
 		}
-	}
-	if _, ok := src.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "ServiceResource.createTime"`)}
-	}
-	if _, ok := src.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "ServiceResource.updateTime"`)}
 	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "serviceID", err: errors.New(`model: missing required field "ServiceResource.serviceID"`)}
@@ -326,10 +326,6 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := src.mutation.ProjectID(); ok {
-		_spec.SetField(serviceresource.FieldProjectID, field.TypeString, value)
-		_node.ProjectID = value
-	}
 	if value, ok := src.mutation.CreateTime(); ok {
 		_spec.SetField(serviceresource.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -337,6 +333,10 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 	if value, ok := src.mutation.UpdateTime(); ok {
 		_spec.SetField(serviceresource.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
+	}
+	if value, ok := src.mutation.ProjectID(); ok {
+		_spec.SetField(serviceresource.FieldProjectID, field.TypeString, value)
+		_node.ProjectID = value
 	}
 	if value, ok := src.mutation.Mode(); ok {
 		_spec.SetField(serviceresource.FieldMode, field.TypeString, value)
@@ -436,7 +436,7 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 // of the `INSERT` statement. For example:
 //
 //	client.ServiceResource.Create().
-//		SetProjectID(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -445,7 +445,7 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceResourceUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (src *ServiceResourceCreate) OnConflict(opts ...sql.ConflictOption) *ServiceResourceUpsertOne {
@@ -528,11 +528,11 @@ func (u *ServiceResourceUpsertOne) UpdateNewValues() *ServiceResourceUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(serviceresource.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(serviceresource.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(serviceresource.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(serviceresource.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.ServiceID(); exists {
 			s.SetIgnore(serviceresource.FieldServiceID)
@@ -753,7 +753,7 @@ func (srcb *ServiceResourceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceResourceUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (srcb *ServiceResourceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ServiceResourceUpsertBulk {
@@ -800,11 +800,11 @@ func (u *ServiceResourceUpsertBulk) UpdateNewValues() *ServiceResourceUpsertBulk
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(serviceresource.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(serviceresource.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(serviceresource.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(serviceresource.FieldProjectID)
 			}
 			if _, exists := b.mutation.ServiceID(); exists {
 				s.SetIgnore(serviceresource.FieldServiceID)

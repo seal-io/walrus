@@ -21,14 +21,14 @@ const (
 	Label = "service_revision"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the createtime field in the database.
+	FieldCreateTime = "create_time"
 	// FieldProjectID holds the string denoting the projectid field in the database.
 	FieldProjectID = "project_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldStatusMessage holds the string denoting the statusmessage field in the database.
 	FieldStatusMessage = "status_message"
-	// FieldCreateTime holds the string denoting the createtime field in the database.
-	FieldCreateTime = "create_time"
 	// FieldServiceID holds the string denoting the serviceid field in the database.
 	FieldServiceID = "service_id"
 	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
@@ -53,28 +53,14 @@ const (
 	FieldPreviousRequiredProviders = "previous_required_providers"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
-	// EdgeService holds the string denoting the service edge name in mutations.
-	EdgeService = "service"
-	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
-	EdgeEnvironment = "environment"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
+	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
+	EdgeEnvironment = "environment"
+	// EdgeService holds the string denoting the service edge name in mutations.
+	EdgeService = "service"
 	// Table holds the table name of the servicerevision in the database.
 	Table = "service_revisions"
-	// ServiceTable is the table that holds the service relation/edge.
-	ServiceTable = "service_revisions"
-	// ServiceInverseTable is the table name for the Service entity.
-	// It exists in this package in order to avoid circular dependency with the "service" package.
-	ServiceInverseTable = "services"
-	// ServiceColumn is the table column denoting the service relation/edge.
-	ServiceColumn = "service_id"
-	// EnvironmentTable is the table that holds the environment relation/edge.
-	EnvironmentTable = "service_revisions"
-	// EnvironmentInverseTable is the table name for the Environment entity.
-	// It exists in this package in order to avoid circular dependency with the "environment" package.
-	EnvironmentInverseTable = "environments"
-	// EnvironmentColumn is the table column denoting the environment relation/edge.
-	EnvironmentColumn = "environment_id"
 	// ProjectTable is the table that holds the project relation/edge.
 	ProjectTable = "service_revisions"
 	// ProjectInverseTable is the table name for the Project entity.
@@ -82,15 +68,29 @@ const (
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
 	ProjectColumn = "project_id"
+	// EnvironmentTable is the table that holds the environment relation/edge.
+	EnvironmentTable = "service_revisions"
+	// EnvironmentInverseTable is the table name for the Environment entity.
+	// It exists in this package in order to avoid circular dependency with the "environment" package.
+	EnvironmentInverseTable = "environments"
+	// EnvironmentColumn is the table column denoting the environment relation/edge.
+	EnvironmentColumn = "environment_id"
+	// ServiceTable is the table that holds the service relation/edge.
+	ServiceTable = "service_revisions"
+	// ServiceInverseTable is the table name for the Service entity.
+	// It exists in this package in order to avoid circular dependency with the "service" package.
+	ServiceInverseTable = "services"
+	// ServiceColumn is the table column denoting the service relation/edge.
+	ServiceColumn = "service_id"
 )
 
 // Columns holds all SQL columns for servicerevision fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
 	FieldProjectID,
 	FieldStatus,
 	FieldStatusMessage,
-	FieldCreateTime,
 	FieldServiceID,
 	FieldEnvironmentID,
 	FieldTemplateID,
@@ -123,10 +123,10 @@ func ValidColumn(column string) bool {
 var (
 	Hooks        [3]ent.Hook
 	Interceptors [1]ent.Interceptor
-	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
-	ProjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// ServiceIDValidator is a validator for the "serviceID" field. It is called by the builders before save.
 	ServiceIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environmentID" field. It is called by the builders before save.
@@ -155,6 +155,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByCreateTime orders the results by the createTime field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
 // ByProjectID orders the results by the projectID field.
 func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
@@ -168,11 +173,6 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByStatusMessage orders the results by the statusMessage field.
 func ByStatusMessage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatusMessage, opts...).ToFunc()
-}
-
-// ByCreateTime orders the results by the createTime field.
-func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
 }
 
 // ByServiceID orders the results by the serviceID field.
@@ -225,10 +225,10 @@ func ByDuration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDuration, opts...).ToFunc()
 }
 
-// ByServiceField orders the results by service field.
-func ByServiceField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByProjectField orders the results by project field.
+func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -239,17 +239,17 @@ func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByProjectField orders the results by project field.
-func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByServiceField orders the results by service field.
+func ByServiceField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newProjectStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newServiceStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newServiceStep() *sqlgraph.Step {
+func newProjectStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ServiceTable, ServiceColumn),
+		sqlgraph.To(ProjectInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
 	)
 }
 func newEnvironmentStep() *sqlgraph.Step {
@@ -259,11 +259,11 @@ func newEnvironmentStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
 	)
 }
-func newProjectStep() *sqlgraph.Step {
+func newServiceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ProjectInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+		sqlgraph.To(ServiceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ServiceTable, ServiceColumn),
 	)
 }
 

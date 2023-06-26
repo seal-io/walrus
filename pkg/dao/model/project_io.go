@@ -26,14 +26,12 @@ func (in ProjectQueryInput) Model() *Project {
 
 // ProjectCreateInput is the input for the Project creation.
 type ProjectCreateInput struct {
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Model converts the ProjectCreateInput to Project.
@@ -42,7 +40,6 @@ func (in ProjectCreateInput) Model() *Project {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 	}
 	return entity
 }
@@ -51,14 +48,12 @@ func (in ProjectCreateInput) Model() *Project {
 type ProjectUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // Model converts the ProjectUpdateInput to Project.
@@ -68,7 +63,6 @@ func (in ProjectUpdateInput) Model() *Project {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 	}
 	return entity
 }
@@ -77,28 +71,16 @@ func (in ProjectUpdateInput) Model() *Project {
 type ProjectOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Environments that belong to the project.
-	Environments []*EnvironmentOutput `json:"environments,omitempty"`
-	// Connectors that belong to the project.
-	Connectors []*ConnectorOutput `json:"connectors,omitempty"`
-	// Secrets that belong to the project.
-	Secrets []*SecretOutput `json:"secrets,omitempty"`
-	// Services that belong to the project.
-	Services []*ServiceOutput `json:"services,omitempty"`
-	// Service revisions that belong to the project.
-	ServiceRevisions []*ServiceRevisionOutput `json:"serviceRevisions,omitempty"`
-	// Subject roles that belong to the project.
-	SubjectRoles []*SubjectRoleRelationshipOutput `json:"subjectRoles,omitempty"`
 }
 
 // ExposeProject converts the Project to ProjectOutput.
@@ -107,18 +89,12 @@ func ExposeProject(in *Project) *ProjectOutput {
 		return nil
 	}
 	var entity = &ProjectOutput{
-		ID:               in.ID,
-		Name:             in.Name,
-		Description:      in.Description,
-		Labels:           in.Labels,
-		CreateTime:       in.CreateTime,
-		UpdateTime:       in.UpdateTime,
-		Environments:     ExposeEnvironments(in.Edges.Environments),
-		Connectors:       ExposeConnectors(in.Edges.Connectors),
-		Secrets:          ExposeSecrets(in.Edges.Secrets),
-		Services:         ExposeServices(in.Edges.Services),
-		ServiceRevisions: ExposeServiceRevisions(in.Edges.ServiceRevisions),
-		SubjectRoles:     ExposeSubjectRoleRelationships(in.Edges.SubjectRoles),
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
 	}
 	return entity
 }
