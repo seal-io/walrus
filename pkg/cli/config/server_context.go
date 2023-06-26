@@ -10,10 +10,9 @@ import (
 // ServerContext contains the server config.
 type ServerContext struct {
 	// Server config.
-	Endpoint   string `json:"endpoint,omitempty"`
-	Token      string `json:"token"`
-	APIVersion string `json:"apiVersion,omitempty"`
-	Insecure   bool   `json:"insecure,omitempty"`
+	Endpoint string `json:"endpoint,omitempty"`
+	Token    string `json:"token"`
+	Insecure bool   `json:"insecure,omitempty"`
 
 	// Project config.
 	ProjectID   string `json:"projectID,omitempty"`
@@ -78,10 +77,6 @@ func (c *ServerContext) Merge(ns ServerContext, flags *pflag.FlagSet) ServerCont
 
 	if ns.Token != "" {
 		merged.Token = ns.Token
-	}
-
-	if ns.APIVersion != "" {
-		merged.APIVersion = ns.APIVersion
 	}
 
 	if flags.Changed("insecure") {

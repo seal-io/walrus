@@ -19,6 +19,7 @@ import (
 const (
 	timeout     = 15 * time.Second
 	openAPIPath = "/openapi"
+	apiVersion  = "v1"
 )
 
 // CommonConfig indicate the common CLI command config.
@@ -197,7 +198,7 @@ func (c *Config) getResourceIDByName(resource, resourceName string, queries map[
 
 // listResource send list resource request to server.
 func (c *Config) listResource(resourceName string, queries map[string]string) ([]resourceItem, error) {
-	req, err := http.NewRequest(http.MethodGet, path.Join(c.APIVersion, resourceName), nil)
+	req, err := http.NewRequest(http.MethodGet, path.Join(apiVersion, resourceName), nil)
 	if err != nil {
 		return nil, err
 	}

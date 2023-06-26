@@ -60,7 +60,6 @@ func NewConfigCmd() *cobra.Command {
 	setupCmdFlags.StringVarP(&cfg.ProjectName, "project-name", "p", "default", "Project for default use")
 	setupCmdFlags.BoolVarP(&cfg.Insecure, "insecure", "", false, "Disable SSL verification")
 	setupCmdFlags.StringVarP(&cfg.Token, "token", "", "", "Auth token to communicate to server")
-	setupCmdFlags.StringVar(&cfg.APIVersion, "api-version", "v1", "API version for server")
 	setupCmdFlags.StringVarP(&cfg.EnvironmentName, "environment-name", "e", "", "Environment for default use")
 
 	// Command config setup.
