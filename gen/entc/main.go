@@ -128,8 +128,8 @@ func configTemplate() {
 			// Combine the go templates that matches the following patterns together,
 			// render and output to the file path formatted by `pkgf`.
 			"io",
-			"io/additional",
 			"io/additional/*",
+			"io/fields/additional/*",
 		},
 	})
 }
