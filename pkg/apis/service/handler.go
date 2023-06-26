@@ -946,11 +946,11 @@ func (h Handler) CollectionGetGraph(
 				Type: "Dependency",
 				Start: view.GraphVertexID{
 					Kind: "Service",
-					ID:   entities[i].Edges.Dependencies[j].DependentID,
+					ID:   entities[i].ID,
 				},
 				End: view.GraphVertexID{
 					Kind: "Service",
-					ID:   entities[i].ID,
+					ID:   entities[i].Edges.Dependencies[j].DependentID,
 				},
 			})
 		}
