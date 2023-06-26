@@ -5,16 +5,22 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 )
 
-const actionUpdate = "update"
+const (
+	inputActionQuery  = "query"
+	inputActionCreate = "create"
+	inputActionUpdate = "update"
+)
 
 func getInputFields(n *gen.Type, a string) []*gen.Field {
 	//nolint:prealloc
 	var fs []*gen.Field
 
-	// Append for query action.
-	if a == "query" {
+	// Append ID for query action and then return directly.
+	if a == inputActionQuery {
 		if n.HasOneFieldID() {
 			n.ID.StructTag = `uri:"id,omitempty" json:"id,omitempty"`
 			fs = append(fs, n.ID)
@@ -28,18 +34,19 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		return fs
 	}
 
-	ignoreSet := sets.New[string]("createTime", "updateTime", "status")
+	ignoreSet := sets.New[string]()
 
+	// Ignore defined foreign key.
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
 		}
-		// Ignore defined foreign key.
+
 		ignoreSet.Insert(fk.Field.Name)
 	}
 
-	// Append for update action.
-	if a == actionUpdate {
+	// Append ID for update action.
+	if a == inputActionUpdate {
 		if n.HasOneFieldID() {
 			n.ID.StructTag = `uri:"id" json:"-"`
 			fs = append(fs, n.ID)
@@ -63,9 +70,16 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 		switch a {
 		default:
 			continue
-		case "create":
+		case inputActionCreate:
+			if io.IsCreateInputDisabled(f.Annotations) {
+				continue
+			}
 			f.StructTag = getStructTag(f, false)
-		case actionUpdate:
+		case inputActionUpdate:
+			if io.IsUpdateInputDisabled(f.Annotations) {
+				continue
+			}
+
 			if f.Immutable {
 				continue
 			}
@@ -94,11 +108,12 @@ func getInputFields(n *gen.Type, a string) []*gen.Field {
 func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 	ignoreSet := sets.New[string]()
 
+	// Ignore undefined foreign key.
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
 		}
-		// Ignore undefined foreign key.
+
 		ignoreSet.Insert(fk.Edge.Name)
 		ignoreSet.Insert(fk.Edge.Ref.Name)
 	}
@@ -139,9 +154,16 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 		switch a {
 		default:
 			continue
-		case "create":
+		case inputActionCreate:
+			if io.IsCreateInputDisabled(e.Annotations) {
+				continue
+			}
 			e.StructTag = getStructTag(e, false)
-		case actionUpdate:
+		case inputActionUpdate:
+			if io.IsUpdateInputDisabled(e.Annotations) {
+				continue
+			}
+
 			if !n.IsEdgeSchema() && e.Immutable {
 				continue
 			}
@@ -157,26 +179,28 @@ func getInputEdges(n *gen.Type, a string) []*gen.Edge {
 func getOutputFields(n *gen.Type) []*gen.Field {
 	ignoreSet := sets.New[string]()
 
+	// Ignore defined foreign key.
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || !fk.UserDefined {
 			continue
 		}
-		// Ignore defined foreign key.
+
 		ignoreSet.Insert(fk.Field.Name)
 	}
 
+	// Ignore sensitive field.
 	for _, f := range n.Fields {
 		if f == nil || !f.Sensitive() {
 			continue
 		}
-		// Ignore sensitive field.
+
 		ignoreSet.Insert(f.Name)
 	}
 
-	// Append.
 	//nolint:prealloc
 	var fs []*gen.Field
 
+	// Append ID.
 	if n.HasOneFieldID() {
 		n.ID.StructTag = `json:"id,omitempty"`
 		fs = append(fs, n.ID)
@@ -194,6 +218,11 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 		if f == nil || ignoreSet.Has(f.Name) {
 			continue
 		}
+
+		if io.IsOutputDisabled(f.Annotations) {
+			continue
+		}
+
 		f.StructTag = getStructTag(f, true)
 		fs = append(fs, f)
 	}
@@ -217,11 +246,12 @@ func getOutputFields(n *gen.Type) []*gen.Field {
 func getOutputEdges(n *gen.Type) []*gen.Edge {
 	ignoreSet := sets.New[string]()
 
+	// Ignore undefined foreign key.
 	for _, fk := range n.ForeignKeys {
 		if fk == nil || fk.UserDefined {
 			continue
 		}
-		// Ignore undefined foreign key.
+
 		ignoreSet.Insert(fk.Edge.Name)
 		ignoreSet.Insert(fk.Edge.Ref.Name)
 	}
@@ -231,6 +261,10 @@ func getOutputEdges(n *gen.Type) []*gen.Edge {
 
 	for _, e := range n.Edges {
 		if e == nil || ignoreSet.Has(e.Name) {
+			continue
+		}
+
+		if io.IsOutputDisabled(e.Annotations) {
 			continue
 		}
 
