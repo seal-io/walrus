@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -20,10 +21,8 @@ type Service struct {
 
 func (Service) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{},
-		mixin.Meta{},
-		mixin.Time{},
+		mixin.Metadata(),
+		mixin.OwnByProject(),
 	}
 }
 
@@ -53,6 +52,16 @@ func (Service) Fields() []ent.Field {
 
 func (Service) Edges() []ent.Edge {
 	return []ent.Edge{
+		// Project 1-* services.
+		edge.From("project", Project.Type).
+			Ref("services").
+			Field("projectID").
+			Comment("Project to which the service belongs.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 		// Environment 1-* services.
 		edge.From("environment", Environment.Type).
 			Ref("services").
@@ -61,33 +70,23 @@ func (Service) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
-		// Project 1-* services.
-		edge.From("project", Project.Type).
-			Ref("services").
-			Field("projectID").
-			Comment("Project to which the service belongs.").
-			Unique().
-			Required().
-			Immutable(),
 		// Service 1-* service revisions.
 		edge.To("revisions", ServiceRevision.Type).
 			Comment("Revisions that belong to the service.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 		// Service 1-* service resources.
 		edge.To("resources", ServiceResource.Type).
 			Comment("Resources that belong to the service.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 		// Service 1-* service dependencies.
 		edge.To("dependencies", ServiceDependency.Type).
-			Comment("Services dependencies of the service.").
+			Comment("Dependencies that belong to the service.").
 			Annotations(
-				entsql.Annotation{
-					OnDelete: entsql.Cascade,
-				},
-			),
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 	}
 }

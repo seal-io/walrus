@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -16,9 +17,9 @@ type Token struct {
 
 func (Token) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnBySubject{},
-		mixin.CreateTime{},
+		mixin.ID(),
+		mixin.Time().WithoutUpdateTime(),
+		mixin.OwnBySubject(),
 	}
 }
 
@@ -54,6 +55,8 @@ func (Token) Edges() []ent.Edge {
 			Comment("Subject to which the token belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
 }

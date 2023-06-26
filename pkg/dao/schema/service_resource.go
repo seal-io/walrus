@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -20,9 +21,9 @@ type ServiceResource struct {
 
 func (ServiceResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{},
-		mixin.Time{},
+		mixin.ID(),
+		mixin.Time(),
+		mixin.OwnByProject(),
 	}
 }
 
@@ -78,7 +79,9 @@ func (ServiceResource) Edges() []ent.Edge {
 			Comment("Service to which the resource belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 		// Connector 1-* service resources.
 		edge.From("connector", Connector.Type).
 			Ref("resources").
@@ -86,18 +89,19 @@ func (ServiceResource) Edges() []ent.Edge {
 			Comment("Connector to which the resource deploys.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 		// Service resource(!discovered) 1-* service resources(discovered).
 		edge.To("components", ServiceResource.Type).
 			Comment("Sub-resources that make up the resource.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}).
 			From("composition").
 			Field("compositionID").
 			Comment("Service resource to which the resource makes up.").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -17,9 +18,9 @@ type SubjectRoleRelationship struct {
 
 func (SubjectRoleRelationship) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.OwnByProject{}.AsOptional(),
-		mixin.CreateTime{},
+		mixin.ID(),
+		mixin.Time().WithoutUpdateTime(),
+		mixin.OwnByProject().Optional(),
 	}
 }
 
@@ -30,14 +31,12 @@ func (SubjectRoleRelationship) Indexes() []ent.Index {
 		// so we leverage conditional indexes to run this case.
 		index.Fields("projectID", "subject_id", "role_id").
 			Unique().
-			Annotations(entsql.IndexAnnotation{
-				Where: "project_id IS NOT NULL",
-			}),
+			Annotations(
+				entsql.IndexWhere("project_id IS NOT NULL")),
 		index.Fields("subject_id", "role_id").
 			Unique().
-			Annotations(entsql.IndexAnnotation{
-				Where: "project_id IS NULL",
-			}),
+			Annotations(
+				entsql.IndexWhere("project_id IS NULL")),
 	}
 }
 
@@ -65,7 +64,9 @@ func (SubjectRoleRelationship) Edges() []ent.Edge {
 			Field("projectID").
 			Comment("Project to which the subject role belongs.").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 		// Subject 1-1 role.
 		edge.To("subject", Subject.Type).
 			Field("subject_id").
@@ -73,17 +74,15 @@ func (SubjectRoleRelationship) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable().
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade)),
 		edge.To("role", Role.Type).
 			Field("role_id").
 			Comment("Role that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Restrict,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Restrict)),
 	}
 }

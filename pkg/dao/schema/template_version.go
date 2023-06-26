@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -15,8 +16,8 @@ type TemplateVersion struct {
 
 func (TemplateVersion) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.Time{},
+		mixin.ID(),
+		mixin.Time(),
 	}
 }
 
@@ -52,6 +53,8 @@ func (TemplateVersion) Edges() []ent.Edge {
 			Field("templateID").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -17,7 +18,7 @@ type EnvironmentConnectorRelationship struct {
 
 func (EnvironmentConnectorRelationship) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.CreateTime{},
+		mixin.Time().WithoutUpdateTime(),
 	}
 }
 
@@ -51,17 +52,16 @@ func (EnvironmentConnectorRelationship) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable().
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.DisableInput()),
 		edge.To("connector", Connector.Type).
 			Field("connector_id").
 			Comment("Connector that connect to the relationship.").
 			Unique().
 			Required().
 			Immutable().
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Restrict,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Restrict)),
 	}
 }

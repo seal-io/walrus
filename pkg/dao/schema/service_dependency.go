@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -16,8 +17,8 @@ type ServiceDependency struct {
 
 func (ServiceDependency) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.CreateTime{},
+		mixin.ID(),
+		mixin.Time().WithoutUpdateTime(),
 	}
 }
 
@@ -35,10 +36,11 @@ func (ServiceDependency) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		oid.Field("dependentID").
-			Comment("service ID is dependent by the service.").
+			Comment("ID of the service that dependent by the service specified by serviceID.").
 			NotEmpty(),
 		field.JSON("path", []oid.ID{}).
-			Comment("dependency path of service."),
+			Comment("ID list (from root to leaf) of the service that " +
+				"dependent by the service specified by serviceID."),
 		field.String("type").
 			Comment("Type of the service dependency.").
 			NotEmpty().
@@ -51,9 +53,11 @@ func (ServiceDependency) Edges() []ent.Edge {
 		edge.From("service", Service.Type).
 			Ref("dependencies").
 			Field("serviceID").
-			Comment("Services of the dependency.").
+			Comment("Service to which the dependency belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				io.DisableInput()),
 	}
 }

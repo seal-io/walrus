@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -17,8 +18,8 @@ type Subject struct {
 
 func (Subject) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.Time{},
+		mixin.ID(),
+		mixin.Time(),
 	}
 }
 
@@ -57,9 +58,9 @@ func (Subject) Edges() []ent.Edge {
 		// Subject 1-* tokens.
 		edge.To("tokens", Token.Type).
 			Comment("Tokens that belong to the subject.").
-			Annotations(entsql.Annotation{
-				OnDelete: entsql.Cascade,
-			}),
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 		// Subjects *-* roles.
 		edge.To("roles", Role.Type).
 			Comment("Roles that configure to the subject.").

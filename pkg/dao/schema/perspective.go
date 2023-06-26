@@ -16,8 +16,7 @@ type Perspective struct {
 
 func (Perspective) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.ID{},
-		mixin.Time{},
+		mixin.Metadata(),
 	}
 }
 
@@ -30,18 +29,14 @@ func (Perspective) Indexes() []ent.Index {
 
 func (Perspective) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			Comment("Name for current perspective.").
-			Unique().
-			NotEmpty(),
 		field.String("startTime").
-			Comment("Start time for current perspective.").
+			Comment("Start time for the perspective.").
 			NotEmpty(),
 		field.String("endTime").
-			Comment("End time for current perspective.").
+			Comment("End time for the perspective.").
 			NotEmpty(),
 		field.Bool("builtin").
-			Comment("Is builtin Perspective.").
+			Comment("Is builtin perspective.").
 			Default(false),
 		field.JSON("allocationQueries", []types.QueryCondition{}).
 			Comment("Indicated the perspective included allocation queries, record the used query condition.").
