@@ -31,20 +31,6 @@ type SubjectRoleRelationshipCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetProjectID sets the "projectID" field.
-func (srrc *SubjectRoleRelationshipCreate) SetProjectID(o oid.ID) *SubjectRoleRelationshipCreate {
-	srrc.mutation.SetProjectID(o)
-	return srrc
-}
-
-// SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (srrc *SubjectRoleRelationshipCreate) SetNillableProjectID(o *oid.ID) *SubjectRoleRelationshipCreate {
-	if o != nil {
-		srrc.SetProjectID(*o)
-	}
-	return srrc
-}
-
 // SetCreateTime sets the "createTime" field.
 func (srrc *SubjectRoleRelationshipCreate) SetCreateTime(t time.Time) *SubjectRoleRelationshipCreate {
 	srrc.mutation.SetCreateTime(t)
@@ -55,6 +41,20 @@ func (srrc *SubjectRoleRelationshipCreate) SetCreateTime(t time.Time) *SubjectRo
 func (srrc *SubjectRoleRelationshipCreate) SetNillableCreateTime(t *time.Time) *SubjectRoleRelationshipCreate {
 	if t != nil {
 		srrc.SetCreateTime(*t)
+	}
+	return srrc
+}
+
+// SetProjectID sets the "projectID" field.
+func (srrc *SubjectRoleRelationshipCreate) SetProjectID(o oid.ID) *SubjectRoleRelationshipCreate {
+	srrc.mutation.SetProjectID(o)
+	return srrc
+}
+
+// SetNillableProjectID sets the "projectID" field if the given value is not nil.
+func (srrc *SubjectRoleRelationshipCreate) SetNillableProjectID(o *oid.ID) *SubjectRoleRelationshipCreate {
+	if o != nil {
+		srrc.SetProjectID(*o)
 	}
 	return srrc
 }
@@ -268,7 +268,7 @@ func (srrc *SubjectRoleRelationshipCreate) createSpec() (*SubjectRoleRelationshi
 // of the `INSERT` statement. For example:
 //
 //	client.SubjectRoleRelationship.Create().
-//		SetProjectID(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -277,7 +277,7 @@ func (srrc *SubjectRoleRelationshipCreate) createSpec() (*SubjectRoleRelationshi
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SubjectRoleRelationshipUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (srrc *SubjectRoleRelationshipCreate) OnConflict(opts ...sql.ConflictOption) *SubjectRoleRelationshipUpsertOne {
@@ -330,11 +330,11 @@ func (u *SubjectRoleRelationshipUpsertOne) UpdateNewValues() *SubjectRoleRelatio
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(subjectrolerelationship.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(subjectrolerelationship.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(subjectrolerelationship.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(subjectrolerelationship.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.SubjectID(); exists {
 			s.SetIgnore(subjectrolerelationship.FieldSubjectID)
@@ -505,7 +505,7 @@ func (srrcb *SubjectRoleRelationshipCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SubjectRoleRelationshipUpsert) {
-//			SetProjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (srrcb *SubjectRoleRelationshipCreateBulk) OnConflict(opts ...sql.ConflictOption) *SubjectRoleRelationshipUpsertBulk {
@@ -552,11 +552,11 @@ func (u *SubjectRoleRelationshipUpsertBulk) UpdateNewValues() *SubjectRoleRelati
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(subjectrolerelationship.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(subjectrolerelationship.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(subjectrolerelationship.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(subjectrolerelationship.FieldProjectID)
 			}
 			if _, exists := b.mutation.SubjectID(); exists {
 				s.SetIgnore(subjectrolerelationship.FieldSubjectID)

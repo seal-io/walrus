@@ -308,12 +308,12 @@ func (tq *TokenQuery) WithSubject(opts ...func(*SubjectQuery)) *TokenQuery {
 // Example:
 //
 //	var v []struct {
-//		SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Token.Query().
-//		GroupBy(token.FieldSubjectID).
+//		GroupBy(token.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
@@ -331,11 +331,11 @@ func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
 // Example:
 //
 //	var v []struct {
-//		SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.Token.Query().
-//		Select(token.FieldSubjectID).
+//		Select(token.FieldCreateTime).
 //		Scan(ctx, &v)
 func (tq *TokenQuery) Select(fields ...string) *TokenSelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)

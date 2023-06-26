@@ -26,14 +26,12 @@ func (in ServiceDependencyQueryInput) Model() *ServiceDependency {
 
 // ServiceDependencyCreateInput is the input for the ServiceDependency creation.
 type ServiceDependencyCreateInput struct {
-	// service ID is dependent by the service.
+	// ID of the service that dependent by the service specified by serviceID.
 	DependentID oid.ID `json:"dependentID"`
-	// dependency path of service.
+	// ID list (from root to leaf) of the service that dependent by the service specified by serviceID.
 	Path []oid.ID `json:"path,omitempty"`
 	// Type of the service dependency.
 	Type string `json:"type"`
-	// Services of the dependency.
-	Service ServiceQueryInput `json:"service"`
 }
 
 // Model converts the ServiceDependencyCreateInput to ServiceDependency.
@@ -43,7 +41,6 @@ func (in ServiceDependencyCreateInput) Model() *ServiceDependency {
 		Path:        in.Path,
 		Type:        in.Type,
 	}
-	entity.ServiceID = in.Service.ID
 	return entity
 }
 
@@ -51,9 +48,9 @@ func (in ServiceDependencyCreateInput) Model() *ServiceDependency {
 type ServiceDependencyUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// service ID is dependent by the service.
+	// ID of the service that dependent by the service specified by serviceID.
 	DependentID oid.ID `json:"dependentID,omitempty"`
-	// dependency path of service.
+	// ID list (from root to leaf) of the service that dependent by the service specified by serviceID.
 	Path []oid.ID `json:"path,omitempty"`
 }
 
@@ -71,15 +68,15 @@ func (in ServiceDependencyUpdateInput) Model() *ServiceDependency {
 type ServiceDependencyOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// service ID is dependent by the service.
+	// ID of the service that dependent by the service specified by serviceID.
 	DependentID oid.ID `json:"dependentID,omitempty"`
-	// dependency path of service.
+	// ID list (from root to leaf) of the service that dependent by the service specified by serviceID.
 	Path []oid.ID `json:"path,omitempty"`
 	// Type of the service dependency.
 	Type string `json:"type,omitempty"`
-	// Services of the dependency.
+	// Service to which the dependency belongs.
 	Service *ServiceOutput `json:"service,omitempty"`
 }
 

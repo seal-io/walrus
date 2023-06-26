@@ -18,10 +18,10 @@ const (
 	Label = "token"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldSubjectID holds the string denoting the subjectid field in the database.
-	FieldSubjectID = "subject_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
+	// FieldSubjectID holds the string denoting the subjectid field in the database.
+	FieldSubjectID = "subject_id"
 	// FieldKind holds the string denoting the kind field in the database.
 	FieldKind = "kind"
 	// FieldName holds the string denoting the name field in the database.
@@ -46,8 +46,8 @@ const (
 // Columns holds all SQL columns for token fields.
 var Columns = []string{
 	FieldID,
-	FieldSubjectID,
 	FieldCreateTime,
+	FieldSubjectID,
 	FieldKind,
 	FieldName,
 	FieldExpiration,
@@ -72,10 +72,10 @@ func ValidColumn(column string) bool {
 var (
 	Hooks        [3]ent.Hook
 	Interceptors [1]ent.Interceptor
-	// SubjectIDValidator is a validator for the "subjectID" field. It is called by the builders before save.
-	SubjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
+	// SubjectIDValidator is a validator for the "subjectID" field. It is called by the builders before save.
+	SubjectIDValidator func(string) error
 	// DefaultKind holds the default value on creation for the "kind" field.
 	DefaultKind string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
@@ -92,14 +92,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// BySubjectID orders the results by the subjectID field.
-func BySubjectID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSubjectID, opts...).ToFunc()
-}
-
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// BySubjectID orders the results by the subjectID field.
+func BySubjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubjectID, opts...).ToFunc()
 }
 
 // ByKind orders the results by the kind field.

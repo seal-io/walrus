@@ -70,16 +70,6 @@ func IDContainsFold(id string) predicate.Template {
 	return predicate.Template(sql.FieldContainsFold(FieldID, id))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusMessage applies equality check predicate on the "statusMessage" field. It's identical to StatusMessageEQ.
-func StatusMessage(v string) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldStatusMessage, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldCreateTime, v))
@@ -88,6 +78,16 @@ func CreateTime(v time.Time) predicate.Template {
 // UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
+func Status(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusMessage applies equality check predicate on the "statusMessage" field. It's identical to StatusMessageEQ.
+func StatusMessage(v string) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldStatusMessage, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
@@ -103,6 +103,86 @@ func Icon(v string) predicate.Template {
 // Source applies equality check predicate on the "source" field. It's identical to SourceEQ.
 func Source(v string) predicate.Template {
 	return predicate.Template(sql.FieldEQ(FieldSource, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "createTime" field.
+func CreateTimeEQ(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
+func CreateTimeNEQ(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "createTime" field.
+func CreateTimeIn(vs ...time.Time) predicate.Template {
+	return predicate.Template(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Template {
+	return predicate.Template(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "createTime" field.
+func CreateTimeGT(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "createTime" field.
+func CreateTimeGTE(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "createTime" field.
+func CreateTimeLT(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "createTime" field.
+func CreateTimeLTE(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldLTE(FieldCreateTime, v))
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
+func UpdateTimeEQ(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
+func UpdateTimeNEQ(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldNEQ(FieldUpdateTime, v))
+}
+
+// UpdateTimeIn applies the In predicate on the "updateTime" field.
+func UpdateTimeIn(vs ...time.Time) predicate.Template {
+	return predicate.Template(sql.FieldIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.Template {
+	return predicate.Template(sql.FieldNotIn(FieldUpdateTime, vs...))
+}
+
+// UpdateTimeGT applies the GT predicate on the "updateTime" field.
+func UpdateTimeGT(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldGT(FieldUpdateTime, v))
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
+func UpdateTimeGTE(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldGTE(FieldUpdateTime, v))
+}
+
+// UpdateTimeLT applies the LT predicate on the "updateTime" field.
+func UpdateTimeLT(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldLT(FieldUpdateTime, v))
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
+func UpdateTimeLTE(v time.Time) predicate.Template {
+	return predicate.Template(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -253,86 +333,6 @@ func StatusMessageEqualFold(v string) predicate.Template {
 // StatusMessageContainsFold applies the ContainsFold predicate on the "statusMessage" field.
 func StatusMessageContainsFold(v string) predicate.Template {
 	return predicate.Template(sql.FieldContainsFold(FieldStatusMessage, v))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "createTime" field.
-func CreateTimeEQ(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
-func CreateTimeNEQ(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "createTime" field.
-func CreateTimeIn(vs ...time.Time) predicate.Template {
-	return predicate.Template(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.Template {
-	return predicate.Template(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "createTime" field.
-func CreateTimeGT(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "createTime" field.
-func CreateTimeGTE(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "createTime" field.
-func CreateTimeLT(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "createTime" field.
-func CreateTimeLTE(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldLTE(FieldCreateTime, v))
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "updateTime" field.
-func UpdateTimeEQ(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "updateTime" field.
-func UpdateTimeNEQ(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldNEQ(FieldUpdateTime, v))
-}
-
-// UpdateTimeIn applies the In predicate on the "updateTime" field.
-func UpdateTimeIn(vs ...time.Time) predicate.Template {
-	return predicate.Template(sql.FieldIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "updateTime" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.Template {
-	return predicate.Template(sql.FieldNotIn(FieldUpdateTime, vs...))
-}
-
-// UpdateTimeGT applies the GT predicate on the "updateTime" field.
-func UpdateTimeGT(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldGT(FieldUpdateTime, v))
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "updateTime" field.
-func UpdateTimeGTE(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldGTE(FieldUpdateTime, v))
-}
-
-// UpdateTimeLT applies the LT predicate on the "updateTime" field.
-func UpdateTimeLT(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldLT(FieldUpdateTime, v))
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
-func UpdateTimeLTE(v time.Time) predicate.Template {
-	return predicate.Template(sql.FieldLTE(FieldUpdateTime, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.

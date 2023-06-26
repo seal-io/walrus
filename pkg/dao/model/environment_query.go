@@ -426,12 +426,12 @@ func (eq *EnvironmentQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQu
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Environment.Query().
-//		GroupBy(environment.FieldProjectID).
+//		GroupBy(environment.FieldName).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (eq *EnvironmentQuery) GroupBy(field string, fields ...string) *EnvironmentGroupBy {
@@ -449,11 +449,11 @@ func (eq *EnvironmentQuery) GroupBy(field string, fields ...string) *Environment
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Environment.Query().
-//		Select(environment.FieldProjectID).
+//		Select(environment.FieldName).
 //		Scan(ctx, &v)
 func (eq *EnvironmentQuery) Select(fields ...string) *EnvironmentSelect {
 	eq.ctx.Fields = append(eq.ctx.Fields, fields...)

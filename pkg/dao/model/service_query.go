@@ -34,8 +34,8 @@ type ServiceQuery struct {
 	order            []service.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.Service
-	withEnvironment  *EnvironmentQuery
 	withProject      *ProjectQuery
+	withEnvironment  *EnvironmentQuery
 	withRevisions    *ServiceRevisionQuery
 	withResources    *ServiceResourceQuery
 	withDependencies *ServiceDependencyQuery
@@ -76,31 +76,6 @@ func (sq *ServiceQuery) Order(o ...service.OrderOption) *ServiceQuery {
 	return sq
 }
 
-// QueryEnvironment chains the current query on the "environment" edge.
-func (sq *ServiceQuery) QueryEnvironment() *EnvironmentQuery {
-	query := (&EnvironmentClient{config: sq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := sq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := sq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(service.Table, service.FieldID, selector),
-			sqlgraph.To(environment.Table, environment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, service.EnvironmentTable, service.EnvironmentColumn),
-		)
-		schemaConfig := sq.schemaConfig
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Service
-		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryProject chains the current query on the "project" edge.
 func (sq *ServiceQuery) QueryProject() *ProjectQuery {
 	query := (&ProjectClient{config: sq.config}).Query()
@@ -119,6 +94,31 @@ func (sq *ServiceQuery) QueryProject() *ProjectQuery {
 		)
 		schemaConfig := sq.schemaConfig
 		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Service
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEnvironment chains the current query on the "environment" edge.
+func (sq *ServiceQuery) QueryEnvironment() *EnvironmentQuery {
+	query := (&EnvironmentClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, selector),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, service.EnvironmentTable, service.EnvironmentColumn),
+		)
+		schemaConfig := sq.schemaConfig
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.Service
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -393,8 +393,8 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		order:            append([]service.OrderOption{}, sq.order...),
 		inters:           append([]Interceptor{}, sq.inters...),
 		predicates:       append([]predicate.Service{}, sq.predicates...),
-		withEnvironment:  sq.withEnvironment.Clone(),
 		withProject:      sq.withProject.Clone(),
+		withEnvironment:  sq.withEnvironment.Clone(),
 		withRevisions:    sq.withRevisions.Clone(),
 		withResources:    sq.withResources.Clone(),
 		withDependencies: sq.withDependencies.Clone(),
@@ -402,17 +402,6 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		sql:  sq.sql.Clone(),
 		path: sq.path,
 	}
-}
-
-// WithEnvironment tells the query-builder to eager-load the nodes that are connected to
-// the "environment" edge. The optional arguments are used to configure the query builder of the edge.
-func (sq *ServiceQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ServiceQuery {
-	query := (&EnvironmentClient{config: sq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	sq.withEnvironment = query
-	return sq
 }
 
 // WithProject tells the query-builder to eager-load the nodes that are connected to
@@ -423,6 +412,17 @@ func (sq *ServiceQuery) WithProject(opts ...func(*ProjectQuery)) *ServiceQuery {
 		opt(query)
 	}
 	sq.withProject = query
+	return sq
+}
+
+// WithEnvironment tells the query-builder to eager-load the nodes that are connected to
+// the "environment" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *ServiceQuery {
+	query := (&EnvironmentClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withEnvironment = query
 	return sq
 }
 
@@ -465,12 +465,12 @@ func (sq *ServiceQuery) WithDependencies(opts ...func(*ServiceDependencyQuery)) 
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Service.Query().
-//		GroupBy(service.FieldProjectID).
+//		GroupBy(service.FieldName).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (sq *ServiceQuery) GroupBy(field string, fields ...string) *ServiceGroupBy {
@@ -488,11 +488,11 @@ func (sq *ServiceQuery) GroupBy(field string, fields ...string) *ServiceGroupBy 
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Service.Query().
-//		Select(service.FieldProjectID).
+//		Select(service.FieldName).
 //		Scan(ctx, &v)
 func (sq *ServiceQuery) Select(fields ...string) *ServiceSelect {
 	sq.ctx.Fields = append(sq.ctx.Fields, fields...)
@@ -538,8 +538,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 		nodes       = []*Service{}
 		_spec       = sq.querySpec()
 		loadedTypes = [5]bool{
-			sq.withEnvironment != nil,
 			sq.withProject != nil,
+			sq.withEnvironment != nil,
 			sq.withRevisions != nil,
 			sq.withResources != nil,
 			sq.withDependencies != nil,
@@ -568,15 +568,15 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := sq.withEnvironment; query != nil {
-		if err := sq.loadEnvironment(ctx, query, nodes, nil,
-			func(n *Service, e *Environment) { n.Edges.Environment = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := sq.withProject; query != nil {
 		if err := sq.loadProject(ctx, query, nodes, nil,
 			func(n *Service, e *Project) { n.Edges.Project = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withEnvironment; query != nil {
+		if err := sq.loadEnvironment(ctx, query, nodes, nil,
+			func(n *Service, e *Environment) { n.Edges.Environment = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -604,35 +604,6 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	return nodes, nil
 }
 
-func (sq *ServiceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*Service, init func(*Service), assign func(*Service, *Environment)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*Service)
-	for i := range nodes {
-		fk := nodes[i].EnvironmentID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(environment.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (sq *ServiceQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Service, init func(*Service), assign func(*Service, *Project)) error {
 	ids := make([]oid.ID, 0, len(nodes))
 	nodeids := make(map[oid.ID][]*Service)
@@ -655,6 +626,35 @@ func (sq *ServiceQuery) loadProject(ctx context.Context, query *ProjectQuery, no
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "projectID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (sq *ServiceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*Service, init func(*Service), assign func(*Service, *Environment)) error {
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*Service)
+	for i := range nodes {
+		fk := nodes[i].EnvironmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(environment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "environmentID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -783,11 +783,11 @@ func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if sq.withEnvironment != nil {
-			_spec.Node.AddColumnOnce(service.FieldEnvironmentID)
-		}
 		if sq.withProject != nil {
 			_spec.Node.AddColumnOnce(service.FieldProjectID)
+		}
+		if sq.withEnvironment != nil {
+			_spec.Node.AddColumnOnce(service.FieldEnvironmentID)
 		}
 	}
 	if ps := sq.predicates; len(ps) > 0 {

@@ -67,20 +67,6 @@ func (cc *ConnectorCreate) SetAnnotations(m map[string]string) *ConnectorCreate 
 	return cc
 }
 
-// SetProjectID sets the "projectID" field.
-func (cc *ConnectorCreate) SetProjectID(o oid.ID) *ConnectorCreate {
-	cc.mutation.SetProjectID(o)
-	return cc
-}
-
-// SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableProjectID(o *oid.ID) *ConnectorCreate {
-	if o != nil {
-		cc.SetProjectID(*o)
-	}
-	return cc
-}
-
 // SetCreateTime sets the "createTime" field.
 func (cc *ConnectorCreate) SetCreateTime(t time.Time) *ConnectorCreate {
 	cc.mutation.SetCreateTime(t)
@@ -105,6 +91,20 @@ func (cc *ConnectorCreate) SetUpdateTime(t time.Time) *ConnectorCreate {
 func (cc *ConnectorCreate) SetNillableUpdateTime(t *time.Time) *ConnectorCreate {
 	if t != nil {
 		cc.SetUpdateTime(*t)
+	}
+	return cc
+}
+
+// SetProjectID sets the "projectID" field.
+func (cc *ConnectorCreate) SetProjectID(o oid.ID) *ConnectorCreate {
+	cc.mutation.SetProjectID(o)
+	return cc
+}
+
+// SetNillableProjectID sets the "projectID" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableProjectID(o *oid.ID) *ConnectorCreate {
+	if o != nil {
+		cc.SetProjectID(*o)
 	}
 	return cc
 }
@@ -290,12 +290,6 @@ func (cc *ConnectorCreate) check() error {
 		if err := connector.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
 		}
-	}
-	if _, ok := cc.mutation.Labels(); !ok {
-		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Connector.labels"`)}
-	}
-	if _, ok := cc.mutation.Annotations(); !ok {
-		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Connector.annotations"`)}
 	}
 	if _, ok := cc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Connector.createTime"`)}
@@ -585,6 +579,12 @@ func (u *ConnectorUpsert) UpdateLabels() *ConnectorUpsert {
 	return u
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsert) ClearLabels() *ConnectorUpsert {
+	u.SetNull(connector.FieldLabels)
+	return u
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ConnectorUpsert) SetAnnotations(v map[string]string) *ConnectorUpsert {
 	u.Set(connector.FieldAnnotations, v)
@@ -594,6 +594,12 @@ func (u *ConnectorUpsert) SetAnnotations(v map[string]string) *ConnectorUpsert {
 // UpdateAnnotations sets the "annotations" field to the value that was provided on create.
 func (u *ConnectorUpsert) UpdateAnnotations() *ConnectorUpsert {
 	u.SetExcluded(connector.FieldAnnotations)
+	return u
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ConnectorUpsert) ClearAnnotations() *ConnectorUpsert {
+	u.SetNull(connector.FieldAnnotations)
 	return u
 }
 
@@ -710,11 +716,11 @@ func (u *ConnectorUpsertOne) UpdateNewValues() *ConnectorUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(connector.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(connector.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(connector.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(connector.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(connector.FieldType)
@@ -799,6 +805,13 @@ func (u *ConnectorUpsertOne) UpdateLabels() *ConnectorUpsertOne {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsertOne) ClearLabels() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ConnectorUpsertOne) SetAnnotations(v map[string]string) *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -810,6 +823,13 @@ func (u *ConnectorUpsertOne) SetAnnotations(v map[string]string) *ConnectorUpser
 func (u *ConnectorUpsertOne) UpdateAnnotations() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ConnectorUpsertOne) ClearAnnotations() *ConnectorUpsertOne {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearAnnotations()
 	})
 }
 
@@ -1104,11 +1124,11 @@ func (u *ConnectorUpsertBulk) UpdateNewValues() *ConnectorUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(connector.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(connector.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(connector.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(connector.FieldProjectID)
 			}
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(connector.FieldType)
@@ -1194,6 +1214,13 @@ func (u *ConnectorUpsertBulk) UpdateLabels() *ConnectorUpsertBulk {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ConnectorUpsertBulk) ClearLabels() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ConnectorUpsertBulk) SetAnnotations(v map[string]string) *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
@@ -1205,6 +1232,13 @@ func (u *ConnectorUpsertBulk) SetAnnotations(v map[string]string) *ConnectorUpse
 func (u *ConnectorUpsertBulk) UpdateAnnotations() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ConnectorUpsertBulk) ClearAnnotations() *ConnectorUpsertBulk {
+	return u.Update(func(s *ConnectorUpsert) {
+		s.ClearAnnotations()
 	})
 }
 

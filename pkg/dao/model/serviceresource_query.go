@@ -424,12 +424,12 @@ func (srq *ServiceResourceQuery) WithComponents(opts ...func(*ServiceResourceQue
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ServiceResource.Query().
-//		GroupBy(serviceresource.FieldProjectID).
+//		GroupBy(serviceresource.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (srq *ServiceResourceQuery) GroupBy(field string, fields ...string) *ServiceResourceGroupBy {
@@ -447,11 +447,11 @@ func (srq *ServiceResourceQuery) GroupBy(field string, fields ...string) *Servic
 // Example:
 //
 //	var v []struct {
-//		ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.ServiceResource.Query().
-//		Select(serviceresource.FieldProjectID).
+//		Select(serviceresource.FieldCreateTime).
 //		Scan(ctx, &v)
 func (srq *ServiceResourceQuery) Select(fields ...string) *ServiceResourceSelect {
 	srq.ctx.Fields = append(srq.ctx.Fields, fields...)

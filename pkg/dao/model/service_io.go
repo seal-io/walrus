@@ -29,22 +29,20 @@ func (in ServiceQueryInput) Model() *Service {
 
 // ServiceCreateInput is the input for the Service creation.
 type ServiceCreateInput struct {
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Status of the service.
+	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
-	// Project to which the service belongs.
-	Project ProjectQueryInput `json:"project"`
 }
 
 // Model converts the ServiceCreateInput to Service.
@@ -53,12 +51,11 @@ func (in ServiceCreateInput) Model() *Service {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
+		Status:      in.Status,
 	}
 	entity.EnvironmentID = in.Environment.ID
-	entity.ProjectID = in.Project.ID
 	return entity
 }
 
@@ -66,18 +63,18 @@ func (in ServiceCreateInput) Model() *Service {
 type ServiceUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Status of the service.
+	Status status.Status `json:"status,omitempty"`
 }
 
 // Model converts the ServiceUpdateInput to Service.
@@ -87,9 +84,9 @@ func (in ServiceUpdateInput) Model() *Service {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
+		Status:      in.Status,
 	}
 	return entity
 }
@@ -98,15 +95,15 @@ func (in ServiceUpdateInput) Model() *Service {
 type ServiceOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
@@ -114,16 +111,10 @@ type ServiceOutput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Status of the service.
 	Status status.Status `json:"status,omitempty"`
-	// Environment to which the service belongs.
-	Environment *EnvironmentOutput `json:"environment,omitempty"`
 	// Project to which the service belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
-	// Revisions that belong to the service.
-	Revisions []*ServiceRevisionOutput `json:"revisions,omitempty"`
-	// Resources that belong to the service.
-	Resources []*ServiceResourceOutput `json:"resources,omitempty"`
-	// Services dependencies of the service.
-	Dependencies []*ServiceDependencyOutput `json:"dependencies,omitempty"`
+	// Environment to which the service belongs.
+	Environment *EnvironmentOutput `json:"environment,omitempty"`
 }
 
 // ExposeService converts the Service to ServiceOutput.
@@ -132,32 +123,29 @@ func ExposeService(in *Service) *ServiceOutput {
 		return nil
 	}
 	var entity = &ServiceOutput{
-		ID:           in.ID,
-		Name:         in.Name,
-		Description:  in.Description,
-		Labels:       in.Labels,
-		CreateTime:   in.CreateTime,
-		UpdateTime:   in.UpdateTime,
-		Template:     in.Template,
-		Attributes:   in.Attributes,
-		Status:       in.Status,
-		Environment:  ExposeEnvironment(in.Edges.Environment),
-		Project:      ExposeProject(in.Edges.Project),
-		Revisions:    ExposeServiceRevisions(in.Edges.Revisions),
-		Resources:    ExposeServiceResources(in.Edges.Resources),
-		Dependencies: ExposeServiceDependencies(in.Edges.Dependencies),
-	}
-	if in.EnvironmentID != "" {
-		if entity.Environment == nil {
-			entity.Environment = &EnvironmentOutput{}
-		}
-		entity.Environment.ID = in.EnvironmentID
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
+		Template:    in.Template,
+		Attributes:  in.Attributes,
+		Status:      in.Status,
+		Project:     ExposeProject(in.Edges.Project),
+		Environment: ExposeEnvironment(in.Edges.Environment),
 	}
 	if in.ProjectID != "" {
 		if entity.Project == nil {
 			entity.Project = &ProjectOutput{}
 		}
 		entity.Project.ID = in.ProjectID
+	}
+	if in.EnvironmentID != "" {
+		if entity.Environment == nil {
+			entity.Environment = &EnvironmentOutput{}
+		}
+		entity.Environment.ID = in.EnvironmentID
 	}
 	return entity
 }

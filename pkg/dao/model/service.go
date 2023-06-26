@@ -28,20 +28,20 @@ type Service struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the project to which the resource belongs.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty" sql:"description"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"-" sql:"annotations"`
-	// Describe creation time.
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty" sql:"annotations"`
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
+	// ID of the project to belong.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// ID of the environment to which the service deploys.
 	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Template ID and version.
@@ -52,44 +52,31 @@ type Service struct {
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
-	Edges        ServiceEdges `json:"edges,omitempty"`
+	Edges        ServiceEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
 // ServiceEdges holds the relations/edges for other nodes in the graph.
 type ServiceEdges struct {
-	// Environment to which the service belongs.
-	Environment *Environment `json:"environment,omitempty" sql:"environment"`
 	// Project to which the service belongs.
 	Project *Project `json:"project,omitempty" sql:"project"`
+	// Environment to which the service belongs.
+	Environment *Environment `json:"environment,omitempty" sql:"environment"`
 	// Revisions that belong to the service.
 	Revisions []*ServiceRevision `json:"revisions,omitempty" sql:"revisions"`
 	// Resources that belong to the service.
 	Resources []*ServiceResource `json:"resources,omitempty" sql:"resources"`
-	// Services dependencies of the service.
+	// Dependencies that belong to the service.
 	Dependencies []*ServiceDependency `json:"dependencies,omitempty" sql:"dependencies"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [5]bool
 }
 
-// EnvironmentOrErr returns the Environment value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ServiceEdges) EnvironmentOrErr() (*Environment, error) {
-	if e.loadedTypes[0] {
-		if e.Environment == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: environment.Label}
-		}
-		return e.Environment, nil
-	}
-	return nil, &NotLoadedError{edge: "environment"}
-}
-
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceEdges) ProjectOrErr() (*Project, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		if e.Project == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: project.Label}
@@ -97,6 +84,19 @@ func (e ServiceEdges) ProjectOrErr() (*Project, error) {
 		return e.Project, nil
 	}
 	return nil, &NotLoadedError{edge: "project"}
+}
+
+// EnvironmentOrErr returns the Environment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEdges) EnvironmentOrErr() (*Environment, error) {
+	if e.loadedTypes[1] {
+		if e.Environment == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: environment.Label}
+		}
+		return e.Environment, nil
+	}
+	return nil, &NotLoadedError{edge: "environment"}
 }
 
 // RevisionsOrErr returns the Revisions value or an error if the edge
@@ -162,12 +162,6 @@ func (s *Service) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.ID = *value
 			}
-		case service.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				s.ProjectID = *value
-			}
 		case service.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -210,6 +204,12 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				s.UpdateTime = new(time.Time)
 				*s.UpdateTime = value.Time
 			}
+		case service.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				s.ProjectID = *value
+			}
 		case service.FieldEnvironmentID:
 			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
@@ -251,14 +251,14 @@ func (s *Service) Value(name string) (ent.Value, error) {
 	return s.selectValues.Get(name)
 }
 
-// QueryEnvironment queries the "environment" edge of the Service entity.
-func (s *Service) QueryEnvironment() *EnvironmentQuery {
-	return NewServiceClient(s.config).QueryEnvironment(s)
-}
-
 // QueryProject queries the "project" edge of the Service entity.
 func (s *Service) QueryProject() *ProjectQuery {
 	return NewServiceClient(s.config).QueryProject(s)
+}
+
+// QueryEnvironment queries the "environment" edge of the Service entity.
+func (s *Service) QueryEnvironment() *EnvironmentQuery {
+	return NewServiceClient(s.config).QueryEnvironment(s)
 }
 
 // QueryRevisions queries the "revisions" edge of the Service entity.
@@ -299,9 +299,6 @@ func (s *Service) String() string {
 	var builder strings.Builder
 	builder.WriteString("Service(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
-	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(s.Name)
 	builder.WriteString(", ")
@@ -311,7 +308,8 @@ func (s *Service) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", s.Labels))
 	builder.WriteString(", ")
-	builder.WriteString("annotations=<sensitive>")
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", s.Annotations))
 	builder.WriteString(", ")
 	if v := s.CreateTime; v != nil {
 		builder.WriteString("createTime=")
@@ -322,6 +320,9 @@ func (s *Service) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("environmentID=")
 	builder.WriteString(fmt.Sprintf("%v", s.EnvironmentID))

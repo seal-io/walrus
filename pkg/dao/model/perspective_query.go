@@ -269,12 +269,12 @@ func (pq *PerspectiveQuery) Clone() *PerspectiveQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Perspective.Query().
-//		GroupBy(perspective.FieldCreateTime).
+//		GroupBy(perspective.FieldName).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (pq *PerspectiveQuery) GroupBy(field string, fields ...string) *PerspectiveGroupBy {
@@ -292,11 +292,11 @@ func (pq *PerspectiveQuery) GroupBy(field string, fields ...string) *Perspective
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
+//		Name string `json:"name,omitempty" sql:"name"`
 //	}
 //
 //	client.Perspective.Query().
-//		Select(perspective.FieldCreateTime).
+//		Select(perspective.FieldName).
 //		Scan(ctx, &v)
 func (pq *PerspectiveQuery) Select(fields ...string) *PerspectiveSelect {
 	pq.ctx.Fields = append(pq.ctx.Fields, fields...)

@@ -29,14 +29,12 @@ func (in ConnectorQueryInput) Model() *Connector {
 
 // ConnectorCreateInput is the input for the Connector creation.
 type ConnectorCreateInput struct {
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Type of the connector.
 	Type string `json:"type"`
 	// Connector config version.
@@ -59,7 +57,6 @@ func (in ConnectorCreateInput) Model() *Connector {
 		Name:                in.Name,
 		Description:         in.Description,
 		Labels:              in.Labels,
-		Annotations:         in.Annotations,
 		Type:                in.Type,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
@@ -77,14 +74,12 @@ func (in ConnectorCreateInput) Model() *Connector {
 type ConnectorUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Connector config version.
 	ConfigVersion string `json:"configVersion,omitempty"`
 	// Connector config data.
@@ -104,7 +99,6 @@ func (in ConnectorUpdateInput) Model() *Connector {
 		Name:                in.Name,
 		Description:         in.Description,
 		Labels:              in.Labels,
-		Annotations:         in.Annotations,
 		ConfigVersion:       in.ConfigVersion,
 		ConfigData:          in.ConfigData,
 		EnableFinOps:        in.EnableFinOps,
@@ -118,17 +112,17 @@ func (in ConnectorUpdateInput) Model() *Connector {
 type ConnectorOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Status of the object.
+	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
 	// Type of the connector.
 	Type string `json:"type,omitempty"`
@@ -144,14 +138,6 @@ type ConnectorOutput struct {
 	Category string `json:"category,omitempty"`
 	// Project to which the connector belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
-	// Environments holds the value of the environments edge.
-	Environments []*EnvironmentConnectorRelationshipOutput `json:"environments,omitempty"`
-	// Service resources that use the connector.
-	Resources []*ServiceResourceOutput `json:"resources,omitempty"`
-	// Cluster costs that linked to the connection
-	ClusterCosts []*ClusterCostOutput `json:"clusterCosts,omitempty"`
-	// Cluster allocation resource costs that linked to the connection.
-	AllocationCosts []*AllocationCostOutput `json:"allocationCosts,omitempty"`
 }
 
 // ExposeConnector converts the Connector to ConnectorOutput.
@@ -174,10 +160,6 @@ func ExposeConnector(in *Connector) *ConnectorOutput {
 		FinOpsCustomPricing: in.FinOpsCustomPricing,
 		Category:            in.Category,
 		Project:             ExposeProject(in.Edges.Project),
-		Environments:        ExposeEnvironmentConnectorRelationships(in.Edges.Environments),
-		Resources:           ExposeServiceResources(in.Edges.Resources),
-		ClusterCosts:        ExposeClusterCosts(in.Edges.ClusterCosts),
-		AllocationCosts:     ExposeAllocationCosts(in.Edges.AllocationCosts),
 	}
 	if in.ProjectID != "" {
 		if entity.Project == nil {

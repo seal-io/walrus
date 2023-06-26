@@ -221,6 +221,26 @@ func DescriptionContainsFold(v string) predicate.Project {
 	return predicate.Project(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Project {
+	return predicate.Project(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Project {
+	return predicate.Project(sql.FieldNotNull(FieldLabels))
+}
+
+// AnnotationsIsNil applies the IsNil predicate on the "annotations" field.
+func AnnotationsIsNil() predicate.Project {
+	return predicate.Project(sql.FieldIsNull(FieldAnnotations))
+}
+
+// AnnotationsNotNil applies the NotNil predicate on the "annotations" field.
+func AnnotationsNotNil() predicate.Project {
+	return predicate.Project(sql.FieldNotNull(FieldAnnotations))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
 func CreateTimeEQ(v time.Time) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldCreateTime, v))
@@ -388,6 +408,35 @@ func HasSecretsWith(preds ...predicate.Secret) predicate.Project {
 	})
 }
 
+// HasSubjectRoles applies the HasEdge predicate on the "subjectRoles" edge.
+func HasSubjectRoles() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SubjectRolesTable, SubjectRolesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubjectRolesWith applies the HasEdge predicate on the "subjectRoles" edge with a given conditions (other predicates).
+func HasSubjectRolesWith(preds ...predicate.SubjectRoleRelationship) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newSubjectRolesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.SubjectRoleRelationship
+		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasServices applies the HasEdge predicate on the "services" edge.
 func HasServices() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
@@ -438,35 +487,6 @@ func HasServiceRevisionsWith(preds ...predicate.ServiceRevision) predicate.Proje
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasSubjectRoles applies the HasEdge predicate on the "subjectRoles" edge.
-func HasSubjectRoles() predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SubjectRolesTable, SubjectRolesColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.SubjectRoleRelationship
-		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasSubjectRolesWith applies the HasEdge predicate on the "subjectRoles" edge with a given conditions (other predicates).
-func HasSubjectRolesWith(preds ...predicate.SubjectRoleRelationship) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		step := newSubjectRolesStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.SubjectRoleRelationship
-		step.Edge.Schema = schemaConfig.SubjectRoleRelationship
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

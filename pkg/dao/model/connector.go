@@ -27,21 +27,21 @@ type Connector struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty" sql:"description"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty" sql:"labels"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"-" sql:"annotations"`
-	// ID of the project to which the resource belongs, empty means using for global level.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Describe creation time.
+	// Annotations holds the value of the "annotations" field.
+	Annotations map[string]string `json:"annotations,omitempty" sql:"annotations"`
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
-	// Status of the object.
+	// ID of the project to belong, empty means for all projects.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Type of the connector.
 	Type string `json:"type,omitempty" sql:"type"`
@@ -57,7 +57,7 @@ type Connector struct {
 	Category string `json:"category,omitempty" sql:"category"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
-	Edges        ConnectorEdges `json:"edges,omitempty"`
+	Edges        ConnectorEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -193,12 +193,6 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field annotations: %w", err)
 				}
 			}
-		case connector.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				c.ProjectID = *value
-			}
 		case connector.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
@@ -212,6 +206,12 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.UpdateTime = new(time.Time)
 				*c.UpdateTime = value.Time
+			}
+		case connector.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				c.ProjectID = *value
 			}
 		case connector.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -329,10 +329,8 @@ func (c *Connector) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", c.Labels))
 	builder.WriteString(", ")
-	builder.WriteString("annotations=<sensitive>")
-	builder.WriteString(", ")
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
+	builder.WriteString("annotations=")
+	builder.WriteString(fmt.Sprintf("%v", c.Annotations))
 	builder.WriteString(", ")
 	if v := c.CreateTime; v != nil {
 		builder.WriteString("createTime=")
@@ -343,6 +341,9 @@ func (c *Connector) String() string {
 		builder.WriteString("updateTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", c.Status))

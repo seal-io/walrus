@@ -61,11 +61,6 @@ func IDLTE(id oid.ID) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldLTE(FieldID, id))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldEQ(FieldProjectID, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldCreateTime, v))
@@ -74,6 +69,11 @@ func CreateTime(v time.Time) predicate.ServiceResource {
 // UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ServiceID applies equality check predicate on the "serviceID" field. It's identical to ServiceIDEQ.
@@ -109,76 +109,6 @@ func Name(v string) predicate.ServiceResource {
 // DeployerType applies equality check predicate on the "deployerType" field. It's identical to DeployerTypeEQ.
 func DeployerType(v string) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldDeployerType, v))
-}
-
-// ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldEQ(FieldProjectID, v))
-}
-
-// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldNEQ(FieldProjectID, v))
-}
-
-// ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldIn(FieldProjectID, vs...))
-}
-
-// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldNotIn(FieldProjectID, vs...))
-}
-
-// ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldGT(FieldProjectID, v))
-}
-
-// ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldGTE(FieldProjectID, v))
-}
-
-// ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldLT(FieldProjectID, v))
-}
-
-// ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.ServiceResource {
-	return predicate.ServiceResource(sql.FieldLTE(FieldProjectID, v))
-}
-
-// ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.ServiceResource {
-	vc := string(v)
-	return predicate.ServiceResource(sql.FieldContains(FieldProjectID, vc))
-}
-
-// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.ServiceResource {
-	vc := string(v)
-	return predicate.ServiceResource(sql.FieldHasPrefix(FieldProjectID, vc))
-}
-
-// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.ServiceResource {
-	vc := string(v)
-	return predicate.ServiceResource(sql.FieldHasSuffix(FieldProjectID, vc))
-}
-
-// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.ServiceResource {
-	vc := string(v)
-	return predicate.ServiceResource(sql.FieldEqualFold(FieldProjectID, vc))
-}
-
-// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.ServiceResource {
-	vc := string(v)
-	return predicate.ServiceResource(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -259,6 +189,76 @@ func UpdateTimeLT(v time.Time) predicate.ServiceResource {
 // UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
 func UpdateTimeLTE(v time.Time) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // ServiceIDEQ applies the EQ predicate on the "serviceID" field.

@@ -19,12 +19,18 @@ const (
 	Label = "perspective"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
+	// FieldAnnotations holds the string denoting the annotations field in the database.
+	FieldAnnotations = "annotations"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldStartTime holds the string denoting the starttime field in the database.
 	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the endtime field in the database.
@@ -40,9 +46,12 @@ const (
 // Columns holds all SQL columns for perspective fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
+	FieldDescription,
+	FieldLabels,
+	FieldAnnotations,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldName,
 	FieldStartTime,
 	FieldEndTime,
 	FieldBuiltin,
@@ -66,14 +75,18 @@ func ValidColumn(column string) bool {
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
 	Hooks [1]ent.Hook
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels map[string]string
+	// DefaultAnnotations holds the default value on creation for the "annotations" field.
+	DefaultAnnotations map[string]string
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// StartTimeValidator is a validator for the "startTime" field. It is called by the builders before save.
 	StartTimeValidator func(string) error
 	// EndTimeValidator is a validator for the "endTime" field. It is called by the builders before save.
@@ -92,6 +105,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
@@ -100,11 +123,6 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the updateTime field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByStartTime orders the results by the startTime field.

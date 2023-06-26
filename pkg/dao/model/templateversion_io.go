@@ -33,8 +33,6 @@ type TemplateVersionCreateInput struct {
 	Source string `json:"source"`
 	// Schema of the template.
 	Schema *types.TemplateSchema `json:"schema,omitempty"`
-	// Template holds the value of the template edge.
-	Template TemplateQueryInput `json:"template"`
 }
 
 // Model converts the TemplateVersionCreateInput to TemplateVersion.
@@ -44,7 +42,6 @@ func (in TemplateVersionCreateInput) Model() *TemplateVersion {
 		Source:  in.Source,
 		Schema:  in.Schema,
 	}
-	entity.TemplateID = in.Template.ID
 	return entity
 }
 
@@ -69,9 +66,9 @@ func (in TemplateVersionUpdateInput) Model() *TemplateVersion {
 type TemplateVersionOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Template version.
 	Version string `json:"version,omitempty"`

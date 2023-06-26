@@ -29,8 +29,6 @@ func (in ServiceRevisionQueryInput) Model() *ServiceRevision {
 
 // ServiceRevisionCreateInput is the input for the ServiceRevision creation.
 type ServiceRevisionCreateInput struct {
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// ID of the template.
 	TemplateID string `json:"templateID"`
 	// Version of the template.
@@ -51,18 +49,11 @@ type ServiceRevisionCreateInput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	// Tags of the revision.
 	Tags []string `json:"tags,omitempty"`
-	// Service to which the revision belongs.
-	Service ServiceQueryInput `json:"service"`
-	// Environment to which the revision deploys.
-	Environment EnvironmentQueryInput `json:"environment"`
-	// Project to which the revision belongs.
-	Project ProjectQueryInput `json:"project"`
 }
 
 // Model converts the ServiceRevisionCreateInput to ServiceRevision.
 func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
-		StatusMessage:             in.StatusMessage,
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
@@ -74,9 +65,6 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 		PreviousRequiredProviders: in.PreviousRequiredProviders,
 		Tags:                      in.Tags,
 	}
-	entity.ServiceID = in.Service.ID
-	entity.EnvironmentID = in.Environment.ID
-	entity.ProjectID = in.Project.ID
 	return entity
 }
 
@@ -84,8 +72,6 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 type ServiceRevisionUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Version of the template.
 	TemplateVersion string `json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
@@ -110,7 +96,6 @@ type ServiceRevisionUpdateInput struct {
 func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
 		ID:                        in.ID,
-		StatusMessage:             in.StatusMessage,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
 		Secrets:                   in.Secrets,
@@ -128,12 +113,12 @@ func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 type ServiceRevisionOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty"`
+	// StatusMessage holds the value of the "statusMessage" field.
+	StatusMessage string `json:"statusMessage,omitempty"`
 	// ID of the template.
 	TemplateID string `json:"templateID,omitempty"`
 	// Version of the template.
@@ -150,12 +135,12 @@ type ServiceRevisionOutput struct {
 	PreviousRequiredProviders []types.ProviderRequirement `json:"previousRequiredProviders,omitempty"`
 	// Tags of the revision.
 	Tags []string `json:"tags,omitempty"`
-	// Service to which the revision belongs.
-	Service *ServiceOutput `json:"service,omitempty"`
-	// Environment to which the revision deploys.
-	Environment *EnvironmentOutput `json:"environment,omitempty"`
 	// Project to which the revision belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
+	// Environment to which the revision deploys.
+	Environment *EnvironmentOutput `json:"environment,omitempty"`
+	// Service to which the revision belongs.
+	Service *ServiceOutput `json:"service,omitempty"`
 }
 
 // ExposeServiceRevision converts the ServiceRevision to ServiceRevisionOutput.
@@ -165,9 +150,9 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 	}
 	var entity = &ServiceRevisionOutput{
 		ID:                        in.ID,
+		CreateTime:                in.CreateTime,
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
-		CreateTime:                in.CreateTime,
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
@@ -176,15 +161,15 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,
 		Tags:                      in.Tags,
-		Service:                   ExposeService(in.Edges.Service),
-		Environment:               ExposeEnvironment(in.Edges.Environment),
 		Project:                   ExposeProject(in.Edges.Project),
+		Environment:               ExposeEnvironment(in.Edges.Environment),
+		Service:                   ExposeService(in.Edges.Service),
 	}
-	if in.ServiceID != "" {
-		if entity.Service == nil {
-			entity.Service = &ServiceOutput{}
+	if in.ProjectID != "" {
+		if entity.Project == nil {
+			entity.Project = &ProjectOutput{}
 		}
-		entity.Service.ID = in.ServiceID
+		entity.Project.ID = in.ProjectID
 	}
 	if in.EnvironmentID != "" {
 		if entity.Environment == nil {
@@ -192,11 +177,11 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 		}
 		entity.Environment.ID = in.EnvironmentID
 	}
-	if in.ProjectID != "" {
-		if entity.Project == nil {
-			entity.Project = &ProjectOutput{}
+	if in.ServiceID != "" {
+		if entity.Service == nil {
+			entity.Service = &ServiceOutput{}
 		}
-		entity.Project.ID = in.ProjectID
+		entity.Service.ID = in.ServiceID
 	}
 	return entity
 }

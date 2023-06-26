@@ -145,6 +145,21 @@ func (pc *ProjectCreate) AddSecrets(s ...*Secret) *ProjectCreate {
 	return pc.AddSecretIDs(ids...)
 }
 
+// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
+func (pc *ProjectCreate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddSubjectRoleIDs(ids...)
+	return pc
+}
+
+// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
+func (pc *ProjectCreate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pc.AddSubjectRoleIDs(ids...)
+}
+
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
 func (pc *ProjectCreate) AddServiceIDs(ids ...oid.ID) *ProjectCreate {
 	pc.mutation.AddServiceIDs(ids...)
@@ -173,21 +188,6 @@ func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCrea
 		ids[i] = s[i].ID
 	}
 	return pc.AddServiceRevisionIDs(ids...)
-}
-
-// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (pc *ProjectCreate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectCreate {
-	pc.mutation.AddSubjectRoleIDs(ids...)
-	return pc
-}
-
-// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
-func (pc *ProjectCreate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectCreate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pc.AddSubjectRoleIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -261,12 +261,6 @@ func (pc *ProjectCreate) check() error {
 		if err := project.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
 		}
-	}
-	if _, ok := pc.mutation.Labels(); !ok {
-		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Project.labels"`)}
-	}
-	if _, ok := pc.mutation.Annotations(); !ok {
-		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Project.annotations"`)}
 	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Project.createTime"`)}
@@ -386,6 +380,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := pc.mutation.SubjectRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := pc.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -415,23 +426,6 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.ServiceRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := pc.mutation.SubjectRolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pc.schemaConfig.SubjectRoleRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -531,6 +525,12 @@ func (u *ProjectUpsert) UpdateLabels() *ProjectUpsert {
 	return u
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsert) ClearLabels() *ProjectUpsert {
+	u.SetNull(project.FieldLabels)
+	return u
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ProjectUpsert) SetAnnotations(v map[string]string) *ProjectUpsert {
 	u.Set(project.FieldAnnotations, v)
@@ -540,6 +540,12 @@ func (u *ProjectUpsert) SetAnnotations(v map[string]string) *ProjectUpsert {
 // UpdateAnnotations sets the "annotations" field to the value that was provided on create.
 func (u *ProjectUpsert) UpdateAnnotations() *ProjectUpsert {
 	u.SetExcluded(project.FieldAnnotations)
+	return u
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ProjectUpsert) ClearAnnotations() *ProjectUpsert {
+	u.SetNull(project.FieldAnnotations)
 	return u
 }
 
@@ -655,6 +661,13 @@ func (u *ProjectUpsertOne) UpdateLabels() *ProjectUpsertOne {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsertOne) ClearLabels() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ProjectUpsertOne) SetAnnotations(v map[string]string) *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
@@ -666,6 +679,13 @@ func (u *ProjectUpsertOne) SetAnnotations(v map[string]string) *ProjectUpsertOne
 func (u *ProjectUpsertOne) UpdateAnnotations() *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ProjectUpsertOne) ClearAnnotations() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearAnnotations()
 	})
 }
 
@@ -946,6 +966,13 @@ func (u *ProjectUpsertBulk) UpdateLabels() *ProjectUpsertBulk {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ProjectUpsertBulk) ClearLabels() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ProjectUpsertBulk) SetAnnotations(v map[string]string) *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
@@ -957,6 +984,13 @@ func (u *ProjectUpsertBulk) SetAnnotations(v map[string]string) *ProjectUpsertBu
 func (u *ProjectUpsertBulk) UpdateAnnotations() *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ProjectUpsertBulk) ClearAnnotations() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.ClearAnnotations()
 	})
 }
 

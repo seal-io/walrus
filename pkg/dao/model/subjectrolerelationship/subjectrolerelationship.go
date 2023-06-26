@@ -18,10 +18,10 @@ const (
 	Label = "subject_role_relationship"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldProjectID holds the string denoting the projectid field in the database.
-	FieldProjectID = "project_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldSubjectID holds the string denoting the subject_id field in the database.
 	FieldSubjectID = "subject_id"
 	// FieldRoleID holds the string denoting the role_id field in the database.
@@ -60,8 +60,8 @@ const (
 // Columns holds all SQL columns for subjectrolerelationship fields.
 var Columns = []string{
 	FieldID,
-	FieldProjectID,
 	FieldCreateTime,
+	FieldProjectID,
 	FieldSubjectID,
 	FieldRoleID,
 }
@@ -100,14 +100,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByProjectID orders the results by the projectID field.
-func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
-}
-
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+}
+
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // BySubjectID orders the results by the subject_id field.

@@ -69,9 +69,21 @@ func (eu *EnvironmentUpdate) SetLabels(m map[string]string) *EnvironmentUpdate {
 	return eu
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (eu *EnvironmentUpdate) ClearLabels() *EnvironmentUpdate {
+	eu.mutation.ClearLabels()
+	return eu
+}
+
 // SetAnnotations sets the "annotations" field.
 func (eu *EnvironmentUpdate) SetAnnotations(m map[string]string) *EnvironmentUpdate {
 	eu.mutation.SetAnnotations(m)
+	return eu
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (eu *EnvironmentUpdate) ClearAnnotations() *EnvironmentUpdate {
+	eu.mutation.ClearAnnotations()
 	return eu
 }
 
@@ -243,8 +255,14 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eu.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
 	}
+	if eu.mutation.LabelsCleared() {
+		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := eu.mutation.Annotations(); ok {
 		_spec.SetField(environment.FieldAnnotations, field.TypeJSON, value)
+	}
+	if eu.mutation.AnnotationsCleared() {
+		_spec.ClearField(environment.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)
@@ -401,9 +419,21 @@ func (euo *EnvironmentUpdateOne) SetLabels(m map[string]string) *EnvironmentUpda
 	return euo
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (euo *EnvironmentUpdateOne) ClearLabels() *EnvironmentUpdateOne {
+	euo.mutation.ClearLabels()
+	return euo
+}
+
 // SetAnnotations sets the "annotations" field.
 func (euo *EnvironmentUpdateOne) SetAnnotations(m map[string]string) *EnvironmentUpdateOne {
 	euo.mutation.SetAnnotations(m)
+	return euo
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (euo *EnvironmentUpdateOne) ClearAnnotations() *EnvironmentUpdateOne {
+	euo.mutation.ClearAnnotations()
 	return euo
 }
 
@@ -605,8 +635,14 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 	if value, ok := euo.mutation.Labels(); ok {
 		_spec.SetField(environment.FieldLabels, field.TypeJSON, value)
 	}
+	if euo.mutation.LabelsCleared() {
+		_spec.ClearField(environment.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := euo.mutation.Annotations(); ok {
 		_spec.SetField(environment.FieldAnnotations, field.TypeJSON, value)
+	}
+	if euo.mutation.AnnotationsCleared() {
+		_spec.ClearField(environment.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.SetField(environment.FieldUpdateTime, field.TypeTime, value)

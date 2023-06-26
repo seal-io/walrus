@@ -62,11 +62,6 @@ func IDLTE(id oid.ID) predicate.Secret {
 	return predicate.Secret(sql.FieldLTE(FieldID, id))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldCreateTime, v))
@@ -77,6 +72,11 @@ func UpdateTime(v time.Time) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldName, v))
@@ -85,86 +85,6 @@ func Name(v string) predicate.Secret {
 // Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
 func Value(v crypto.String) predicate.Secret {
 	return predicate.Secret(sql.FieldEQ(FieldValue, v))
-}
-
-// ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
-}
-
-// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldNEQ(FieldProjectID, v))
-}
-
-// ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldIn(FieldProjectID, vs...))
-}
-
-// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldNotIn(FieldProjectID, vs...))
-}
-
-// ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldGT(FieldProjectID, v))
-}
-
-// ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldGTE(FieldProjectID, v))
-}
-
-// ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldLT(FieldProjectID, v))
-}
-
-// ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.Secret {
-	return predicate.Secret(sql.FieldLTE(FieldProjectID, v))
-}
-
-// ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.Secret {
-	vc := string(v)
-	return predicate.Secret(sql.FieldContains(FieldProjectID, vc))
-}
-
-// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.Secret {
-	vc := string(v)
-	return predicate.Secret(sql.FieldHasPrefix(FieldProjectID, vc))
-}
-
-// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.Secret {
-	vc := string(v)
-	return predicate.Secret(sql.FieldHasSuffix(FieldProjectID, vc))
-}
-
-// ProjectIDIsNil applies the IsNil predicate on the "projectID" field.
-func ProjectIDIsNil() predicate.Secret {
-	return predicate.Secret(sql.FieldIsNull(FieldProjectID))
-}
-
-// ProjectIDNotNil applies the NotNil predicate on the "projectID" field.
-func ProjectIDNotNil() predicate.Secret {
-	return predicate.Secret(sql.FieldNotNull(FieldProjectID))
-}
-
-// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.Secret {
-	vc := string(v)
-	return predicate.Secret(sql.FieldEqualFold(FieldProjectID, vc))
-}
-
-// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.Secret {
-	vc := string(v)
-	return predicate.Secret(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -245,6 +165,86 @@ func UpdateTimeLT(v time.Time) predicate.Secret {
 // UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
 func UpdateTimeLTE(v time.Time) predicate.Secret {
 	return predicate.Secret(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.Secret {
+	return predicate.Secret(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.Secret {
+	vc := string(v)
+	return predicate.Secret(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.Secret {
+	vc := string(v)
+	return predicate.Secret(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.Secret {
+	vc := string(v)
+	return predicate.Secret(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDIsNil applies the IsNil predicate on the "projectID" field.
+func ProjectIDIsNil() predicate.Secret {
+	return predicate.Secret(sql.FieldIsNull(FieldProjectID))
+}
+
+// ProjectIDNotNil applies the NotNil predicate on the "projectID" field.
+func ProjectIDNotNil() predicate.Secret {
+	return predicate.Secret(sql.FieldNotNull(FieldProjectID))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.Secret {
+	vc := string(v)
+	return predicate.Secret(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.Secret {
+	vc := string(v)
+	return predicate.Secret(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

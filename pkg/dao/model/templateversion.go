@@ -25,9 +25,9 @@ type TemplateVersion struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the template.
 	TemplateID string `json:"templateID,omitempty" sql:"templateID"`
@@ -39,7 +39,7 @@ type TemplateVersion struct {
 	Schema *types.TemplateSchema `json:"schema,omitempty" sql:"schema"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TemplateVersionQuery when eager-loading is set.
-	Edges        TemplateVersionEdges `json:"edges,omitempty"`
+	Edges        TemplateVersionEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 

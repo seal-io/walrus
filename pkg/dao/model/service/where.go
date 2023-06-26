@@ -62,11 +62,6 @@ func IDLTE(id oid.ID) predicate.Service {
 	return predicate.Service(sql.FieldLTE(FieldID, id))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldEQ(FieldProjectID, v))
-}
-
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldName, v))
@@ -87,6 +82,11 @@ func UpdateTime(v time.Time) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldEQ(FieldProjectID, v))
+}
+
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
 func EnvironmentID(v oid.ID) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldEnvironmentID, v))
@@ -95,76 +95,6 @@ func EnvironmentID(v oid.ID) predicate.Service {
 // Attributes applies equality check predicate on the "attributes" field. It's identical to AttributesEQ.
 func Attributes(v property.Values) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldAttributes, v))
-}
-
-// ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldEQ(FieldProjectID, v))
-}
-
-// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldNEQ(FieldProjectID, v))
-}
-
-// ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldIn(FieldProjectID, vs...))
-}
-
-// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldNotIn(FieldProjectID, vs...))
-}
-
-// ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldGT(FieldProjectID, v))
-}
-
-// ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldGTE(FieldProjectID, v))
-}
-
-// ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldLT(FieldProjectID, v))
-}
-
-// ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.Service {
-	return predicate.Service(sql.FieldLTE(FieldProjectID, v))
-}
-
-// ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.Service {
-	vc := string(v)
-	return predicate.Service(sql.FieldContains(FieldProjectID, vc))
-}
-
-// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.Service {
-	vc := string(v)
-	return predicate.Service(sql.FieldHasPrefix(FieldProjectID, vc))
-}
-
-// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.Service {
-	vc := string(v)
-	return predicate.Service(sql.FieldHasSuffix(FieldProjectID, vc))
-}
-
-// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.Service {
-	vc := string(v)
-	return predicate.Service(sql.FieldEqualFold(FieldProjectID, vc))
-}
-
-// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.Service {
-	vc := string(v)
-	return predicate.Service(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -307,6 +237,26 @@ func DescriptionContainsFold(v string) predicate.Service {
 	return predicate.Service(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Service {
+	return predicate.Service(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Service {
+	return predicate.Service(sql.FieldNotNull(FieldLabels))
+}
+
+// AnnotationsIsNil applies the IsNil predicate on the "annotations" field.
+func AnnotationsIsNil() predicate.Service {
+	return predicate.Service(sql.FieldIsNull(FieldAnnotations))
+}
+
+// AnnotationsNotNil applies the NotNil predicate on the "annotations" field.
+func AnnotationsNotNil() predicate.Service {
+	return predicate.Service(sql.FieldNotNull(FieldAnnotations))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
 func CreateTimeEQ(v time.Time) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldCreateTime, v))
@@ -385,6 +335,76 @@ func UpdateTimeLT(v time.Time) predicate.Service {
 // UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
 func UpdateTimeLTE(v time.Time) predicate.Service {
 	return predicate.Service(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.Service {
+	return predicate.Service(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
@@ -517,35 +537,6 @@ func StatusNotNil() predicate.Service {
 	return predicate.Service(sql.FieldNotNull(FieldStatus))
 }
 
-// HasEnvironment applies the HasEdge predicate on the "environment" edge.
-func HasEnvironment() predicate.Service {
-	return predicate.Service(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Service
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
-func HasEnvironmentWith(preds ...predicate.Environment) predicate.Service {
-	return predicate.Service(func(s *sql.Selector) {
-		step := newEnvironmentStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Environment
-		step.Edge.Schema = schemaConfig.Service
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
@@ -566,6 +557,35 @@ func HasProjectWith(preds ...predicate.Project) predicate.Service {
 		step := newProjectStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Service
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEnvironment applies the HasEdge predicate on the "environment" edge.
+func HasEnvironment() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Service
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEnvironmentWith applies the HasEdge predicate on the "environment" edge with a given conditions (other predicates).
+func HasEnvironmentWith(preds ...predicate.Environment) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := newEnvironmentStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Environment
 		step.Edge.Schema = schemaConfig.Service
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

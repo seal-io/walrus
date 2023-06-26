@@ -22,7 +22,7 @@ import (
 // EnvironmentConnectorRelationship is the model entity for the EnvironmentConnectorRelationship schema.
 type EnvironmentConnectorRelationship struct {
 	config `json:"-"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the environment to which the relationship connects.
 	EnvironmentID oid.ID `json:"environmentID" sql:"environmentID"`
@@ -30,7 +30,7 @@ type EnvironmentConnectorRelationship struct {
 	ConnectorID oid.ID `json:"connectorID" sql:"connectorID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentConnectorRelationshipQuery when eager-loading is set.
-	Edges        EnvironmentConnectorRelationshipEdges `json:"edges,omitempty"`
+	Edges        EnvironmentConnectorRelationshipEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 

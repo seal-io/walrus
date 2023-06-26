@@ -40,8 +40,6 @@ type ClusterCostCreateInput struct {
 	IdleCost float64 `json:"idleCost,omitempty"`
 	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
-	// Connector current cost linked.
-	Connector ConnectorQueryInput `json:"connector"`
 }
 
 // Model converts the ClusterCostCreateInput to ClusterCost.
@@ -57,7 +55,6 @@ func (in ClusterCostCreateInput) Model() *ClusterCost {
 		IdleCost:       in.IdleCost,
 		ManagementCost: in.ManagementCost,
 	}
-	entity.ConnectorID = in.Connector.ID
 	return entity
 }
 
@@ -112,8 +109,6 @@ type ClusterCostOutput struct {
 	IdleCost float64 `json:"idleCost,omitempty"`
 	// Storage cost for current cost.
 	ManagementCost float64 `json:"managementCost,omitempty"`
-	// Connector current cost linked.
-	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
 
 // ExposeClusterCost converts the ClusterCost to ClusterCostOutput.
@@ -132,13 +127,6 @@ func ExposeClusterCost(in *ClusterCost) *ClusterCostOutput {
 		AllocationCost: in.AllocationCost,
 		IdleCost:       in.IdleCost,
 		ManagementCost: in.ManagementCost,
-		Connector:      ExposeConnector(in.Edges.Connector),
-	}
-	if in.ConnectorID != "" {
-		if entity.Connector == nil {
-			entity.Connector = &ConnectorOutput{}
-		}
-		entity.Connector.ID = in.ConnectorID
 	}
 	return entity
 }

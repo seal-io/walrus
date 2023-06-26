@@ -26,14 +26,12 @@ func (in EnvironmentQueryInput) Model() *Environment {
 
 // EnvironmentCreateInput is the input for the Environment creation.
 type EnvironmentCreateInput struct {
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Project to which the environment belongs.
 	Project ProjectQueryInput `json:"project"`
 	// Connectors holds the value of the connectors edge.
@@ -46,7 +44,6 @@ func (in EnvironmentCreateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 	}
 	entity.ProjectID = in.Project.ID
 	for i := 0; i < len(in.Connectors); i++ {
@@ -62,14 +59,12 @@ func (in EnvironmentCreateInput) Model() *Environment {
 type EnvironmentUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotation of the resource.
-	Annotations map[string]string `json:"annotations,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipUpdateInput `json:"connectors,omitempty"`
 }
@@ -81,7 +76,6 @@ func (in EnvironmentUpdateInput) Model() *Environment {
 		Name:        in.Name,
 		Description: in.Description,
 		Labels:      in.Labels,
-		Annotations: in.Annotations,
 	}
 	for i := 0; i < len(in.Connectors); i++ {
 		if in.Connectors[i] == nil {
@@ -96,24 +90,20 @@ func (in EnvironmentUpdateInput) Model() *Environment {
 type EnvironmentOutput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `json:"id,omitempty"`
-	// Name of the resource.
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Description of the resource.
+	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Labels of the resource.
+	// Labels holds the value of the "labels" field.
 	Labels map[string]string `json:"labels,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// Project to which the environment belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationshipOutput `json:"connectors,omitempty"`
-	// Services that belong to the environment.
-	Services []*ServiceOutput `json:"services,omitempty"`
-	// Services revisions that belong to the environment.
-	ServiceRevisions []*ServiceRevisionOutput `json:"serviceRevisions,omitempty"`
 }
 
 // ExposeEnvironment converts the Environment to EnvironmentOutput.
@@ -122,16 +112,14 @@ func ExposeEnvironment(in *Environment) *EnvironmentOutput {
 		return nil
 	}
 	var entity = &EnvironmentOutput{
-		ID:               in.ID,
-		Name:             in.Name,
-		Description:      in.Description,
-		Labels:           in.Labels,
-		CreateTime:       in.CreateTime,
-		UpdateTime:       in.UpdateTime,
-		Project:          ExposeProject(in.Edges.Project),
-		Connectors:       ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
-		Services:         ExposeServices(in.Edges.Services),
-		ServiceRevisions: ExposeServiceRevisions(in.Edges.ServiceRevisions),
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
+		Project:     ExposeProject(in.Edges.Project),
+		Connectors:  ExposeEnvironmentConnectorRelationships(in.Edges.Connectors),
 	}
 	if in.ProjectID != "" {
 		if entity.Project == nil {

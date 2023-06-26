@@ -18,12 +18,12 @@ const (
 	Label = "service_resource"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldProjectID holds the string denoting the projectid field in the database.
-	FieldProjectID = "project_id"
 	// FieldCreateTime holds the string denoting the createtime field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the updatetime field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldProjectID holds the string denoting the projectid field in the database.
+	FieldProjectID = "project_id"
 	// FieldServiceID holds the string denoting the serviceid field in the database.
 	FieldServiceID = "service_id"
 	// FieldConnectorID holds the string denoting the connectorid field in the database.
@@ -77,9 +77,9 @@ const (
 // Columns holds all SQL columns for serviceresource fields.
 var Columns = []string{
 	FieldID,
-	FieldProjectID,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldProjectID,
 	FieldServiceID,
 	FieldConnectorID,
 	FieldCompositionID,
@@ -108,14 +108,14 @@ func ValidColumn(column string) bool {
 var (
 	Hooks        [3]ent.Hook
 	Interceptors [2]ent.Interceptor
-	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
-	ProjectIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "updateTime" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// ProjectIDValidator is a validator for the "projectID" field. It is called by the builders before save.
+	ProjectIDValidator func(string) error
 	// ServiceIDValidator is a validator for the "serviceID" field. It is called by the builders before save.
 	ServiceIDValidator func(string) error
 	// ConnectorIDValidator is a validator for the "connectorID" field. It is called by the builders before save.
@@ -138,11 +138,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByProjectID orders the results by the projectID field.
-func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
-}
-
 // ByCreateTime orders the results by the createTime field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
@@ -151,6 +146,11 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the updateTime field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByProjectID orders the results by the projectID field.
+func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
 // ByServiceID orders the results by the serviceID field.

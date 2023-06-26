@@ -29,6 +29,38 @@ type PerspectiveCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetName sets the "name" field.
+func (pc *PerspectiveCreate) SetName(s string) *PerspectiveCreate {
+	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *PerspectiveCreate) SetDescription(s string) *PerspectiveCreate {
+	pc.mutation.SetDescription(s)
+	return pc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pc *PerspectiveCreate) SetNillableDescription(s *string) *PerspectiveCreate {
+	if s != nil {
+		pc.SetDescription(*s)
+	}
+	return pc
+}
+
+// SetLabels sets the "labels" field.
+func (pc *PerspectiveCreate) SetLabels(m map[string]string) *PerspectiveCreate {
+	pc.mutation.SetLabels(m)
+	return pc
+}
+
+// SetAnnotations sets the "annotations" field.
+func (pc *PerspectiveCreate) SetAnnotations(m map[string]string) *PerspectiveCreate {
+	pc.mutation.SetAnnotations(m)
+	return pc
+}
+
 // SetCreateTime sets the "createTime" field.
 func (pc *PerspectiveCreate) SetCreateTime(t time.Time) *PerspectiveCreate {
 	pc.mutation.SetCreateTime(t)
@@ -54,12 +86,6 @@ func (pc *PerspectiveCreate) SetNillableUpdateTime(t *time.Time) *PerspectiveCre
 	if t != nil {
 		pc.SetUpdateTime(*t)
 	}
-	return pc
-}
-
-// SetName sets the "name" field.
-func (pc *PerspectiveCreate) SetName(s string) *PerspectiveCreate {
-	pc.mutation.SetName(s)
 	return pc
 }
 
@@ -138,6 +164,14 @@ func (pc *PerspectiveCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PerspectiveCreate) defaults() error {
+	if _, ok := pc.mutation.Labels(); !ok {
+		v := perspective.DefaultLabels
+		pc.mutation.SetLabels(v)
+	}
+	if _, ok := pc.mutation.Annotations(); !ok {
+		v := perspective.DefaultAnnotations
+		pc.mutation.SetAnnotations(v)
+	}
 	if _, ok := pc.mutation.CreateTime(); !ok {
 		if perspective.DefaultCreateTime == nil {
 			return fmt.Errorf("model: uninitialized perspective.DefaultCreateTime (forgotten import model/runtime?)")
@@ -165,12 +199,6 @@ func (pc *PerspectiveCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *PerspectiveCreate) check() error {
-	if _, ok := pc.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Perspective.createTime"`)}
-	}
-	if _, ok := pc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Perspective.updateTime"`)}
-	}
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Perspective.name"`)}
 	}
@@ -178,6 +206,12 @@ func (pc *PerspectiveCreate) check() error {
 		if err := perspective.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Perspective.name": %w`, err)}
 		}
+	}
+	if _, ok := pc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Perspective.createTime"`)}
+	}
+	if _, ok := pc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Perspective.updateTime"`)}
 	}
 	if _, ok := pc.mutation.StartTime(); !ok {
 		return &ValidationError{Name: "startTime", err: errors.New(`model: missing required field "Perspective.startTime"`)}
@@ -238,6 +272,22 @@ func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := pc.mutation.Name(); ok {
+		_spec.SetField(perspective.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := pc.mutation.Description(); ok {
+		_spec.SetField(perspective.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := pc.mutation.Labels(); ok {
+		_spec.SetField(perspective.FieldLabels, field.TypeJSON, value)
+		_node.Labels = value
+	}
+	if value, ok := pc.mutation.Annotations(); ok {
+		_spec.SetField(perspective.FieldAnnotations, field.TypeJSON, value)
+		_node.Annotations = value
+	}
 	if value, ok := pc.mutation.CreateTime(); ok {
 		_spec.SetField(perspective.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = &value
@@ -245,10 +295,6 @@ func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.UpdateTime(); ok {
 		_spec.SetField(perspective.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
-	}
-	if value, ok := pc.mutation.Name(); ok {
-		_spec.SetField(perspective.FieldName, field.TypeString, value)
-		_node.Name = value
 	}
 	if value, ok := pc.mutation.StartTime(); ok {
 		_spec.SetField(perspective.FieldStartTime, field.TypeString, value)
@@ -273,7 +319,7 @@ func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Perspective.Create().
-//		SetCreateTime(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -282,7 +328,7 @@ func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PerspectiveUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (pc *PerspectiveCreate) OnConflict(opts ...sql.ConflictOption) *PerspectiveUpsertOne {
@@ -318,18 +364,6 @@ type (
 	}
 )
 
-// SetUpdateTime sets the "updateTime" field.
-func (u *PerspectiveUpsert) SetUpdateTime(v time.Time) *PerspectiveUpsert {
-	u.Set(perspective.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *PerspectiveUpsert) UpdateUpdateTime() *PerspectiveUpsert {
-	u.SetExcluded(perspective.FieldUpdateTime)
-	return u
-}
-
 // SetName sets the "name" field.
 func (u *PerspectiveUpsert) SetName(v string) *PerspectiveUpsert {
 	u.Set(perspective.FieldName, v)
@@ -339,6 +373,72 @@ func (u *PerspectiveUpsert) SetName(v string) *PerspectiveUpsert {
 // UpdateName sets the "name" field to the value that was provided on create.
 func (u *PerspectiveUpsert) UpdateName() *PerspectiveUpsert {
 	u.SetExcluded(perspective.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *PerspectiveUpsert) SetDescription(v string) *PerspectiveUpsert {
+	u.Set(perspective.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateDescription() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PerspectiveUpsert) ClearDescription() *PerspectiveUpsert {
+	u.SetNull(perspective.FieldDescription)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *PerspectiveUpsert) SetLabels(v map[string]string) *PerspectiveUpsert {
+	u.Set(perspective.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateLabels() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *PerspectiveUpsert) ClearLabels() *PerspectiveUpsert {
+	u.SetNull(perspective.FieldLabels)
+	return u
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *PerspectiveUpsert) SetAnnotations(v map[string]string) *PerspectiveUpsert {
+	u.Set(perspective.FieldAnnotations, v)
+	return u
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateAnnotations() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldAnnotations)
+	return u
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *PerspectiveUpsert) ClearAnnotations() *PerspectiveUpsert {
+	u.SetNull(perspective.FieldAnnotations)
+	return u
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (u *PerspectiveUpsert) SetUpdateTime(v time.Time) *PerspectiveUpsert {
+	u.Set(perspective.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateUpdateTime() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldUpdateTime)
 	return u
 }
 
@@ -441,20 +541,6 @@ func (u *PerspectiveUpsertOne) Update(set func(*PerspectiveUpsert)) *Perspective
 	return u
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (u *PerspectiveUpsertOne) SetUpdateTime(v time.Time) *PerspectiveUpsertOne {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *PerspectiveUpsertOne) UpdateUpdateTime() *PerspectiveUpsertOne {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
 // SetName sets the "name" field.
 func (u *PerspectiveUpsertOne) SetName(v string) *PerspectiveUpsertOne {
 	return u.Update(func(s *PerspectiveUpsert) {
@@ -466,6 +552,83 @@ func (u *PerspectiveUpsertOne) SetName(v string) *PerspectiveUpsertOne {
 func (u *PerspectiveUpsertOne) UpdateName() *PerspectiveUpsertOne {
 	return u.Update(func(s *PerspectiveUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *PerspectiveUpsertOne) SetDescription(v string) *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateDescription() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PerspectiveUpsertOne) ClearDescription() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *PerspectiveUpsertOne) SetLabels(v map[string]string) *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateLabels() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *PerspectiveUpsertOne) ClearLabels() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *PerspectiveUpsertOne) SetAnnotations(v map[string]string) *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateAnnotations() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *PerspectiveUpsertOne) ClearAnnotations() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearAnnotations()
+	})
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (u *PerspectiveUpsertOne) SetUpdateTime(v time.Time) *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateUpdateTime() *PerspectiveUpsertOne {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateUpdateTime()
 	})
 }
 
@@ -657,7 +820,7 @@ func (pcb *PerspectiveCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PerspectiveUpsert) {
-//			SetCreateTime(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (pcb *PerspectiveCreateBulk) OnConflict(opts ...sql.ConflictOption) *PerspectiveUpsertBulk {
@@ -739,20 +902,6 @@ func (u *PerspectiveUpsertBulk) Update(set func(*PerspectiveUpsert)) *Perspectiv
 	return u
 }
 
-// SetUpdateTime sets the "updateTime" field.
-func (u *PerspectiveUpsertBulk) SetUpdateTime(v time.Time) *PerspectiveUpsertBulk {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
-func (u *PerspectiveUpsertBulk) UpdateUpdateTime() *PerspectiveUpsertBulk {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
 // SetName sets the "name" field.
 func (u *PerspectiveUpsertBulk) SetName(v string) *PerspectiveUpsertBulk {
 	return u.Update(func(s *PerspectiveUpsert) {
@@ -764,6 +913,83 @@ func (u *PerspectiveUpsertBulk) SetName(v string) *PerspectiveUpsertBulk {
 func (u *PerspectiveUpsertBulk) UpdateName() *PerspectiveUpsertBulk {
 	return u.Update(func(s *PerspectiveUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *PerspectiveUpsertBulk) SetDescription(v string) *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateDescription() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PerspectiveUpsertBulk) ClearDescription() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *PerspectiveUpsertBulk) SetLabels(v map[string]string) *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateLabels() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *PerspectiveUpsertBulk) ClearLabels() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetAnnotations sets the "annotations" field.
+func (u *PerspectiveUpsertBulk) SetAnnotations(v map[string]string) *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetAnnotations(v)
+	})
+}
+
+// UpdateAnnotations sets the "annotations" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateAnnotations() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *PerspectiveUpsertBulk) ClearAnnotations() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.ClearAnnotations()
+	})
+}
+
+// SetUpdateTime sets the "updateTime" field.
+func (u *PerspectiveUpsertBulk) SetUpdateTime(v time.Time) *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "updateTime" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateUpdateTime() *PerspectiveUpsertBulk {
+	return u.Update(func(s *PerspectiveUpsert) {
+		s.UpdateUpdateTime()
 	})
 }
 

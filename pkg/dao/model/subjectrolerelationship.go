@@ -25,17 +25,17 @@ type SubjectRoleRelationship struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID oid.ID `json:"id,omitempty" sql:"id"`
-	// ID of the project to which the resource belongs, empty means using for global level.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
+	// ID of the project to belong, empty means for all projects.
+	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
 	// ID of the subject to which the relationship connects.
 	SubjectID oid.ID `json:"subjectID" sql:"subjectID"`
 	// ID of the role to which the relationship connects.
 	RoleID string `json:"roleID" sql:"roleID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubjectRoleRelationshipQuery when eager-loading is set.
-	Edges        SubjectRoleRelationshipEdges `json:"edges,omitempty"`
+	Edges        SubjectRoleRelationshipEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
@@ -123,18 +123,18 @@ func (srr *SubjectRoleRelationship) assignValues(columns []string, values []any)
 			} else if value != nil {
 				srr.ID = *value
 			}
-		case subjectrolerelationship.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field projectID", values[i])
-			} else if value != nil {
-				srr.ProjectID = *value
-			}
 		case subjectrolerelationship.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createTime", values[i])
 			} else if value.Valid {
 				srr.CreateTime = new(time.Time)
 				*srr.CreateTime = value.Time
+			}
+		case subjectrolerelationship.FieldProjectID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field projectID", values[i])
+			} else if value != nil {
+				srr.ProjectID = *value
 			}
 		case subjectrolerelationship.FieldSubjectID:
 			if value, ok := values[i].(*oid.ID); !ok {
@@ -199,13 +199,13 @@ func (srr *SubjectRoleRelationship) String() string {
 	var builder strings.Builder
 	builder.WriteString("SubjectRoleRelationship(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", srr.ID))
-	builder.WriteString("projectID=")
-	builder.WriteString(fmt.Sprintf("%v", srr.ProjectID))
-	builder.WriteString(", ")
 	if v := srr.CreateTime; v != nil {
 		builder.WriteString("createTime=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("projectID=")
+	builder.WriteString(fmt.Sprintf("%v", srr.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("subject_id=")
 	builder.WriteString(fmt.Sprintf("%v", srr.SubjectID))

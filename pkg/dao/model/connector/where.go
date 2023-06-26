@@ -72,11 +72,6 @@ func Description(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldDescription, v))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldCreateTime, v))
@@ -85,6 +80,11 @@ func CreateTime(v time.Time) predicate.Connector {
 // UpdateTime applies equality check predicate on the "updateTime" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldUpdateTime, v))
+}
+
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
 }
 
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
@@ -252,84 +252,24 @@ func DescriptionContainsFold(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldLabels))
 }
 
-// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldNEQ(FieldProjectID, v))
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldLabels))
 }
 
-// ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldIn(FieldProjectID, vs...))
+// AnnotationsIsNil applies the IsNil predicate on the "annotations" field.
+func AnnotationsIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldAnnotations))
 }
 
-// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldNotIn(FieldProjectID, vs...))
-}
-
-// ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldGT(FieldProjectID, v))
-}
-
-// ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldGTE(FieldProjectID, v))
-}
-
-// ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldLT(FieldProjectID, v))
-}
-
-// ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.Connector {
-	return predicate.Connector(sql.FieldLTE(FieldProjectID, v))
-}
-
-// ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.Connector {
-	vc := string(v)
-	return predicate.Connector(sql.FieldContains(FieldProjectID, vc))
-}
-
-// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.Connector {
-	vc := string(v)
-	return predicate.Connector(sql.FieldHasPrefix(FieldProjectID, vc))
-}
-
-// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.Connector {
-	vc := string(v)
-	return predicate.Connector(sql.FieldHasSuffix(FieldProjectID, vc))
-}
-
-// ProjectIDIsNil applies the IsNil predicate on the "projectID" field.
-func ProjectIDIsNil() predicate.Connector {
-	return predicate.Connector(sql.FieldIsNull(FieldProjectID))
-}
-
-// ProjectIDNotNil applies the NotNil predicate on the "projectID" field.
-func ProjectIDNotNil() predicate.Connector {
-	return predicate.Connector(sql.FieldNotNull(FieldProjectID))
-}
-
-// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.Connector {
-	vc := string(v)
-	return predicate.Connector(sql.FieldEqualFold(FieldProjectID, vc))
-}
-
-// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.Connector {
-	vc := string(v)
-	return predicate.Connector(sql.FieldContainsFold(FieldProjectID, vc))
+// AnnotationsNotNil applies the NotNil predicate on the "annotations" field.
+func AnnotationsNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldAnnotations))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -410,6 +350,86 @@ func UpdateTimeLT(v time.Time) predicate.Connector {
 // UpdateTimeLTE applies the LTE predicate on the "updateTime" field.
 func UpdateTimeLTE(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// ProjectIDEQ applies the EQ predicate on the "projectID" field.
+func ProjectIDEQ(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
+}
+
+// ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
+func ProjectIDNEQ(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldProjectID, v))
+}
+
+// ProjectIDIn applies the In predicate on the "projectID" field.
+func ProjectIDIn(vs ...oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldIn(FieldProjectID, vs...))
+}
+
+// ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
+func ProjectIDNotIn(vs ...oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldNotIn(FieldProjectID, vs...))
+}
+
+// ProjectIDGT applies the GT predicate on the "projectID" field.
+func ProjectIDGT(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldGT(FieldProjectID, v))
+}
+
+// ProjectIDGTE applies the GTE predicate on the "projectID" field.
+func ProjectIDGTE(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldGTE(FieldProjectID, v))
+}
+
+// ProjectIDLT applies the LT predicate on the "projectID" field.
+func ProjectIDLT(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldLT(FieldProjectID, v))
+}
+
+// ProjectIDLTE applies the LTE predicate on the "projectID" field.
+func ProjectIDLTE(v oid.ID) predicate.Connector {
+	return predicate.Connector(sql.FieldLTE(FieldProjectID, v))
+}
+
+// ProjectIDContains applies the Contains predicate on the "projectID" field.
+func ProjectIDContains(v oid.ID) predicate.Connector {
+	vc := string(v)
+	return predicate.Connector(sql.FieldContains(FieldProjectID, vc))
+}
+
+// ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
+func ProjectIDHasPrefix(v oid.ID) predicate.Connector {
+	vc := string(v)
+	return predicate.Connector(sql.FieldHasPrefix(FieldProjectID, vc))
+}
+
+// ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
+func ProjectIDHasSuffix(v oid.ID) predicate.Connector {
+	vc := string(v)
+	return predicate.Connector(sql.FieldHasSuffix(FieldProjectID, vc))
+}
+
+// ProjectIDIsNil applies the IsNil predicate on the "projectID" field.
+func ProjectIDIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldProjectID))
+}
+
+// ProjectIDNotNil applies the NotNil predicate on the "projectID" field.
+func ProjectIDNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldProjectID))
+}
+
+// ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
+func ProjectIDEqualFold(v oid.ID) predicate.Connector {
+	vc := string(v)
+	return predicate.Connector(sql.FieldEqualFold(FieldProjectID, vc))
+}
+
+// ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
+func ProjectIDContainsFold(v oid.ID) predicate.Connector {
+	vc := string(v)
+	return predicate.Connector(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // StatusIsNil applies the IsNil predicate on the "status" field.

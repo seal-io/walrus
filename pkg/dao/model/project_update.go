@@ -73,9 +73,21 @@ func (pu *ProjectUpdate) SetLabels(m map[string]string) *ProjectUpdate {
 	return pu
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (pu *ProjectUpdate) ClearLabels() *ProjectUpdate {
+	pu.mutation.ClearLabels()
+	return pu
+}
+
 // SetAnnotations sets the "annotations" field.
 func (pu *ProjectUpdate) SetAnnotations(m map[string]string) *ProjectUpdate {
 	pu.mutation.SetAnnotations(m)
+	return pu
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (pu *ProjectUpdate) ClearAnnotations() *ProjectUpdate {
+	pu.mutation.ClearAnnotations()
 	return pu
 }
 
@@ -130,6 +142,21 @@ func (pu *ProjectUpdate) AddSecrets(s ...*Secret) *ProjectUpdate {
 	return pu.AddSecretIDs(ids...)
 }
 
+// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
+func (pu *ProjectUpdate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.AddSubjectRoleIDs(ids...)
+	return pu
+}
+
+// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
+func (pu *ProjectUpdate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.AddSubjectRoleIDs(ids...)
+}
+
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
 func (pu *ProjectUpdate) AddServiceIDs(ids ...oid.ID) *ProjectUpdate {
 	pu.mutation.AddServiceIDs(ids...)
@@ -158,21 +185,6 @@ func (pu *ProjectUpdate) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpda
 		ids[i] = s[i].ID
 	}
 	return pu.AddServiceRevisionIDs(ids...)
-}
-
-// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (pu *ProjectUpdate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
-	pu.mutation.AddSubjectRoleIDs(ids...)
-	return pu
-}
-
-// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
-func (pu *ProjectUpdate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pu.AddSubjectRoleIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -243,6 +255,27 @@ func (pu *ProjectUpdate) RemoveSecrets(s ...*Secret) *ProjectUpdate {
 	return pu.RemoveSecretIDs(ids...)
 }
 
+// ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
+func (pu *ProjectUpdate) ClearSubjectRoles() *ProjectUpdate {
+	pu.mutation.ClearSubjectRoles()
+	return pu
+}
+
+// RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
+func (pu *ProjectUpdate) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.RemoveSubjectRoleIDs(ids...)
+	return pu
+}
+
+// RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
+func (pu *ProjectUpdate) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.RemoveSubjectRoleIDs(ids...)
+}
+
 // ClearServices clears all "services" edges to the Service entity.
 func (pu *ProjectUpdate) ClearServices() *ProjectUpdate {
 	pu.mutation.ClearServices()
@@ -283,27 +316,6 @@ func (pu *ProjectUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectU
 		ids[i] = s[i].ID
 	}
 	return pu.RemoveServiceRevisionIDs(ids...)
-}
-
-// ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
-func (pu *ProjectUpdate) ClearSubjectRoles() *ProjectUpdate {
-	pu.mutation.ClearSubjectRoles()
-	return pu
-}
-
-// RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
-func (pu *ProjectUpdate) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
-	pu.mutation.RemoveSubjectRoleIDs(ids...)
-	return pu
-}
-
-// RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
-func (pu *ProjectUpdate) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pu.RemoveSubjectRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -388,8 +400,14 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
 	}
+	if pu.mutation.LabelsCleared() {
+		_spec.ClearField(project.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := pu.mutation.Annotations(); ok {
 		_spec.SetField(project.FieldAnnotations, field.TypeJSON, value)
+	}
+	if pu.mutation.AnnotationsCleared() {
+		_spec.ClearField(project.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := pu.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
@@ -538,6 +556,54 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.SubjectRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedSubjectRolesIDs(); len(nodes) > 0 && !pu.mutation.SubjectRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.SubjectRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if pu.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -634,54 +700,6 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if pu.mutation.SubjectRolesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.RemovedSubjectRolesIDs(); len(nodes) > 0 && !pu.mutation.SubjectRolesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.SubjectRolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.SubjectRoleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
 	_spec.AddModifiers(pu.modifiers...)
@@ -738,9 +756,21 @@ func (puo *ProjectUpdateOne) SetLabels(m map[string]string) *ProjectUpdateOne {
 	return puo
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (puo *ProjectUpdateOne) ClearLabels() *ProjectUpdateOne {
+	puo.mutation.ClearLabels()
+	return puo
+}
+
 // SetAnnotations sets the "annotations" field.
 func (puo *ProjectUpdateOne) SetAnnotations(m map[string]string) *ProjectUpdateOne {
 	puo.mutation.SetAnnotations(m)
+	return puo
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (puo *ProjectUpdateOne) ClearAnnotations() *ProjectUpdateOne {
+	puo.mutation.ClearAnnotations()
 	return puo
 }
 
@@ -795,6 +825,21 @@ func (puo *ProjectUpdateOne) AddSecrets(s ...*Secret) *ProjectUpdateOne {
 	return puo.AddSecretIDs(ids...)
 }
 
+// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
+func (puo *ProjectUpdateOne) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.AddSubjectRoleIDs(ids...)
+	return puo
+}
+
+// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
+func (puo *ProjectUpdateOne) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.AddSubjectRoleIDs(ids...)
+}
+
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
 func (puo *ProjectUpdateOne) AddServiceIDs(ids ...oid.ID) *ProjectUpdateOne {
 	puo.mutation.AddServiceIDs(ids...)
@@ -823,21 +868,6 @@ func (puo *ProjectUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Project
 		ids[i] = s[i].ID
 	}
 	return puo.AddServiceRevisionIDs(ids...)
-}
-
-// AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (puo *ProjectUpdateOne) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
-	puo.mutation.AddSubjectRoleIDs(ids...)
-	return puo
-}
-
-// AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
-func (puo *ProjectUpdateOne) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return puo.AddSubjectRoleIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -908,6 +938,27 @@ func (puo *ProjectUpdateOne) RemoveSecrets(s ...*Secret) *ProjectUpdateOne {
 	return puo.RemoveSecretIDs(ids...)
 }
 
+// ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
+func (puo *ProjectUpdateOne) ClearSubjectRoles() *ProjectUpdateOne {
+	puo.mutation.ClearSubjectRoles()
+	return puo
+}
+
+// RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
+func (puo *ProjectUpdateOne) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveSubjectRoleIDs(ids...)
+	return puo
+}
+
+// RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
+func (puo *ProjectUpdateOne) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.RemoveSubjectRoleIDs(ids...)
+}
+
 // ClearServices clears all "services" edges to the Service entity.
 func (puo *ProjectUpdateOne) ClearServices() *ProjectUpdateOne {
 	puo.mutation.ClearServices()
@@ -948,27 +999,6 @@ func (puo *ProjectUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *Proj
 		ids[i] = s[i].ID
 	}
 	return puo.RemoveServiceRevisionIDs(ids...)
-}
-
-// ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
-func (puo *ProjectUpdateOne) ClearSubjectRoles() *ProjectUpdateOne {
-	puo.mutation.ClearSubjectRoles()
-	return puo
-}
-
-// RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
-func (puo *ProjectUpdateOne) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveSubjectRoleIDs(ids...)
-	return puo
-}
-
-// RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
-func (puo *ProjectUpdateOne) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return puo.RemoveSubjectRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -1083,8 +1113,14 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 	if value, ok := puo.mutation.Labels(); ok {
 		_spec.SetField(project.FieldLabels, field.TypeJSON, value)
 	}
+	if puo.mutation.LabelsCleared() {
+		_spec.ClearField(project.FieldLabels, field.TypeJSON)
+	}
 	if value, ok := puo.mutation.Annotations(); ok {
 		_spec.SetField(project.FieldAnnotations, field.TypeJSON, value)
+	}
+	if puo.mutation.AnnotationsCleared() {
+		_spec.ClearField(project.FieldAnnotations, field.TypeJSON)
 	}
 	if value, ok := puo.mutation.UpdateTime(); ok {
 		_spec.SetField(project.FieldUpdateTime, field.TypeTime, value)
@@ -1233,6 +1269,54 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if puo.mutation.SubjectRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedSubjectRolesIDs(); len(nodes) > 0 && !puo.mutation.SubjectRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.SubjectRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.SubjectRolesTable,
+			Columns: []string{project.SubjectRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if puo.mutation.ServicesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1324,54 +1408,6 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.ServiceRevision
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if puo.mutation.SubjectRolesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.RemovedSubjectRolesIDs(); len(nodes) > 0 && !puo.mutation.SubjectRolesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.SubjectRolesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SubjectRolesTable,
-			Columns: []string{project.SubjectRolesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subjectrolerelationship.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.SubjectRoleRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

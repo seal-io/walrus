@@ -30,12 +30,6 @@ type TokenCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetSubjectID sets the "subjectID" field.
-func (tc *TokenCreate) SetSubjectID(o oid.ID) *TokenCreate {
-	tc.mutation.SetSubjectID(o)
-	return tc
-}
-
 // SetCreateTime sets the "createTime" field.
 func (tc *TokenCreate) SetCreateTime(t time.Time) *TokenCreate {
 	tc.mutation.SetCreateTime(t)
@@ -47,6 +41,12 @@ func (tc *TokenCreate) SetNillableCreateTime(t *time.Time) *TokenCreate {
 	if t != nil {
 		tc.SetCreateTime(*t)
 	}
+	return tc
+}
+
+// SetSubjectID sets the "subjectID" field.
+func (tc *TokenCreate) SetSubjectID(o oid.ID) *TokenCreate {
+	tc.mutation.SetSubjectID(o)
 	return tc
 }
 
@@ -154,6 +154,9 @@ func (tc *TokenCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tc *TokenCreate) check() error {
+	if _, ok := tc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Token.createTime"`)}
+	}
 	if _, ok := tc.mutation.SubjectID(); !ok {
 		return &ValidationError{Name: "subjectID", err: errors.New(`model: missing required field "Token.subjectID"`)}
 	}
@@ -161,9 +164,6 @@ func (tc *TokenCreate) check() error {
 		if err := token.SubjectIDValidator(string(v)); err != nil {
 			return &ValidationError{Name: "subjectID", err: fmt.Errorf(`model: validator failed for field "Token.subjectID": %w`, err)}
 		}
-	}
-	if _, ok := tc.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Token.createTime"`)}
 	}
 	if _, ok := tc.mutation.Kind(); !ok {
 		return &ValidationError{Name: "kind", err: errors.New(`model: missing required field "Token.kind"`)}
@@ -269,7 +269,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Token.Create().
-//		SetSubjectID(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -278,7 +278,7 @@ func (tc *TokenCreate) createSpec() (*Token, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenUpsert) {
-//			SetSubjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (tc *TokenCreate) OnConflict(opts ...sql.ConflictOption) *TokenUpsertOne {
@@ -331,11 +331,11 @@ func (u *TokenUpsertOne) UpdateNewValues() *TokenUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(token.FieldID)
 		}
-		if _, exists := u.create.mutation.SubjectID(); exists {
-			s.SetIgnore(token.FieldSubjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(token.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.SubjectID(); exists {
+			s.SetIgnore(token.FieldSubjectID)
 		}
 		if _, exists := u.create.mutation.Kind(); exists {
 			s.SetIgnore(token.FieldKind)
@@ -512,7 +512,7 @@ func (tcb *TokenCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenUpsert) {
-//			SetSubjectID(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (tcb *TokenCreateBulk) OnConflict(opts ...sql.ConflictOption) *TokenUpsertBulk {
@@ -559,11 +559,11 @@ func (u *TokenUpsertBulk) UpdateNewValues() *TokenUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(token.FieldID)
 			}
-			if _, exists := b.mutation.SubjectID(); exists {
-				s.SetIgnore(token.FieldSubjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(token.FieldCreateTime)
+			}
+			if _, exists := b.mutation.SubjectID(); exists {
+				s.SetIgnore(token.FieldSubjectID)
 			}
 			if _, exists := b.mutation.Kind(); exists {
 				s.SetIgnore(token.FieldKind)

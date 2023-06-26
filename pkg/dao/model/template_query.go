@@ -308,12 +308,12 @@ func (tq *TemplateQuery) WithVersions(opts ...func(*TemplateVersionQuery)) *Temp
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Template.Query().
-//		GroupBy(template.FieldStatus).
+//		GroupBy(template.FieldCreateTime).
 //		Aggregate(model.Count()).
 //		Scan(ctx, &v)
 func (tq *TemplateQuery) GroupBy(field string, fields ...string) *TemplateGroupBy {
@@ -331,11 +331,11 @@ func (tq *TemplateQuery) GroupBy(field string, fields ...string) *TemplateGroupB
 // Example:
 //
 //	var v []struct {
-//		Status string `json:"status,omitempty" sql:"status"`
+//		CreateTime time.Time `json:"createTime,omitempty" sql:"createTime"`
 //	}
 //
 //	client.Template.Query().
-//		Select(template.FieldStatus).
+//		Select(template.FieldCreateTime).
 //		Scan(ctx, &v)
 func (tq *TemplateQuery) Select(fields ...string) *TemplateSelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)

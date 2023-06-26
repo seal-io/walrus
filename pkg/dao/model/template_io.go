@@ -22,8 +22,6 @@ func (in TemplateQueryInput) Model() *Template {
 
 // TemplateCreateInput is the input for the Template creation.
 type TemplateCreateInput struct {
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the template.
 	Description string `json:"description,omitempty"`
 	// A URL to an SVG or PNG image to be used as an icon.
@@ -37,11 +35,10 @@ type TemplateCreateInput struct {
 // Model converts the TemplateCreateInput to Template.
 func (in TemplateCreateInput) Model() *Template {
 	var entity = &Template{
-		StatusMessage: in.StatusMessage,
-		Description:   in.Description,
-		Icon:          in.Icon,
-		Labels:        in.Labels,
-		Source:        in.Source,
+		Description: in.Description,
+		Icon:        in.Icon,
+		Labels:      in.Labels,
+		Source:      in.Source,
 	}
 	return entity
 }
@@ -50,8 +47,6 @@ func (in TemplateCreateInput) Model() *Template {
 type TemplateUpdateInput struct {
 	// It is also the name of the template.
 	ID string `uri:"id" json:"-"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the template.
 	Description string `json:"description,omitempty"`
 	// A URL to an SVG or PNG image to be used as an icon.
@@ -65,12 +60,11 @@ type TemplateUpdateInput struct {
 // Model converts the TemplateUpdateInput to Template.
 func (in TemplateUpdateInput) Model() *Template {
 	var entity = &Template{
-		ID:            in.ID,
-		StatusMessage: in.StatusMessage,
-		Description:   in.Description,
-		Icon:          in.Icon,
-		Labels:        in.Labels,
-		Source:        in.Source,
+		ID:          in.ID,
+		Description: in.Description,
+		Icon:        in.Icon,
+		Labels:      in.Labels,
+		Source:      in.Source,
 	}
 	return entity
 }
@@ -79,14 +73,14 @@ func (in TemplateUpdateInput) Model() *Template {
 type TemplateOutput struct {
 	// It is also the name of the template.
 	ID string `json:"id,omitempty"`
-	// Status of the resource.
-	Status string `json:"status,omitempty"`
-	// Extra message for status, like error details.
-	StatusMessage string `json:"statusMessage,omitempty"`
-	// Describe creation time.
+	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
-	// Describe modification time.
+	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty"`
+	// StatusMessage holds the value of the "statusMessage" field.
+	StatusMessage string `json:"statusMessage,omitempty"`
 	// Description of the template.
 	Description string `json:"description,omitempty"`
 	// A URL to an SVG or PNG image to be used as an icon.
@@ -95,8 +89,6 @@ type TemplateOutput struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Source of the template.
 	Source string `json:"source,omitempty"`
-	// versions of the template.
-	Versions []*TemplateVersionOutput `json:"versions,omitempty"`
 }
 
 // ExposeTemplate converts the Template to TemplateOutput.
@@ -106,15 +98,14 @@ func ExposeTemplate(in *Template) *TemplateOutput {
 	}
 	var entity = &TemplateOutput{
 		ID:            in.ID,
-		Status:        in.Status,
-		StatusMessage: in.StatusMessage,
 		CreateTime:    in.CreateTime,
 		UpdateTime:    in.UpdateTime,
+		Status:        in.Status,
+		StatusMessage: in.StatusMessage,
 		Description:   in.Description,
 		Icon:          in.Icon,
 		Labels:        in.Labels,
 		Source:        in.Source,
-		Versions:      ExposeTemplateVersions(in.Edges.Versions),
 	}
 	return entity
 }

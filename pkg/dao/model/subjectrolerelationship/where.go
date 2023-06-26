@@ -61,14 +61,14 @@ func IDLTE(id oid.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldID, id))
 }
 
-// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldProjectID, v))
-}
-
 // CreateTime applies equality check predicate on the "createTime" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
+func ProjectID(v oid.ID) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldProjectID, v))
 }
 
 // SubjectID applies equality check predicate on the "subject_id" field. It's identical to SubjectIDEQ.
@@ -79,6 +79,46 @@ func SubjectID(v oid.ID) predicate.SubjectRoleRelationship {
 // RoleID applies equality check predicate on the "role_id" field. It's identical to RoleIDEQ.
 func RoleID(v string) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldRoleID, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "createTime" field.
+func CreateTimeEQ(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
+func CreateTimeNEQ(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "createTime" field.
+func CreateTimeIn(vs ...time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "createTime" field.
+func CreateTimeGT(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "createTime" field.
+func CreateTimeGTE(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "createTime" field.
+func CreateTimeLT(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "createTime" field.
+func CreateTimeLTE(v time.Time) predicate.SubjectRoleRelationship {
+	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldCreateTime, v))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
@@ -159,46 +199,6 @@ func ProjectIDEqualFold(v oid.ID) predicate.SubjectRoleRelationship {
 func ProjectIDContainsFold(v oid.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldContainsFold(FieldProjectID, vc))
-}
-
-// CreateTimeEQ applies the EQ predicate on the "createTime" field.
-func CreateTimeEQ(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldCreateTime, v))
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "createTime" field.
-func CreateTimeNEQ(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldNEQ(FieldCreateTime, v))
-}
-
-// CreateTimeIn applies the In predicate on the "createTime" field.
-func CreateTimeIn(vs ...time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "createTime" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldNotIn(FieldCreateTime, vs...))
-}
-
-// CreateTimeGT applies the GT predicate on the "createTime" field.
-func CreateTimeGT(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldGT(FieldCreateTime, v))
-}
-
-// CreateTimeGTE applies the GTE predicate on the "createTime" field.
-func CreateTimeGTE(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldGTE(FieldCreateTime, v))
-}
-
-// CreateTimeLT applies the LT predicate on the "createTime" field.
-func CreateTimeLT(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldLT(FieldCreateTime, v))
-}
-
-// CreateTimeLTE applies the LTE predicate on the "createTime" field.
-func CreateTimeLTE(v time.Time) predicate.SubjectRoleRelationship {
-	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldCreateTime, v))
 }
 
 // SubjectIDEQ applies the EQ predicate on the "subject_id" field.

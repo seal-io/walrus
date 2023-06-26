@@ -36,12 +36,6 @@ type ServiceCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetProjectID sets the "projectID" field.
-func (sc *ServiceCreate) SetProjectID(o oid.ID) *ServiceCreate {
-	sc.mutation.SetProjectID(o)
-	return sc
-}
-
 // SetName sets the "name" field.
 func (sc *ServiceCreate) SetName(s string) *ServiceCreate {
 	sc.mutation.SetName(s)
@@ -102,6 +96,12 @@ func (sc *ServiceCreate) SetNillableUpdateTime(t *time.Time) *ServiceCreate {
 	return sc
 }
 
+// SetProjectID sets the "projectID" field.
+func (sc *ServiceCreate) SetProjectID(o oid.ID) *ServiceCreate {
+	sc.mutation.SetProjectID(o)
+	return sc
+}
+
 // SetEnvironmentID sets the "environmentID" field.
 func (sc *ServiceCreate) SetEnvironmentID(o oid.ID) *ServiceCreate {
 	sc.mutation.SetEnvironmentID(o)
@@ -140,14 +140,14 @@ func (sc *ServiceCreate) SetID(o oid.ID) *ServiceCreate {
 	return sc
 }
 
-// SetEnvironment sets the "environment" edge to the Environment entity.
-func (sc *ServiceCreate) SetEnvironment(e *Environment) *ServiceCreate {
-	return sc.SetEnvironmentID(e.ID)
-}
-
 // SetProject sets the "project" edge to the Project entity.
 func (sc *ServiceCreate) SetProject(p *Project) *ServiceCreate {
 	return sc.SetProjectID(p.ID)
+}
+
+// SetEnvironment sets the "environment" edge to the Environment entity.
+func (sc *ServiceCreate) SetEnvironment(e *Environment) *ServiceCreate {
+	return sc.SetEnvironmentID(e.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
@@ -259,14 +259,6 @@ func (sc *ServiceCreate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (sc *ServiceCreate) check() error {
-	if _, ok := sc.mutation.ProjectID(); !ok {
-		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Service.projectID"`)}
-	}
-	if v, ok := sc.mutation.ProjectID(); ok {
-		if err := service.ProjectIDValidator(string(v)); err != nil {
-			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Service.projectID": %w`, err)}
-		}
-	}
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "Service.name"`)}
 	}
@@ -275,17 +267,19 @@ func (sc *ServiceCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
 		}
 	}
-	if _, ok := sc.mutation.Labels(); !ok {
-		return &ValidationError{Name: "labels", err: errors.New(`model: missing required field "Service.labels"`)}
-	}
-	if _, ok := sc.mutation.Annotations(); !ok {
-		return &ValidationError{Name: "annotations", err: errors.New(`model: missing required field "Service.annotations"`)}
-	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "createTime", err: errors.New(`model: missing required field "Service.createTime"`)}
 	}
 	if _, ok := sc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "updateTime", err: errors.New(`model: missing required field "Service.updateTime"`)}
+	}
+	if _, ok := sc.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "projectID", err: errors.New(`model: missing required field "Service.projectID"`)}
+	}
+	if v, ok := sc.mutation.ProjectID(); ok {
+		if err := service.ProjectIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "projectID", err: fmt.Errorf(`model: validator failed for field "Service.projectID": %w`, err)}
+		}
 	}
 	if _, ok := sc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environmentID", err: errors.New(`model: missing required field "Service.environmentID"`)}
@@ -298,11 +292,11 @@ func (sc *ServiceCreate) check() error {
 	if _, ok := sc.mutation.Template(); !ok {
 		return &ValidationError{Name: "template", err: errors.New(`model: missing required field "Service.template"`)}
 	}
-	if _, ok := sc.mutation.EnvironmentID(); !ok {
-		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Service.environment"`)}
-	}
 	if _, ok := sc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Service.project"`)}
+	}
+	if _, ok := sc.mutation.EnvironmentID(); !ok {
+		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Service.environment"`)}
 	}
 	return nil
 }
@@ -377,24 +371,6 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
-	if nodes := sc.mutation.EnvironmentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   service.EnvironmentTable,
-			Columns: []string{service.EnvironmentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = sc.schemaConfig.Service
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.EnvironmentID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := sc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -411,6 +387,24 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.EnvironmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.EnvironmentTable,
+			Columns: []string{service.EnvironmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(environment.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = sc.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EnvironmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.mutation.RevisionsIDs(); len(nodes) > 0 {
@@ -471,7 +465,7 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Service.Create().
-//		SetProjectID(v).
+//		SetName(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -480,7 +474,7 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceUpsert) {
-//			SetProjectID(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (sc *ServiceCreate) OnConflict(opts ...sql.ConflictOption) *ServiceUpsertOne {
@@ -558,6 +552,12 @@ func (u *ServiceUpsert) UpdateLabels() *ServiceUpsert {
 	return u
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ServiceUpsert) ClearLabels() *ServiceUpsert {
+	u.SetNull(service.FieldLabels)
+	return u
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ServiceUpsert) SetAnnotations(v map[string]string) *ServiceUpsert {
 	u.Set(service.FieldAnnotations, v)
@@ -567,6 +567,12 @@ func (u *ServiceUpsert) SetAnnotations(v map[string]string) *ServiceUpsert {
 // UpdateAnnotations sets the "annotations" field to the value that was provided on create.
 func (u *ServiceUpsert) UpdateAnnotations() *ServiceUpsert {
 	u.SetExcluded(service.FieldAnnotations)
+	return u
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ServiceUpsert) ClearAnnotations() *ServiceUpsert {
+	u.SetNull(service.FieldAnnotations)
 	return u
 }
 
@@ -647,11 +653,11 @@ func (u *ServiceUpsertOne) UpdateNewValues() *ServiceUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(service.FieldID)
 		}
-		if _, exists := u.create.mutation.ProjectID(); exists {
-			s.SetIgnore(service.FieldProjectID)
-		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(service.FieldCreateTime)
+		}
+		if _, exists := u.create.mutation.ProjectID(); exists {
+			s.SetIgnore(service.FieldProjectID)
 		}
 		if _, exists := u.create.mutation.EnvironmentID(); exists {
 			s.SetIgnore(service.FieldEnvironmentID)
@@ -736,6 +742,13 @@ func (u *ServiceUpsertOne) UpdateLabels() *ServiceUpsertOne {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ServiceUpsertOne) ClearLabels() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ServiceUpsertOne) SetAnnotations(v map[string]string) *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
@@ -747,6 +760,13 @@ func (u *ServiceUpsertOne) SetAnnotations(v map[string]string) *ServiceUpsertOne
 func (u *ServiceUpsertOne) UpdateAnnotations() *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ServiceUpsertOne) ClearAnnotations() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearAnnotations()
 	})
 }
 
@@ -952,7 +972,7 @@ func (scb *ServiceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ServiceUpsert) {
-//			SetProjectID(v+v).
+//			SetName(v+v).
 //		}).
 //		Exec(ctx)
 func (scb *ServiceCreateBulk) OnConflict(opts ...sql.ConflictOption) *ServiceUpsertBulk {
@@ -999,11 +1019,11 @@ func (u *ServiceUpsertBulk) UpdateNewValues() *ServiceUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(service.FieldID)
 			}
-			if _, exists := b.mutation.ProjectID(); exists {
-				s.SetIgnore(service.FieldProjectID)
-			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(service.FieldCreateTime)
+			}
+			if _, exists := b.mutation.ProjectID(); exists {
+				s.SetIgnore(service.FieldProjectID)
 			}
 			if _, exists := b.mutation.EnvironmentID(); exists {
 				s.SetIgnore(service.FieldEnvironmentID)
@@ -1089,6 +1109,13 @@ func (u *ServiceUpsertBulk) UpdateLabels() *ServiceUpsertBulk {
 	})
 }
 
+// ClearLabels clears the value of the "labels" field.
+func (u *ServiceUpsertBulk) ClearLabels() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearLabels()
+	})
+}
+
 // SetAnnotations sets the "annotations" field.
 func (u *ServiceUpsertBulk) SetAnnotations(v map[string]string) *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
@@ -1100,6 +1127,13 @@ func (u *ServiceUpsertBulk) SetAnnotations(v map[string]string) *ServiceUpsertBu
 func (u *ServiceUpsertBulk) UpdateAnnotations() *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
 		s.UpdateAnnotations()
+	})
+}
+
+// ClearAnnotations clears the value of the "annotations" field.
+func (u *ServiceUpsertBulk) ClearAnnotations() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearAnnotations()
 	})
 }
 
