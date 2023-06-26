@@ -5,26 +5,30 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
-type OwnBySubject struct {
-	schema
+func OwnBySubject() ownBySubject {
+	return ownBySubject{}
 }
 
-func (p OwnBySubject) Fields() []ent.Field {
-	// Keep the json tag in camel case.
+type ownBySubject struct {
+	mixin.Schema
+}
+
+func (i ownBySubject) Fields() []ent.Field {
 	return []ent.Field{
 		oid.Field("subjectID").
-			Comment("ID of the subject to which the token belongs.").
+			Comment("ID of the subject to belong.").
 			NotEmpty().
 			Immutable(),
 	}
 }
 
-func (p OwnBySubject) Hooks() []ent.Hook {
+func (i ownBySubject) Hooks() []ent.Hook {
 	type target interface {
 		SetSubjectID(oid.ID)
 		SubjectID() (oid.ID, bool)
@@ -73,7 +77,7 @@ func (p OwnBySubject) Hooks() []ent.Hook {
 	}
 }
 
-func (p OwnBySubject) Interceptors() []ent.Interceptor {
+func (i ownBySubject) Interceptors() []ent.Interceptor {
 	type target interface {
 		WhereP(...func(*sql.Selector))
 	}
