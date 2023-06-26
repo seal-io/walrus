@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/seal-io/seal/pkg/cli/api"
 	"github.com/seal-io/seal/pkg/cli/config"
@@ -33,6 +35,9 @@ func NewRootCmd() *cobra.Command {
 			}
 
 			serverConfig.CommonConfig = *globalConfig
+		},
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
 		},
 	}
 
@@ -62,6 +67,12 @@ func NewConfigCmd() *cobra.Command {
 	setupCmd := &cobra.Command{
 		Use:   "setup short-name",
 		Short: "Connect Seal server and setup cli",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			viper.SetEnvPrefix("SEAL")
+			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+			viper.AutomaticEnv()
+			bindFlags(cmd)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			set := cmd.Flags()
 			err := setup(cfg, set)
@@ -97,7 +108,7 @@ func NewConfigCmd() *cobra.Command {
 	configCmd := &cobra.Command{
 		GroupID: "config",
 		Use:     "config",
-		Short:   "Config setup command",
+		Short:   "Command set for initializing and viewing configuration",
 	}
 	configCmd.AddCommand(
 		setupCmd,
@@ -110,7 +121,7 @@ func NewConfigCmd() *cobra.Command {
 
 // NewCmdGroups generate command group.
 func NewCmdGroups() []*cobra.Group {
-	configGroup := &cobra.Group{ID: "config", Title: "Config commands:"}
+	configGroup := &cobra.Group{ID: "config", Title: "config commands:"}
 
 	return []*cobra.Group{
 		configGroup,
@@ -226,7 +237,23 @@ func load(sc *config.Config, root *cobra.Command, skipCache bool) error {
 
 var configSetupExample = `
   # Setup seal cli
-  $ seal config setup --endpoint [Seal_Server_URL] --project-name [Project_Name] --token [Token]
+  $ seal config setup --server [Seal_Server_URL] --project-name [Project_Name] --token [Token]
 `
 
 var helpTemplate = `{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
+
+func bindFlags(cmd *cobra.Command) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		configName := strings.ReplaceAll(f.Name, "-", "")
+
+		// Use viper value when the flag is not set and environment variable has a value.
+		if !f.Changed && viper.IsSet(configName) {
+			val := viper.Get(configName)
+
+			err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+}

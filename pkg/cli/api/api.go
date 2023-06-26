@@ -47,7 +47,7 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 			group[op.Group] = &cobra.Command{
 				GroupID: op.Group,
 				Use:     op.Group,
-				Short:   fmt.Sprintf("A group of commands for %s", op.Group),
+				Short:   fmt.Sprintf("Command set for %s management", op.Group),
 			}
 		}
 
