@@ -39,14 +39,12 @@ func Run() (returnErr error) {
 		}
 	}()
 
-	if serverConfig.Endpoint != "" {
+	if serverConfig.Server != "" {
 		// Set log level to ignore debug log for generate sub command.
 		log.SetLevel(log.WarnLevel)
 
 		err := serverConfig.ValidateAndSetup()
-		if err != nil {
-			log.Error(err)
-		} else {
+		if err == nil {
 			err = load(serverConfig, root, false)
 			if err != nil {
 				return err

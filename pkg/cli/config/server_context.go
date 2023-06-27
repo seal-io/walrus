@@ -10,22 +10,22 @@ import (
 // ServerContext contains the server config.
 type ServerContext struct {
 	// Server config.
-	Endpoint string `json:"endpoint,omitempty"`
-	Token    string `json:"token"`
-	Insecure bool   `json:"insecure,omitempty"`
+	Server   string `json:"server" survey:"server"`
+	Token    string `json:"token" survey:"token"`
+	Insecure bool   `json:"insecure" survey:"insecure"`
 
 	// Project config.
-	ProjectID   string `json:"projectID,omitempty"`
-	ProjectName string `json:"projectName,omitempty"`
+	ProjectID   string `json:"projectID,omitempty" survey:"project-id"`
+	ProjectName string `json:"projectName,omitempty" survey:"project-name"`
 
 	// Environment config.
-	EnvironmentID   string `json:"environmentID,omitempty"`
-	EnvironmentName string `json:"environmentName,omitempty"`
+	EnvironmentID   string `json:"environmentID,omitempty" survey:"environment-id"`
+	EnvironmentName string `json:"environmentName,omitempty" survey:"environment-name"`
 }
 
 // OpenAPIURL generate OpenAPI url.
 func (c *ServerContext) OpenAPIURL() (*url.URL, error) {
-	epURL, err := url.Parse(c.Endpoint)
+	epURL, err := url.Parse(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func (c *ServerContext) Inject(cmd *cobra.Command) error {
 func (c *ServerContext) Merge(ns ServerContext, flags *pflag.FlagSet) ServerContext {
 	merged := *c
 
-	if ns.Endpoint != "" {
-		merged.Endpoint = ns.Endpoint
+	if ns.Server != "" {
+		merged.Server = ns.Server
 	}
 
 	if ns.Token != "" {
