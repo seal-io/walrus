@@ -140,11 +140,37 @@ func Destroy(
 	}()
 
 	if !status.ServiceStatusDeleted.IsUnknown(entity) {
-		return fmt.Errorf("service status is not deploying, service: %s", entity.ID)
+		return fmt.Errorf("service status is not deleting, service: %s", entity.ID)
 	}
 
 	if dp == nil {
 		return errors.New("deployer is not set")
+	}
+
+	// Check dependants.
+	dependants, err := dao.GetServiceDependantNames(ctx, mc, entity)
+	if err != nil {
+		return err
+	}
+
+	if len(dependants) > 0 {
+		msg := fmt.Sprintf("Waiting for dependants to be deleted: %s", strs.Join(", ", dependants...))
+		if !status.ServiceStatusProgressing.IsUnknown(entity) ||
+			status.ServiceStatusProgressing.GetMessage(entity) != msg {
+			status.ServiceStatusProgressing.Unknown(entity, msg)
+
+			if err = UpdateStatus(ctx, mc, entity); err != nil {
+				return fmt.Errorf("failed to update service status: %w", err)
+			}
+		}
+
+		return nil
+	} else {
+		status.ServiceStatusProgressing.True(entity, "Resolved dependencies")
+
+		if err = UpdateStatus(ctx, mc, entity); err != nil {
+			return fmt.Errorf("failed to update service status: %w", err)
+		}
 	}
 
 	destroyOpts := deptypes.DestroyOptions{

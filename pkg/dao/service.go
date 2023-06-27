@@ -13,6 +13,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -67,46 +69,129 @@ func ServiceCreates(
 	return rrs, nil
 }
 
+// ServiceUpdates returns a slice of wrapped service update builder.
+func ServiceUpdates(
+	mc model.ClientSet,
+	input ...*model.Service,
+) ([]*WrappedServiceUpdate, error) {
+	if len(input) == 0 {
+		return nil, errors.New("invalid input: empty list")
+	}
+
+	rrs := make([]*WrappedServiceUpdate, len(input))
+
+	for i, r := range input {
+		if r.ID == "" {
+			return nil, errors.New("invalid input: illegal predicates")
+		}
+		ps := []predicate.Service{
+			service.ID(r.ID),
+		}
+
+		c := mc.Services().UpdateOne(r).
+			SetTemplate(r.Template).
+			SetAnnotations(r.Annotations)
+
+		c.SetDescription(r.Description)
+
+		if r.Labels != nil {
+			c.SetLabels(r.Labels)
+		}
+
+		if r.Attributes != nil {
+			c.SetAttributes(r.Attributes)
+		}
+
+		r.Status.SetSummary(status.WalkService(&r.Status))
+
+		if r.Status.Changed() {
+			c.SetStatus(r.Status)
+		}
+
+		rrs[i] = &WrappedServiceUpdate{
+			ServiceUpdateOne: c,
+			entity:           input[i],
+			entityPredicates: ps,
+		}
+	}
+
+	return rrs, nil
+}
+
+// ServiceUpdate returns a wrapped service update builder.
 func ServiceUpdate(
 	mc model.ClientSet,
 	input *model.Service,
 ) (*WrappedServiceUpdate, error) {
-	if input == nil {
-		return nil, errors.New("invalid input: nil entity")
+	updates, err := ServiceUpdates(mc, input)
+	if err != nil {
+		return nil, err
 	}
 
-	if input.ID == "" {
-		return nil, errors.New("invalid input: illegal predicates")
-	}
-	ps := []predicate.Service{
-		service.ID(input.ID),
-	}
+	return updates[0], err
+}
 
-	c := mc.Services().UpdateOne(input).
-		SetTemplate(input.Template).
-		SetAnnotations(input.Annotations)
-
-	c.SetDescription(input.Description)
-
-	if input.Labels != nil {
-		c.SetLabels(input.Labels)
-	}
-
-	if input.Attributes != nil {
-		c.SetAttributes(input.Attributes)
-	}
-
-	input.Status.SetSummary(status.WalkService(&input.Status))
-
-	if input.Status.Changed() {
-		c.SetStatus(input.Status)
+func GetLatestRevisions(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	serviceIDs ...oid.ID,
+) ([]*model.ServiceRevision, error) {
+	// Get the latest revisions of given services by the following sql:
+	// SELECT service_revisions.*
+	// FROM service_revisions
+	// JOIN (
+	// 	 SELECT service_id, MAX(create_time) AS create_time FROM service_revisions GROUP BY service_id
+	// ) t
+	// ON service_revisions.service_id=t.service_id
+	// AND service_revisions.create_time=t.create_time
+	// WHERE service_revisions.service_id IN (...)
+	ids := make([]any, len(serviceIDs))
+	for i := range serviceIDs {
+		ids[i] = serviceIDs[i]
 	}
 
-	return &WrappedServiceUpdate{
-		ServiceUpdateOne: c,
-		entity:           input,
-		entityPredicates: ps,
-	}, nil
+	return modelClient.ServiceRevisions().Query().
+		Modify(func(s *sql.Selector) {
+			t := sql.Select(
+				servicerevision.FieldServiceID,
+				sql.As(sql.Max(servicerevision.FieldCreateTime), servicerevision.FieldCreateTime),
+			).
+				From(sql.Table(servicerevision.Table)).
+				GroupBy(servicerevision.FieldServiceID).
+				As("t")
+			s.Join(t).
+				OnP(
+					sql.And(
+						sql.ColumnsEQ(
+							s.C(servicerevision.FieldServiceID),
+							t.C(servicerevision.FieldServiceID),
+						),
+						sql.ColumnsEQ(
+							s.C(servicerevision.FieldCreateTime),
+							t.C(servicerevision.FieldCreateTime),
+						),
+					),
+				).
+				Where(
+					sql.In(s.C(servicerevision.FieldServiceID), ids...),
+				)
+		}).
+		WithService(func(sq *model.ServiceQuery) {
+			sq.Select(
+				service.FieldName,
+			)
+		}).
+		All(ctx)
+}
+
+func GetServiceNamesByIDs(ctx context.Context, modelClient model.ClientSet, serviceIDs ...oid.ID) ([]string, error) {
+	var names []string
+	err := modelClient.Services().Query().
+		Where(service.IDIn(serviceIDs...)).
+		Select(service.FieldName).
+		Scan(ctx, &names)
+
+	return names, err
 }
 
 // ServiceStatusUpdate updates the status of the given service.

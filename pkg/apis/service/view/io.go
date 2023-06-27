@@ -12,12 +12,12 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	serviceresourceview "github.com/seal-io/seal/pkg/apis/serviceresource/view"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
@@ -125,18 +125,22 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 
 	modelClient := input.(model.ClientSet)
 
-	count, err := modelClient.ServiceRelationships().Query().
-		Where(
-			servicerelationship.ServiceIDNEQ(r.ID),
-			servicerelationship.DependencyID(r.ID),
-		).
-		Count(ctx)
+	ids, err := dao.GetServiceDependantIDs(ctx, modelClient, r.ID)
 	if err != nil {
-		return runtime.Errorw(err, "failed to get service dependencies")
+		return runtime.Errorw(err, "failed to get service relationships")
 	}
 
-	if count > 0 {
-		return runtime.Error(http.StatusConflict, "service has dependencies")
+	if len(ids) > 0 {
+		names, err := dao.GetServiceNamesByIDs(ctx, modelClient, ids...)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get services")
+		}
+
+		return runtime.Errorf(
+			http.StatusConflict,
+			"service about to be deleted is the dependency of: %v",
+			strs.Join(", ", names...),
+		)
 	}
 
 	if r.Force == nil {
@@ -145,7 +149,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if *r.Force {
-		err := validateRevisionStatus(ctx, modelClient, r.ID, "delete")
+		err := validateRevisionsStatus(ctx, modelClient, "delete", r.ID)
 		if err != nil {
 			return err
 		}
@@ -398,6 +402,57 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 	return nil
 }
 
+type CollectionDeleteRequest struct {
+	IDs []oid.ID `json:"ids,omitempty"`
+
+	ProjectID oid.ID `query:"projectID"`
+	Force     bool   `query:"force,default=true"`
+}
+
+func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	if len(r.IDs) == 0 {
+		return errors.New("invalid input: empty")
+	}
+
+	for _, i := range r.IDs {
+		if !i.Valid(0) {
+			return errors.New("invalid id: blank")
+		}
+	}
+
+	modelClient := input.(model.ClientSet)
+
+	ids, err := dao.GetServiceDependantIDs(ctx, modelClient, r.IDs...)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get service dependencies")
+	}
+
+	dependantIDSet := sets.New[oid.ID](ids...)
+	toDeleteIDSet := sets.New[oid.ID](r.IDs...)
+
+	diffIDSet := dependantIDSet.Difference(toDeleteIDSet)
+	if diffIDSet.Len() > 0 {
+		names, err := dao.GetServiceNamesByIDs(ctx, modelClient, diffIDSet.UnsortedList()...)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get services")
+		}
+
+		return runtime.Errorf(
+			http.StatusConflict,
+			"service about to be deleted is the dependency of: %v",
+			strs.Join(", ", names...),
+		)
+	}
+
+	if r.Force {
+		if err = validateRevisionsStatus(ctx, modelClient, "delete", r.IDs...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Extensional APIs.
 
 type RouteUpgradeRequest struct {
@@ -451,7 +506,7 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 		return fmt.Errorf("invalid variables: %w", err)
 	}
 
-	err = validateRevisionStatus(ctx, modelClient, r.ID, "upgrade")
+	err = validateRevisionsStatus(ctx, modelClient, "upgrade", r.ID)
 	if err != nil {
 		return err
 	}
@@ -606,47 +661,53 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 	return nil
 }
 
-func validateRevisionStatus(
+func validateRevisionsStatus(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	id oid.ID,
 	action string,
+	serviceIDs ...oid.ID,
 ) error {
-	revision, err := modelClient.ServiceRevisions().Query().
-		Where(servicerevision.ServiceID(id)).
-		Order(model.Desc(servicerevision.FieldCreateTime)).
-		First(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return runtime.Errorw(err, "failed to get service revision")
+	revisions, err := dao.GetLatestRevisions(ctx, modelClient, serviceIDs...)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get service revisions")
 	}
 
-	if revision != nil {
-		switch revision.Status {
+	for _, r := range revisions {
+		switch r.Status {
 		case status.ServiceRevisionStatusSucceeded:
 		case status.ServiceRevisionStatusRunning:
-			return runtime.Error(http.StatusBadRequest,
-				"deployment is running, please wait for it to finish before deleting the service")
+			return runtime.Errorf(
+				http.StatusBadRequest,
+				"deployment of service %q is running, please wait for it to finish before deleting it",
+				r.Edges.Service.Name,
+			)
 		case status.ServiceRevisionStatusFailed:
 			if action != "delete" {
 				return nil
 			}
 
 			resourceExist, err := modelClient.ServiceResources().Query().
-				Where(serviceresource.ServiceID(id)).
+				Where(serviceresource.ServiceID(r.ServiceID)).
 				Exist(ctx)
 			if err != nil {
 				return err
 			}
 
 			if resourceExist {
-				return runtime.Error(
+				return runtime.Errorf(
 					http.StatusBadRequest,
-					"latest deployment is not succeeded,"+
+					"latest deployment of %q is not succeeded,"+
 						" please fix the service configuration or rollback before deleting it",
+					r.Edges.Service.Name,
 				)
 			}
 		default:
-			return runtime.Error(http.StatusBadRequest, "invalid deployment status")
+			return runtime.Errorf(
+				http.StatusBadRequest,
+				"invalid deployment status of service %q: %s",
+				r.Edges.Service.Name,
+				r.Status,
+			)
 		}
 	}
 

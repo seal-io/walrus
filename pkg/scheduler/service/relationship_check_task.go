@@ -25,8 +25,13 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-const summaryStatusProgressing = "Progressing"
+const (
+	summaryStatusProgressing = "Progressing"
+	summaryStatusDeleting    = "Deleting"
+)
 
+// RelationshipCheckTask checks services pending on relationships and
+// proceeds applying/destroying services when the check pass.
 type RelationshipCheckTask struct {
 	mu sync.Mutex
 
@@ -70,7 +75,11 @@ func (in *RelationshipCheckTask) Process(ctx context.Context, args ...interface{
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	return in.applyServices(ctx)
+	if err := in.applyServices(ctx); err != nil {
+		return err
+	}
+
+	return in.destroyServices(ctx)
 }
 
 // applyServices applies all services that are in the progressing state.
@@ -110,6 +119,45 @@ func (in *RelationshipCheckTask) applyServices(ctx context.Context) error {
 		// Deploy.
 		err = in.deployService(ctx, svc)
 		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
+	services, err := in.modelClient.Services().Query().
+		Where(
+			func(s *sql.Selector) {
+				s.Where(sqljson.ValueEQ(
+					service.FieldStatus,
+					summaryStatusDeleting,
+					sqljson.Path("summaryStatus"),
+				))
+			},
+		).
+		All(ctx)
+	if err != nil && !model.IsNotFound(err) {
+		return err
+	}
+
+	dp, err := in.getDeployer(ctx)
+	if err != nil {
+		return err
+	}
+
+	destroyOpts := pkgservice.Options{
+		TlsCertified: in.skipTLSVerify,
+	}
+
+	for _, svc := range services {
+		if status.ServiceStatusProgressing.IsTrue(svc) {
+			// Dependencies resolved and destruction in progress.
+			continue
+		}
+
+		if err = pkgservice.Destroy(ctx, in.modelClient, dp, svc, destroyOpts); err != nil {
 			return err
 		}
 	}
@@ -179,11 +227,7 @@ func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *mode
 		return err
 	}
 
-	dp, err := in.getDeployer(ctx, deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: in.modelClient,
-		KubeConfig:  in.kubeConfig,
-	})
+	dp, err := in.getDeployer(ctx)
 	if err != nil {
 		return err
 	}
@@ -230,18 +274,15 @@ func (in *RelationshipCheckTask) setServiceStatusFalse(
 	return nil
 }
 
-func (in *RelationshipCheckTask) getDeployer(
-	ctx context.Context,
-	opts deptypes.CreateOptions,
-) (deptypes.Deployer, error) {
+func (in *RelationshipCheckTask) getDeployer(ctx context.Context) (deptypes.Deployer, error) {
 	if in.deployer != nil {
 		return in.deployer, nil
 	}
 
 	createOpts := deptypes.CreateOptions{
 		Type:        deployertf.DeployerType,
-		ModelClient: opts.ModelClient,
-		KubeConfig:  opts.KubeConfig,
+		ModelClient: in.modelClient,
+		KubeConfig:  in.kubeConfig,
 	}
 
 	dp, err := deployer.Get(ctx, createOpts)
