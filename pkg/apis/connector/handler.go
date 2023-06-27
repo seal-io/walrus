@@ -8,6 +8,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/connector/view"
 	"github.com/seal-io/seal/pkg/apis/runtime"
+	"github.com/seal-io/seal/pkg/auths/session"
 	pkgconn "github.com/seal-io/seal/pkg/connectors"
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/dao"
@@ -183,6 +184,11 @@ func (h Handler) CollectionGet(
 	ctx *gin.Context,
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
+	s := session.MustGetSubject(ctx)
+
+	s.IncognitoOn()
+	defer s.IncognitoOff()
+
 	query := h.modelClient.Connectors().Query()
 
 	if req.ProjectID != "" {
