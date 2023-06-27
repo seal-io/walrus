@@ -31,7 +31,6 @@ import (
 	pkgservice "github.com/seal-io/seal/pkg/service"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
 	"github.com/seal-io/seal/utils/validation"
@@ -49,11 +48,6 @@ type Handler struct {
 	modelClient  model.ClientSet
 	kubeConfig   *rest.Config
 	tlsCertified bool
-}
-
-type createServiceOptions struct {
-	Tags    []string
-	Service *model.Service
 }
 
 func (h Handler) Kind() string {
@@ -596,111 +590,6 @@ func (h Handler) getServiceOutputs(
 	}
 
 	return o, nil
-}
-
-func (h Handler) updateServiceStatus(
-	ctx context.Context,
-	entity *model.Service,
-) error {
-	update, err := dao.ServiceStatusUpdate(h.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	err = update.Exec(ctx)
-	if err != nil && !model.IsNotFound(err) {
-		return err
-	}
-
-	return nil
-}
-
-// CreateClone creates a clone of the service.
-func (h Handler) CreateClone(
-	ctx *gin.Context,
-	req view.CreateCloneRequest,
-) (*model.ServiceOutput, error) {
-	service, err := h.modelClient.Services().Get(ctx, req.ID)
-	if err != nil {
-		return nil, err
-	}
-	service.Name = req.Name
-
-	if req.EnvironmentID != "" {
-		service.EnvironmentID = req.EnvironmentID
-	}
-
-	return h.createService(ctx, createServiceOptions{
-		Tags:    req.RemarkTags,
-		Service: service,
-	})
-}
-
-func (h Handler) createService(
-	ctx context.Context,
-	opts createServiceOptions,
-) (*model.ServiceOutput, error) {
-	logger := log.WithName("api").WithName("service")
-
-	// Get deployer.
-	createOpts := deptypes.CreateOptions{
-		Type:        deployertf.DeployerType,
-		ModelClient: h.modelClient,
-		KubeConfig:  h.kubeConfig,
-	}
-
-	dp, err := deployer.Get(ctx, createOpts)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create service, mark status to deploying.
-	creates, err := dao.ServiceCreates(h.modelClient, opts.Service)
-	if err != nil {
-		return nil, err
-	}
-
-	entity, err := creates[0].Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err == nil {
-			return
-		}
-		// Update a failure status.
-		status.ServiceStatusDeployed.False(entity, err.Error())
-
-		uerr := h.updateServiceStatus(ctx, entity)
-		if uerr != nil {
-			logger.Errorf("error updating status of service %s: %v",
-				entity.ID, uerr)
-		}
-	}()
-
-	// Apply service.
-	applyOpts := deptypes.ApplyOptions{
-		SkipTLSVerify: !h.tlsCertified,
-		Tags:          opts.Tags,
-	}
-
-	err = dp.Apply(ctx, entity, applyOpts)
-	if err != nil {
-		// NB(thxCode): a better approach is to use transaction,
-		// however, building the service deployment process is a time-consuming task,
-		// to prevent long-time transaction, we use a deletion to achieve this.
-		// Usually, the probability of this delete operation failing is very low.
-		derr := h.modelClient.Services().DeleteOne(entity).
-			Exec(ctx)
-		if derr != nil {
-			logger.Errorf("error deleting: %v", derr)
-		}
-
-		return nil, err
-	}
-
-	return model.ExposeService(entity), nil
 }
 
 func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.GetRequest) error {
