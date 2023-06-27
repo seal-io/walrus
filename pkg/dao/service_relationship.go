@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
@@ -63,6 +64,7 @@ func serviceRelationshipGetCompletePath(d *model.ServiceRelationship) string {
 	return strs.Join("/", ids...)
 }
 
+// ServiceRelationshipGetDependencyNames gets dependency service names of the given service.
 func ServiceRelationshipGetDependencyNames(entity *model.Service) []string {
 	names := sets.NewString()
 
@@ -74,6 +76,48 @@ func ServiceRelationshipGetDependencyNames(entity *model.Service) []string {
 	}
 
 	return names.List()
+}
+
+// GetServiceDependantNames gets names of services that depends on the given service.
+func GetServiceDependantNames(
+	ctx context.Context,
+	modelClient model.ClientSet,
+	entity *model.Service,
+) ([]string, error) {
+	var names []string
+
+	err := modelClient.ServiceRelationships().Query().
+		Where(
+			servicerelationship.ServiceIDNEQ(entity.ID),
+			servicerelationship.DependencyID(entity.ID),
+		).
+		Modify(func(s *sql.Selector) {
+			t := sql.Table(service.Table).As("s")
+			s.LeftJoin(t).
+				On(t.C(service.FieldID), servicerelationship.FieldServiceID).
+				Select(service.FieldName)
+		}).
+		Scan(ctx, &names)
+	if err != nil {
+		return nil, runtime.Errorw(err, "failed to get service relationships")
+	}
+
+	return names, nil
+}
+
+// GetServiceDependantIDs gets IDs of services that depend on the given services.
+func GetServiceDependantIDs(ctx context.Context, mc model.ClientSet, serviceIDs ...oid.ID) ([]oid.ID, error) {
+	var ids []oid.ID
+
+	err := mc.ServiceRelationships().Query().
+		Where(
+			servicerelationship.ServiceIDNotIn(serviceIDs...),
+			servicerelationship.DependencyIDIn(serviceIDs...),
+		).
+		Select(servicerelationship.FieldServiceID).
+		Scan(ctx, &ids)
+
+	return ids, err
 }
 
 // serviceRelationshipGetDependencies returns the new dependencies of the given service.

@@ -90,7 +90,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 	}
 
 	// Mark status to deleting.
-	status.ServiceStatusDeleted.Reset(entity, "Deleting")
+	status.ServiceStatusDeleted.Reset(entity, "")
 
 	update, err := dao.ServiceUpdate(h.modelClient, entity)
 	if err != nil {
@@ -336,6 +336,64 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 			return err
 		}
 	}
+}
+
+func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		if !req.Force {
+			_, err = tx.Services().Delete().
+				Where(service.IDIn(req.IDs...)).
+				Exec(ctx)
+
+			return err
+		}
+
+		services, err := tx.Services().Query().
+			Where(service.IDIn(req.IDs...)).
+			All(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, s := range services {
+			// Mark status to deleting.
+			status.ServiceStatusDeleted.Reset(s, "")
+		}
+
+		updates, err := dao.ServiceUpdates(tx, services...)
+		if err != nil {
+			return err
+		}
+
+		deployerOpts := deptypes.CreateOptions{
+			Type:        deployertf.DeployerType,
+			ModelClient: tx,
+			KubeConfig:  h.kubeConfig,
+		}
+
+		dp, err := deployer.Get(ctx, deployerOpts)
+		if err != nil {
+			return err
+		}
+
+		destroyOpts := pkgservice.Options{
+			TlsCertified: h.tlsCertified,
+		}
+
+		for _, u := range updates {
+			if err = u.Exec(ctx); err != nil {
+				return err
+			}
+		}
+
+		for _, s := range services {
+			if err = pkgservice.Destroy(ctx, tx, dp, s, destroyOpts); err != nil {
+				return err
+			}
+		}
+
+		return
+	})
 }
 
 // Extensional APIs.
