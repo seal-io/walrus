@@ -9,6 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
@@ -97,6 +98,15 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 	}
 
+	connectorIDs := make([]oid.ID, len(r.Connectors))
+	for i, c := range r.Connectors {
+		connectorIDs[i] = c.Connector.ID
+	}
+
+	if err = validateConnectors(ctx, modelClient, r.Project.ID, connectorIDs); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -108,9 +118,52 @@ type UpdateRequest struct {
 	model.EnvironmentUpdateInput `uri:",inline" json:",inline"`
 }
 
-func (r *UpdateRequest) Validate() error {
+func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
+	}
+
+	modelClient := input.(model.ClientSet)
+
+	env, err := modelClient.Environments().Get(ctx, r.ID)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get environment")
+	}
+
+	connectorIDs := make([]oid.ID, len(r.Connectors))
+	for i, c := range r.Connectors {
+		connectorIDs[i] = c.Connector.ID
+	}
+
+	if err = validateConnectors(ctx, modelClient, env.ProjectID, connectorIDs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateConnectors checks if given connector IDs are valid within the same project or globally.
+func validateConnectors(ctx context.Context, client model.ClientSet, projectID oid.ID, connectorIDs []oid.ID) error {
+	if !projectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	validCount, err := client.Connectors().Query().
+		Where(
+			connector.And(
+				connector.IDIn(connectorIDs...),
+				connector.Or(
+					connector.ProjectIDIsNil(),
+					connector.ProjectIDEQ(projectID),
+				),
+			),
+		).Count(ctx)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get connectors")
+	}
+
+	if validCount != len(connectorIDs) {
+		return fmt.Errorf("invalid connector id")
 	}
 
 	return nil
