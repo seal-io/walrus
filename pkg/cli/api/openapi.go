@@ -132,14 +132,9 @@ func toOperation(
 	md := strings.ToUpper(method)
 	mediaType, bodyParams := toBodyParams(op.RequestBody, comps)
 
-	var (
-		group = ""
-		tag   = ""
-	)
-
+	tag := ""
 	if len(op.Tags) > 0 {
 		tag = op.Tags[0]
-		group = strings.ToLower(strs.Singularize(tag))
 	}
 
 	dep := ""
@@ -154,7 +149,7 @@ func toOperation(
 
 	return Operation{
 		Name:          name,
-		Group:         group,
+		Group:         tag,
 		Short:         op.Summary,
 		Long:          op.Description,
 		Method:        md,

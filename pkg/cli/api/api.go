@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -27,7 +28,7 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 		root.Long = api.Long
 	}
 
-	group := make(map[string]*cobra.Command)
+	set := make(map[string]*cobra.Command)
 
 	for _, op := range api.Operations {
 		// Generate sub command.
@@ -40,29 +41,22 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 			continue
 		}
 
-		// Group isn't empty, Add sub command to group.
-		_, ok := group[op.Group]
+		// Group isn't empty, Add sub command to command set.
+		cmdSet := strings.ToLower(strs.Singularize(op.Group))
+		_, ok := set[cmdSet]
+
 		if !ok {
-			// Generate group command.
-			group[op.Group] = &cobra.Command{
-				GroupID: op.Group,
-				Use:     op.Group,
-				Short:   fmt.Sprintf("Command set for %s management", op.Group),
+			// Generate command set.
+			set[cmdSet] = &cobra.Command{
+				Use:   cmdSet,
+				Short: fmt.Sprintf("Manage %s", strs.Decamelize(op.Group, true)),
 			}
+
+			// Add command set to root.
+			root.AddCommand(set[cmdSet])
 		}
 
-		group[op.Group].AddCommand(cmd)
-	}
-
-	for i := range group {
-		// Add group command to root.
-		root.AddCommand(group[i])
-
-		// Add group to root.
-		gp := &cobra.Group{
-			ID:    group[i].GroupID,
-			Title: fmt.Sprintf("%s Commands:", strs.Decamelize(group[i].GroupID, false)),
-		}
-		root.AddGroup(gp)
+		// Add sub command to command set.
+		set[cmdSet].AddCommand(cmd)
 	}
 }
