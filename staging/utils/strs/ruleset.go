@@ -1,11 +1,14 @@
 package strs
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
 	"github.com/akerl/go-indefinite-article/indefinite"
 	"github.com/go-openapi/inflect"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var globalRuleset = inflect.NewDefaultRuleset()
@@ -101,4 +104,17 @@ func Capitalize(word string) string {
 // Ordinalize returns the ordination case, "1031" -> "1031st".
 func Ordinalize(word string) string {
 	return globalRuleset.Ordinalize(word)
+}
+
+// Title return the title case, "some-text" -> "Some Text".
+func Title(word string) string {
+	w := strings.ReplaceAll(word, "-", " ")
+	w = strings.ReplaceAll(w, "_", " ")
+
+	return cases.Title(language.English).String(w)
+}
+
+// Question return the question case, "some-text" -> "Some Text: ".
+func Question(word string) string {
+	return fmt.Sprintf("%s: ", Title(word))
 }

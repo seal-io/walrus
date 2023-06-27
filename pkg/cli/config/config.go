@@ -37,7 +37,7 @@ type Config struct {
 // DoRequest send request to server.
 func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 	if req.URL.Host == "" {
-		ep, err := url.Parse(c.Endpoint)
+		ep, err := url.Parse(c.Server)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func (c *Config) DoRequest(req *http.Request) (*http.Response, error) {
 
 // ValidateAndSetup validate and setup the context.
 func (c *Config) ValidateAndSetup() error {
-	if c.Endpoint == "" {
+	if c.Server == "" {
 		return errors.New("endpoint is required")
 	}
 
@@ -144,7 +144,7 @@ type resourceItem struct {
 // setProjectID set project id base on server context and project name.
 func (c *Config) setProjectID() error {
 	if c.ProjectName == "" {
-		c.ProjectName = "default"
+		return nil
 	}
 
 	projectQuery := map[string]string{
