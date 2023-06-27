@@ -53,7 +53,9 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	cmd.SetHelpTemplate(helpTemplate)
-	cmd.AddGroup(NewCmdGroups()...)
+	cmd.SetHelpCommand(&cobra.Command{
+		Hidden: true,
+	})
 	cmd.AddCommand(
 		NewConfigCmd(),
 	)
@@ -132,9 +134,8 @@ func NewConfigCmd() *cobra.Command {
 
 	// Command config.
 	configCmd := &cobra.Command{
-		GroupID: "config",
-		Use:     "config",
-		Short:   "Command set for manage CLI configuration",
+		Use:   "config",
+		Short: "Manage CLI configuration",
 	}
 	configCmd.AddCommand(
 		setupCmd,
@@ -145,20 +146,13 @@ func NewConfigCmd() *cobra.Command {
 	return configCmd
 }
 
-// NewCmdGroups generate command group.
-func NewCmdGroups() []*cobra.Group {
-	configGroup := &cobra.Group{ID: "config", Title: "config commands:"}
-
-	return []*cobra.Group{
-		configGroup,
-	}
-}
-
 // globalFlags define global flags.
 func globalFlags() *pflag.FlagSet {
 	gf := &pflag.FlagSet{}
 	gf.StringVarP(&globalConfig.Format, "output", "o", "table", "Output format [table, json, yaml]")
 	gf.BoolVarP(&globalConfig.Debug, "debug", "d", false, "Enable debug log")
+	gf.BoolP("help", "h", false, "Help for this command")
+	gf.BoolP("version", "v", false, "Version for CLI")
 
 	return gf
 }
@@ -221,7 +215,7 @@ func currentContext() {
 
 		env := serverConfig.EnvironmentName
 		if env != "" {
-			fmt.Println("Current Environment:" + env)
+			fmt.Println("Current Environment: " + env)
 		}
 	}
 }
@@ -277,8 +271,8 @@ func load(sc *config.Config, root *cobra.Command, skipCache bool) error {
 }
 
 var configSetupExample = `
-  # Setup seal cli
-  $ seal config setup --server [Seal_Server_URL] --project-name [Project_Name] --token [Token]
+  # Setup Seal CLI configuration
+  $ seal config setup
 `
 
 var helpTemplate = `{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
