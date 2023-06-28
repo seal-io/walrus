@@ -106,7 +106,7 @@ var (
 	// OpenAiApiToken keeps the openAI API token for generating module completions.
 	// TODO protect the stored token.
 	OpenAiApiToken = newValue(
-		"openAiApiToken",
+		"OpenAiApiToken",
 		editable,
 		nil,
 		nil)
