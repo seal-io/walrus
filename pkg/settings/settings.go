@@ -66,9 +66,9 @@ var (
 		initializeFromJSON(casdoor.ApplicationCredential{}),
 		modifyWith(once),
 	)
-	// PrivilegeApiToken keeps the token for accessing server APIs.
-	PrivilegeApiToken = newValue(
-		"PrivilegeApiToken",
+	// CasdoorApiToken keeps the token for accessing Casdoor server.
+	CasdoorApiToken = newValue(
+		"CasdoorApiToken",
 		private,
 		nil,
 		nil)
