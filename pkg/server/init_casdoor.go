@@ -84,7 +84,7 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 			return err
 		}
 
-		if _, err = settings.PrivilegeApiToken.Set(ctx, tx, token.AccessToken); err != nil {
+		if _, err = settings.CasdoorApiToken.Set(ctx, tx, token.AccessToken); err != nil {
 			return err
 		}
 
