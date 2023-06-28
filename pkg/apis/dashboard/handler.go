@@ -91,7 +91,7 @@ func (h Handler) CollectionRouteBasicInformation(
 		return nil, err
 	}
 
-	templateNum, err := h.modelClient.Templates().Query().Count(ctx)
+	projectNum, err := h.modelClient.Projects().Query().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	}
 
 	return &view.BasicInfoResponse{
-		Template:    templateNum,
+		Project:     projectNum,
 		Service:     serviceNum,
 		Resource:    serviceResourceNum,
 		Revision:    serviceRevisionNum,
