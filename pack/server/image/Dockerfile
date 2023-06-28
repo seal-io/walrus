@@ -167,4 +167,5 @@ EXPOSE 80 443
 VOLUME /var/run/seal
 COPY /image/ /
 COPY /build/server-${TARGETOS}-${TARGETARCH} /usr/bin/seal
+ENV _RUNNING_INSIDE_CONTAINER_="true"
 CMD ["seal", "--log-debug", "--log-verbosity=4"]

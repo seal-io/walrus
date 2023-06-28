@@ -185,10 +185,12 @@ func (a Account) UpdateInfo(c *gin.Context) error {
 		return runtime.Error(http.StatusBadRequest, err)
 	}
 
-	// Update setting to indicate the initialized password has been changed.
-	if settings.FirstLogin.ShouldValueBool(c, a.mc) {
-		_, err = settings.FirstLogin.Set(c, a.mc, "false")
-		return err
+	if s.IsAdmin() {
+		// Nullify the bootstrap password gain source.
+		if settings.BootPwdGainSource.ShouldValue(c, a.mc) != "Invalid" {
+			_, err = settings.BootPwdGainSource.Set(c, a.mc, "Invalid")
+			return err
+		}
 	}
 
 	return nil
