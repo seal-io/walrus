@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -95,6 +96,25 @@ func (r *Server) initCasdoor(ctx context.Context, opts initOptions) error {
 	}
 
 	if r.BootstrapPassword == "" {
+		var fl string
+
+		switch {
+		case os.Getenv("KUBERNETES_SERVICE_HOST") != "":
+			// Running inside a Kubernetes Pod.
+			fl = "Kubernetes"
+		case os.Getenv("_RUNNING_INSIDE_CONTAINER_") != "":
+			// Running inside a container.
+			fl = "Docker"
+		default:
+			// Running as a process.
+			fl = "Process"
+		}
+
+		_, err = settings.BootPwdGainSource.Set(ctx, opts.ModelClient, fl)
+		if err != nil {
+			return err
+		}
+
 		log.Infof("!!! Bootstrap Admin Password: %s !!!", adminPassword)
 	}
 

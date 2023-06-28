@@ -42,7 +42,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions:   types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields("settings"),
-					ObjectIDs: types.RolePolicyFields("FirstLogin"),
+					ObjectIDs: types.RolePolicyFields("BootPwdGainSource"),
 				},
 			},
 			Session: true,

@@ -53,11 +53,11 @@ var (
 
 // the built-in settings for server.
 var (
-	// FirstLogin indicates whether it's the first time to login.
-	FirstLogin = newValue(
-		"FirstLogin",
+	// BootPwdGainSource indicates the bootstrap password provision mode.
+	BootPwdGainSource = newValue(
+		"BootPwdGainSource",
 		hidden,
-		initializeFromEnv("true"),
+		initializeFrom("Specified"),
 		nil)
 	// CasdoorCred keeps the AK/SK for accessing Casdoor server.
 	CasdoorCred = newValue(
