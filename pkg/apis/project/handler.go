@@ -62,7 +62,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 	s := session.MustGetSubject(ctx)
-	if !s.Enforce(req.ID, "projects", http.MethodDelete, string(req.ID), "") {
+	if !s.Enforce(req.ID, "", "projects", http.MethodDelete, string(req.ID), "") {
 		return runtime.Errorc(http.StatusForbidden)
 	}
 
@@ -71,7 +71,7 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	s := session.MustGetSubject(ctx)
-	if !s.Enforce(req.ID, "projects", http.MethodPut, string(req.ID), "") {
+	if !s.Enforce(req.ID, "", "projects", http.MethodPut, string(req.ID), "") {
 		return runtime.Errorc(http.StatusForbidden)
 	}
 
@@ -87,7 +87,7 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
 	s := session.MustGetSubject(ctx)
-	if !s.Enforce(req.ID, "projects", http.MethodGet, string(req.ID), "") {
+	if !s.Enforce(req.ID, "", "projects", http.MethodGet, string(req.ID), "") {
 		return nil, runtime.Errorc(http.StatusForbidden)
 	}
 
@@ -104,7 +104,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	s := session.MustGetSubject(ctx)
 	for i := range req {
-		if !s.Enforce(req[i].ID, "projects", http.MethodDelete, string(req[i].ID), "") {
+		if !s.Enforce(req[i].ID, "", "projects", http.MethodDelete, string(req[i].ID), "") {
 			return runtime.Errorc(http.StatusForbidden)
 		}
 	}

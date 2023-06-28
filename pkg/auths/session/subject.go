@@ -43,11 +43,16 @@ type ProjectRole struct {
 	Roles []Role `json:"roles"`
 }
 
-func (r ProjectRole) enforce(pid oid.ID, res, act, rid, path string) bool {
-	if r.Project.ID != pid {
+func (r ProjectRole) match(pid oid.ID, pName string) bool {
+	if pid != "" && pName != "" {
+		// Expect either one is set.
 		return false
 	}
 
+	return r.Project.ID == pid || r.Project.Name == pName
+}
+
+func (r ProjectRole) enforce(res, act, rid, path string) bool {
 	for i := range r.Roles {
 		if r.Roles[i].ID == types.ProjectRoleOwner {
 			return true
@@ -95,16 +100,17 @@ func (s Subject) IsAdmin() bool {
 }
 
 // Enforce returns true if the given conditions if allowing.
-func (s Subject) Enforce(pid oid.ID, res, act, rid, path string) bool {
+func (s Subject) Enforce(pid oid.ID, pName, res, act, rid, path string) bool {
 	for i := range s.Roles {
 		if s.Roles[i].ID == types.SystemRoleAdmin {
 			return true
 		}
 	}
 
-	if pid != "" {
+	if pid != "" || pName != "" {
 		for i := range s.ProjectRoles {
-			if s.ProjectRoles[i].enforce(pid, res, act, rid, path) {
+			if s.ProjectRoles[i].match(pid, pName) &&
+				s.ProjectRoles[i].enforce(res, act, rid, path) {
 				return true
 			}
 		}

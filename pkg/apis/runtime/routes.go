@@ -389,12 +389,13 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 
 			var (
 				pid   = oid.ID(c.Query("projectID"))
+				pName = c.Query("projectName")
 				act   = c.Request.Method
 				rid   = c.Param("id")
 				fpath = c.FullPath()
 			)
 
-			if !s.Enforce(pid, resource, act, rid, fpath) {
+			if !s.Enforce(pid, pName, resource, act, rid, fpath) {
 				if s.IsAnonymous() {
 					c.AbortWithStatus(http.StatusUnauthorized)
 				} else {
