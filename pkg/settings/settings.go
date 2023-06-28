@@ -36,7 +36,11 @@ var (
 	)
 	// DeployerNoProxy indicates the host exclusion list when proxying outbound traffic used by deployer,
 	// it's a comma-separated string.
-	DeployerNoProxy = newValue("DeployerNoProxy", editable, initializeFromSpecifiedEnv("NO_PROXY", ""), nil)
+	DeployerNoProxy = newValue(
+		"DeployerNoProxy",
+		editable,
+		initializeFromSpecifiedEnv("NO_PROXY", ""),
+		nil)
 	// DeployerImage indicates the image used by deployer.
 	DeployerImage = newValue(
 		"DeployerImage",
@@ -50,7 +54,11 @@ var (
 // the built-in settings for server.
 var (
 	// FirstLogin indicates whether it's the first time to login.
-	FirstLogin = newValue("FirstLogin", hidden, initializeFromEnv("true"), nil)
+	FirstLogin = newValue(
+		"FirstLogin",
+		hidden,
+		initializeFromEnv("true"),
+		nil)
 	// CasdoorCred keeps the AK/SK for accessing Casdoor server.
 	CasdoorCred = newValue(
 		"CasdoorCred",
@@ -59,9 +67,17 @@ var (
 		modifyWith(once),
 	)
 	// PrivilegeApiToken keeps the token for accessing server APIs.
-	PrivilegeApiToken = newValue("PrivilegeApiToken", private, nil, nil)
+	PrivilegeApiToken = newValue(
+		"PrivilegeApiToken",
+		private,
+		nil,
+		nil)
 	// ServeUrl keeps the URL for accessing server.
-	ServeUrl = newValue("ServeUrl", editable, nil, modifyWith(httpUrl))
+	ServeUrl = newValue(
+		"ServeUrl",
+		editable,
+		nil,
+		modifyWith(httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
 	ServeUiIndex = newValue(
 		"ServeUiIndex",
@@ -70,15 +86,30 @@ var (
 		modifyWith(anyUrl),
 	)
 	// ServeTemplateRefer keeps the branch name of github.com/seal-io/modules repo for serving templates.
-	ServeTemplateRefer = newValue("ServeTemplateRefer", private, initializeFromEnv("main"), nil)
+	ServeTemplateRefer = newValue(
+		"ServeTemplateRefer",
+		private,
+		initializeFromEnv("main"),
+		nil)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
-	DataEncryptionSentry = newValue("DataEncryptionSentry", private, initializeFrom(""), modifyWith(notBlank))
+	DataEncryptionSentry = newValue(
+		"DataEncryptionSentry",
+		private,
+		initializeFrom(""),
+		modifyWith(notBlank))
 	// AuthsEncryptionAesGcmKey keeps the key for encrypting public token value with AES-GCM algorithm.
-	AuthsEncryptionAesGcmKey = newValue("AuthsEncryptionAesGcmKey", private, initializeFrom(strs.Hex(32)),
+	AuthsEncryptionAesGcmKey = newValue(
+		"AuthsEncryptionAesGcmKey",
+		private,
+		initializeFrom(strs.Hex(32)),
 		modifyWith(never))
 	// OpenAiApiToken keeps the openAI API token for generating module completions.
 	// TODO protect the stored token.
-	OpenAiApiToken = newValue("openAiApiToken", editable, nil, nil)
+	OpenAiApiToken = newValue(
+		"openAiApiToken",
+		editable,
+		nil,
+		nil)
 )
 
 // the built-in settings for server cron jobs.
