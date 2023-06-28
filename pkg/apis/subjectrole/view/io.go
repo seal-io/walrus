@@ -75,16 +75,14 @@ type CollectionGetRequest struct {
 	runtime.RequestPagination                                   `query:",inline"`
 	runtime.RequestSorting[subjectrolerelationship.OrderOption] `query:",inline"`
 
-	ProjectIDs []oid.ID `query:"projectID,omitempty"`
+	ProjectID oid.ID `query:"projectID,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {
-	// Query global scope subject roles if the given `ProjectIDs` is empty,
+	// Query global scope subject roles if the given `ProjectID` is empty,
 	// otherwise, query project scope subject roles.
-	for i := range r.ProjectIDs {
-		if !r.ProjectIDs[i].Valid(0) {
-			return errors.New("invalid project id: blank")
-		}
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id")
 	}
 
 	return nil

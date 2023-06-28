@@ -99,27 +99,27 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Secret, secret.OrderOption] `query:",inline"`
 
-	ProjectIDs   []oid.ID `query:"projectID,omitempty"`
-	ProjectNames []string `query:"projectName,omitempty"`
-	WithGlobal   bool     `query:"withGlobal,omitempty"`
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
+	WithGlobal  bool   `query:"withGlobal,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	// Query global scope secrets if the given `ProjectIDs` is empty,
-	// otherwise, query project scope secrets.
-	for i := range r.ProjectIDs {
-		if !r.ProjectIDs[i].Valid(0) {
-			return errors.New("invalid project id: blank")
-		}
+	var (
+		err         error
+		modelClient = input.(model.ClientSet)
+	)
+
+	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id")
 	}
 
-	modelClient := input.(model.ClientSet)
-	if len(r.ProjectNames) != 0 {
-		ids, err := modelClient.Projects().Query().
-			Where(project.NameIn(r.ProjectNames...)).
-			IDs(ctx)
-		if err == nil {
-			r.ProjectIDs = append(r.ProjectIDs, ids...)
+	if r.ProjectName != "" {
+		r.ProjectID, err = modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "fail to get project by name")
 		}
 	}
 
