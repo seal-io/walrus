@@ -101,15 +101,15 @@ func (h Handler) CollectionGet(
 
 	query := h.modelClient.Secrets().Query()
 
-	if len(req.ProjectIDs) != 0 {
+	if req.ProjectID != "" {
 		if req.WithGlobal {
 			// With global scope.
 			query.Where(secret.Or(
 				secret.ProjectIDIsNil(),
-				secret.ProjectIDIn(req.ProjectIDs...)))
+				secret.ProjectID(req.ProjectID)))
 		} else {
 			// Project scope only.
-			query.Where(secret.ProjectIDIn(req.ProjectIDs...))
+			query.Where(secret.ProjectID(req.ProjectID))
 		}
 	} else {
 		// Global scope.

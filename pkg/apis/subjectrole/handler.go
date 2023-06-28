@@ -70,9 +70,9 @@ func (h Handler) CollectionGet(
 	req view.CollectionGetRequest,
 ) (view.CollectionGetResponse, int, error) {
 	query := h.modelClient.SubjectRoleRelationships().Query()
-	if len(req.ProjectIDs) != 0 {
+	if req.ProjectID != "" {
 		// Project scope.
-		query.Where(subjectrolerelationship.ProjectIDIn(req.ProjectIDs...))
+		query.Where(subjectrolerelationship.ProjectIDIn(req.ProjectID))
 	} else {
 		// Global scope.
 		query.Where(subjectrolerelationship.ProjectIDIsNil())
