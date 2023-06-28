@@ -23,8 +23,8 @@ type RevisionStatusStats struct {
 }
 
 type BasicInformation struct {
-	// Template number.
-	Template int `json:"template"`
+	// Project number.
+	Project int `json:"project"`
 	// Service number.
 	Service int `json:"service"`
 	// Service resource number.
