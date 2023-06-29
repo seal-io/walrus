@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/seal-io/seal/pkg/auths"
@@ -17,7 +18,7 @@ import (
 )
 
 func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) {
-	err = configureDataEncryption(ctx, opts.ModelClient, r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey)
+	err = validateDataEncryption(ctx, opts.ModelClient)
 	if err != nil {
 		return
 	}
@@ -30,35 +31,15 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) 
 	return
 }
 
-// configureDataEncryption validates settings.DataEncryptionSentry with data encryption key,
-// and enables encrypting data.
-func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string, key []byte) error {
-	var enc cryptox.Encryptor
-
-	if key != nil {
-		var err error
-
-		switch alg {
-		default:
-			err = fmt.Errorf("unknown data encryptor algorithm: %s", alg)
-		case "aesgcm":
-			enc, err = cryptox.AesGcm(key)
-		}
-
-		if err != nil {
-			return fmt.Errorf("error gaining data encryptor: %w", err)
-		}
-
-		crypto.EncryptorConfig.Set(enc)
-	} else {
-		enc = crypto.EncryptorConfig.Get()
-	}
-
+// validateDataEncryption validates settings.DataEncryptionSentry with data encryption key.
+func validateDataEncryption(ctx context.Context, mc model.ClientSet) error {
 	pt := "YOU CAN SEE ME"
 
-	return settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
+	err := settings.DataEncryptionSentry.Cas(ctx, mc, func(ctb64 string) (string, error) {
+		enc := crypto.EncryptorConfig.Get()
+
+		// First time launching, just encrypt.
 		if ctb64 == "" {
-			// First time launching, just encrypt.
 			ctbs, err := enc.Encrypt(strs.ToBytes(&pt), nil)
 			if err != nil {
 				return "", err
@@ -66,16 +47,27 @@ func configureDataEncryption(ctx context.Context, mc model.ClientSet, alg string
 
 			return strs.EncodeBase64(strs.FromBytes(&ctbs)), nil
 		}
-		// Decrypt and compare.
+
+		// Otherwise, decrypt and compare the sentry.
 		ct, _ := strs.DecodeBase64(ctb64)
 
 		ptbs, _ := enc.Decrypt(strs.ToBytes(&ct), nil)
 		if !bytes.Equal(strs.ToBytes(&pt), ptbs) {
-			return "", errors.New("inconsistent sentry")
+			return "", errors.New("inconsistent data encryption sentry")
 		}
 
 		return ctb64, nil
 	})
+	if err != nil {
+		// Return clearer message if encryption processing failed.
+		if strings.Contains(err.Error(), "cipher:") {
+			return errors.New("inconsistent data encryption key")
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // configureAuths configures the auths.

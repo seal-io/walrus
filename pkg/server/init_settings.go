@@ -21,6 +21,7 @@ func (r *Server) initSettings(ctx context.Context, opts initOptions) error {
 			Update(func(upsert *model.SettingUpsert) {
 				upsert.UpdateHidden()
 				upsert.UpdateEditable()
+				upsert.UpdateSensitive()
 				upsert.UpdatePrivate()
 			}).
 			Exec(ctx)

@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/cron"
 )
 
@@ -35,7 +36,7 @@ func modifyWith(validates ...modifyValidator) modifier {
 		}
 
 		err := client.Settings().Update().
-			SetValue(newValue).
+			SetValue(crypto.String(newValue)).
 			Where(setting.Name(name)).
 			Exec(ctx)
 		if err != nil {

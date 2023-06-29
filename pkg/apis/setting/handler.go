@@ -1,8 +1,11 @@
 package setting
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
+	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/setting/view"
 	settingbus "github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -34,7 +37,12 @@ func (h Handler) Validating() any {
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	// Bypass the validations or cascade works to settings definition.
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		changed, err := settings.Index(req.Name).Set(ctx, tx, *req.Value)
+		s := settings.Index(req.Name)
+		if s == nil {
+			return runtime.Errorc(http.StatusNotFound)
+		}
+
+		changed, err := s.Set(ctx, tx, req.Value)
 		if err != nil {
 			return err
 		}
@@ -46,13 +54,13 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		return settingbus.Notify(ctx, tx, model.Settings{
 			&model.Setting{
 				Name:  req.Name,
-				Value: *req.Value,
+				Value: req.Value,
 			},
 		})
 	})
 }
 
-func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {
+func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, error) {
 	input := []predicate.Setting{
 		setting.Private(false),
 	}
@@ -65,16 +73,12 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 	entity, err := h.modelClient.Settings().Query().
 		Where(input...).
-		Select(setting.WithoutFields(
-			setting.FieldCreateTime, setting.FieldUpdateTime, setting.FieldPrivate)...).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	sanitize(model.Settings{entity})
-
-	return model.ExposeSetting(entity), nil
+	return expose(entity)[0], nil
 }
 
 // Batch APIs.
@@ -85,7 +89,12 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 		list := make(model.Settings, 0, len(req))
 
 		for i := range req {
-			changed, err := settings.Index(req[i].Name).Set(ctx, tx, *req[i].Value)
+			s := settings.Index(req[i].Name)
+			if s == nil {
+				return runtime.Errorc(http.StatusNotFound)
+			}
+
+			changed, err := s.Set(ctx, tx, req[i].Value)
 			if err != nil {
 				return err
 			}
@@ -96,7 +105,7 @@ func (h Handler) CollectionUpdate(ctx *gin.Context, req view.CollectionUpdateReq
 
 			list = append(list, &model.Setting{
 				Name:  req[i].Name,
-				Value: *req[i].Value,
+				Value: req[i].Value,
 			})
 		}
 
@@ -159,18 +168,27 @@ func (h Handler) CollectionGet(
 		return nil, 0, err
 	}
 
-	sanitize(entities)
-
-	return model.ExposeSettings(entities), cnt, nil
+	return expose(entities...), cnt, nil
 }
 
-// FIXME This is a temporary way to protect openai API token. Refactor when setting value encryption is ready.
-func sanitize(ss model.Settings) {
+func expose(ss ...*model.Setting) view.CollectionGetResponse {
+	rs := make([]*view.GetResponse, 0, len(ss))
+
 	for _, s := range ss {
-		if s.Name == settings.OpenAiApiToken.Name() {
-			s.Value = ""
+		r := view.GetResponse{
+			SettingOutput: model.ExposeSetting(s),
+			Configured:    s.Value != "",
 		}
+
+		// Erases the value of sensitive setting.
+		if s.Sensitive != nil && *s.Sensitive {
+			r.Value = ""
+		}
+
+		rs = append(rs, &r)
 	}
+
+	return rs
 }
 
 // Extensional APIs.
