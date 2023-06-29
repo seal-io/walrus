@@ -14570,9 +14570,10 @@ type SettingMutation struct {
 	createTime    *time.Time
 	updateTime    *time.Time
 	name          *string
-	value         *string
+	value         *crypto.String
 	hidden        *bool
 	editable      *bool
+	sensitive     *bool
 	private       *bool
 	clearedFields map[string]struct{}
 	done          bool
@@ -14793,12 +14794,12 @@ func (m *SettingMutation) ResetName() {
 }
 
 // SetValue sets the "value" field.
-func (m *SettingMutation) SetValue(s string) {
-	m.value = &s
+func (m *SettingMutation) SetValue(c crypto.String) {
+	m.value = &c
 }
 
 // Value returns the value of the "value" field in the mutation.
-func (m *SettingMutation) Value() (r string, exists bool) {
+func (m *SettingMutation) Value() (r crypto.String, exists bool) {
 	v := m.value
 	if v == nil {
 		return
@@ -14809,7 +14810,7 @@ func (m *SettingMutation) Value() (r string, exists bool) {
 // OldValue returns the old "value" field's value of the Setting entity.
 // If the Setting object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SettingMutation) OldValue(ctx context.Context) (v string, err error) {
+func (m *SettingMutation) OldValue(ctx context.Context) (v crypto.String, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldValue is only allowed on UpdateOne operations")
 	}
@@ -14859,9 +14860,22 @@ func (m *SettingMutation) OldHidden(ctx context.Context) (v *bool, err error) {
 	return oldValue.Hidden, nil
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (m *SettingMutation) ClearHidden() {
+	m.hidden = nil
+	m.clearedFields[setting.FieldHidden] = struct{}{}
+}
+
+// HiddenCleared returns if the "hidden" field was cleared in this mutation.
+func (m *SettingMutation) HiddenCleared() bool {
+	_, ok := m.clearedFields[setting.FieldHidden]
+	return ok
+}
+
 // ResetHidden resets all changes to the "hidden" field.
 func (m *SettingMutation) ResetHidden() {
 	m.hidden = nil
+	delete(m.clearedFields, setting.FieldHidden)
 }
 
 // SetEditable sets the "editable" field.
@@ -14895,9 +14909,71 @@ func (m *SettingMutation) OldEditable(ctx context.Context) (v *bool, err error) 
 	return oldValue.Editable, nil
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (m *SettingMutation) ClearEditable() {
+	m.editable = nil
+	m.clearedFields[setting.FieldEditable] = struct{}{}
+}
+
+// EditableCleared returns if the "editable" field was cleared in this mutation.
+func (m *SettingMutation) EditableCleared() bool {
+	_, ok := m.clearedFields[setting.FieldEditable]
+	return ok
+}
+
 // ResetEditable resets all changes to the "editable" field.
 func (m *SettingMutation) ResetEditable() {
 	m.editable = nil
+	delete(m.clearedFields, setting.FieldEditable)
+}
+
+// SetSensitive sets the "sensitive" field.
+func (m *SettingMutation) SetSensitive(b bool) {
+	m.sensitive = &b
+}
+
+// Sensitive returns the value of the "sensitive" field in the mutation.
+func (m *SettingMutation) Sensitive() (r bool, exists bool) {
+	v := m.sensitive
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSensitive returns the old "sensitive" field's value of the Setting entity.
+// If the Setting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingMutation) OldSensitive(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSensitive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSensitive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSensitive: %w", err)
+	}
+	return oldValue.Sensitive, nil
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (m *SettingMutation) ClearSensitive() {
+	m.sensitive = nil
+	m.clearedFields[setting.FieldSensitive] = struct{}{}
+}
+
+// SensitiveCleared returns if the "sensitive" field was cleared in this mutation.
+func (m *SettingMutation) SensitiveCleared() bool {
+	_, ok := m.clearedFields[setting.FieldSensitive]
+	return ok
+}
+
+// ResetSensitive resets all changes to the "sensitive" field.
+func (m *SettingMutation) ResetSensitive() {
+	m.sensitive = nil
+	delete(m.clearedFields, setting.FieldSensitive)
 }
 
 // SetPrivate sets the "private" field.
@@ -14931,9 +15007,22 @@ func (m *SettingMutation) OldPrivate(ctx context.Context) (v *bool, err error) {
 	return oldValue.Private, nil
 }
 
+// ClearPrivate clears the value of the "private" field.
+func (m *SettingMutation) ClearPrivate() {
+	m.private = nil
+	m.clearedFields[setting.FieldPrivate] = struct{}{}
+}
+
+// PrivateCleared returns if the "private" field was cleared in this mutation.
+func (m *SettingMutation) PrivateCleared() bool {
+	_, ok := m.clearedFields[setting.FieldPrivate]
+	return ok
+}
+
 // ResetPrivate resets all changes to the "private" field.
 func (m *SettingMutation) ResetPrivate() {
 	m.private = nil
+	delete(m.clearedFields, setting.FieldPrivate)
 }
 
 // Where appends a list predicates to the SettingMutation builder.
@@ -14970,7 +15059,7 @@ func (m *SettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.createTime != nil {
 		fields = append(fields, setting.FieldCreateTime)
 	}
@@ -14988,6 +15077,9 @@ func (m *SettingMutation) Fields() []string {
 	}
 	if m.editable != nil {
 		fields = append(fields, setting.FieldEditable)
+	}
+	if m.sensitive != nil {
+		fields = append(fields, setting.FieldSensitive)
 	}
 	if m.private != nil {
 		fields = append(fields, setting.FieldPrivate)
@@ -15012,6 +15104,8 @@ func (m *SettingMutation) Field(name string) (ent.Value, bool) {
 		return m.Hidden()
 	case setting.FieldEditable:
 		return m.Editable()
+	case setting.FieldSensitive:
+		return m.Sensitive()
 	case setting.FieldPrivate:
 		return m.Private()
 	}
@@ -15035,6 +15129,8 @@ func (m *SettingMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldHidden(ctx)
 	case setting.FieldEditable:
 		return m.OldEditable(ctx)
+	case setting.FieldSensitive:
+		return m.OldSensitive(ctx)
 	case setting.FieldPrivate:
 		return m.OldPrivate(ctx)
 	}
@@ -15068,7 +15164,7 @@ func (m *SettingMutation) SetField(name string, value ent.Value) error {
 		m.SetName(v)
 		return nil
 	case setting.FieldValue:
-		v, ok := value.(string)
+		v, ok := value.(crypto.String)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -15087,6 +15183,13 @@ func (m *SettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEditable(v)
+		return nil
+	case setting.FieldSensitive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSensitive(v)
 		return nil
 	case setting.FieldPrivate:
 		v, ok := value.(bool)
@@ -15124,7 +15227,20 @@ func (m *SettingMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *SettingMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(setting.FieldHidden) {
+		fields = append(fields, setting.FieldHidden)
+	}
+	if m.FieldCleared(setting.FieldEditable) {
+		fields = append(fields, setting.FieldEditable)
+	}
+	if m.FieldCleared(setting.FieldSensitive) {
+		fields = append(fields, setting.FieldSensitive)
+	}
+	if m.FieldCleared(setting.FieldPrivate) {
+		fields = append(fields, setting.FieldPrivate)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -15137,6 +15253,20 @@ func (m *SettingMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *SettingMutation) ClearField(name string) error {
+	switch name {
+	case setting.FieldHidden:
+		m.ClearHidden()
+		return nil
+	case setting.FieldEditable:
+		m.ClearEditable()
+		return nil
+	case setting.FieldSensitive:
+		m.ClearSensitive()
+		return nil
+	case setting.FieldPrivate:
+		m.ClearPrivate()
+		return nil
+	}
 	return fmt.Errorf("unknown Setting nullable field %s", name)
 }
 
@@ -15161,6 +15291,9 @@ func (m *SettingMutation) ResetField(name string) error {
 		return nil
 	case setting.FieldEditable:
 		m.ResetEditable()
+		return nil
+	case setting.FieldSensitive:
+		m.ResetSensitive()
 		return nil
 	case setting.FieldPrivate:
 		m.ResetPrivate()

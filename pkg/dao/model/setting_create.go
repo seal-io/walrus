@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -63,8 +64,8 @@ func (sc *SettingCreate) SetName(s string) *SettingCreate {
 }
 
 // SetValue sets the "value" field.
-func (sc *SettingCreate) SetValue(s string) *SettingCreate {
-	sc.mutation.SetValue(s)
+func (sc *SettingCreate) SetValue(c crypto.String) *SettingCreate {
+	sc.mutation.SetValue(c)
 	return sc
 }
 
@@ -92,6 +93,20 @@ func (sc *SettingCreate) SetEditable(b bool) *SettingCreate {
 func (sc *SettingCreate) SetNillableEditable(b *bool) *SettingCreate {
 	if b != nil {
 		sc.SetEditable(*b)
+	}
+	return sc
+}
+
+// SetSensitive sets the "sensitive" field.
+func (sc *SettingCreate) SetSensitive(b bool) *SettingCreate {
+	sc.mutation.SetSensitive(b)
+	return sc
+}
+
+// SetNillableSensitive sets the "sensitive" field if the given value is not nil.
+func (sc *SettingCreate) SetNillableSensitive(b *bool) *SettingCreate {
+	if b != nil {
+		sc.SetSensitive(*b)
 	}
 	return sc
 }
@@ -175,6 +190,10 @@ func (sc *SettingCreate) defaults() error {
 		v := setting.DefaultEditable
 		sc.mutation.SetEditable(v)
 	}
+	if _, ok := sc.mutation.Sensitive(); !ok {
+		v := setting.DefaultSensitive
+		sc.mutation.SetSensitive(v)
+	}
 	if _, ok := sc.mutation.Private(); !ok {
 		v := setting.DefaultPrivate
 		sc.mutation.SetPrivate(v)
@@ -200,15 +219,6 @@ func (sc *SettingCreate) check() error {
 	}
 	if _, ok := sc.mutation.Value(); !ok {
 		return &ValidationError{Name: "value", err: errors.New(`model: missing required field "Setting.value"`)}
-	}
-	if _, ok := sc.mutation.Hidden(); !ok {
-		return &ValidationError{Name: "hidden", err: errors.New(`model: missing required field "Setting.hidden"`)}
-	}
-	if _, ok := sc.mutation.Editable(); !ok {
-		return &ValidationError{Name: "editable", err: errors.New(`model: missing required field "Setting.editable"`)}
-	}
-	if _, ok := sc.mutation.Private(); !ok {
-		return &ValidationError{Name: "private", err: errors.New(`model: missing required field "Setting.private"`)}
 	}
 	return nil
 }
@@ -270,6 +280,10 @@ func (sc *SettingCreate) createSpec() (*Setting, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Editable(); ok {
 		_spec.SetField(setting.FieldEditable, field.TypeBool, value)
 		_node.Editable = &value
+	}
+	if value, ok := sc.mutation.Sensitive(); ok {
+		_spec.SetField(setting.FieldSensitive, field.TypeBool, value)
+		_node.Sensitive = &value
 	}
 	if value, ok := sc.mutation.Private(); ok {
 		_spec.SetField(setting.FieldPrivate, field.TypeBool, value)
@@ -352,7 +366,7 @@ func (u *SettingUpsert) UpdateName() *SettingUpsert {
 }
 
 // SetValue sets the "value" field.
-func (u *SettingUpsert) SetValue(v string) *SettingUpsert {
+func (u *SettingUpsert) SetValue(v crypto.String) *SettingUpsert {
 	u.Set(setting.FieldValue, v)
 	return u
 }
@@ -375,6 +389,12 @@ func (u *SettingUpsert) UpdateHidden() *SettingUpsert {
 	return u
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (u *SettingUpsert) ClearHidden() *SettingUpsert {
+	u.SetNull(setting.FieldHidden)
+	return u
+}
+
 // SetEditable sets the "editable" field.
 func (u *SettingUpsert) SetEditable(v bool) *SettingUpsert {
 	u.Set(setting.FieldEditable, v)
@@ -387,6 +407,30 @@ func (u *SettingUpsert) UpdateEditable() *SettingUpsert {
 	return u
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (u *SettingUpsert) ClearEditable() *SettingUpsert {
+	u.SetNull(setting.FieldEditable)
+	return u
+}
+
+// SetSensitive sets the "sensitive" field.
+func (u *SettingUpsert) SetSensitive(v bool) *SettingUpsert {
+	u.Set(setting.FieldSensitive, v)
+	return u
+}
+
+// UpdateSensitive sets the "sensitive" field to the value that was provided on create.
+func (u *SettingUpsert) UpdateSensitive() *SettingUpsert {
+	u.SetExcluded(setting.FieldSensitive)
+	return u
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (u *SettingUpsert) ClearSensitive() *SettingUpsert {
+	u.SetNull(setting.FieldSensitive)
+	return u
+}
+
 // SetPrivate sets the "private" field.
 func (u *SettingUpsert) SetPrivate(v bool) *SettingUpsert {
 	u.Set(setting.FieldPrivate, v)
@@ -396,6 +440,12 @@ func (u *SettingUpsert) SetPrivate(v bool) *SettingUpsert {
 // UpdatePrivate sets the "private" field to the value that was provided on create.
 func (u *SettingUpsert) UpdatePrivate() *SettingUpsert {
 	u.SetExcluded(setting.FieldPrivate)
+	return u
+}
+
+// ClearPrivate clears the value of the "private" field.
+func (u *SettingUpsert) ClearPrivate() *SettingUpsert {
+	u.SetNull(setting.FieldPrivate)
 	return u
 }
 
@@ -479,7 +529,7 @@ func (u *SettingUpsertOne) UpdateName() *SettingUpsertOne {
 }
 
 // SetValue sets the "value" field.
-func (u *SettingUpsertOne) SetValue(v string) *SettingUpsertOne {
+func (u *SettingUpsertOne) SetValue(v crypto.String) *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
 		s.SetValue(v)
 	})
@@ -506,6 +556,13 @@ func (u *SettingUpsertOne) UpdateHidden() *SettingUpsertOne {
 	})
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (u *SettingUpsertOne) ClearHidden() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearHidden()
+	})
+}
+
 // SetEditable sets the "editable" field.
 func (u *SettingUpsertOne) SetEditable(v bool) *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
@@ -520,6 +577,34 @@ func (u *SettingUpsertOne) UpdateEditable() *SettingUpsertOne {
 	})
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (u *SettingUpsertOne) ClearEditable() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearEditable()
+	})
+}
+
+// SetSensitive sets the "sensitive" field.
+func (u *SettingUpsertOne) SetSensitive(v bool) *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetSensitive(v)
+	})
+}
+
+// UpdateSensitive sets the "sensitive" field to the value that was provided on create.
+func (u *SettingUpsertOne) UpdateSensitive() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateSensitive()
+	})
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (u *SettingUpsertOne) ClearSensitive() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearSensitive()
+	})
+}
+
 // SetPrivate sets the "private" field.
 func (u *SettingUpsertOne) SetPrivate(v bool) *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
@@ -531,6 +616,13 @@ func (u *SettingUpsertOne) SetPrivate(v bool) *SettingUpsertOne {
 func (u *SettingUpsertOne) UpdatePrivate() *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdatePrivate()
+	})
+}
+
+// ClearPrivate clears the value of the "private" field.
+func (u *SettingUpsertOne) ClearPrivate() *SettingUpsertOne {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearPrivate()
 	})
 }
 
@@ -777,7 +869,7 @@ func (u *SettingUpsertBulk) UpdateName() *SettingUpsertBulk {
 }
 
 // SetValue sets the "value" field.
-func (u *SettingUpsertBulk) SetValue(v string) *SettingUpsertBulk {
+func (u *SettingUpsertBulk) SetValue(v crypto.String) *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
 		s.SetValue(v)
 	})
@@ -804,6 +896,13 @@ func (u *SettingUpsertBulk) UpdateHidden() *SettingUpsertBulk {
 	})
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (u *SettingUpsertBulk) ClearHidden() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearHidden()
+	})
+}
+
 // SetEditable sets the "editable" field.
 func (u *SettingUpsertBulk) SetEditable(v bool) *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
@@ -818,6 +917,34 @@ func (u *SettingUpsertBulk) UpdateEditable() *SettingUpsertBulk {
 	})
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (u *SettingUpsertBulk) ClearEditable() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearEditable()
+	})
+}
+
+// SetSensitive sets the "sensitive" field.
+func (u *SettingUpsertBulk) SetSensitive(v bool) *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.SetSensitive(v)
+	})
+}
+
+// UpdateSensitive sets the "sensitive" field to the value that was provided on create.
+func (u *SettingUpsertBulk) UpdateSensitive() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.UpdateSensitive()
+	})
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (u *SettingUpsertBulk) ClearSensitive() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearSensitive()
+	})
+}
+
 // SetPrivate sets the "private" field.
 func (u *SettingUpsertBulk) SetPrivate(v bool) *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
@@ -829,6 +956,13 @@ func (u *SettingUpsertBulk) SetPrivate(v bool) *SettingUpsertBulk {
 func (u *SettingUpsertBulk) UpdatePrivate() *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdatePrivate()
+	})
+}
+
+// ClearPrivate clears the value of the "private" field.
+func (u *SettingUpsertBulk) ClearPrivate() *SettingUpsertBulk {
+	return u.Update(func(s *SettingUpsert) {
+		s.ClearPrivate()
 	})
 }
 

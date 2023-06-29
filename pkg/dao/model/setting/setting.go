@@ -29,6 +29,8 @@ const (
 	FieldHidden = "hidden"
 	// FieldEditable holds the string denoting the editable field in the database.
 	FieldEditable = "editable"
+	// FieldSensitive holds the string denoting the sensitive field in the database.
+	FieldSensitive = "sensitive"
 	// FieldPrivate holds the string denoting the private field in the database.
 	FieldPrivate = "private"
 	// Table holds the table name of the setting in the database.
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldValue,
 	FieldHidden,
 	FieldEditable,
+	FieldSensitive,
 	FieldPrivate,
 }
 
@@ -76,6 +79,8 @@ var (
 	DefaultHidden bool
 	// DefaultEditable holds the default value on creation for the "editable" field.
 	DefaultEditable bool
+	// DefaultSensitive holds the default value on creation for the "sensitive" field.
+	DefaultSensitive bool
 	// DefaultPrivate holds the default value on creation for the "private" field.
 	DefaultPrivate bool
 )
@@ -116,6 +121,11 @@ func ByHidden(opts ...sql.OrderTermOption) OrderOption {
 // ByEditable orders the results by the editable field.
 func ByEditable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEditable, opts...).ToFunc()
+}
+
+// BySensitive orders the results by the sensitive field.
+func BySensitive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSensitive, opts...).ToFunc()
 }
 
 // ByPrivate orders the results by the private field.

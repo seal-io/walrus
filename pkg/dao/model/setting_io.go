@@ -8,6 +8,7 @@ package model
 import (
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -26,26 +27,14 @@ func (in SettingQueryInput) Model() *Setting {
 
 // SettingCreateInput is the input for the Setting creation.
 type SettingCreateInput struct {
-	// The name of system setting.
-	Name string `json:"name"`
 	// The value of system setting, store in string.
-	Value string `json:"value,omitempty"`
-	// Indicate the system setting should be hidden or not, default is visible.
-	Hidden *bool `json:"hidden,omitempty"`
-	// Indicate the system setting should be edited or not, default is readonly.
-	Editable *bool `json:"editable,omitempty"`
-	// Indicate the system setting should be exposed or not, default is exposed.
-	Private *bool `json:"private,omitempty"`
+	Value crypto.String `json:"value,omitempty"`
 }
 
 // Model converts the SettingCreateInput to Setting.
 func (in SettingCreateInput) Model() *Setting {
 	var entity = &Setting{
-		Name:     in.Name,
-		Value:    in.Value,
-		Hidden:   in.Hidden,
-		Editable: in.Editable,
-		Private:  in.Private,
+		Value: in.Value,
 	}
 	return entity
 }
@@ -57,24 +46,15 @@ type SettingUpdateInput struct {
 	// The name of system setting.
 	Name string `json:"name,omitempty"`
 	// The value of system setting, store in string.
-	Value string `json:"value,omitempty"`
-	// Indicate the system setting should be hidden or not, default is visible.
-	Hidden *bool `json:"hidden,omitempty"`
-	// Indicate the system setting should be edited or not, default is readonly.
-	Editable *bool `json:"editable,omitempty"`
-	// Indicate the system setting should be exposed or not, default is exposed.
-	Private *bool `json:"private,omitempty"`
+	Value crypto.String `json:"value,omitempty"`
 }
 
 // Model converts the SettingUpdateInput to Setting.
 func (in SettingUpdateInput) Model() *Setting {
 	var entity = &Setting{
-		ID:       in.ID,
-		Name:     in.Name,
-		Value:    in.Value,
-		Hidden:   in.Hidden,
-		Editable: in.Editable,
-		Private:  in.Private,
+		ID:    in.ID,
+		Name:  in.Name,
+		Value: in.Value,
 	}
 	return entity
 }
@@ -90,13 +70,13 @@ type SettingOutput struct {
 	// The name of system setting.
 	Name string `json:"name,omitempty"`
 	// The value of system setting, store in string.
-	Value string `json:"value,omitempty"`
+	Value crypto.String `json:"value,omitempty"`
 	// Indicate the system setting should be hidden or not, default is visible.
 	Hidden *bool `json:"hidden,omitempty"`
 	// Indicate the system setting should be edited or not, default is readonly.
 	Editable *bool `json:"editable,omitempty"`
-	// Indicate the system setting should be exposed or not, default is exposed.
-	Private *bool `json:"private,omitempty"`
+	// Indicate the system setting should be sanitized or not before exposing, default is not.
+	Sensitive *bool `json:"sensitive,omitempty"`
 }
 
 // ExposeSetting converts the Setting to SettingOutput.
@@ -112,7 +92,7 @@ func ExposeSetting(in *Setting) *SettingOutput {
 		Value:      in.Value,
 		Hidden:     in.Hidden,
 		Editable:   in.Editable,
-		Private:    in.Private,
+		Sensitive:  in.Sensitive,
 	}
 	return entity
 }

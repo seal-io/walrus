@@ -526,10 +526,11 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "value", Type: field.TypeString},
-		{Name: "hidden", Type: field.TypeBool, Default: false},
-		{Name: "editable", Type: field.TypeBool, Default: false},
-		{Name: "private", Type: field.TypeBool, Default: false},
+		{Name: "value", Type: field.TypeString, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "hidden", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "editable", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "sensitive", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "private", Type: field.TypeBool, Nullable: true, Default: false},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
 	SettingsTable = &schema.Table{
