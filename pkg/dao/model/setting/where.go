@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -75,7 +76,7 @@ func Name(v string) predicate.Setting {
 }
 
 // Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
-func Value(v string) predicate.Setting {
+func Value(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldValue, v))
 }
 
@@ -87,6 +88,11 @@ func Hidden(v bool) predicate.Setting {
 // Editable applies equality check predicate on the "editable" field. It's identical to EditableEQ.
 func Editable(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldEditable, v))
+}
+
+// Sensitive applies equality check predicate on the "sensitive" field. It's identical to SensitiveEQ.
+func Sensitive(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldSensitive, v))
 }
 
 // Private applies equality check predicate on the "private" field. It's identical to PrivateEQ.
@@ -240,68 +246,73 @@ func NameContainsFold(v string) predicate.Setting {
 }
 
 // ValueEQ applies the EQ predicate on the "value" field.
-func ValueEQ(v string) predicate.Setting {
+func ValueEQ(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldValue, v))
 }
 
 // ValueNEQ applies the NEQ predicate on the "value" field.
-func ValueNEQ(v string) predicate.Setting {
+func ValueNEQ(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldValue, v))
 }
 
 // ValueIn applies the In predicate on the "value" field.
-func ValueIn(vs ...string) predicate.Setting {
+func ValueIn(vs ...crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldIn(FieldValue, vs...))
 }
 
 // ValueNotIn applies the NotIn predicate on the "value" field.
-func ValueNotIn(vs ...string) predicate.Setting {
+func ValueNotIn(vs ...crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldNotIn(FieldValue, vs...))
 }
 
 // ValueGT applies the GT predicate on the "value" field.
-func ValueGT(v string) predicate.Setting {
+func ValueGT(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldGT(FieldValue, v))
 }
 
 // ValueGTE applies the GTE predicate on the "value" field.
-func ValueGTE(v string) predicate.Setting {
+func ValueGTE(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldGTE(FieldValue, v))
 }
 
 // ValueLT applies the LT predicate on the "value" field.
-func ValueLT(v string) predicate.Setting {
+func ValueLT(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldLT(FieldValue, v))
 }
 
 // ValueLTE applies the LTE predicate on the "value" field.
-func ValueLTE(v string) predicate.Setting {
+func ValueLTE(v crypto.String) predicate.Setting {
 	return predicate.Setting(sql.FieldLTE(FieldValue, v))
 }
 
 // ValueContains applies the Contains predicate on the "value" field.
-func ValueContains(v string) predicate.Setting {
-	return predicate.Setting(sql.FieldContains(FieldValue, v))
+func ValueContains(v crypto.String) predicate.Setting {
+	vc := string(v)
+	return predicate.Setting(sql.FieldContains(FieldValue, vc))
 }
 
 // ValueHasPrefix applies the HasPrefix predicate on the "value" field.
-func ValueHasPrefix(v string) predicate.Setting {
-	return predicate.Setting(sql.FieldHasPrefix(FieldValue, v))
+func ValueHasPrefix(v crypto.String) predicate.Setting {
+	vc := string(v)
+	return predicate.Setting(sql.FieldHasPrefix(FieldValue, vc))
 }
 
 // ValueHasSuffix applies the HasSuffix predicate on the "value" field.
-func ValueHasSuffix(v string) predicate.Setting {
-	return predicate.Setting(sql.FieldHasSuffix(FieldValue, v))
+func ValueHasSuffix(v crypto.String) predicate.Setting {
+	vc := string(v)
+	return predicate.Setting(sql.FieldHasSuffix(FieldValue, vc))
 }
 
 // ValueEqualFold applies the EqualFold predicate on the "value" field.
-func ValueEqualFold(v string) predicate.Setting {
-	return predicate.Setting(sql.FieldEqualFold(FieldValue, v))
+func ValueEqualFold(v crypto.String) predicate.Setting {
+	vc := string(v)
+	return predicate.Setting(sql.FieldEqualFold(FieldValue, vc))
 }
 
 // ValueContainsFold applies the ContainsFold predicate on the "value" field.
-func ValueContainsFold(v string) predicate.Setting {
-	return predicate.Setting(sql.FieldContainsFold(FieldValue, v))
+func ValueContainsFold(v crypto.String) predicate.Setting {
+	vc := string(v)
+	return predicate.Setting(sql.FieldContainsFold(FieldValue, vc))
 }
 
 // HiddenEQ applies the EQ predicate on the "hidden" field.
@@ -314,6 +325,16 @@ func HiddenNEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldHidden, v))
 }
 
+// HiddenIsNil applies the IsNil predicate on the "hidden" field.
+func HiddenIsNil() predicate.Setting {
+	return predicate.Setting(sql.FieldIsNull(FieldHidden))
+}
+
+// HiddenNotNil applies the NotNil predicate on the "hidden" field.
+func HiddenNotNil() predicate.Setting {
+	return predicate.Setting(sql.FieldNotNull(FieldHidden))
+}
+
 // EditableEQ applies the EQ predicate on the "editable" field.
 func EditableEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldEditable, v))
@@ -324,6 +345,36 @@ func EditableNEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldEditable, v))
 }
 
+// EditableIsNil applies the IsNil predicate on the "editable" field.
+func EditableIsNil() predicate.Setting {
+	return predicate.Setting(sql.FieldIsNull(FieldEditable))
+}
+
+// EditableNotNil applies the NotNil predicate on the "editable" field.
+func EditableNotNil() predicate.Setting {
+	return predicate.Setting(sql.FieldNotNull(FieldEditable))
+}
+
+// SensitiveEQ applies the EQ predicate on the "sensitive" field.
+func SensitiveEQ(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldEQ(FieldSensitive, v))
+}
+
+// SensitiveNEQ applies the NEQ predicate on the "sensitive" field.
+func SensitiveNEQ(v bool) predicate.Setting {
+	return predicate.Setting(sql.FieldNEQ(FieldSensitive, v))
+}
+
+// SensitiveIsNil applies the IsNil predicate on the "sensitive" field.
+func SensitiveIsNil() predicate.Setting {
+	return predicate.Setting(sql.FieldIsNull(FieldSensitive))
+}
+
+// SensitiveNotNil applies the NotNil predicate on the "sensitive" field.
+func SensitiveNotNil() predicate.Setting {
+	return predicate.Setting(sql.FieldNotNull(FieldSensitive))
+}
+
 // PrivateEQ applies the EQ predicate on the "private" field.
 func PrivateEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldEQ(FieldPrivate, v))
@@ -332,6 +383,16 @@ func PrivateEQ(v bool) predicate.Setting {
 // PrivateNEQ applies the NEQ predicate on the "private" field.
 func PrivateNEQ(v bool) predicate.Setting {
 	return predicate.Setting(sql.FieldNEQ(FieldPrivate, v))
+}
+
+// PrivateIsNil applies the IsNil predicate on the "private" field.
+func PrivateIsNil() predicate.Setting {
+	return predicate.Setting(sql.FieldIsNull(FieldPrivate))
+}
+
+// PrivateNotNil applies the NotNil predicate on the "private" field.
+func PrivateNotNil() predicate.Setting {
+	return predicate.Setting(sql.FieldNotNull(FieldPrivate))
 }
 
 // And groups predicates with the AND operator between them.

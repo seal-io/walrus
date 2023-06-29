@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
 
 // SettingUpdate is the builder for updating Setting entities.
@@ -47,8 +48,8 @@ func (su *SettingUpdate) SetName(s string) *SettingUpdate {
 }
 
 // SetValue sets the "value" field.
-func (su *SettingUpdate) SetValue(s string) *SettingUpdate {
-	su.mutation.SetValue(s)
+func (su *SettingUpdate) SetValue(c crypto.String) *SettingUpdate {
+	su.mutation.SetValue(c)
 	return su
 }
 
@@ -66,6 +67,12 @@ func (su *SettingUpdate) SetNillableHidden(b *bool) *SettingUpdate {
 	return su
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (su *SettingUpdate) ClearHidden() *SettingUpdate {
+	su.mutation.ClearHidden()
+	return su
+}
+
 // SetEditable sets the "editable" field.
 func (su *SettingUpdate) SetEditable(b bool) *SettingUpdate {
 	su.mutation.SetEditable(b)
@@ -80,6 +87,32 @@ func (su *SettingUpdate) SetNillableEditable(b *bool) *SettingUpdate {
 	return su
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (su *SettingUpdate) ClearEditable() *SettingUpdate {
+	su.mutation.ClearEditable()
+	return su
+}
+
+// SetSensitive sets the "sensitive" field.
+func (su *SettingUpdate) SetSensitive(b bool) *SettingUpdate {
+	su.mutation.SetSensitive(b)
+	return su
+}
+
+// SetNillableSensitive sets the "sensitive" field if the given value is not nil.
+func (su *SettingUpdate) SetNillableSensitive(b *bool) *SettingUpdate {
+	if b != nil {
+		su.SetSensitive(*b)
+	}
+	return su
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (su *SettingUpdate) ClearSensitive() *SettingUpdate {
+	su.mutation.ClearSensitive()
+	return su
+}
+
 // SetPrivate sets the "private" field.
 func (su *SettingUpdate) SetPrivate(b bool) *SettingUpdate {
 	su.mutation.SetPrivate(b)
@@ -91,6 +124,12 @@ func (su *SettingUpdate) SetNillablePrivate(b *bool) *SettingUpdate {
 	if b != nil {
 		su.SetPrivate(*b)
 	}
+	return su
+}
+
+// ClearPrivate clears the value of the "private" field.
+func (su *SettingUpdate) ClearPrivate() *SettingUpdate {
+	su.mutation.ClearPrivate()
 	return su
 }
 
@@ -181,11 +220,26 @@ func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Hidden(); ok {
 		_spec.SetField(setting.FieldHidden, field.TypeBool, value)
 	}
+	if su.mutation.HiddenCleared() {
+		_spec.ClearField(setting.FieldHidden, field.TypeBool)
+	}
 	if value, ok := su.mutation.Editable(); ok {
 		_spec.SetField(setting.FieldEditable, field.TypeBool, value)
 	}
+	if su.mutation.EditableCleared() {
+		_spec.ClearField(setting.FieldEditable, field.TypeBool)
+	}
+	if value, ok := su.mutation.Sensitive(); ok {
+		_spec.SetField(setting.FieldSensitive, field.TypeBool, value)
+	}
+	if su.mutation.SensitiveCleared() {
+		_spec.ClearField(setting.FieldSensitive, field.TypeBool)
+	}
 	if value, ok := su.mutation.Private(); ok {
 		_spec.SetField(setting.FieldPrivate, field.TypeBool, value)
+	}
+	if su.mutation.PrivateCleared() {
+		_spec.ClearField(setting.FieldPrivate, field.TypeBool)
 	}
 	_spec.Node.Schema = su.schemaConfig.Setting
 	ctx = internal.NewSchemaConfigContext(ctx, su.schemaConfig)
@@ -224,8 +278,8 @@ func (suo *SettingUpdateOne) SetName(s string) *SettingUpdateOne {
 }
 
 // SetValue sets the "value" field.
-func (suo *SettingUpdateOne) SetValue(s string) *SettingUpdateOne {
-	suo.mutation.SetValue(s)
+func (suo *SettingUpdateOne) SetValue(c crypto.String) *SettingUpdateOne {
+	suo.mutation.SetValue(c)
 	return suo
 }
 
@@ -243,6 +297,12 @@ func (suo *SettingUpdateOne) SetNillableHidden(b *bool) *SettingUpdateOne {
 	return suo
 }
 
+// ClearHidden clears the value of the "hidden" field.
+func (suo *SettingUpdateOne) ClearHidden() *SettingUpdateOne {
+	suo.mutation.ClearHidden()
+	return suo
+}
+
 // SetEditable sets the "editable" field.
 func (suo *SettingUpdateOne) SetEditable(b bool) *SettingUpdateOne {
 	suo.mutation.SetEditable(b)
@@ -257,6 +317,32 @@ func (suo *SettingUpdateOne) SetNillableEditable(b *bool) *SettingUpdateOne {
 	return suo
 }
 
+// ClearEditable clears the value of the "editable" field.
+func (suo *SettingUpdateOne) ClearEditable() *SettingUpdateOne {
+	suo.mutation.ClearEditable()
+	return suo
+}
+
+// SetSensitive sets the "sensitive" field.
+func (suo *SettingUpdateOne) SetSensitive(b bool) *SettingUpdateOne {
+	suo.mutation.SetSensitive(b)
+	return suo
+}
+
+// SetNillableSensitive sets the "sensitive" field if the given value is not nil.
+func (suo *SettingUpdateOne) SetNillableSensitive(b *bool) *SettingUpdateOne {
+	if b != nil {
+		suo.SetSensitive(*b)
+	}
+	return suo
+}
+
+// ClearSensitive clears the value of the "sensitive" field.
+func (suo *SettingUpdateOne) ClearSensitive() *SettingUpdateOne {
+	suo.mutation.ClearSensitive()
+	return suo
+}
+
 // SetPrivate sets the "private" field.
 func (suo *SettingUpdateOne) SetPrivate(b bool) *SettingUpdateOne {
 	suo.mutation.SetPrivate(b)
@@ -268,6 +354,12 @@ func (suo *SettingUpdateOne) SetNillablePrivate(b *bool) *SettingUpdateOne {
 	if b != nil {
 		suo.SetPrivate(*b)
 	}
+	return suo
+}
+
+// ClearPrivate clears the value of the "private" field.
+func (suo *SettingUpdateOne) ClearPrivate() *SettingUpdateOne {
+	suo.mutation.ClearPrivate()
 	return suo
 }
 
@@ -388,11 +480,26 @@ func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err e
 	if value, ok := suo.mutation.Hidden(); ok {
 		_spec.SetField(setting.FieldHidden, field.TypeBool, value)
 	}
+	if suo.mutation.HiddenCleared() {
+		_spec.ClearField(setting.FieldHidden, field.TypeBool)
+	}
 	if value, ok := suo.mutation.Editable(); ok {
 		_spec.SetField(setting.FieldEditable, field.TypeBool, value)
 	}
+	if suo.mutation.EditableCleared() {
+		_spec.ClearField(setting.FieldEditable, field.TypeBool)
+	}
+	if value, ok := suo.mutation.Sensitive(); ok {
+		_spec.SetField(setting.FieldSensitive, field.TypeBool, value)
+	}
+	if suo.mutation.SensitiveCleared() {
+		_spec.ClearField(setting.FieldSensitive, field.TypeBool)
+	}
 	if value, ok := suo.mutation.Private(); ok {
 		_spec.SetField(setting.FieldPrivate, field.TypeBool, value)
+	}
+	if suo.mutation.PrivateCleared() {
+		_spec.ClearField(setting.FieldPrivate, field.TypeBool)
 	}
 	_spec.Node.Schema = suo.schemaConfig.Setting
 	ctx = internal.NewSchemaConfigContext(ctx, suo.schemaConfig)

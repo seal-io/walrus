@@ -622,8 +622,12 @@ func init() {
 	settingDescEditable := settingFields[3].Descriptor()
 	// setting.DefaultEditable holds the default value on creation for the editable field.
 	setting.DefaultEditable = settingDescEditable.Default.(bool)
+	// settingDescSensitive is the schema descriptor for sensitive field.
+	settingDescSensitive := settingFields[4].Descriptor()
+	// setting.DefaultSensitive holds the default value on creation for the sensitive field.
+	setting.DefaultSensitive = settingDescSensitive.Default.(bool)
 	// settingDescPrivate is the schema descriptor for private field.
-	settingDescPrivate := settingFields[4].Descriptor()
+	settingDescPrivate := settingFields[5].Descriptor()
 	// setting.DefaultPrivate holds the default value on creation for the private field.
 	setting.DefaultPrivate = settingDescPrivate.Default.(bool)
 	subjectMixin := schema.Subject{}.Mixin()

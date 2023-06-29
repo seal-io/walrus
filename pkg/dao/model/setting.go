@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -29,11 +30,13 @@ type Setting struct {
 	// The name of system setting.
 	Name string `json:"name,omitempty" sql:"name"`
 	// The value of system setting, store in string.
-	Value string `json:"value,omitempty" sql:"value"`
+	Value crypto.String `json:"value,omitempty" sql:"value"`
 	// Indicate the system setting should be hidden or not, default is visible.
 	Hidden *bool `json:"hidden,omitempty" sql:"hidden"`
 	// Indicate the system setting should be edited or not, default is readonly.
 	Editable *bool `json:"editable,omitempty" sql:"editable"`
+	// Indicate the system setting should be sanitized or not before exposing, default is not.
+	Sensitive *bool `json:"sensitive,omitempty" sql:"sensitive"`
 	// Indicate the system setting should be exposed or not, default is exposed.
 	Private      *bool `json:"private,omitempty" sql:"private"`
 	selectValues sql.SelectValues
@@ -44,11 +47,13 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case setting.FieldValue:
+			values[i] = new(crypto.String)
 		case setting.FieldID:
 			values[i] = new(oid.ID)
-		case setting.FieldHidden, setting.FieldEditable, setting.FieldPrivate:
+		case setting.FieldHidden, setting.FieldEditable, setting.FieldSensitive, setting.FieldPrivate:
 			values[i] = new(sql.NullBool)
-		case setting.FieldName, setting.FieldValue:
+		case setting.FieldName:
 			values[i] = new(sql.NullString)
 		case setting.FieldCreateTime, setting.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -94,10 +99,10 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 				s.Name = value.String
 			}
 		case setting.FieldValue:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*crypto.String); !ok {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
-			} else if value.Valid {
-				s.Value = value.String
+			} else if value != nil {
+				s.Value = *value
 			}
 		case setting.FieldHidden:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -112,6 +117,13 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Editable = new(bool)
 				*s.Editable = value.Bool
+			}
+		case setting.FieldSensitive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field sensitive", values[i])
+			} else if value.Valid {
+				s.Sensitive = new(bool)
+				*s.Sensitive = value.Bool
 			}
 		case setting.FieldPrivate:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -170,7 +182,7 @@ func (s *Setting) String() string {
 	builder.WriteString(s.Name)
 	builder.WriteString(", ")
 	builder.WriteString("value=")
-	builder.WriteString(s.Value)
+	builder.WriteString(fmt.Sprintf("%v", s.Value))
 	builder.WriteString(", ")
 	if v := s.Hidden; v != nil {
 		builder.WriteString("hidden=")
@@ -179,6 +191,11 @@ func (s *Setting) String() string {
 	builder.WriteString(", ")
 	if v := s.Editable; v != nil {
 		builder.WriteString("editable=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := s.Sensitive; v != nil {
+		builder.WriteString("sensitive=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
