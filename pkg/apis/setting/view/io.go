@@ -8,14 +8,15 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // Basic APIs.
 
 type UpdateRequest struct {
-	ID    oid.ID  `uri:"id"`
-	Value *string `json:"value"`
+	ID    oid.ID        `uri:"id,omitempty" json:"id,omitempty"`
+	Value crypto.String `json:"value"`
 
 	Name string `json:"-"`
 }
@@ -27,31 +28,30 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid id: blank")
 	}
 
-	if r.Value == nil {
-		return errors.New("invalid input: nil value")
-	}
-
-	confirmSetting := []predicate.Setting{
-		setting.Private(false),
-		setting.Editable(true),
-	}
+	var id predicate.Setting
 
 	switch {
 	case r.ID.IsNaive():
-		confirmSetting = append(confirmSetting, setting.ID(r.ID))
+		id = setting.ID(r.ID)
 	default:
 		keys := r.ID.Split()
-		confirmSetting = append(confirmSetting, setting.Name(keys[0]))
+		id = setting.Name(keys[0])
 	}
 
-	settingEntity, err := modelClient.Settings().Query().
-		Where(confirmSetting...).
-		Select(setting.FieldName, setting.FieldValue).
+	// Only allow updating publicly editable setting.
+	entity, err := modelClient.Settings().Query().
+		Where(
+			id,
+			setting.Private(false),
+			setting.Editable(true)).
+		Select(setting.FieldName).
 		Only(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get setting")
 	}
-	r.Name = settingEntity.Name
+
+	// Get setting name by id.
+	r.Name = entity.Name
 
 	return nil
 }
@@ -68,7 +68,12 @@ func (r *GetRequest) Validate() error {
 	return nil
 }
 
-type GetResponse = *model.SettingOutput
+type GetResponse struct {
+	*model.SettingOutput `json:",inline"`
+
+	// Configured indicates the setting whether to be configured.
+	Configured bool `json:"configured"`
+}
 
 // Batch APIs.
 
@@ -80,6 +85,10 @@ func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	for _, i := range r {
+		if i == nil {
+			return errors.New("invalid input: empty item")
+		}
+
 		err := i.ValidateWith(ctx, input)
 		if err != nil {
 			return err
@@ -105,6 +114,6 @@ func (r *CollectionGetRequest) Validate() error {
 	return nil
 }
 
-type CollectionGetResponse = []*model.SettingOutput
+type CollectionGetResponse = []*GetResponse
 
 // Extensional APIs.

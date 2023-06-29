@@ -27,9 +27,11 @@ import (
 	"github.com/seal-io/seal/pkg/consts"
 	"github.com/seal-io/seal/pkg/dao/model"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // Default = ent.
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/pkg/rds"
 	"github.com/seal-io/seal/utils/clis"
+	"github.com/seal-io/seal/utils/cryptox"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
@@ -340,7 +342,11 @@ func (r *Server) Action(cmd *cli.Command) {
 }
 
 func (r *Server) Run(c context.Context) error {
-	gopool.ResetPool(r.GopoolWorkerFactor)
+	if err := r.configure(c); err != nil {
+		log.Errorf("error configuring: %v", err)
+		return fmt.Errorf("error configuring: %w", err)
+	}
+
 	g, ctx := gopool.GroupWithContext(c)
 
 	// Get kubernetes config.
@@ -478,6 +484,38 @@ func (r *Server) Run(c context.Context) error {
 	})
 
 	return g.Wait()
+}
+
+// configure performs necessary configuration to support the whole server running.
+func (r *Server) configure(_ context.Context) error {
+	// Configure gopool.
+	gopool.ResetPool(r.GopoolWorkerFactor)
+
+	// Configure data encryption.
+	if r.DataSourceDataEncryptKey != nil {
+		var (
+			alg = r.DataSourceDataEncryptAlg
+			key = r.DataSourceDataEncryptKey
+
+			enc cryptox.Encryptor
+			err error
+		)
+
+		switch alg {
+		default:
+			return fmt.Errorf("unknown data encryptor algorithm: %s", alg)
+		case "aesgcm":
+			enc, err = cryptox.AesGcm(key)
+		}
+
+		if err != nil {
+			return fmt.Errorf("error gaining data encryptor: %w", err)
+		}
+
+		crypto.EncryptorConfig.Set(enc)
+	}
+
+	return nil
 }
 
 func (r *Server) setKubernetesConfig(cfg *rest.Config) {

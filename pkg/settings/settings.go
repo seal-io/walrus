@@ -5,6 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -95,7 +96,7 @@ var (
 	DataEncryptionSentry = newValue(
 		"DataEncryptionSentry",
 		private,
-		initializeFrom(""),
+		nil,
 		modifyWith(notBlank))
 	// AuthsEncryptionAesGcmKey keeps the key for encrypting public token value with AES-GCM algorithm.
 	AuthsEncryptionAesGcmKey = newValue(
@@ -107,7 +108,7 @@ var (
 	// TODO protect the stored token.
 	OpenAiApiToken = newValue(
 		"OpenAiApiToken",
-		editable,
+		editable|sensitive,
 		nil,
 		nil)
 )
@@ -175,9 +176,9 @@ var (
 
 // setting property list.
 const (
-	_default uint8 = 0
-	hidden         = 1 << (iota - 1)
+	hidden uint8 = 1 << (iota)
 	editable
+	sensitive
 	private
 )
 
@@ -201,11 +202,12 @@ func newValue(name string, property uint8, initialize initializer, modify modifi
 	}
 	v := value{
 		refer: model.Setting{
-			Name:     name,
-			Value:    initialize(name),
-			Hidden:   pointer.Bool(property&hidden == hidden),
-			Editable: pointer.Bool(property&editable == editable),
-			Private:  pointer.Bool(property&private == private),
+			Name:      name,
+			Value:     crypto.String(initialize(name)),
+			Hidden:    pointer.Bool(property&hidden == hidden),
+			Editable:  pointer.Bool(property&editable == editable),
+			Sensitive: pointer.Bool(property&sensitive == sensitive),
+			Private:   pointer.Bool(property&private == private),
 		},
 		modify: modify,
 	}

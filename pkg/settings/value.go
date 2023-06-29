@@ -8,6 +8,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
+	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/utils/cache"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
@@ -101,7 +102,7 @@ func (v value) Value(ctx context.Context, client model.ClientSet) (string, error
 			v.refer.Name, err)
 	}
 
-	return dbValue.Value, nil
+	return string(dbValue.Value), nil
 }
 
 // ShouldValue implements the Value interface.
@@ -246,8 +247,13 @@ func (v value) Set(
 		return false, err
 	}
 
-	newVal, ok := newValueRaw.(string)
-	if !ok {
+	var newVal string
+	switch t := newValueRaw.(type) {
+	case string:
+		newVal = t
+	case crypto.String:
+		newVal = string(t)
+	default:
 		b, err := json.Marshal(newValueRaw)
 		if err != nil {
 			return false, err
@@ -295,12 +301,12 @@ func (v value) Cas(
 		}
 		oldVal := dbValue.Value
 
-		newVal, err := op(oldVal)
+		newVal, err := op(string(oldVal))
 		if err != nil {
 			return err
 		}
 
-		err = v.modify(ctx, tx, v.refer.Name, oldVal, newVal)
+		err = v.modify(ctx, tx, v.refer.Name, string(oldVal), newVal)
 		if err != nil {
 			return err
 		}
