@@ -41,12 +41,6 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				io.Disable()),
-		// Project 1-* secrets.
-		edge.To("secrets", Secret.Type).
-			Comment("Secrets that belong to the project.").
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
 		// Project 1-* subject roles.
 		edge.To("subjectRoles", SubjectRoleRelationship.Type).
 			Comment("Subject roles that belong to the project.").

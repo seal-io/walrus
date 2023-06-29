@@ -41,10 +41,6 @@ func ServiceRevisionCreates(
 			c.SetTags(r.Tags)
 		}
 
-		if r.Secrets != nil {
-			c.SetSecrets(r.Secrets)
-		}
-
 		if r.Variables != nil {
 			c.SetVariables(r.Variables)
 		}
@@ -95,10 +91,6 @@ func ServiceRevisionUpdate(
 
 	if input.Duration != 0 {
 		c.SetDuration(input.Duration)
-	}
-
-	if input.Secrets != nil {
-		c.SetSecrets(input.Secrets)
 	}
 
 	if input.Variables != nil {

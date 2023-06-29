@@ -20,7 +20,6 @@ import (
 	"github.com/seal-io/seal/pkg/apis/project"
 	"github.com/seal-io/seal/pkg/apis/role"
 	"github.com/seal-io/seal/pkg/apis/runtime"
-	"github.com/seal-io/seal/pkg/apis/secret"
 	"github.com/seal-io/seal/pkg/apis/service"
 	"github.com/seal-io/seal/pkg/apis/serviceresource"
 	"github.com/seal-io/seal/pkg/apis/servicerevision"
@@ -123,7 +122,6 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, perspective.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, project.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, role.Handle(opts.ModelClient))
-		runtime.MustRouteResource(r, secret.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, setting.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, subject.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, subjectrole.Handle(opts.ModelClient))

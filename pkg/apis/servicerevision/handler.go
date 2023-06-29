@@ -156,7 +156,7 @@ var (
 		servicerevision.FieldTemplateID,
 		servicerevision.FieldTemplateVersion,
 		servicerevision.FieldAttributes,
-		servicerevision.FieldSecrets,
+		servicerevision.FieldVariables,
 	)
 	sortFields = []string{
 		servicerevision.FieldCreateTime,
