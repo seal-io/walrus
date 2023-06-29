@@ -129,7 +129,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"services", "serviceRevisions",
+						"projects", "services", "serviceRevisions",
 						"serviceResources", "environments", "connectors", "secrets"),
 				},
 			},
@@ -143,6 +143,10 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Kind:        types.RoleKindProject,
 			Description: "The role who can manage the resources below the project, excluding rbac.",
 			Policies: types.RolePolicies{
+				{
+					Actions:   types.RolePolicyFields(http.MethodGet),
+					Resources: types.RolePolicyFields("projects"),
+				},
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
