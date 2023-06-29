@@ -46,9 +46,6 @@ func (ServiceRevision) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
-		crypto.MapField[string, string]("secrets").
-			Comment("Secrets of the revision.").
-			Default(crypto.Map[string, string]{}),
 		crypto.MapField[string, string]("variables").
 			Comment("Variables of the revision.").
 			Default(crypto.Map[string, string]{}),

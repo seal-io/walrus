@@ -43,7 +43,7 @@ var getServiceRevisionFields = servicerevision.WithoutFields(
 	servicerevision.FieldTemplateID,
 	servicerevision.FieldTemplateVersion,
 	servicerevision.FieldAttributes,
-	servicerevision.FieldSecrets,
+	servicerevision.FieldVariables,
 )
 
 func (h Handler) CollectionGetLatestServiceRevisions(
