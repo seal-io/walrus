@@ -22,16 +22,16 @@ import (
 var serviceRegexp = regexp.MustCompile(`\${service\.([^.\s]+)\.[^}]+}`)
 
 func GetDependencyNames(entity *model.Service) []string {
-	var names []string
+	names := sets.NewString()
 
 	for _, d := range entity.Attributes {
 		matches := serviceRegexp.FindAllSubmatch(d, -1)
 		for _, m := range matches {
-			names = append(names, string(m[1]))
+			names.Insert(string(m[1]))
 		}
 	}
 
-	return names
+	return names.List()
 }
 
 // GetNewDependencies returns the new dependencies of the given service.
