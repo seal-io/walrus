@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"golang.org/x/tools/imports"
 
+	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
@@ -113,6 +114,8 @@ func configTemplateFuncs() {
 	gen.Funcs["getInputEdges"] = getInputEdges
 	gen.Funcs["getOutputFields"] = getOutputFields
 	gen.Funcs["getOutputEdges"] = getOutputEdges
+	gen.Funcs["hasAnnotation"] = io.HasAnnotation
+	gen.Funcs["inlineType"] = inlineType
 }
 
 // configTemplate configures the template of generation.

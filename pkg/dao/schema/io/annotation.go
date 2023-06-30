@@ -31,6 +31,13 @@ func DisableOutput() schema.Annotation {
 	}
 }
 
+// Inline will add inline json tag to the field into *Input/*Output entity.
+func Inline() schema.Annotation {
+	return &annotation{
+		Inline: true,
+	}
+}
+
 // Disable doesn't generate the field or edge into *Input/*Output entity.
 func Disable() schema.Annotation {
 	return &annotation{
@@ -51,6 +58,9 @@ type annotation struct {
 
 	// OutputDisabled doesn't generate the field or edge into *Output entity if true.
 	OutputDisabled bool
+
+	// Inline will add inline json tag to the field.
+	Inline bool
 }
 
 func (annotation) Name() string {
