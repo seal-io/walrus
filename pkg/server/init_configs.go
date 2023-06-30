@@ -85,10 +85,12 @@ func configureAuths(ctx context.Context, mc model.ClientSet, maxIdle time.Durati
 		if err != nil {
 			return err
 		}
+
 		key, err := hex.DecodeString(hexKey)
 		if err != nil {
 			return fmt.Errorf("failed to decode hex string: %w", err)
 		}
+
 		enc, err = cryptox.AesGcm(key)
 		if err != nil {
 			return fmt.Errorf("failed to create aes-gcm encryptor: %w", err)

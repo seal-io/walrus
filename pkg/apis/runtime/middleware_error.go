@@ -56,6 +56,7 @@ func getHttpError(c *gin.Context) (he httpError) {
 			he.code, he.brief = diagnoseError(ge)
 			he.cause = ge.Err
 		}
+
 		if ge.Type == gin.ErrorTypePrivate {
 			var we wrapError
 			if !errors.As(he.cause, &we) {

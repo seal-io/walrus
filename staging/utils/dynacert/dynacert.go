@@ -160,6 +160,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		if addr == nil {
 			return nil, errors.New("dynacert: missing local address")
 		}
+
 		tcpAddr, ok := addr.(*net.TCPAddr)
 		if !ok {
 			return nil, errors.New("dynacert: invalid local address")

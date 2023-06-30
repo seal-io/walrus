@@ -276,6 +276,7 @@ func (r RequestExtracting) Extracting(allowFields []string, defaultFields ...str
 		} else if ukey := strs.Underscore(key); ukey != key {
 			if allows.Has(ukey) {
 				allows.Delete(ukey) // Not allow duplicate inputs.
+
 				if with {
 					fields = append(fields, ukey)
 				}

@@ -131,6 +131,7 @@ func (h Handler) CollectionGet(
 	}
 	{
 		var sps []predicate.Setting
+
 		for i := 0; i < len(req.IDs); i++ {
 			if req.IDs[i].IsNaive() {
 				sps = append(sps, setting.ID(req.IDs[i]))
@@ -139,6 +140,7 @@ func (h Handler) CollectionGet(
 				sps = append(sps, setting.Name(keys[0]))
 			}
 		}
+
 		if len(sps) != 0 {
 			input = append(input, setting.Or(sps...))
 		}
