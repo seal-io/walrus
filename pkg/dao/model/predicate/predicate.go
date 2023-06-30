@@ -65,3 +65,6 @@ type TemplateVersion func(*sql.Selector)
 
 // Token is the predicate function for token builders.
 type Token func(*sql.Selector)
+
+// Variable is the predicate function for variable builders.
+type Variable func(*sql.Selector)

@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -188,6 +189,21 @@ func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCrea
 		ids[i] = s[i].ID
 	}
 	return pc.AddServiceRevisionIDs(ids...)
+}
+
+// AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
+func (pc *ProjectCreate) AddVariableIDs(ids ...oid.ID) *ProjectCreate {
+	pc.mutation.AddVariableIDs(ids...)
+	return pc
+}
+
+// AddVariables adds the "variables" edges to the Variable entity.
+func (pc *ProjectCreate) AddVariables(v ...*Variable) *ProjectCreate {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pc.AddVariableIDs(ids...)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -426,6 +442,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.ServiceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.VariablesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.Variable
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

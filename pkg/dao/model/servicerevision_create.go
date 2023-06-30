@@ -118,6 +118,12 @@ func (src *ServiceRevisionCreate) SetSecrets(c crypto.Map[string, string]) *Serv
 	return src
 }
 
+// SetVariables sets the "variables" field.
+func (src *ServiceRevisionCreate) SetVariables(c crypto.Map[string, string]) *ServiceRevisionCreate {
+	src.mutation.SetVariables(c)
+	return src
+}
+
 // SetInputPlan sets the "inputPlan" field.
 func (src *ServiceRevisionCreate) SetInputPlan(s string) *ServiceRevisionCreate {
 	src.mutation.SetInputPlan(s)
@@ -239,6 +245,10 @@ func (src *ServiceRevisionCreate) defaults() error {
 		v := servicerevision.DefaultSecrets
 		src.mutation.SetSecrets(v)
 	}
+	if _, ok := src.mutation.Variables(); !ok {
+		v := servicerevision.DefaultVariables
+		src.mutation.SetVariables(v)
+	}
 	if _, ok := src.mutation.DeployerType(); !ok {
 		v := servicerevision.DefaultDeployerType
 		src.mutation.SetDeployerType(v)
@@ -305,6 +315,9 @@ func (src *ServiceRevisionCreate) check() error {
 	}
 	if _, ok := src.mutation.Secrets(); !ok {
 		return &ValidationError{Name: "secrets", err: errors.New(`model: missing required field "ServiceRevision.secrets"`)}
+	}
+	if _, ok := src.mutation.Variables(); !ok {
+		return &ValidationError{Name: "variables", err: errors.New(`model: missing required field "ServiceRevision.variables"`)}
 	}
 	if _, ok := src.mutation.InputPlan(); !ok {
 		return &ValidationError{Name: "inputPlan", err: errors.New(`model: missing required field "ServiceRevision.inputPlan"`)}
@@ -397,6 +410,10 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 	if value, ok := src.mutation.Secrets(); ok {
 		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
 		_node.Secrets = value
+	}
+	if value, ok := src.mutation.Variables(); ok {
+		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
+		_node.Variables = value
 	}
 	if value, ok := src.mutation.InputPlan(); ok {
 		_spec.SetField(servicerevision.FieldInputPlan, field.TypeString, value)
@@ -603,6 +620,18 @@ func (u *ServiceRevisionUpsert) SetSecrets(v crypto.Map[string, string]) *Servic
 // UpdateSecrets sets the "secrets" field to the value that was provided on create.
 func (u *ServiceRevisionUpsert) UpdateSecrets() *ServiceRevisionUpsert {
 	u.SetExcluded(servicerevision.FieldSecrets)
+	return u
+}
+
+// SetVariables sets the "variables" field.
+func (u *ServiceRevisionUpsert) SetVariables(v crypto.Map[string, string]) *ServiceRevisionUpsert {
+	u.Set(servicerevision.FieldVariables, v)
+	return u
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ServiceRevisionUpsert) UpdateVariables() *ServiceRevisionUpsert {
+	u.SetExcluded(servicerevision.FieldVariables)
 	return u
 }
 
@@ -835,6 +864,20 @@ func (u *ServiceRevisionUpsertOne) SetSecrets(v crypto.Map[string, string]) *Ser
 func (u *ServiceRevisionUpsertOne) UpdateSecrets() *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdateSecrets()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ServiceRevisionUpsertOne) SetVariables(v crypto.Map[string, string]) *ServiceRevisionUpsertOne {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ServiceRevisionUpsertOne) UpdateVariables() *ServiceRevisionUpsertOne {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.UpdateVariables()
 	})
 }
 
@@ -1243,6 +1286,20 @@ func (u *ServiceRevisionUpsertBulk) SetSecrets(v crypto.Map[string, string]) *Se
 func (u *ServiceRevisionUpsertBulk) UpdateSecrets() *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.UpdateSecrets()
+	})
+}
+
+// SetVariables sets the "variables" field.
+func (u *ServiceRevisionUpsertBulk) SetVariables(v crypto.Map[string, string]) *ServiceRevisionUpsertBulk {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.SetVariables(v)
+	})
+}
+
+// UpdateVariables sets the "variables" field to the value that was provided on create.
+func (u *ServiceRevisionUpsertBulk) UpdateVariables() *ServiceRevisionUpsertBulk {
+	return u.Update(func(s *ServiceRevisionUpsert) {
+		s.UpdateVariables()
 	})
 }
 

@@ -42,6 +42,8 @@ const (
 	EdgeServices = "services"
 	// EdgeServiceRevisions holds the string denoting the servicerevisions edge name in mutations.
 	EdgeServiceRevisions = "serviceRevisions"
+	// EdgeVariables holds the string denoting the variables edge name in mutations.
+	EdgeVariables = "variables"
 	// Table holds the table name of the project in the database.
 	Table = "projects"
 	// EnvironmentsTable is the table that holds the environments relation/edge.
@@ -86,6 +88,13 @@ const (
 	ServiceRevisionsInverseTable = "service_revisions"
 	// ServiceRevisionsColumn is the table column denoting the serviceRevisions relation/edge.
 	ServiceRevisionsColumn = "project_id"
+	// VariablesTable is the table that holds the variables relation/edge.
+	VariablesTable = "variables"
+	// VariablesInverseTable is the table name for the Variable entity.
+	// It exists in this package in order to avoid circular dependency with the "variable" package.
+	VariablesInverseTable = "variables"
+	// VariablesColumn is the table column denoting the variables relation/edge.
+	VariablesColumn = "project_id"
 )
 
 // Columns holds all SQL columns for project fields.
@@ -241,6 +250,20 @@ func ByServiceRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newServiceRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByVariablesCount orders the results by variables count.
+func ByVariablesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVariablesStep(), opts...)
+	}
+}
+
+// ByVariables orders the results by variables terms.
+func ByVariables(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVariablesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEnvironmentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -281,6 +304,13 @@ func newServiceRevisionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ServiceRevisionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ServiceRevisionsTable, ServiceRevisionsColumn),
+	)
+}
+func newVariablesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VariablesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VariablesTable, VariablesColumn),
 	)
 }
 

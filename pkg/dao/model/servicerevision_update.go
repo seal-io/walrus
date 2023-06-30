@@ -101,6 +101,12 @@ func (sru *ServiceRevisionUpdate) SetSecrets(c crypto.Map[string, string]) *Serv
 	return sru
 }
 
+// SetVariables sets the "variables" field.
+func (sru *ServiceRevisionUpdate) SetVariables(c crypto.Map[string, string]) *ServiceRevisionUpdate {
+	sru.mutation.SetVariables(c)
+	return sru
+}
+
 // SetInputPlan sets the "inputPlan" field.
 func (sru *ServiceRevisionUpdate) SetInputPlan(s string) *ServiceRevisionUpdate {
 	sru.mutation.SetInputPlan(s)
@@ -265,6 +271,9 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := sru.mutation.Secrets(); ok {
 		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
 	}
+	if value, ok := sru.mutation.Variables(); ok {
+		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
+	}
 	if value, ok := sru.mutation.InputPlan(); ok {
 		_spec.SetField(servicerevision.FieldInputPlan, field.TypeString, value)
 	}
@@ -381,6 +390,12 @@ func (sruo *ServiceRevisionUpdateOne) ClearAttributes() *ServiceRevisionUpdateOn
 // SetSecrets sets the "secrets" field.
 func (sruo *ServiceRevisionUpdateOne) SetSecrets(c crypto.Map[string, string]) *ServiceRevisionUpdateOne {
 	sruo.mutation.SetSecrets(c)
+	return sruo
+}
+
+// SetVariables sets the "variables" field.
+func (sruo *ServiceRevisionUpdateOne) SetVariables(c crypto.Map[string, string]) *ServiceRevisionUpdateOne {
+	sruo.mutation.SetVariables(c)
 	return sruo
 }
 
@@ -577,6 +592,9 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 	}
 	if value, ok := sruo.mutation.Secrets(); ok {
 		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
+	}
+	if value, ok := sruo.mutation.Variables(); ok {
+		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
 	}
 	if value, ok := sruo.mutation.InputPlan(); ok {
 		_spec.SetField(servicerevision.FieldInputPlan, field.TypeString, value)

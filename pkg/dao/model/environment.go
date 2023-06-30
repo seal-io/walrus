@@ -54,9 +54,11 @@ type EnvironmentEdges struct {
 	Services []*Service `json:"services,omitempty" sql:"services"`
 	// Services revisions that belong to the environment.
 	ServiceRevisions []*ServiceRevision `json:"serviceRevisions,omitempty" sql:"serviceRevisions"`
+	// Variables that belong to the environment.
+	Variables []*Variable `json:"variables,omitempty" sql:"variables"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -97,6 +99,15 @@ func (e EnvironmentEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
 		return e.ServiceRevisions, nil
 	}
 	return nil, &NotLoadedError{edge: "serviceRevisions"}
+}
+
+// VariablesOrErr returns the Variables value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnvironmentEdges) VariablesOrErr() ([]*Variable, error) {
+	if e.loadedTypes[4] {
+		return e.Variables, nil
+	}
+	return nil, &NotLoadedError{edge: "variables"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -212,6 +223,11 @@ func (e *Environment) QueryServices() *ServiceQuery {
 // QueryServiceRevisions queries the "serviceRevisions" edge of the Environment entity.
 func (e *Environment) QueryServiceRevisions() *ServiceRevisionQuery {
 	return NewEnvironmentClient(e.config).QueryServiceRevisions(e)
+}
+
+// QueryVariables queries the "variables" edge of the Environment entity.
+func (e *Environment) QueryVariables() *VariableQuery {
+	return NewEnvironmentClient(e.config).QueryVariables(e)
 }
 
 // Update returns a builder for updating this Environment.

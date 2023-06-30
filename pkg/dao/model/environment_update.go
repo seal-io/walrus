@@ -20,6 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -123,6 +124,21 @@ func (eu *EnvironmentUpdate) AddServiceRevisions(s ...*ServiceRevision) *Environ
 	return eu.AddServiceRevisionIDs(ids...)
 }
 
+// AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
+func (eu *EnvironmentUpdate) AddVariableIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.AddVariableIDs(ids...)
+	return eu
+}
+
+// AddVariables adds the "variables" edges to the Variable entity.
+func (eu *EnvironmentUpdate) AddVariables(v ...*Variable) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return eu.AddVariableIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (eu *EnvironmentUpdate) Mutation() *EnvironmentMutation {
 	return eu.mutation
@@ -168,6 +184,27 @@ func (eu *EnvironmentUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *Envi
 		ids[i] = s[i].ID
 	}
 	return eu.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearVariables clears all "variables" edges to the Variable entity.
+func (eu *EnvironmentUpdate) ClearVariables() *EnvironmentUpdate {
+	eu.mutation.ClearVariables()
+	return eu
+}
+
+// RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
+func (eu *EnvironmentUpdate) RemoveVariableIDs(ids ...oid.ID) *EnvironmentUpdate {
+	eu.mutation.RemoveVariableIDs(ids...)
+	return eu
+}
+
+// RemoveVariables removes "variables" edges to Variable entities.
+func (eu *EnvironmentUpdate) RemoveVariables(v ...*Variable) *EnvironmentUpdate {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return eu.RemoveVariableIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -363,6 +400,54 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if eu.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.Variable
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedVariablesIDs(); len(nodes) > 0 && !eu.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.VariablesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = eu.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = eu.schemaConfig.Environment
 	ctx = internal.NewSchemaConfigContext(ctx, eu.schemaConfig)
 	_spec.AddModifiers(eu.modifiers...)
@@ -473,6 +558,21 @@ func (euo *EnvironmentUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Env
 	return euo.AddServiceRevisionIDs(ids...)
 }
 
+// AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
+func (euo *EnvironmentUpdateOne) AddVariableIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.AddVariableIDs(ids...)
+	return euo
+}
+
+// AddVariables adds the "variables" edges to the Variable entity.
+func (euo *EnvironmentUpdateOne) AddVariables(v ...*Variable) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return euo.AddVariableIDs(ids...)
+}
+
 // Mutation returns the EnvironmentMutation object of the builder.
 func (euo *EnvironmentUpdateOne) Mutation() *EnvironmentMutation {
 	return euo.mutation
@@ -518,6 +618,27 @@ func (euo *EnvironmentUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *
 		ids[i] = s[i].ID
 	}
 	return euo.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearVariables clears all "variables" edges to the Variable entity.
+func (euo *EnvironmentUpdateOne) ClearVariables() *EnvironmentUpdateOne {
+	euo.mutation.ClearVariables()
+	return euo
+}
+
+// RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
+func (euo *EnvironmentUpdateOne) RemoveVariableIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+	euo.mutation.RemoveVariableIDs(ids...)
+	return euo
+}
+
+// RemoveVariables removes "variables" edges to Variable entities.
+func (euo *EnvironmentUpdateOne) RemoveVariables(v ...*Variable) *EnvironmentUpdateOne {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return euo.RemoveVariableIDs(ids...)
 }
 
 // Where appends a list predicates to the EnvironmentUpdate builder.
@@ -738,6 +859,54 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 			},
 		}
 		edge.Schema = euo.schemaConfig.ServiceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.Variable
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedVariablesIDs(); len(nodes) > 0 && !euo.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.VariablesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   environment.VariablesTable,
+			Columns: []string{environment.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = euo.schemaConfig.Variable
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

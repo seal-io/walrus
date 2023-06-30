@@ -25,6 +25,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -41,6 +42,7 @@ type ProjectQuery struct {
 	withSubjectRoles     *SubjectRoleRelationshipQuery
 	withServices         *ServiceQuery
 	withServiceRevisions *ServiceRevisionQuery
+	withVariables        *VariableQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -222,6 +224,31 @@ func (pq *ProjectQuery) QueryServiceRevisions() *ServiceRevisionQuery {
 		schemaConfig := pq.schemaConfig
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVariables chains the current query on the "variables" edge.
+func (pq *ProjectQuery) QueryVariables() *VariableQuery {
+	query := (&VariableClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(variable.Table, variable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.VariablesTable, project.VariablesColumn),
+		)
+		schemaConfig := pq.schemaConfig
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -426,6 +453,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		withSubjectRoles:     pq.withSubjectRoles.Clone(),
 		withServices:         pq.withServices.Clone(),
 		withServiceRevisions: pq.withServiceRevisions.Clone(),
+		withVariables:        pq.withVariables.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -495,6 +523,17 @@ func (pq *ProjectQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQuery)
 		opt(query)
 	}
 	pq.withServiceRevisions = query
+	return pq
+}
+
+// WithVariables tells the query-builder to eager-load the nodes that are connected to
+// the "variables" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithVariables(opts ...func(*VariableQuery)) *ProjectQuery {
+	query := (&VariableClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withVariables = query
 	return pq
 }
 
@@ -576,13 +615,14 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = pq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			pq.withEnvironments != nil,
 			pq.withConnectors != nil,
 			pq.withSecrets != nil,
 			pq.withSubjectRoles != nil,
 			pq.withServices != nil,
 			pq.withServiceRevisions != nil,
+			pq.withVariables != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -647,6 +687,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadServiceRevisions(ctx, query, nodes,
 			func(n *Project) { n.Edges.ServiceRevisions = []*ServiceRevision{} },
 			func(n *Project, e *ServiceRevision) { n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withVariables; query != nil {
+		if err := pq.loadVariables(ctx, query, nodes,
+			func(n *Project) { n.Edges.Variables = []*Variable{} },
+			func(n *Project, e *Variable) { n.Edges.Variables = append(n.Edges.Variables, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -818,6 +865,36 @@ func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *Service
 	}
 	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(project.ServiceRevisionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "projectID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadVariables(ctx context.Context, query *VariableQuery, nodes []*Project, init func(*Project), assign func(*Project, *Variable)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(variable.FieldProjectID)
+	}
+	query.Where(predicate.Variable(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.VariablesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

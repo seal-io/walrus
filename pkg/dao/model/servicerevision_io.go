@@ -37,6 +37,8 @@ type ServiceRevisionCreateInput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Secrets of the revision.
 	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input plan of the revision.
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
@@ -58,6 +60,7 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
 		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
 		DeployerType:              in.DeployerType,
@@ -78,6 +81,8 @@ type ServiceRevisionUpdateInput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Secrets of the revision.
 	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input plan of the revision.
 	InputPlan string `json:"inputPlan,omitempty"`
 	// Output of the revision.
@@ -99,6 +104,7 @@ func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
 		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
 		DeployerType:              in.DeployerType,
@@ -127,6 +133,8 @@ type ServiceRevisionOutput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Secrets of the revision.
 	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
 	// Duration in seconds of the revision deploying.
@@ -157,6 +165,7 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
 		Secrets:                   in.Secrets,
+		Variables:                 in.Variables,
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,
 		PreviousRequiredProviders: in.PreviousRequiredProviders,

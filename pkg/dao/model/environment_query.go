@@ -23,6 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -37,6 +38,7 @@ type EnvironmentQuery struct {
 	withConnectors       *EnvironmentConnectorRelationshipQuery
 	withServices         *ServiceQuery
 	withServiceRevisions *ServiceRevisionQuery
+	withVariables        *VariableQuery
 	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -168,6 +170,31 @@ func (eq *EnvironmentQuery) QueryServiceRevisions() *ServiceRevisionQuery {
 		schemaConfig := eq.schemaConfig
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVariables chains the current query on the "variables" edge.
+func (eq *EnvironmentQuery) QueryVariables() *VariableQuery {
+	query := (&VariableClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, selector),
+			sqlgraph.To(variable.Table, variable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.VariablesTable, environment.VariablesColumn),
+		)
+		schemaConfig := eq.schemaConfig
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -370,6 +397,7 @@ func (eq *EnvironmentQuery) Clone() *EnvironmentQuery {
 		withConnectors:       eq.withConnectors.Clone(),
 		withServices:         eq.withServices.Clone(),
 		withServiceRevisions: eq.withServiceRevisions.Clone(),
+		withVariables:        eq.withVariables.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
 		path: eq.path,
@@ -417,6 +445,17 @@ func (eq *EnvironmentQuery) WithServiceRevisions(opts ...func(*ServiceRevisionQu
 		opt(query)
 	}
 	eq.withServiceRevisions = query
+	return eq
+}
+
+// WithVariables tells the query-builder to eager-load the nodes that are connected to
+// the "variables" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EnvironmentQuery) WithVariables(opts ...func(*VariableQuery)) *EnvironmentQuery {
+	query := (&VariableClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withVariables = query
 	return eq
 }
 
@@ -498,11 +537,12 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Environment{}
 		_spec       = eq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			eq.withProject != nil,
 			eq.withConnectors != nil,
 			eq.withServices != nil,
 			eq.withServiceRevisions != nil,
+			eq.withVariables != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -556,6 +596,13 @@ func (eq *EnvironmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			func(n *Environment, e *ServiceRevision) {
 				n.Edges.ServiceRevisions = append(n.Edges.ServiceRevisions, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := eq.withVariables; query != nil {
+		if err := eq.loadVariables(ctx, query, nodes,
+			func(n *Environment) { n.Edges.Variables = []*Variable{} },
+			func(n *Environment, e *Variable) { n.Edges.Variables = append(n.Edges.Variables, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -666,6 +713,36 @@ func (eq *EnvironmentQuery) loadServiceRevisions(ctx context.Context, query *Ser
 	}
 	query.Where(predicate.ServiceRevision(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(environment.ServiceRevisionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EnvironmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "environmentID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eq *EnvironmentQuery) loadVariables(ctx context.Context, query *VariableQuery, nodes []*Environment, init func(*Environment), assign func(*Environment, *Variable)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*Environment)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(variable.FieldEnvironmentID)
+	}
+	query.Where(predicate.Variable(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(environment.VariablesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

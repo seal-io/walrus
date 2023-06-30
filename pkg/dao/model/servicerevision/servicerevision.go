@@ -41,6 +41,8 @@ const (
 	FieldAttributes = "attributes"
 	// FieldSecrets holds the string denoting the secrets field in the database.
 	FieldSecrets = "secrets"
+	// FieldVariables holds the string denoting the variables field in the database.
+	FieldVariables = "variables"
 	// FieldInputPlan holds the string denoting the inputplan field in the database.
 	FieldInputPlan = "input_plan"
 	// FieldOutput holds the string denoting the output field in the database.
@@ -97,6 +99,7 @@ var Columns = []string{
 	FieldTemplateVersion,
 	FieldAttributes,
 	FieldSecrets,
+	FieldVariables,
 	FieldInputPlan,
 	FieldOutput,
 	FieldDeployerType,
@@ -137,6 +140,8 @@ var (
 	TemplateVersionValidator func(string) error
 	// DefaultSecrets holds the default value on creation for the "secrets" field.
 	DefaultSecrets crypto.Map[string, string]
+	// DefaultVariables holds the default value on creation for the "variables" field.
+	DefaultVariables crypto.Map[string, string]
 	// DefaultDeployerType holds the default value on creation for the "deployerType" field.
 	DefaultDeployerType string
 	// DefaultDuration holds the default value on creation for the "duration" field.
@@ -203,6 +208,11 @@ func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 // BySecrets orders the results by the secrets field.
 func BySecrets(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSecrets, opts...).ToFunc()
+}
+
+// ByVariables orders the results by the variables field.
+func ByVariables(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVariables, opts...).ToFunc()
 }
 
 // ByInputPlan orders the results by the inputPlan field.

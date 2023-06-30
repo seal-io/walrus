@@ -495,6 +495,35 @@ func HasServiceRevisionsWith(preds ...predicate.ServiceRevision) predicate.Proje
 	})
 }
 
+// HasVariables applies the HasEdge predicate on the "variables" edge.
+func HasVariables() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VariablesTable, VariablesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVariablesWith applies the HasEdge predicate on the "variables" edge with a given conditions (other predicates).
+func HasVariablesWith(preds ...predicate.Variable) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newVariablesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Project) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

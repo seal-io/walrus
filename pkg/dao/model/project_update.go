@@ -24,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
@@ -187,6 +188,21 @@ func (pu *ProjectUpdate) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpda
 	return pu.AddServiceRevisionIDs(ids...)
 }
 
+// AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
+func (pu *ProjectUpdate) AddVariableIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.AddVariableIDs(ids...)
+	return pu
+}
+
+// AddVariables adds the "variables" edges to the Variable entity.
+func (pu *ProjectUpdate) AddVariables(v ...*Variable) *ProjectUpdate {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pu.AddVariableIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 	return pu.mutation
@@ -316,6 +332,27 @@ func (pu *ProjectUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectU
 		ids[i] = s[i].ID
 	}
 	return pu.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearVariables clears all "variables" edges to the Variable entity.
+func (pu *ProjectUpdate) ClearVariables() *ProjectUpdate {
+	pu.mutation.ClearVariables()
+	return pu
+}
+
+// RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
+func (pu *ProjectUpdate) RemoveVariableIDs(ids ...oid.ID) *ProjectUpdate {
+	pu.mutation.RemoveVariableIDs(ids...)
+	return pu
+}
+
+// RemoveVariables removes "variables" edges to Variable entities.
+func (pu *ProjectUpdate) RemoveVariables(v ...*Variable) *ProjectUpdate {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return pu.RemoveVariableIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -700,6 +737,54 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Variable
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedVariablesIDs(); len(nodes) > 0 && !pu.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.VariablesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = pu.schemaConfig.Project
 	ctx = internal.NewSchemaConfigContext(ctx, pu.schemaConfig)
 	_spec.AddModifiers(pu.modifiers...)
@@ -870,6 +955,21 @@ func (puo *ProjectUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Project
 	return puo.AddServiceRevisionIDs(ids...)
 }
 
+// AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
+func (puo *ProjectUpdateOne) AddVariableIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.AddVariableIDs(ids...)
+	return puo
+}
+
+// AddVariables adds the "variables" edges to the Variable entity.
+func (puo *ProjectUpdateOne) AddVariables(v ...*Variable) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return puo.AddVariableIDs(ids...)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 	return puo.mutation
@@ -999,6 +1099,27 @@ func (puo *ProjectUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *Proj
 		ids[i] = s[i].ID
 	}
 	return puo.RemoveServiceRevisionIDs(ids...)
+}
+
+// ClearVariables clears all "variables" edges to the Variable entity.
+func (puo *ProjectUpdateOne) ClearVariables() *ProjectUpdateOne {
+	puo.mutation.ClearVariables()
+	return puo
+}
+
+// RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
+func (puo *ProjectUpdateOne) RemoveVariableIDs(ids ...oid.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveVariableIDs(ids...)
+	return puo
+}
+
+// RemoveVariables removes "variables" edges to Variable entities.
+func (puo *ProjectUpdateOne) RemoveVariables(v ...*Variable) *ProjectUpdateOne {
+	ids := make([]oid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return puo.RemoveVariableIDs(ids...)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -1408,6 +1529,54 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.ServiceRevision
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Variable
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedVariablesIDs(); len(nodes) > 0 && !puo.mutation.VariablesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Variable
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.VariablesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.VariablesTable,
+			Columns: []string{project.VariablesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(variable.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.Variable
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

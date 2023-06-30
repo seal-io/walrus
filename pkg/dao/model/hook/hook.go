@@ -240,6 +240,18 @@ func (f TokenFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.TokenMutation", m)
 }
 
+// The VariableFunc type is an adapter to allow the use of ordinary
+// function as Variable mutator.
+type VariableFunc func(context.Context, *model.VariableMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VariableFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.VariableMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.VariableMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, model.Mutation) bool
 

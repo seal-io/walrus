@@ -29,6 +29,7 @@ type SchemaConfig struct {
 	Template                         string // Template table.
 	TemplateVersion                  string // TemplateVersion table.
 	Token                            string // Token table.
+	Variable                         string // Variable table.
 }
 
 type schemaCtxKey struct{}

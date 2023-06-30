@@ -113,6 +113,11 @@ func Secrets(v crypto.Map[string, string]) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldSecrets, v))
 }
 
+// Variables applies equality check predicate on the "variables" field. It's identical to VariablesEQ.
+func Variables(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldVariables, v))
+}
+
 // InputPlan applies equality check predicate on the "inputPlan" field. It's identical to InputPlanEQ.
 func InputPlan(v string) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldInputPlan, v))
@@ -751,6 +756,46 @@ func SecretsLT(v crypto.Map[string, string]) predicate.ServiceRevision {
 // SecretsLTE applies the LTE predicate on the "secrets" field.
 func SecretsLTE(v crypto.Map[string, string]) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldSecrets, v))
+}
+
+// VariablesEQ applies the EQ predicate on the "variables" field.
+func VariablesEQ(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldVariables, v))
+}
+
+// VariablesNEQ applies the NEQ predicate on the "variables" field.
+func VariablesNEQ(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNEQ(FieldVariables, v))
+}
+
+// VariablesIn applies the In predicate on the "variables" field.
+func VariablesIn(vs ...crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIn(FieldVariables, vs...))
+}
+
+// VariablesNotIn applies the NotIn predicate on the "variables" field.
+func VariablesNotIn(vs ...crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotIn(FieldVariables, vs...))
+}
+
+// VariablesGT applies the GT predicate on the "variables" field.
+func VariablesGT(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGT(FieldVariables, v))
+}
+
+// VariablesGTE applies the GTE predicate on the "variables" field.
+func VariablesGTE(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGTE(FieldVariables, v))
+}
+
+// VariablesLT applies the LT predicate on the "variables" field.
+func VariablesLT(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLT(FieldVariables, v))
+}
+
+// VariablesLTE applies the LTE predicate on the "variables" field.
+func VariablesLTE(v crypto.Map[string, string]) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLTE(FieldVariables, v))
 }
 
 // InputPlanEQ applies the EQ predicate on the "inputPlan" field.
