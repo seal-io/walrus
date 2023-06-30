@@ -39,8 +39,6 @@ const (
 	FieldTemplateVersion = "template_version"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
-	// FieldSecrets holds the string denoting the secrets field in the database.
-	FieldSecrets = "secrets"
 	// FieldVariables holds the string denoting the variables field in the database.
 	FieldVariables = "variables"
 	// FieldInputPlan holds the string denoting the inputplan field in the database.
@@ -98,7 +96,6 @@ var Columns = []string{
 	FieldTemplateID,
 	FieldTemplateVersion,
 	FieldAttributes,
-	FieldSecrets,
 	FieldVariables,
 	FieldInputPlan,
 	FieldOutput,
@@ -138,8 +135,6 @@ var (
 	TemplateIDValidator func(string) error
 	// TemplateVersionValidator is a validator for the "templateVersion" field. It is called by the builders before save.
 	TemplateVersionValidator func(string) error
-	// DefaultSecrets holds the default value on creation for the "secrets" field.
-	DefaultSecrets crypto.Map[string, string]
 	// DefaultVariables holds the default value on creation for the "variables" field.
 	DefaultVariables crypto.Map[string, string]
 	// DefaultDeployerType holds the default value on creation for the "deployerType" field.
@@ -203,11 +198,6 @@ func ByTemplateVersion(opts ...sql.OrderTermOption) OrderOption {
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
-}
-
-// BySecrets orders the results by the secrets field.
-func BySecrets(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSecrets, opts...).ToFunc()
 }
 
 // ByVariables orders the results by the variables field.

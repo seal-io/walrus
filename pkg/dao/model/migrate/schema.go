@@ -296,52 +296,6 @@ var (
 			},
 		},
 	}
-	// SecretsColumns holds the columns for the "secrets" table.
-	SecretsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "value", Type: field.TypeString, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
-		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// SecretsTable holds the schema information for the "secrets" table.
-	SecretsTable = &schema.Table{
-		Name:       "secrets",
-		Columns:    SecretsColumns,
-		PrimaryKey: []*schema.Column{SecretsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "secrets_projects_secrets",
-				Columns:    []*schema.Column{SecretsColumns[5]},
-				RefColumns: []*schema.Column{ProjectsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "secret_create_time",
-				Unique:  false,
-				Columns: []*schema.Column{SecretsColumns[1]},
-			},
-			{
-				Name:    "secret_project_id_name",
-				Unique:  true,
-				Columns: []*schema.Column{SecretsColumns[5], SecretsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "project_id IS NOT NULL",
-				},
-			},
-			{
-				Name:    "secret_name",
-				Unique:  true,
-				Columns: []*schema.Column{SecretsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "project_id IS NULL",
-				},
-			},
-		},
-	}
 	// ServicesColumns holds the columns for the "services" table.
 	ServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -476,7 +430,6 @@ var (
 		{Name: "template_id", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
-		{Name: "secrets", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
@@ -496,19 +449,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_revisions_environments_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_projects_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_services_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[17]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -797,7 +750,6 @@ var (
 		PerspectivesTable,
 		ProjectsTable,
 		RolesTable,
-		SecretsTable,
 		ServicesTable,
 		ServiceDependenciesTable,
 		ServiceResourcesTable,
@@ -819,7 +771,6 @@ func init() {
 	EnvironmentsTable.ForeignKeys[0].RefTable = ProjectsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
-	SecretsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ServicesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ServicesTable.ForeignKeys[1].RefTable = ProjectsTable
 	ServiceDependenciesTable.ForeignKeys[0].RefTable = ServicesTable

@@ -34,8 +34,6 @@ const (
 	EdgeEnvironments = "environments"
 	// EdgeConnectors holds the string denoting the connectors edge name in mutations.
 	EdgeConnectors = "connectors"
-	// EdgeSecrets holds the string denoting the secrets edge name in mutations.
-	EdgeSecrets = "secrets"
 	// EdgeSubjectRoles holds the string denoting the subjectroles edge name in mutations.
 	EdgeSubjectRoles = "subjectRoles"
 	// EdgeServices holds the string denoting the services edge name in mutations.
@@ -60,13 +58,6 @@ const (
 	ConnectorsInverseTable = "connectors"
 	// ConnectorsColumn is the table column denoting the connectors relation/edge.
 	ConnectorsColumn = "project_id"
-	// SecretsTable is the table that holds the secrets relation/edge.
-	SecretsTable = "secrets"
-	// SecretsInverseTable is the table name for the Secret entity.
-	// It exists in this package in order to avoid circular dependency with the "secret" package.
-	SecretsInverseTable = "secrets"
-	// SecretsColumn is the table column denoting the secrets relation/edge.
-	SecretsColumn = "project_id"
 	// SubjectRolesTable is the table that holds the subjectRoles relation/edge.
 	SubjectRolesTable = "subject_role_relationships"
 	// SubjectRolesInverseTable is the table name for the SubjectRoleRelationship entity.
@@ -195,20 +186,6 @@ func ByConnectors(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// BySecretsCount orders the results by secrets count.
-func BySecretsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSecretsStep(), opts...)
-	}
-}
-
-// BySecrets orders the results by secrets terms.
-func BySecrets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSecretsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // BySubjectRolesCount orders the results by subjectRoles count.
 func BySubjectRolesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -276,13 +253,6 @@ func newConnectorsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ConnectorsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ConnectorsTable, ConnectorsColumn),
-	)
-}
-func newSecretsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SecretsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
 	)
 }
 func newSubjectRolesStep() *sqlgraph.Step {

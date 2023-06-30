@@ -19,7 +19,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
@@ -129,21 +128,6 @@ func (pc *ProjectCreate) AddConnectors(c ...*Connector) *ProjectCreate {
 		ids[i] = c[i].ID
 	}
 	return pc.AddConnectorIDs(ids...)
-}
-
-// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
-func (pc *ProjectCreate) AddSecretIDs(ids ...oid.ID) *ProjectCreate {
-	pc.mutation.AddSecretIDs(ids...)
-	return pc
-}
-
-// AddSecrets adds the "secrets" edges to the Secret entity.
-func (pc *ProjectCreate) AddSecrets(s ...*Secret) *ProjectCreate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pc.AddSecretIDs(ids...)
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
@@ -374,23 +358,6 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = pc.schemaConfig.Connector
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := pc.mutation.SecretsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pc.schemaConfig.Secret
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

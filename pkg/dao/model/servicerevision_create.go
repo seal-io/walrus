@@ -112,12 +112,6 @@ func (src *ServiceRevisionCreate) SetAttributes(pr property.Values) *ServiceRevi
 	return src
 }
 
-// SetSecrets sets the "secrets" field.
-func (src *ServiceRevisionCreate) SetSecrets(c crypto.Map[string, string]) *ServiceRevisionCreate {
-	src.mutation.SetSecrets(c)
-	return src
-}
-
 // SetVariables sets the "variables" field.
 func (src *ServiceRevisionCreate) SetVariables(c crypto.Map[string, string]) *ServiceRevisionCreate {
 	src.mutation.SetVariables(c)
@@ -241,10 +235,6 @@ func (src *ServiceRevisionCreate) defaults() error {
 		v := servicerevision.DefaultCreateTime()
 		src.mutation.SetCreateTime(v)
 	}
-	if _, ok := src.mutation.Secrets(); !ok {
-		v := servicerevision.DefaultSecrets
-		src.mutation.SetSecrets(v)
-	}
 	if _, ok := src.mutation.Variables(); !ok {
 		v := servicerevision.DefaultVariables
 		src.mutation.SetVariables(v)
@@ -312,9 +302,6 @@ func (src *ServiceRevisionCreate) check() error {
 		if err := servicerevision.TemplateVersionValidator(v); err != nil {
 			return &ValidationError{Name: "templateVersion", err: fmt.Errorf(`model: validator failed for field "ServiceRevision.templateVersion": %w`, err)}
 		}
-	}
-	if _, ok := src.mutation.Secrets(); !ok {
-		return &ValidationError{Name: "secrets", err: errors.New(`model: missing required field "ServiceRevision.secrets"`)}
 	}
 	if _, ok := src.mutation.Variables(); !ok {
 		return &ValidationError{Name: "variables", err: errors.New(`model: missing required field "ServiceRevision.variables"`)}
@@ -406,10 +393,6 @@ func (src *ServiceRevisionCreate) createSpec() (*ServiceRevision, *sqlgraph.Crea
 	if value, ok := src.mutation.Attributes(); ok {
 		_spec.SetField(servicerevision.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
-	}
-	if value, ok := src.mutation.Secrets(); ok {
-		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
-		_node.Secrets = value
 	}
 	if value, ok := src.mutation.Variables(); ok {
 		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
@@ -608,18 +591,6 @@ func (u *ServiceRevisionUpsert) UpdateAttributes() *ServiceRevisionUpsert {
 // ClearAttributes clears the value of the "attributes" field.
 func (u *ServiceRevisionUpsert) ClearAttributes() *ServiceRevisionUpsert {
 	u.SetNull(servicerevision.FieldAttributes)
-	return u
-}
-
-// SetSecrets sets the "secrets" field.
-func (u *ServiceRevisionUpsert) SetSecrets(v crypto.Map[string, string]) *ServiceRevisionUpsert {
-	u.Set(servicerevision.FieldSecrets, v)
-	return u
-}
-
-// UpdateSecrets sets the "secrets" field to the value that was provided on create.
-func (u *ServiceRevisionUpsert) UpdateSecrets() *ServiceRevisionUpsert {
-	u.SetExcluded(servicerevision.FieldSecrets)
 	return u
 }
 
@@ -850,20 +821,6 @@ func (u *ServiceRevisionUpsertOne) UpdateAttributes() *ServiceRevisionUpsertOne 
 func (u *ServiceRevisionUpsertOne) ClearAttributes() *ServiceRevisionUpsertOne {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.ClearAttributes()
-	})
-}
-
-// SetSecrets sets the "secrets" field.
-func (u *ServiceRevisionUpsertOne) SetSecrets(v crypto.Map[string, string]) *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetSecrets(v)
-	})
-}
-
-// UpdateSecrets sets the "secrets" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertOne) UpdateSecrets() *ServiceRevisionUpsertOne {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateSecrets()
 	})
 }
 
@@ -1272,20 +1229,6 @@ func (u *ServiceRevisionUpsertBulk) UpdateAttributes() *ServiceRevisionUpsertBul
 func (u *ServiceRevisionUpsertBulk) ClearAttributes() *ServiceRevisionUpsertBulk {
 	return u.Update(func(s *ServiceRevisionUpsert) {
 		s.ClearAttributes()
-	})
-}
-
-// SetSecrets sets the "secrets" field.
-func (u *ServiceRevisionUpsertBulk) SetSecrets(v crypto.Map[string, string]) *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.SetSecrets(v)
-	})
-}
-
-// UpdateSecrets sets the "secrets" field to the value that was provided on create.
-func (u *ServiceRevisionUpsertBulk) UpdateSecrets() *ServiceRevisionUpsertBulk {
-	return u.Update(func(s *ServiceRevisionUpsert) {
-		s.UpdateSecrets()
 	})
 }
 

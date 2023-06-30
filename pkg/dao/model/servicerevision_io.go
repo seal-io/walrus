@@ -35,8 +35,6 @@ type ServiceRevisionCreateInput struct {
 	TemplateVersion string `json:"templateVersion"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Secrets of the revision.
-	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input plan of the revision.
@@ -59,7 +57,6 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
-		Secrets:                   in.Secrets,
 		Variables:                 in.Variables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
@@ -79,8 +76,6 @@ type ServiceRevisionUpdateInput struct {
 	TemplateVersion string `json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Secrets of the revision.
-	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Input plan of the revision.
@@ -103,7 +98,6 @@ func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 		ID:                        in.ID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
-		Secrets:                   in.Secrets,
 		Variables:                 in.Variables,
 		InputPlan:                 in.InputPlan,
 		Output:                    in.Output,
@@ -131,8 +125,6 @@ type ServiceRevisionOutput struct {
 	TemplateVersion string `json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Secrets of the revision.
-	Secrets crypto.Map[string, string] `json:"secrets,omitempty"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `json:"variables,omitempty"`
 	// Type of deployer.
@@ -164,7 +156,6 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
-		Secrets:                   in.Secrets,
 		Variables:                 in.Variables,
 		DeployerType:              in.DeployerType,
 		Duration:                  in.Duration,

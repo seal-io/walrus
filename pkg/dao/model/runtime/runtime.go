@@ -16,7 +16,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -385,36 +384,6 @@ func init() {
 	roleDescID := roleFields[0].Descriptor()
 	// role.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	role.IDValidator = roleDescID.Validators[0].(func(string) error)
-	secretMixin := schema.Secret{}.Mixin()
-	secretMixinHooks0 := secretMixin[0].Hooks()
-	secretMixinHooks2 := secretMixin[2].Hooks()
-	secret.Hooks[0] = secretMixinHooks0[0]
-	secret.Hooks[1] = secretMixinHooks2[0]
-	secret.Hooks[2] = secretMixinHooks2[1]
-	secretMixinInters2 := secretMixin[2].Interceptors()
-	secret.Interceptors[0] = secretMixinInters2[0]
-	secretMixinFields1 := secretMixin[1].Fields()
-	_ = secretMixinFields1
-	secretFields := schema.Secret{}.Fields()
-	_ = secretFields
-	// secretDescCreateTime is the schema descriptor for createTime field.
-	secretDescCreateTime := secretMixinFields1[0].Descriptor()
-	// secret.DefaultCreateTime holds the default value on creation for the createTime field.
-	secret.DefaultCreateTime = secretDescCreateTime.Default.(func() time.Time)
-	// secretDescUpdateTime is the schema descriptor for updateTime field.
-	secretDescUpdateTime := secretMixinFields1[1].Descriptor()
-	// secret.DefaultUpdateTime holds the default value on creation for the updateTime field.
-	secret.DefaultUpdateTime = secretDescUpdateTime.Default.(func() time.Time)
-	// secret.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
-	secret.UpdateDefaultUpdateTime = secretDescUpdateTime.UpdateDefault.(func() time.Time)
-	// secretDescName is the schema descriptor for name field.
-	secretDescName := secretFields[0].Descriptor()
-	// secret.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	secret.NameValidator = secretDescName.Validators[0].(func(string) error)
-	// secretDescValue is the schema descriptor for value field.
-	secretDescValue := secretFields[1].Descriptor()
-	// secret.ValueValidator is a validator for the "value" field. It is called by the builders before save.
-	secret.ValueValidator = secretDescValue.Validators[0].(func(string) error)
 	serviceMixin := schema.Service{}.Mixin()
 	serviceMixinHooks0 := serviceMixin[0].Hooks()
 	serviceMixinHooks1 := serviceMixin[1].Hooks()
@@ -574,28 +543,24 @@ func init() {
 	servicerevisionDescTemplateVersion := servicerevisionFields[3].Descriptor()
 	// servicerevision.TemplateVersionValidator is a validator for the "templateVersion" field. It is called by the builders before save.
 	servicerevision.TemplateVersionValidator = servicerevisionDescTemplateVersion.Validators[0].(func(string) error)
-	// servicerevisionDescSecrets is the schema descriptor for secrets field.
-	servicerevisionDescSecrets := servicerevisionFields[5].Descriptor()
-	// servicerevision.DefaultSecrets holds the default value on creation for the secrets field.
-	servicerevision.DefaultSecrets = servicerevisionDescSecrets.Default.(crypto.Map[string, string])
 	// servicerevisionDescVariables is the schema descriptor for variables field.
-	servicerevisionDescVariables := servicerevisionFields[6].Descriptor()
+	servicerevisionDescVariables := servicerevisionFields[5].Descriptor()
 	// servicerevision.DefaultVariables holds the default value on creation for the variables field.
 	servicerevision.DefaultVariables = servicerevisionDescVariables.Default.(crypto.Map[string, string])
 	// servicerevisionDescDeployerType is the schema descriptor for deployerType field.
-	servicerevisionDescDeployerType := servicerevisionFields[9].Descriptor()
+	servicerevisionDescDeployerType := servicerevisionFields[8].Descriptor()
 	// servicerevision.DefaultDeployerType holds the default value on creation for the deployerType field.
 	servicerevision.DefaultDeployerType = servicerevisionDescDeployerType.Default.(string)
 	// servicerevisionDescDuration is the schema descriptor for duration field.
-	servicerevisionDescDuration := servicerevisionFields[10].Descriptor()
+	servicerevisionDescDuration := servicerevisionFields[9].Descriptor()
 	// servicerevision.DefaultDuration holds the default value on creation for the duration field.
 	servicerevision.DefaultDuration = servicerevisionDescDuration.Default.(int)
 	// servicerevisionDescPreviousRequiredProviders is the schema descriptor for previousRequiredProviders field.
-	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[11].Descriptor()
+	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[10].Descriptor()
 	// servicerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previousRequiredProviders field.
 	servicerevision.DefaultPreviousRequiredProviders = servicerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	// servicerevisionDescTags is the schema descriptor for tags field.
-	servicerevisionDescTags := servicerevisionFields[12].Descriptor()
+	servicerevisionDescTags := servicerevisionFields[11].Descriptor()
 	// servicerevision.DefaultTags holds the default value on creation for the tags field.
 	servicerevision.DefaultTags = servicerevisionDescTags.Default.([]string)
 	settingMixin := schema.Setting{}.Mixin()

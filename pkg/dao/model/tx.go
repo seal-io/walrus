@@ -33,8 +33,6 @@ type Tx struct {
 	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// Secret is the client for interacting with the Secret builders.
-	Secret *SecretClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceDependency is the client for interacting with the ServiceDependency builders.
@@ -196,7 +194,6 @@ func (tx *Tx) init() {
 	tx.Perspective = NewPerspectiveClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
-	tx.Secret = NewSecretClient(tx.config)
 	tx.Service = NewServiceClient(tx.config)
 	tx.ServiceDependency = NewServiceDependencyClient(tx.config)
 	tx.ServiceResource = NewServiceResourceClient(tx.config)
@@ -311,11 +308,6 @@ func (tx *Tx) Roles() *RoleClient {
 	return tx.Role
 }
 
-// Secrets implements the ClientSet.
-func (tx *Tx) Secrets() *SecretClient {
-	return tx.Secret
-}
-
 // Services implements the ClientSet.
 func (tx *Tx) Services() *ServiceClient {
 	return tx.Service
@@ -415,7 +407,6 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Perspective.Use(hooks...)
 	tx.Project.Use(hooks...)
 	tx.Role.Use(hooks...)
-	tx.Secret.Use(hooks...)
 	tx.Service.Use(hooks...)
 	tx.ServiceDependency.Use(hooks...)
 	tx.ServiceResource.Use(hooks...)

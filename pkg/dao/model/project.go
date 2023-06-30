@@ -47,8 +47,6 @@ type ProjectEdges struct {
 	Environments []*Environment `json:"environments,omitempty" sql:"environments"`
 	// Connectors that belong to the project.
 	Connectors []*Connector `json:"connectors,omitempty" sql:"connectors"`
-	// Secrets that belong to the project.
-	Secrets []*Secret `json:"secrets,omitempty" sql:"secrets"`
 	// Subject roles that belong to the project.
 	SubjectRoles []*SubjectRoleRelationship `json:"subjectRoles,omitempty" sql:"subjectRoles"`
 	// Services that belong to the project.
@@ -59,7 +57,7 @@ type ProjectEdges struct {
 	Variables []*Variable `json:"variables,omitempty" sql:"variables"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [6]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -80,19 +78,10 @@ func (e ProjectEdges) ConnectorsOrErr() ([]*Connector, error) {
 	return nil, &NotLoadedError{edge: "connectors"}
 }
 
-// SecretsOrErr returns the Secrets value or an error if the edge
-// was not loaded in eager-loading.
-func (e ProjectEdges) SecretsOrErr() ([]*Secret, error) {
-	if e.loadedTypes[2] {
-		return e.Secrets, nil
-	}
-	return nil, &NotLoadedError{edge: "secrets"}
-}
-
 // SubjectRolesOrErr returns the SubjectRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.SubjectRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "subjectRoles"}
@@ -101,7 +90,7 @@ func (e ProjectEdges) SubjectRolesOrErr() ([]*SubjectRoleRelationship, error) {
 // ServicesOrErr returns the Services value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Services, nil
 	}
 	return nil, &NotLoadedError{edge: "services"}
@@ -110,7 +99,7 @@ func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
 // ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.ServiceRevisions, nil
 	}
 	return nil, &NotLoadedError{edge: "serviceRevisions"}
@@ -119,7 +108,7 @@ func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
 // VariablesOrErr returns the Variables value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) VariablesOrErr() ([]*Variable, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[5] {
 		return e.Variables, nil
 	}
 	return nil, &NotLoadedError{edge: "variables"}
@@ -222,11 +211,6 @@ func (pr *Project) QueryEnvironments() *EnvironmentQuery {
 // QueryConnectors queries the "connectors" edge of the Project entity.
 func (pr *Project) QueryConnectors() *ConnectorQuery {
 	return NewProjectClient(pr.config).QueryConnectors(pr)
-}
-
-// QuerySecrets queries the "secrets" edge of the Project entity.
-func (pr *Project) QuerySecrets() *SecretQuery {
-	return NewProjectClient(pr.config).QuerySecrets(pr)
 }
 
 // QuerySubjectRoles queries the "subjectRoles" edge of the Project entity.

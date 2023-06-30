@@ -95,12 +95,6 @@ func (sru *ServiceRevisionUpdate) ClearAttributes() *ServiceRevisionUpdate {
 	return sru
 }
 
-// SetSecrets sets the "secrets" field.
-func (sru *ServiceRevisionUpdate) SetSecrets(c crypto.Map[string, string]) *ServiceRevisionUpdate {
-	sru.mutation.SetSecrets(c)
-	return sru
-}
-
 // SetVariables sets the "variables" field.
 func (sru *ServiceRevisionUpdate) SetVariables(c crypto.Map[string, string]) *ServiceRevisionUpdate {
 	sru.mutation.SetVariables(c)
@@ -268,9 +262,6 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if sru.mutation.AttributesCleared() {
 		_spec.ClearField(servicerevision.FieldAttributes, field.TypeOther)
 	}
-	if value, ok := sru.mutation.Secrets(); ok {
-		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
-	}
 	if value, ok := sru.mutation.Variables(); ok {
 		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
 	}
@@ -384,12 +375,6 @@ func (sruo *ServiceRevisionUpdateOne) SetAttributes(pr property.Values) *Service
 // ClearAttributes clears the value of the "attributes" field.
 func (sruo *ServiceRevisionUpdateOne) ClearAttributes() *ServiceRevisionUpdateOne {
 	sruo.mutation.ClearAttributes()
-	return sruo
-}
-
-// SetSecrets sets the "secrets" field.
-func (sruo *ServiceRevisionUpdateOne) SetSecrets(c crypto.Map[string, string]) *ServiceRevisionUpdateOne {
-	sruo.mutation.SetSecrets(c)
 	return sruo
 }
 
@@ -589,9 +574,6 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 	}
 	if sruo.mutation.AttributesCleared() {
 		_spec.ClearField(servicerevision.FieldAttributes, field.TypeOther)
-	}
-	if value, ok := sruo.mutation.Secrets(); ok {
-		_spec.SetField(servicerevision.FieldSecrets, field.TypeOther, value)
 	}
 	if value, ok := sruo.mutation.Variables(); ok {
 		_spec.SetField(servicerevision.FieldVariables, field.TypeOther, value)
