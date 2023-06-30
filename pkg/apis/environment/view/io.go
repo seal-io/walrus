@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -103,7 +104,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		connectorIDs[i] = c.Connector.ID
 	}
 
-	if err = validateConnectors(ctx, modelClient, r.Project.ID, connectorIDs); err != nil {
+	if err = validateConnectors(ctx, modelClient, connectorIDs); err != nil {
 		return err
 	}
 
@@ -125,9 +126,15 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	modelClient := input.(model.ClientSet)
 
-	env, err := modelClient.Environments().Get(ctx, r.ID)
+	exist, err := modelClient.Environments().Query().
+		Where(environment.ID(r.ID)).
+		Exist(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get environment")
+	}
+
+	if !exist {
+		return runtime.Error(http.StatusNotFound, "environment is not found")
 	}
 
 	connectorIDs := make([]oid.ID, len(r.Connectors))
@@ -135,7 +142,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		connectorIDs[i] = c.Connector.ID
 	}
 
-	if err = validateConnectors(ctx, modelClient, env.ProjectID, connectorIDs); err != nil {
+	if err = validateConnectors(ctx, modelClient, connectorIDs); err != nil {
 		return err
 	}
 
@@ -143,11 +150,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 // validateConnectors checks if given connector IDs are valid within the same project or globally.
-func validateConnectors(ctx context.Context, client model.ClientSet, projectID oid.ID, connectorIDs []oid.ID) error {
-	if !projectID.Valid(0) {
-		return errors.New("invalid project id: blank")
-	}
-
+func validateConnectors(ctx context.Context, client model.ClientSet, connectorIDs []oid.ID) error {
 	if len(connectorIDs) == 0 {
 		return nil
 	}
@@ -180,15 +183,8 @@ func validateConnectors(ctx context.Context, client model.ClientSet, projectID o
 	}
 
 	validCount, err := client.Connectors().Query().
-		Where(
-			connector.And(
-				connector.IDIn(connectorIDs...),
-				connector.Or(
-					connector.ProjectIDIsNil(),
-					connector.ProjectIDEQ(projectID),
-				),
-			),
-		).Count(ctx)
+		Where(connector.IDIn(connectorIDs...)).
+		Count(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get connectors")
 	}
