@@ -32,7 +32,8 @@ func (in {{ $.Name }}QueryInput) Model() *{{ $.Name }} {
 type {{ $.Name }}CreateInput struct {
 	{{- range $f := $inputFields }}
 		{{- template "model/fieldcomment" $f }}
-		{{ $f.StructField }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
+		{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+		{{ if not $hasAnnotation }}{{ $f.StructField }}{{ end }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
 	{{- end }}
 	{{- range $e := $inputEdges }}
 		{{- template "model/edgecomment" $e }}
@@ -45,7 +46,9 @@ func (in {{ $.Name }}CreateInput) Model() *{{ $.Name }} {
 	var entity = &{{ $.Name }}{
 		{{- range $f := $inputFields }}
 			{{- $struct := $f.StructField }}
-			{{ $struct }}: in.{{ $struct }},
+			{{- $structType := inlineType $f }}
+			{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+			{{ $struct }}: in.{{ if $hasAnnotation }} {{ $structType }} {{ else }} {{ $struct }} {{ end }},
 		{{- end }}
     }
 	{{- range $e := $inputEdges }}
@@ -78,7 +81,8 @@ func (in {{ $.Name }}CreateInput) Model() *{{ $.Name }} {
 type {{ $.Name }}UpdateInput struct {
 	{{- range $f := $inputFields }}
 		{{- template "model/fieldcomment" $f }}
-		{{ $f.StructField }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
+		{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+		{{ if not $hasAnnotation }}{{ $f.StructField }}{{ end }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
 	{{- end }}
 	{{- range $e := $inputEdges }}
 		{{- template "model/edgecomment" $e }}
@@ -91,7 +95,9 @@ func (in {{ $.Name }}UpdateInput) Model() *{{ $.Name }} {
 	var entity = &{{ $.Name }}{
 		{{- range $f := $inputFields }}
 			{{- $struct := $f.StructField }}
-			{{ $struct }}: in.{{ $struct }},
+			{{- $structType := inlineType $f }}
+			{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+			{{ $struct }}: in.{{ if $hasAnnotation }} {{ $structType }} {{ else }} {{ $struct }} {{ end }},
 		{{- end }}
 	}
 	{{- range $e := $inputEdges }}
@@ -124,7 +130,8 @@ func (in {{ $.Name }}UpdateInput) Model() *{{ $.Name }} {
 type {{ $.Name }}Output struct {
 	{{- range $f := $outputFields }}
 		{{- template "model/fieldcomment" $f }}
-		{{ $f.StructField }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
+		{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+		{{ if not $hasAnnotation }}{{ $f.StructField }}{{ end }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ $f.StructTag }}`
 	{{- end }}
 	{{- range $e := $outputEdges }}
 		{{- template "model/edgecomment" $e }}
@@ -145,7 +152,9 @@ func Expose{{ $.Name }}(in *{{ $.Name }}) *{{ $.Name }}Output {
 	var entity = &{{ $.Name }}Output{
 		{{- range $f := $outputFields }}
 			{{- $struct := $f.StructField }}
-			{{ $struct }}: in.{{ $struct }},
+			{{- $structType := inlineType $f }}
+			{{- $hasAnnotation := (hasAnnotation $f.Annotations "Inline") }}
+			{{ if $hasAnnotation }} {{ $structType }} {{ else }}{{ $struct }}{{ end }}: in.{{ $struct }},
 		{{- end }}
 		{{- range $e := $outputEdges }}
 			{{- $struct := $e.StructField }}

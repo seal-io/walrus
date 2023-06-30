@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"entgo.io/ent/entc/gen"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -280,12 +281,20 @@ func getStructTag(v any, mustOmit bool) string {
 
 	switch f := v.(type) {
 	case *gen.Field:
+		if io.IsInline(f.Annotations) {
+			return `json:",inline"`
+		}
+
 		if mustOmit || f.Nillable || f.Optional || f.Default || f.UpdateDefault || f.Validators == 0 || f.Sensitive() {
 			return fmt.Sprintf(`json:"%s,omitempty"`, camel(f.Name))
 		}
 
 		return fmt.Sprintf(`json:"%s"`, camel(f.Name))
 	case *gen.Edge:
+		if io.IsInline(f.Annotations) {
+			return `json:",inline"`
+		}
+
 		if mustOmit || f.Optional || !f.Unique {
 			return fmt.Sprintf(`json:"%s,omitempty"`, camel(f.Name))
 		}
@@ -294,4 +303,9 @@ func getStructTag(v any, mustOmit bool) string {
 	}
 
 	return `json:"-"`
+}
+
+func inlineType(n gen.Field) string {
+	t := strings.TrimPrefix(n.Type.String(), n.Type.PkgName)
+	return strings.TrimPrefix(t, ".")
 }

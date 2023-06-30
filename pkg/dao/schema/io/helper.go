@@ -1,18 +1,22 @@
 package io
 
 func IsCreateInputDisabled(as map[string]any) bool {
-	return has(as, "CreateInputDisabled")
+	return HasAnnotation(as, "CreateInputDisabled")
 }
 
 func IsUpdateInputDisabled(as map[string]any) bool {
-	return has(as, "UpdateInputDisabled")
+	return HasAnnotation(as, "UpdateInputDisabled")
 }
 
 func IsOutputDisabled(as map[string]any) bool {
-	return has(as, "OutputDisabled")
+	return HasAnnotation(as, "OutputDisabled")
 }
 
-func has(as map[string]any, k string) bool {
+func IsInline(as map[string]any) bool {
+	return HasAnnotation(as, "Inline")
+}
+
+func HasAnnotation(as map[string]any, k string) bool {
 	// Get desired annotation from annotation map.
 	av, ave := as[annotationName]
 	if !ave || av == nil {
