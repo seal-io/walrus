@@ -170,11 +170,11 @@ func SetServiceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *
 		return fmt.Errorf("service is nil")
 	}
 
-	names := dao.GetDependencyNames(entity)
+	dependencyNames := dao.ServiceRelationshipGetDependencyNames(entity)
 
 	msg := "Progressing"
-	if len(names) > 0 {
-		msg = fmt.Sprintf("Waiting for dependent services to be ready: %s", strs.Join(", ", names...))
+	if len(dependencyNames) > 0 {
+		msg = fmt.Sprintf("Waiting for dependent services to be ready: %s", strs.Join(", ", dependencyNames...))
 	}
 
 	status.ServiceStatusProgressing.Reset(
@@ -231,7 +231,12 @@ func CreateScheduledServices(ctx context.Context, mc model.ClientSet, entities m
 
 // IsStatusReady returns true if the service is ready.
 func IsStatusReady(entity *model.Service) bool {
-	return entity.Status.SummaryStatus == status.ServiceStatusReady.String()
+	switch entity.Status.SummaryStatus {
+	case "Preparing", "Unready", "Ready":
+		return true
+	}
+
+	return false
 }
 
 // IsStatusFalse returns true if the service is in error status.

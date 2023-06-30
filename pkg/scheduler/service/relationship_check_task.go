@@ -13,7 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -27,7 +27,7 @@ import (
 
 const summaryStatusProgressing = "Progressing"
 
-type DependencyCheckTask struct {
+type RelationshipCheckTask struct {
 	mu sync.Mutex
 
 	skipTLSVerify bool
@@ -37,12 +37,12 @@ type DependencyCheckTask struct {
 	deployer      deptypes.Deployer
 }
 
-func NewServiceDependencyCheckTask(
+func NewServiceRelationshipCheckTask(
 	mc model.ClientSet,
 	kc *rest.Config,
 	skipTLSVerify bool,
-) (*DependencyCheckTask, error) {
-	in := &DependencyCheckTask{
+) (*RelationshipCheckTask, error) {
+	in := &RelationshipCheckTask{
 		modelClient:   mc,
 		kubeConfig:    kc,
 		skipTLSVerify: skipTLSVerify,
@@ -53,11 +53,11 @@ func NewServiceDependencyCheckTask(
 	return in, nil
 }
 
-func (in *DependencyCheckTask) Name() string {
-	return "service-dependency-check"
+func (in *RelationshipCheckTask) Name() string {
+	return "service-relationship-check"
 }
 
-func (in *DependencyCheckTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *RelationshipCheckTask) Process(ctx context.Context, args ...interface{}) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil
@@ -70,6 +70,11 @@ func (in *DependencyCheckTask) Process(ctx context.Context, args ...interface{})
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
+	return in.applyServices(ctx)
+}
+
+// applyServices applies all services that are in the progressing state.
+func (in *RelationshipCheckTask) applyServices(ctx context.Context) error {
 	services, err := in.modelClient.Services().Query().
 		Where(
 			func(s *sql.Selector) {
@@ -112,11 +117,12 @@ func (in *DependencyCheckTask) Process(ctx context.Context, args ...interface{})
 	return nil
 }
 
-func (in *DependencyCheckTask) checkDependencies(ctx context.Context, svc *model.Service) (bool, error) {
-	dependencies, err := in.modelClient.ServiceDependencies().Query().
+func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *model.Service) (bool, error) {
+	dependencies, err := in.modelClient.ServiceRelationships().Query().
 		Where(
-			servicedependency.ServiceIDEQ(svc.ID),
-			servicedependency.Type(types.ServiceDependencyTypeImplicit),
+			servicerelationship.ServiceIDEQ(svc.ID),
+			servicerelationship.DependencyIDNEQ(svc.ID),
+			servicerelationship.Type(types.ServiceRelationshipTypeImplicit),
 		).
 		All(ctx)
 	if err != nil && !model.IsNotFound(err) {
@@ -129,19 +135,19 @@ func (in *DependencyCheckTask) checkDependencies(ctx context.Context, svc *model
 
 	serviceIDs := make([]oid.ID, 0, len(dependencies))
 
-	for _, dep := range dependencies {
-		if existCycle := dao.CheckDependencyCycle(dep); existCycle {
-			pathIDs := make([]string, 0, len(dep.Path))
-			for _, id := range dep.Path {
+	for _, d := range dependencies {
+		if existCycle := dao.ServiceRelationshipCheckCycle(d); existCycle {
+			pathIDs := make([]string, 0, len(d.Path))
+			for _, id := range d.Path {
 				pathIDs = append(pathIDs, id.String())
 			}
 
 			pathStr := strs.Join(" -> ", pathIDs...)
 
-			return false, fmt.Errorf("dependency cycle detected, service id: %s, path: %s", dep.ServiceID, pathStr)
+			return false, fmt.Errorf("dependency cycle detected, service id: %s, path: %s", d.ServiceID, pathStr)
 		}
 
-		serviceIDs = append(serviceIDs, dep.DependentID)
+		serviceIDs = append(serviceIDs, d.DependencyID)
 	}
 
 	dependencyServices, err := in.modelClient.Services().Query().
@@ -164,7 +170,7 @@ func (in *DependencyCheckTask) checkDependencies(ctx context.Context, svc *model
 	return true, nil
 }
 
-func (in *DependencyCheckTask) deployService(ctx context.Context, entity *model.Service) error {
+func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *model.Service) error {
 	// Reset status.
 	status.ServiceStatusDeployed.Reset(entity, "Deploying service")
 
@@ -190,14 +196,14 @@ func (in *DependencyCheckTask) deployService(ctx context.Context, entity *model.
 }
 
 // setServiceStatusFalse sets a service status to false if parent dependencies statuses are false or deleted.
-func (in *DependencyCheckTask) setServiceStatusFalse(
+func (in *RelationshipCheckTask) setServiceStatusFalse(
 	ctx context.Context,
 	svc, parentService *model.Service,
 ) (err error) {
 	if pkgservice.IsStatusFalse(parentService) {
 		status.ServiceStatusProgressing.False(
 			svc,
-			fmt.Sprintf("Parent service status is false, service id: %s", parentService.ID),
+			fmt.Sprintf("Parent service status is false, service name: %s", parentService.Name),
 		)
 		svc.Status.SetSummary(status.WalkService(&svc.Status))
 
@@ -209,7 +215,7 @@ func (in *DependencyCheckTask) setServiceStatusFalse(
 
 	if pkgservice.IsStatusDeleted(parentService) {
 		status.ServiceStatusProgressing.False(svc,
-			fmt.Sprintf("Parent service status is deleted, service id: %s", parentService.ID),
+			fmt.Sprintf("Parent service status is deleted, service name: %s", parentService.Name),
 		)
 		svc.Status.SetSummary(status.WalkService(&svc.Status))
 
@@ -224,7 +230,7 @@ func (in *DependencyCheckTask) setServiceStatusFalse(
 	return nil
 }
 
-func (in *DependencyCheckTask) getDeployer(
+func (in *RelationshipCheckTask) getDeployer(
 	ctx context.Context,
 	opts deptypes.CreateOptions,
 ) (deptypes.Deployer, error) {

@@ -24,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
@@ -879,7 +880,7 @@ func (d Deployer) getPreviousRequiredProviders(
 	return prevRequiredProviders, nil
 }
 
-// GetServiceDependencyOutputs gets the dependency outputs of the service.
+// getServiceDependencyOutputs gets the dependency outputs of the service.
 func (d Deployer) getServiceDependencyOutputs(
 	ctx context.Context,
 	serviceID oid.ID,
@@ -887,20 +888,24 @@ func (d Deployer) getServiceDependencyOutputs(
 ) (map[string]parser.OutputState, error) {
 	service, err := d.modelClient.Services().Query().
 		Where(service.ID(serviceID)).
-		WithDependencies().
+		WithDependencies(func(sq *model.ServiceRelationshipQuery) {
+			sq.Where(func(s *sql.Selector) {
+				s.Where(sql.ColumnsNEQ(servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID))
+			})
+		}).
 		Only(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	dependantIDs := make([]oid.ID, 0, len(service.Edges.Dependencies))
+	dependencyServiceIDs := make([]oid.ID, 0, len(service.Edges.Dependencies))
 
 	for _, d := range service.Edges.Dependencies {
-		if d.Type != types.ServiceDependencyTypeImplicit {
+		if d.Type != types.ServiceRelationshipTypeImplicit {
 			continue
 		}
 
-		dependantIDs = append(dependantIDs, d.DependentID)
+		dependencyServiceIDs = append(dependencyServiceIDs, d.DependencyID)
 	}
 
 	dependencyRevisions, err := d.modelClient.ServiceRevisions().Query().
@@ -926,7 +931,7 @@ func (d Deployer) getServiceDependencyOutputs(
 			// Query the latest revision of the service.
 			s.Where(sql.EQ(s.C("row_number"), 1)).
 				From(sq)
-		}).Where(servicerevision.ServiceIDIn(dependantIDs...)).
+		}).Where(servicerevision.ServiceIDIn(dependencyServiceIDs...)).
 		All(ctx)
 	if err != nil {
 		return nil, err
