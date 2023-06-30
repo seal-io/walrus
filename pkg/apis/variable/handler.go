@@ -1,13 +1,16 @@
 package variable
 
 import (
+	"fmt"
+
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/variable/view"
 	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 )
 
@@ -30,10 +33,6 @@ func (h Handler) Validating() any {
 }
 
 // Basic APIs.
-
-var queryFields = []string{
-	variable.FieldName,
-}
 
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
@@ -87,8 +86,12 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 	})
 }
 
-var getFields = variable.WithoutFields(
-	variable.FieldUpdateTime)
+var sortFields = []string{
+	variable.FieldName,
+	variable.FieldCreateTime,
+}
+
+var getFields = variable.WithoutFields(variable.FieldUpdateTime)
 
 func (h Handler) CollectionGet(
 	ctx *gin.Context,
@@ -99,25 +102,108 @@ func (h Handler) CollectionGet(
 	s.IncognitoOn()
 	defer s.IncognitoOff()
 
+	/* SQL generate for count.
+
+	SELECT
+	  COUNT("variables"."id")
+	FROM
+	  "variables"
+	  JOIN (
+	    SELECT
+	      "alias"."name",
+	      MAX(
+	        CASE WHEN project_id IS NOT NULL
+	        AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
+	        AND environment_id IS NULL THEN 2 ELSE 1 END
+	      ) AS scope
+	    FROM
+	      "variables" AS "alias"
+	    WHERE
+	      (
+	        "project_id" = $1
+	        AND "environment_id" = $2
+	      )
+	      OR (
+	        "project_id" = $3
+	        AND "environment_id" IS NULL
+	      )
+	      OR "project_id" IS NULL
+	    GROUP BY
+	      "alias"."name"
+	  ) AS "alias" ON "variables"."name" = "alias"."name"
+	  AND (
+	    CASE WHEN project_id IS NOT NULL
+	    AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
+	    AND environment_id IS NULL THEN 2 ELSE 1 END
+	  ) = alias.scope
+	*/
+
+	/* SQL generate for query.
+
+	SELECT
+	  "variables"."id",
+	  "variables"."create_time",
+	  "variables"."project_id",
+	  "variables"."name",
+	  "variables"."value",
+	  "variables"."sensitive",
+	  "variables"."description",
+	  "variables"."environment_id"
+	FROM
+	  "variables"
+	  JOIN (
+	    SELECT
+	      "alias"."name",
+	      MAX(
+	        CASE WHEN project_id IS NOT NULL
+	        AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
+	        AND environment_id IS NULL THEN 2 ELSE 1 END
+	      ) AS scope
+	    FROM
+	      "variables" AS "alias"
+	    WHERE
+	      (
+	        "project_id" = $1
+	        AND "environment_id" = $2
+	      )
+	      OR (
+	        "project_id" = $3
+	        AND "environment_id" IS NULL
+	      )
+	      OR "project_id" IS NULL
+	    GROUP BY
+	      "alias"."name"
+	  ) AS "alias" ON "variables"."name" = "alias"."name"
+	  AND (
+	    CASE WHEN project_id IS NOT NULL
+	    AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
+	    AND environment_id IS NULL THEN 2 ELSE 1 END
+	  ) = alias.scope
+	ORDER BY
+	  "variables"."create_time" DESC
+	LIMIT
+	  3
+	*/
+
 	var (
 		// EnvPs is the predicate for query only env scope variables.
-		envPs = variable.And(
-			variable.ProjectID(req.ProjectID),
-			variable.EnvironmentID(req.EnvironmentID),
+		envPss = sql.And(
+			sql.EQ(variable.FieldProjectID, req.ProjectID),
+			sql.EQ(variable.FieldEnvironmentID, req.EnvironmentID),
 		)
 
 		// ProjectPs is the predicate for query only project scope variables.
-		projPs = variable.And(
-			variable.ProjectID(req.ProjectID),
-			variable.EnvironmentIDIsNil(),
+		projPss = sql.And(
+			sql.EQ(variable.FieldProjectID, req.ProjectID),
+			sql.IsNull(variable.FieldEnvironmentID),
 		)
 
 		// GlobalPs is the predicate for query only global scope variables.
-		globalPs = variable.ProjectIDIsNil()
+		globalPss = sql.IsNull(variable.FieldProjectID)
 	)
 
 	// Ps is the generated query condition base on input.
-	var ps predicate.Variable
+	var ps *sql.Predicate
 
 	switch {
 	case req.EnvironmentID != "":
@@ -125,26 +211,26 @@ func (h Handler) CollectionGet(
 		switch {
 		case req.WithGlobal && req.WithProject:
 			// With Project scope and global scope.
-			ps = variable.Or(
-				envPs,
-				projPs,
-				globalPs,
+			ps = sql.Or(
+				envPss,
+				projPss,
+				globalPss,
 			)
 		case req.WithGlobal:
 			// With Global scope only.
-			ps = variable.Or(
-				envPs,
-				globalPs,
+			ps = sql.Or(
+				envPss,
+				globalPss,
 			)
 		case req.WithProject:
 			// With Project scope only.
-			ps = variable.Or(
-				envPs,
-				projPs,
+			ps = sql.Or(
+				envPss,
+				projPss,
 			)
 		default:
 			// Environment scope only.
-			ps = envPs
+			ps = envPss
 		}
 
 	case req.ProjectID != "":
@@ -152,51 +238,83 @@ func (h Handler) CollectionGet(
 		switch {
 		case req.WithGlobal:
 			// With global scope.
-			ps = variable.Or(
-				projPs,
-				globalPs,
+			ps = sql.Or(
+				projPss,
+				globalPss,
 			)
 		default:
 			// Project scope only.
-			ps = projPs
+			ps = projPss
 		}
 	default:
 		// Global scope.
-		ps = globalPs
+		ps = globalPss
+	}
+
+	scopeExpr := `CASE WHEN project_id IS NOT NULL AND environment_id IS NOT NULL THEN 3
+                                          WHEN project_id IS NOT NULL AND environment_id IS NULL THEN 2
+                                          ELSE 1 END`
+
+	modifier := func(s *sql.Selector) {
+		alias := sql.Table(variable.Table).
+			As("alias")
+
+		subQuery := sql.Select(alias.C(variable.FieldName)).
+			AppendSelectExpr(sql.Expr(fmt.Sprintf("MAX(%s) AS scope", scopeExpr))).
+			From(alias).
+			Where(ps).
+			GroupBy(alias.C(variable.FieldName)).
+			As("alias")
+
+		s.Join(subQuery).
+			OnP(
+				sql.And(
+					sql.ColumnsEQ(
+						s.C(variable.FieldName),
+						alias.C(variable.FieldName),
+					),
+					sql.ExprP(fmt.Sprintf("(%s) = alias.scope", scopeExpr)),
+				),
+			)
 	}
 
 	// Generate query.
-	query := h.modelClient.Variables().Query().Where(ps)
+	query := h.modelClient.Variables().Query().
+		Modify(modifier)
 
-	if queries, ok := req.Querying(queryFields); ok {
-		query.Where(queries)
+	// Search query.
+	if req.Query != nil {
+		query.Where(variable.NameContainsFold(*req.Query))
 	}
 
 	// Get count.
-	cnt, err := query.Clone().Count(ctx)
+	cnt, err := query.Clone().
+		Modify(modifier).
+		Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Get entities.
-	if limit, offset, ok := req.Paging(); !ok {
-		query.Limit(limit).Offset(offset)
-	}
-
 	if fields, ok := req.Extracting(getFields, getFields...); ok {
 		query.Select(fields...)
 	}
 
-	// Allow returning without sorting keys.
-	query.Order(model.Desc(variable.FieldCreateTime)).
-		Unique(false)
+	if limit, offset, ok := req.Paging(); ok {
+		query.Limit(limit).Offset(offset)
+	}
 
-	entities, err := query.All(ctx)
+	if orders, ok := req.Sorting(sortFields, model.Desc(service.FieldCreateTime)); ok {
+		query.Order(orders...).
+			Unique(false)
+	}
+
+	vars, err := query.All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return view.ExposeVariables(entities), cnt, nil
+	return view.ExposeVariables(vars), cnt, err
 }
 
 // Extensional APIs.
