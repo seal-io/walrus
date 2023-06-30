@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	stdsql "database/sql"
 	"errors"
 	"fmt"
 
@@ -13,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -151,33 +150,19 @@ func (sc *WrappedServiceCreate) Save(ctx context.Context) (created *model.Servic
 
 	// Construct dependencies.
 	// New dependencies.
-	dependencies, err := GetNewDependencies(ctx, mc, created)
+	dependencies, err := serviceRelationshipGetDependencies(ctx, mc, created)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, d := range dependencies {
-		c := mc.ServiceDependencies().Create().
-			SetServiceID(d.ServiceID).
-			SetDependentID(d.DependentID).
-			SetType(d.Type).
-			SetPath(d.Path)
-
-		err = c.OnConflict(
-			sql.ConflictColumns(
-				servicedependency.FieldServiceID,
-				servicedependency.FieldDependentID,
-				servicedependency.FieldPath,
-			)).
-			DoNothing().
-			Exec(ctx)
-		if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
+		if err = serviceRelationshipCreate(ctx, mc, d); err != nil {
 			return nil, err
 		}
 	}
 
 	created.Edges.Dependencies = dependencies
-	if err = UpdateDependants(ctx, mc, created); err != nil {
+	if err = serviceRelationshipUpdateDependants(ctx, mc, created); err != nil {
 		return nil, err
 	}
 
@@ -206,46 +191,32 @@ func (su *WrappedServiceUpdate) Save(ctx context.Context) (*model.Service, error
 	}
 
 	// Get old dependencies.
-	oldDependencies, err := mc.ServiceDependencies().Query().
-		Where(servicedependency.ServiceID(update.ID)).
+	oldDependencies, err := mc.ServiceRelationships().Query().
+		Where(servicerelationship.ServiceID(update.ID)).
 		All(ctx)
 	if err != nil && !model.IsNotFound(err) {
 		return nil, err
 	}
 
 	// New dependencies.
-	dependencies, err := GetNewDependencies(ctx, mc, update)
+	dependencies, err := serviceRelationshipGetDependencies(ctx, mc, update)
 	if err != nil {
 		return nil, err
 	}
 
 	newDependencyPath := sets.NewString()
+	// Create new dependencies.
 	for _, d := range dependencies {
-		newDependencyPath.Insert(getCompleteDependencyPath(d))
+		newDependencyPath.Insert(serviceRelationshipGetCompletePath(d))
 
-		c := mc.ServiceDependencies().Create().
-			SetServiceID(d.ServiceID).
-			SetDependentID(d.DependentID).
-			SetType(d.Type).
-			SetPath(d.Path)
-
-		err = c.OnConflict(
-			sql.ConflictColumns(
-				servicedependency.FieldServiceID,
-				servicedependency.FieldDependentID,
-				servicedependency.FieldPath,
-			)).
-			DoNothing().
-			Exec(ctx)
-
-		if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
+		if err = serviceRelationshipCreate(ctx, mc, d); err != nil {
 			return nil, err
 		}
 	}
 
 	// Delete old dependencies.
 	for _, d := range oldDependencies {
-		if newDependencyPath.Has(getCompleteDependencyPath(d)) {
+		if newDependencyPath.Has(serviceRelationshipGetCompletePath(d)) {
 			continue
 		}
 
@@ -255,13 +226,13 @@ func (su *WrappedServiceUpdate) Save(ctx context.Context) (*model.Service, error
 		}
 		paths := fmt.Sprintf("[%s]", strs.Join(",", ids...))
 
-		_, err := mc.ServiceDependencies().Delete().
+		_, err := mc.ServiceRelationships().Delete().
 			Where(
-				servicedependency.ServiceID(d.ServiceID),
-				servicedependency.DependentID(d.DependentID),
-				servicedependency.Type(d.Type),
+				servicerelationship.ServiceID(d.ServiceID),
+				servicerelationship.DependencyID(d.DependencyID),
+				servicerelationship.Type(d.Type),
 				func(s *sql.Selector) {
-					s.Where(sqljson.ValueIn(servicedependency.FieldPath, []any{paths}))
+					s.Where(sqljson.ValueIn(servicerelationship.FieldPath, []any{paths}))
 				},
 			).Exec(ctx)
 		if err != nil {
@@ -271,7 +242,7 @@ func (su *WrappedServiceUpdate) Save(ctx context.Context) (*model.Service, error
 
 	update.Edges.Dependencies = dependencies
 
-	if err = UpdateDependants(ctx, mc, update); err != nil {
+	if err = serviceRelationshipUpdateDependants(ctx, mc, update); err != nil {
 		return nil, err
 	}
 
