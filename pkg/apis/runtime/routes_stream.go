@@ -211,11 +211,13 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 				c.Set("response_status", we.Code)
 			} else {
 				logger.Errorf("error processing bidirectional stream request: %v", err)
+
 				if ue := errors.Unwrap(err); ue != nil {
 					err = ue
 				}
 				closeMsg = websocket.FormatCloseMessage(
 					websocket.CloseInternalServerErr, err.Error())
+
 				c.Set("response_status", websocket.CloseInternalServerErr)
 			}
 		}

@@ -93,9 +93,11 @@ func Link(src, dst string, opts ...LinkOptions) error {
 					return fmt.Errorf("cannot create dir of dst: %w", err)
 				}
 			}
+
 			if _, err = os.Create(src); err != nil {
 				return fmt.Errorf("cannot create src file: %w", err)
 			}
+
 			if err = os.Chmod(src, m); err != nil {
 				return fmt.Errorf("cannot change src file mod: %w", err)
 			}

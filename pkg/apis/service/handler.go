@@ -910,6 +910,7 @@ func (h Handler) CollectionGetGraph(
 			// and the edge size from Service to ServiceResource.
 			verticesCap += len(entities[i].Edges.Resources)
 			edgesCap += len(entities[i].Edges.Dependencies)
+
 			for j := 0; j < len(entities[i].Edges.Resources); j++ {
 				// Count the vertex size of sub ServiceResource,
 				// and the edge size from ServiceResource to sub ServiceResource.

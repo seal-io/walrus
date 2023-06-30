@@ -38,12 +38,14 @@ func authz(c *gin.Context, mc model.ClientSet, s session.Subject) (session.Subje
 			subject.Kind(types.SubjectKindUser),
 			subject.Domain(s.Domain),
 			subject.Name(s.Name)))
+
 		for i := range s.Groups {
 			ps = append(ps, subject.And(
 				subject.Kind(types.SubjectKindGroup),
 				subject.Domain(s.Domain),
 				subject.Name(s.Groups[i])))
 		}
+
 		q.Where(subject.Or(ps...))
 	}
 
