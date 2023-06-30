@@ -65,5 +65,11 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				io.Disable()),
+		// Project 1-* variables.
+		edge.To("variables", Variable.Type).
+			Comment("Variables that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 	}
 }
