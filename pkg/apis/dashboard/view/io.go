@@ -22,21 +22,6 @@ type RevisionStatusStats struct {
 	StartTime string `json:"startTime,omitempty"`
 }
 
-type BasicInformation struct {
-	// Project number.
-	Project int `json:"project"`
-	// Service number.
-	Service int `json:"service"`
-	// Service resource number.
-	Resource int `json:"resource"`
-	// Service revision number.
-	Revision int `json:"revision"`
-	// Environment number.
-	Environment int `json:"environment"`
-	// Connector number.
-	Connector int `json:"connector"`
-}
-
 // Basic APIs.
 
 // Batch APIs.
@@ -47,13 +32,29 @@ type CollectionGetLatestServiceRevisionsResponse = []*model.ServiceRevisionOutpu
 
 // Extensional APIs.
 
-type BasicInfoRequest struct {
+type CollectionRouteBasicInformationRequest struct {
 	_ struct{} `route:"GET=/basic-information"`
+
+	WithServiceResource bool `query:"withServiceResource,omitempty"`
+	WithServiceRevision bool `query:"withServiceRevision,omitempty"`
 }
 
-type BasicInfoResponse = BasicInformation
+type CollectionRouteBasicInformationResponse struct {
+	// Project number.
+	Project int `json:"project"`
+	// Environment number.
+	Environment int `json:"environment"`
+	// Connector number.
+	Connector int `json:"connector"`
+	// Service number.
+	Service int `json:"service"`
+	// Service resource number.
+	ServiceResource int `json:"serviceResource,omitempty"`
+	// Service revision number.
+	ServiceRevision int `json:"serviceRevision,omitempty"`
+}
 
-type ServiceRevisionStatisticsRequest struct {
+type CollectionRouteServiceRevisionStatisticsRequest struct {
 	_ struct{} `route:"POST=/service-revision-statistics"`
 
 	Step      string    `json:"step"`
@@ -61,19 +62,21 @@ type ServiceRevisionStatisticsRequest struct {
 	EndTime   time.Time `json:"endTime"`
 }
 
-func (r *ServiceRevisionStatisticsRequest) Validate() error {
+func (r *CollectionRouteServiceRevisionStatisticsRequest) Validate() error {
 	if err := validation.TimeRange(r.StartTime, r.EndTime); err != nil {
 		return err
 	}
 
-	if r.Step != timex.Day && r.Step != timex.Month && r.Step != timex.Year {
-		return errors.New("step must be day, month or year")
+	switch r.Step {
+	default:
+		return errors.New("invalid step: must be day, month or year")
+	case timex.Day, timex.Month, timex.Year:
 	}
 
 	return nil
 }
 
-type ServiceRevisionStatisticsResponse struct {
+type CollectionRouteServiceRevisionStatisticsResponse struct {
 	StatusCount *RevisionStatusCount   `json:"statusCount"`
 	StatusStats []*RevisionStatusStats `json:"statusStats"`
 }

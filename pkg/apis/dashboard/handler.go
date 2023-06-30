@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"context"
 	"sort"
 	"time"
 
@@ -8,11 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/dashboard/view"
+	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/sqlx"
 	"github.com/seal-io/seal/utils/timex"
@@ -84,114 +88,180 @@ func (h Handler) CollectionGetLatestServiceRevisions(
 
 func (h Handler) CollectionRouteBasicInformation(
 	ctx *gin.Context,
-	_ view.BasicInfoRequest,
-) (*view.BasicInfoResponse, error) {
-	serviceRevisionNum, err := h.modelClient.ServiceRevisions().Query().Count(ctx)
+	req view.CollectionRouteBasicInformationRequest,
+) (*view.CollectionRouteBasicInformationResponse, error) {
+	sj := session.MustGetSubject(ctx)
+
+	sj.IncognitoOn()
+	defer sj.IncognitoOff()
+
+	var ids []oid.ID
+	if !sj.IsAdmin() {
+		// Get owned project id list.
+		ids = make([]oid.ID, len(sj.ProjectRoles))
+		for i := range sj.ProjectRoles {
+			ids[i] = sj.ProjectRoles[i].Project.ID
+		}
+	}
+
+	// Count owned projects.
+	projectNum, err := h.modelClient.Projects().Query().
+		Where(predicateIn[predicate.Project]("id", ids)...).
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	projectNum, err := h.modelClient.Projects().Query().Count(ctx)
+	// Count environments below owned projects.
+	environmentNum, err := h.modelClient.Environments().Query().
+		Where(predicateIn[predicate.Environment]("project_id", ids)...).
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	serviceNum, err := h.modelClient.Services().Query().Count(ctx)
+	// Count connectors below owned projects and global.
+	connectorNum, err := h.modelClient.Connectors().Query().
+		Where(predicateOr(
+			connector.ProjectIDIsNil(), // Nil project id means configuring in global.
+			predicateIn[predicate.Connector]("project_id", ids)...)...).
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	serviceResourceNum, err := h.modelClient.ServiceResources().Query().Count(ctx)
+	// Count services below owned projects.
+	serviceNum, err := h.modelClient.Services().Query().
+		Where(predicateIn[predicate.Service]("project_id", ids)...).
+		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	environmentNum, err := h.modelClient.Environments().Query().Count(ctx)
-	if err != nil {
-		return nil, err
+	// Count service resources below owned projects if needed.
+	var serviceResourceNum int
+	if req.WithServiceResource {
+		serviceResourceNum, err = h.modelClient.ServiceResources().Query().
+			Where(predicateIn[predicate.ServiceResource]("project_id", ids)...).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	connectorNum, err := h.modelClient.Connectors().Query().Count(ctx)
-	if err != nil {
-		return nil, err
+	// Count service revisions below owned projects if needed.
+	var serviceRevisionNum int
+	if req.WithServiceRevision {
+		serviceRevisionNum, err = h.modelClient.ServiceRevisions().Query().
+			Where(predicateIn[predicate.ServiceRevision]("project_id", ids)...).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return &view.BasicInfoResponse{
-		Project:     projectNum,
-		Service:     serviceNum,
-		Resource:    serviceResourceNum,
-		Revision:    serviceRevisionNum,
-		Environment: environmentNum,
-		Connector:   connectorNum,
+	return &view.CollectionRouteBasicInformationResponse{
+		Project:         projectNum,
+		Environment:     environmentNum,
+		Connector:       connectorNum,
+		Service:         serviceNum,
+		ServiceResource: serviceResourceNum,
+		ServiceRevision: serviceRevisionNum,
 	}, nil
 }
 
 func (h Handler) CollectionRouteServiceRevisionStatistics(
 	ctx *gin.Context,
-	req view.ServiceRevisionStatisticsRequest,
-) (*view.ServiceRevisionStatisticsResponse, error) {
-	var (
-		// StatMap map of statistics.
-		statMap = make(map[string]*view.RevisionStatusStats, 0)
-		// Counts count of each status.
-		counts []struct {
-			Count      int       `json:"count"`
-			CreateTime time.Time `json:"create_time"`
-			Status     string    `json:"status"`
-		}
-		ps = []predicate.ServiceRevision{
-			servicerevision.CreateTimeGTE(req.StartTime),
-			servicerevision.CreateTimeLTE(req.EndTime),
-		}
-	)
+	req view.CollectionRouteServiceRevisionStatisticsRequest,
+) (*view.CollectionRouteServiceRevisionStatisticsResponse, error) {
+	query := h.modelClient.Projects().Query().
+		QueryServiceRevisions()
 
-	// Format.
-	var format string
-
-	switch req.Step {
-	case timex.Month:
-		format = "2006-01"
-	case timex.Year:
-		format = "2006"
-	default:
-		format = "2006-01-02"
-	}
-
-	// Days.
-	_, offset := req.StartTime.Zone()
-	loc := req.StartTime.Location()
-
-	timeSeries, err := timex.GetTimeSeries(req.StartTime, req.EndTime, req.Step, loc)
+	statusStats, err := getServiceRevisionStatusStats(ctx,
+		query.Clone(),
+		req.StartTime, req.EndTime, req.Step)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, t := range timeSeries {
-		timeString := t.Format(format)
-		statMap[timeString] = &view.RevisionStatusStats{}
-	}
-
-	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(servicerevision.FieldCreateTime, req.Step, offset)
+	statusCount, err := getServiceRevisionStatusCount(ctx,
+		query.Clone())
 	if err != nil {
 		return nil, err
 	}
 
-	// Group by.
-	err = h.modelClient.ServiceRevisions().Query().
-		Where(ps...).
+	return &view.CollectionRouteServiceRevisionStatisticsResponse{
+		StatusStats: statusStats,
+		StatusCount: statusCount,
+	}, nil
+}
+
+// getServiceRevisionStatusStats collects the status counts of service revisions
+// according to the given time range.
+func getServiceRevisionStatusStats(
+	ctx context.Context,
+	query *model.ServiceRevisionQuery,
+	startTime, endTime time.Time,
+	step string,
+) ([]*view.RevisionStatusStats, error) {
+	loc := startTime.Location()
+
+	// Get time series by time range.
+	timeSeries, err := timex.GetTimeSeries(startTime, endTime, step, loc)
+	if err != nil {
+		return nil, err
+	}
+
+	// Count by the time series and status group.
+	var counts []struct {
+		Count      int       `json:"count"`
+		CreateTime time.Time `json:"create_time"`
+		Status     string    `json:"status"`
+	}
+
+	_, offset := startTime.Zone()
+
+	groupBy, err := sqlx.DateTruncWithZoneOffsetSQL(servicerevision.FieldCreateTime, step, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	err = query.
+		Where(
+			servicerevision.CreateTimeGTE(startTime),
+			servicerevision.CreateTimeLTE(endTime)).
 		Modify(func(q *sql.Selector) {
 			// Count.
-			q.Select(
-				sql.As(sql.Count(servicerevision.FieldStatus), "count"),
-				sql.As(groupBy, servicerevision.FieldCreateTime),
-				servicerevision.FieldStatus,
-			).
-				GroupBy(groupBy).
-				GroupBy(servicerevision.FieldStatus)
+			q.
+				Select(
+					sql.As(sql.Count(servicerevision.FieldStatus), "count"),
+					sql.As(groupBy, servicerevision.FieldCreateTime),
+					servicerevision.FieldStatus).
+				GroupBy(
+					groupBy,
+					servicerevision.FieldStatus)
 		}).
 		Scan(ctx, &counts)
 	if err != nil {
 		return nil, err
+	}
+
+	// Map status by time series.
+	format := "2006-01-02"
+
+	switch step {
+	case timex.Month:
+		format = "2006-01"
+	case timex.Year:
+		format = "2006"
+	}
+
+	statMap := make(map[string]*view.RevisionStatusStats, 0)
+
+	for _, t := range timeSeries {
+		// Default status bucket.
+		timeString := t.Format(format)
+		statMap[timeString] = &view.RevisionStatusStats{}
 	}
 
 	for _, c := range counts {
@@ -210,10 +280,11 @@ func (h Handler) CollectionRouteServiceRevisionStatistics(
 		}
 	}
 
-	// StatusStatistics statistics of revision status.
-	statusStatistics := make([]*view.RevisionStatusStats, 0, len(statMap))
+	// Construct result through reducing status by time series.
+	r := make([]*view.RevisionStatusStats, 0, len(statMap))
+
 	for k, sm := range statMap {
-		statusStatistics = append(statusStatistics, &view.RevisionStatusStats{
+		r = append(r, &view.RevisionStatusStats{
 			RevisionStatusCount: view.RevisionStatusCount{
 				Failed:  sm.Failed,
 				Succeed: sm.Succeed,
@@ -223,52 +294,46 @@ func (h Handler) CollectionRouteServiceRevisionStatistics(
 		})
 	}
 
-	sort.Slice(statusStatistics, func(i, j int) bool {
-		// Sort by start time.
-		return statusStatistics[i].StartTime < statusStatistics[j].StartTime
+	// Sort by start time.
+	sort.Slice(r, func(i, j int) bool {
+		return r[i].StartTime < r[j].StartTime
 	})
 
-	statusCount, err := h.getServiceRevisionStatusCount(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &view.ServiceRevisionStatisticsResponse{
-		StatusStats: statusStatistics,
-		StatusCount: statusCount,
-	}, nil
+	return r, nil
 }
 
-// getServiceRevisionStatusCount returns the count of each status of service revisions.
-func (h Handler) getServiceRevisionStatusCount(ctx *gin.Context) (*view.RevisionStatusCount, error) {
-	var (
-		currentStatusCount = &view.RevisionStatusCount{}
-		statusCount        []struct {
-			Status string `json:"status"`
-			Count  int    `json:"count"`
-		}
-	)
+// getServiceRevisionStatusCount returns the status counts by the service revisions.
+func getServiceRevisionStatusCount(
+	ctx context.Context,
+	query *model.ServiceRevisionQuery,
+) (*view.RevisionStatusCount, error) {
+	// Count by the status group.
+	var counts []struct {
+		Status string `json:"status"`
+		Count  int    `json:"count"`
+	}
 
-	err := h.modelClient.ServiceRevisions().Query().
+	err := query.
 		GroupBy(servicerevision.FieldStatus).
-		Aggregate(
-			model.Count(),
-		).
-		Scan(ctx, &statusCount)
+		Aggregate(model.Count()).
+		Scan(ctx, &counts)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, s := range statusCount {
-		switch s.Status {
+	// Construct result.
+	var r view.RevisionStatusCount
+
+	for _, sc := range counts {
+		switch sc.Status {
 		case status.ServiceRevisionStatusFailed:
-			currentStatusCount.Failed = s.Count
+			r.Failed = sc.Count
 		case status.ServiceRevisionStatusSucceeded:
-			currentStatusCount.Succeed = s.Count
+			r.Succeed = sc.Count
 		case status.ServiceRevisionStatusRunning:
-			currentStatusCount.Running = s.Count
+			r.Running = sc.Count
 		}
 	}
 
-	return currentStatusCount, nil
+	return &r, nil
 }

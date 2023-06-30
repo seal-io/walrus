@@ -1,0 +1,38 @@
+package dashboard
+
+import (
+	"entgo.io/ent/dialect/sql"
+
+	"github.com/seal-io/seal/pkg/dao/types/oid"
+)
+
+// predicateIn converts the given field name and values into an IN predicate.
+func predicateIn[T ~func(*sql.Selector)](name string, values []oid.ID) []T {
+	if len(values) == 0 {
+		return nil
+	}
+
+	return []T{
+		sql.FieldIn(name, values...),
+	}
+}
+
+// predicateOr is different from the commonly used OR predicate,
+// it returns nil if given others argument is empty.
+func predicateOr[T ~func(*sql.Selector)](first T, others ...T) []T {
+	if len(others) == 0 {
+		return nil
+	}
+
+	return []T{
+		func(s *sql.Selector) {
+			s1 := s.Clone().SetP(nil)
+			first(s1)
+			for _, p := range others {
+				s1.Or()
+				p(s1)
+			}
+			s.Where(s1.P())
+		},
+	}
+}
