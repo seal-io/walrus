@@ -33,6 +33,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/templateversion"
 	"github.com/seal-io/seal/pkg/apis/token"
 	"github.com/seal-io/seal/pkg/apis/ui"
+	"github.com/seal-io/seal/pkg/apis/variable"
 	"github.com/seal-io/seal/pkg/auths"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
@@ -127,6 +128,7 @@ func (s *Server) Setup(ctx context.Context, opts SetupOptions) (http.Handler, er
 		runtime.MustRouteResource(r, subject.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, subjectrole.Handle(opts.ModelClient))
 		runtime.MustRouteResource(r, token.Handle(opts.ModelClient))
+		runtime.MustRouteResource(r, variable.Handle(opts.ModelClient))
 	}
 	runtime.MustRouteGet(apis, "/openapi", openapi.Index(opts.EnableAuthn, resourceApis.BasePath()))
 	runtime.MustRouteStatic(apis, "/swagger/*any", swagger.Index("/openapi"))

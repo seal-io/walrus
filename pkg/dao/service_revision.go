@@ -45,6 +45,10 @@ func ServiceRevisionCreates(
 			c.SetSecrets(r.Secrets)
 		}
 
+		if r.Variables != nil {
+			c.SetVariables(r.Variables)
+		}
+
 		if r.DeployerType != "" {
 			c.SetDeployerType(r.DeployerType)
 		}
@@ -95,6 +99,10 @@ func ServiceRevisionUpdate(
 
 	if input.Secrets != nil {
 		c.SetSecrets(input.Secrets)
+	}
+
+	if input.Variables != nil {
+		c.SetVariables(input.Variables)
 	}
 
 	return c, nil

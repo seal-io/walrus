@@ -71,12 +71,12 @@ type (
 
 	// VariableOptions is the options to create variables blocks.
 	VariableOptions struct {
-		// SecretPrefix is the prefix of the secret name.
-		SecretPrefix string
+		// VariablePrefix is the prefix of the variable name.
+		VariablePrefix string
 		// SecretServicePrefix is the prefix of the secret service name.
 		ServicePrefix string
-		// SecretNames is the list of the secret name, type is always string.
-		SecretNames []string
+		// Variables is map with name in key and sensitive flag in value.
+		Variables map[string]bool
 		// DependencyOutputs is the map of the variable name and value.
 		DependencyOutputs map[string]parser.OutputState
 	}
@@ -88,5 +88,6 @@ type (
 		ServiceName string
 		Name        string
 		Sensitive   bool
+		Value       []byte
 	}
 )
