@@ -148,6 +148,37 @@ func validateConnectors(ctx context.Context, client model.ClientSet, projectID o
 		return errors.New("invalid project id: blank")
 	}
 
+	if len(connectorIDs) == 0 {
+		return nil
+	}
+
+	for _, id := range connectorIDs {
+		if !id.Valid(0) {
+			return errors.New("invalid connector id: blank")
+		}
+	}
+
+	var typeCount []struct {
+		Type  string `json:"type"`
+		Count int    `json:"count"`
+	}
+
+	err := client.Connectors().Query().
+		Where(connector.IDIn(connectorIDs...)).
+		GroupBy(connector.FieldType).
+		Aggregate(model.Count()).
+		Scan(ctx, &typeCount)
+	if err != nil {
+		return runtime.Errorw(err, "failed to get connector type count")
+	}
+
+	// Validate connector type is duplicated, only one connector type is allowed in one environment.
+	for _, c := range typeCount {
+		if c.Count > 1 {
+			return fmt.Errorf("invalid connectors: duplicated connector type %s", c.Type)
+		}
+	}
+
 	validCount, err := client.Connectors().Query().
 		Where(
 			connector.And(
