@@ -345,16 +345,16 @@ func loadModuleBlocks(moduleConfigs []*ModuleConfig, providers block.Blocks) blo
 
 // loadVariableBlocks returns config variables to get terraform variable config block.
 func loadVariableBlocks(opts *VariableOptions) block.Blocks {
-	blocks := make(block.Blocks, 0, len(opts.SecretNames)+len(opts.DependencyOutputs))
+	blocks := make(block.Blocks, 0, len(opts.Variables)+len(opts.DependencyOutputs))
 
 	// Secret variables.
-	for i := range opts.SecretNames {
+	for name, sensitive := range opts.Variables {
 		blocks = append(blocks, &block.Block{
 			Type:   block.TypeVariable,
-			Labels: []string{opts.SecretPrefix + opts.SecretNames[i]},
+			Labels: []string{opts.VariablePrefix + name},
 			Attributes: map[string]interface{}{
 				"type":      "{{string}}",
-				"sensitive": true,
+				"sensitive": sensitive,
 			},
 		})
 	}
