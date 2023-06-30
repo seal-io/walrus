@@ -7,6 +7,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/terraform/block"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 const (
@@ -17,6 +18,17 @@ const (
 	TypeAWS        = "aws"
 	// Add more convertor type.
 )
+
+// supportedProviders is the supported provider types,
+// it is used to validate the required providers.
+var supportedProviders = []string{
+	TypeKubernetes,
+	TypeHelm,
+	TypeKubectl,
+	TypeAliCloud,
+	TypeAWS,
+	// Add more convertor type.
+}
 
 type ConvertOptions struct {
 	SecretMountPath string
@@ -48,11 +60,6 @@ func ToProvidersBlocks(
 	connectors model.Connectors,
 	opts ConvertOptions,
 ) (blocks block.Blocks, err error) {
-	builtinProviders := []string{
-		TypeKubernetes,
-		TypeHelm,
-	}
-
 	for _, p := range providers {
 		var convertBlocks block.Blocks
 
@@ -68,15 +75,23 @@ func ToProvidersBlocks(
 		blocks = append(blocks, convertBlocks...)
 	}
 
-	//  required custom provider that could convert from connectors is validated when converting.
-	// otherwise it will return error. Here we only validate the builtin providers.
-	ok, err := validateRequiredProviders(providers, builtinProviders, blocks)
+	// Validate blocks with providers.
+	ok, err := validateRequiredProviders(providers, blocks)
+	if err != nil {
+		return nil, err
+	}
+
+	currentProvicers, err := blocks.GetProviderNames()
 	if err != nil {
 		return nil, err
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("failed to validate providers: %v, current blockProviders: %v", providers, blocks)
+		return nil, fmt.Errorf(
+			"missing required providers, expected: %q, but got %q",
+			strs.Join(", ", providers...),
+			strs.Join(", ", currentProvicers...),
+		)
 	}
 
 	return blocks, nil
@@ -103,9 +118,8 @@ func ToProviderBlocks(provider string, connectors model.Connectors, opts Convert
 	return LoadConvertor(provider).ToBlocks(connectors, toBlockOpts)
 }
 
-// validateRequiredProviders the providers both in providers and supportedProviders
-// need to be checked in the generated blocks.
-func validateRequiredProviders(providers, supportedProviders []string, blocks block.Blocks) (bool, error) {
+// validateRequiredProviders validate the required providers in the generated blocks.
+func validateRequiredProviders(providers []string, blocks block.Blocks) (bool, error) {
 	// BlockProviders is the providers of the generated blocks.
 	blockProviders, err := blocks.GetProviderNames()
 	if err != nil {

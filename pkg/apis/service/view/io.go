@@ -14,7 +14,6 @@ import (
 	serviceresourceview "github.com/seal-io/seal/pkg/apis/serviceresource/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
-	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
@@ -25,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/pkg/terraform/convertor"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/validation"
@@ -81,18 +81,19 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	// Verify environment if it has no connectors.
-	_, err = modelClient.Environments().Query().
+	env, err := modelClient.Environments().Query().
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			// Includes connectors.
+			rq.WithConnector()
+		}).
 		Where(environment.ID(r.Environment.ID)).
-		OnlyID(ctx)
+		Only(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get environment")
 	}
 
-	count, _ := modelClient.EnvironmentConnectorRelationships().Query().
-		Where(environmentconnectorrelationship.EnvironmentID(r.Environment.ID)).
-		Count(ctx)
-	if count == 0 {
-		return runtime.Error(http.StatusNotFound, "invalid environment: no connectors")
+	if err = validateEnvironment(templateVersion, env); err != nil {
+		return err
 	}
 
 	// Verify variables with variables schema that defined on the template version.
@@ -270,9 +271,15 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 	modelClient := input.(model.ClientSet)
 
 	environments, err := modelClient.Environments().Query().
-		Select(environment.FieldID).
+		Select(
+			environment.FieldID,
+			environment.FieldName,
+		).
 		Where(environment.IDIn(r.EnvironmentIDs...)).
-		WithConnectors().
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			// Includes connectors.
+			rq.WithConnector()
+		}).
 		All(ctx)
 	if err != nil {
 		return err
@@ -280,12 +287,6 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 
 	if len(environments) != len(r.EnvironmentIDs) {
 		return errors.New("invalid environment IDs")
-	}
-
-	for _, env := range environments {
-		if len(env.Edges.Connectors) == 0 {
-			return fmt.Errorf("environment %s has no connectors", env.ID)
-		}
 	}
 
 	// Get template versions.
@@ -325,6 +326,13 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 		key := strs.Join("/", tv.TemplateID, tv.Version)
 		if _, ok := templateVersionMap[key]; !ok {
 			templateVersionMap[key] = tv
+		}
+
+		for _, env := range environments {
+			if err := validateEnvironment(tv, env); err != nil {
+				return runtime.Errorf(
+					http.StatusBadRequest, "environment %s missing required connectors", env.Name)
+			}
 		}
 	}
 
@@ -703,3 +711,33 @@ type (
 	// GraphEdge defines the edge of graph.
 	GraphEdge = serviceresourceview.GraphEdge
 )
+
+func validateEnvironment(
+	tv *model.TemplateVersion,
+	env *model.Environment,
+) error {
+	if len(env.Edges.Connectors) == 0 {
+		return runtime.Error(
+			http.StatusBadRequest,
+			errors.New("no connectors"),
+		)
+	}
+
+	providers := make([]string, len(tv.Schema.RequiredProviders))
+
+	for i, provider := range tv.Schema.RequiredProviders {
+		providers[i] = provider.Name
+	}
+
+	var connectors model.Connectors
+
+	for _, ecr := range env.Edges.Connectors {
+		connectors = append(connectors, ecr.Edges.Connector)
+	}
+
+	_, err := convertor.ToProvidersBlocks(providers, connectors, convertor.ConvertOptions{
+		Providers: providers,
+	})
+
+	return err
+}

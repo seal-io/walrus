@@ -577,8 +577,12 @@ func (h Handler) getServiceOutputs(
 		}).
 		Order(model.Desc(servicerevision.FieldCreateTime)).
 		First(ctx)
-	if err != nil {
+	if err != nil && !model.IsNotFound(err) {
 		return nil, fmt.Errorf("error getting the latest service revision")
+	}
+
+	if sr == nil {
+		return nil, nil
 	}
 
 	if onlySuccess && sr.Status != status.ServiceRevisionStatusSucceeded {
