@@ -55,6 +55,8 @@ type Tx struct {
 	TemplateVersion *TemplateVersionClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
+	// Variable is the client for interacting with the Variable builders.
+	Variable *VariableClient
 
 	// lazily loaded.
 	client     *Client
@@ -205,6 +207,7 @@ func (tx *Tx) init() {
 	tx.Template = NewTemplateClient(tx.config)
 	tx.TemplateVersion = NewTemplateVersionClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
+	tx.Variable = NewVariableClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -363,6 +366,11 @@ func (tx *Tx) Tokens() *TokenClient {
 	return tx.Token
 }
 
+// Variables implements the ClientSet.
+func (tx *Tx) Variables() *VariableClient {
+	return tx.Variable
+}
+
 // Debug returns the debug value of the driver.
 func (tx *Tx) Debug() *Client {
 	return tx.client.Debug()
@@ -418,6 +426,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Template.Use(hooks...)
 	tx.TemplateVersion.Use(hooks...)
 	tx.Token.Use(hooks...)
+	tx.Variable.Use(hooks...)
 }
 
 // WithTx gives a new transactional client in the callback function,

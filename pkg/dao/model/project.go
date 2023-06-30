@@ -55,9 +55,11 @@ type ProjectEdges struct {
 	Services []*Service `json:"services,omitempty" sql:"services"`
 	// Service revisions that belong to the project.
 	ServiceRevisions []*ServiceRevision `json:"serviceRevisions,omitempty" sql:"serviceRevisions"`
+	// Variables that belong to the project.
+	Variables []*Variable `json:"variables,omitempty" sql:"variables"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -112,6 +114,15 @@ func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
 		return e.ServiceRevisions, nil
 	}
 	return nil, &NotLoadedError{edge: "serviceRevisions"}
+}
+
+// VariablesOrErr returns the Variables value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) VariablesOrErr() ([]*Variable, error) {
+	if e.loadedTypes[6] {
+		return e.Variables, nil
+	}
+	return nil, &NotLoadedError{edge: "variables"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -231,6 +242,11 @@ func (pr *Project) QueryServices() *ServiceQuery {
 // QueryServiceRevisions queries the "serviceRevisions" edge of the Project entity.
 func (pr *Project) QueryServiceRevisions() *ServiceRevisionQuery {
 	return NewProjectClient(pr.config).QueryServiceRevisions(pr)
+}
+
+// QueryVariables queries the "variables" edge of the Project entity.
+func (pr *Project) QueryVariables() *VariableQuery {
+	return NewProjectClient(pr.config).QueryVariables(pr)
 }
 
 // Update returns a builder for updating this Project.

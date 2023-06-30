@@ -66,6 +66,9 @@ type ClientSet interface {
 	// Tokens returns the client for interacting with the Token builders.
 	Tokens() *TokenClient
 
+	// Variables returns the client for interacting with the Variable builders.
+	Variables() *VariableClient
+
 	// WithTx gives a new transactional client in the callback function,
 	// if already in a transaction, this will keep in the same transaction.
 	WithTx(context.Context, func(tx *Tx) error) error
@@ -192,4 +195,10 @@ type TemplateVersionClientGetter interface {
 type TokenClientGetter interface {
 	// Tokens returns the client for interacting with the Token builders.
 	Tokens() *TokenClient
+}
+
+// VariableClientGetter is an interface that allows getting VariableClient.
+type VariableClientGetter interface {
+	// Variables returns the client for interacting with the Variable builders.
+	Variables() *VariableClient
 }

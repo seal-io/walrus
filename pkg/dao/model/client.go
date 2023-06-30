@@ -38,6 +38,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 
 	stdsql "database/sql"
 
@@ -87,6 +88,8 @@ type Client struct {
 	TemplateVersion *TemplateVersionClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
+	// Variable is the client for interacting with the Variable builders.
+	Variable *VariableClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -119,6 +122,7 @@ func (c *Client) init() {
 	c.Template = NewTemplateClient(c.config)
 	c.TemplateVersion = NewTemplateVersionClient(c.config)
 	c.Token = NewTokenClient(c.config)
+	c.Variable = NewVariableClient(c.config)
 }
 
 type (
@@ -222,6 +226,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Template:                         NewTemplateClient(cfg),
 		TemplateVersion:                  NewTemplateVersionClient(cfg),
 		Token:                            NewTokenClient(cfg),
+		Variable:                         NewVariableClient(cfg),
 	}, nil
 }
 
@@ -260,6 +265,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Template:                         NewTemplateClient(cfg),
 		TemplateVersion:                  NewTemplateVersionClient(cfg),
 		Token:                            NewTokenClient(cfg),
+		Variable:                         NewVariableClient(cfg),
 	}, nil
 }
 
@@ -293,7 +299,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
 		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
 		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
-		c.Token,
+		c.Token, c.Variable,
 	} {
 		n.Use(hooks...)
 	}
@@ -307,7 +313,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
 		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
 		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
-		c.Token,
+		c.Token, c.Variable,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -408,6 +414,11 @@ func (c *Client) Tokens() *TokenClient {
 	return c.Token
 }
 
+// Variables implements the ClientSet.
+func (c *Client) Variables() *VariableClient {
+	return c.Variable
+}
+
 // Dialect returns the dialect name of the driver.
 func (c *Client) Dialect() string {
 	return c.driver.Dialect()
@@ -487,6 +498,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.TemplateVersion.mutate(ctx, m)
 	case *TokenMutation:
 		return c.Token.mutate(ctx, m)
+	case *VariableMutation:
+		return c.Variable.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("model: unknown mutation type %T", m)
 	}
@@ -1150,6 +1163,25 @@ func (c *EnvironmentClient) QueryServiceRevisions(e *Environment) *ServiceRevisi
 	return query
 }
 
+// QueryVariables queries the variables edge of a Environment.
+func (c *EnvironmentClient) QueryVariables(e *Environment) *VariableQuery {
+	query := (&VariableClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(environment.Table, environment.FieldID, id),
+			sqlgraph.To(variable.Table, variable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, environment.VariablesTable, environment.VariablesColumn),
+		)
+		schemaConfig := e.schemaConfig
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EnvironmentClient) Hooks() []Hook {
 	hooks := c.hooks.Environment
@@ -1598,6 +1630,25 @@ func (c *ProjectClient) QueryServiceRevisions(pr *Project) *ServiceRevisionQuery
 		schemaConfig := pr.schemaConfig
 		step.To.Schema = schemaConfig.ServiceRevision
 		step.Edge.Schema = schemaConfig.ServiceRevision
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryVariables queries the variables edge of a Project.
+func (c *ProjectClient) QueryVariables(pr *Project) *VariableQuery {
+	query := (&VariableClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(variable.Table, variable.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.VariablesTable, project.VariablesColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.Variable
+		step.Edge.Schema = schemaConfig.Variable
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3499,19 +3550,178 @@ func (c *TokenClient) mutate(ctx context.Context, m *TokenMutation) (Value, erro
 	}
 }
 
+// VariableClient is a client for the Variable schema.
+type VariableClient struct {
+	config
+}
+
+// NewVariableClient returns a client for the Variable from the given config.
+func NewVariableClient(c config) *VariableClient {
+	return &VariableClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `variable.Hooks(f(g(h())))`.
+func (c *VariableClient) Use(hooks ...Hook) {
+	c.hooks.Variable = append(c.hooks.Variable, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `variable.Intercept(f(g(h())))`.
+func (c *VariableClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Variable = append(c.inters.Variable, interceptors...)
+}
+
+// Create returns a builder for creating a Variable entity.
+func (c *VariableClient) Create() *VariableCreate {
+	mutation := newVariableMutation(c.config, OpCreate)
+	return &VariableCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Variable entities.
+func (c *VariableClient) CreateBulk(builders ...*VariableCreate) *VariableCreateBulk {
+	return &VariableCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Variable.
+func (c *VariableClient) Update() *VariableUpdate {
+	mutation := newVariableMutation(c.config, OpUpdate)
+	return &VariableUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VariableClient) UpdateOne(v *Variable) *VariableUpdateOne {
+	mutation := newVariableMutation(c.config, OpUpdateOne, withVariable(v))
+	return &VariableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VariableClient) UpdateOneID(id oid.ID) *VariableUpdateOne {
+	mutation := newVariableMutation(c.config, OpUpdateOne, withVariableID(id))
+	return &VariableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Variable.
+func (c *VariableClient) Delete() *VariableDelete {
+	mutation := newVariableMutation(c.config, OpDelete)
+	return &VariableDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VariableClient) DeleteOne(v *Variable) *VariableDeleteOne {
+	return c.DeleteOneID(v.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VariableClient) DeleteOneID(id oid.ID) *VariableDeleteOne {
+	builder := c.Delete().Where(variable.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VariableDeleteOne{builder}
+}
+
+// Query returns a query builder for Variable.
+func (c *VariableClient) Query() *VariableQuery {
+	return &VariableQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeVariable},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Variable entity by its id.
+func (c *VariableClient) Get(ctx context.Context, id oid.ID) (*Variable, error) {
+	return c.Query().Where(variable.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VariableClient) GetX(ctx context.Context, id oid.ID) *Variable {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a Variable.
+func (c *VariableClient) QueryProject(v *Variable) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(variable.Table, variable.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, variable.ProjectTable, variable.ProjectColumn),
+		)
+		schemaConfig := v.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.Variable
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnvironment queries the environment edge of a Variable.
+func (c *VariableClient) QueryEnvironment(v *Variable) *EnvironmentQuery {
+	query := (&EnvironmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(variable.Table, variable.FieldID, id),
+			sqlgraph.To(environment.Table, environment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, variable.EnvironmentTable, variable.EnvironmentColumn),
+		)
+		schemaConfig := v.schemaConfig
+		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Variable
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VariableClient) Hooks() []Hook {
+	hooks := c.hooks.Variable
+	return append(hooks[:len(hooks):len(hooks)], variable.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *VariableClient) Interceptors() []Interceptor {
+	inters := c.inters.Variable
+	return append(inters[:len(inters):len(inters)], variable.Interceptors[:]...)
+}
+
+func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VariableCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VariableUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VariableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VariableDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown Variable mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
 		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
-		SubjectRoleRelationship, Template, TemplateVersion, Token []ent.Hook
+		SubjectRoleRelationship, Template, TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
 		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
-		SubjectRoleRelationship, Template, TemplateVersion, Token []ent.Interceptor
+		SubjectRoleRelationship, Template, TemplateVersion, Token,
+		Variable []ent.Interceptor
 	}
 )
 

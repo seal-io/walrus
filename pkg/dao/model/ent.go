@@ -35,6 +35,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -114,6 +115,7 @@ func checkColumn(table, column string) error {
 			template.Table:                         template.ValidColumn,
 			templateversion.Table:                  templateversion.ValidColumn,
 			token.Table:                            token.ValidColumn,
+			variable.Table:                         variable.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

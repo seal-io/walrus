@@ -477,6 +477,7 @@ var (
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "secrets", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "variables", Type: field.TypeOther, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "input_plan", Type: field.TypeString},
 		{Name: "output", Type: field.TypeString},
 		{Name: "deployer_type", Type: field.TypeString, Default: "Terraform"},
@@ -495,19 +496,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_revisions_environments_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_projects_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_services_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[17]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -723,6 +724,69 @@ var (
 			},
 		},
 	}
+	// VariablesColumns holds the columns for the "variables" table.
+	VariablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "value", Type: field.TypeString, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
+		{Name: "sensitive", Type: field.TypeBool, Default: false},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "environment_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// VariablesTable holds the schema information for the "variables" table.
+	VariablesTable = &schema.Table{
+		Name:       "variables",
+		Columns:    VariablesColumns,
+		PrimaryKey: []*schema.Column{VariablesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "variables_environments_variables",
+				Columns:    []*schema.Column{VariablesColumns[7]},
+				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "variables_projects_variables",
+				Columns:    []*schema.Column{VariablesColumns[8]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "variable_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{VariablesColumns[1]},
+			},
+			{
+				Name:    "variable_environment_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{VariablesColumns[7], VariablesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "environment_id IS NOT NULL",
+				},
+			},
+			{
+				Name:    "variable_project_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{VariablesColumns[8], VariablesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NOT NULL AND environment_id IS NULL",
+				},
+			},
+			{
+				Name:    "variable_name",
+				Unique:  true,
+				Columns: []*schema.Column{VariablesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "project_id IS NULL AND environment_id IS NULL",
+				},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AllocationCostsTable,
@@ -744,6 +808,7 @@ var (
 		TemplatesTable,
 		TemplateVersionsTable,
 		TokensTable,
+		VariablesTable,
 	}
 )
 
@@ -769,4 +834,6 @@ func init() {
 	SubjectRoleRelationshipsTable.ForeignKeys[2].RefTable = RolesTable
 	TemplateVersionsTable.ForeignKeys[0].RefTable = TemplatesTable
 	TokensTable.ForeignKeys[0].RefTable = SubjectsTable
+	VariablesTable.ForeignKeys[0].RefTable = EnvironmentsTable
+	VariablesTable.ForeignKeys[1].RefTable = ProjectsTable
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/model/token"
+	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -577,20 +578,24 @@ func init() {
 	servicerevisionDescSecrets := servicerevisionFields[5].Descriptor()
 	// servicerevision.DefaultSecrets holds the default value on creation for the secrets field.
 	servicerevision.DefaultSecrets = servicerevisionDescSecrets.Default.(crypto.Map[string, string])
+	// servicerevisionDescVariables is the schema descriptor for variables field.
+	servicerevisionDescVariables := servicerevisionFields[6].Descriptor()
+	// servicerevision.DefaultVariables holds the default value on creation for the variables field.
+	servicerevision.DefaultVariables = servicerevisionDescVariables.Default.(crypto.Map[string, string])
 	// servicerevisionDescDeployerType is the schema descriptor for deployerType field.
-	servicerevisionDescDeployerType := servicerevisionFields[8].Descriptor()
+	servicerevisionDescDeployerType := servicerevisionFields[9].Descriptor()
 	// servicerevision.DefaultDeployerType holds the default value on creation for the deployerType field.
 	servicerevision.DefaultDeployerType = servicerevisionDescDeployerType.Default.(string)
 	// servicerevisionDescDuration is the schema descriptor for duration field.
-	servicerevisionDescDuration := servicerevisionFields[9].Descriptor()
+	servicerevisionDescDuration := servicerevisionFields[10].Descriptor()
 	// servicerevision.DefaultDuration holds the default value on creation for the duration field.
 	servicerevision.DefaultDuration = servicerevisionDescDuration.Default.(int)
 	// servicerevisionDescPreviousRequiredProviders is the schema descriptor for previousRequiredProviders field.
-	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[10].Descriptor()
+	servicerevisionDescPreviousRequiredProviders := servicerevisionFields[11].Descriptor()
 	// servicerevision.DefaultPreviousRequiredProviders holds the default value on creation for the previousRequiredProviders field.
 	servicerevision.DefaultPreviousRequiredProviders = servicerevisionDescPreviousRequiredProviders.Default.([]types.ProviderRequirement)
 	// servicerevisionDescTags is the schema descriptor for tags field.
-	servicerevisionDescTags := servicerevisionFields[11].Descriptor()
+	servicerevisionDescTags := servicerevisionFields[12].Descriptor()
 	// servicerevision.DefaultTags holds the default value on creation for the tags field.
 	servicerevision.DefaultTags = servicerevisionDescTags.Default.([]string)
 	settingMixin := schema.Setting{}.Mixin()
@@ -781,6 +786,40 @@ func init() {
 	tokenDescValue := tokenFields[3].Descriptor()
 	// token.ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	token.ValueValidator = tokenDescValue.Validators[0].(func(string) error)
+	variableMixin := schema.Variable{}.Mixin()
+	variableMixinHooks0 := variableMixin[0].Hooks()
+	variableMixinHooks2 := variableMixin[2].Hooks()
+	variable.Hooks[0] = variableMixinHooks0[0]
+	variable.Hooks[1] = variableMixinHooks2[0]
+	variable.Hooks[2] = variableMixinHooks2[1]
+	variableMixinInters2 := variableMixin[2].Interceptors()
+	variable.Interceptors[0] = variableMixinInters2[0]
+	variableMixinFields1 := variableMixin[1].Fields()
+	_ = variableMixinFields1
+	variableFields := schema.Variable{}.Fields()
+	_ = variableFields
+	// variableDescCreateTime is the schema descriptor for createTime field.
+	variableDescCreateTime := variableMixinFields1[0].Descriptor()
+	// variable.DefaultCreateTime holds the default value on creation for the createTime field.
+	variable.DefaultCreateTime = variableDescCreateTime.Default.(func() time.Time)
+	// variableDescUpdateTime is the schema descriptor for updateTime field.
+	variableDescUpdateTime := variableMixinFields1[1].Descriptor()
+	// variable.DefaultUpdateTime holds the default value on creation for the updateTime field.
+	variable.DefaultUpdateTime = variableDescUpdateTime.Default.(func() time.Time)
+	// variable.UpdateDefaultUpdateTime holds the default value on update for the updateTime field.
+	variable.UpdateDefaultUpdateTime = variableDescUpdateTime.UpdateDefault.(func() time.Time)
+	// variableDescName is the schema descriptor for name field.
+	variableDescName := variableFields[0].Descriptor()
+	// variable.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	variable.NameValidator = variableDescName.Validators[0].(func(string) error)
+	// variableDescValue is the schema descriptor for value field.
+	variableDescValue := variableFields[1].Descriptor()
+	// variable.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	variable.ValueValidator = variableDescValue.Validators[0].(func(string) error)
+	// variableDescSensitive is the schema descriptor for sensitive field.
+	variableDescSensitive := variableFields[2].Descriptor()
+	// variable.DefaultSensitive holds the default value on creation for the sensitive field.
+	variable.DefaultSensitive = variableDescSensitive.Default.(bool)
 }
 
 const (
