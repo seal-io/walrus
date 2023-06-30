@@ -84,59 +84,78 @@ func never(ctx context.Context, name, oldVal, newVal string) (bool, error) {
 
 // httpUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is an HTTP URL.
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
 func httpUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	_, err := parseUrl(newVal, httpSchemeUrlOnly)
-	if err != nil {
-		return false, err
+	if newVal == "" {
+		return true, nil
 	}
 
-	return true, nil
+	_, err := parseUrl(newVal, httpSchemeUrlOnly)
+
+	return err == nil, err
 }
 
 // sockUrl implements the modifyValidator stereotype,
 // which means the value can be modified if it is a Socket URL.
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
 func sockUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	_, err := parseUrl(newVal, sockSchemeUrlOnly)
-	if err != nil {
-		return false, err
+	// Allow blank,
+	// combine with notBlank if disallowed.
+	if newVal == "" {
+		return true, nil
 	}
 
-	return true, nil
+	_, err := parseUrl(newVal, sockSchemeUrlOnly)
+
+	return err == nil, err
 }
 
 // anyUrl implements the modifyValidator stereotype,
-// which means the value can be modified if it is an URL.
+// which means the value can be modified if it is a URL.
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
 func anyUrl(ctx context.Context, name, oldVal, newVal string) (bool, error) {
-	_, err := parseUrl(newVal, anySchemeUrl)
-	if err != nil {
-		return false, err
+	// Allow blank,
+	// combine with notBlank if disallowed.
+	if newVal == "" {
+		return true, nil
 	}
 
-	return true, nil
+	_, err := parseUrl(newVal, anySchemeUrl)
+
+	return err == nil, err
 }
 
 // cronExpression implements the modifyValidator stereotype,
 // which means the value can be modified if it's cron expression.
-func cronExpression(ctx context.Context, name, oldValue, newValue string) (bool, error) {
-	if newValue != "" {
-		err := cron.ValidateCronExpr(newValue)
-		if err != nil {
-			return false, err
-		}
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
+func cronExpression(ctx context.Context, name, oldVal, newVal string) (bool, error) {
+	// Allow blank,
+	// combine with notBlank if disallowed.
+	if newVal == "" {
+		return true, nil
 	}
 
-	return true, nil
+	err := cron.ValidateCronExpr(newVal)
+
+	return err == nil, err
 }
 
 // containerImageReference implements the modifyValidator stereotype,
 // which means the value can be modified if it's container image reference.
-func containerImageReference(ctx context.Context, name, oldValue, newValue string) (bool, error) {
-	if newValue != "" {
-		_, err := imgdistref.ParseNormalizedNamed(newValue)
-		if err != nil {
-			return false, err
-		}
+// This modifier allows blank new value,
+// if not allowed, combine with notBlank.
+func containerImageReference(ctx context.Context, name, oldVal, newVal string) (bool, error) {
+	// Allow blank,
+	// combine with notBlank if disallowed.
+	if newVal == "" {
+		return true, nil
 	}
 
-	return true, nil
+	_, err := imgdistref.ParseNormalizedNamed(newVal)
+
+	return err == nil, err
 }

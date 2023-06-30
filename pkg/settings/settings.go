@@ -78,13 +78,13 @@ var (
 		"ServeUrl",
 		editable,
 		nil,
-		modifyWith(httpUrl))
+		modifyWith(notBlank, httpUrl))
 	// ServeUiIndex keeps the address for serving UI.
 	ServeUiIndex = newValue(
 		"ServeUiIndex",
 		editable|hidden,
 		initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
-		modifyWith(anyUrl),
+		modifyWith(notBlank, anyUrl),
 	)
 	// ServeTemplateRefer keeps the branch name of github.com/seal-io/modules repo for serving templates.
 	ServeTemplateRefer = newValue(
