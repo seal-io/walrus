@@ -172,7 +172,7 @@ func SetServiceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *
 
 	dependencyNames := dao.ServiceRelationshipGetDependencyNames(entity)
 
-	msg := "Progressing"
+	msg := ""
 	if len(dependencyNames) > 0 {
 		msg = fmt.Sprintf("Waiting for dependent services to be ready: %s", strs.Join(", ", dependencyNames...))
 	}

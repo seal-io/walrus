@@ -81,7 +81,7 @@ func ToProvidersBlocks(
 		return nil, err
 	}
 
-	currentProvicers, err := blocks.GetProviderNames()
+	currentProviders, err := blocks.GetProviderNames()
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func ToProvidersBlocks(
 		return nil, fmt.Errorf(
 			"missing required providers, expected: %q, but got %q",
 			strs.Join(", ", providers...),
-			strs.Join(", ", currentProvicers...),
+			strs.Join(", ", currentProviders...),
 		)
 	}
 
