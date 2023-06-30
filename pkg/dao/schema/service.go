@@ -83,10 +83,9 @@ func (Service) Edges() []ent.Edge {
 				entsql.OnDelete(entsql.Cascade),
 				io.Disable()),
 		// Service 1-* service dependencies.
-		edge.To("dependencies", ServiceDependency.Type).
-			Comment("Dependencies that belong to the service.").
-			Annotations(
-				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
+		edge.To("dependencies", Service.Type).
+			StructTag(`json:"dependencies,omitempty" sql:"dependencies"`).
+			Comment("Dependency services that belong to the service.").
+			Through("serviceRelationships", ServiceRelationship.Type),
 	}
 }
