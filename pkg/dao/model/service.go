@@ -66,8 +66,8 @@ type ServiceEdges struct {
 	Revisions []*ServiceRevision `json:"revisions,omitempty" sql:"revisions"`
 	// Resources that belong to the service.
 	Resources []*ServiceResource `json:"resources,omitempty" sql:"resources"`
-	// Dependencies that belong to the service.
-	Dependencies []*ServiceDependency `json:"dependencies,omitempty" sql:"dependencies"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceRelationship `json:"dependencies,omitempty" sql:"dependencies"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [5]bool
@@ -119,7 +119,7 @@ func (e ServiceEdges) ResourcesOrErr() ([]*ServiceResource, error) {
 
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) DependenciesOrErr() ([]*ServiceDependency, error) {
+func (e ServiceEdges) DependenciesOrErr() ([]*ServiceRelationship, error) {
 	if e.loadedTypes[4] {
 		return e.Dependencies, nil
 	}
@@ -272,7 +272,7 @@ func (s *Service) QueryResources() *ServiceResourceQuery {
 }
 
 // QueryDependencies queries the "dependencies" edge of the Service entity.
-func (s *Service) QueryDependencies() *ServiceDependencyQuery {
+func (s *Service) QueryDependencies() *ServiceRelationshipQuery {
 	return NewServiceClient(s.config).QueryDependencies(s)
 }
 

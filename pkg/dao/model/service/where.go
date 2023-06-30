@@ -658,22 +658,22 @@ func HasDependencies() predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, DependenciesTable, DependenciesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, DependenciesTable, DependenciesColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ServiceDependency
-		step.Edge.Schema = schemaConfig.ServiceDependency
+		step.To.Schema = schemaConfig.ServiceRelationship
+		step.Edge.Schema = schemaConfig.ServiceRelationship
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
 // HasDependenciesWith applies the HasEdge predicate on the "dependencies" edge with a given conditions (other predicates).
-func HasDependenciesWith(preds ...predicate.ServiceDependency) predicate.Service {
+func HasDependenciesWith(preds ...predicate.ServiceRelationship) predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
 		step := newDependenciesStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ServiceDependency
-		step.Edge.Schema = schemaConfig.ServiceDependency
+		step.To.Schema = schemaConfig.ServiceRelationship
+		step.Edge.Schema = schemaConfig.ServiceRelationship
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

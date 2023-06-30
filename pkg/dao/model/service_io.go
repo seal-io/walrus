@@ -43,6 +43,8 @@ type ServiceCreateInput struct {
 	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceRelationshipCreateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceCreateInput to Service.
@@ -56,6 +58,12 @@ func (in ServiceCreateInput) Model() *Service {
 		Status:      in.Status,
 	}
 	entity.EnvironmentID = in.Environment.ID
+	for i := 0; i < len(in.Dependencies); i++ {
+		if in.Dependencies[i] == nil {
+			continue
+		}
+		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
+	}
 	return entity
 }
 
@@ -75,6 +83,8 @@ type ServiceUpdateInput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Status of the service.
 	Status status.Status `json:"status,omitempty"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceRelationshipUpdateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceUpdateInput to Service.
@@ -87,6 +97,12 @@ func (in ServiceUpdateInput) Model() *Service {
 		Template:    in.Template,
 		Attributes:  in.Attributes,
 		Status:      in.Status,
+	}
+	for i := 0; i < len(in.Dependencies); i++ {
+		if in.Dependencies[i] == nil {
+			continue
+		}
+		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
 	}
 	return entity
 }
@@ -115,6 +131,8 @@ type ServiceOutput struct {
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Environment to which the service belongs.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceRelationshipOutput `json:"dependencies,omitempty"`
 }
 
 // ExposeService converts the Service to ServiceOutput.
@@ -123,17 +141,18 @@ func ExposeService(in *Service) *ServiceOutput {
 		return nil
 	}
 	var entity = &ServiceOutput{
-		ID:          in.ID,
-		Name:        in.Name,
-		Description: in.Description,
-		Labels:      in.Labels,
-		CreateTime:  in.CreateTime,
-		UpdateTime:  in.UpdateTime,
-		Template:    in.Template,
-		Attributes:  in.Attributes,
-		Status:      in.Status,
-		Project:     ExposeProject(in.Edges.Project),
-		Environment: ExposeEnvironment(in.Edges.Environment),
+		ID:           in.ID,
+		Name:         in.Name,
+		Description:  in.Description,
+		Labels:       in.Labels,
+		CreateTime:   in.CreateTime,
+		UpdateTime:   in.UpdateTime,
+		Template:     in.Template,
+		Attributes:   in.Attributes,
+		Status:       in.Status,
+		Project:      ExposeProject(in.Edges.Project),
+		Environment:  ExposeEnvironment(in.Edges.Environment),
+		Dependencies: ExposeServiceRelationships(in.Edges.Dependencies),
 	}
 	if in.ProjectID != "" {
 		if entity.Project == nil {

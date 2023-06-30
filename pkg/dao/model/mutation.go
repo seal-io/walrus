@@ -25,7 +25,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
@@ -60,7 +60,7 @@ const (
 	TypeProject                          = "Project"
 	TypeRole                             = "Role"
 	TypeService                          = "Service"
-	TypeServiceDependency                = "ServiceDependency"
+	TypeServiceRelationship              = "ServiceRelationship"
 	TypeServiceResource                  = "ServiceResource"
 	TypeServiceRevision                  = "ServiceRevision"
 	TypeSetting                          = "Setting"
@@ -10290,7 +10290,7 @@ func (m *ServiceMutation) ResetResources() {
 	m.removedresources = nil
 }
 
-// AddDependencyIDs adds the "dependencies" edge to the ServiceDependency entity by ids.
+// AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by ids.
 func (m *ServiceMutation) AddDependencyIDs(ids ...oid.ID) {
 	if m.dependencies == nil {
 		m.dependencies = make(map[oid.ID]struct{})
@@ -10300,17 +10300,17 @@ func (m *ServiceMutation) AddDependencyIDs(ids ...oid.ID) {
 	}
 }
 
-// ClearDependencies clears the "dependencies" edge to the ServiceDependency entity.
+// ClearDependencies clears the "dependencies" edge to the ServiceRelationship entity.
 func (m *ServiceMutation) ClearDependencies() {
 	m.cleareddependencies = true
 }
 
-// DependenciesCleared reports if the "dependencies" edge to the ServiceDependency entity was cleared.
+// DependenciesCleared reports if the "dependencies" edge to the ServiceRelationship entity was cleared.
 func (m *ServiceMutation) DependenciesCleared() bool {
 	return m.cleareddependencies
 }
 
-// RemoveDependencyIDs removes the "dependencies" edge to the ServiceDependency entity by IDs.
+// RemoveDependencyIDs removes the "dependencies" edge to the ServiceRelationship entity by IDs.
 func (m *ServiceMutation) RemoveDependencyIDs(ids ...oid.ID) {
 	if m.removeddependencies == nil {
 		m.removeddependencies = make(map[oid.ID]struct{})
@@ -10321,7 +10321,7 @@ func (m *ServiceMutation) RemoveDependencyIDs(ids ...oid.ID) {
 	}
 }
 
-// RemovedDependencies returns the removed IDs of the "dependencies" edge to the ServiceDependency entity.
+// RemovedDependencies returns the removed IDs of the "dependencies" edge to the ServiceRelationship entity.
 func (m *ServiceMutation) RemovedDependenciesIDs() (ids []oid.ID) {
 	for id := range m.removeddependencies {
 		ids = append(ids, id)
@@ -10850,36 +10850,37 @@ func (m *ServiceMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Service edge %s", name)
 }
 
-// ServiceDependencyMutation represents an operation that mutates the ServiceDependency nodes in the graph.
-type ServiceDependencyMutation struct {
+// ServiceRelationshipMutation represents an operation that mutates the ServiceRelationship nodes in the graph.
+type ServiceRelationshipMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *oid.ID
-	createTime     *time.Time
-	dependentID    *oid.ID
-	_path          *[]oid.ID
-	append_path    []oid.ID
-	_type          *string
-	clearedFields  map[string]struct{}
-	service        *oid.ID
-	clearedservice bool
-	done           bool
-	oldValue       func(context.Context) (*ServiceDependency, error)
-	predicates     []predicate.ServiceDependency
+	op                Op
+	typ               string
+	id                *oid.ID
+	createTime        *time.Time
+	_path             *[]oid.ID
+	append_path       []oid.ID
+	_type             *string
+	clearedFields     map[string]struct{}
+	service           *oid.ID
+	clearedservice    bool
+	dependency        *oid.ID
+	cleareddependency bool
+	done              bool
+	oldValue          func(context.Context) (*ServiceRelationship, error)
+	predicates        []predicate.ServiceRelationship
 }
 
-var _ ent.Mutation = (*ServiceDependencyMutation)(nil)
+var _ ent.Mutation = (*ServiceRelationshipMutation)(nil)
 
-// serviceDependencyOption allows management of the mutation configuration using functional options.
-type serviceDependencyOption func(*ServiceDependencyMutation)
+// serviceRelationshipOption allows management of the mutation configuration using functional options.
+type serviceRelationshipOption func(*ServiceRelationshipMutation)
 
-// newServiceDependencyMutation creates new mutation for the ServiceDependency entity.
-func newServiceDependencyMutation(c config, op Op, opts ...serviceDependencyOption) *ServiceDependencyMutation {
-	m := &ServiceDependencyMutation{
+// newServiceRelationshipMutation creates new mutation for the ServiceRelationship entity.
+func newServiceRelationshipMutation(c config, op Op, opts ...serviceRelationshipOption) *ServiceRelationshipMutation {
+	m := &ServiceRelationshipMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeServiceDependency,
+		typ:           TypeServiceRelationship,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -10888,20 +10889,20 @@ func newServiceDependencyMutation(c config, op Op, opts ...serviceDependencyOpti
 	return m
 }
 
-// withServiceDependencyID sets the ID field of the mutation.
-func withServiceDependencyID(id oid.ID) serviceDependencyOption {
-	return func(m *ServiceDependencyMutation) {
+// withServiceRelationshipID sets the ID field of the mutation.
+func withServiceRelationshipID(id oid.ID) serviceRelationshipOption {
+	return func(m *ServiceRelationshipMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *ServiceDependency
+			value *ServiceRelationship
 		)
-		m.oldValue = func(ctx context.Context) (*ServiceDependency, error) {
+		m.oldValue = func(ctx context.Context) (*ServiceRelationship, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().ServiceDependency.Get(ctx, id)
+					value, err = m.Client().ServiceRelationship.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -10910,10 +10911,10 @@ func withServiceDependencyID(id oid.ID) serviceDependencyOption {
 	}
 }
 
-// withServiceDependency sets the old ServiceDependency of the mutation.
-func withServiceDependency(node *ServiceDependency) serviceDependencyOption {
-	return func(m *ServiceDependencyMutation) {
-		m.oldValue = func(context.Context) (*ServiceDependency, error) {
+// withServiceRelationship sets the old ServiceRelationship of the mutation.
+func withServiceRelationship(node *ServiceRelationship) serviceRelationshipOption {
+	return func(m *ServiceRelationshipMutation) {
+		m.oldValue = func(context.Context) (*ServiceRelationship, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -10922,7 +10923,7 @@ func withServiceDependency(node *ServiceDependency) serviceDependencyOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ServiceDependencyMutation) Client() *Client {
+func (m ServiceRelationshipMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -10930,7 +10931,7 @@ func (m ServiceDependencyMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m ServiceDependencyMutation) Tx() (*Tx, error) {
+func (m ServiceRelationshipMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("model: mutation is not running in a transaction")
 	}
@@ -10940,14 +10941,14 @@ func (m ServiceDependencyMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of ServiceDependency entities.
-func (m *ServiceDependencyMutation) SetID(id oid.ID) {
+// operation is only accepted on creation of ServiceRelationship entities.
+func (m *ServiceRelationshipMutation) SetID(id oid.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceDependencyMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) ID() (id oid.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -10958,7 +10959,7 @@ func (m *ServiceDependencyMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceDependencyMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceRelationshipMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -10967,19 +10968,19 @@ func (m *ServiceDependencyMutation) IDs(ctx context.Context) ([]oid.ID, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().ServiceDependency.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().ServiceRelationship.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetCreateTime sets the "createTime" field.
-func (m *ServiceDependencyMutation) SetCreateTime(t time.Time) {
+func (m *ServiceRelationshipMutation) SetCreateTime(t time.Time) {
 	m.createTime = &t
 }
 
 // CreateTime returns the value of the "createTime" field in the mutation.
-func (m *ServiceDependencyMutation) CreateTime() (r time.Time, exists bool) {
+func (m *ServiceRelationshipMutation) CreateTime() (r time.Time, exists bool) {
 	v := m.createTime
 	if v == nil {
 		return
@@ -10987,10 +10988,10 @@ func (m *ServiceDependencyMutation) CreateTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreateTime returns the old "createTime" field's value of the ServiceDependency entity.
-// If the ServiceDependency object wasn't provided to the builder, the object is fetched from the database.
+// OldCreateTime returns the old "createTime" field's value of the ServiceRelationship entity.
+// If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceDependencyMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
+func (m *ServiceRelationshipMutation) OldCreateTime(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
 	}
@@ -11005,17 +11006,17 @@ func (m *ServiceDependencyMutation) OldCreateTime(ctx context.Context) (v *time.
 }
 
 // ResetCreateTime resets all changes to the "createTime" field.
-func (m *ServiceDependencyMutation) ResetCreateTime() {
+func (m *ServiceRelationshipMutation) ResetCreateTime() {
 	m.createTime = nil
 }
 
-// SetServiceID sets the "serviceID" field.
-func (m *ServiceDependencyMutation) SetServiceID(o oid.ID) {
+// SetServiceID sets the "service_id" field.
+func (m *ServiceRelationshipMutation) SetServiceID(o oid.ID) {
 	m.service = &o
 }
 
-// ServiceID returns the value of the "serviceID" field in the mutation.
-func (m *ServiceDependencyMutation) ServiceID() (r oid.ID, exists bool) {
+// ServiceID returns the value of the "service_id" field in the mutation.
+func (m *ServiceRelationshipMutation) ServiceID() (r oid.ID, exists bool) {
 	v := m.service
 	if v == nil {
 		return
@@ -11023,10 +11024,10 @@ func (m *ServiceDependencyMutation) ServiceID() (r oid.ID, exists bool) {
 	return *v, true
 }
 
-// OldServiceID returns the old "serviceID" field's value of the ServiceDependency entity.
-// If the ServiceDependency object wasn't provided to the builder, the object is fetched from the database.
+// OldServiceID returns the old "service_id" field's value of the ServiceRelationship entity.
+// If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceDependencyMutation) OldServiceID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldServiceID(ctx context.Context) (v oid.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldServiceID is only allowed on UpdateOne operations")
 	}
@@ -11040,55 +11041,55 @@ func (m *ServiceDependencyMutation) OldServiceID(ctx context.Context) (v oid.ID,
 	return oldValue.ServiceID, nil
 }
 
-// ResetServiceID resets all changes to the "serviceID" field.
-func (m *ServiceDependencyMutation) ResetServiceID() {
+// ResetServiceID resets all changes to the "service_id" field.
+func (m *ServiceRelationshipMutation) ResetServiceID() {
 	m.service = nil
 }
 
-// SetDependentID sets the "dependentID" field.
-func (m *ServiceDependencyMutation) SetDependentID(o oid.ID) {
-	m.dependentID = &o
+// SetDependencyID sets the "dependency_id" field.
+func (m *ServiceRelationshipMutation) SetDependencyID(o oid.ID) {
+	m.dependency = &o
 }
 
-// DependentID returns the value of the "dependentID" field in the mutation.
-func (m *ServiceDependencyMutation) DependentID() (r oid.ID, exists bool) {
-	v := m.dependentID
+// DependencyID returns the value of the "dependency_id" field in the mutation.
+func (m *ServiceRelationshipMutation) DependencyID() (r oid.ID, exists bool) {
+	v := m.dependency
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDependentID returns the old "dependentID" field's value of the ServiceDependency entity.
-// If the ServiceDependency object wasn't provided to the builder, the object is fetched from the database.
+// OldDependencyID returns the old "dependency_id" field's value of the ServiceRelationship entity.
+// If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceDependencyMutation) OldDependentID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldDependencyID(ctx context.Context) (v oid.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDependentID is only allowed on UpdateOne operations")
+		return v, errors.New("OldDependencyID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDependentID requires an ID field in the mutation")
+		return v, errors.New("OldDependencyID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDependentID: %w", err)
+		return v, fmt.Errorf("querying old value for OldDependencyID: %w", err)
 	}
-	return oldValue.DependentID, nil
+	return oldValue.DependencyID, nil
 }
 
-// ResetDependentID resets all changes to the "dependentID" field.
-func (m *ServiceDependencyMutation) ResetDependentID() {
-	m.dependentID = nil
+// ResetDependencyID resets all changes to the "dependency_id" field.
+func (m *ServiceRelationshipMutation) ResetDependencyID() {
+	m.dependency = nil
 }
 
 // SetPath sets the "path" field.
-func (m *ServiceDependencyMutation) SetPath(o []oid.ID) {
+func (m *ServiceRelationshipMutation) SetPath(o []oid.ID) {
 	m._path = &o
 	m.append_path = nil
 }
 
 // Path returns the value of the "path" field in the mutation.
-func (m *ServiceDependencyMutation) Path() (r []oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) Path() (r []oid.ID, exists bool) {
 	v := m._path
 	if v == nil {
 		return
@@ -11096,10 +11097,10 @@ func (m *ServiceDependencyMutation) Path() (r []oid.ID, exists bool) {
 	return *v, true
 }
 
-// OldPath returns the old "path" field's value of the ServiceDependency entity.
-// If the ServiceDependency object wasn't provided to the builder, the object is fetched from the database.
+// OldPath returns the old "path" field's value of the ServiceRelationship entity.
+// If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceDependencyMutation) OldPath(ctx context.Context) (v []oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldPath(ctx context.Context) (v []oid.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPath is only allowed on UpdateOne operations")
 	}
@@ -11114,12 +11115,12 @@ func (m *ServiceDependencyMutation) OldPath(ctx context.Context) (v []oid.ID, er
 }
 
 // AppendPath adds o to the "path" field.
-func (m *ServiceDependencyMutation) AppendPath(o []oid.ID) {
+func (m *ServiceRelationshipMutation) AppendPath(o []oid.ID) {
 	m.append_path = append(m.append_path, o...)
 }
 
 // AppendedPath returns the list of values that were appended to the "path" field in this mutation.
-func (m *ServiceDependencyMutation) AppendedPath() ([]oid.ID, bool) {
+func (m *ServiceRelationshipMutation) AppendedPath() ([]oid.ID, bool) {
 	if len(m.append_path) == 0 {
 		return nil, false
 	}
@@ -11127,18 +11128,18 @@ func (m *ServiceDependencyMutation) AppendedPath() ([]oid.ID, bool) {
 }
 
 // ResetPath resets all changes to the "path" field.
-func (m *ServiceDependencyMutation) ResetPath() {
+func (m *ServiceRelationshipMutation) ResetPath() {
 	m._path = nil
 	m.append_path = nil
 }
 
 // SetType sets the "type" field.
-func (m *ServiceDependencyMutation) SetType(s string) {
+func (m *ServiceRelationshipMutation) SetType(s string) {
 	m._type = &s
 }
 
 // GetType returns the value of the "type" field in the mutation.
-func (m *ServiceDependencyMutation) GetType() (r string, exists bool) {
+func (m *ServiceRelationshipMutation) GetType() (r string, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -11146,10 +11147,10 @@ func (m *ServiceDependencyMutation) GetType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the ServiceDependency entity.
-// If the ServiceDependency object wasn't provided to the builder, the object is fetched from the database.
+// OldType returns the old "type" field's value of the ServiceRelationship entity.
+// If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceDependencyMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *ServiceRelationshipMutation) OldType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
@@ -11164,24 +11165,24 @@ func (m *ServiceDependencyMutation) OldType(ctx context.Context) (v string, err 
 }
 
 // ResetType resets all changes to the "type" field.
-func (m *ServiceDependencyMutation) ResetType() {
+func (m *ServiceRelationshipMutation) ResetType() {
 	m._type = nil
 }
 
 // ClearService clears the "service" edge to the Service entity.
-func (m *ServiceDependencyMutation) ClearService() {
+func (m *ServiceRelationshipMutation) ClearService() {
 	m.clearedservice = true
 }
 
 // ServiceCleared reports if the "service" edge to the Service entity was cleared.
-func (m *ServiceDependencyMutation) ServiceCleared() bool {
+func (m *ServiceRelationshipMutation) ServiceCleared() bool {
 	return m.clearedservice
 }
 
 // ServiceIDs returns the "service" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ServiceID instead. It exists only for internal usage by the builders.
-func (m *ServiceDependencyMutation) ServiceIDs() (ids []oid.ID) {
+func (m *ServiceRelationshipMutation) ServiceIDs() (ids []oid.ID) {
 	if id := m.service; id != nil {
 		ids = append(ids, *id)
 	}
@@ -11189,20 +11190,46 @@ func (m *ServiceDependencyMutation) ServiceIDs() (ids []oid.ID) {
 }
 
 // ResetService resets all changes to the "service" edge.
-func (m *ServiceDependencyMutation) ResetService() {
+func (m *ServiceRelationshipMutation) ResetService() {
 	m.service = nil
 	m.clearedservice = false
 }
 
-// Where appends a list predicates to the ServiceDependencyMutation builder.
-func (m *ServiceDependencyMutation) Where(ps ...predicate.ServiceDependency) {
+// ClearDependency clears the "dependency" edge to the Service entity.
+func (m *ServiceRelationshipMutation) ClearDependency() {
+	m.cleareddependency = true
+}
+
+// DependencyCleared reports if the "dependency" edge to the Service entity was cleared.
+func (m *ServiceRelationshipMutation) DependencyCleared() bool {
+	return m.cleareddependency
+}
+
+// DependencyIDs returns the "dependency" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DependencyID instead. It exists only for internal usage by the builders.
+func (m *ServiceRelationshipMutation) DependencyIDs() (ids []oid.ID) {
+	if id := m.dependency; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDependency resets all changes to the "dependency" edge.
+func (m *ServiceRelationshipMutation) ResetDependency() {
+	m.dependency = nil
+	m.cleareddependency = false
+}
+
+// Where appends a list predicates to the ServiceRelationshipMutation builder.
+func (m *ServiceRelationshipMutation) Where(ps ...predicate.ServiceRelationship) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the ServiceDependencyMutation builder. Using this method,
+// WhereP appends storage-level predicates to the ServiceRelationshipMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ServiceDependencyMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.ServiceDependency, len(ps))
+func (m *ServiceRelationshipMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ServiceRelationship, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -11210,39 +11237,39 @@ func (m *ServiceDependencyMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *ServiceDependencyMutation) Op() Op {
+func (m *ServiceRelationshipMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *ServiceDependencyMutation) SetOp(op Op) {
+func (m *ServiceRelationshipMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (ServiceDependency).
-func (m *ServiceDependencyMutation) Type() string {
+// Type returns the node type of this mutation (ServiceRelationship).
+func (m *ServiceRelationshipMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *ServiceDependencyMutation) Fields() []string {
+func (m *ServiceRelationshipMutation) Fields() []string {
 	fields := make([]string, 0, 5)
 	if m.createTime != nil {
-		fields = append(fields, servicedependency.FieldCreateTime)
+		fields = append(fields, servicerelationship.FieldCreateTime)
 	}
 	if m.service != nil {
-		fields = append(fields, servicedependency.FieldServiceID)
+		fields = append(fields, servicerelationship.FieldServiceID)
 	}
-	if m.dependentID != nil {
-		fields = append(fields, servicedependency.FieldDependentID)
+	if m.dependency != nil {
+		fields = append(fields, servicerelationship.FieldDependencyID)
 	}
 	if m._path != nil {
-		fields = append(fields, servicedependency.FieldPath)
+		fields = append(fields, servicerelationship.FieldPath)
 	}
 	if m._type != nil {
-		fields = append(fields, servicedependency.FieldType)
+		fields = append(fields, servicerelationship.FieldType)
 	}
 	return fields
 }
@@ -11250,17 +11277,17 @@ func (m *ServiceDependencyMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *ServiceDependencyMutation) Field(name string) (ent.Value, bool) {
+func (m *ServiceRelationshipMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case servicedependency.FieldCreateTime:
+	case servicerelationship.FieldCreateTime:
 		return m.CreateTime()
-	case servicedependency.FieldServiceID:
+	case servicerelationship.FieldServiceID:
 		return m.ServiceID()
-	case servicedependency.FieldDependentID:
-		return m.DependentID()
-	case servicedependency.FieldPath:
+	case servicerelationship.FieldDependencyID:
+		return m.DependencyID()
+	case servicerelationship.FieldPath:
 		return m.Path()
-	case servicedependency.FieldType:
+	case servicerelationship.FieldType:
 		return m.GetType()
 	}
 	return nil, false
@@ -11269,56 +11296,56 @@ func (m *ServiceDependencyMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *ServiceDependencyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *ServiceRelationshipMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case servicedependency.FieldCreateTime:
+	case servicerelationship.FieldCreateTime:
 		return m.OldCreateTime(ctx)
-	case servicedependency.FieldServiceID:
+	case servicerelationship.FieldServiceID:
 		return m.OldServiceID(ctx)
-	case servicedependency.FieldDependentID:
-		return m.OldDependentID(ctx)
-	case servicedependency.FieldPath:
+	case servicerelationship.FieldDependencyID:
+		return m.OldDependencyID(ctx)
+	case servicerelationship.FieldPath:
 		return m.OldPath(ctx)
-	case servicedependency.FieldType:
+	case servicerelationship.FieldType:
 		return m.OldType(ctx)
 	}
-	return nil, fmt.Errorf("unknown ServiceDependency field %s", name)
+	return nil, fmt.Errorf("unknown ServiceRelationship field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ServiceDependencyMutation) SetField(name string, value ent.Value) error {
+func (m *ServiceRelationshipMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case servicedependency.FieldCreateTime:
+	case servicerelationship.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreateTime(v)
 		return nil
-	case servicedependency.FieldServiceID:
+	case servicerelationship.FieldServiceID:
 		v, ok := value.(oid.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetServiceID(v)
 		return nil
-	case servicedependency.FieldDependentID:
+	case servicerelationship.FieldDependencyID:
 		v, ok := value.(oid.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDependentID(v)
+		m.SetDependencyID(v)
 		return nil
-	case servicedependency.FieldPath:
+	case servicerelationship.FieldPath:
 		v, ok := value.([]oid.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPath(v)
 		return nil
-	case servicedependency.FieldType:
+	case servicerelationship.FieldType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -11326,88 +11353,95 @@ func (m *ServiceDependencyMutation) SetField(name string, value ent.Value) error
 		m.SetType(v)
 		return nil
 	}
-	return fmt.Errorf("unknown ServiceDependency field %s", name)
+	return fmt.Errorf("unknown ServiceRelationship field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *ServiceDependencyMutation) AddedFields() []string {
+func (m *ServiceRelationshipMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *ServiceDependencyMutation) AddedField(name string) (ent.Value, bool) {
+func (m *ServiceRelationshipMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ServiceDependencyMutation) AddField(name string, value ent.Value) error {
+func (m *ServiceRelationshipMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown ServiceDependency numeric field %s", name)
+	return fmt.Errorf("unknown ServiceRelationship numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *ServiceDependencyMutation) ClearedFields() []string {
+func (m *ServiceRelationshipMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *ServiceDependencyMutation) FieldCleared(name string) bool {
+func (m *ServiceRelationshipMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *ServiceDependencyMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown ServiceDependency nullable field %s", name)
+func (m *ServiceRelationshipMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ServiceRelationship nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *ServiceDependencyMutation) ResetField(name string) error {
+func (m *ServiceRelationshipMutation) ResetField(name string) error {
 	switch name {
-	case servicedependency.FieldCreateTime:
+	case servicerelationship.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
-	case servicedependency.FieldServiceID:
+	case servicerelationship.FieldServiceID:
 		m.ResetServiceID()
 		return nil
-	case servicedependency.FieldDependentID:
-		m.ResetDependentID()
+	case servicerelationship.FieldDependencyID:
+		m.ResetDependencyID()
 		return nil
-	case servicedependency.FieldPath:
+	case servicerelationship.FieldPath:
 		m.ResetPath()
 		return nil
-	case servicedependency.FieldType:
+	case servicerelationship.FieldType:
 		m.ResetType()
 		return nil
 	}
-	return fmt.Errorf("unknown ServiceDependency field %s", name)
+	return fmt.Errorf("unknown ServiceRelationship field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ServiceDependencyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+func (m *ServiceRelationshipMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
 	if m.service != nil {
-		edges = append(edges, servicedependency.EdgeService)
+		edges = append(edges, servicerelationship.EdgeService)
+	}
+	if m.dependency != nil {
+		edges = append(edges, servicerelationship.EdgeDependency)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *ServiceDependencyMutation) AddedIDs(name string) []ent.Value {
+func (m *ServiceRelationshipMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case servicedependency.EdgeService:
+	case servicerelationship.EdgeService:
 		if id := m.service; id != nil {
+			return []ent.Value{*id}
+		}
+	case servicerelationship.EdgeDependency:
+		if id := m.dependency; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -11415,56 +11449,67 @@ func (m *ServiceDependencyMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ServiceDependencyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+func (m *ServiceRelationshipMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *ServiceDependencyMutation) RemovedIDs(name string) []ent.Value {
+func (m *ServiceRelationshipMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ServiceDependencyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+func (m *ServiceRelationshipMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
 	if m.clearedservice {
-		edges = append(edges, servicedependency.EdgeService)
+		edges = append(edges, servicerelationship.EdgeService)
+	}
+	if m.cleareddependency {
+		edges = append(edges, servicerelationship.EdgeDependency)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *ServiceDependencyMutation) EdgeCleared(name string) bool {
+func (m *ServiceRelationshipMutation) EdgeCleared(name string) bool {
 	switch name {
-	case servicedependency.EdgeService:
+	case servicerelationship.EdgeService:
 		return m.clearedservice
+	case servicerelationship.EdgeDependency:
+		return m.cleareddependency
 	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *ServiceDependencyMutation) ClearEdge(name string) error {
+func (m *ServiceRelationshipMutation) ClearEdge(name string) error {
 	switch name {
-	case servicedependency.EdgeService:
+	case servicerelationship.EdgeService:
 		m.ClearService()
 		return nil
+	case servicerelationship.EdgeDependency:
+		m.ClearDependency()
+		return nil
 	}
-	return fmt.Errorf("unknown ServiceDependency unique edge %s", name)
+	return fmt.Errorf("unknown ServiceRelationship unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *ServiceDependencyMutation) ResetEdge(name string) error {
+func (m *ServiceRelationshipMutation) ResetEdge(name string) error {
 	switch name {
-	case servicedependency.EdgeService:
+	case servicerelationship.EdgeService:
 		m.ResetService()
 		return nil
+	case servicerelationship.EdgeDependency:
+		m.ResetDependency()
+		return nil
 	}
-	return fmt.Errorf("unknown ServiceDependency edge %s", name)
+	return fmt.Errorf("unknown ServiceRelationship edge %s", name)
 }
 
 // ServiceResourceMutation represents an operation that mutates the ServiceResource nodes in the graph.
