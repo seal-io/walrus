@@ -62,7 +62,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"secrets", "connectors", "environments",
+						"variables", "connectors", "environments",
 						"templates", "templateVersions", "templateCompletions",
 						"perspectives", "settings", "roles"),
 				},
@@ -92,7 +92,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"secrets", "connectors", "templates",
+						"variables", "connectors", "templates",
 						"templateVersions", "templateCompletions",
 						"settings"),
 				},
@@ -110,7 +110,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"secrets", "connectors", "templates",
+						"variables", "connectors", "templates",
 						"templateVersions", "templateCompletions",
 						"settings", "roles", "subjects",
 						"subjectRoles", "perspectives"),
@@ -130,7 +130,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
 						"projects", "services", "serviceRevisions",
-						"serviceResources", "environments", "connectors", "secrets"),
+						"serviceResources", "environments", "connectors", "variables"),
 				},
 			},
 			Session: false,
@@ -151,7 +151,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
 						"services", "serviceRevisions",
-						"serviceResources", "environments", "connectors", "secrets"),
+						"serviceResources", "environments", "connectors", "variables"),
 				},
 			},
 			Session: false,
@@ -169,7 +169,7 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 					Resources: types.RolePolicyFields(
 						"projects", "services",
 						"serviceRevisions", "serviceResources",
-						"environments", "connectors", "secrets",
+						"environments", "connectors", "variables",
 						"subjectRoles"),
 				},
 				{
