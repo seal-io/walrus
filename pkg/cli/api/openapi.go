@@ -14,14 +14,17 @@ import (
 
 // OpenAPI Extensions.
 const (
-	// ExtOperationName define the extension key to set the CLI operation name.
-	ExtOperationName = "x-cli-operation-name"
+	// ExtCliOperationName define the extension key to set the CLI operation name.
+	ExtCliOperationName = "x-cli-operation-name"
 
-	// ExtSchemaTypeName define the extension key to set the CLI operation params schema type.
-	ExtSchemaTypeName = "x-cli-schema-type"
+	// ExtCliSchemaTypeName define the extension key to set the CLI operation params schema type.
+	ExtCliSchemaTypeName = "x-cli-schema-type"
 
-	// ExtIgnore define the extension key to ignore an operation.
-	ExtIgnore = "x-cli-ignore"
+	// ExtCliIgnore define the extension key to ignore an operation.
+	ExtCliIgnore = "x-cli-ignore"
+
+	// ExtCliOutputFormat define the output format set the CLI operation command.
+	ExtCliOutputFormat = "x-cli-output-format"
 )
 
 const (
@@ -143,8 +146,13 @@ func toOperation(
 	}
 
 	name := deGroupedName(tag, op.OperationID)
-	if override := getExt(op.Extensions, ExtOperationName, ""); override != "" {
+	if override := getExt(op.Extensions, ExtCliOperationName, ""); override != "" {
 		name = override
+	}
+
+	var formats []string
+	if efs := getExt(op.Extensions, ExtCliOutputFormat, ""); efs != "" {
+		formats = strings.Split(efs, ",")
 	}
 
 	return Operation{
@@ -160,6 +168,7 @@ func toOperation(
 		BodyParams:    bodyParams,
 		BodyMediaType: mediaType,
 		Deprecated:    dep,
+		Formats:       formats,
 	}
 }
 
@@ -269,7 +278,7 @@ func schemaType(s *openapi3.Schema) (string, string, interface{}) {
 	)
 
 	if len(s.Extensions) != 0 {
-		tp, ok := s.Extensions[ExtSchemaTypeName]
+		tp, ok := s.Extensions[ExtCliSchemaTypeName]
 		if ok {
 			extType = tp.(string)
 		}
@@ -333,7 +342,7 @@ func isSupportOpenAPI(v string) bool {
 
 // isIgnore check whether it include ignore extension.
 func isIgnore(ext map[string]any) bool {
-	return getExt(ext, ExtIgnore, false)
+	return getExt(ext, ExtCliIgnore, false)
 }
 
 // getExt get extension by key.

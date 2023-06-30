@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	cliapi "github.com/seal-io/seal/pkg/cli/api"
 	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -476,17 +477,6 @@ func toSchemaSummary(resource, handle, method string) string {
 	return summary
 }
 
-const (
-	// ExtCliIgnore define the extension key to ignore an operation.
-	extCliIgnore = "x-cli-ignore"
-
-	// ExtCliOperationName define the extension key to set the CLI operation name.
-	extCliOperationName = "x-cli-operation-name"
-
-	// ExtSchemaTypeName define the extension key to set the CLI operation params schema type.
-	extSchemaTypeName = "x-cli-schema-type"
-)
-
 var (
 	cliIgnoreResources = []string{
 		"subjects",
@@ -506,6 +496,10 @@ var (
 		"/service-resources/:id/keys",
 		"/service-resources/_/graph",
 	}
+	cliJsonYamlOutputFormatPaths = []string{
+		"/service-revisions/:id/diff-latest",
+		"/service-revisions/:id/diff-previous",
+	}
 )
 
 func toSchemaExtension(resource, handle, path string) map[string]interface{} {
@@ -516,36 +510,40 @@ func toSchemaExtension(resource, handle, path string) map[string]interface{} {
 
 	switch {
 	case slice.ContainsAll(cliIgnoreResources, resource):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case slice.ContainsAll(cliIgnorePaths, path):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case handleName == collectionGetPrefix:
-		ext[extCliOperationName] = "list"
+		ext[cliapi.ExtCliOperationName] = "list"
 	case handleName == collectionCreatePrefix:
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case handleName == collectionUpdatePrefix:
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case handleName == collectionDeletePrefix:
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case handleName == collectionStreamPrefix:
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, streamPrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, collectionGetPrefix):
 		subresource := strings.TrimPrefix(handleName, collectionGetPrefix)
-		ext[extCliOperationName] = fmt.Sprintf("list-%s", strs.Pluralize(strs.Dasherize(subresource)))
+		ext[cliapi.ExtCliOperationName] = fmt.Sprintf("list-%s", strs.Pluralize(strs.Dasherize(subresource)))
 	case strings.HasPrefix(handleName, collectionCreatePrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, collectionUpdatePrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, collectionDeletePrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, collectionStreamPrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
 	case strings.HasPrefix(handleName, routePrefix):
-		ext[extCliOperationName] = strs.Dasherize(strings.TrimPrefix(handleName, routePrefix))
+		ext[cliapi.ExtCliOperationName] = strs.Dasherize(strings.TrimPrefix(handleName, routePrefix))
 	case strings.HasPrefix(handleName, collectionRoutePrefix):
-		ext[extCliIgnore] = true
+		ext[cliapi.ExtCliIgnore] = true
+	}
+
+	if slice.ContainsAll(cliJsonYamlOutputFormatPaths, path) {
+		ext[cliapi.ExtCliOutputFormat] = "json,yaml"
 	}
 
 	return ext
@@ -585,7 +583,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				extSchemaTypeName: "map[string]string",
+				cliapi.ExtCliSchemaTypeName: "map[string]string",
 			},
 		},
 	}
@@ -598,7 +596,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				extSchemaTypeName: "map[string]int",
+				cliapi.ExtCliSchemaTypeName: "map[string]int",
 			},
 		},
 	}
@@ -611,7 +609,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				extSchemaTypeName: "map[string]int32",
+				cliapi.ExtCliSchemaTypeName: "map[string]int32",
 			},
 		},
 	}
@@ -624,7 +622,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				extSchemaTypeName: "map[string]int64",
+				cliapi.ExtCliSchemaTypeName: "map[string]int64",
 			},
 		},
 	}
