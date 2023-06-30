@@ -26,7 +26,7 @@ func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error
 		settings.TokenDeploymentExpiredCleanCronExpr.Name(): buildTokenDeploymentExpireCleanJobCreator(
 			opts.ModelClient,
 		),
-		settings.ServiceDependencyCheckCronExpr.Name(): buildServiceDependencyCheckJobCreator(
+		settings.ServiceRelationshipCheckCronExpr.Name(): buildServiceRelationshipCheckJobCreator(
 			opts.ModelClient,
 			opts.K8sConfig,
 			opts.SkipTLSVerify,
@@ -102,9 +102,9 @@ func buildTokenDeploymentExpireCleanJobCreator(mc model.ClientSet) cron.JobCreat
 	}
 }
 
-func buildServiceDependencyCheckJobCreator(mc model.ClientSet, kc *rest.Config, skipTLSVerify bool) cron.JobCreator {
+func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config, skipTLSVerify bool) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := serviceskd.NewServiceDependencyCheckTask(mc, kc, skipTLSVerify)
+		task, err := serviceskd.NewServiceRelationshipCheckTask(mc, kc, skipTLSVerify)
 		if err != nil {
 			return nil, nil, err
 		}

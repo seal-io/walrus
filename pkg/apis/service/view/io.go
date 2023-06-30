@@ -17,7 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
@@ -125,14 +125,17 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 
 	modelClient := input.(model.ClientSet)
 
-	ids, err := modelClient.ServiceDependencies().Query().
-		Where(servicedependency.DependentID(r.ID)).
-		IDs(ctx)
+	count, err := modelClient.ServiceRelationships().Query().
+		Where(
+			servicerelationship.ServiceIDNEQ(r.ID),
+			servicerelationship.DependencyID(r.ID),
+		).
+		Count(ctx)
 	if err != nil {
 		return runtime.Errorw(err, "failed to get service dependencies")
 	}
 
-	if len(ids) > 0 {
+	if count > 0 {
 		return runtime.Error(http.StatusConflict, "service has dependencies")
 	}
 

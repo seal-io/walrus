@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/zclconf/go-cty/cty"
 	"k8s.io/client-go/rest"
@@ -16,7 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -870,8 +871,11 @@ func (h Handler) CollectionGetGraph(
 			service.FieldUpdateTime,
 			service.FieldStatus).
 		// Must extract dependency.
-		WithDependencies(func(dq *model.ServiceDependencyQuery) {
-			dq.Select(servicedependency.FieldDependentID)
+		WithDependencies(func(dq *model.ServiceRelationshipQuery) {
+			dq.Select(servicerelationship.FieldDependencyID).
+				Where(func(s *sql.Selector) {
+					s.Where(sql.ColumnsNEQ(servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID))
+				})
 		}).
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
@@ -955,7 +959,7 @@ func (h Handler) CollectionGetGraph(
 				},
 				End: view.GraphVertexID{
 					Kind: "Service",
-					ID:   entities[i].Edges.Dependencies[j].DependentID,
+					ID:   entities[i].Edges.Dependencies[j].DependencyID,
 				},
 			})
 		}

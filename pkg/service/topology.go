@@ -38,7 +38,7 @@ func NewServiceNodes(services model.Services) ([]*ServiceNode, error) {
 			dependencyMap[svc.Name] = make([]string, 0)
 		}
 
-		dependencyNames := dao.GetDependencyNames(svc)
+		dependencyNames := dao.ServiceRelationshipGetDependencyNames(svc)
 
 		if len(dependencyNames) > 0 {
 			for _, name := range dependencyNames {
@@ -87,7 +87,7 @@ func newServiceNodeFromDependency(dependencyMap map[string][]string, nodeMap map
 				dependencyNode := nodeMap[dependencyName]
 				node.Children = append(node.Children, dependencyNode)
 			} else {
-				logger.Warnf("name: %s, %v, dependency %s not found\n", name, dependencies, dependencyName)
+				logger.Warnf("name: %s, %v, dependency %s not found", name, dependencies, dependencyName)
 			}
 		}
 	}
