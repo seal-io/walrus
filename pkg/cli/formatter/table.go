@@ -262,15 +262,19 @@ func (f *TableFormatter) resourceItem(data map[string]interface{}) string {
 
 		headCells = append(headCells,
 			&simpletable.Cell{
-				Align: simpletable.AlignRight,
+				Align: simpletable.AlignLeft,
 				Text:  v,
 			})
 
 		bodyCells = append(bodyCells,
 			&simpletable.Cell{
-				Align: simpletable.AlignRight,
+				Align: simpletable.AlignLeft,
 				Text:  fmt.Sprintf("%v", d),
 			})
+	}
+
+	if len(headCells) == 0 {
+		return "Table format isn't supported for current command"
 	}
 
 	table.Header = &simpletable.Header{

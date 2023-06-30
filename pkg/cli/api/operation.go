@@ -17,6 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/cli/formatter"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
+	"github.com/seal-io/seal/utils/slice"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.
@@ -34,6 +35,7 @@ type Operation struct {
 	BodyMediaType string      `json:"bodyMediaType,omitempty"`
 	Hidden        bool        `json:"hidden,omitempty"`
 	Deprecated    string      `json:"deprecated,omitempty"`
+	Formats       []string    `json:"formats,omitempty"`
 }
 
 // Command returns a Cobra command instance for this operation.
@@ -99,7 +101,7 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 				os.Exit(1)
 			}
 
-			b, err := formatter.Format(sc.Format, resp)
+			b, err := formatter.Format(o.format(sc), resp)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -212,4 +214,16 @@ func (o Operation) Request(
 	req.Header = headers
 
 	return req, nil
+}
+
+func (o Operation) format(sc *config.Config) string {
+	if len(o.Formats) != 0 {
+		if slice.ContainsAny(o.Formats, sc.Format) {
+			return sc.Format
+		}
+
+		return o.Formats[0]
+	}
+
+	return sc.Format
 }
