@@ -18,7 +18,6 @@ type SchemaConfig struct {
 	Perspective                      string // Perspective table.
 	Project                          string // Project table.
 	Role                             string // Role table.
-	Secret                           string // Secret table.
 	Service                          string // Service table.
 	ServiceDependency                string // ServiceDependency table.
 	ServiceResource                  string // ServiceResource table.

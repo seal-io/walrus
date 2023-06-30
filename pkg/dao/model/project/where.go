@@ -379,35 +379,6 @@ func HasConnectorsWith(preds ...predicate.Connector) predicate.Project {
 	})
 }
 
-// HasSecrets applies the HasEdge predicate on the "secrets" edge.
-func HasSecrets() predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SecretsTable, SecretsColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Secret
-		step.Edge.Schema = schemaConfig.Secret
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasSecretsWith applies the HasEdge predicate on the "secrets" edge with a given conditions (other predicates).
-func HasSecretsWith(preds ...predicate.Secret) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		step := newSecretsStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Secret
-		step.Edge.Schema = schemaConfig.Secret
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasSubjectRoles applies the HasEdge predicate on the "subjectRoles" edge.
 func HasSubjectRoles() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

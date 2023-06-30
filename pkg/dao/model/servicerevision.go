@@ -47,8 +47,6 @@ type ServiceRevision struct {
 	TemplateVersion string `json:"templateVersion,omitempty" sql:"templateVersion"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
-	// Secrets of the revision.
-	Secrets crypto.Map[string, string] `json:"secrets,omitempty" sql:"secrets"`
 	// Variables of the revision.
 	Variables crypto.Map[string, string] `json:"variables,omitempty" sql:"variables"`
 	// Input plan of the revision.
@@ -128,7 +126,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case servicerevision.FieldPreviousRequiredProviders, servicerevision.FieldTags:
 			values[i] = new([]byte)
-		case servicerevision.FieldSecrets, servicerevision.FieldVariables:
+		case servicerevision.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
 		case servicerevision.FieldID, servicerevision.FieldProjectID, servicerevision.FieldServiceID, servicerevision.FieldEnvironmentID:
 			values[i] = new(oid.ID)
@@ -215,12 +213,6 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				sr.Attributes = *value
-			}
-		case servicerevision.FieldSecrets:
-			if value, ok := values[i].(*crypto.Map[string, string]); !ok {
-				return fmt.Errorf("unexpected type %T for field secrets", values[i])
-			} else if value != nil {
-				sr.Secrets = *value
 			}
 		case servicerevision.FieldVariables:
 			if value, ok := values[i].(*crypto.Map[string, string]); !ok {
@@ -347,9 +339,6 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Attributes))
-	builder.WriteString(", ")
-	builder.WriteString("secrets=")
-	builder.WriteString(fmt.Sprintf("%v", sr.Secrets))
 	builder.WriteString(", ")
 	builder.WriteString("variables=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Variables))

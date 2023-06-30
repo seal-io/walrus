@@ -27,7 +27,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/role"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -66,8 +65,6 @@ type Client struct {
 	Project *ProjectClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// Secret is the client for interacting with the Secret builders.
-	Secret *SecretClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceDependency is the client for interacting with the ServiceDependency builders.
@@ -111,7 +108,6 @@ func (c *Client) init() {
 	c.Perspective = NewPerspectiveClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.Role = NewRoleClient(c.config)
-	c.Secret = NewSecretClient(c.config)
 	c.Service = NewServiceClient(c.config)
 	c.ServiceDependency = NewServiceDependencyClient(c.config)
 	c.ServiceResource = NewServiceResourceClient(c.config)
@@ -215,7 +211,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
-		Secret:                           NewSecretClient(cfg),
 		Service:                          NewServiceClient(cfg),
 		ServiceDependency:                NewServiceDependencyClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
@@ -254,7 +249,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Perspective:                      NewPerspectiveClient(cfg),
 		Project:                          NewProjectClient(cfg),
 		Role:                             NewRoleClient(cfg),
-		Secret:                           NewSecretClient(cfg),
 		Service:                          NewServiceClient(cfg),
 		ServiceDependency:                NewServiceDependencyClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
@@ -296,7 +290,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
-		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
+		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
 		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
 		c.Token, c.Variable,
@@ -310,7 +304,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
-		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role, c.Secret,
+		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceDependency, c.ServiceResource, c.ServiceRevision,
 		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
 		c.Token, c.Variable,
@@ -357,11 +351,6 @@ func (c *Client) Projects() *ProjectClient {
 // Roles implements the ClientSet.
 func (c *Client) Roles() *RoleClient {
 	return c.Role
-}
-
-// Secrets implements the ClientSet.
-func (c *Client) Secrets() *SecretClient {
-	return c.Secret
 }
 
 // Services implements the ClientSet.
@@ -476,8 +465,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Project.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
-	case *SecretMutation:
-		return c.Secret.mutate(ctx, m)
 	case *ServiceMutation:
 		return c.Service.mutate(ctx, m)
 	case *ServiceDependencyMutation:
@@ -1560,25 +1547,6 @@ func (c *ProjectClient) QueryConnectors(pr *Project) *ConnectorQuery {
 	return query
 }
 
-// QuerySecrets queries the secrets edge of a Project.
-func (c *ProjectClient) QuerySecrets(pr *Project) *SecretQuery {
-	query := (&SecretClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(project.Table, project.FieldID, id),
-			sqlgraph.To(secret.Table, secret.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, project.SecretsTable, project.SecretsColumn),
-		)
-		schemaConfig := pr.schemaConfig
-		step.To.Schema = schemaConfig.Secret
-		step.Edge.Schema = schemaConfig.Secret
-		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QuerySubjectRoles queries the subjectRoles edge of a Project.
 func (c *ProjectClient) QuerySubjectRoles(pr *Project) *SubjectRoleRelationshipQuery {
 	query := (&SubjectRoleRelationshipClient{config: c.config}).Query()
@@ -1815,145 +1783,6 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 		return (&RoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Role mutation op: %q", m.Op())
-	}
-}
-
-// SecretClient is a client for the Secret schema.
-type SecretClient struct {
-	config
-}
-
-// NewSecretClient returns a client for the Secret from the given config.
-func NewSecretClient(c config) *SecretClient {
-	return &SecretClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `secret.Hooks(f(g(h())))`.
-func (c *SecretClient) Use(hooks ...Hook) {
-	c.hooks.Secret = append(c.hooks.Secret, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `secret.Intercept(f(g(h())))`.
-func (c *SecretClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Secret = append(c.inters.Secret, interceptors...)
-}
-
-// Create returns a builder for creating a Secret entity.
-func (c *SecretClient) Create() *SecretCreate {
-	mutation := newSecretMutation(c.config, OpCreate)
-	return &SecretCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Secret entities.
-func (c *SecretClient) CreateBulk(builders ...*SecretCreate) *SecretCreateBulk {
-	return &SecretCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Secret.
-func (c *SecretClient) Update() *SecretUpdate {
-	mutation := newSecretMutation(c.config, OpUpdate)
-	return &SecretUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SecretClient) UpdateOne(s *Secret) *SecretUpdateOne {
-	mutation := newSecretMutation(c.config, OpUpdateOne, withSecret(s))
-	return &SecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SecretClient) UpdateOneID(id oid.ID) *SecretUpdateOne {
-	mutation := newSecretMutation(c.config, OpUpdateOne, withSecretID(id))
-	return &SecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Secret.
-func (c *SecretClient) Delete() *SecretDelete {
-	mutation := newSecretMutation(c.config, OpDelete)
-	return &SecretDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SecretClient) DeleteOne(s *Secret) *SecretDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SecretClient) DeleteOneID(id oid.ID) *SecretDeleteOne {
-	builder := c.Delete().Where(secret.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SecretDeleteOne{builder}
-}
-
-// Query returns a query builder for Secret.
-func (c *SecretClient) Query() *SecretQuery {
-	return &SecretQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSecret},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Secret entity by its id.
-func (c *SecretClient) Get(ctx context.Context, id oid.ID) (*Secret, error) {
-	return c.Query().Where(secret.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SecretClient) GetX(ctx context.Context, id oid.ID) *Secret {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryProject queries the project edge of a Secret.
-func (c *SecretClient) QueryProject(s *Secret) *ProjectQuery {
-	query := (&ProjectClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(secret.Table, secret.FieldID, id),
-			sqlgraph.To(project.Table, project.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, secret.ProjectTable, secret.ProjectColumn),
-		)
-		schemaConfig := s.schemaConfig
-		step.To.Schema = schemaConfig.Project
-		step.Edge.Schema = schemaConfig.Secret
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SecretClient) Hooks() []Hook {
-	hooks := c.hooks.Secret
-	return append(hooks[:len(hooks):len(hooks)], secret.Hooks[:]...)
-}
-
-// Interceptors returns the client interceptors.
-func (c *SecretClient) Interceptors() []Interceptor {
-	inters := c.inters.Secret
-	return append(inters[:len(inters):len(inters)], secret.Interceptors[:]...)
-}
-
-func (c *SecretClient) mutate(ctx context.Context, m *SecretMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SecretCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SecretUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SecretDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("model: unknown Secret mutation op: %q", m.Op())
 	}
 }
 
@@ -3712,13 +3541,13 @@ func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value
 type (
 	hooks struct {
 		AllocationCost, ClusterCost, Connector, Environment,
-		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
+		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
 		SubjectRoleRelationship, Template, TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
 		AllocationCost, ClusterCost, Connector, Environment,
-		EnvironmentConnectorRelationship, Perspective, Project, Role, Secret, Service,
+		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceDependency, ServiceResource, ServiceRevision, Setting, Subject,
 		SubjectRoleRelationship, Template, TemplateVersion, Token,
 		Variable []ent.Interceptor

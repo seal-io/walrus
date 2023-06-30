@@ -33,9 +33,6 @@ type Project func(*sql.Selector)
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 
-// Secret is the predicate function for secret builders.
-type Secret func(*sql.Selector)
-
 // Service is the predicate function for service builders.
 type Service func(*sql.Selector)
 

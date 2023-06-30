@@ -20,7 +20,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/model/secret"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
@@ -128,21 +127,6 @@ func (pu *ProjectUpdate) AddConnectors(c ...*Connector) *ProjectUpdate {
 	return pu.AddConnectorIDs(ids...)
 }
 
-// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
-func (pu *ProjectUpdate) AddSecretIDs(ids ...oid.ID) *ProjectUpdate {
-	pu.mutation.AddSecretIDs(ids...)
-	return pu
-}
-
-// AddSecrets adds the "secrets" edges to the Secret entity.
-func (pu *ProjectUpdate) AddSecrets(s ...*Secret) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pu.AddSecretIDs(ids...)
-}
-
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
 func (pu *ProjectUpdate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
 	pu.mutation.AddSubjectRoleIDs(ids...)
@@ -248,27 +232,6 @@ func (pu *ProjectUpdate) RemoveConnectors(c ...*Connector) *ProjectUpdate {
 		ids[i] = c[i].ID
 	}
 	return pu.RemoveConnectorIDs(ids...)
-}
-
-// ClearSecrets clears all "secrets" edges to the Secret entity.
-func (pu *ProjectUpdate) ClearSecrets() *ProjectUpdate {
-	pu.mutation.ClearSecrets()
-	return pu
-}
-
-// RemoveSecretIDs removes the "secrets" edge to Secret entities by IDs.
-func (pu *ProjectUpdate) RemoveSecretIDs(ids ...oid.ID) *ProjectUpdate {
-	pu.mutation.RemoveSecretIDs(ids...)
-	return pu
-}
-
-// RemoveSecrets removes "secrets" edges to Secret entities.
-func (pu *ProjectUpdate) RemoveSecrets(s ...*Secret) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return pu.RemoveSecretIDs(ids...)
 }
 
 // ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
@@ -540,54 +503,6 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		}
 		edge.Schema = pu.schemaConfig.Connector
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if pu.mutation.SecretsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.Secret
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.RemovedSecretsIDs(); len(nodes) > 0 && !pu.mutation.SecretsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.Secret
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.SecretsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = pu.schemaConfig.Secret
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -895,21 +810,6 @@ func (puo *ProjectUpdateOne) AddConnectors(c ...*Connector) *ProjectUpdateOne {
 	return puo.AddConnectorIDs(ids...)
 }
 
-// AddSecretIDs adds the "secrets" edge to the Secret entity by IDs.
-func (puo *ProjectUpdateOne) AddSecretIDs(ids ...oid.ID) *ProjectUpdateOne {
-	puo.mutation.AddSecretIDs(ids...)
-	return puo
-}
-
-// AddSecrets adds the "secrets" edges to the Secret entity.
-func (puo *ProjectUpdateOne) AddSecrets(s ...*Secret) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return puo.AddSecretIDs(ids...)
-}
-
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
 func (puo *ProjectUpdateOne) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
 	puo.mutation.AddSubjectRoleIDs(ids...)
@@ -1015,27 +915,6 @@ func (puo *ProjectUpdateOne) RemoveConnectors(c ...*Connector) *ProjectUpdateOne
 		ids[i] = c[i].ID
 	}
 	return puo.RemoveConnectorIDs(ids...)
-}
-
-// ClearSecrets clears all "secrets" edges to the Secret entity.
-func (puo *ProjectUpdateOne) ClearSecrets() *ProjectUpdateOne {
-	puo.mutation.ClearSecrets()
-	return puo
-}
-
-// RemoveSecretIDs removes the "secrets" edge to Secret entities by IDs.
-func (puo *ProjectUpdateOne) RemoveSecretIDs(ids ...oid.ID) *ProjectUpdateOne {
-	puo.mutation.RemoveSecretIDs(ids...)
-	return puo
-}
-
-// RemoveSecrets removes "secrets" edges to Secret entities.
-func (puo *ProjectUpdateOne) RemoveSecrets(s ...*Secret) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return puo.RemoveSecretIDs(ids...)
 }
 
 // ClearSubjectRoles clears all "subjectRoles" edges to the SubjectRoleRelationship entity.
@@ -1337,54 +1216,6 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Connector
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if puo.mutation.SecretsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.Secret
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.RemovedSecretsIDs(); len(nodes) > 0 && !puo.mutation.SecretsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.Secret
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.SecretsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   project.SecretsTable,
-			Columns: []string{project.SecretsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(secret.FieldID, field.TypeString),
-			},
-		}
-		edge.Schema = puo.schemaConfig.Secret
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
