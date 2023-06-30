@@ -54,5 +54,11 @@ func (Environment) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				io.Disable()),
+		// Environment 1-* variables.
+		edge.To("variables", Variable.Type).
+			Comment("Variables that belong to the environment.").
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+				io.Disable()),
 	}
 }
