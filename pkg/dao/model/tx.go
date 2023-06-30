@@ -35,8 +35,8 @@ type Tx struct {
 	Role *RoleClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
-	// ServiceDependency is the client for interacting with the ServiceDependency builders.
-	ServiceDependency *ServiceDependencyClient
+	// ServiceRelationship is the client for interacting with the ServiceRelationship builders.
+	ServiceRelationship *ServiceRelationshipClient
 	// ServiceResource is the client for interacting with the ServiceResource builders.
 	ServiceResource *ServiceResourceClient
 	// ServiceRevision is the client for interacting with the ServiceRevision builders.
@@ -195,7 +195,7 @@ func (tx *Tx) init() {
 	tx.Project = NewProjectClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Service = NewServiceClient(tx.config)
-	tx.ServiceDependency = NewServiceDependencyClient(tx.config)
+	tx.ServiceRelationship = NewServiceRelationshipClient(tx.config)
 	tx.ServiceResource = NewServiceResourceClient(tx.config)
 	tx.ServiceRevision = NewServiceRevisionClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
@@ -313,9 +313,9 @@ func (tx *Tx) Services() *ServiceClient {
 	return tx.Service
 }
 
-// ServiceDependencies implements the ClientSet.
-func (tx *Tx) ServiceDependencies() *ServiceDependencyClient {
-	return tx.ServiceDependency
+// ServiceRelationships implements the ClientSet.
+func (tx *Tx) ServiceRelationships() *ServiceRelationshipClient {
+	return tx.ServiceRelationship
 }
 
 // ServiceResources implements the ClientSet.
@@ -408,7 +408,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Project.Use(hooks...)
 	tx.Role.Use(hooks...)
 	tx.Service.Use(hooks...)
-	tx.ServiceDependency.Use(hooks...)
+	tx.ServiceRelationship.Use(hooks...)
 	tx.ServiceResource.Use(hooks...)
 	tx.ServiceRevision.Use(hooks...)
 	tx.Setting.Use(hooks...)

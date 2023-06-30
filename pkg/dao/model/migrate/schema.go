@@ -338,38 +338,44 @@ var (
 			},
 		},
 	}
-	// ServiceDependenciesColumns holds the columns for the "service_dependencies" table.
-	ServiceDependenciesColumns = []*schema.Column{
+	// ServiceRelationshipsColumns holds the columns for the "service_relationships" table.
+	ServiceRelationshipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "dependent_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "path", Type: field.TypeJSON},
 		{Name: "type", Type: field.TypeString},
 		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "dependency_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
-	// ServiceDependenciesTable holds the schema information for the "service_dependencies" table.
-	ServiceDependenciesTable = &schema.Table{
-		Name:       "service_dependencies",
-		Columns:    ServiceDependenciesColumns,
-		PrimaryKey: []*schema.Column{ServiceDependenciesColumns[0]},
+	// ServiceRelationshipsTable holds the schema information for the "service_relationships" table.
+	ServiceRelationshipsTable = &schema.Table{
+		Name:       "service_relationships",
+		Columns:    ServiceRelationshipsColumns,
+		PrimaryKey: []*schema.Column{ServiceRelationshipsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "service_dependencies_services_dependencies",
-				Columns:    []*schema.Column{ServiceDependenciesColumns[5]},
+				Symbol:     "service_relationships_services_service",
+				Columns:    []*schema.Column{ServiceRelationshipsColumns[4]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "service_relationships_services_dependency",
+				Columns:    []*schema.Column{ServiceRelationshipsColumns[5]},
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "servicedependency_create_time",
+				Name:    "servicerelationship_create_time",
 				Unique:  false,
-				Columns: []*schema.Column{ServiceDependenciesColumns[1]},
+				Columns: []*schema.Column{ServiceRelationshipsColumns[1]},
 			},
 			{
-				Name:    "servicedependency_service_id_dependent_id_path",
+				Name:    "servicerelationship_service_id_dependency_id_path",
 				Unique:  true,
-				Columns: []*schema.Column{ServiceDependenciesColumns[5], ServiceDependenciesColumns[2], ServiceDependenciesColumns[3]},
+				Columns: []*schema.Column{ServiceRelationshipsColumns[4], ServiceRelationshipsColumns[5], ServiceRelationshipsColumns[2]},
 			},
 		},
 	}
@@ -751,7 +757,7 @@ var (
 		ProjectsTable,
 		RolesTable,
 		ServicesTable,
-		ServiceDependenciesTable,
+		ServiceRelationshipsTable,
 		ServiceResourcesTable,
 		ServiceRevisionsTable,
 		SettingsTable,
@@ -773,7 +779,8 @@ func init() {
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 	ServicesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ServicesTable.ForeignKeys[1].RefTable = ProjectsTable
-	ServiceDependenciesTable.ForeignKeys[0].RefTable = ServicesTable
+	ServiceRelationshipsTable.ForeignKeys[0].RefTable = ServicesTable
+	ServiceRelationshipsTable.ForeignKeys[1].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[0].RefTable = ConnectorsTable
 	ServiceResourcesTable.ForeignKeys[1].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[2].RefTable = ServiceResourcesTable

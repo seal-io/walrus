@@ -19,7 +19,7 @@ type SchemaConfig struct {
 	Project                          string // Project table.
 	Role                             string // Role table.
 	Service                          string // Service table.
-	ServiceDependency                string // ServiceDependency table.
+	ServiceRelationship              string // ServiceRelationship table.
 	ServiceResource                  string // ServiceResource table.
 	ServiceRevision                  string // ServiceRevision table.
 	Setting                          string // Setting table.

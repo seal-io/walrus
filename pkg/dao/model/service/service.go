@@ -81,10 +81,10 @@ const (
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "service_id"
 	// DependenciesTable is the table that holds the dependencies relation/edge.
-	DependenciesTable = "service_dependencies"
-	// DependenciesInverseTable is the table name for the ServiceDependency entity.
-	// It exists in this package in order to avoid circular dependency with the "servicedependency" package.
-	DependenciesInverseTable = "service_dependencies"
+	DependenciesTable = "service_relationships"
+	// DependenciesInverseTable is the table name for the ServiceRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "servicerelationship" package.
+	DependenciesInverseTable = "service_relationships"
 	// DependenciesColumn is the table column denoting the dependencies relation/edge.
 	DependenciesColumn = "service_id"
 )
@@ -271,7 +271,7 @@ func newDependenciesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DependenciesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, DependenciesTable, DependenciesColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, DependenciesTable, DependenciesColumn),
 	)
 }
 

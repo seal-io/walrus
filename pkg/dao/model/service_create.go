@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/servicedependency"
+	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -180,14 +180,14 @@ func (sc *ServiceCreate) AddResources(s ...*ServiceResource) *ServiceCreate {
 	return sc.AddResourceIDs(ids...)
 }
 
-// AddDependencyIDs adds the "dependencies" edge to the ServiceDependency entity by IDs.
+// AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by IDs.
 func (sc *ServiceCreate) AddDependencyIDs(ids ...oid.ID) *ServiceCreate {
 	sc.mutation.AddDependencyIDs(ids...)
 	return sc
 }
 
-// AddDependencies adds the "dependencies" edges to the ServiceDependency entity.
-func (sc *ServiceCreate) AddDependencies(s ...*ServiceDependency) *ServiceCreate {
+// AddDependencies adds the "dependencies" edges to the ServiceRelationship entity.
+func (sc *ServiceCreate) AddDependencies(s ...*ServiceRelationship) *ServiceCreate {
 	ids := make([]oid.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
@@ -444,18 +444,22 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if nodes := sc.mutation.DependenciesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Inverse: true,
 			Table:   service.DependenciesTable,
 			Columns: []string{service.DependenciesColumn},
-			Bidi:    false,
+			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(servicedependency.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(servicerelationship.FieldID, field.TypeString),
 			},
 		}
-		edge.Schema = sc.schemaConfig.ServiceDependency
+		edge.Schema = sc.schemaConfig.ServiceRelationship
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &ServiceRelationshipCreate{config: sc.config, mutation: newServiceRelationshipMutation(sc.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
