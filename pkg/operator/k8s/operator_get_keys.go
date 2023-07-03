@@ -16,19 +16,19 @@ import (
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/utils/pointer"
 
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
 	"github.com/seal-io/seal/pkg/operator/k8s/kube"
 	"github.com/seal-io/seal/pkg/operator/k8s/polymorphic"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
 )
 
 // GetKeys implements operator.Operator.
 func (op Operator) GetKeys(
 	ctx context.Context,
 	res *model.ServiceResource,
-) (*optypes.Keys, error) {
+) (*types.ServiceResourceOperationKeys, error) {
 	psp, err := op.getPods(ctx, res)
 	if err != nil {
 		return nil, err
@@ -48,9 +48,9 @@ func (op Operator) GetKeys(
 	//          }
 	//      ]
 	// }.
-	ks := optypes.Keys{
+	ks := types.ServiceResourceOperationKeys{
 		Labels: []string{"Pod", "Container"},
-		Keys:   make([]optypes.Key, 0),
+		Keys:   make([]types.ServiceResourceOperationKey, 0),
 	}
 	if psp == nil {
 		return &ks, nil
@@ -64,12 +64,12 @@ func (op Operator) GetKeys(
 		running := kube.IsPodRunning(&ps[i])
 		states := kube.GetContainerStates(&ps[i])
 
-		k := optypes.Key{
+		k := types.ServiceResourceOperationKey{
 			Name: ps[i].Name, // Pod name.
-			Keys: make([]optypes.Key, 0, len(states)),
+			Keys: make([]types.ServiceResourceOperationKey, 0, len(states)),
 		}
 		for j := 0; j < len(states); j++ {
-			k.Keys = append(k.Keys, optypes.Key{
+			k.Keys = append(k.Keys, types.ServiceResourceOperationKey{
 				Name:       states[j].Name,     // Container name.
 				Value:      states[j].String(), // Key.
 				Loggable:   pointer.Bool(states[j].State > kube.ContainerStateUnknown),
