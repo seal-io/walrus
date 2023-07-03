@@ -52,6 +52,10 @@ type ServiceResource struct {
 	// The values are being populated by the ServiceResourceQuery when eager-loading is set.
 	Edges        ServiceResourceEdges `json:"edges"`
 	selectValues sql.SelectValues
+
+	// Keys is the list of key used for operating the service resource,
+	// it does not store in the database and only records for additional operations.
+	Keys *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
 }
 
 // ServiceResourceEdges holds the relations/edges for other nodes in the graph.
