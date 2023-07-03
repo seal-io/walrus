@@ -85,29 +85,42 @@ func (o Operator) GetKeys(
 	resource *model.ServiceResource,
 ) (*types.ServiceResourceOperationKeys, error) {
 	var (
-		subCtx  = context.WithValue(ctx, optypes.CredentialKey, o.cred)
-		keyName = key.Encode(resource.Type, resource.Name)
+		subCtx = context.WithValue(ctx, optypes.CredentialKey, o.cred)
+		k      = key.Encode(resource.Type, resource.Name)
 	)
 
-	executable, err := resourceexec.Supported(subCtx, keyName)
+	executable, err := resourceexec.Supported(subCtx, k)
 	if err != nil {
 		return nil, err
 	}
 
-	loggable, err := resourcelog.Supported(subCtx, keyName)
+	loggable, err := resourcelog.Supported(subCtx, k)
 	if err != nil {
 		return nil, err
 	}
 
-	k := types.ServiceResourceOperationKey{
-		Name:       keyName,
-		Executable: &executable,
-		Loggable:   &loggable,
+	ks := []types.ServiceResourceOperationKey{
+		{
+			Name:       resource.Name,
+			Value:      k,
+			Executable: &executable,
+			Loggable:   &loggable,
+		},
 	}
 
+	// {
+	//      "labels": ["Resource"],
+	//      "keys":   [
+	//          {
+	//              "name": "<resource name>",
+	//              "value": "<key>",
+	//              ...
+	//          }
+	//      ]
+	// }.
 	return &types.ServiceResourceOperationKeys{
 		Labels: []string{"Resource"},
-		Keys:   []types.ServiceResourceOperationKey{k},
+		Keys:   ks,
 	}, nil
 }
 
