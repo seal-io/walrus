@@ -27,7 +27,10 @@ func (Operator) IsConnected(ctx context.Context) error {
 	return nil
 }
 
-func (Operator) GetKeys(ctx context.Context, resource *model.ServiceResource) (*optypes.Keys, error) {
+func (Operator) GetKeys(
+	ctx context.Context,
+	resource *model.ServiceResource,
+) (*types.ServiceResourceOperationKeys, error) {
 	return nil, nil
 }
 

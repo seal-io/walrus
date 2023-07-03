@@ -80,7 +80,10 @@ func (o Operator) GetStatus(_ context.Context, resource *model.ServiceResource) 
 	return nst, nil
 }
 
-func (o Operator) GetKeys(ctx context.Context, resource *model.ServiceResource) (*optypes.Keys, error) {
+func (o Operator) GetKeys(
+	ctx context.Context,
+	resource *model.ServiceResource,
+) (*types.ServiceResourceOperationKeys, error) {
 	var (
 		subCtx  = context.WithValue(ctx, optypes.CredentialKey, o.cred)
 		keyName = key.Encode(resource.Type, resource.Name)
@@ -96,15 +99,15 @@ func (o Operator) GetKeys(ctx context.Context, resource *model.ServiceResource) 
 		return nil, err
 	}
 
-	k := optypes.Key{
+	k := types.ServiceResourceOperationKey{
 		Name:       keyName,
 		Executable: &executable,
 		Loggable:   &loggable,
 	}
 
-	return &optypes.Keys{
-		Keys:   []optypes.Key{k},
+	return &types.ServiceResourceOperationKeys{
 		Labels: []string{"Resource"},
+		Keys:   []types.ServiceResourceOperationKey{k},
 	}, nil
 }
 

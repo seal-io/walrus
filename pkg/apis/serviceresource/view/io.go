@@ -12,9 +12,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
-	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 )
 
@@ -156,7 +156,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 type ServiceResource struct {
 	*model.ServiceResourceOutput `json:",inline"`
 
-	Keys *optypes.Keys `json:"keys"`
+	Keys *types.ServiceResourceOperationKeys `json:"keys"`
 }
 
 type CollectionGetResponse = []ServiceResource
@@ -208,7 +208,7 @@ func (r *GetKeysRequest) ValidateWith(ctx context.Context, input any) error {
 	return r.ServiceResourceQuery.ValidateWith(ctx, input)
 }
 
-type GetKeysResponse = *optypes.Keys
+type GetKeysResponse = *types.ServiceResourceOperationKeys
 
 type StreamLogRequest struct {
 	ServiceResourceQuery `query:"-" uri:",inline"`

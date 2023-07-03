@@ -110,12 +110,12 @@ func TestOperator(t *testing.T) {
 			t.Errorf("error getting keys: %v", err)
 		}
 
-		assert.Equalf(t, keys, &optypes.Keys{
+		assert.Equalf(t, keys, &types.ServiceResourceOperationKeys{
 			Labels: []string{"Pod", "Container"},
-			Keys: []optypes.Key{
+			Keys: []types.ServiceResourceOperationKey{
 				{
 					Name: p.Name,
-					Keys: []optypes.Key{
+					Keys: []types.ServiceResourceOperationKey{
 						{
 							Name:       "nginx",
 							Value:      p.Namespace + "/" + p.Name + "/run/nginx",
