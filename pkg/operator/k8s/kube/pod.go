@@ -165,15 +165,21 @@ const (
 	ContainerStateTerminated
 )
 
-func GetContainerStateType(s core.ContainerState) ContainerStateType {
+func GetContainerStateType(s *core.ContainerStatus) ContainerStateType {
+	currentState := s.State
+
 	switch {
-	case s.Waiting != nil:
-		if s.Waiting.Reason == "PodInitializing" {
+	case currentState.Waiting != nil:
+		switch currentState.Waiting.Reason {
+		case "PodInitializing":
 			return ContainerStateWaiting
+		case "CrashLoopBackOff":
+			// NB(thxCode): Be able to get log of a failed running container.
+			return ContainerStateTerminated
 		}
-	case s.Running != nil:
+	case currentState.Running != nil:
 		return ContainerStateRunning
-	case s.Terminated != nil:
+	case currentState.Terminated != nil:
 		return ContainerStateTerminated
 	}
 
@@ -227,7 +233,7 @@ func GetContainerStates(pod *core.Pod) (r []ContainerState) {
 				Pod:       pod.Name,
 				Name:      s.Name,
 				ID:        s.ContainerID,
-				State:     GetContainerStateType(s.State),
+				State:     GetContainerStateType(s),
 			})
 		}
 	}
