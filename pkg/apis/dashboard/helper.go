@@ -7,11 +7,13 @@ import (
 )
 
 // predicateIn converts the given field name and values into an IN predicate.
-func predicateIn[T ~func(*sql.Selector)](name string, values []oid.ID) []T {
-	if len(values) == 0 {
+func predicateIn[T ~func(*sql.Selector)](isAdmin bool, name string, values []oid.ID) []T {
+	if isAdmin {
 		return nil
 	}
 
+	// NB(thxCode): For non-admin,
+	// an empty value list will get a FALSE clause.
 	return []T{
 		sql.FieldIn(name, values...),
 	}
