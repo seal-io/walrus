@@ -26,12 +26,10 @@ const (
 var serviceStatusPaths = NewWalker(
 	[][]ConditionType{
 		{
+			ServiceStatusDeleted,
 			ServiceStatusProgressing,
 			ServiceStatusDeployed,
 			ServiceStatusReady,
-		},
-		{
-			ServiceStatusDeleted,
 		},
 	},
 	func(d Decision[ConditionType]) {
@@ -43,7 +41,7 @@ var serviceStatusPaths = NewWalker(
 				case ConditionStatusFalse:
 					return "DeleteFailed", true, false
 				}
-				return "Deleted", false, false
+				return "", false, false
 			})
 	},
 )

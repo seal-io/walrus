@@ -64,7 +64,8 @@ func (ps paths[T]) Walk(st *Status) (r *Summary) {
 }
 
 const (
-	summaryScoreDone = iota
+	summaryScoreUnConfigured = iota
+	summaryScoreDone
 	summaryScoreTransitioning
 	summaryScoreError
 
@@ -78,9 +79,11 @@ func getSummaryScore(s *Summary) int {
 		return summaryScoreError
 	case s.Transitioning:
 		return summaryScoreTransitioning
+	case s.SummaryStatus != "":
+		return summaryScoreDone
 	}
 
-	return summaryScoreDone
+	return summaryScoreUnConfigured
 }
 
 // newPath creates a path and initializes it.
