@@ -95,8 +95,12 @@ func (h Handler) CollectionRouteBasicInformation(
 	sj.IncognitoOn()
 	defer sj.IncognitoOff()
 
-	var ids []oid.ID
-	if !sj.IsAdmin() {
+	var (
+		isAdmin = sj.IsAdmin()
+		ids     []oid.ID
+	)
+
+	if !isAdmin {
 		// Get owned project id list.
 		ids = make([]oid.ID, len(sj.ProjectRoles))
 		for i := range sj.ProjectRoles {
@@ -106,7 +110,7 @@ func (h Handler) CollectionRouteBasicInformation(
 
 	// Count owned projects.
 	projectNum, err := h.modelClient.Projects().Query().
-		Where(predicateIn[predicate.Project]("id", ids)...).
+		Where(predicateIn[predicate.Project](isAdmin, "id", ids)...).
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -114,7 +118,7 @@ func (h Handler) CollectionRouteBasicInformation(
 
 	// Count environments below owned projects.
 	environmentNum, err := h.modelClient.Environments().Query().
-		Where(predicateIn[predicate.Environment]("project_id", ids)...).
+		Where(predicateIn[predicate.Environment](isAdmin, "project_id", ids)...).
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -124,7 +128,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	connectorNum, err := h.modelClient.Connectors().Query().
 		Where(predicateOr(
 			connector.ProjectIDIsNil(), // Nil project id means configuring in global.
-			predicateIn[predicate.Connector]("project_id", ids)...)...).
+			predicateIn[predicate.Connector](isAdmin, "project_id", ids)...)...).
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -132,7 +136,7 @@ func (h Handler) CollectionRouteBasicInformation(
 
 	// Count services below owned projects.
 	serviceNum, err := h.modelClient.Services().Query().
-		Where(predicateIn[predicate.Service]("project_id", ids)...).
+		Where(predicateIn[predicate.Service](isAdmin, "project_id", ids)...).
 		Count(ctx)
 	if err != nil {
 		return nil, err
@@ -142,7 +146,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	var serviceResourceNum int
 	if req.WithServiceResource {
 		serviceResourceNum, err = h.modelClient.ServiceResources().Query().
-			Where(predicateIn[predicate.ServiceResource]("project_id", ids)...).
+			Where(predicateIn[predicate.ServiceResource](isAdmin, "project_id", ids)...).
 			Count(ctx)
 		if err != nil {
 			return nil, err
@@ -153,7 +157,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	var serviceRevisionNum int
 	if req.WithServiceRevision {
 		serviceRevisionNum, err = h.modelClient.ServiceRevisions().Query().
-			Where(predicateIn[predicate.ServiceRevision]("project_id", ids)...).
+			Where(predicateIn[predicate.ServiceRevision](isAdmin, "project_id", ids)...).
 			Count(ctx)
 		if err != nil {
 			return nil, err
