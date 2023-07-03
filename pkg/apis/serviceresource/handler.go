@@ -244,119 +244,26 @@ func (h Handler) StreamExec(ctx runtime.RequestBidiStream, req view.StreamExecRe
 	return nil
 }
 
-func getCollection(
-	ctx context.Context,
-	query *model.ServiceResourceQuery,
-	withoutKeys bool,
-) (model.ServiceResources, error) {
-	logger := log.WithName("api").WithName("service-resource")
-
-	// Query service resource with its components.
-	entities, err := query.Unique(false).
-		// Must extract connector.
-		Select(serviceresource.FieldConnectorID).
-		WithConnector(func(cq *model.ConnectorQuery) {
-			cq.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData)
-		}).
-		// Must extract components.
-		WithComponents(func(rq *model.ServiceResourceQuery) {
-			rq.Select(getFields...).
-				Order(model.Desc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered))
-		}).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if withoutKeys {
-		return entities, nil
-	}
-
-	// Index entities by connector.
-	m := make(map[*model.Connector][]int)
-	for i := 0; i < len(entities); i++ {
-		// NB(thxCode): we can safety index the connector with its pointer here,
-		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
-		m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
-	}
-
-	// Fetch keys for each resource without error returning.
-	for c, idxs := range m {
-		// Get operator by connector.
-		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
-		if err != nil {
-			logger.Warnf("cannot get operator of connector: %v", err)
-			continue
-		}
-
-		if err = op.IsConnected(ctx); err != nil {
-			logger.Warnf("unreachable connector: %v", err)
-			continue
-		}
-
-		// Fetch keys for the resources that related to same connector.
-		for _, i := range idxs {
-			entities[i].Keys, err = op.GetKeys(ctx, entities[i])
-			if err != nil {
-				logger.Errorf("error getting keys for %q: %v",
-					entities[i].ID,
-					err)
-
-				continue
-			}
-
-			// Fetch keys of components as well.
-			for j := range entities[i].Edges.Components {
-				entities[i].Edges.Components[j].Keys, err = op.GetKeys(ctx, entities[i].Edges.Components[j])
-				if err != nil {
-					logger.Errorf("error getting keys for %q: %v",
-						entities[i].Edges.Components[j].ID,
-						err)
-				}
-			}
-		}
-	}
-
-	return entities, nil
-}
-
 func (h Handler) CollectionGetGraph(
 	ctx *gin.Context,
 	req view.CollectionGetGraphRequest,
 ) (*view.CollectionGetGraphResponse, error) {
 	// Fetch entities.
-	entities, err := h.modelClient.ServiceResources().Query().
-		Order(model.Asc(serviceresource.FieldCreateTime)).
-		Where(
-			serviceresource.ServiceID(req.ServiceID),
-			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered)).
+	query := h.modelClient.ServiceResources().Query().
 		Select(
 			serviceresource.FieldServiceID,
+			serviceresource.FieldDeployerType,
 			serviceresource.FieldType,
 			serviceresource.FieldID,
 			serviceresource.FieldName,
 			serviceresource.FieldCreateTime,
 			serviceresource.FieldUpdateTime,
 			serviceresource.FieldStatus).
-		WithComponents(func(rq *model.ServiceResourceQuery) {
-			rq.Order(model.Asc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
-				Select(
-					serviceresource.FieldServiceID,
-					serviceresource.FieldType,
-					serviceresource.FieldID,
-					serviceresource.FieldName,
-					serviceresource.FieldCreateTime,
-					serviceresource.FieldUpdateTime,
-					serviceresource.FieldStatus)
-		}).
-		All(ctx)
+		Where(
+			serviceresource.ServiceID(req.ServiceID),
+			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered))
+
+	entities, err := getCollection(ctx, query, false)
 	if err != nil {
 		return nil, err
 	}
@@ -409,6 +316,7 @@ func (h Handler) CollectionGetGraph(
 				Status:     entities[i].Edges.Components[j].Status.Summary,
 				Extensions: map[string]any{
 					"type": entities[i].Edges.Components[j].Type,
+					"keys": entities[i].Edges.Components[j].Keys,
 				},
 			})
 
@@ -427,10 +335,92 @@ func (h Handler) CollectionGetGraph(
 		}
 	}
 
-	// TODO(thxCode): return operation keys.
-
 	return &view.CollectionGetGraphResponse{
 		Vertices: vertices,
 		Edges:    edges,
 	}, nil
+}
+
+func getCollection(
+	ctx context.Context,
+	query *model.ServiceResourceQuery,
+	withoutKeys bool,
+) (model.ServiceResources, error) {
+	logger := log.WithName("api").WithName("service-resource")
+
+	// Query service resource with its components.
+	entities, err := query.Unique(false).
+		// Must extract connector.
+		Select(serviceresource.FieldConnectorID).
+		WithConnector(func(cq *model.ConnectorQuery) {
+			cq.Select(
+				connector.FieldName,
+				connector.FieldType,
+				connector.FieldCategory,
+				connector.FieldConfigVersion,
+				connector.FieldConfigData)
+		}).
+		// Must extract components.
+		WithComponents(func(rq *model.ServiceResourceQuery) {
+			rq.Select(getFields...).
+				Order(model.Desc(serviceresource.FieldCreateTime)).
+				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered))
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return directly if no need next operations, e.g. Log, Exec and so on.
+	if withoutKeys {
+		return entities, nil
+	}
+
+	// Index entities by connector.
+	m := make(map[*model.Connector][]int)
+	for i := range entities {
+		// NB(thxCode): we can safety index the connector with its pointer here,
+		// as the ent can keep the connector pointer is the same
+		// between those resources related by the same connector.
+		m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
+	}
+
+	// Fetch keys for each resource without error returning.
+	for c, idxs := range m {
+		// Get operator by connector.
+		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
+		if err != nil {
+			logger.Warnf("cannot get operator of connector: %v", err)
+			continue
+		}
+
+		if err = op.IsConnected(ctx); err != nil {
+			logger.Warnf("unreachable connector: %v", err)
+			continue
+		}
+
+		// Fetch keys for the resources that related to same connector.
+		for _, i := range idxs {
+			entities[i].Keys, err = op.GetKeys(ctx, entities[i])
+			if err != nil {
+				logger.Errorf("error getting keys for %q: %v",
+					entities[i].ID,
+					err)
+
+				continue
+			}
+
+			// Fetch keys of components as well.
+			for j := range entities[i].Edges.Components {
+				entities[i].Edges.Components[j].Keys, err = op.GetKeys(ctx, entities[i].Edges.Components[j])
+				if err != nil {
+					logger.Errorf("error getting keys for %q: %v",
+						entities[i].Edges.Components[j].ID,
+						err)
+				}
+			}
+		}
+	}
+
+	return entities, nil
 }

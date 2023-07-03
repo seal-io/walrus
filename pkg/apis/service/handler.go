@@ -14,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/service/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
+	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
@@ -27,7 +28,9 @@ import (
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
+	"github.com/seal-io/seal/pkg/operator"
 	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
+	optypes "github.com/seal-io/seal/pkg/operator/types"
 	pkgservice "github.com/seal-io/seal/pkg/service"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -858,18 +861,13 @@ func (h Handler) CollectionGetGraph(
 	ctx *gin.Context,
 	req view.CollectionGetGraphRequest,
 ) (*view.CollectionGetGraphResponse, error) {
+	logger := log.WithName("api").WithName("service")
+
 	// Fetch entities.
 	entities, err := h.modelClient.Services().Query().
 		Order(model.Asc(service.FieldCreateTime)).
 		Where(service.EnvironmentID(req.EnvironmentID)).
-		Select(
-			service.FieldID,
-			service.FieldName,
-			service.FieldDescription,
-			service.FieldLabels,
-			service.FieldCreateTime,
-			service.FieldUpdateTime,
-			service.FieldStatus).
+		Select(getFields...).
 		// Must extract dependency.
 		WithDependencies(func(dq *model.ServiceRelationshipQuery) {
 			dq.Select(servicerelationship.FieldDependencyID).
@@ -879,22 +877,34 @@ func (h Handler) CollectionGetGraph(
 		}).
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
-			rq.Order(model.Asc(serviceresource.FieldCreateTime)).
+			rq.Order(model.Desc(serviceresource.FieldCreateTime)).
 				Where(serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered)).
 				Select(
 					serviceresource.FieldServiceID,
+					serviceresource.FieldDeployerType,
 					serviceresource.FieldType,
 					serviceresource.FieldID,
 					serviceresource.FieldName,
 					serviceresource.FieldCreateTime,
 					serviceresource.FieldUpdateTime,
 					serviceresource.FieldStatus).
+				// Must extract connector.
+				Select(serviceresource.FieldConnectorID).
+				WithConnector(func(cq *model.ConnectorQuery) {
+					cq.Select(
+						connector.FieldName,
+						connector.FieldType,
+						connector.FieldCategory,
+						connector.FieldConfigVersion,
+						connector.FieldConfigData)
+				}).
 				// Must extract components(resources).
 				WithComponents(func(rq *model.ServiceResourceQuery) {
-					rq.Order(model.Asc(serviceresource.FieldCreateTime)).
+					rq.Order(model.Desc(serviceresource.FieldCreateTime)).
 						Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
 						Select(
 							serviceresource.FieldServiceID,
+							serviceresource.FieldDeployerType,
 							serviceresource.FieldType,
 							serviceresource.FieldID,
 							serviceresource.FieldName,
@@ -906,6 +916,61 @@ func (h Handler) CollectionGetGraph(
 		All(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Index entities by connector.
+	m := make(map[*model.Connector][][2]int)
+
+	for si := range entities {
+		for i := range entities[si].Edges.Resources {
+			// NB(thxCode): we can safety index the connector with its pointer here,
+			// as the ent can keep the connector pointer is the same
+			// between those resources related by the same connector.
+			m[entities[si].Edges.Resources[i].Edges.Connector] = append(
+				m[entities[si].Edges.Resources[i].Edges.Connector], [2]int{si, i})
+		}
+	}
+
+	// Fetch keys for each resource without error returning.
+	for c, idxs := range m {
+		// Get operator by connector.
+		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
+		if err != nil {
+			logger.Warnf("cannot get operator of connector: %v", err)
+			continue
+		}
+
+		if err = op.IsConnected(ctx); err != nil {
+			logger.Warnf("unreachable connector: %v", err)
+			continue
+		}
+
+		// Fetch keys for the resources that related to same connector.
+		for _, idx := range idxs {
+			si, i := idx[0], idx[1]
+			entities[si].Edges.Resources[i].Keys, err = op.GetKeys(ctx, entities[si].Edges.Resources[i])
+
+			if err != nil {
+				logger.Errorf("error getting keys for %q: %v",
+					entities[si].Edges.Resources[i].ID,
+					err)
+
+				continue
+			}
+
+			// Fetch keys of components as well.
+			for j := range entities[si].Edges.Resources[i].Edges.Components {
+				entities[si].Edges.Resources[i].Edges.Components[j].Keys, err = op.GetKeys(
+					ctx,
+					entities[si].Edges.Resources[i].Edges.Components[j],
+				)
+				if err != nil {
+					logger.Errorf("error getting keys for %q: %v",
+						entities[si].Edges.Resources[i].Edges.Components[j].ID,
+						err)
+				}
+			}
+		}
 	}
 
 	// Calculate capacity for allocation.
@@ -977,6 +1042,7 @@ func (h Handler) CollectionGetGraph(
 				Status:     entities[i].Edges.Resources[j].Status.Summary,
 				Extensions: map[string]any{
 					"type": entities[i].Edges.Resources[j].Type,
+					"keys": entities[i].Edges.Resources[j].Keys,
 				},
 			})
 
@@ -1006,6 +1072,7 @@ func (h Handler) CollectionGetGraph(
 					Status:     entities[i].Edges.Resources[j].Edges.Components[k].Status.Summary,
 					Extensions: map[string]any{
 						"type": entities[i].Edges.Resources[j].Edges.Components[k].Type,
+						"keys": entities[i].Edges.Resources[j].Edges.Components[k].Keys,
 					},
 				})
 
@@ -1024,8 +1091,6 @@ func (h Handler) CollectionGetGraph(
 			}
 		}
 	}
-
-	// TODO(thxCode): return operation keys.
 
 	return &view.CollectionGetGraphResponse{
 		Vertices: vertices,
