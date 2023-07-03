@@ -1,0 +1,13 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{- /* Add "Keys" fields to the "ServiceResourceOutput" entity. */}}
+{{ define "io/fields/additional/serviceresource" }}
+    // Keys is the list of key used for operating the service resource,
+    // it does not store in the database and only records for additional operations.
+    Keys *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
+{{ end }}
+
+{{- /* Add logic to copy the "Keys" field from the "ServiceResource" entity to "ServiceResourceOutput" entity. */}}
+{{ define "io/additional/serviceresource" }}
+    entity.Keys = in.Keys
+{{ end }}
