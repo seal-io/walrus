@@ -104,6 +104,9 @@ type ServiceResourceOutput struct {
 	Composition *ServiceResourceOutput `json:"composition,omitempty"`
 	// Sub-resources that make up the resource.
 	Components []*ServiceResourceOutput `json:"components,omitempty"`
+	// Keys is the list of key used for operating the service resource,
+	// it does not store in the database and only records for additional operations.
+	Keys *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
 }
 
 // ExposeServiceResource converts the ServiceResource to ServiceResourceOutput.
@@ -144,6 +147,8 @@ func ExposeServiceResource(in *ServiceResource) *ServiceResourceOutput {
 		}
 		entity.Composition.ID = in.CompositionID
 	}
+	entity.Keys = in.Keys
+
 	return entity
 }
 
