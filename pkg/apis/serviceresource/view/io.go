@@ -54,38 +54,6 @@ func (r *ServiceResourceQuery) ValidateWith(ctx context.Context, input any) erro
 	return nil
 }
 
-type StreamRequest struct {
-	ID        oid.ID `uri:"id"`
-	ProjectID oid.ID `query:"projectID"`
-}
-
-func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
-		return errors.New("invalid project id: blank")
-	}
-
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
-
-	modelClient := input.(model.ClientSet)
-
-	exist, err := modelClient.ServiceResources().Query().
-		Where(serviceresource.ID(r.ID)).
-		Exist(ctx)
-	if err != nil || !exist {
-		return runtime.Errorw(err, "invalid id: not found")
-	}
-
-	return nil
-}
-
-type StreamResponse struct {
-	Type       datamessage.EventType `json:"type"`
-	IDs        []oid.ID              `json:"ids,omitempty"`
-	Collection []ServiceResource     `json:"collection,omitempty"`
-}
-
 // Batch APIs.
 
 type CollectionGetRequest struct {
@@ -153,13 +121,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 	return nil
 }
 
-type ServiceResource struct {
-	*model.ServiceResourceOutput `json:",inline"`
-
-	Keys *types.ServiceResourceOperationKeys `json:"keys"`
-}
-
-type CollectionGetResponse = []ServiceResource
+type CollectionGetResponse = []*model.ServiceResourceOutput
 
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
@@ -190,6 +152,12 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 	}
 
 	return nil
+}
+
+type CollectionStreamResponse struct {
+	Type       datamessage.EventType          `json:"type"`
+	IDs        []oid.ID                       `json:"ids,omitempty"`
+	Collection []*model.ServiceResourceOutput `json:"collection,omitempty"`
 }
 
 // Extensional APIs.

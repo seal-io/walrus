@@ -91,12 +91,12 @@ func (h Handler) CollectionGet(
 		query.Order(orders...)
 	}
 
-	resp, err := getCollection(ctx, query, req.WithoutKeys)
+	entities, err := getCollection(ctx, query, req.WithoutKeys)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return resp, cnt, nil
+	return model.ExposeServiceResources(entities), cnt, nil
 }
 
 func (h Handler) CollectionStream(
@@ -120,10 +120,7 @@ func (h Handler) CollectionStream(
 	}
 
 	for {
-		var (
-			event topic.Event
-			resp  view.CollectionGetResponse
-		)
+		var event topic.Event
 
 		event, err = t.Receive(ctx)
 		if err != nil {
@@ -135,32 +132,36 @@ func (h Handler) CollectionStream(
 			continue
 		}
 
-		var streamData view.StreamResponse
+		var resp view.CollectionStreamResponse
 
 		switch dm.Type {
 		case datamessage.EventCreate, datamessage.EventUpdate:
-			resp, err = getCollection(ctx,
+			var entities model.ServiceResources
+
+			entities, err = getCollection(
+				ctx,
 				query.Clone().Where(serviceresource.IDIn(dm.Data...)),
 				req.WithoutKeys)
 			if err != nil {
 				return err
 			}
-			streamData = view.StreamResponse{
+
+			resp = view.CollectionStreamResponse{
 				Type:       dm.Type,
-				Collection: resp,
+				Collection: model.ExposeServiceResources(entities),
 			}
 		case datamessage.EventDelete:
-			streamData = view.StreamResponse{
+			resp = view.CollectionStreamResponse{
 				Type: dm.Type,
 				IDs:  dm.Data,
 			}
 		}
 
-		if len(streamData.IDs) == 0 && len(streamData.Collection) == 0 {
+		if len(resp.IDs) == 0 && len(resp.Collection) == 0 {
 			continue
 		}
 
-		err = ctx.SendJSON(streamData)
+		err = ctx.SendJSON(resp)
 		if err != nil {
 			return err
 		}
@@ -247,10 +248,10 @@ func getCollection(
 	ctx context.Context,
 	query *model.ServiceResourceQuery,
 	withoutKeys bool,
-) (view.CollectionGetResponse, error) {
+) (model.ServiceResources, error) {
 	logger := log.WithName("api").WithName("service-resource")
 
-	// Allow returning without sorting keys.
+	// Query service resource with its components.
 	entities, err := query.Unique(false).
 		// Must extract connector.
 		Select(serviceresource.FieldConnectorID).
@@ -273,44 +274,56 @@ func getCollection(
 		return nil, err
 	}
 
-	// Expose resources.
-	resp := make(view.CollectionGetResponse, len(entities))
+	if withoutKeys {
+		return entities, nil
+	}
+
+	// Index entities by connector.
+	m := make(map[*model.Connector][]int)
 	for i := 0; i < len(entities); i++ {
-		resp[i].ServiceResourceOutput = model.ExposeServiceResource(entities[i])
+		// NB(thxCode): we can safety index the connector with its pointer here,
+		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
+		m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
 	}
 
 	// Fetch keys for each resource without error returning.
-	if !withoutKeys {
-		// NB(thxCode): we can safety index the connector with its pointer here,
-		// as the ent can keep the connector pointer is the same between those resources related by the same connector.
-		m := make(map[*model.Connector][]int)
-		for i := 0; i < len(entities); i++ {
-			m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
+	for c, idxs := range m {
+		// Get operator by connector.
+		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
+		if err != nil {
+			logger.Warnf("cannot get operator of connector: %v", err)
+			continue
 		}
 
-		for c, idxs := range m {
-			// Get operator by connector.
-			op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
+		if err = op.IsConnected(ctx); err != nil {
+			logger.Warnf("unreachable connector: %v", err)
+			continue
+		}
+
+		// Fetch keys for the resources that related to same connector.
+		for _, i := range idxs {
+			entities[i].Keys, err = op.GetKeys(ctx, entities[i])
 			if err != nil {
-				logger.Warnf("cannot get operator of connector: %v", err)
+				logger.Errorf("error getting keys for %q: %v",
+					entities[i].ID,
+					err)
+
 				continue
 			}
 
-			if err = op.IsConnected(ctx); err != nil {
-				logger.Warnf("unreachable connector: %v", err)
-				continue
-			}
-			// Fetch keys for the resources that related to same connector.
-			for _, i := range idxs {
-				resp[i].Keys, err = op.GetKeys(ctx, entities[i])
+			// Fetch keys of components as well.
+			for j := range entities[i].Edges.Components {
+				entities[i].Edges.Components[j].Keys, err = op.GetKeys(ctx, entities[i].Edges.Components[j])
 				if err != nil {
-					logger.Errorf("error getting keys: %v", err)
+					logger.Errorf("error getting keys for %q: %v",
+						entities[i].Edges.Components[j].ID,
+						err)
 				}
 			}
 		}
 	}
 
-	return resp, nil
+	return entities, nil
 }
 
 func (h Handler) CollectionGetGraph(
