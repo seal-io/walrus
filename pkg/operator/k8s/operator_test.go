@@ -111,18 +111,13 @@ func TestOperator(t *testing.T) {
 		}
 
 		assert.Equalf(t, keys, &types.ServiceResourceOperationKeys{
-			Labels: []string{"Pod", "Container"},
+			Labels: []string{"Container"},
 			Keys: []types.ServiceResourceOperationKey{
 				{
-					Name: p.Name,
-					Keys: []types.ServiceResourceOperationKey{
-						{
-							Name:       "nginx",
-							Value:      p.Namespace + "/" + p.Name + "/run/nginx",
-							Loggable:   pointer.Bool(true),
-							Executable: pointer.Bool(true),
-						},
-					},
+					Name:       "nginx",
+					Value:      p.Namespace + "/" + p.Name + "/run/nginx",
+					Loggable:   pointer.Bool(true),
+					Executable: pointer.Bool(true),
 				},
 			},
 		}, "invaild keys")
