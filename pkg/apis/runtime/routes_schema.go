@@ -161,7 +161,10 @@ func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 
 	props := ip.Flat(ProfileCategoryHeader, ProfileCategoryUri, ProfileCategoryQuery)
 
-	var params []*openapi3.ParameterRef
+	var (
+		params         []*openapi3.ParameterRef
+		queryParamsSet = sets.NewString()
+	)
 
 	for i := 0; i < len(props); i++ {
 		var in string
@@ -179,10 +182,13 @@ func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 			}
 		case ProfileCategoryQuery:
 			in = "query"
+			name := props[i].Name
 
-			if r.pathParams.Has(props[i].Name) {
+			if r.pathParams.Has(name) {
 				continue
 			}
+
+			queryParamsSet.Insert(name)
 		}
 		param := &openapi3.ParameterRef{
 			Value: &openapi3.Parameter{
@@ -193,6 +199,15 @@ func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 			},
 		}
 		params = append(params, param)
+	}
+
+	// TODO: temporary workaround inject project query parameter.
+	if injectProjectQueryPath.Has(r.path) {
+		for k := range injectProjectQueryParameter {
+			if !queryParamsSet.Has(k) {
+				params = append(params, injectProjectQueryParameter[k])
+			}
+		}
 	}
 
 	return params
@@ -830,4 +845,37 @@ type route struct {
 	method     string
 	path       string
 	pathParams sets.Set[string]
+}
+
+// injectProjectQueryPath is a temporary workaround to add project id and project name query parameter,
+// since some resource need project info to check permission, so project id or project name is required,
+// but now we don't include them in io.
+// TODO: remove this workaround after io include them.
+var injectProjectQueryPath = sets.NewString(
+	"/connectors/:id",
+	"/connectors/:id/apply-cost-tools",
+	"/connectors/:id/sync-cost-data",
+	"/environments/:id",
+	"/services/:id",
+	"/services/:id/clone",
+	"/services/:id/upgrade",
+)
+
+var injectProjectQueryParameter = map[string]*openapi3.ParameterRef{
+	"projectID": {
+		Value: &openapi3.Parameter{
+			In:       ProfileCategoryQuery,
+			Name:     "projectID",
+			Required: false,
+			Schema:   basicSchemas["string"].NewRef(),
+		},
+	},
+	"projectName": {
+		Value: &openapi3.Parameter{
+			In:       ProfileCategoryQuery,
+			Name:     "projectName",
+			Required: false,
+			Schema:   basicSchemas["string"].NewRef(),
+		},
+	},
 }

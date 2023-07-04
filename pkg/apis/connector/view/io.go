@@ -25,15 +25,43 @@ import (
 
 type CreateRequest struct {
 	model.ConnectorCreateInput `json:",inline"`
+
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
 	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.Type == "" {
 		return errors.New("invalid type: blank")
+	}
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+
+		r.Project = &model.ProjectQueryInput{
+			ID: r.ProjectID,
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+		r.Project = &model.ProjectQueryInput{
+			ID: projectID,
+		}
 	}
 
 	entity := r.Model()
