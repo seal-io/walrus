@@ -74,7 +74,7 @@ func (i ownByProject) Hooks() []ent.Hook {
 
 			sj, err := session.GetSubject(ctx)
 			if err == nil {
-				i.filterWith(sj, m.(target))
+				i.filterWith(sj, m.(target), false)
 			}
 
 			return n.Mutate(ctx, m)
@@ -96,7 +96,7 @@ func (i ownByProject) Interceptors() []ent.Interceptor {
 	filter := ent.TraverseFunc(func(ctx context.Context, q ent.Query) error {
 		sj, err := session.GetSubject(ctx)
 		if err == nil {
-			i.filterWith(sj, q.(target))
+			i.filterWith(sj, q.(target), true)
 		}
 
 		return nil
@@ -115,7 +115,7 @@ func (i ownByProject) injectWith(sj session.Subject, t interface{ SetProjectID(o
 	}
 }
 
-func (i ownByProject) filterWith(sj session.Subject, t interface{ WhereP(...func(*sql.Selector)) }) {
+func (i ownByProject) filterWith(sj session.Subject, t interface{ WhereP(...func(*sql.Selector)) }, readonly bool) {
 	// Filter with `projectID` query value if found.
 	pid := sj.Ctx.Query("projectID")
 	if pid != "" {
@@ -123,7 +123,7 @@ func (i ownByProject) filterWith(sj session.Subject, t interface{ WhereP(...func
 			ss.Where(sql.EQ(ss.C("project_id"), pid))
 		}
 
-		if i.optional {
+		if i.optional && readonly {
 			// Query both project and global scope for optionally own-by-project resources.
 			sltFunc = func(ss *sql.Selector) {
 				ss.Where(
@@ -149,16 +149,18 @@ func (i ownByProject) filterWith(sj session.Subject, t interface{ WhereP(...func
 		pids[i] = sj.ProjectRoles[i].Project.ID
 	}
 
-	// Only affect the projects that the session subject related.
-	if len(pids) != 0 {
-		t.WhereP(func(ss *sql.Selector) {
-			ss.Where(sql.In(ss.C("project_id"), pids...))
-		})
-
-		return
+	sltFunc := func(ss *sql.Selector) {
+		ss.Where(sql.In(ss.C("project_id"), pids...))
 	}
 
-	t.WhereP(func(ss *sql.Selector) {
-		ss.Where(sql.False())
-	})
+	if i.optional {
+		// Query both project and global scope for optionally own-by-project resources.
+		sltFunc = func(ss *sql.Selector) {
+			ss.Where(sql.Or(
+				sql.In(ss.C("project_id"), pids...),
+				sql.IsNull(ss.C("project_id"))))
+		}
+	}
+
+	t.WhereP(sltFunc)
 }
