@@ -45,6 +45,13 @@ func (c *ServerContext) InjectFields() []string {
 
 // Inject update the flags base on the context.
 func (c *ServerContext) Inject(cmd *cobra.Command) error {
+	// Skip inject while user set project name to blank.
+	projName := cmd.Flags().Lookup("project-name")
+	if projName != nil && projName.Changed && projName.Value.String() == "" {
+		return nil
+	}
+
+	// Project id flag exist, use current project id to set it.
 	fp := cmd.Flags().Lookup("project-id")
 	if fp != nil && c.ProjectID != "" {
 		err := fp.Value.Set(c.ProjectID)
@@ -53,11 +60,15 @@ func (c *ServerContext) Inject(cmd *cobra.Command) error {
 		}
 	}
 
-	fe := cmd.Flags().Lookup("environment-id")
+	// Skip inject environment user set environment name to blank.
 	fen := cmd.Flags().Lookup("environment-name")
+	if fen != nil && fen.Changed && fen.Value.String() == "" {
+		return nil
+	}
 
 	// Inject environment id while user doesn't set environment name.
-	if fe != nil && c.EnvironmentID != "" && (fen == nil || fen.Value.String() == "") {
+	fe := cmd.Flags().Lookup("environment-id")
+	if fe != nil && c.EnvironmentID != "" && (fen == nil || !fen.Changed) {
 		err := fe.Value.Set(c.EnvironmentID)
 		if err != nil {
 			return err
