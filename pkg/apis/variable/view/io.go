@@ -3,6 +3,7 @@ package view
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -11,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs.
@@ -84,8 +86,8 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 	}
 
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.Value == "" {

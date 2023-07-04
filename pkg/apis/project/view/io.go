@@ -18,7 +18,7 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) Validate() error {
-	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
@@ -38,7 +38,7 @@ func (r *UpdateRequest) Validate() error {
 		return errors.New("invalid id: blank")
 	}
 
-	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 

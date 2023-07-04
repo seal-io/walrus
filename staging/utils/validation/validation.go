@@ -42,16 +42,16 @@ func IsQualifiedName(name string) error {
 	return nil
 }
 
-func IsDNSSubdomainName(name string) error {
+func IsDNSLabel(name string) error {
 	if len(name) == 0 {
 		return errors.New("name must be non-empty")
 	} else if len(name) > qualifiedNameMaxLength {
 		return fmt.Errorf("name must be no more than %d characters", qualifiedNameMaxLength)
 	}
 
-	if errs := validation.IsDNS1123Subdomain(name); len(errs) != 0 {
+	if errs := validation.IsDNS1123Label(name); len(errs) != 0 {
 		errStr := strings.Join(errs, ",")
-		return fmt.Errorf("name format must conform to DNS Subdomain Names, %s", errStr)
+		return fmt.Errorf("name format must conform to DNS Label Names, %s", errStr)
 	}
 
 	return nil

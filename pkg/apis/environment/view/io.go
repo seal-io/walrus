@@ -29,8 +29,8 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	modelClient := input.(model.ClientSet)
@@ -80,7 +80,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 			return errors.New("invalid service name: blank")
 		}
 
-		if err := validation.IsDNSSubdomainName(s.Name); err != nil {
+		if err := validation.IsDNSLabel(s.Name); err != nil {
 			return fmt.Errorf("invalid name: %w", err)
 		}
 
@@ -122,6 +122,10 @@ type UpdateRequest struct {
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
+	}
+
+	if err := validation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	modelClient := input.(model.ClientSet)

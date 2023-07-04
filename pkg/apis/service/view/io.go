@@ -67,7 +67,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		return errors.New("invalid environment id: blank")
 	}
 
-	if err := validation.IsDNSSubdomainName(r.Name); err != nil {
+	if err := validation.IsDNSLabel(r.Name); err != nil {
 		return fmt.Errorf("invalid name: %w", err)
 	}
 
@@ -348,7 +348,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 			return errors.New("invalid service name: blank")
 		}
 
-		if err := validation.IsDNSSubdomainName(s.Name); err != nil {
+		if err := validation.IsDNSLabel(s.Name); err != nil {
 			return fmt.Errorf("invalid name: %w", err)
 		}
 
