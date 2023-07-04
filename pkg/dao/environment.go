@@ -12,6 +12,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -230,4 +232,31 @@ func EnvironmentUpdates(mc model.ClientSet, input ...*model.Environment) ([]*Wra
 	}
 
 	return rrs, nil
+}
+
+// GetEnvironmentByID gets an environment including project & connectors edges by ID.
+func GetEnvironmentByID(ctx context.Context, mc model.ClientSet, id oid.ID) (*model.Environment, error) {
+	envs, err := GetEnvironmentsByIDs(ctx, mc, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(envs) == 0 {
+		return nil, errors.New("environment not found")
+	}
+
+	return envs[0], nil
+}
+
+// GetEnvironmentsByIDs gets environments including project & connectors edges by IDs.
+func GetEnvironmentsByIDs(ctx context.Context, mc model.ClientSet, ids ...oid.ID) ([]*model.Environment, error) {
+	return mc.Environments().Query().
+		Where(environment.IDIn(ids...)).
+		WithProject(func(pq *model.ProjectQuery) {
+			pq.Select(project.FieldName)
+		}).
+		WithConnectors(func(rq *model.EnvironmentConnectorRelationshipQuery) {
+			rq.WithConnector()
+		}).
+		All(ctx)
 }

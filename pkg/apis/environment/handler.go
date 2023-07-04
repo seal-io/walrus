@@ -1,16 +1,21 @@
 package environment
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/environment/view"
+	envbus "github.com/seal-io/seal/pkg/bus/environment"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	pkgservice "github.com/seal-io/seal/pkg/service"
+	"github.com/seal-io/seal/utils/log"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -62,7 +67,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 
 		entity.Edges.Services = services
 
-		return err
+		return envbus.NotifyIDs(ctx, tx, envbus.EventCreate, entity.ID)
 	})
 	if err != nil {
 		return nil, err
@@ -72,7 +77,23 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	return h.modelClient.Environments().DeleteOne(req.Model()).Exec(ctx)
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		env, err := dao.GetEnvironmentByID(ctx, tx, req.ID)
+		if err != nil {
+			return err
+		}
+
+		if err = tx.Environments().DeleteOne(req.Model()).Exec(ctx); err != nil {
+			return err
+		}
+
+		if err = envbus.Notify(ctx, tx, envbus.EventDelete, model.Environments{env}); err != nil {
+			// Proceed on clean up failure.
+			log.Warnf("environment post deletion hook failed: %v", err)
+		}
+
+		return nil
+	})
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
@@ -84,7 +105,11 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 			return err
 		}
 
-		return updates[0].Exec(ctx)
+		if err = updates[0].Exec(ctx); err != nil {
+			return err
+		}
+
+		return envbus.NotifyIDs(ctx, tx, envbus.EventUpdate, req.ID)
 	})
 }
 
@@ -119,16 +144,33 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 // Batch APIs.
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
-	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		ids := make([]oid.ID, len(req))
 		for i := range req {
-			err = tx.Environments().DeleteOne(req[i].Model()).
-				Exec(ctx)
-			if err != nil {
-				return err
-			}
+			ids[i] = req[i].ID
 		}
 
-		return
+		envs, err := dao.GetEnvironmentsByIDs(ctx, tx, ids...)
+		if err != nil {
+			return err
+		}
+
+		if len(envs) != len(req) {
+			return errors.New("invalid id: data mismatch")
+		}
+
+		if _, err = tx.Environments().Delete().
+			Where(environment.IDIn(ids...)).
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		if err = envbus.Notify(ctx, tx, envbus.EventDelete, envs); err != nil {
+			// Proceed on clean up failure.
+			log.Warnf("environment post deletion hook failed: %v", err)
+		}
+
+		return nil
 	})
 }
 

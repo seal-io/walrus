@@ -3,12 +3,14 @@ package bus
 import (
 	"context"
 
+	"github.com/seal-io/seal/pkg/bus/environment"
 	"github.com/seal-io/seal/pkg/bus/servicerevision"
 	"github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/bus/template"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
+	pkgenv "github.com/seal-io/seal/pkg/environment"
 	"github.com/seal-io/seal/pkg/templates"
 )
 
@@ -17,6 +19,13 @@ type SetupOptions struct {
 }
 
 func Setup(ctx context.Context, opts SetupOptions) (err error) {
+	// Environment.
+	err = environment.AddSubscriber("managed-kubernetes-namespace-sync",
+		pkgenv.SyncManagedKubernetesNamespace)
+	if err != nil {
+		return
+	}
+
 	// Service revision.
 	err = servicerevision.AddSubscriber("terraform-sync-service-revision-status",
 		terraform.SyncServiceRevisionStatus)
@@ -24,14 +33,14 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 		return
 	}
 
-	// Template.
-	err = template.AddSubscriber("sync-template-schema", templates.SchemaSync(opts.ModelClient).Do)
+	// Setting.
+	err = setting.AddSubscriber("cron-sync", cron.Sync)
 	if err != nil {
 		return
 	}
 
-	// Setting.
-	err = setting.AddSubscriber("cron-sync", cron.Sync)
+	// Template.
+	err = template.AddSubscriber("sync-template-schema", templates.SchemaSync(opts.ModelClient).Do)
 	if err != nil {
 		return
 	}
