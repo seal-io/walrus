@@ -187,19 +187,19 @@ func (h Handler) CollectionGet(
 
 	var (
 		// EnvPs is the predicate for query only env scope variables.
-		envPss = sql.And(
+		envPs = sql.And(
 			sql.EQ(variable.FieldProjectID, req.ProjectID),
 			sql.EQ(variable.FieldEnvironmentID, req.EnvironmentID),
 		)
 
 		// ProjectPs is the predicate for query only project scope variables.
-		projPss = sql.And(
+		projPs = sql.And(
 			sql.EQ(variable.FieldProjectID, req.ProjectID),
 			sql.IsNull(variable.FieldEnvironmentID),
 		)
 
 		// GlobalPs is the predicate for query only global scope variables.
-		globalPss = sql.IsNull(variable.FieldProjectID)
+		globalPs = sql.IsNull(variable.FieldProjectID)
 	)
 
 	// Ps is the generated query condition base on input.
@@ -208,47 +208,32 @@ func (h Handler) CollectionGet(
 	switch {
 	case req.EnvironmentID != "":
 		// Environment scope.
-		switch {
-		case req.WithGlobal && req.WithProject:
-			// With Project scope and global scope.
-			ps = sql.Or(
-				envPss,
-				projPss,
-				globalPss,
-			)
-		case req.WithGlobal:
-			// With Global scope only.
-			ps = sql.Or(
-				envPss,
-				globalPss,
-			)
-		case req.WithProject:
-			// With Project scope only.
-			ps = sql.Or(
-				envPss,
-				projPss,
-			)
-		default:
-			// Environment scope only.
-			ps = envPss
-		}
+		// Environment scope only.
+		ps = envPs
 
+		// With Project scope and global scope.
+		if req.IncludeInherited {
+			ps = sql.Or(
+				envPs,
+				projPs,
+				globalPs,
+			)
+		}
 	case req.ProjectID != "":
 		// Project scope.
-		switch {
-		case req.WithGlobal:
-			// With global scope.
+		// Project scope only.
+		ps = projPs
+
+		// With global scope.
+		if req.IncludeInherited {
 			ps = sql.Or(
-				projPss,
-				globalPss,
+				projPs,
+				globalPs,
 			)
-		default:
-			// Project scope only.
-			ps = projPss
 		}
 	default:
 		// Global scope.
-		ps = globalPss
+		ps = globalPs
 	}
 
 	scopeExpr := `CASE WHEN project_id IS NOT NULL AND environment_id IS NOT NULL THEN 3

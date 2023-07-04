@@ -198,12 +198,11 @@ func (r CollectionDeleteRequest) Validate() error {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Variable, variable.OrderOption] `query:",inline"`
 
-	ProjectID       oid.ID `query:"projectID,omitempty"`
-	ProjectName     string `query:"projectName,omitempty"`
-	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName string `query:"environmentName,omitempty"`
-	WithGlobal      bool   `query:"withGlobal,omitempty"`
-	WithProject     bool   `query:"withProject,omitempty"`
+	ProjectID        oid.ID `query:"projectID,omitempty"`
+	ProjectName      string `query:"projectName,omitempty"`
+	EnvironmentID    oid.ID `query:"environmentID,omitempty"`
+	EnvironmentName  string `query:"environmentName,omitempty"`
+	IncludeInherited bool   `query:"includeInherited,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
