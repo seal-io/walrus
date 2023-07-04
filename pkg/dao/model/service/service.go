@@ -32,14 +32,14 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldProjectID holds the string denoting the projectid field in the database.
 	FieldProjectID = "project_id"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// FieldEnvironmentID holds the string denoting the environmentid field in the database.
 	FieldEnvironmentID = "environment_id"
 	// FieldTemplate holds the string denoting the template field in the database.
 	FieldTemplate = "template"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -99,10 +99,10 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldProjectID,
+	FieldStatus,
 	FieldEnvironmentID,
 	FieldTemplate,
 	FieldAttributes,
-	FieldStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

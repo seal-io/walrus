@@ -39,8 +39,6 @@ type ServiceCreateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
 	// Dependencies holds the value of the dependencies edge.
@@ -55,7 +53,6 @@ func (in ServiceCreateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-		Status:      in.Status,
 	}
 	entity.EnvironmentID = in.Environment.ID
 	for i := 0; i < len(in.Dependencies); i++ {
@@ -81,8 +78,6 @@ type ServiceUpdateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
 	Dependencies []*ServiceRelationshipUpdateInput `json:"dependencies,omitempty"`
 }
@@ -96,7 +91,6 @@ func (in ServiceUpdateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-		Status:      in.Status,
 	}
 	for i := 0; i < len(in.Dependencies); i++ {
 		if in.Dependencies[i] == nil {
@@ -121,12 +115,12 @@ type ServiceOutput struct {
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
+	// Status holds the value of the "status" field.
+	Status status.Status `json:"status,omitempty"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty"`
 	// Project to which the service belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Environment to which the service belongs.
@@ -147,9 +141,9 @@ func ExposeService(in *Service) *ServiceOutput {
 		Labels:       in.Labels,
 		CreateTime:   in.CreateTime,
 		UpdateTime:   in.UpdateTime,
+		Status:       in.Status,
 		Template:     in.Template,
 		Attributes:   in.Attributes,
-		Status:       in.Status,
 		Project:      ExposeProject(in.Edges.Project),
 		Environment:  ExposeEnvironment(in.Edges.Environment),
 		Dependencies: ExposeServiceRelationships(in.Edges.Dependencies),

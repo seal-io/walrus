@@ -102,6 +102,20 @@ func (sc *ServiceCreate) SetProjectID(o oid.ID) *ServiceCreate {
 	return sc
 }
 
+// SetStatus sets the "status" field.
+func (sc *ServiceCreate) SetStatus(s status.Status) *ServiceCreate {
+	sc.mutation.SetStatus(s)
+	return sc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (sc *ServiceCreate) SetNillableStatus(s *status.Status) *ServiceCreate {
+	if s != nil {
+		sc.SetStatus(*s)
+	}
+	return sc
+}
+
 // SetEnvironmentID sets the "environmentID" field.
 func (sc *ServiceCreate) SetEnvironmentID(o oid.ID) *ServiceCreate {
 	sc.mutation.SetEnvironmentID(o)
@@ -117,20 +131,6 @@ func (sc *ServiceCreate) SetTemplate(tvr types.TemplateVersionRef) *ServiceCreat
 // SetAttributes sets the "attributes" field.
 func (sc *ServiceCreate) SetAttributes(pr property.Values) *ServiceCreate {
 	sc.mutation.SetAttributes(pr)
-	return sc
-}
-
-// SetStatus sets the "status" field.
-func (sc *ServiceCreate) SetStatus(s status.Status) *ServiceCreate {
-	sc.mutation.SetStatus(s)
-	return sc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (sc *ServiceCreate) SetNillableStatus(s *status.Status) *ServiceCreate {
-	if s != nil {
-		sc.SetStatus(*s)
-	}
 	return sc
 }
 
@@ -359,6 +359,10 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
+	if value, ok := sc.mutation.Status(); ok {
+		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
+		_node.Status = value
+	}
 	if value, ok := sc.mutation.Template(); ok {
 		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
 		_node.Template = value
@@ -366,10 +370,6 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Attributes(); ok {
 		_spec.SetField(service.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
-	}
-	if value, ok := sc.mutation.Status(); ok {
-		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
-		_node.Status = value
 	}
 	if nodes := sc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -592,6 +592,24 @@ func (u *ServiceUpsert) UpdateUpdateTime() *ServiceUpsert {
 	return u
 }
 
+// SetStatus sets the "status" field.
+func (u *ServiceUpsert) SetStatus(v status.Status) *ServiceUpsert {
+	u.Set(service.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateStatus() *ServiceUpsert {
+	u.SetExcluded(service.FieldStatus)
+	return u
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ServiceUpsert) ClearStatus() *ServiceUpsert {
+	u.SetNull(service.FieldStatus)
+	return u
+}
+
 // SetTemplate sets the "template" field.
 func (u *ServiceUpsert) SetTemplate(v types.TemplateVersionRef) *ServiceUpsert {
 	u.Set(service.FieldTemplate, v)
@@ -619,24 +637,6 @@ func (u *ServiceUpsert) UpdateAttributes() *ServiceUpsert {
 // ClearAttributes clears the value of the "attributes" field.
 func (u *ServiceUpsert) ClearAttributes() *ServiceUpsert {
 	u.SetNull(service.FieldAttributes)
-	return u
-}
-
-// SetStatus sets the "status" field.
-func (u *ServiceUpsert) SetStatus(v status.Status) *ServiceUpsert {
-	u.Set(service.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ServiceUpsert) UpdateStatus() *ServiceUpsert {
-	u.SetExcluded(service.FieldStatus)
-	return u
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ServiceUpsert) ClearStatus() *ServiceUpsert {
-	u.SetNull(service.FieldStatus)
 	return u
 }
 
@@ -788,6 +788,27 @@ func (u *ServiceUpsertOne) UpdateUpdateTime() *ServiceUpsertOne {
 	})
 }
 
+// SetStatus sets the "status" field.
+func (u *ServiceUpsertOne) SetStatus(v status.Status) *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateStatus() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ServiceUpsertOne) ClearStatus() *ServiceUpsertOne {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearStatus()
+	})
+}
+
 // SetTemplate sets the "template" field.
 func (u *ServiceUpsertOne) SetTemplate(v types.TemplateVersionRef) *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
@@ -820,27 +841,6 @@ func (u *ServiceUpsertOne) UpdateAttributes() *ServiceUpsertOne {
 func (u *ServiceUpsertOne) ClearAttributes() *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
 		s.ClearAttributes()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *ServiceUpsertOne) SetStatus(v status.Status) *ServiceUpsertOne {
-	return u.Update(func(s *ServiceUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ServiceUpsertOne) UpdateStatus() *ServiceUpsertOne {
-	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ServiceUpsertOne) ClearStatus() *ServiceUpsertOne {
-	return u.Update(func(s *ServiceUpsert) {
-		s.ClearStatus()
 	})
 }
 
@@ -1155,6 +1155,27 @@ func (u *ServiceUpsertBulk) UpdateUpdateTime() *ServiceUpsertBulk {
 	})
 }
 
+// SetStatus sets the "status" field.
+func (u *ServiceUpsertBulk) SetStatus(v status.Status) *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateStatus() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// ClearStatus clears the value of the "status" field.
+func (u *ServiceUpsertBulk) ClearStatus() *ServiceUpsertBulk {
+	return u.Update(func(s *ServiceUpsert) {
+		s.ClearStatus()
+	})
+}
+
 // SetTemplate sets the "template" field.
 func (u *ServiceUpsertBulk) SetTemplate(v types.TemplateVersionRef) *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
@@ -1187,27 +1208,6 @@ func (u *ServiceUpsertBulk) UpdateAttributes() *ServiceUpsertBulk {
 func (u *ServiceUpsertBulk) ClearAttributes() *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
 		s.ClearAttributes()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *ServiceUpsertBulk) SetStatus(v status.Status) *ServiceUpsertBulk {
-	return u.Update(func(s *ServiceUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *ServiceUpsertBulk) UpdateStatus() *ServiceUpsertBulk {
-	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateStatus()
-	})
-}
-
-// ClearStatus clears the value of the "status" field.
-func (u *ServiceUpsertBulk) ClearStatus() *ServiceUpsertBulk {
-	return u.Update(func(s *ServiceUpsert) {
-		s.ClearStatus()
 	})
 }
 

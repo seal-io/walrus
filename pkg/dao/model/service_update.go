@@ -97,24 +97,6 @@ func (su *ServiceUpdate) SetUpdateTime(t time.Time) *ServiceUpdate {
 	return su
 }
 
-// SetTemplate sets the "template" field.
-func (su *ServiceUpdate) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdate {
-	su.mutation.SetTemplate(tvr)
-	return su
-}
-
-// SetAttributes sets the "attributes" field.
-func (su *ServiceUpdate) SetAttributes(pr property.Values) *ServiceUpdate {
-	su.mutation.SetAttributes(pr)
-	return su
-}
-
-// ClearAttributes clears the value of the "attributes" field.
-func (su *ServiceUpdate) ClearAttributes() *ServiceUpdate {
-	su.mutation.ClearAttributes()
-	return su
-}
-
 // SetStatus sets the "status" field.
 func (su *ServiceUpdate) SetStatus(s status.Status) *ServiceUpdate {
 	su.mutation.SetStatus(s)
@@ -132,6 +114,24 @@ func (su *ServiceUpdate) SetNillableStatus(s *status.Status) *ServiceUpdate {
 // ClearStatus clears the value of the "status" field.
 func (su *ServiceUpdate) ClearStatus() *ServiceUpdate {
 	su.mutation.ClearStatus()
+	return su
+}
+
+// SetTemplate sets the "template" field.
+func (su *ServiceUpdate) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdate {
+	su.mutation.SetTemplate(tvr)
+	return su
+}
+
+// SetAttributes sets the "attributes" field.
+func (su *ServiceUpdate) SetAttributes(pr property.Values) *ServiceUpdate {
+	su.mutation.SetAttributes(pr)
+	return su
+}
+
+// ClearAttributes clears the value of the "attributes" field.
+func (su *ServiceUpdate) ClearAttributes() *ServiceUpdate {
+	su.mutation.ClearAttributes()
 	return su
 }
 
@@ -348,6 +348,12 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := su.mutation.Status(); ok {
+		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
+	}
+	if su.mutation.StatusCleared() {
+		_spec.ClearField(service.FieldStatus, field.TypeJSON)
+	}
 	if value, ok := su.mutation.Template(); ok {
 		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
 	}
@@ -356,12 +362,6 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if su.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
-	}
-	if value, ok := su.mutation.Status(); ok {
-		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
-	}
-	if su.mutation.StatusCleared() {
-		_spec.ClearField(service.FieldStatus, field.TypeJSON)
 	}
 	if su.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -599,24 +599,6 @@ func (suo *ServiceUpdateOne) SetUpdateTime(t time.Time) *ServiceUpdateOne {
 	return suo
 }
 
-// SetTemplate sets the "template" field.
-func (suo *ServiceUpdateOne) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdateOne {
-	suo.mutation.SetTemplate(tvr)
-	return suo
-}
-
-// SetAttributes sets the "attributes" field.
-func (suo *ServiceUpdateOne) SetAttributes(pr property.Values) *ServiceUpdateOne {
-	suo.mutation.SetAttributes(pr)
-	return suo
-}
-
-// ClearAttributes clears the value of the "attributes" field.
-func (suo *ServiceUpdateOne) ClearAttributes() *ServiceUpdateOne {
-	suo.mutation.ClearAttributes()
-	return suo
-}
-
 // SetStatus sets the "status" field.
 func (suo *ServiceUpdateOne) SetStatus(s status.Status) *ServiceUpdateOne {
 	suo.mutation.SetStatus(s)
@@ -634,6 +616,24 @@ func (suo *ServiceUpdateOne) SetNillableStatus(s *status.Status) *ServiceUpdateO
 // ClearStatus clears the value of the "status" field.
 func (suo *ServiceUpdateOne) ClearStatus() *ServiceUpdateOne {
 	suo.mutation.ClearStatus()
+	return suo
+}
+
+// SetTemplate sets the "template" field.
+func (suo *ServiceUpdateOne) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdateOne {
+	suo.mutation.SetTemplate(tvr)
+	return suo
+}
+
+// SetAttributes sets the "attributes" field.
+func (suo *ServiceUpdateOne) SetAttributes(pr property.Values) *ServiceUpdateOne {
+	suo.mutation.SetAttributes(pr)
+	return suo
+}
+
+// ClearAttributes clears the value of the "attributes" field.
+func (suo *ServiceUpdateOne) ClearAttributes() *ServiceUpdateOne {
+	suo.mutation.ClearAttributes()
 	return suo
 }
 
@@ -880,6 +880,12 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(service.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := suo.mutation.Status(); ok {
+		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
+	}
+	if suo.mutation.StatusCleared() {
+		_spec.ClearField(service.FieldStatus, field.TypeJSON)
+	}
 	if value, ok := suo.mutation.Template(); ok {
 		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
 	}
@@ -888,12 +894,6 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	}
 	if suo.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
-	}
-	if value, ok := suo.mutation.Status(); ok {
-		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
-	}
-	if suo.mutation.StatusCleared() {
-		_spec.ClearField(service.FieldStatus, field.TypeJSON)
 	}
 	if suo.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

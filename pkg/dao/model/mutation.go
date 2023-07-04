@@ -9543,9 +9543,9 @@ type ServiceMutation struct {
 	annotations         *map[string]string
 	createTime          *time.Time
 	updateTime          *time.Time
+	status              *status.Status
 	template            *types.TemplateVersionRef
 	attributes          *property.Values
-	status              *status.Status
 	clearedFields       map[string]struct{}
 	project             *oid.ID
 	clearedproject      bool
@@ -9960,6 +9960,55 @@ func (m *ServiceMutation) ResetProjectID() {
 	m.project = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *ServiceMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ServiceMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ServiceMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[service.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ServiceMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[service.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ServiceMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, service.FieldStatus)
+}
+
 // SetEnvironmentID sets the "environmentID" field.
 func (m *ServiceMutation) SetEnvironmentID(o oid.ID) {
 	m.environment = &o
@@ -10079,55 +10128,6 @@ func (m *ServiceMutation) AttributesCleared() bool {
 func (m *ServiceMutation) ResetAttributes() {
 	m.attributes = nil
 	delete(m.clearedFields, service.FieldAttributes)
-}
-
-// SetStatus sets the "status" field.
-func (m *ServiceMutation) SetStatus(s status.Status) {
-	m.status = &s
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *ServiceMutation) Status() (r status.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the Service entity.
-// If the Service object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ClearStatus clears the value of the "status" field.
-func (m *ServiceMutation) ClearStatus() {
-	m.status = nil
-	m.clearedFields[service.FieldStatus] = struct{}{}
-}
-
-// StatusCleared returns if the "status" field was cleared in this mutation.
-func (m *ServiceMutation) StatusCleared() bool {
-	_, ok := m.clearedFields[service.FieldStatus]
-	return ok
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *ServiceMutation) ResetStatus() {
-	m.status = nil
-	delete(m.clearedFields, service.FieldStatus)
 }
 
 // ClearProject clears the "project" edge to the Project entity.
@@ -10400,6 +10400,9 @@ func (m *ServiceMutation) Fields() []string {
 	if m.project != nil {
 		fields = append(fields, service.FieldProjectID)
 	}
+	if m.status != nil {
+		fields = append(fields, service.FieldStatus)
+	}
 	if m.environment != nil {
 		fields = append(fields, service.FieldEnvironmentID)
 	}
@@ -10408,9 +10411,6 @@ func (m *ServiceMutation) Fields() []string {
 	}
 	if m.attributes != nil {
 		fields = append(fields, service.FieldAttributes)
-	}
-	if m.status != nil {
-		fields = append(fields, service.FieldStatus)
 	}
 	return fields
 }
@@ -10434,14 +10434,14 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case service.FieldProjectID:
 		return m.ProjectID()
+	case service.FieldStatus:
+		return m.Status()
 	case service.FieldEnvironmentID:
 		return m.EnvironmentID()
 	case service.FieldTemplate:
 		return m.Template()
 	case service.FieldAttributes:
 		return m.Attributes()
-	case service.FieldStatus:
-		return m.Status()
 	}
 	return nil, false
 }
@@ -10465,14 +10465,14 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldUpdateTime(ctx)
 	case service.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case service.FieldStatus:
+		return m.OldStatus(ctx)
 	case service.FieldEnvironmentID:
 		return m.OldEnvironmentID(ctx)
 	case service.FieldTemplate:
 		return m.OldTemplate(ctx)
 	case service.FieldAttributes:
 		return m.OldAttributes(ctx)
-	case service.FieldStatus:
-		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Service field %s", name)
 }
@@ -10531,6 +10531,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectID(v)
 		return nil
+	case service.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	case service.FieldEnvironmentID:
 		v, ok := value.(oid.ID)
 		if !ok {
@@ -10551,13 +10558,6 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttributes(v)
-		return nil
-	case service.FieldStatus:
-		v, ok := value.(status.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
@@ -10598,11 +10598,11 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldAnnotations) {
 		fields = append(fields, service.FieldAnnotations)
 	}
-	if m.FieldCleared(service.FieldAttributes) {
-		fields = append(fields, service.FieldAttributes)
-	}
 	if m.FieldCleared(service.FieldStatus) {
 		fields = append(fields, service.FieldStatus)
+	}
+	if m.FieldCleared(service.FieldAttributes) {
+		fields = append(fields, service.FieldAttributes)
 	}
 	return fields
 }
@@ -10627,11 +10627,11 @@ func (m *ServiceMutation) ClearField(name string) error {
 	case service.FieldAnnotations:
 		m.ClearAnnotations()
 		return nil
-	case service.FieldAttributes:
-		m.ClearAttributes()
-		return nil
 	case service.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case service.FieldAttributes:
+		m.ClearAttributes()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
@@ -10662,6 +10662,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 	case service.FieldProjectID:
 		m.ResetProjectID()
 		return nil
+	case service.FieldStatus:
+		m.ResetStatus()
+		return nil
 	case service.FieldEnvironmentID:
 		m.ResetEnvironmentID()
 		return nil
@@ -10670,9 +10673,6 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldAttributes:
 		m.ResetAttributes()
-		return nil
-	case service.FieldStatus:
-		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
