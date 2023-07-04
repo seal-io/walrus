@@ -12,7 +12,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/property"
-	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
 type Service struct {
@@ -23,6 +22,7 @@ func (Service) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Metadata(),
 		mixin.OwnByProject(),
+		mixin.Status(),
 	}
 }
 
@@ -43,9 +43,6 @@ func (Service) Fields() []ent.Field {
 			Comment("Template ID and version."),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
-			Optional(),
-		field.JSON("status", status.Status{}).
-			Comment("Status of the service.").
 			Optional(),
 	}
 }
