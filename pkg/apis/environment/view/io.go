@@ -26,6 +26,10 @@ type CreateRequest struct {
 	model.EnvironmentCreateInput `json:",inline"`
 
 	Services []model.ServiceCreateInput `json:"services"`
+
+	// Project id and project name are used in permission checking.
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -34,6 +38,31 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	modelClient := input.(model.ClientSet)
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+
+		r.Project = model.ProjectQueryInput{
+			ID: r.ProjectID,
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+		r.Project = model.ProjectQueryInput{
+			ID: projectID,
+		}
+	default:
+		return errors.New("both project id and project name are blank")
+	}
 
 	// Get template versions.
 	templateVersionKeys := sets.NewString()
