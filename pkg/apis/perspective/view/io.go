@@ -3,6 +3,7 @@ package view
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
+	utilvalidation "github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs.
@@ -22,8 +24,8 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) Validate() error {
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := utilvalidation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	// TODO(michelia): support time range format https://docs.huihoo.com/grafana/2.6/reference/timerange/index.html
@@ -51,6 +53,10 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	if !r.ID.IsNaive() {
 		return errors.New("invalid id: blank")
+	}
+
+	if err := utilvalidation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if err := validation.ValidateAllocationQueries(r.AllocationQueries); err != nil {

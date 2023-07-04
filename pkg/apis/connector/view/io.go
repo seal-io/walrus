@@ -18,6 +18,7 @@ import (
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/pkg/vcs"
+	"github.com/seal-io/seal/utils/validation"
 )
 
 // Basic APIs.
@@ -27,8 +28,8 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
-	if r.Name == "" {
-		return errors.New("invalid name: blank")
+	if err := validation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.Type == "" {
@@ -67,6 +68,10 @@ func (r *UpdateRequest) Model() *model.Connector {
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
+	}
+
+	if err := validation.IsDNSLabel(r.Name); err != nil {
+		return fmt.Errorf("invalid name: %w", err)
 	}
 
 	if r.Type == "" {
