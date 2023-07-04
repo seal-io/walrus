@@ -35,6 +35,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
+	pkgenv "github.com/seal-io/seal/pkg/environment"
 	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 	pkgservice "github.com/seal-io/seal/pkg/service"
 	"github.com/seal-io/seal/pkg/settings"
@@ -71,10 +72,11 @@ type CreateSecretsOptions struct {
 	EnvironmentID   oid.ID
 	SubjectID       oid.ID
 	// Metadata.
-	ProjectName     string
-	EnvironmentName string
-	ServiceName     string
-	ServiceID       oid.ID
+	ProjectName          string
+	EnvironmentName      string
+	ServiceName          string
+	ServiceID            oid.ID
+	ManagedNamespaceName string
 }
 
 // CreateJobOptions options for do job action.
@@ -203,7 +205,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
-	environment, err := d.modelClient.Environments().Get(ctx, opts.Service.EnvironmentID)
+	environment, err := dao.GetEnvironmentByID(ctx, d.modelClient, opts.Service.EnvironmentID)
 	if err != nil {
 		return err
 	}
@@ -233,10 +235,11 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		EnvironmentID:   opts.Service.EnvironmentID,
 		SubjectID:       subjectID,
 		// Metadata.
-		ProjectName:     project.Name,
-		EnvironmentName: environment.Name,
-		ServiceName:     opts.Service.Name,
-		ServiceID:       opts.Service.ID,
+		ProjectName:          project.Name,
+		EnvironmentName:      environment.Name,
+		ServiceName:          opts.Service.Name,
+		ServiceID:            opts.Service.ID,
+		ManagedNamespaceName: pkgenv.GetManagedNamespaceName(environment),
 	}
 	if err = d.createK8sSecrets(ctx, secretOpts); err != nil {
 		return err
@@ -1156,6 +1159,8 @@ func getModuleConfig(
 			attrValue = ops.EnvironmentID.String()
 		case SealMetadataServiceID:
 			attrValue = ops.ServiceID.String()
+		case SealMetadataNamespaceName:
+			attrValue = ops.ManagedNamespaceName
 		}
 
 		if attrValue != "" {

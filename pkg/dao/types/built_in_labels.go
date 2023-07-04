@@ -18,4 +18,7 @@ const (
 	// LabelSealServicePath indicate service with project name and environment name,
 	// format: projectName/environmentName/serviceName
 	LabelSealServicePath string = "seal.io/service-path"
+
+	// LabelSealManaged indicates whether the resource is managed by Seal.
+	LabelSealManaged string = "seal.io/managed"
 )
