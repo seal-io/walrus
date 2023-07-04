@@ -42,14 +42,14 @@ type Service struct {
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong.
 	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	// Status holds the value of the "status" field.
+	Status status.Status `json:"status,omitempty" sql:"status"`
 	// ID of the environment to which the service deploys.
 	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty" sql:"template"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
-	// Status of the service.
-	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
 	Edges        ServiceEdges `json:"edges"`
@@ -131,7 +131,7 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case service.FieldLabels, service.FieldAnnotations, service.FieldTemplate, service.FieldStatus:
+		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus, service.FieldTemplate:
 			values[i] = new([]byte)
 		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
 			values[i] = new(oid.ID)
@@ -210,6 +210,14 @@ func (s *Service) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.ProjectID = *value
 			}
+		case service.FieldStatus:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &s.Status); err != nil {
+					return fmt.Errorf("unmarshal field status: %w", err)
+				}
+			}
 		case service.FieldEnvironmentID:
 			if value, ok := values[i].(*oid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
@@ -229,14 +237,6 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field attributes", values[i])
 			} else if value != nil {
 				s.Attributes = *value
-			}
-		case service.FieldStatus:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &s.Status); err != nil {
-					return fmt.Errorf("unmarshal field status: %w", err)
-				}
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
@@ -324,6 +324,9 @@ func (s *Service) String() string {
 	builder.WriteString("projectID=")
 	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
 	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", s.Status))
+	builder.WriteString(", ")
 	builder.WriteString("environmentID=")
 	builder.WriteString(fmt.Sprintf("%v", s.EnvironmentID))
 	builder.WriteString(", ")
@@ -332,9 +335,6 @@ func (s *Service) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", s.Attributes))
-	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", s.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

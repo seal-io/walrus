@@ -407,6 +407,16 @@ func ProjectIDContainsFold(v oid.ID) predicate.Service {
 	return predicate.Service(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
+// StatusIsNil applies the IsNil predicate on the "status" field.
+func StatusIsNil() predicate.Service {
+	return predicate.Service(sql.FieldIsNull(FieldStatus))
+}
+
+// StatusNotNil applies the NotNil predicate on the "status" field.
+func StatusNotNil() predicate.Service {
+	return predicate.Service(sql.FieldNotNull(FieldStatus))
+}
+
 // EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
 func EnvironmentIDEQ(v oid.ID) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldEnvironmentID, v))
@@ -525,16 +535,6 @@ func AttributesIsNil() predicate.Service {
 // AttributesNotNil applies the NotNil predicate on the "attributes" field.
 func AttributesNotNil() predicate.Service {
 	return predicate.Service(sql.FieldNotNull(FieldAttributes))
-}
-
-// StatusIsNil applies the IsNil predicate on the "status" field.
-func StatusIsNil() predicate.Service {
-	return predicate.Service(sql.FieldIsNull(FieldStatus))
-}
-
-// StatusNotNil applies the NotNil predicate on the "status" field.
-func StatusNotNil() predicate.Service {
-	return predicate.Service(sql.FieldNotNull(FieldStatus))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.
