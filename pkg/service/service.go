@@ -156,8 +156,9 @@ func Destroy(
 	if len(dependants) > 0 {
 		msg := fmt.Sprintf("Waiting for dependants to be deleted: %s", strs.Join(", ", dependants...))
 		if !status.ServiceStatusProgressing.IsUnknown(entity) ||
-			status.ServiceStatusProgressing.GetMessage(entity) != msg {
-			status.ServiceStatusProgressing.Unknown(entity, msg)
+			status.ServiceStatusDeleted.GetMessage(entity) != msg {
+			status.ServiceStatusProgressing.Unknown(entity, "")
+			status.ServiceStatusDeleted.Message(entity, msg)
 
 			if err = UpdateStatus(ctx, mc, entity); err != nil {
 				return fmt.Errorf("failed to update service status: %w", err)
@@ -190,6 +191,22 @@ func GetSubjectID(entity *model.Service) (oid.ID, error) {
 	return oid.ID(subjectIDStr), nil
 }
 
+func SetSubjectID(ctx context.Context, services ...*model.Service) error {
+	subject, err := session.GetSubject(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i := range services {
+		if services[i].Annotations == nil {
+			services[i].Annotations = make(map[string]string)
+		}
+		services[i].Annotations[annotationSubjectIDName] = string(subject.ID)
+	}
+
+	return nil
+}
+
 // SetServiceStatusScheduled sets the status of the service to scheduled.
 func SetServiceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *model.Service) error {
 	if entity == nil {
@@ -208,13 +225,6 @@ func SetServiceStatusScheduled(ctx context.Context, mc model.ClientSet, entity *
 		msg,
 	)
 	entity.Status.SetSummary(status.WalkService(&entity.Status))
-
-	subject, err := session.GetSubject(ctx)
-	if err != nil {
-		return err
-	}
-
-	entity.Annotations[annotationSubjectIDName] = string(subject.ID)
 
 	update, err := dao.ServiceUpdate(mc, entity)
 	if err != nil {
