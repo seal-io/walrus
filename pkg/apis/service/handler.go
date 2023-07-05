@@ -415,6 +415,10 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 	status.ServiceStatusDeployed.Reset(entity, "Upgrading")
 
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		if err = pkgservice.SetSubjectID(ctx, entity); err != nil {
+			return err
+		}
+
 		update, err := dao.ServiceUpdate(tx, entity)
 		if err != nil {
 			return err
