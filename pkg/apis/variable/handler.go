@@ -75,8 +75,8 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
-		for i := range req {
-			err = tx.Variables().DeleteOne(req[i].Model()).
+		for i := range req.Items {
+			err = tx.Variables().DeleteOne(req.Items[i].Model()).
 				Exec(ctx)
 			if err != nil {
 				return err

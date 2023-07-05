@@ -155,8 +155,8 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
-		for i := range req {
-			err = tx.Connectors().DeleteOne(req[i].Model()).
+		for i := range req.Items {
+			err = tx.Connectors().DeleteOne(req.Items[i].Model()).
 				Exec(ctx)
 			if err != nil {
 				return err
