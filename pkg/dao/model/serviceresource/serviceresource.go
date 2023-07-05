@@ -107,7 +107,7 @@ func ValidColumn(column string) bool {
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
 	Hooks        [3]ent.Hook
-	Interceptors [2]ent.Interceptor
+	Interceptors [1]ent.Interceptor
 	// DefaultCreateTime holds the default value on creation for the "createTime" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "updateTime" field.

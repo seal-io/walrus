@@ -463,9 +463,7 @@ func init() {
 	serviceresource.Hooks[1] = serviceresourceMixinHooks2[0]
 	serviceresource.Hooks[2] = serviceresourceMixinHooks2[1]
 	serviceresourceMixinInters2 := serviceresourceMixin[2].Interceptors()
-	serviceresourceInters := schema.ServiceResource{}.Interceptors()
 	serviceresource.Interceptors[0] = serviceresourceMixinInters2[0]
-	serviceresource.Interceptors[1] = serviceresourceInters[0]
 	serviceresourceMixinFields1 := serviceresourceMixin[1].Fields()
 	_ = serviceresourceMixinFields1
 	serviceresourceMixinFields2 := serviceresourceMixin[2].Fields()
