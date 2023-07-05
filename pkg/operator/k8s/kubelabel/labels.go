@@ -87,6 +87,10 @@ func (p *patcher) applyLabels(ctx context.Context, o *unstructured.Unstructured,
 	origin := metadata.GetLabels()
 
 	update := metadata.GetLabels()
+	if update == nil {
+		update = make(map[string]string, len(labels))
+	}
+
 	for k, v := range labels {
 		update[k] = v
 	}

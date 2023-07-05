@@ -65,8 +65,7 @@ func (h Handler) CollectionGet(
 	query := h.modelClient.ServiceResources().Query().
 		Where(
 			serviceresource.ServiceID(req.ServiceID),
-			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
-		)
+			serviceresource.Mode(types.ServiceResourceModeManaged))
 
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -110,7 +109,9 @@ func (h Handler) CollectionStream(
 
 	defer func() { t.Unsubscribe() }()
 
-	query := h.modelClient.ServiceResources().Query()
+	query := h.modelClient.ServiceResources().Query().
+		Where(serviceresource.Mode(types.ServiceResourceModeManaged))
+
 	if req.ServiceID != "" {
 		query.Where(serviceresource.ServiceID(req.ServiceID))
 	}
@@ -261,7 +262,7 @@ func (h Handler) CollectionGetGraph(
 			serviceresource.FieldStatus).
 		Where(
 			serviceresource.ServiceID(req.ServiceID),
-			serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered))
+			serviceresource.Mode(types.ServiceResourceModeManaged))
 
 	entities, err := getCollection(ctx, query, false)
 	if err != nil {

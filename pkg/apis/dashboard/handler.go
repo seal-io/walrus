@@ -15,7 +15,9 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/sqlx"
@@ -146,6 +148,7 @@ func (h Handler) CollectionRouteBasicInformation(
 	var serviceResourceNum int
 	if req.WithServiceResource {
 		serviceResourceNum, err = h.modelClient.ServiceResources().Query().
+			Where(serviceresource.ModeNEQ(types.ServiceResourceModeData)).
 			Where(predicateIn[predicate.ServiceResource](isAdmin, "project_id", ids)...).
 			Count(ctx)
 		if err != nil {
