@@ -18,7 +18,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -149,8 +148,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	}
 
 	if *r.Force {
-		err := validateRevisionsStatus(ctx, modelClient, "delete", r.ID)
-		if err != nil {
+		if err := validateRevisionsStatus(ctx, modelClient, r.ID); err != nil {
 			return err
 		}
 	}
@@ -445,7 +443,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	if r.Force {
-		if err = validateRevisionsStatus(ctx, modelClient, "delete", r.IDs...); err != nil {
+		if err = validateRevisionsStatus(ctx, modelClient, r.IDs...); err != nil {
 			return err
 		}
 	}
@@ -501,13 +499,11 @@ func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error
 	}
 
 	// Verify attributes with variables schema of the template version.
-	err = r.Attributes.ValidateWith(tv.Schema.Variables)
-	if err != nil {
+	if err = r.Attributes.ValidateWith(tv.Schema.Variables); err != nil {
 		return fmt.Errorf("invalid variables: %w", err)
 	}
 
-	err = validateRevisionsStatus(ctx, modelClient, "upgrade", r.ID)
-	if err != nil {
+	if err = validateRevisionsStatus(ctx, modelClient, r.ID); err != nil {
 		return err
 	}
 
@@ -664,7 +660,6 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 func validateRevisionsStatus(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	action string,
 	serviceIDs ...oid.ID,
 ) error {
 	revisions, err := dao.GetLatestRevisions(ctx, modelClient, serviceIDs...)
@@ -675,32 +670,13 @@ func validateRevisionsStatus(
 	for _, r := range revisions {
 		switch r.Status {
 		case status.ServiceRevisionStatusSucceeded:
+		case status.ServiceRevisionStatusFailed:
 		case status.ServiceRevisionStatusRunning:
 			return runtime.Errorf(
 				http.StatusBadRequest,
-				"deployment of service %q is running, please wait for it to finish before deleting it",
+				"deployment of service %q is running, please wait for it to finish",
 				r.Edges.Service.Name,
 			)
-		case status.ServiceRevisionStatusFailed:
-			if action != "delete" {
-				return nil
-			}
-
-			resourceExist, err := modelClient.ServiceResources().Query().
-				Where(serviceresource.ServiceID(r.ServiceID)).
-				Exist(ctx)
-			if err != nil {
-				return err
-			}
-
-			if resourceExist {
-				return runtime.Errorf(
-					http.StatusBadRequest,
-					"latest deployment of %q is not succeeded,"+
-						" please fix the service configuration or rollback before deleting it",
-					r.Edges.Service.Name,
-				)
-			}
 		default:
 			return runtime.Errorf(
 				http.StatusBadRequest,
