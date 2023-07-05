@@ -30,10 +30,10 @@ const (
 //	| PodScheduled     | False                   | PodScheduleFailed     | Error                 |
 //	| PodScheduled     | True                    | PodScheduled          |                       |
 //	| ContainersReady  | Unknown                 | ContainersPreparing   | Transitioning         |
-//	| ContainersReady  | False                   | ContainersUnready     | Error                 |
+//	| ContainersReady  | False                   | ContainersNotReady    | Error                 |
 //	| ContainersReady  | True                    | ContainersReady       |                       |
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | Unready               | Error                 |
+//	| Ready            | False                   | NotReady              | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
 //	| DisruptionTarget | Unknown                 | Evicting              | Transitioning         |
 //	| DisruptionTarget | False                   | Preparing             |                       |

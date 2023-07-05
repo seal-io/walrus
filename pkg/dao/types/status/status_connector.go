@@ -21,7 +21,7 @@ const (
 //	| CostSynced       | False                   | CostSyncFailed        | Error                 |
 //	| CostSynced       | True                    | CostSynced            |                       |
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | Unready               | Error                 |
+//	| Ready            | False                   | NotReady              | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
 var connectorStatusPaths = NewWalker(
 	[][]ConditionType{

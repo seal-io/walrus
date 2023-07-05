@@ -18,7 +18,7 @@ const (
 //	| Deployed         | False                   | DeployFailed          | Error                 |
 //	| Deployed         | True                    | Deployed              |                       |
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | Unready               | Error                 |
+//	| Ready            | False                   | NotReady               | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
 //	| Deleted          | Unknown                 | Deleting              | Transitioning         |
 //	| Deleted          | False                   | DeleteFailed          | Error                 |

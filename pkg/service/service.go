@@ -258,7 +258,7 @@ func CreateScheduledServices(ctx context.Context, mc model.ClientSet, entities m
 // IsStatusReady returns true if the service is ready.
 func IsStatusReady(entity *model.Service) bool {
 	switch entity.Status.SummaryStatus {
-	case "Preparing", "Unready", "Ready":
+	case "Preparing", "NotReady", "Ready":
 		return true
 	}
 
