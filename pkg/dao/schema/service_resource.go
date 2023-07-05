@@ -1,11 +1,8 @@
 package schema
 
 import (
-	"context"
-
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
@@ -102,28 +99,5 @@ func (ServiceResource) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
-	}
-}
-
-func (ServiceResource) Interceptors() []ent.Interceptor {
-	type target interface {
-		WhereP(...func(*sql.Selector))
-	}
-
-	// Filters out not "data" mode and "kubectl_manifest" type resources.
-	filter := ent.TraverseFunc(func(ctx context.Context, query ent.Query) error {
-		t, ok := query.(target)
-		if ok {
-			t.WhereP(
-				sql.FieldNEQ("mode", "data"),
-				sql.FieldNEQ("type", "kubectl_manifest"),
-			)
-		}
-
-		return nil
-	})
-
-	return []ent.Interceptor{
-		filter,
 	}
 }
