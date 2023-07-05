@@ -60,6 +60,10 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 			serviceInputs = append(serviceInputs, svc)
 		}
 
+		if err := pkgservice.SetSubjectID(ctx, serviceInputs...); err != nil {
+			return err
+		}
+
 		services, err := pkgservice.CreateScheduledServices(ctx, tx, serviceInputs)
 		if err != nil {
 			return err
