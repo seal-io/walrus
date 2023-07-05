@@ -72,6 +72,10 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (resp view.Cre
 		return nil, err
 	}
 
+	if err = pkgservice.SetSubjectID(ctx, entity); err != nil {
+		return nil, err
+	}
+
 	createOpts := pkgservice.Options{
 		TlsCertified: h.tlsCertified,
 		Tags:         req.RemarkTags,
@@ -263,8 +267,11 @@ func (h Handler) CollectionCreate(ctx *gin.Context, req view.CollectionCreateReq
 				services = append(services, svc)
 			}
 
-			_, err := pkgservice.CreateScheduledServices(ctx, tx, services)
-			if err != nil {
+			if err := pkgservice.SetSubjectID(ctx, services...); err != nil {
+				return err
+			}
+
+			if _, err := pkgservice.CreateScheduledServices(ctx, tx, services); err != nil {
 				return err
 			}
 		}
