@@ -47,7 +47,7 @@ var (
 		"DeployerImage",
 		editable,
 		// When the image is updated, sync the one in server Dockerfile.
-		initializeFrom("sealio/terraform-deployer:v0.1.3"),
+		initializeFrom("sealio/terraform-deployer:v0.1.4"),
 		modifyWith(notBlank, containerImageReference),
 	)
 )
