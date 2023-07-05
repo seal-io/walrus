@@ -47,7 +47,7 @@ func (r *UpdateRequest) Validate() error {
 }
 
 func validate(m *model.Template) error {
-	if err := validation.IsQualifiedName(m.ID); err != nil {
+	if err := validation.IsDNSLabel(m.ID); err != nil {
 		return err
 	}
 
@@ -69,7 +69,7 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	return validation.IsQualifiedName(r.ID)
+	return validation.IsDNSLabel(r.ID)
 }
 
 type GetResponse = *model.TemplateOutput
@@ -90,7 +90,7 @@ func (r CollectionDeleteRequest) Validate() error {
 	}
 
 	for _, i := range r {
-		if err := validation.IsQualifiedName(i.ID); err != nil {
+		if err := validation.IsDNSLabel(i.ID); err != nil {
 			return fmt.Errorf("invalid id: %w", err)
 		}
 	}
@@ -117,5 +117,5 @@ type RefreshRequest struct {
 }
 
 func (r *RefreshRequest) Validate() error {
-	return validation.IsQualifiedName(r.ID)
+	return validation.IsDNSLabel(r.ID)
 }
