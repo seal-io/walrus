@@ -34,6 +34,7 @@ import (
 	pkgservice "github.com/seal-io/seal/pkg/service"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
+	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
 	"github.com/seal-io/seal/utils/validation"
