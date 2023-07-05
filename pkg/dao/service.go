@@ -89,13 +89,16 @@ func ServiceUpdates(
 		}
 
 		c := mc.Services().UpdateOne(r).
-			SetTemplate(r.Template).
-			SetAnnotations(r.Annotations)
+			SetTemplate(r.Template)
 
 		c.SetDescription(r.Description)
 
 		if r.Labels != nil {
 			c.SetLabels(r.Labels)
+		}
+
+		if r.Annotations != nil {
+			c.SetAnnotations(r.Annotations)
 		}
 
 		if r.Attributes != nil {
