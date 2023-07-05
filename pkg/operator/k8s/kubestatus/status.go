@@ -111,7 +111,7 @@ func getService(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReady, nil
 	}
 
-	// If .spec.clusterIP == "", then unready.
+	// If .spec.clusterIP == "", then not ready.
 	specClusterIP, _, _ := unstructured.NestedString(spec, "clusterIP")
 	if specClusterIP == "" {
 		return &GeneralStatusReadyTransitioning, nil
@@ -239,7 +239,7 @@ func getReplicas(
 		}
 	}
 
-	// Otherwise, unready.
+	// Otherwise, not ready.
 	return &GeneralStatusReady, nil
 }
 
@@ -279,7 +279,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return nil, errors.New("not found 'daemonSet' status")
 	}
 
-	// If .status.observedGeneration < .metadata.generation, then unready.
+	// If .status.observedGeneration < .metadata.generation, then not ready.
 	statusObservedGeneration, _, _ := unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
@@ -297,7 +297,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReady, nil
 	}
 
-	// If .status.desiredNumberScheduled != .status.updatedNumberScheduled, then unready.
+	// If .status.desiredNumberScheduled != .status.updatedNumberScheduled, then not ready.
 	statusDesiredNumberScheduled, _, _ := unstructured.NestedInt64(status, "desiredNumberScheduled")
 	statusUpdatedNumberScheduled, _, _ := unstructured.NestedInt64(status, "updatedNumberScheduled")
 
@@ -307,7 +307,7 @@ func getDaemonSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 
 	// Expected replicas =
 	// .status.desiredNumberScheduled - min(.spec.strategy.rollingUpdate.maxUnavailable, .status.desiredNumberScheduled)
-	// if .status.numberReady < expected replicas, then unready.
+	// if .status.numberReady < expected replicas, then not ready.
 	expectedReplicas := statusDesiredNumberScheduled
 
 	if statusDesiredNumberScheduled > 0 {
@@ -351,7 +351,7 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return nil, errors.New("not found 'statefulSet' status")
 	}
 
-	// If .status.observedGeneration < .metadata.generation, then unready.
+	// If .status.observedGeneration < .metadata.generation, then not ready.
 	statusObservedGeneration, _, _ := unstructured.NestedInt64(status, "observedGeneration")
 	if statusObservedGeneration < o.GetGeneration() {
 		return &GeneralStatusReadyTransitioning, nil
@@ -370,7 +370,7 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 	}
 
 	// Expected replicas = .spec.replicas - .spec.strategy.rollingUpdate.partition.
-	// If .status.updateReplicas < expected replicas, then unready.
+	// If .status.updateReplicas < expected replicas, then not ready.
 	specReplicas, _, _ := unstructured.NestedInt64(spec, "replicas")
 	specPartition, _, _ := unstructured.NestedInt64(spec, "strategy", "rollingUpdate", "partition")
 	expectedReplicas := specReplicas - specPartition
@@ -380,13 +380,13 @@ func getStatefulSet(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// If .status.readyReplicas != .spec.replicas, then unready.
+	// If .status.readyReplicas != .spec.replicas, then not ready.
 	statusReadyReplicas, _, _ := unstructured.NestedInt64(status, "readyReplicas")
 	if statusReadyReplicas != specReplicas {
 		return &GeneralStatusReadyTransitioning, nil
 	}
 
-	// If .status.currentRevision != .status.updateRevision, then unready.
+	// If .status.currentRevision != .status.updateRevision, then not ready.
 	statusCurrentRevision, _, _ := unstructured.NestedString(status, "currentRevision")
 	statusUpdateRevision, _, _ := unstructured.NestedString(status, "updateRevision")
 
@@ -449,7 +449,7 @@ func getIngress(o *unstructured.Unstructured) (*typestatus.Status, error) {
 		return &GeneralStatusReady, nil
 	}
 
-	// Otherwise, unready.
+	// Otherwise, not ready.
 	return &GeneralStatusReadyTransitioning, nil
 }
 
@@ -487,7 +487,7 @@ func getWebhookConfiguration(
 	dynamicCli *dynamic.DynamicClient,
 	o *unstructured.Unstructured,
 ) (*typestatus.Status, error) {
-	// If getService(.spec.webhooks[.clientConfig.service?]) == Unready, then unready.
+	// If getService(.spec.webhooks[.clientConfig.service?]) == NotReady, then not ready.
 	specWebhooks, _, _ := unstructured.NestedSlice(o.Object, "spec", "webhooks")
 	for i := range specWebhooks {
 		webhook, ok := specWebhooks[i].(map[string]interface{})
