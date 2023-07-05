@@ -585,10 +585,8 @@ func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) (
 	res, err := h.modelClient.ServiceResources().Query().
 		Where(
 			serviceresource.ServiceID(serviceID),
-			serviceresource.TypeIn(
-				intercept.TFEndpointsTypes...,
-			),
-		).
+			serviceresource.Mode(types.ServiceResourceModeManaged),
+			serviceresource.TypeIn(intercept.TFEndpointsTypes...)).
 		Select(
 			serviceresource.FieldConnectorID,
 			serviceresource.FieldType,
@@ -833,7 +831,7 @@ func (h Handler) CollectionGetGraph(
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
 			rq.Order(model.Desc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered)).
+				Where(serviceresource.Mode(types.ServiceResourceModeManaged)).
 				Select(
 					serviceresource.FieldServiceID,
 					serviceresource.FieldDeployerType,
