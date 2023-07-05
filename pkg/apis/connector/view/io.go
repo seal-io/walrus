@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/drone/go-scm/scm"
 
@@ -74,12 +75,62 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 
 type CreateResponse = *model.ConnectorOutput
 
-type DeleteRequest = GetRequest
+type DeleteRequest struct {
+	model.ConnectorQueryInput `uri:",inline"`
+
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
+}
+
+func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
+	// FIXME(thxCode): a workaround to protect general user deleting global connector,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		exist, err := modelClient.Connectors().Query().
+			Where(
+				connector.ID(r.ID),
+				connector.ProjectID(r.ProjectID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !exist {
+			return runtime.Errorc(http.StatusNotFound)
+		}
+	}
+
+	return nil
+}
 
 type UpdateRequest struct {
 	model.ConnectorUpdateInput `uri:",inline" json:",inline"`
 
-	Type string `json:"type"`
+	Type        string `json:"type"`
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
 }
 
 func (r *UpdateRequest) Model() *model.Connector {
@@ -94,6 +145,8 @@ func (r *UpdateRequest) Model() *model.Connector {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
 	if !r.ID.Valid(0) {
 		return errors.New("invalid id: blank")
 	}
@@ -110,6 +163,39 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		entity := r.Model()
 		if err := validateConnector(ctx, entity); err != nil {
 			return err
+		}
+	}
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
+	// FIXME(thxCode): a workaround to protect general user deleting global connector,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		exist, err := modelClient.Connectors().Query().
+			Where(
+				connector.ID(r.ID),
+				connector.ProjectID(r.ProjectID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !exist {
+			return runtime.Errorc(http.StatusNotFound)
 		}
 	}
 
@@ -159,16 +245,61 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 
 // Batch APIs.
 
-type CollectionDeleteRequest []*model.ConnectorQueryInput
+type CollectionDeleteRequest struct {
+	Items []*model.ConnectorQueryInput `json:"items"`
 
-func (r CollectionDeleteRequest) Validate() error {
-	if len(r) == 0 {
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
+}
+
+func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	if len(r.Items) == 0 {
 		return errors.New("invalid input: empty")
 	}
 
-	for _, i := range r {
+	for _, i := range r.Items {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
+		}
+	}
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
+	// FIXME(thxCode): a workaround to protect general user deleting global connector,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		ids := make([]oid.ID, len(r.Items))
+		for i := range r.Items {
+			ids[i] = r.Items[i].ID
+		}
+
+		cnt, err := modelClient.Connectors().Query().
+			Where(
+				connector.IDIn(ids...),
+				connector.ProjectID(r.ProjectID)).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+
+		if cnt != len(ids) {
+			return runtime.Errorc(http.StatusNotFound)
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -117,6 +118,10 @@ type DeleteRequest struct {
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
 	switch {
 	case r.ProjectID != "":
 		if !r.ProjectID.Valid(0) {
@@ -133,8 +138,21 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 		r.ProjectID = projectID
 	}
 
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
+	// FIXME(thxCode): a workaround to protect general user deleting global variable,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		exist, err := modelClient.Variables().Query().
+			Where(
+				variable.ID(r.ID),
+				variable.ProjectID(r.ProjectID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !exist {
+			return runtime.Errorc(http.StatusNotFound)
+		}
 	}
 
 	return nil
@@ -150,6 +168,14 @@ type UpdateRequest struct {
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	if r.Value == "" {
+		return errors.New("invalid value: blank")
+	}
+
 	switch {
 	case r.ProjectID != "":
 		if !r.ProjectID.Valid(0) {
@@ -166,12 +192,21 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		r.ProjectID = projectID
 	}
 
-	if !r.ID.Valid(0) {
-		return errors.New("invalid id: blank")
-	}
+	// FIXME(thxCode): a workaround to protect general user deleting global variable,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		exist, err := modelClient.Variables().Query().
+			Where(
+				variable.ID(r.ID),
+				variable.ProjectID(r.ProjectID)).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
 
-	if r.Value == "" {
-		return errors.New("invalid value: blank")
+		if !exist {
+			return runtime.Errorc(http.StatusNotFound)
+		}
 	}
 
 	return nil
@@ -179,16 +214,61 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 
 // Batch APIs.
 
-type CollectionDeleteRequest []*model.VariableQueryInput
+type CollectionDeleteRequest struct {
+	Items []*model.VariableQueryInput `json:"items"`
 
-func (r CollectionDeleteRequest) Validate() error {
-	if len(r) == 0 {
+	ProjectID   oid.ID `query:"projectID,omitempty"`
+	ProjectName string `query:"projectName,omitempty"`
+}
+
+func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	if len(r.Items) == 0 {
 		return errors.New("invalid input: empty")
 	}
 
-	for _, i := range r {
+	for _, i := range r.Items {
 		if !i.ID.Valid(0) {
 			return errors.New("invalid id: blank")
+		}
+	}
+
+	switch {
+	case r.ProjectID != "":
+		if !r.ProjectID.Valid(0) {
+			return errors.New("invalid project id: blank")
+		}
+	case r.ProjectName != "":
+		projectID, err := modelClient.Projects().Query().
+			Where(project.Name(r.ProjectName)).
+			OnlyID(ctx)
+		if err != nil {
+			return runtime.Errorw(err, "failed to get project")
+		}
+
+		r.ProjectID = projectID
+	}
+
+	// FIXME(thxCode): a workaround to protect general user deleting global variable,
+	//   returns a not found error instead of forbidden.
+	if r.ProjectID != "" {
+		ids := make([]oid.ID, len(r.Items))
+		for i := range r.Items {
+			ids[i] = r.Items[i].ID
+		}
+
+		cnt, err := modelClient.Variables().Query().
+			Where(
+				variable.IDIn(ids...),
+				variable.ProjectID(r.ProjectID)).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+
+		if cnt != len(ids) {
+			return runtime.Errorc(http.StatusNotFound)
 		}
 	}
 
