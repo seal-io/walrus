@@ -220,7 +220,7 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *mod
 
 func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *model.Service) error {
 	// Reset status.
-	status.ServiceStatusDeployed.Reset(entity, "Deploying service")
+	status.ServiceStatusDeployed.Reset(entity, "")
 
 	err := pkgservice.UpdateStatus(ctx, in.modelClient, entity)
 	if err != nil {
