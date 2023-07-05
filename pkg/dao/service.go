@@ -56,7 +56,7 @@ func ServiceCreates(
 			c.SetAnnotations(r.Annotations)
 		}
 
-		status.ServiceStatusDeployed.Unknown(r, "Deploying service")
+		status.ServiceStatusDeployed.Unknown(r, "")
 		r.Status.SetSummary(status.WalkService(&r.Status))
 		c.SetStatus(r.Status)
 
