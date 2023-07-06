@@ -100,7 +100,7 @@ const _servicePrefix = "_seal_service_"
 
 var (
 	// _variableReg the regexp to match the variable.
-	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_]+)}`)
+	_variableReg = regexp.MustCompile(`\${var\.([a-zA-Z0-9_-]+)}`)
 	// _serviceReg the regexp to match the service output.
 	_serviceReg = regexp.MustCompile(`\${service\.([^.}]+)\.([^.}]+)}`)
 )
