@@ -198,7 +198,7 @@ func CreateJob(ctx context.Context, clientSet *kubernetes.Clientset, opts JobCre
 		logger = log.WithName("deployer").WithName("tf")
 
 		backoffLimit            int32 = 0
-		ttlSecondsAfterFinished int32 = 60
+		ttlSecondsAfterFinished int32 = 3600
 		name                          = getK8sJobName(_jobNameFormat, opts.Type, opts.ServiceRevisionID)
 		configName                    = _jobSecretPrefix + opts.ServiceRevisionID
 	)
