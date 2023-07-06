@@ -28,9 +28,9 @@ func (r *Server) initTemplates(ctx context.Context, opts initOptions) error {
 				"opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_web.svg",
 		},
 		{
-			ID:          "build-container-image",
-			Description: "Build a container image from source code.",
-			Source:      "github.com/seal-io/modules//build-container-image?ref=" + ref,
+			ID:          "deploy-source-code",
+			Description: "Build and deploy a container image from source code.",
+			Source:      "github.com/seal-io/modules//deploy-source-code?ref=" + ref,
 			Icon: "https://raw.githubusercontent.com/" +
 				"opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/icons/oci_icon_containerimage.svg",
 		},
