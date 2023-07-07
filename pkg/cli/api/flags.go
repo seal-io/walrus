@@ -100,7 +100,7 @@ func (i ObjectIDFlag) Set(value string) error {
 
 // Type returns the type of this custom flag, which will be displayed in `--help` output.
 func (i ObjectIDFlag) Type() string {
-	return "string"
+	return openapi3.TypeString
 }
 
 // AddFlag create flag with name, type, description, default value, and add it to flagSet.

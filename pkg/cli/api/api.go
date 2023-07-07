@@ -10,6 +10,10 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
+const (
+	AnnResourceName = "seal.io/resource"
+)
+
 // API represents an abstracted API description, include details used to build CLI commands.
 type API struct {
 	Version    string      `json:"version"`
@@ -50,6 +54,9 @@ func (api *API) GenerateCommand(sc *config.Config, root *cobra.Command) {
 			set[cmdSet] = &cobra.Command{
 				Use:   cmdSet,
 				Short: fmt.Sprintf("Manage %s", strs.Decamelize(op.Group, true)),
+				Annotations: map[string]string{
+					AnnResourceName: cmdSet,
+				},
 			}
 
 			// Add command set to root.

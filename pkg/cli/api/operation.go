@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/slice"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.
@@ -55,6 +56,8 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		argSpec = cobra.MinimumNArgs(len(o.PathParams))
 	}
 
+	res := strings.ToLower(strs.Singularize(o.Group))
+
 	sub := &cobra.Command{
 		Use:        use,
 		Short:      o.Short,
@@ -62,6 +65,9 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 		Args:       argSpec,
 		Hidden:     o.Hidden,
 		Deprecated: o.Deprecated,
+		Annotations: map[string]string{
+			AnnResourceName: res,
+		},
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			var err error
 

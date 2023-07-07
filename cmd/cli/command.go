@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/cli/api"
 	"github.com/seal-io/seal/pkg/cli/ask"
 	"github.com/seal-io/seal/pkg/cli/config"
+	"github.com/seal-io/seal/pkg/cli/doc"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -58,6 +60,7 @@ func NewRootCmd() *cobra.Command {
 	})
 	cmd.AddCommand(
 		NewConfigCmd(),
+		NewDocCmd(cmd),
 	)
 	cmd.PersistentFlags().AddFlagSet(globalFlags())
 
@@ -75,10 +78,16 @@ func NewConfigCmd() *cobra.Command {
 	setupCmdFlags.StringVarP(&cfg.ProjectName, flagNameProjectName, "p", "", "Project for default use")
 	setupCmdFlags.StringVarP(&cfg.EnvironmentName, flagNameEnvironmentName, "e", "", "Environment for default use")
 
+	// Annotation.
+	ann := map[string]string{
+		api.AnnResourceName: "config",
+	}
+
 	// Command config setup.
 	setupCmd := &cobra.Command{
-		Use:   "setup short-name",
-		Short: "Connect Seal server and setup cli",
+		Use:         "setup short-name",
+		Short:       "Connect Seal server and setup cli",
+		Annotations: ann,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Configuration value from environment variables.
 			viper.SetEnvPrefix("SEAL")
@@ -113,8 +122,9 @@ func NewConfigCmd() *cobra.Command {
 
 	// Command config sync.
 	syncCmd := &cobra.Command{
-		Use:   "sync short-name",
-		Short: "Sync cli action to the latest",
+		Use:         "sync short-name",
+		Short:       "Sync cli action to the latest",
+		Annotations: ann,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := sync()
 			if err != nil {
@@ -125,8 +135,9 @@ func NewConfigCmd() *cobra.Command {
 
 	// Command config current context.
 	currentContextCmd := &cobra.Command{
-		Use:   "current-context short-name",
-		Short: "Get current context",
+		Use:         "current-context short-name",
+		Short:       "Get current context",
+		Annotations: ann,
 		Run: func(cmd *cobra.Command, args []string) {
 			currentContext()
 		},
@@ -134,8 +145,9 @@ func NewConfigCmd() *cobra.Command {
 
 	// Command config.
 	configCmd := &cobra.Command{
-		Use:   "config",
-		Short: "Manage CLI configuration",
+		Use:         "config",
+		Short:       "Manage CLI configuration",
+		Annotations: ann,
 	}
 	configCmd.AddCommand(
 		setupCmd,
@@ -144,6 +156,27 @@ func NewConfigCmd() *cobra.Command {
 	)
 
 	return configCmd
+}
+
+func NewDocCmd(root *cobra.Command) *cobra.Command {
+	var dir string
+	cmd := &cobra.Command{
+		Use:    "doc",
+		Short:  "Generate CLI documentation",
+		Hidden: true,
+		Run: func(cmd *cobra.Command, args []string) {
+			err := doc.GenMarkdownTree(root, dir)
+			if err != nil {
+				fmt.Printf("Failed to generate Markdown documentation: %s\n", err.Error())
+				os.Exit(1)
+			}
+
+			fmt.Println("Documentation generated successfully!")
+		},
+	}
+	cmd.Flags().StringVar(&dir, "dir", "./docs", "Directory for generated docs")
+
+	return cmd
 }
 
 // globalFlags define global flags.
