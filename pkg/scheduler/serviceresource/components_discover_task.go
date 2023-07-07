@@ -93,7 +93,10 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 		}
 
 		cnt, err := c.QueryResources().
-			Where(serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered)).
+			Where(
+				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
+				serviceresource.Shape(types.ServiceResourceShapeInstance),
+			).
 			Count(ctx)
 		if err != nil {
 			return fmt.Errorf("cannot count not discovered resources of connector %q: %w", c.ID, err)
@@ -132,7 +135,9 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 		entities, err := in.modelClient.ServiceResources().Query().
 			Where(
 				serviceresource.ModeNEQ(types.ServiceResourceModeDiscovered),
-				serviceresource.ConnectorID(connectorID)).
+				serviceresource.ConnectorID(connectorID),
+				serviceresource.ShapeEQ(types.ServiceResourceShapeInstance),
+			).
 			Order(model.Desc(serviceresource.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -166,7 +171,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 				Where(serviceresource.CompositionID(entities[i].ID)).
 				All(ctx)
 			if err != nil {
-				return
+				return berr
 			}
 
 			// Calculate creating list and deleting list.
@@ -189,7 +194,9 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			}
 
 			createComps := make([]*model.ServiceResource, 0, len(observedCompsIndex))
+
 			for k := range observedCompsIndex {
+				observedCompsIndex[k].Shape = types.ServiceResourceShapeInstance
 				createComps = append(createComps, observedCompsIndex[k])
 			}
 
@@ -197,10 +204,11 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			if len(createComps) != 0 {
 				creates, err := dao.ServiceResourceCreates(in.modelClient, createComps...)
 				if !multierr.AppendInto(&berr, err) {
-					_, err = in.modelClient.ServiceResources().CreateBulk(creates...).
-						Save(ctx)
-					if err != nil {
-						berr = multierr.Append(berr, err)
+					for _, c := range creates {
+						_, err := c.Save(ctx)
+						if err != nil {
+							berr = multierr.Append(berr, err)
+						}
 					}
 				}
 			}
@@ -216,6 +224,6 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 			}
 		}
 
-		return
+		return berr
 	}
 }

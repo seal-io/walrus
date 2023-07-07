@@ -13,6 +13,7 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
@@ -38,44 +39,73 @@ type Parser struct{}
 // ParseServiceRevision parse the service revision output(terraform state) to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (model.ServiceResources, error) {
+func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (
+	model.ServiceResources, map[string][]string, error,
+) {
 	return p.ParseState(revision.Output, revision)
 }
 
 // ParseState parse the terraform state to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (model.ServiceResources, error) {
+func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
+	applicationResources model.ServiceResources, dependencies map[string][]string, err error,
+) {
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
+	dependencies = make(map[string][]string)
 
 	var revisionState state
 	if err := json.Unmarshal([]byte(stateStr), &revisionState); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	applicationResources := make(model.ServiceResources, 0)
+	var (
+		// ModuleDependencies maps resource unique index to its dependencies resource unique indexes.
+		resourceDependencies = make(map[string][]string)
+		// ModuleResourceMap maps terraform module key to resource.
+		moduleResourceMap = make(map[string]*model.ServiceResource)
+		key               = dao.ServiceResourceGetUniqueKey
+	)
 
 	for _, rs := range revisionState.Resources {
 		switch rs.Mode {
 		default:
 			logger.Errorf("unknown resource mode: %s", rs.Mode)
 			continue
-		case "managed", "data":
+		case types.ServiceResourceModeManaged, types.ServiceResourceModeData:
 		}
 
-		// Try to get the connector id from the provider.
-		connector, err := ParseInstanceProviderConnector(rs.Provider)
+		// Try to get the connectorID id from the provider.
+		connectorID, err := ParseInstanceProviderConnector(rs.Provider)
 		if err != nil {
 			logger.Errorf("invalid provider format: %s", rs.Provider)
 			continue
 		}
 
-		if connector == "" {
+		if connectorID == "" {
 			logger.Warnf("connector is empty, provider: %v", rs.Provider)
 			continue
 		}
 
-		for _, is := range rs.Instances {
+		applicationResource := &model.ServiceResource{
+			ServiceID:    revision.ServiceID,
+			ConnectorID:  oid.ID(connectorID),
+			Mode:         rs.Mode,
+			Type:         rs.Type,
+			Name:         rs.Name,
+			DeployerType: revision.DeployerType,
+			Shape:        types.ServiceResourceShapeClass,
+		}
+		applicationResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
+
+		// The module key is used to identify the terraform resource module.
+		mk := strs.Join(".", rs.Module, rs.Type, rs.Name)
+		if rs.Mode == types.ServiceResourceModeData {
+			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
+		}
+		moduleResourceMap[mk] = applicationResource
+
+		for i, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
 			if err != nil {
 				logger.Errorf("parse instance id failed: %v, instance: %v",
@@ -108,20 +138,43 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (mo
 					instanceID = core.NamespaceDefault + "/" + instanceID
 				}
 			}
-
-			applicationResource := &model.ServiceResource{
+			resource := &model.ServiceResource{
 				ServiceID:    revision.ServiceID,
-				ConnectorID:  oid.ID(connector),
+				ConnectorID:  oid.ID(connectorID),
 				Mode:         rs.Mode,
 				Type:         rs.Type,
 				Name:         instanceID,
+				Shape:        types.ServiceResourceShapeInstance,
 				DeployerType: revision.DeployerType,
 			}
-			applicationResources = append(applicationResources, applicationResource)
+
+			// Assume that the first instance's dependencies are the dependencies of the class resource.
+			if _, ok := moduleResourceMap[key(applicationResource)]; !ok {
+				resourceDependencies[key(applicationResource)] = is.Dependencies
+			}
+
+			dependencies[key(resource)] = append(dependencies[key(resource)], key(applicationResource))
+			applicationResource.Edges.Instances[i] = resource
+			resourceDependencies[key(resource)] = is.Dependencies
+		}
+
+		applicationResources = append(applicationResources, applicationResource)
+	}
+
+	// Get resource dependencies.
+	for k, v := range resourceDependencies {
+		for _, d := range v {
+			moduleResource, ok := moduleResourceMap[d]
+			if !ok {
+				logger.Warnf("dependency resource not found, module key: %s", d)
+				continue
+			}
+
+			dependencies[k] = append(dependencies[k], key(moduleResource))
 		}
 	}
 
-	return applicationResources, nil
+	return applicationResources, dependencies, nil
 }
 
 func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputState, error) {

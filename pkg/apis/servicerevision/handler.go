@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
@@ -32,7 +33,6 @@ import (
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/gopool"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -366,14 +366,11 @@ func (h Handler) UpdateTerraformStates(
 // and states/labels the resources within 3 minutes in the background.
 func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevision) error {
 	// TODO(thxCode): generate by entc.
-	key := func(r *model.ServiceResource) string {
-		// Align to schema definition.
-		return strs.Join("-", string(r.ConnectorID), r.Mode, r.Type, r.Name)
-	}
+	key := dao.ServiceResourceGetUniqueKey
 
 	var p tfparser.Parser
 
-	observedRess, err := p.ParseServiceRevision(entity)
+	observedRess, dependencies, err := p.ParseServiceRevision(entity)
 	if err != nil {
 		return err
 	}
@@ -391,12 +388,8 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	}
 
 	// Calculate creating list and deleting list.
-	observedRessIndex := make(map[string]*model.ServiceResource, len(observedRess))
+	observedRessIndex := dao.ServiceResourceToMap(observedRess)
 
-	for j := range observedRess {
-		c := observedRess[j]
-		observedRessIndex[key(c)] = c
-	}
 	deleteRessIDs := make([]oid.ID, 0, len(recordRess))
 
 	for _, c := range recordRess {
@@ -410,7 +403,13 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	}
 
 	createRess := make([]*model.ServiceResource, 0, len(observedRessIndex))
+
 	for k := range observedRessIndex {
+		// Resource instances will be created through edges.
+		if observedRessIndex[k].Shape != types.ServiceResourceShapeClass {
+			continue
+		}
+
 		createRess = append(createRess, observedRessIndex[k])
 	}
 
@@ -423,8 +422,15 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 				return err
 			}
 
-			createRess, err = tx.ServiceResources().CreateBulk(creates...).
-				Save(ctx)
+			createRess = make(model.ServiceResources, len(creates))
+			for i, c := range creates {
+				createRess[i], err = c.Save(ctx)
+				if err != nil {
+					return err
+				}
+			}
+
+			err = dao.ServiceResourceRelationshipUpdateWithDependencies(ctx, tx, dependencies, recordRess, createRess)
 			if err != nil {
 				return err
 			}
@@ -451,10 +457,14 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 
 	// State/label the new resources async.
 	ids := make(map[oid.ID][]oid.ID)
-	for i := range createRess {
+	createRessIndex := dao.ServiceResourceToMap(createRess)
+
+	for _, ress := range createRessIndex {
+		if ress.Shape != types.ServiceResourceShapeInstance {
+			continue
+		}
 		// Group resources by connector.
-		ids[createRess[i].ConnectorID] = append(ids[createRess[i].ConnectorID],
-			createRess[i].ID)
+		ids[ress.ConnectorID] = append(ids[ress.ConnectorID], ress.ID)
 	}
 
 	gopool.Go(func() {
@@ -463,109 +473,116 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 
-		// Fetch related connectors at once,
-		// and then index these connectors by its id.
-		cs, err := h.modelClient.Connectors().Query().
-			Select(
-				connector.FieldID,
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData).
-			Where(connector.IDIn(sets.KeySet(ids).UnsortedList()...)).
-			All(ctx)
-		if err != nil {
-			logger.Errorf("cannot list connectors: %v", err)
-			return
-		}
-
-		csidx := make(map[oid.ID]*model.Connector, len(cs))
-		for i := range cs {
-			csidx[cs[i].ID] = cs[i]
-		}
-
-		var sr serviceresources.StateResult
-
-		for cid, crids := range ids {
-			entities, err := serviceresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
-			if err != nil {
-				logger.Errorf("error listing candidates: %v", err)
-				continue
-			}
-
-			if len(entities) == 0 {
-				continue
-			}
-
-			c, exist := csidx[cid]
-			if !exist {
-				continue
-			}
-
-			op, err := operator.Get(ctx, optypes.CreateOptions{
-				Connector: *c,
-			})
-			if err != nil {
-				logger.Errorf("error getting operator of connector %s: %v",
-					c.ID, err)
-				continue
-			}
-
-			nsr, err := serviceresources.State(ctx, op, h.modelClient, entities)
-			if err != nil {
-				logger.Errorf("error stating entities: %v", err)
-				// Mark error as transitioning,
-				// which doesn't flip the status.
-				nsr.Transitioning = true
-			}
-
-			sr.Merge(nsr)
-
-			err = serviceresources.Label(ctx, op, entities)
-			if err != nil {
-				logger.Errorf("error labeling entities: %v", err)
-			}
-		}
-
-		// State service.
-		i, err := h.modelClient.Services().Query().
-			Where(service.ID(entity.ServiceID)).
-			Select(
-				service.FieldID,
-				service.FieldStatus).
-			Only(ctx)
-		if err != nil {
-			logger.Errorf("cannot get service: %v", err)
-			return
-		}
-
-		if status.ServiceStatusDeleted.Exist(i) {
-			// Skip if the service is on deleting.
-			return
-		}
-
-		switch {
-		case sr.Error:
-			status.ServiceStatusReady.False(i, "")
-		case sr.Transitioning:
-			status.ServiceStatusReady.Unknown(i, "")
-		default:
-			status.ServiceStatusReady.True(i, "")
-		}
-
-		update, err := dao.ServiceStatusUpdate(h.modelClient, i)
-		if err != nil {
-			logger.Errorf("cannot update service: %v", err)
-		}
-
-		err = update.Exec(ctx)
-		if err != nil {
-			logger.Errorf("cannot update service: %v", err)
+		if err = h.SyncServiceStatusAndResourceLabel(ctx, entity, ids); err != nil {
+			logger.Errorf("sync service status and resource label failed: %v", err)
 		}
 	})
 
 	return nil
+}
+
+func (h Handler) SyncServiceStatusAndResourceLabel(
+	ctx context.Context,
+	entity *model.ServiceRevision,
+	ids map[oid.ID][]oid.ID,
+) error {
+	logger := log.WithName("api").WithName("service-revision")
+
+	// Fetch related connectors at once,
+	// and then index these connectors by its id.
+	cs, err := h.modelClient.Connectors().Query().
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+			connector.FieldType,
+			connector.FieldCategory,
+			connector.FieldConfigVersion,
+			connector.FieldConfigData).
+		Where(connector.IDIn(sets.KeySet(ids).UnsortedList()...)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot list connectors: %w", err)
+	}
+
+	csidx := make(map[oid.ID]*model.Connector, len(cs))
+	for i := range cs {
+		csidx[cs[i].ID] = cs[i]
+	}
+
+	var sr serviceresources.StateResult
+
+	for cid, crids := range ids {
+		entities, err := serviceresources.ListCandidatesByIDs(ctx, h.modelClient, crids)
+		if err != nil {
+			logger.Errorf("error listing candidates: %v", err)
+			continue
+		}
+
+		if len(entities) == 0 {
+			continue
+		}
+
+		c, exist := csidx[cid]
+		if !exist {
+			continue
+		}
+
+		op, err := operator.Get(ctx, optypes.CreateOptions{
+			Connector: *c,
+		})
+		if err != nil {
+			logger.Errorf("error getting operator of connector %s: %v",
+				c.ID, err)
+			continue
+		}
+
+		nsr, err := serviceresources.State(ctx, op, h.modelClient, entities)
+		if err != nil {
+			logger.Errorf("error stating entities: %v", err)
+			// Mark error as transitioning,
+			// which doesn't flip the status.
+			nsr.Transitioning = true
+		}
+
+		sr.Merge(nsr)
+
+		err = serviceresources.Label(ctx, op, entities)
+		if err != nil {
+			logger.Errorf("error labeling entities: %v", err)
+		}
+	}
+
+	// State service.
+	i, err := h.modelClient.Services().Query().
+		Where(service.ID(entity.ServiceID)).
+		Select(
+			service.FieldID,
+			service.FieldStatus).
+		Only(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot get service: %w", err)
+	}
+
+	if status.ServiceStatusDeleted.Exist(i) {
+		// Skip if the service is on deleting.
+		return nil
+	}
+
+	switch {
+	case sr.Error:
+		status.ServiceStatusReady.False(i, "")
+	case sr.Transitioning:
+		status.ServiceStatusReady.Unknown(i, "")
+	default:
+		status.ServiceStatusReady.True(i, "")
+	}
+
+	update, err := dao.ServiceStatusUpdate(h.modelClient, i)
+	if err != nil {
+		return err
+	}
+
+	return update.Exec(ctx)
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {
