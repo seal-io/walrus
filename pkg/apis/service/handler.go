@@ -827,7 +827,10 @@ func (h Handler) CollectionGetGraph(
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
 			dao.ServiceResourceShapeClassQuery(rq).
-				Where(serviceresource.Shape(types.ServiceResourceShapeClass)).
+				Where(
+					serviceresource.Shape(types.ServiceResourceShapeClass),
+					serviceresource.Mode(types.ServiceResourceModeManaged),
+				).
 				Order(model.Desc(serviceresource.FieldCreateTime))
 		}).
 		All(ctx)
