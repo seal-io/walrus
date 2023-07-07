@@ -37,10 +37,16 @@ type ServiceResourceCreateInput struct {
 	Name string `json:"name"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType"`
+	// Shape of the resource, it can be class or instance shape.
+	Shape string `json:"shape"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
-	// Service resource to which the resource makes up.
+	// Composition holds the value of the composition edge.
 	Composition *ServiceResourceQueryInput `json:"composition,omitempty"`
+	// Class holds the value of the class edge.
+	Class *ServiceResourceQueryInput `json:"class,omitempty"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceResourceRelationshipCreateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceResourceCreateInput to ServiceResource.
@@ -51,10 +57,20 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 		Type:         in.Type,
 		Name:         in.Name,
 		DeployerType: in.DeployerType,
+		Shape:        in.Shape,
 		Status:       in.Status,
 	}
 	if in.Composition != nil {
 		entity.CompositionID = in.Composition.ID
+	}
+	if in.Class != nil {
+		entity.ClassID = in.Class.ID
+	}
+	for i := 0; i < len(in.Dependencies); i++ {
+		if in.Dependencies[i] == nil {
+			continue
+		}
+		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
 	}
 	return entity
 }
@@ -65,6 +81,8 @@ type ServiceResourceUpdateInput struct {
 	ID oid.ID `uri:"id" json:"-"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceResourceRelationshipUpdateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceResourceUpdateInput to ServiceResource.
@@ -72,6 +90,12 @@ func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 	var entity = &ServiceResource{
 		ID:     in.ID,
 		Status: in.Status,
+	}
+	for i := 0; i < len(in.Dependencies); i++ {
+		if in.Dependencies[i] == nil {
+			continue
+		}
+		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
 	}
 	return entity
 }
@@ -94,16 +118,24 @@ type ServiceResourceOutput struct {
 	Name string `json:"name,omitempty"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty"`
+	// Shape of the resource, it can be class or instance shape.
+	Shape string `json:"shape,omitempty"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
 	// Service to which the resource belongs.
 	Service *ServiceOutput `json:"service,omitempty"`
 	// Connector to which the resource deploys.
 	Connector *ConnectorOutput `json:"connector,omitempty"`
-	// Service resource to which the resource makes up.
+	// Composition holds the value of the composition edge.
 	Composition *ServiceResourceOutput `json:"composition,omitempty"`
 	// Sub-resources that make up the resource.
 	Components []*ServiceResourceOutput `json:"components,omitempty"`
+	// Class holds the value of the class edge.
+	Class *ServiceResourceOutput `json:"class,omitempty"`
+	// Service resource instances to which the resource defines.
+	Instances []*ServiceResourceOutput `json:"instances,omitempty"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceResourceRelationshipOutput `json:"dependencies,omitempty"`
 	// Keys is the list of key used for operating the service resource,
 	// it does not store in the database and only records for additional operations.
 	Keys *types.ServiceResourceOperationKeys `json:"keys,omitempty"`
@@ -123,11 +155,15 @@ func ExposeServiceResource(in *ServiceResource) *ServiceResourceOutput {
 		Type:         in.Type,
 		Name:         in.Name,
 		DeployerType: in.DeployerType,
+		Shape:        in.Shape,
 		Status:       in.Status,
 		Service:      ExposeService(in.Edges.Service),
 		Connector:    ExposeConnector(in.Edges.Connector),
 		Composition:  ExposeServiceResource(in.Edges.Composition),
 		Components:   ExposeServiceResources(in.Edges.Components),
+		Class:        ExposeServiceResource(in.Edges.Class),
+		Instances:    ExposeServiceResources(in.Edges.Instances),
+		Dependencies: ExposeServiceResourceRelationships(in.Edges.Dependencies),
 	}
 	if in.ServiceID != "" {
 		if entity.Service == nil {
@@ -146,6 +182,12 @@ func ExposeServiceResource(in *ServiceResource) *ServiceResourceOutput {
 			entity.Composition = &ServiceResourceOutput{}
 		}
 		entity.Composition.ID = in.CompositionID
+	}
+	if in.ClassID != "" {
+		if entity.Class == nil {
+			entity.Class = &ServiceResourceOutput{}
+		}
+		entity.Class.ID = in.ClassID
 	}
 	entity.Keys = in.Keys
 

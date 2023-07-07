@@ -36,8 +36,10 @@ type ServiceResource struct {
 	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
 	// ID of the connector to which the resource deploys.
 	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
-	// ID of the parent resource, it presents when mode is discovered.
+	// ID of the parent resource.
 	CompositionID oid.ID `json:"compositionID,omitempty" sql:"compositionID"`
+	// ID of the parent class of the resource realization.
+	ClassID oid.ID `json:"classID,omitempty" sql:"classID"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode,omitempty" sql:"mode"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
@@ -46,6 +48,8 @@ type ServiceResource struct {
 	Name string `json:"name,omitempty" sql:"name"`
 	// Type of deployer.
 	DeployerType string `json:"deployerType,omitempty" sql:"deployerType"`
+	// Shape of the resource, it can be class or instance shape.
+	Shape string `json:"shape,omitempty" sql:"shape"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty" sql:"status"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -64,13 +68,19 @@ type ServiceResourceEdges struct {
 	Service *Service `json:"service,omitempty" sql:"service"`
 	// Connector to which the resource deploys.
 	Connector *Connector `json:"connector,omitempty" sql:"connector"`
-	// Service resource to which the resource makes up.
+	// Composition holds the value of the composition edge.
 	Composition *ServiceResource `json:"composition,omitempty" sql:"composition"`
 	// Sub-resources that make up the resource.
 	Components []*ServiceResource `json:"components,omitempty" sql:"components"`
+	// Class holds the value of the class edge.
+	Class *ServiceResource `json:"class,omitempty" sql:"class"`
+	// Service resource instances to which the resource defines.
+	Instances []*ServiceResource `json:"instances,omitempty" sql:"instances"`
+	// Dependencies holds the value of the dependencies edge.
+	Dependencies []*ServiceResourceRelationship `json:"dependencies,omitempty" sql:"dependencies"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [7]bool
 }
 
 // ServiceOrErr returns the Service value or an error if the edge
@@ -121,6 +131,37 @@ func (e ServiceResourceEdges) ComponentsOrErr() ([]*ServiceResource, error) {
 	return nil, &NotLoadedError{edge: "components"}
 }
 
+// ClassOrErr returns the Class value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceResourceEdges) ClassOrErr() (*ServiceResource, error) {
+	if e.loadedTypes[4] {
+		if e.Class == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: serviceresource.Label}
+		}
+		return e.Class, nil
+	}
+	return nil, &NotLoadedError{edge: "class"}
+}
+
+// InstancesOrErr returns the Instances value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceResourceEdges) InstancesOrErr() ([]*ServiceResource, error) {
+	if e.loadedTypes[5] {
+		return e.Instances, nil
+	}
+	return nil, &NotLoadedError{edge: "instances"}
+}
+
+// DependenciesOrErr returns the Dependencies value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceResourceEdges) DependenciesOrErr() ([]*ServiceResourceRelationship, error) {
+	if e.loadedTypes[6] {
+		return e.Dependencies, nil
+	}
+	return nil, &NotLoadedError{edge: "dependencies"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ServiceResource) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -128,9 +169,9 @@ func (*ServiceResource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case serviceresource.FieldStatus:
 			values[i] = new([]byte)
-		case serviceresource.FieldID, serviceresource.FieldProjectID, serviceresource.FieldServiceID, serviceresource.FieldConnectorID, serviceresource.FieldCompositionID:
+		case serviceresource.FieldID, serviceresource.FieldProjectID, serviceresource.FieldServiceID, serviceresource.FieldConnectorID, serviceresource.FieldCompositionID, serviceresource.FieldClassID:
 			values[i] = new(oid.ID)
-		case serviceresource.FieldMode, serviceresource.FieldType, serviceresource.FieldName, serviceresource.FieldDeployerType:
+		case serviceresource.FieldMode, serviceresource.FieldType, serviceresource.FieldName, serviceresource.FieldDeployerType, serviceresource.FieldShape:
 			values[i] = new(sql.NullString)
 		case serviceresource.FieldCreateTime, serviceresource.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -193,6 +234,12 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				sr.CompositionID = *value
 			}
+		case serviceresource.FieldClassID:
+			if value, ok := values[i].(*oid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field classID", values[i])
+			} else if value != nil {
+				sr.ClassID = *value
+			}
 		case serviceresource.FieldMode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field mode", values[i])
@@ -216,6 +263,12 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field deployerType", values[i])
 			} else if value.Valid {
 				sr.DeployerType = value.String
+			}
+		case serviceresource.FieldShape:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field shape", values[i])
+			} else if value.Valid {
+				sr.Shape = value.String
 			}
 		case serviceresource.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -256,6 +309,21 @@ func (sr *ServiceResource) QueryComposition() *ServiceResourceQuery {
 // QueryComponents queries the "components" edge of the ServiceResource entity.
 func (sr *ServiceResource) QueryComponents() *ServiceResourceQuery {
 	return NewServiceResourceClient(sr.config).QueryComponents(sr)
+}
+
+// QueryClass queries the "class" edge of the ServiceResource entity.
+func (sr *ServiceResource) QueryClass() *ServiceResourceQuery {
+	return NewServiceResourceClient(sr.config).QueryClass(sr)
+}
+
+// QueryInstances queries the "instances" edge of the ServiceResource entity.
+func (sr *ServiceResource) QueryInstances() *ServiceResourceQuery {
+	return NewServiceResourceClient(sr.config).QueryInstances(sr)
+}
+
+// QueryDependencies queries the "dependencies" edge of the ServiceResource entity.
+func (sr *ServiceResource) QueryDependencies() *ServiceResourceRelationshipQuery {
+	return NewServiceResourceClient(sr.config).QueryDependencies(sr)
 }
 
 // Update returns a builder for updating this ServiceResource.
@@ -303,6 +371,9 @@ func (sr *ServiceResource) String() string {
 	builder.WriteString("compositionID=")
 	builder.WriteString(fmt.Sprintf("%v", sr.CompositionID))
 	builder.WriteString(", ")
+	builder.WriteString("classID=")
+	builder.WriteString(fmt.Sprintf("%v", sr.ClassID))
+	builder.WriteString(", ")
 	builder.WriteString("mode=")
 	builder.WriteString(sr.Mode)
 	builder.WriteString(", ")
@@ -314,6 +385,9 @@ func (sr *ServiceResource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deployerType=")
 	builder.WriteString(sr.DeployerType)
+	builder.WriteString(", ")
+	builder.WriteString("shape=")
+	builder.WriteString(sr.Shape)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", sr.Status))

@@ -91,6 +91,11 @@ func CompositionID(v oid.ID) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldCompositionID, v))
 }
 
+// ClassID applies equality check predicate on the "classID" field. It's identical to ClassIDEQ.
+func ClassID(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldClassID, v))
+}
+
 // Mode applies equality check predicate on the "mode" field. It's identical to ModeEQ.
 func Mode(v string) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldMode, v))
@@ -109,6 +114,11 @@ func Name(v string) predicate.ServiceResource {
 // DeployerType applies equality check predicate on the "deployerType" field. It's identical to DeployerTypeEQ.
 func DeployerType(v string) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldDeployerType, v))
+}
+
+// Shape applies equality check predicate on the "shape" field. It's identical to ShapeEQ.
+func Shape(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldShape, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "createTime" field.
@@ -481,6 +491,86 @@ func CompositionIDContainsFold(v oid.ID) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldContainsFold(FieldCompositionID, vc))
 }
 
+// ClassIDEQ applies the EQ predicate on the "classID" field.
+func ClassIDEQ(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldClassID, v))
+}
+
+// ClassIDNEQ applies the NEQ predicate on the "classID" field.
+func ClassIDNEQ(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNEQ(FieldClassID, v))
+}
+
+// ClassIDIn applies the In predicate on the "classID" field.
+func ClassIDIn(vs ...oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldIn(FieldClassID, vs...))
+}
+
+// ClassIDNotIn applies the NotIn predicate on the "classID" field.
+func ClassIDNotIn(vs ...oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNotIn(FieldClassID, vs...))
+}
+
+// ClassIDGT applies the GT predicate on the "classID" field.
+func ClassIDGT(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGT(FieldClassID, v))
+}
+
+// ClassIDGTE applies the GTE predicate on the "classID" field.
+func ClassIDGTE(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGTE(FieldClassID, v))
+}
+
+// ClassIDLT applies the LT predicate on the "classID" field.
+func ClassIDLT(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLT(FieldClassID, v))
+}
+
+// ClassIDLTE applies the LTE predicate on the "classID" field.
+func ClassIDLTE(v oid.ID) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLTE(FieldClassID, v))
+}
+
+// ClassIDContains applies the Contains predicate on the "classID" field.
+func ClassIDContains(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContains(FieldClassID, vc))
+}
+
+// ClassIDHasPrefix applies the HasPrefix predicate on the "classID" field.
+func ClassIDHasPrefix(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasPrefix(FieldClassID, vc))
+}
+
+// ClassIDHasSuffix applies the HasSuffix predicate on the "classID" field.
+func ClassIDHasSuffix(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldHasSuffix(FieldClassID, vc))
+}
+
+// ClassIDIsNil applies the IsNil predicate on the "classID" field.
+func ClassIDIsNil() predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldIsNull(FieldClassID))
+}
+
+// ClassIDNotNil applies the NotNil predicate on the "classID" field.
+func ClassIDNotNil() predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNotNull(FieldClassID))
+}
+
+// ClassIDEqualFold applies the EqualFold predicate on the "classID" field.
+func ClassIDEqualFold(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldEqualFold(FieldClassID, vc))
+}
+
+// ClassIDContainsFold applies the ContainsFold predicate on the "classID" field.
+func ClassIDContainsFold(v oid.ID) predicate.ServiceResource {
+	vc := string(v)
+	return predicate.ServiceResource(sql.FieldContainsFold(FieldClassID, vc))
+}
+
 // ModeEQ applies the EQ predicate on the "mode" field.
 func ModeEQ(v string) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldEQ(FieldMode, v))
@@ -741,6 +831,71 @@ func DeployerTypeContainsFold(v string) predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldContainsFold(FieldDeployerType, v))
 }
 
+// ShapeEQ applies the EQ predicate on the "shape" field.
+func ShapeEQ(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEQ(FieldShape, v))
+}
+
+// ShapeNEQ applies the NEQ predicate on the "shape" field.
+func ShapeNEQ(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNEQ(FieldShape, v))
+}
+
+// ShapeIn applies the In predicate on the "shape" field.
+func ShapeIn(vs ...string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldIn(FieldShape, vs...))
+}
+
+// ShapeNotIn applies the NotIn predicate on the "shape" field.
+func ShapeNotIn(vs ...string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldNotIn(FieldShape, vs...))
+}
+
+// ShapeGT applies the GT predicate on the "shape" field.
+func ShapeGT(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGT(FieldShape, v))
+}
+
+// ShapeGTE applies the GTE predicate on the "shape" field.
+func ShapeGTE(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldGTE(FieldShape, v))
+}
+
+// ShapeLT applies the LT predicate on the "shape" field.
+func ShapeLT(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLT(FieldShape, v))
+}
+
+// ShapeLTE applies the LTE predicate on the "shape" field.
+func ShapeLTE(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldLTE(FieldShape, v))
+}
+
+// ShapeContains applies the Contains predicate on the "shape" field.
+func ShapeContains(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldContains(FieldShape, v))
+}
+
+// ShapeHasPrefix applies the HasPrefix predicate on the "shape" field.
+func ShapeHasPrefix(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldHasPrefix(FieldShape, v))
+}
+
+// ShapeHasSuffix applies the HasSuffix predicate on the "shape" field.
+func ShapeHasSuffix(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldHasSuffix(FieldShape, v))
+}
+
+// ShapeEqualFold applies the EqualFold predicate on the "shape" field.
+func ShapeEqualFold(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldEqualFold(FieldShape, v))
+}
+
+// ShapeContainsFold applies the ContainsFold predicate on the "shape" field.
+func ShapeContainsFold(v string) predicate.ServiceResource {
+	return predicate.ServiceResource(sql.FieldContainsFold(FieldShape, v))
+}
+
 // StatusIsNil applies the IsNil predicate on the "status" field.
 func StatusIsNil() predicate.ServiceResource {
 	return predicate.ServiceResource(sql.FieldIsNull(FieldStatus))
@@ -859,6 +1014,93 @@ func HasComponentsWith(preds ...predicate.ServiceResource) predicate.ServiceReso
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.ServiceResource
 		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasClass applies the HasEdge predicate on the "class" edge.
+func HasClass() predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ClassTable, ClassColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasClassWith applies the HasEdge predicate on the "class" edge with a given conditions (other predicates).
+func HasClassWith(preds ...predicate.ServiceResource) predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := newClassStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasInstances applies the HasEdge predicate on the "instances" edge.
+func HasInstances() predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInstancesWith applies the HasEdge predicate on the "instances" edge with a given conditions (other predicates).
+func HasInstancesWith(preds ...predicate.ServiceResource) predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := newInstancesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDependencies applies the HasEdge predicate on the "dependencies" edge.
+func HasDependencies() predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, DependenciesTable, DependenciesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResourceRelationship
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDependenciesWith applies the HasEdge predicate on the "dependencies" edge with a given conditions (other predicates).
+func HasDependenciesWith(preds ...predicate.ServiceResourceRelationship) predicate.ServiceResource {
+	return predicate.ServiceResource(func(s *sql.Selector) {
+		step := newDependenciesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResourceRelationship
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

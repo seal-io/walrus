@@ -21,6 +21,7 @@ type SchemaConfig struct {
 	Service                          string // Service table.
 	ServiceRelationship              string // ServiceRelationship table.
 	ServiceResource                  string // ServiceResource table.
+	ServiceResourceRelationship      string // ServiceResourceRelationship table.
 	ServiceRevision                  string // ServiceRevision table.
 	Setting                          string // Setting table.
 	Subject                          string // Subject table.

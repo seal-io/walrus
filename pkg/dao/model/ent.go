@@ -27,6 +27,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
@@ -106,6 +107,7 @@ func checkColumn(table, column string) error {
 			service.Table:                          service.ValidColumn,
 			servicerelationship.Table:              servicerelationship.ValidColumn,
 			serviceresource.Table:                  serviceresource.ValidColumn,
+			serviceresourcerelationship.Table:      serviceresourcerelationship.ValidColumn,
 			servicerevision.Table:                  servicerevision.ValidColumn,
 			setting.Table:                          setting.ValidColumn,
 			subject.Table:                          subject.ValidColumn,

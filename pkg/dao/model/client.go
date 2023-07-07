@@ -30,6 +30,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
@@ -71,6 +72,8 @@ type Client struct {
 	ServiceRelationship *ServiceRelationshipClient
 	// ServiceResource is the client for interacting with the ServiceResource builders.
 	ServiceResource *ServiceResourceClient
+	// ServiceResourceRelationship is the client for interacting with the ServiceResourceRelationship builders.
+	ServiceResourceRelationship *ServiceResourceRelationshipClient
 	// ServiceRevision is the client for interacting with the ServiceRevision builders.
 	ServiceRevision *ServiceRevisionClient
 	// Setting is the client for interacting with the Setting builders.
@@ -111,6 +114,7 @@ func (c *Client) init() {
 	c.Service = NewServiceClient(c.config)
 	c.ServiceRelationship = NewServiceRelationshipClient(c.config)
 	c.ServiceResource = NewServiceResourceClient(c.config)
+	c.ServiceResourceRelationship = NewServiceResourceRelationshipClient(c.config)
 	c.ServiceRevision = NewServiceRevisionClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
@@ -214,6 +218,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Service:                          NewServiceClient(cfg),
 		ServiceRelationship:              NewServiceRelationshipClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
+		ServiceResourceRelationship:      NewServiceResourceRelationshipClient(cfg),
 		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -252,6 +257,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Service:                          NewServiceClient(cfg),
 		ServiceRelationship:              NewServiceRelationshipClient(cfg),
 		ServiceResource:                  NewServiceResourceClient(cfg),
+		ServiceResourceRelationship:      NewServiceResourceRelationshipClient(cfg),
 		ServiceRevision:                  NewServiceRevisionClient(cfg),
 		Setting:                          NewSettingClient(cfg),
 		Subject:                          NewSubjectClient(cfg),
@@ -291,9 +297,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
-		c.Service, c.ServiceRelationship, c.ServiceResource, c.ServiceRevision,
-		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
-		c.Token, c.Variable,
+		c.Service, c.ServiceRelationship, c.ServiceResource,
+		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
+		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token, c.Variable,
 	} {
 		n.Use(hooks...)
 	}
@@ -305,9 +311,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
-		c.Service, c.ServiceRelationship, c.ServiceResource, c.ServiceRevision,
-		c.Setting, c.Subject, c.SubjectRoleRelationship, c.Template, c.TemplateVersion,
-		c.Token, c.Variable,
+		c.Service, c.ServiceRelationship, c.ServiceResource,
+		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
+		c.SubjectRoleRelationship, c.Template, c.TemplateVersion, c.Token, c.Variable,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -366,6 +372,11 @@ func (c *Client) ServiceRelationships() *ServiceRelationshipClient {
 // ServiceResources implements the ClientSet.
 func (c *Client) ServiceResources() *ServiceResourceClient {
 	return c.ServiceResource
+}
+
+// ServiceResourceRelationships implements the ClientSet.
+func (c *Client) ServiceResourceRelationships() *ServiceResourceRelationshipClient {
+	return c.ServiceResourceRelationship
 }
 
 // ServiceRevisions implements the ClientSet.
@@ -471,6 +482,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ServiceRelationship.mutate(ctx, m)
 	case *ServiceResourceMutation:
 		return c.ServiceResource.mutate(ctx, m)
+	case *ServiceResourceRelationshipMutation:
+		return c.ServiceResourceRelationship.mutate(ctx, m)
 	case *ServiceRevisionMutation:
 		return c.ServiceRevision.mutate(ctx, m)
 	case *SettingMutation:
@@ -2327,6 +2340,63 @@ func (c *ServiceResourceClient) QueryComponents(sr *ServiceResource) *ServiceRes
 	return query
 }
 
+// QueryClass queries the class edge of a ServiceResource.
+func (c *ServiceResourceClient) QueryClass(sr *ServiceResource) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ClassTable, serviceresource.ClassColumn),
+		)
+		schemaConfig := sr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInstances queries the instances edge of a ServiceResource.
+func (c *ServiceResourceClient) QueryInstances(sr *ServiceResource) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, serviceresource.InstancesTable, serviceresource.InstancesColumn),
+		)
+		schemaConfig := sr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependencies queries the dependencies edge of a ServiceResource.
+func (c *ServiceResourceClient) QueryDependencies(sr *ServiceResource) *ServiceResourceRelationshipQuery {
+	query := (&ServiceResourceRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
+			sqlgraph.To(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, serviceresource.DependenciesTable, serviceresource.DependenciesColumn),
+		)
+		schemaConfig := sr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResourceRelationship
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ServiceResourceClient) Hooks() []Hook {
 	hooks := c.hooks.ServiceResource
@@ -2351,6 +2421,163 @@ func (c *ServiceResourceClient) mutate(ctx context.Context, m *ServiceResourceMu
 		return (&ServiceResourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown ServiceResource mutation op: %q", m.Op())
+	}
+}
+
+// ServiceResourceRelationshipClient is a client for the ServiceResourceRelationship schema.
+type ServiceResourceRelationshipClient struct {
+	config
+}
+
+// NewServiceResourceRelationshipClient returns a client for the ServiceResourceRelationship from the given config.
+func NewServiceResourceRelationshipClient(c config) *ServiceResourceRelationshipClient {
+	return &ServiceResourceRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `serviceresourcerelationship.Hooks(f(g(h())))`.
+func (c *ServiceResourceRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.ServiceResourceRelationship = append(c.hooks.ServiceResourceRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `serviceresourcerelationship.Intercept(f(g(h())))`.
+func (c *ServiceResourceRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ServiceResourceRelationship = append(c.inters.ServiceResourceRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a ServiceResourceRelationship entity.
+func (c *ServiceResourceRelationshipClient) Create() *ServiceResourceRelationshipCreate {
+	mutation := newServiceResourceRelationshipMutation(c.config, OpCreate)
+	return &ServiceResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ServiceResourceRelationship entities.
+func (c *ServiceResourceRelationshipClient) CreateBulk(builders ...*ServiceResourceRelationshipCreate) *ServiceResourceRelationshipCreateBulk {
+	return &ServiceResourceRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ServiceResourceRelationship.
+func (c *ServiceResourceRelationshipClient) Update() *ServiceResourceRelationshipUpdate {
+	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdate)
+	return &ServiceResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceResourceRelationshipClient) UpdateOne(srr *ServiceResourceRelationship) *ServiceResourceRelationshipUpdateOne {
+	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdateOne, withServiceResourceRelationship(srr))
+	return &ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceResourceRelationshipClient) UpdateOneID(id oid.ID) *ServiceResourceRelationshipUpdateOne {
+	mutation := newServiceResourceRelationshipMutation(c.config, OpUpdateOne, withServiceResourceRelationshipID(id))
+	return &ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ServiceResourceRelationship.
+func (c *ServiceResourceRelationshipClient) Delete() *ServiceResourceRelationshipDelete {
+	mutation := newServiceResourceRelationshipMutation(c.config, OpDelete)
+	return &ServiceResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ServiceResourceRelationshipClient) DeleteOne(srr *ServiceResourceRelationship) *ServiceResourceRelationshipDeleteOne {
+	return c.DeleteOneID(srr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ServiceResourceRelationshipClient) DeleteOneID(id oid.ID) *ServiceResourceRelationshipDeleteOne {
+	builder := c.Delete().Where(serviceresourcerelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ServiceResourceRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for ServiceResourceRelationship.
+func (c *ServiceResourceRelationshipClient) Query() *ServiceResourceRelationshipQuery {
+	return &ServiceResourceRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeServiceResourceRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ServiceResourceRelationship entity by its id.
+func (c *ServiceResourceRelationshipClient) Get(ctx context.Context, id oid.ID) (*ServiceResourceRelationship, error) {
+	return c.Query().Where(serviceresourcerelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceResourceRelationshipClient) GetX(ctx context.Context, id oid.ID) *ServiceResourceRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryServiceResource queries the serviceResource edge of a ServiceResourceRelationship.
+func (c *ServiceResourceRelationshipClient) QueryServiceResource(srr *ServiceResourceRelationship) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := srr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceresourcerelationship.ServiceResourceTable, serviceresourcerelationship.ServiceResourceColumn),
+		)
+		schemaConfig := srr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
+		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependency queries the dependency edge of a ServiceResourceRelationship.
+func (c *ServiceResourceRelationshipClient) QueryDependency(srr *ServiceResourceRelationship) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := srr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceresourcerelationship.DependencyTable, serviceresourcerelationship.DependencyColumn),
+		)
+		schemaConfig := srr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
+		fromV = sqlgraph.Neighbors(srr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ServiceResourceRelationshipClient) Hooks() []Hook {
+	hooks := c.hooks.ServiceResourceRelationship
+	return append(hooks[:len(hooks):len(hooks)], serviceresourcerelationship.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ServiceResourceRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.ServiceResourceRelationship
+}
+
+func (c *ServiceResourceRelationshipClient) mutate(ctx context.Context, m *ServiceResourceRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ServiceResourceRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ServiceResourceRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ServiceResourceRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ServiceResourceRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown ServiceResourceRelationship mutation op: %q", m.Op())
 	}
 }
 
@@ -3561,15 +3788,16 @@ type (
 	hooks struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
-		ServiceRelationship, ServiceResource, ServiceRevision, Setting, Subject,
-		SubjectRoleRelationship, Template, TemplateVersion, Token, Variable []ent.Hook
+		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
+		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
+		TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
 		AllocationCost, ClusterCost, Connector, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
-		ServiceRelationship, ServiceResource, ServiceRevision, Setting, Subject,
-		SubjectRoleRelationship, Template, TemplateVersion, Token,
-		Variable []ent.Interceptor
+		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
+		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
+		TemplateVersion, Token, Variable []ent.Interceptor
 	}
 )
 

@@ -39,6 +39,8 @@ type Tx struct {
 	ServiceRelationship *ServiceRelationshipClient
 	// ServiceResource is the client for interacting with the ServiceResource builders.
 	ServiceResource *ServiceResourceClient
+	// ServiceResourceRelationship is the client for interacting with the ServiceResourceRelationship builders.
+	ServiceResourceRelationship *ServiceResourceRelationshipClient
 	// ServiceRevision is the client for interacting with the ServiceRevision builders.
 	ServiceRevision *ServiceRevisionClient
 	// Setting is the client for interacting with the Setting builders.
@@ -197,6 +199,7 @@ func (tx *Tx) init() {
 	tx.Service = NewServiceClient(tx.config)
 	tx.ServiceRelationship = NewServiceRelationshipClient(tx.config)
 	tx.ServiceResource = NewServiceResourceClient(tx.config)
+	tx.ServiceResourceRelationship = NewServiceResourceRelationshipClient(tx.config)
 	tx.ServiceRevision = NewServiceRevisionClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
@@ -323,6 +326,11 @@ func (tx *Tx) ServiceResources() *ServiceResourceClient {
 	return tx.ServiceResource
 }
 
+// ServiceResourceRelationships implements the ClientSet.
+func (tx *Tx) ServiceResourceRelationships() *ServiceResourceRelationshipClient {
+	return tx.ServiceResourceRelationship
+}
+
 // ServiceRevisions implements the ClientSet.
 func (tx *Tx) ServiceRevisions() *ServiceRevisionClient {
 	return tx.ServiceRevision
@@ -410,6 +418,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.Service.Use(hooks...)
 	tx.ServiceRelationship.Use(hooks...)
 	tx.ServiceResource.Use(hooks...)
+	tx.ServiceResourceRelationship.Use(hooks...)
 	tx.ServiceRevision.Use(hooks...)
 	tx.Setting.Use(hooks...)
 	tx.Subject.Use(hooks...)
