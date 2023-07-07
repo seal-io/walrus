@@ -35,8 +35,11 @@ func (ServiceResource) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		oid.Field("compositionID").
-			Comment("ID of the parent resource, " +
-				"it presents when mode is discovered.").
+			Comment("ID of the parent resource.").
+			Optional().
+			Immutable(),
+		oid.Field("classID").
+			Comment("ID of the parent class of the resource realization.").
 			Optional().
 			Immutable(),
 		field.String("mode").
@@ -59,6 +62,10 @@ func (ServiceResource) Fields() []ent.Field {
 			Immutable(),
 		field.String("deployerType").
 			Comment("Type of deployer.").
+			NotEmpty().
+			Immutable(),
+		field.String("shape").
+			Comment("Shape of the resource, it can be class or instance shape.").
 			NotEmpty().
 			Immutable(),
 		field.JSON("status", types.ServiceResourceStatus{}).
@@ -94,10 +101,23 @@ func (ServiceResource) Edges() []ent.Edge {
 			Comment("Sub-resources that make up the resource.").
 			From("composition").
 			Field("compositionID").
-			Comment("Service resource to which the resource makes up.").
 			Unique().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
+		// Service resource(class) 1-* service resources(instance).
+		edge.To("instances", ServiceResource.Type).
+			Comment("Service resource instances to which the resource defines.").
+			From("class").
+			Field("classID").
+			Unique().
+			Immutable().
+			Annotations(
+				entsql.OnDelete(entsql.Cascade)),
+		// Service resource 1-* service resource dependencies.
+		edge.To("dependencies", ServiceResource.Type).
+			StructTag(`json:"dependencies,omitempty" sql:"dependencies"`).
+			Comment("Dependency service resources that belong to the service resource.").
+			Through("serviceResourceRelationships", ServiceResourceRelationship.Type),
 	}
 }
