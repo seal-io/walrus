@@ -3,7 +3,6 @@ package view
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -14,7 +13,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
-	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 )
 
@@ -322,47 +320,6 @@ func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any)
 }
 
 type CollectionGetGraphResponse struct {
-	Vertices []GraphVertex `json:"vertices"`
-	Edges    []GraphEdge   `json:"edges"`
-}
-
-// GraphVertexID defines the identifier of the vertex,
-// which uniquely represents an API resource.
-type GraphVertexID struct {
-	// Kind indicates the kind of the resource,
-	// which should be the same as the API handler's Kind returning.
-	Kind string `json:"kind"`
-	// ID indicates the identifier of the resource.
-	ID any `json:"id,omitempty"`
-}
-
-// GraphVertex defines the vertex of graph.
-type GraphVertex struct {
-	GraphVertexID `json:",inline"`
-
-	// Name indicates a human-readable string of the vertex.
-	Name string `json:"name,omitempty"`
-	// Description indicates the detail of the vertex.
-	Description string `json:"description,omitempty"`
-	// Labels indicates the labels of the vertex.
-	Labels map[string]string `json:"labels,omitempty"`
-	// CreateTime indicates the time to create the vertex.
-	CreateTime *time.Time `json:"createTime,omitempty"`
-	// UpdateTime indicates the time to update the vertex.
-	UpdateTime *time.Time `json:"updateTime,omitempty"`
-	// Status observes the status of the vertex.
-	Status status.Summary `json:"status,omitempty"`
-	// Extensions records the other information of the vertex,
-	// e.g. the physical type, logical category or the operational keys of the resource.
-	Extensions map[string]any `json:"extensions,omitempty"`
-}
-
-// GraphEdge defines the edge of graph.
-type GraphEdge struct {
-	// Type indicates the type of the edge, like: Dependency or Composition.
-	Type string `json:"type"`
-	// Start indicates the beginning of the edge.
-	Start GraphVertexID `json:"start"`
-	// End indicates the ending of the edge.
-	End GraphVertexID `json:"end"`
+	Vertices []types.GraphVertex `json:"vertices"`
+	Edges    []types.GraphEdge   `json:"edges"`
 }

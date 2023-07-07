@@ -10,6 +10,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/serviceresource/view"
+	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -17,8 +18,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
+	pkgresource "github.com/seal-io/seal/pkg/serviceresources"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/topic"
 )
 
@@ -65,7 +66,9 @@ func (h Handler) CollectionGet(
 	query := h.modelClient.ServiceResources().Query().
 		Where(
 			serviceresource.ServiceID(req.ServiceID),
-			serviceresource.Mode(types.ServiceResourceModeManaged))
+			serviceresource.Mode(types.ServiceResourceModeManaged),
+			serviceresource.Shape(types.ServiceResourceShapeInstance),
+		)
 
 	if queries, ok := req.Querying(queryFields); ok {
 		query.Where(queries)
@@ -110,7 +113,10 @@ func (h Handler) CollectionStream(
 	defer func() { t.Unsubscribe() }()
 
 	query := h.modelClient.ServiceResources().Query().
-		Where(serviceresource.Mode(types.ServiceResourceModeManaged))
+		Where(
+			serviceresource.Mode(types.ServiceResourceModeManaged),
+			serviceresource.Shape(types.ServiceResourceShapeInstance),
+		)
 
 	if req.ServiceID != "" {
 		query.Where(serviceresource.ServiceID(req.ServiceID))
@@ -249,22 +255,31 @@ func (h Handler) CollectionGetGraph(
 	ctx *gin.Context,
 	req view.CollectionGetGraphRequest,
 ) (*view.CollectionGetGraphResponse, error) {
+	fields := []string{
+		serviceresource.FieldServiceID,
+		serviceresource.FieldDeployerType,
+		serviceresource.FieldType,
+		serviceresource.FieldID,
+		serviceresource.FieldName,
+		serviceresource.FieldMode,
+		serviceresource.FieldShape,
+		serviceresource.FieldClassID,
+		serviceresource.FieldCreateTime,
+		serviceresource.FieldUpdateTime,
+		serviceresource.FieldStatus,
+	}
+
 	// Fetch entities.
 	query := h.modelClient.ServiceResources().Query().
-		Select(
-			serviceresource.FieldServiceID,
-			serviceresource.FieldDeployerType,
-			serviceresource.FieldType,
-			serviceresource.FieldID,
-			serviceresource.FieldName,
-			serviceresource.FieldCreateTime,
-			serviceresource.FieldUpdateTime,
-			serviceresource.FieldStatus).
+		Select(fields...).
+		Order(model.Desc(serviceresource.FieldCreateTime)).
 		Where(
 			serviceresource.ServiceID(req.ServiceID),
-			serviceresource.Mode(types.ServiceResourceModeManaged))
+			serviceresource.Mode(types.ServiceResourceModeManaged),
+			serviceresource.Shape(types.ServiceResourceShapeClass),
+		)
 
-	entities, err := getCollection(ctx, query, false)
+	entities, err := dao.ServiceResourceShapeClassQuery(query, fields...).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -284,57 +299,13 @@ func (h Handler) CollectionGetGraph(
 
 	// Construct response.
 	var (
-		vertices = make([]view.GraphVertex, 0, verticesCap)
-		edges    = make([]view.GraphEdge, 0, edgesCap)
+		vertices  = make([]types.GraphVertex, 0, verticesCap)
+		edges     = make([]types.GraphEdge, 0, edgesCap)
+		operators = make(map[oid.ID]optypes.Operator)
 	)
 
-	for i := 0; i < len(entities); i++ {
-		// Append ServiceResource to vertices.
-		vertices = append(vertices, view.GraphVertex{
-			GraphVertexID: view.GraphVertexID{
-				Kind: "ServiceResource",
-				ID:   entities[i].ID,
-			},
-			Name:       entities[i].Name,
-			CreateTime: entities[i].CreateTime,
-			UpdateTime: entities[i].UpdateTime,
-			Status:     entities[i].Status.Summary,
-			Extensions: map[string]any{
-				"type": entities[i].Type,
-			},
-		})
-
-		for j := 0; j < len(entities[i].Edges.Components); j++ {
-			// Append sub ServiceResource to vertices.
-			vertices = append(vertices, view.GraphVertex{
-				GraphVertexID: view.GraphVertexID{
-					Kind: "ServiceResource",
-					ID:   entities[i].Edges.Components[j].ID,
-				},
-				Name:       entities[i].Edges.Components[j].Name,
-				CreateTime: entities[i].Edges.Components[j].CreateTime,
-				UpdateTime: entities[i].Edges.Components[j].UpdateTime,
-				Status:     entities[i].Edges.Components[j].Status.Summary,
-				Extensions: map[string]any{
-					"type": entities[i].Edges.Components[j].Type,
-					"keys": entities[i].Edges.Components[j].Keys,
-				},
-			})
-
-			// Append the edge of ServiceResource to sub ServiceResource.
-			edges = append(edges, view.GraphEdge{
-				Type: "Composition",
-				Start: view.GraphVertexID{
-					Kind: "ServiceResource",
-					ID:   entities[i].ID,
-				},
-				End: view.GraphVertexID{
-					Kind: "ServiceResource",
-					ID:   entities[i].Edges.Components[j].ID,
-				},
-			})
-		}
-	}
+	pkgresource.SetKeys(ctx, entities, operators)
+	vertices, edges = pkgresource.GetVerticesAndEdges(entities, vertices, edges)
 
 	return &view.CollectionGetGraphResponse{
 		Vertices: vertices,
@@ -347,27 +318,26 @@ func getCollection(
 	query *model.ServiceResourceQuery,
 	withoutKeys bool,
 ) (model.ServiceResources, error) {
-	logger := log.WithName("api").WithName("service-resource")
-
+	wcOpts := func(cq *model.ConnectorQuery) {
+		cq.Select(
+			connector.FieldName,
+			connector.FieldType,
+			connector.FieldCategory,
+			connector.FieldConfigVersion,
+			connector.FieldConfigData)
+	}
 	// Query service resource with its components.
 	entities, err := query.Unique(false).
 		// Must extract connector.
 		Select(serviceresource.FieldConnectorID).
-		WithConnector(func(cq *model.ConnectorQuery) {
-			cq.Select(
-				connector.FieldName,
-				connector.FieldType,
-				connector.FieldCategory,
-				connector.FieldConfigVersion,
-				connector.FieldConfigData)
-		}).
+		WithConnector(wcOpts).
 		// Must extract components.
 		WithComponents(func(rq *model.ServiceResourceQuery) {
 			rq.Select(getFields...).
 				Order(model.Desc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered))
-		}).
-		All(ctx)
+				Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
+				WithConnector(wcOpts)
+		}).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -377,51 +347,8 @@ func getCollection(
 		return entities, nil
 	}
 
-	// Index entities by connector.
-	m := make(map[*model.Connector][]int)
-	for i := range entities {
-		// NB(thxCode): we can safety index the connector with its pointer here,
-		// as the ent can keep the connector pointer is the same
-		// between those resources related by the same connector.
-		m[entities[i].Edges.Connector] = append(m[entities[i].Edges.Connector], i)
-	}
-
-	// Fetch keys for each resource without error returning.
-	for c, idxs := range m {
-		// Get operator by connector.
-		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
-		if err != nil {
-			logger.Warnf("cannot get operator of connector: %v", err)
-			continue
-		}
-
-		if err = op.IsConnected(ctx); err != nil {
-			logger.Warnf("unreachable connector: %v", err)
-			continue
-		}
-
-		// Fetch keys for the resources that related to same connector.
-		for _, i := range idxs {
-			entities[i].Keys, err = op.GetKeys(ctx, entities[i])
-			if err != nil {
-				logger.Errorf("error getting keys for %q: %v",
-					entities[i].ID,
-					err)
-
-				continue
-			}
-
-			// Fetch keys of components as well.
-			for j := range entities[i].Edges.Components {
-				entities[i].Edges.Components[j].Keys, err = op.GetKeys(ctx, entities[i].Edges.Components[j])
-				if err != nil {
-					logger.Errorf("error getting keys for %q: %v",
-						entities[i].Edges.Components[j].ID,
-						err)
-				}
-			}
-		}
-	}
+	operators := make(map[oid.ID]optypes.Operator)
+	entities = pkgresource.SetKeys(ctx, entities, operators)
 
 	return entities, nil
 }

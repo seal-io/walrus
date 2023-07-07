@@ -745,11 +745,11 @@ type (
 
 	// GraphVertexID defines the identifier of the vertex,
 	// which uniquely represents an API resource.
-	GraphVertexID = serviceresourceview.GraphVertexID
+	GraphVertexID = types.GraphVertexID
 	// GraphVertex defines the vertex of graph.
-	GraphVertex = serviceresourceview.GraphVertex
+	GraphVertex = types.GraphVertex
 	// GraphEdge defines the edge of graph.
-	GraphEdge = serviceresourceview.GraphEdge
+	GraphEdge = types.GraphEdge
 )
 
 func validateEnvironment(
