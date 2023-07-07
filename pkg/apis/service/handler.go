@@ -14,7 +14,6 @@ import (
 	"github.com/seal-io/seal/pkg/apis/service/view"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
@@ -28,13 +27,12 @@ import (
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
-	"github.com/seal-io/seal/pkg/operator"
 	"github.com/seal-io/seal/pkg/operator/k8s/intercept"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	pkgservice "github.com/seal-io/seal/pkg/service"
+	pkgresource "github.com/seal-io/seal/pkg/serviceresources"
 	tfparser "github.com/seal-io/seal/pkg/terraform/parser"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
-	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/topic"
 	"github.com/seal-io/seal/utils/validation"
@@ -814,11 +812,9 @@ func (h Handler) CollectionGetGraph(
 	ctx *gin.Context,
 	req view.CollectionGetGraphRequest,
 ) (*view.CollectionGetGraphResponse, error) {
-	logger := log.WithName("api").WithName("service")
-
 	// Fetch entities.
 	entities, err := h.modelClient.Services().Query().
-		Order(model.Asc(service.FieldCreateTime)).
+		Order(model.Desc(service.FieldCreateTime)).
 		Where(service.EnvironmentID(req.EnvironmentID)).
 		Select(getFields...).
 		// Must extract dependency.
@@ -830,218 +826,75 @@ func (h Handler) CollectionGetGraph(
 		}).
 		// Must extract resource.
 		WithResources(func(rq *model.ServiceResourceQuery) {
-			rq.Order(model.Desc(serviceresource.FieldCreateTime)).
-				Where(serviceresource.Mode(types.ServiceResourceModeManaged)).
-				Select(
-					serviceresource.FieldServiceID,
-					serviceresource.FieldDeployerType,
-					serviceresource.FieldType,
-					serviceresource.FieldID,
-					serviceresource.FieldName,
-					serviceresource.FieldCreateTime,
-					serviceresource.FieldUpdateTime,
-					serviceresource.FieldStatus).
-				// Must extract connector.
-				Select(serviceresource.FieldConnectorID).
-				WithConnector(func(cq *model.ConnectorQuery) {
-					cq.Select(
-						connector.FieldName,
-						connector.FieldType,
-						connector.FieldCategory,
-						connector.FieldConfigVersion,
-						connector.FieldConfigData)
-				}).
-				// Must extract components(resources).
-				WithComponents(func(rq *model.ServiceResourceQuery) {
-					rq.Order(model.Desc(serviceresource.FieldCreateTime)).
-						Where(serviceresource.Mode(types.ServiceResourceModeDiscovered)).
-						Select(
-							serviceresource.FieldServiceID,
-							serviceresource.FieldDeployerType,
-							serviceresource.FieldType,
-							serviceresource.FieldID,
-							serviceresource.FieldName,
-							serviceresource.FieldCreateTime,
-							serviceresource.FieldUpdateTime,
-							serviceresource.FieldStatus)
-				})
+			dao.ServiceResourceShapeClassQuery(rq).
+				Where(serviceresource.Shape(types.ServiceResourceShapeClass)).
+				Order(model.Desc(serviceresource.FieldCreateTime))
 		}).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Index entities by connector.
-	m := make(map[*model.Connector][][2]int)
-
-	for si := range entities {
-		for i := range entities[si].Edges.Resources {
-			// NB(thxCode): we can safety index the connector with its pointer here,
-			// as the ent can keep the connector pointer is the same
-			// between those resources related by the same connector.
-			m[entities[si].Edges.Resources[i].Edges.Connector] = append(
-				m[entities[si].Edges.Resources[i].Edges.Connector], [2]int{si, i})
-		}
-	}
-
-	// Fetch keys for each resource without error returning.
-	for c, idxs := range m {
-		// Get operator by connector.
-		op, err := operator.Get(ctx, optypes.CreateOptions{Connector: *c})
-		if err != nil {
-			logger.Warnf("cannot get operator of connector: %v", err)
-			continue
-		}
-
-		if err = op.IsConnected(ctx); err != nil {
-			logger.Warnf("unreachable connector: %v", err)
-			continue
-		}
-
-		// Fetch keys for the resources that related to same connector.
-		for _, idx := range idxs {
-			si, i := idx[0], idx[1]
-			entities[si].Edges.Resources[i].Keys, err = op.GetKeys(ctx, entities[si].Edges.Resources[i])
-
-			if err != nil {
-				logger.Errorf("error getting keys for %q: %v",
-					entities[si].Edges.Resources[i].ID,
-					err)
-
-				continue
-			}
-
-			// Fetch keys of components as well.
-			for j := range entities[si].Edges.Resources[i].Edges.Components {
-				entities[si].Edges.Resources[i].Edges.Components[j].Keys, err = op.GetKeys(
-					ctx,
-					entities[si].Edges.Resources[i].Edges.Components[j],
-				)
-				if err != nil {
-					logger.Errorf("error getting keys for %q: %v",
-						entities[si].Edges.Resources[i].Edges.Components[j].ID,
-						err)
-				}
-			}
-		}
-	}
-
-	// Calculate capacity for allocation.
-	var verticesCap, edgesCap int
-	{
-		// Count the number of Service.
-		verticesCap = len(entities)
-		for i := 0; i < len(entities); i++ {
-			// Count the vertex size of ServiceResource,
-			// and the edge size from Service to ServiceResource.
-			verticesCap += len(entities[i].Edges.Resources)
-			edgesCap += len(entities[i].Edges.Dependencies)
-
-			for j := 0; j < len(entities[i].Edges.Resources); j++ {
-				// Count the vertex size of sub ServiceResource,
-				// and the edge size from ServiceResource to sub ServiceResource.
-				verticesCap += len(entities[i].Edges.Resources[j].Edges.Components)
-				edgesCap += len(entities[i].Edges.Resources[j].Edges.Components)
-			}
-		}
-	}
+	verticesCap, edgesCap := getCaps(entities)
 
 	// Construct response.
 	var (
-		vertices = make([]view.GraphVertex, 0, verticesCap)
-		edges    = make([]view.GraphEdge, 0, edgesCap)
+		vertices  = make([]view.GraphVertex, 0, verticesCap)
+		edges     = make([]view.GraphEdge, 0, edgesCap)
+		operators = make(map[oid.ID]optypes.Operator)
 	)
 
 	for i := 0; i < len(entities); i++ {
+		entity := entities[i]
 		// Append Service to vertices.
 		vertices = append(vertices, view.GraphVertex{
 			GraphVertexID: view.GraphVertexID{
-				Kind: "Service",
-				ID:   entities[i].ID,
+				Kind: types.VertexKindService,
+				ID:   entity.ID,
 			},
-			Name:        entities[i].Name,
-			Description: entities[i].Description,
-			Labels:      entities[i].Labels,
-			CreateTime:  entities[i].CreateTime,
-			UpdateTime:  entities[i].UpdateTime,
-			Status:      entities[i].Status.Summary,
+			Name:        entity.Name,
+			Description: entity.Description,
+			Labels:      entity.Labels,
+			CreateTime:  entity.CreateTime,
+			UpdateTime:  entity.UpdateTime,
+			Status:      entity.Status.Summary,
 		})
 
 		// Append the edge of Service to Service.
-		for j := 0; j < len(entities[i].Edges.Dependencies); j++ {
+		for j := 0; j < len(entity.Edges.Dependencies); j++ {
 			edges = append(edges, view.GraphEdge{
-				Type: "Dependency",
+				Type: types.EdgeTypeDependency,
 				Start: view.GraphVertexID{
-					Kind: "Service",
-					ID:   entities[i].ID,
+					Kind: types.VertexKindService,
+					ID:   entity.ID,
 				},
 				End: view.GraphVertexID{
-					Kind: "Service",
-					ID:   entities[i].Edges.Dependencies[j].DependencyID,
+					Kind: types.VertexKindService,
+					ID:   entity.Edges.Dependencies[j].DependencyID,
 				},
 			})
 		}
 
-		for j := 0; j < len(entities[i].Edges.Resources); j++ {
-			// Append ServiceResource to vertices.
-			vertices = append(vertices, view.GraphVertex{
-				GraphVertexID: view.GraphVertexID{
-					Kind: "ServiceResource",
-					ID:   entities[i].Edges.Resources[j].ID,
-				},
-				Name:       entities[i].Edges.Resources[j].Name,
-				CreateTime: entities[i].Edges.Resources[j].CreateTime,
-				UpdateTime: entities[i].Edges.Resources[j].UpdateTime,
-				Status:     entities[i].Edges.Resources[j].Status.Summary,
-				Extensions: map[string]any{
-					"type": entities[i].Edges.Resources[j].Type,
-					"keys": entities[i].Edges.Resources[j].Keys,
-				},
-			})
+		pkgresource.SetKeys(ctx, entity.Edges.Resources, operators)
+		vertices, edges = pkgresource.GetVerticesAndEdges(
+			entity.Edges.Resources,
+			vertices,
+			edges,
+		)
 
+		for j := 0; j < len(entity.Edges.Resources); j++ {
 			// Append the edge of Service to ServiceResource.
 			edges = append(edges, view.GraphEdge{
-				Type: "Composition",
+				Type: types.EdgeTypeComposition,
 				Start: view.GraphVertexID{
-					Kind: "Service",
-					ID:   entities[i].ID,
+					Kind: types.VertexKindService,
+					ID:   entity.ID,
 				},
 				End: view.GraphVertexID{
-					Kind: "ServiceResource",
-					ID:   entities[i].Edges.Resources[j].ID,
+					Kind: types.VertexKindServiceResourceGroup,
+					ID:   entity.Edges.Resources[j].ID,
 				},
 			})
-
-			for k := 0; k < len(entities[i].Edges.Resources[j].Edges.Components); k++ {
-				// Append sub ServiceResource to vertices.
-				vertices = append(vertices, view.GraphVertex{
-					GraphVertexID: view.GraphVertexID{
-						Kind: "ServiceResource",
-						ID:   entities[i].Edges.Resources[j].Edges.Components[k].ID,
-					},
-					Name:       entities[i].Edges.Resources[j].Edges.Components[k].Name,
-					CreateTime: entities[i].Edges.Resources[j].Edges.Components[k].CreateTime,
-					UpdateTime: entities[i].Edges.Resources[j].Edges.Components[k].UpdateTime,
-					Status:     entities[i].Edges.Resources[j].Edges.Components[k].Status.Summary,
-					Extensions: map[string]any{
-						"type": entities[i].Edges.Resources[j].Edges.Components[k].Type,
-						"keys": entities[i].Edges.Resources[j].Edges.Components[k].Keys,
-					},
-				})
-
-				// Append the edge of ServiceResource to sub ServiceResource.
-				edges = append(edges, view.GraphEdge{
-					Type: "Composition",
-					Start: view.GraphVertexID{
-						Kind: "ServiceResource",
-						ID:   entities[i].Edges.Resources[j].ID,
-					},
-					End: view.GraphVertexID{
-						Kind: "ServiceResource",
-						ID:   entities[i].Edges.Resources[j].Edges.Components[k].ID,
-					},
-				})
-			}
 		}
 	}
 
@@ -1049,4 +902,33 @@ func (h Handler) CollectionGetGraph(
 		Vertices: vertices,
 		Edges:    edges,
 	}, nil
+}
+
+func getCaps(entities model.Services) (int, int) {
+	// Calculate capacity for allocation.
+	var verticesCap, edgesCap int
+
+	// Count the number of Service.
+	verticesCap = len(entities)
+	for i := 0; i < len(entities); i++ {
+		// Count the vertex size of ServiceResource,
+		// and the edge size from Service to ServiceResource.
+		verticesCap += len(entities[i].Edges.Resources)
+		edgesCap += len(entities[i].Edges.Dependencies)
+
+		for j := 0; j < len(entities[i].Edges.Resources); j++ {
+			// Count the vertex size of instances,
+			// and the edge size from ServiceResourceGroup to instance ServiceResource.
+			verticesCap += len(entities[i].Edges.Resources[j].Edges.Instances)
+			edgesCap += len(entities[i].Edges.Resources[j].Edges.Instances) +
+				len(entities[i].Edges.Resources[j].Edges.Dependencies)
+
+			for k := 0; k < len(entities[i].Edges.Resources[j].Edges.Instances); k++ {
+				verticesCap += len(entities[i].Edges.Resources[j].Edges.Components)
+				edgesCap += len(entities[i].Edges.Resources[j].Edges.Components)
+			}
+		}
+	}
+
+	return verticesCap, edgesCap
 }
