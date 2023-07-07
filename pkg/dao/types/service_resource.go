@@ -23,6 +23,16 @@ const (
 	ServiceResourceModeDiscovered = "discovered"
 )
 
+const (
+	// ServiceResourceShapeClass indicates the resource is a class.
+	ServiceResourceShapeClass = "class"
+	// ServiceResourceShapeInstance indicates the resource is an instance that implements a class.
+	ServiceResourceShapeInstance = "instance"
+)
+
+// ServiceResourceRelationshipTypeDependency indicates the relationship between service resource and its dependencies.
+const ServiceResourceRelationshipTypeDependency = "Dependency"
+
 type ServiceResourceEndpoint struct {
 	// EndpointType is the extra info for service resource type, like nodePort, loadBalance.
 	EndpointType string `json:"endpointType,omitempty"`

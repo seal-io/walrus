@@ -12,6 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
@@ -160,6 +161,7 @@ func (in *StatusSyncTask) buildStateTask(
 				serviceresource.FieldType,
 				serviceresource.FieldName,
 				serviceresource.FieldDeployerType).
+			Where(serviceresource.Shape(types.ServiceResourceShapeInstance)).
 			All(ctx)
 		if err != nil {
 			return fmt.Errorf("error listing service resources: %w", err)
