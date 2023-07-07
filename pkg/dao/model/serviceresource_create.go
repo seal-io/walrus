@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
@@ -91,6 +92,20 @@ func (src *ServiceResourceCreate) SetNillableCompositionID(o *oid.ID) *ServiceRe
 	return src
 }
 
+// SetClassID sets the "classID" field.
+func (src *ServiceResourceCreate) SetClassID(o oid.ID) *ServiceResourceCreate {
+	src.mutation.SetClassID(o)
+	return src
+}
+
+// SetNillableClassID sets the "classID" field if the given value is not nil.
+func (src *ServiceResourceCreate) SetNillableClassID(o *oid.ID) *ServiceResourceCreate {
+	if o != nil {
+		src.SetClassID(*o)
+	}
+	return src
+}
+
 // SetMode sets the "mode" field.
 func (src *ServiceResourceCreate) SetMode(s string) *ServiceResourceCreate {
 	src.mutation.SetMode(s)
@@ -112,6 +127,12 @@ func (src *ServiceResourceCreate) SetName(s string) *ServiceResourceCreate {
 // SetDeployerType sets the "deployerType" field.
 func (src *ServiceResourceCreate) SetDeployerType(s string) *ServiceResourceCreate {
 	src.mutation.SetDeployerType(s)
+	return src
+}
+
+// SetShape sets the "shape" field.
+func (src *ServiceResourceCreate) SetShape(s string) *ServiceResourceCreate {
+	src.mutation.SetShape(s)
 	return src
 }
 
@@ -163,6 +184,41 @@ func (src *ServiceResourceCreate) AddComponents(s ...*ServiceResource) *ServiceR
 		ids[i] = s[i].ID
 	}
 	return src.AddComponentIDs(ids...)
+}
+
+// SetClass sets the "class" edge to the ServiceResource entity.
+func (src *ServiceResourceCreate) SetClass(s *ServiceResource) *ServiceResourceCreate {
+	return src.SetClassID(s.ID)
+}
+
+// AddInstanceIDs adds the "instances" edge to the ServiceResource entity by IDs.
+func (src *ServiceResourceCreate) AddInstanceIDs(ids ...oid.ID) *ServiceResourceCreate {
+	src.mutation.AddInstanceIDs(ids...)
+	return src
+}
+
+// AddInstances adds the "instances" edges to the ServiceResource entity.
+func (src *ServiceResourceCreate) AddInstances(s ...*ServiceResource) *ServiceResourceCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return src.AddInstanceIDs(ids...)
+}
+
+// AddDependencyIDs adds the "dependencies" edge to the ServiceResourceRelationship entity by IDs.
+func (src *ServiceResourceCreate) AddDependencyIDs(ids ...oid.ID) *ServiceResourceCreate {
+	src.mutation.AddDependencyIDs(ids...)
+	return src
+}
+
+// AddDependencies adds the "dependencies" edges to the ServiceResourceRelationship entity.
+func (src *ServiceResourceCreate) AddDependencies(s ...*ServiceResourceRelationship) *ServiceResourceCreate {
+	ids := make([]oid.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return src.AddDependencyIDs(ids...)
 }
 
 // Mutation returns the ServiceResourceMutation object of the builder.
@@ -283,6 +339,14 @@ func (src *ServiceResourceCreate) check() error {
 			return &ValidationError{Name: "deployerType", err: fmt.Errorf(`model: validator failed for field "ServiceResource.deployerType": %w`, err)}
 		}
 	}
+	if _, ok := src.mutation.Shape(); !ok {
+		return &ValidationError{Name: "shape", err: errors.New(`model: missing required field "ServiceResource.shape"`)}
+	}
+	if v, ok := src.mutation.Shape(); ok {
+		if err := serviceresource.ShapeValidator(v); err != nil {
+			return &ValidationError{Name: "shape", err: fmt.Errorf(`model: validator failed for field "ServiceResource.shape": %w`, err)}
+		}
+	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "service", err: errors.New(`model: missing required edge "ServiceResource.service"`)}
 	}
@@ -353,6 +417,10 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 	if value, ok := src.mutation.DeployerType(); ok {
 		_spec.SetField(serviceresource.FieldDeployerType, field.TypeString, value)
 		_node.DeployerType = value
+	}
+	if value, ok := src.mutation.Shape(); ok {
+		_spec.SetField(serviceresource.FieldShape, field.TypeString, value)
+		_node.Shape = value
 	}
 	if value, ok := src.mutation.Status(); ok {
 		_spec.SetField(serviceresource.FieldStatus, field.TypeJSON, value)
@@ -427,6 +495,62 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := src.mutation.ClassIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceresource.ClassTable,
+			Columns: []string{serviceresource.ClassColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = src.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ClassID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := src.mutation.InstancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   serviceresource.InstancesTable,
+			Columns: []string{serviceresource.InstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = src.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := src.mutation.DependenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   serviceresource.DependenciesTable,
+			Columns: []string{serviceresource.DependenciesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresourcerelationship.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = src.schemaConfig.ServiceResourceRelationship
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &ServiceResourceRelationshipCreate{config: src.config, mutation: newServiceResourceRelationshipMutation(src.config, OpCreate)}
+		_ = createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -543,6 +667,9 @@ func (u *ServiceResourceUpsertOne) UpdateNewValues() *ServiceResourceUpsertOne {
 		if _, exists := u.create.mutation.CompositionID(); exists {
 			s.SetIgnore(serviceresource.FieldCompositionID)
 		}
+		if _, exists := u.create.mutation.ClassID(); exists {
+			s.SetIgnore(serviceresource.FieldClassID)
+		}
 		if _, exists := u.create.mutation.Mode(); exists {
 			s.SetIgnore(serviceresource.FieldMode)
 		}
@@ -554,6 +681,9 @@ func (u *ServiceResourceUpsertOne) UpdateNewValues() *ServiceResourceUpsertOne {
 		}
 		if _, exists := u.create.mutation.DeployerType(); exists {
 			s.SetIgnore(serviceresource.FieldDeployerType)
+		}
+		if _, exists := u.create.mutation.Shape(); exists {
+			s.SetIgnore(serviceresource.FieldShape)
 		}
 	}))
 	return u
@@ -815,6 +945,9 @@ func (u *ServiceResourceUpsertBulk) UpdateNewValues() *ServiceResourceUpsertBulk
 			if _, exists := b.mutation.CompositionID(); exists {
 				s.SetIgnore(serviceresource.FieldCompositionID)
 			}
+			if _, exists := b.mutation.ClassID(); exists {
+				s.SetIgnore(serviceresource.FieldClassID)
+			}
 			if _, exists := b.mutation.Mode(); exists {
 				s.SetIgnore(serviceresource.FieldMode)
 			}
@@ -826,6 +959,9 @@ func (u *ServiceResourceUpsertBulk) UpdateNewValues() *ServiceResourceUpsertBulk
 			}
 			if _, exists := b.mutation.DeployerType(); exists {
 				s.SetIgnore(serviceresource.FieldDeployerType)
+			}
+			if _, exists := b.mutation.Shape(); exists {
+				s.SetIgnore(serviceresource.FieldShape)
 			}
 		}
 	}))

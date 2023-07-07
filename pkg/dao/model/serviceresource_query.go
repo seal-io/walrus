@@ -21,21 +21,25 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/types/oid"
 )
 
 // ServiceResourceQuery is the builder for querying ServiceResource entities.
 type ServiceResourceQuery struct {
 	config
-	ctx             *QueryContext
-	order           []serviceresource.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.ServiceResource
-	withService     *ServiceQuery
-	withConnector   *ConnectorQuery
-	withComposition *ServiceResourceQuery
-	withComponents  *ServiceResourceQuery
-	modifiers       []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []serviceresource.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.ServiceResource
+	withService      *ServiceQuery
+	withConnector    *ConnectorQuery
+	withComposition  *ServiceResourceQuery
+	withComponents   *ServiceResourceQuery
+	withClass        *ServiceResourceQuery
+	withInstances    *ServiceResourceQuery
+	withDependencies *ServiceResourceRelationshipQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -166,6 +170,81 @@ func (srq *ServiceResourceQuery) QueryComponents() *ServiceResourceQuery {
 		schemaConfig := srq.schemaConfig
 		step.To.Schema = schemaConfig.ServiceResource
 		step.Edge.Schema = schemaConfig.ServiceResource
+		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryClass chains the current query on the "class" edge.
+func (srq *ServiceResourceQuery) QueryClass() *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: srq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := srq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := srq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, selector),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ClassTable, serviceresource.ClassColumn),
+		)
+		schemaConfig := srq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInstances chains the current query on the "instances" edge.
+func (srq *ServiceResourceQuery) QueryInstances() *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: srq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := srq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := srq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, selector),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, serviceresource.InstancesTable, serviceresource.InstancesColumn),
+		)
+		schemaConfig := srq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDependencies chains the current query on the "dependencies" edge.
+func (srq *ServiceResourceQuery) QueryDependencies() *ServiceResourceRelationshipQuery {
+	query := (&ServiceResourceRelationshipClient{config: srq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := srq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := srq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, selector),
+			sqlgraph.To(serviceresourcerelationship.Table, serviceresourcerelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, serviceresource.DependenciesTable, serviceresource.DependenciesColumn),
+		)
+		schemaConfig := srq.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResourceRelationship
+		step.Edge.Schema = schemaConfig.ServiceResourceRelationship
 		fromU = sqlgraph.SetNeighbors(srq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -359,15 +438,18 @@ func (srq *ServiceResourceQuery) Clone() *ServiceResourceQuery {
 		return nil
 	}
 	return &ServiceResourceQuery{
-		config:          srq.config,
-		ctx:             srq.ctx.Clone(),
-		order:           append([]serviceresource.OrderOption{}, srq.order...),
-		inters:          append([]Interceptor{}, srq.inters...),
-		predicates:      append([]predicate.ServiceResource{}, srq.predicates...),
-		withService:     srq.withService.Clone(),
-		withConnector:   srq.withConnector.Clone(),
-		withComposition: srq.withComposition.Clone(),
-		withComponents:  srq.withComponents.Clone(),
+		config:           srq.config,
+		ctx:              srq.ctx.Clone(),
+		order:            append([]serviceresource.OrderOption{}, srq.order...),
+		inters:           append([]Interceptor{}, srq.inters...),
+		predicates:       append([]predicate.ServiceResource{}, srq.predicates...),
+		withService:      srq.withService.Clone(),
+		withConnector:    srq.withConnector.Clone(),
+		withComposition:  srq.withComposition.Clone(),
+		withComponents:   srq.withComponents.Clone(),
+		withClass:        srq.withClass.Clone(),
+		withInstances:    srq.withInstances.Clone(),
+		withDependencies: srq.withDependencies.Clone(),
 		// clone intermediate query.
 		sql:  srq.sql.Clone(),
 		path: srq.path,
@@ -415,6 +497,39 @@ func (srq *ServiceResourceQuery) WithComponents(opts ...func(*ServiceResourceQue
 		opt(query)
 	}
 	srq.withComponents = query
+	return srq
+}
+
+// WithClass tells the query-builder to eager-load the nodes that are connected to
+// the "class" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *ServiceResourceQuery) WithClass(opts ...func(*ServiceResourceQuery)) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: srq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	srq.withClass = query
+	return srq
+}
+
+// WithInstances tells the query-builder to eager-load the nodes that are connected to
+// the "instances" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *ServiceResourceQuery) WithInstances(opts ...func(*ServiceResourceQuery)) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: srq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	srq.withInstances = query
+	return srq
+}
+
+// WithDependencies tells the query-builder to eager-load the nodes that are connected to
+// the "dependencies" edge. The optional arguments are used to configure the query builder of the edge.
+func (srq *ServiceResourceQuery) WithDependencies(opts ...func(*ServiceResourceRelationshipQuery)) *ServiceResourceQuery {
+	query := (&ServiceResourceRelationshipClient{config: srq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	srq.withDependencies = query
 	return srq
 }
 
@@ -496,11 +611,14 @@ func (srq *ServiceResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*ServiceResource{}
 		_spec       = srq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [7]bool{
 			srq.withService != nil,
 			srq.withConnector != nil,
 			srq.withComposition != nil,
 			srq.withComponents != nil,
+			srq.withClass != nil,
+			srq.withInstances != nil,
+			srq.withDependencies != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -548,6 +666,28 @@ func (srq *ServiceResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		if err := srq.loadComponents(ctx, query, nodes,
 			func(n *ServiceResource) { n.Edges.Components = []*ServiceResource{} },
 			func(n *ServiceResource, e *ServiceResource) { n.Edges.Components = append(n.Edges.Components, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := srq.withClass; query != nil {
+		if err := srq.loadClass(ctx, query, nodes, nil,
+			func(n *ServiceResource, e *ServiceResource) { n.Edges.Class = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := srq.withInstances; query != nil {
+		if err := srq.loadInstances(ctx, query, nodes,
+			func(n *ServiceResource) { n.Edges.Instances = []*ServiceResource{} },
+			func(n *ServiceResource, e *ServiceResource) { n.Edges.Instances = append(n.Edges.Instances, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := srq.withDependencies; query != nil {
+		if err := srq.loadDependencies(ctx, query, nodes,
+			func(n *ServiceResource) { n.Edges.Dependencies = []*ServiceResourceRelationship{} },
+			func(n *ServiceResource, e *ServiceResourceRelationship) {
+				n.Edges.Dependencies = append(n.Edges.Dependencies, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -671,6 +811,95 @@ func (srq *ServiceResourceQuery) loadComponents(ctx context.Context, query *Serv
 	}
 	return nil
 }
+func (srq *ServiceResourceQuery) loadClass(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
+	ids := make([]oid.ID, 0, len(nodes))
+	nodeids := make(map[oid.ID][]*ServiceResource)
+	for i := range nodes {
+		fk := nodes[i].ClassID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(serviceresource.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "classID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (srq *ServiceResourceQuery) loadInstances(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*ServiceResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(serviceresource.FieldClassID)
+	}
+	query.Where(predicate.ServiceResource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(serviceresource.InstancesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ClassID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "classID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (srq *ServiceResourceQuery) loadDependencies(ctx context.Context, query *ServiceResourceRelationshipQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResourceRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[oid.ID]*ServiceResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(serviceresourcerelationship.FieldServiceResourceID)
+	}
+	query.Where(predicate.ServiceResourceRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(serviceresource.DependenciesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ServiceResourceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "service_resource_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (srq *ServiceResourceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := srq.querySpec()
@@ -710,6 +939,9 @@ func (srq *ServiceResourceQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if srq.withComposition != nil {
 			_spec.Node.AddColumnOnce(serviceresource.FieldCompositionID)
+		}
+		if srq.withClass != nil {
+			_spec.Node.AddColumnOnce(serviceresource.FieldClassID)
 		}
 	}
 	if ps := srq.predicates; len(ps) > 0 {

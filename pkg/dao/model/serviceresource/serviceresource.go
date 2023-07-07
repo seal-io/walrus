@@ -30,6 +30,8 @@ const (
 	FieldConnectorID = "connector_id"
 	// FieldCompositionID holds the string denoting the compositionid field in the database.
 	FieldCompositionID = "composition_id"
+	// FieldClassID holds the string denoting the classid field in the database.
+	FieldClassID = "class_id"
 	// FieldMode holds the string denoting the mode field in the database.
 	FieldMode = "mode"
 	// FieldType holds the string denoting the type field in the database.
@@ -38,6 +40,8 @@ const (
 	FieldName = "name"
 	// FieldDeployerType holds the string denoting the deployertype field in the database.
 	FieldDeployerType = "deployer_type"
+	// FieldShape holds the string denoting the shape field in the database.
+	FieldShape = "shape"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// EdgeService holds the string denoting the service edge name in mutations.
@@ -48,6 +52,12 @@ const (
 	EdgeComposition = "composition"
 	// EdgeComponents holds the string denoting the components edge name in mutations.
 	EdgeComponents = "components"
+	// EdgeClass holds the string denoting the class edge name in mutations.
+	EdgeClass = "class"
+	// EdgeInstances holds the string denoting the instances edge name in mutations.
+	EdgeInstances = "instances"
+	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
+	EdgeDependencies = "dependencies"
 	// Table holds the table name of the serviceresource in the database.
 	Table = "service_resources"
 	// ServiceTable is the table that holds the service relation/edge.
@@ -72,6 +82,21 @@ const (
 	ComponentsTable = "service_resources"
 	// ComponentsColumn is the table column denoting the components relation/edge.
 	ComponentsColumn = "composition_id"
+	// ClassTable is the table that holds the class relation/edge.
+	ClassTable = "service_resources"
+	// ClassColumn is the table column denoting the class relation/edge.
+	ClassColumn = "class_id"
+	// InstancesTable is the table that holds the instances relation/edge.
+	InstancesTable = "service_resources"
+	// InstancesColumn is the table column denoting the instances relation/edge.
+	InstancesColumn = "class_id"
+	// DependenciesTable is the table that holds the dependencies relation/edge.
+	DependenciesTable = "service_resource_relationships"
+	// DependenciesInverseTable is the table name for the ServiceResourceRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceresourcerelationship" package.
+	DependenciesInverseTable = "service_resource_relationships"
+	// DependenciesColumn is the table column denoting the dependencies relation/edge.
+	DependenciesColumn = "service_resource_id"
 )
 
 // Columns holds all SQL columns for serviceresource fields.
@@ -83,10 +108,12 @@ var Columns = []string{
 	FieldServiceID,
 	FieldConnectorID,
 	FieldCompositionID,
+	FieldClassID,
 	FieldMode,
 	FieldType,
 	FieldName,
 	FieldDeployerType,
+	FieldShape,
 	FieldStatus,
 }
 
@@ -128,6 +155,8 @@ var (
 	NameValidator func(string) error
 	// DeployerTypeValidator is a validator for the "deployerType" field. It is called by the builders before save.
 	DeployerTypeValidator func(string) error
+	// ShapeValidator is a validator for the "shape" field. It is called by the builders before save.
+	ShapeValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the ServiceResource queries.
@@ -168,6 +197,11 @@ func ByCompositionID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCompositionID, opts...).ToFunc()
 }
 
+// ByClassID orders the results by the classID field.
+func ByClassID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClassID, opts...).ToFunc()
+}
+
 // ByMode orders the results by the mode field.
 func ByMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMode, opts...).ToFunc()
@@ -186,6 +220,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByDeployerType orders the results by the deployerType field.
 func ByDeployerType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeployerType, opts...).ToFunc()
+}
+
+// ByShape orders the results by the shape field.
+func ByShape(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShape, opts...).ToFunc()
 }
 
 // ByServiceField orders the results by service field.
@@ -222,6 +261,41 @@ func ByComponents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newComponentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByClassField orders the results by class field.
+func ByClassField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newClassStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByInstancesCount orders the results by instances count.
+func ByInstancesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInstancesStep(), opts...)
+	}
+}
+
+// ByInstances orders the results by instances terms.
+func ByInstances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInstancesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDependenciesCount orders the results by dependencies count.
+func ByDependenciesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDependenciesStep(), opts...)
+	}
+}
+
+// ByDependencies orders the results by dependencies terms.
+func ByDependencies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDependenciesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newServiceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -248,6 +322,27 @@ func newComponentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ComponentsTable, ComponentsColumn),
+	)
+}
+func newClassStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ClassTable, ClassColumn),
+	)
+}
+func newInstancesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InstancesTable, InstancesColumn),
+	)
+}
+func newDependenciesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DependenciesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, DependenciesTable, DependenciesColumn),
 	)
 }
 

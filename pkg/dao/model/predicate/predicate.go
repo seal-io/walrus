@@ -42,6 +42,9 @@ type ServiceRelationship func(*sql.Selector)
 // ServiceResource is the predicate function for serviceresource builders.
 type ServiceResource func(*sql.Selector)
 
+// ServiceResourceRelationship is the predicate function for serviceresourcerelationship builders.
+type ServiceResourceRelationship func(*sql.Selector)
+
 // ServiceRevision is the predicate function for servicerevision builders.
 type ServiceRevision func(*sql.Selector)
 
