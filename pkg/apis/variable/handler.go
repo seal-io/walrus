@@ -130,7 +130,18 @@ func (h Handler) CollectionGet(
 	      OR "project_id" IS NULL
 	    GROUP BY
 	      "alias"."name"
-	  ) AS "alias" ON "variables"."name" = "alias"."name"
+	  ) AS "alias" ON (
+	    (
+	      "project_id" = $4
+	      AND "environment_id" = $5
+	    )
+	    OR (
+	      "project_id" = $6
+	      AND "environment_id" IS NULL
+	    )
+	    OR "project_id" IS NULL
+	  )
+	  AND "variables"."name" = "alias"."name"
 	  AND (
 	    CASE WHEN project_id IS NOT NULL
 	    AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
@@ -163,17 +174,30 @@ func (h Handler) CollectionGet(
 	      "variables" AS "alias"
 	    WHERE
 	      (
-	        "project_id" = $1
-	        AND "environment_id" = $2
+	        (
+	          "project_id" = $1
+	          AND "environment_id" = $2
+	        )
+	        OR (
+	          "project_id" = $3
+	          AND "environment_id" IS NULL
+	        )
+	        OR "project_id" IS NULL
 	      )
-	      OR (
-	        "project_id" = $3
-	        AND "environment_id" IS NULL
-	      )
-	      OR "project_id" IS NULL
 	    GROUP BY
 	      "alias"."name"
-	  ) AS "alias" ON "variables"."name" = "alias"."name"
+	  ) AS "alias" ON (
+	    (
+	      "project_id" = $4
+	      AND "environment_id" = $5
+	    )
+	    OR (
+	      "project_id" = $6
+	      AND "environment_id" IS NULL
+	    )
+	    OR "project_id" IS NULL
+	  )
+	  AND "variables"."name" = "alias"."name"
 	  AND (
 	    CASE WHEN project_id IS NOT NULL
 	    AND environment_id IS NOT NULL THEN 3 WHEN project_id IS NOT NULL
@@ -182,7 +206,7 @@ func (h Handler) CollectionGet(
 	ORDER BY
 	  "variables"."create_time" DESC
 	LIMIT
-	  3
+	  100
 	*/
 
 	var (
@@ -254,6 +278,7 @@ func (h Handler) CollectionGet(
 		s.Join(subQuery).
 			OnP(
 				sql.And(
+					ps,
 					sql.ColumnsEQ(
 						s.C(variable.FieldName),
 						alias.C(variable.FieldName),
