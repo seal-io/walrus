@@ -198,7 +198,7 @@ func (in *HttpRequest) WithBodyBytes(bs []byte) *HttpRequest {
 // - Content-Type: application/json; charset=UTF-8
 // - Content-Length: size of JSON bytes (calculated by fasthttp),
 // it's able to overwrite the Content-Type with WithContentType.
-func (in *HttpRequest) WithBodyJSON(object interface{}) *HttpRequest {
+func (in *HttpRequest) WithBodyJSON(object any) *HttpRequest {
 	bs, err := json.Marshal(object)
 	if err != nil {
 		in.err = err
@@ -740,7 +740,7 @@ func (in *HttpResponse) Body() (io.Reader, error) {
 // BodyJSON unmarshals the body bytes of response into the given receiver,
 // and the error if occurring,
 // it must call before Release called.
-func (in *HttpResponse) BodyJSON(ptr interface{}) error {
+func (in *HttpResponse) BodyJSON(ptr any) error {
 	if err := in.Error(); err != nil {
 		return err
 	}

@@ -47,7 +47,7 @@ func SetFlags() runtime.ErrorHandle {
 			return err
 		}
 
-		resp := map[string]interface{}{}
+		resp := map[string]any{}
 
 		if input.LogDebug != nil {
 			level := log.InfoLevel
@@ -72,7 +72,7 @@ func SetFlags() runtime.ErrorHandle {
 
 func GetFlags() runtime.ErrorHandle {
 	return func(ctx *gin.Context) error {
-		resp := map[string]interface{}{
+		resp := map[string]any{
 			"log-debug":     log.GetLevel() == log.DebugLevel,
 			"log-verbosity": log.GetVerbosity(),
 		}

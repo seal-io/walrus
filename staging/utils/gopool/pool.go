@@ -21,7 +21,7 @@ func setPool(factor int) *pond.WorkerPool {
 	return pond.New(b*factor, b*factor*100,
 		pond.MinWorkers(b*factor),
 		pond.Strategy(pond.Eager()),
-		pond.PanicHandler(func(i interface{}) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
+		pond.PanicHandler(func(i any) { log.WithName("gopool").Errorf("panic observing: %v", i) }))
 }
 
 func ResetPool(factor int) {

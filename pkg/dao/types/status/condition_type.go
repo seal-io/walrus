@@ -27,81 +27,81 @@ func (ct ConditionType) String() string {
 
 // True set status value to True for object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) True(obj interface{}, message string) {
+func (ct ConditionType) True(obj any, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusTrue, message)
 }
 
 // False set status value to False for object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) False(obj interface{}, message string) {
+func (ct ConditionType) False(obj any, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusFalse, message)
 }
 
 // Unknown set status value to Unknown for object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) Unknown(obj interface{}, message string) {
+func (ct ConditionType) Unknown(obj any, message string) {
 	setCondStatusAndMessage(obj, ct, ConditionStatusUnknown, message)
 }
 
 // Status set status value to custom value for object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) Status(obj interface{}, status ConditionStatus) {
+func (ct ConditionType) Status(obj any, status ConditionStatus) {
 	setCondStatus(obj, ct, status)
 }
 
 // Remove drop status from the object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) Remove(obj interface{}) {
+func (ct ConditionType) Remove(obj any) {
 	delCondStatus(obj, ct)
 }
 
 // Reset clean the object field .Status.Conditions,
 // and set the status as Unknown type into the object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) Reset(obj interface{}, message string) {
+func (ct ConditionType) Reset(obj any, message string) {
 	resetCondStatus(obj, ct, ConditionStatusUnknown, message)
 }
 
 // Message set message to conditionType for object field .Status.Conditions,
 // object must be a pointer.
-func (ct ConditionType) Message(obj interface{}, message string) {
+func (ct ConditionType) Message(obj any, message string) {
 	setCondMessage(obj, ct, message)
 }
 
 // IsTrue check status value for object,
 // object must be a pointer.
-func (ct ConditionType) IsTrue(obj interface{}) bool {
+func (ct ConditionType) IsTrue(obj any) bool {
 	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusTrue
 }
 
 // IsFalse check status value for object,
 // object must be a pointer.
-func (ct ConditionType) IsFalse(obj interface{}) bool {
+func (ct ConditionType) IsFalse(obj any) bool {
 	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusFalse
 }
 
 // IsUnknown check status value for object,
 // object must be a pointer.
-func (ct ConditionType) IsUnknown(obj interface{}) bool {
+func (ct ConditionType) IsUnknown(obj any) bool {
 	s, _ := getCondStatus(obj, ct)
 	return s == ConditionStatusUnknown
 }
 
 // Exist returns true if the status is existed,
 // object must be a pointer.
-func (ct ConditionType) Exist(obj interface{}) bool {
+func (ct ConditionType) Exist(obj any) bool {
 	_, exist := getCondStatus(obj, ct)
 	return exist
 }
 
 // GetMessage get message from conditionType for object field .Status.Conditions.
-func (ct ConditionType) GetMessage(obj interface{}) string {
+func (ct ConditionType) GetMessage(obj any) string {
 	return getCondMessage(obj, ct)
 }
 
-func setCondStatusAndMessage(obj interface{}, condType ConditionType, status ConditionStatus, message string) {
+func setCondStatusAndMessage(obj any, condType ConditionType, status ConditionStatus, message string) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return
 	}
@@ -115,7 +115,7 @@ func setCondStatusAndMessage(obj interface{}, condType ConditionType, status Con
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func setCondStatus(obj interface{}, condType ConditionType, status ConditionStatus) {
+func setCondStatus(obj any, condType ConditionType, status ConditionStatus) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return
 	}
@@ -129,7 +129,7 @@ func setCondStatus(obj interface{}, condType ConditionType, status ConditionStat
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func delCondStatus(obj interface{}, condType ConditionType) {
+func delCondStatus(obj any, condType ConditionType) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return
 	}
@@ -166,7 +166,7 @@ func delCondStatus(obj interface{}, condType ConditionType) {
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func resetCondStatus(obj interface{}, condType ConditionType, status ConditionStatus, message string) {
+func resetCondStatus(obj any, condType ConditionType, status ConditionStatus, message string) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return
 	}
@@ -185,7 +185,7 @@ func resetCondStatus(obj interface{}, condType ConditionType, status ConditionSt
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func getCondStatus(obj interface{}, condType ConditionType) (ConditionStatus, bool) {
+func getCondStatus(obj any, condType ConditionType) (ConditionStatus, bool) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return "", false
 	}
@@ -203,7 +203,7 @@ func getCondStatus(obj interface{}, condType ConditionType) (ConditionStatus, bo
 	return cond.Status, true
 }
 
-func setCondMessage(obj interface{}, condType ConditionType, message string) {
+func setCondMessage(obj any, condType ConditionType, message string) {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return
 	}
@@ -217,7 +217,7 @@ func setCondMessage(obj interface{}, condType ConditionType, message string) {
 	stField.Set(reflect.ValueOf(*st))
 }
 
-func getCondMessage(obj interface{}, condType ConditionType) string {
+func getCondMessage(obj any, condType ConditionType) string {
 	if obj == nil || reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		return ""
 	}
@@ -235,7 +235,7 @@ func getCondMessage(obj interface{}, condType ConditionType) string {
 	return cond.Message
 }
 
-func getStatus(obj interface{}) (reflect.Value, *Status) {
+func getStatus(obj any) (reflect.Value, *Status) {
 	v := reflect.ValueOf(obj)
 	if v.Type().Kind() == reflect.Ptr {
 		v = v.Elem()

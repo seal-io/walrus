@@ -49,7 +49,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 		return nil, nil
 	}
 
-	var data interface{}
+	var data any
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {
@@ -58,7 +58,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 
 	switch reflect.TypeOf(data).Kind() {
 	case reflect.Map:
-		m, ok := data.(map[string]interface{})
+		m, ok := data.(map[string]any)
 		if !ok {
 			return nil, errors.New("can't decode response in table, use json or yaml format instead")
 		}
@@ -73,7 +73,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 				return []byte{}, nil
 			}
 
-			items, ok := its.([]interface{})
+			items, ok := its.([]any)
 			if ok {
 				formatted := f.resourceItems(items)
 				return []byte(formatted), nil
@@ -82,7 +82,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 
 		return []byte(f.resourceItem(m)), nil
 	case reflect.Slice, reflect.Array:
-		m, ok := data.([]interface{})
+		m, ok := data.([]any)
 		if !ok {
 			return nil, errors.New("can't decode response in table, use json or yaml format instead")
 		}
@@ -97,7 +97,7 @@ func (f *TableFormatter) Format(resp *http.Response) ([]byte, error) {
 	return nil, nil
 }
 
-func (f *TableFormatter) generalItems(data []interface{}) string {
+func (f *TableFormatter) generalItems(data []any) string {
 	if len(data) == 0 {
 		return ""
 	}
@@ -112,7 +112,7 @@ func (f *TableFormatter) generalItems(data []interface{}) string {
 
 	switch reflect.TypeOf(item).Kind() {
 	case reflect.Map:
-		it, ok := item.(map[string]interface{})
+		it, ok := item.(map[string]any)
 		if !ok {
 			return ""
 		}
@@ -160,7 +160,7 @@ func (f *TableFormatter) generalItems(data []interface{}) string {
 	for _, it := range data {
 		switch reflect.TypeOf(it).Kind() {
 		case reflect.Map:
-			itm, ok := it.(map[string]interface{})
+			itm, ok := it.(map[string]any)
 			if !ok {
 				continue
 			}
@@ -181,7 +181,7 @@ func (f *TableFormatter) generalItems(data []interface{}) string {
 
 			table.Body.Cells = append(table.Body.Cells, r)
 		case reflect.Array:
-			items, ok := it.([]interface{})
+			items, ok := it.([]any)
 			if !ok {
 				continue
 			}
@@ -200,14 +200,14 @@ func (f *TableFormatter) generalItems(data []interface{}) string {
 	return table.String()
 }
 
-func (f *TableFormatter) resourceItems(data []interface{}) string {
+func (f *TableFormatter) resourceItems(data []any) string {
 	table := simpletable.New()
 	table.SetStyle(simpletable.StyleCompactLite)
 
 	exitedFields := sets.Set[string]{}
 
 	for _, it := range data {
-		item, ok := it.(map[string]interface{})
+		item, ok := it.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -245,7 +245,7 @@ func (f *TableFormatter) resourceItems(data []interface{}) string {
 	return table.String()
 }
 
-func (f *TableFormatter) resourceItem(data map[string]interface{}) string {
+func (f *TableFormatter) resourceItem(data map[string]any) string {
 	table := simpletable.New()
 	table.SetStyle(simpletable.StyleCompactLite)
 

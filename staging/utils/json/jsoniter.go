@@ -33,17 +33,17 @@ func init() {
 			i, err := strconv.ParseInt(string(number), 10, 64)
 
 			if err == nil {
-				*(*interface{})(ptr) = i
+				*(*any)(ptr) = i
 				return
 			}
 
 			f, err := strconv.ParseFloat(string(number), 64)
 			if err == nil {
-				*(*interface{})(ptr) = f
+				*(*any)(ptr) = f
 				return
 			}
 		default:
-			*(*interface{})(ptr) = iter.Read()
+			*(*any)(ptr) = iter.Read()
 		}
 	}
 	jsoniter.RegisterTypeDecoderFunc("interface {}", decodeNumberAsInt64IfPossible)
@@ -51,7 +51,7 @@ func init() {
 
 // MustMarshal is similar to Marshal,
 // but panics if found error.
-func MustMarshal(v interface{}) []byte {
+func MustMarshal(v any) []byte {
 	bs, err := Marshal(v)
 	if err != nil {
 		panic(fmt.Errorf("error marshaling json: %w", err))
@@ -62,7 +62,7 @@ func MustMarshal(v interface{}) []byte {
 
 // MustUnmarshal is similar to Unmarshal,
 // but panics if found error.
-func MustUnmarshal(data []byte, v interface{}) {
+func MustUnmarshal(data []byte, v any) {
 	err := Unmarshal(data, v)
 	if err != nil {
 		panic(fmt.Errorf("error unmarshaling json: %w", err))
@@ -71,7 +71,7 @@ func MustUnmarshal(data []byte, v interface{}) {
 
 // MustMarshalIndent is similar to MarshalIndent,
 // but panics if found error.
-func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
+func MustMarshalIndent(v any, prefix, indent string) []byte {
 	bs, err := MarshalIndent(v, prefix, indent)
 	if err != nil {
 		panic(fmt.Errorf("error marshaling indent json: %w", err))
@@ -82,20 +82,20 @@ func MustMarshalIndent(v interface{}, prefix, indent string) []byte {
 
 // ShouldMarshal is similar to Marshal,
 // but never return error.
-func ShouldMarshal(v interface{}) []byte {
+func ShouldMarshal(v any) []byte {
 	bs, _ := Marshal(v)
 	return bs
 }
 
 // ShouldUnmarshal is similar to Unmarshal,
 // but never return error.
-func ShouldUnmarshal(data []byte, v interface{}) {
+func ShouldUnmarshal(data []byte, v any) {
 	_ = Unmarshal(data, v)
 }
 
 // ShouldMarshalIndent is similar to MarshalIndent,
 // but never return error.
-func ShouldMarshalIndent(v interface{}, prefix, indent string) []byte {
+func ShouldMarshalIndent(v any, prefix, indent string) []byte {
 	bs, _ := MarshalIndent(v, prefix, indent)
 	return bs
 }

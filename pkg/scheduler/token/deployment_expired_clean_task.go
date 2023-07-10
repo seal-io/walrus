@@ -31,7 +31,7 @@ func (in *DeploymentExpiredCleanTask) Name() string {
 	return "token-deployment-expired-clean"
 }
 
-func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...interface{}) error {
+func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...any) error {
 	if !in.mu.TryLock() {
 		in.logger.Warn("previous processing is not finished")
 		return nil

@@ -12,16 +12,16 @@ import (
 
 // Param represents an API operation input parameter.
 type Param struct {
-	Name        string      `json:"name"`
-	Type        string      `json:"type"`
-	Description string      `json:"description,omitempty"`
-	Style       string      `json:"style,omitempty"`
-	Explode     bool        `json:"explode,omitempty"`
-	Default     interface{} `json:"default,omitempty"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Description string `json:"description,omitempty"`
+	Style       string `json:"style,omitempty"`
+	Explode     bool   `json:"explode,omitempty"`
+	Default     any    `json:"default,omitempty"`
 }
 
 // AddFlag adds a new option flag to a command's flag set for this parameter.
-func (p Param) AddFlag(flags *pflag.FlagSet) interface{} {
+func (p Param) AddFlag(flags *pflag.FlagSet) any {
 	name := p.OptionName()
 
 	existed := flags.Lookup(name)
@@ -39,7 +39,7 @@ func (p Param) OptionName() string {
 }
 
 // Serialize the parameter based on the type/style/explode.
-func (p Param) Serialize(value interface{}) []string {
+func (p Param) Serialize(value any) []string {
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()

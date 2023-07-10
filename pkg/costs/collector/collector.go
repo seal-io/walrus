@@ -336,7 +336,7 @@ func (c *Collector) clusterManagementCost(startTime, endTime *time.Time) (float6
 	return mgntCost, nil
 }
 
-func (c *Collector) getRequest(url string, obj interface{}) error {
+func (c *Collector) getRequest(url string, obj any) error {
 	resp, err := c.clusterClient.Get(url)
 	if err != nil {
 		return fmt.Errorf("request to %s: %w", url, err)

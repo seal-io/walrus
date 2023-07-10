@@ -42,49 +42,49 @@ func (l LoggingLevel) String() string {
 
 type RecoverLogger interface {
 	Recovering()
-	Recover(i interface{})
+	Recover(i any)
 }
 
 type ValueLogger interface {
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Warn(args ...interface{})
-	Error(args ...interface{})
-	Fatal(args ...interface{})
+	Debug(args ...any)
+	Info(args ...any)
+	Warn(args ...any)
+	Error(args ...any)
+	Fatal(args ...any)
 }
 
 type FormatLogger interface {
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-	Fatalf(format string, args ...interface{})
+	Debugf(format string, args ...any)
+	Infof(format string, args ...any)
+	Warnf(format string, args ...any)
+	Errorf(format string, args ...any)
+	Fatalf(format string, args ...any)
 }
 
 type StructLogger interface {
-	DebugS(msg string, keysAndValues ...interface{})
-	InfoS(msg string, keysAndValues ...interface{})
-	WarnS(msg string, keysAndValues ...interface{})
-	ErrorS(err error, msg string, keysAndValues ...interface{})
-	FatalS(msg string, keysAndValues ...interface{})
+	DebugS(msg string, keysAndValues ...any)
+	InfoS(msg string, keysAndValues ...any)
+	WarnS(msg string, keysAndValues ...any)
+	ErrorS(err error, msg string, keysAndValues ...any)
+	FatalS(msg string, keysAndValues ...any)
 }
 
 type PrinterLogger interface {
-	Print(args ...interface{})
-	Printf(format string, args ...interface{})
-	PrintS(msg string, keysAndValues ...interface{})
-	Println(args ...interface{})
+	Print(args ...any)
+	Printf(format string, args ...any)
+	PrintS(msg string, keysAndValues ...any)
+	Println(args ...any)
 }
 
 type VerbosityLogger interface {
 	io.Writer
 
 	Enabled() bool
-	Info(args ...interface{})
-	Infof(format string, args ...interface{})
-	InfoS(msg string, keysAndValues ...interface{})
-	Error(args ...interface{})
-	ErrorS(err error, msg string, keysAndValues ...interface{})
+	Info(args ...any)
+	Infof(format string, args ...any)
+	InfoS(msg string, keysAndValues ...any)
+	Error(args ...any)
+	ErrorS(err error, msg string, keysAndValues ...any)
 }
 
 type Logger interface {
@@ -100,13 +100,13 @@ type Logger interface {
 	GetLevel() LoggingLevel
 	V(v uint64) VerbosityLogger
 	WithName(name string) Logger
-	WithValues(keysAndValues ...interface{}) Logger
+	WithValues(keysAndValues ...any) Logger
 }
 
 type LegacyLogger interface {
-	Warning(args ...interface{})
-	Warningf(format string, args ...interface{})
-	WarningS(msg string, keysAndValues ...interface{})
+	Warning(args ...any)
+	Warningf(format string, args ...any)
+	WarningS(msg string, keysAndValues ...any)
 }
 
 // logger holds the global logger.
@@ -125,97 +125,97 @@ func Recovering() {
 }
 
 // Recover exposes the RecoverLogger implementation of the global logger.
-func Recover(i interface{}) {
+func Recover(i any) {
 	logger.Recover(i)
 }
 
 // Debug exposes the ValueLogger implementation of the global logger.
-func Debug(args ...interface{}) {
+func Debug(args ...any) {
 	logger.Debug(args...)
 }
 
 // Info exposes the ValueLogger implementation of the global logger.
-func Info(args ...interface{}) {
+func Info(args ...any) {
 	logger.Info(args...)
 }
 
 // Warn exposes the ValueLogger implementation of the global logger.
-func Warn(args ...interface{}) {
+func Warn(args ...any) {
 	logger.Warn(args...)
 }
 
 // Error exposes the ValueLogger implementation of the global logger.
-func Error(args ...interface{}) {
+func Error(args ...any) {
 	logger.Error(args...)
 }
 
 // Fatal exposes the ValueLogger implementation of the global logger.
-func Fatal(args ...interface{}) {
+func Fatal(args ...any) {
 	logger.Fatal(args...)
 }
 
 // Debugf exposes the FormatLogger implementation of the global logger.
-func Debugf(format string, args ...interface{}) {
+func Debugf(format string, args ...any) {
 	logger.Debugf(format, args...)
 }
 
 // Infof exposes the FormatLogger implementation of the global logger.
-func Infof(format string, args ...interface{}) {
+func Infof(format string, args ...any) {
 	logger.Infof(format, args...)
 }
 
 // Warnf exposes the FormatLogger implementation of the global logger.
-func Warnf(format string, args ...interface{}) {
+func Warnf(format string, args ...any) {
 	logger.Warnf(format, args...)
 }
 
 // Errorf exposes the FormatLogger implementation of the global logger.
-func Errorf(format string, args ...interface{}) {
+func Errorf(format string, args ...any) {
 	logger.Errorf(format, args...)
 }
 
 // Fatalf exposes the FormatLogger implementation of the global logger.
-func Fatalf(format string, args ...interface{}) {
+func Fatalf(format string, args ...any) {
 	logger.Fatalf(format, args...)
 }
 
 // DebugS exposes the StructLogger implementation of the global logger.
-func DebugS(msg string, keysAndValues ...interface{}) {
+func DebugS(msg string, keysAndValues ...any) {
 	logger.DebugS(msg, keysAndValues...)
 }
 
 // InfoS exposes the StructLogger implementation of the global logger.
-func InfoS(msg string, keysAndValues ...interface{}) {
+func InfoS(msg string, keysAndValues ...any) {
 	logger.InfoS(msg, keysAndValues...)
 }
 
 // WarnS exposes the StructLogger implementation of the global logger.
-func WarnS(msg string, keysAndValues ...interface{}) {
+func WarnS(msg string, keysAndValues ...any) {
 	logger.WarnS(msg, keysAndValues...)
 }
 
 // ErrorS exposes the StructLogger implementation of the global logger.
-func ErrorS(err error, msg string, keysAndValues ...interface{}) {
+func ErrorS(err error, msg string, keysAndValues ...any) {
 	logger.ErrorS(err, msg, keysAndValues...)
 }
 
 // FatalS exposes the StructLogger implementation of the global logger.
-func FatalS(msg string, keysAndValues ...interface{}) {
+func FatalS(msg string, keysAndValues ...any) {
 	logger.FatalS(msg, keysAndValues...)
 }
 
 // Print exposes the PrinterLogger implementation of the global logger.
-func Print(args ...interface{}) {
+func Print(args ...any) {
 	logger.Print(args...)
 }
 
 // Printf exposes the PrinterLogger implementation of the global logger.
-func Printf(format string, args ...interface{}) {
+func Printf(format string, args ...any) {
 	logger.Printf(format, args...)
 }
 
 // PrintS exposes the PrinterLogger implementation of the global logger.
-func PrintS(msg string, keysAndValues ...interface{}) {
+func PrintS(msg string, keysAndValues ...any) {
 	logger.PrintS(msg, keysAndValues...)
 }
 
@@ -245,22 +245,22 @@ func WithName(name string) Logger {
 }
 
 // WithValues exposes the Logger implementation of the global logger.
-func WithValues(keysAndValues ...interface{}) Logger {
+func WithValues(keysAndValues ...any) Logger {
 	return logger.WithValues(keysAndValues)
 }
 
 // Warning exposes the LegacyLogger implementation of the global logger.
-func Warning(args ...interface{}) {
+func Warning(args ...any) {
 	logger.Warn(args...)
 }
 
 // Warningf exposes the LegacyLogger implementation of the global logger.
-func Warningf(format string, args ...interface{}) {
+func Warningf(format string, args ...any) {
 	logger.Warnf(format, args...)
 }
 
 // WarningS exposes the LegacyLogger implementation of the global logger.
-func WarningS(msg string, keysAndValues ...interface{}) {
+func WarningS(msg string, keysAndValues ...any) {
 	logger.WarnS(msg, keysAndValues...)
 }
 

@@ -51,7 +51,7 @@ func initializeFrom(defValue string) initializer {
 }
 
 // initializeFromJSON initializes with the given val as JSON.
-func initializeFromJSON(defValue interface{}) initializer {
+func initializeFromJSON(defValue any) initializer {
 	return func(id string) string {
 		v, err := json.Marshal(defValue)
 		if err != nil {

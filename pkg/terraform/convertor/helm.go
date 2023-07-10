@@ -51,7 +51,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 		// NB(alex) the config path should keep the same with the secret mount path in deployer.
 		configPath = k8sOpts.ConfigPath + "/" + util.GetK8sSecretName(connector.ID.String())
 		alias      = k8sOpts.ConnSeparator + connector.ID.String()
-		attributes = map[string]interface{}{
+		attributes = map[string]any{
 			"alias": alias,
 		}
 	)
@@ -79,7 +79,7 @@ func (m HelmConvertor) toBlock(connector *model.Connector, opts Options) (*block
 		}
 		k8sBlock = &block.Block{
 			Type: block.TypeK8s,
-			Attributes: map[string]interface{}{
+			Attributes: map[string]any{
 				"config_path": configPath,
 			},
 		}

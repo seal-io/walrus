@@ -14,14 +14,14 @@ type BodyParams struct {
 
 // BodyParam represents each field in body.
 type BodyParam struct {
-	Name        string      `json:"name,omitempty"`
-	Type        string      `json:"type,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Default     interface{} `json:"default,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Description string `json:"description,omitempty"`
+	Default     any    `json:"default,omitempty"`
 }
 
 // AddFlag adds a new option flag to a command's flag set for this body param.
-func (b BodyParam) AddFlag(flags *pflag.FlagSet) interface{} {
+func (b BodyParam) AddFlag(flags *pflag.FlagSet) any {
 	name := b.OptionName()
 
 	existed := flags.Lookup(name)

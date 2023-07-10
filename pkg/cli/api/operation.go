@@ -41,8 +41,8 @@ type Operation struct {
 // Command returns a Cobra command instance for this operation.
 func (o Operation) Command(sc *config.Config) *cobra.Command {
 	var (
-		body  interface{}
-		flags = map[string]interface{}{}
+		body  any
+		flags = map[string]any{}
 	)
 
 	use := o.Name
@@ -130,7 +130,7 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 				body = bp
 			}
 		case openapi3.TypeObject:
-			bps := make(map[string]interface{})
+			bps := make(map[string]any)
 			for _, p := range o.BodyParams.Params {
 				bps[p.Name] = p.AddFlag(sub.Flags())
 			}
@@ -149,8 +149,8 @@ func (o Operation) Command(sc *config.Config) *cobra.Command {
 func (o Operation) Request(
 	cmd *cobra.Command,
 	args []string,
-	flags map[string]interface{},
-	body interface{},
+	flags map[string]any,
+	body any,
 ) (*http.Request, error) {
 	// Replaces URL-encoded `{`+name+`}` in the uri.
 	uri := o.URITemplate

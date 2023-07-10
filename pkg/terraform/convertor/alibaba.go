@@ -38,7 +38,7 @@ func (m AlibabaConvertor) ToBlocks(connectors model.Connectors, opts Options) (b
 	return blocks, nil
 }
 
-func toCloudProviderBlock(label string, conn *model.Connector, opts interface{}) (*block.Block, error) {
+func toCloudProviderBlock(label string, conn *model.Connector, opts any) (*block.Block, error) {
 	convertOpts, ok := opts.(CloudProviderConvertorOptions)
 	if !ok {
 		return nil, errors.New("invalid options type")
@@ -46,7 +46,7 @@ func toCloudProviderBlock(label string, conn *model.Connector, opts interface{})
 
 	var (
 		alias      = convertOpts.ConnSeparator + conn.ID.String()
-		attributes = map[string]interface{}{
+		attributes = map[string]any{
 			"alias": alias,
 		}
 		err error

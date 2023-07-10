@@ -517,9 +517,9 @@ var (
 	}
 )
 
-func toSchemaExtension(resource, handle, path string) map[string]interface{} {
+func toSchemaExtension(resource, handle, path string) map[string]any {
 	var (
-		ext              = make(map[string]interface{})
+		ext              = make(map[string]any)
 		_, handleName, _ = strings.Cut(handle, ".")
 	)
 
@@ -597,7 +597,7 @@ var (
 					Value: openapi3.NewStringSchema(),
 				},
 			},
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				cliapi.ExtCliSchemaTypeName: "map[string]string",
 			},
 		},
@@ -610,7 +610,7 @@ var (
 					Value: openapi3.NewIntegerSchema(),
 				},
 			},
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				cliapi.ExtCliSchemaTypeName: "map[string]int",
 			},
 		},
@@ -623,7 +623,7 @@ var (
 					Value: openapi3.NewInt32Schema(),
 				},
 			},
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				cliapi.ExtCliSchemaTypeName: "map[string]int32",
 			},
 		},
@@ -636,7 +636,7 @@ var (
 					Value: openapi3.NewInt64Schema(),
 				},
 			},
-			Extensions: map[string]interface{}{
+			Extensions: map[string]any{
 				cliapi.ExtCliSchemaTypeName: "map[string]int64",
 			},
 		},

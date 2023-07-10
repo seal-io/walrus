@@ -13,7 +13,7 @@ func TestBlockEncodeToBytes(t *testing.T) {
 			block: &Block{
 				Type:   "resource",
 				Labels: []string{"aws_instance", "test"},
-				Attributes: map[string]interface{}{
+				Attributes: map[string]any{
 					"ami":           "ami-0c55b159cbfafe1f0",
 					"instance_type": "t2.micro",
 				},
@@ -28,7 +28,7 @@ func TestBlockEncodeToBytes(t *testing.T) {
 			block: &Block{
 				Type:   "provider",
 				Labels: []string{"aws"},
-				Attributes: map[string]interface{}{
+				Attributes: map[string]any{
 					"region": "us-east-1",
 				},
 			},
@@ -41,7 +41,7 @@ func TestBlockEncodeToBytes(t *testing.T) {
 			block: &Block{
 				Type:   "module",
 				Labels: []string{"mysql"},
-				Attributes: map[string]interface{}{
+				Attributes: map[string]any{
 					"source":   "github.com/terraform-aws-modules/terraform-aws-rds",
 					"username": "test",
 					"password": "test",
@@ -58,9 +58,9 @@ func TestBlockEncodeToBytes(t *testing.T) {
 			block: &Block{
 				Type:   "data",
 				Labels: []string{"aws_ami", "test"},
-				Attributes: map[string]interface{}{
+				Attributes: map[string]any{
 					"owners": []string{"amazon"},
-					"filter": map[string]interface{}{
+					"filter": map[string]any{
 						"name":   "name",
 						"values": []string{"amzn-ami-hvm-2018.03.0.20180409-x86_64-gp2"},
 					},
@@ -80,10 +80,10 @@ func TestBlockEncodeToBytes(t *testing.T) {
 			block: &Block{
 				Type:   "module",
 				Labels: []string{"mysql"},
-				Attributes: map[string]interface{}{
+				Attributes: map[string]any{
 					"source": "github.com/terraform-aws-modules/terraform-aws-rds",
-					"env": map[string]interface{}{
-						"test": map[string]interface{}{
+					"env": map[string]any{
+						"test": map[string]any{
 							"identifier": "test",
 						},
 					},
@@ -106,7 +106,7 @@ func TestBlockEncodeToBytes(t *testing.T) {
 				childBlocks: Blocks{
 					&Block{
 						Type: "kubernetes",
-						Attributes: map[string]interface{}{
+						Attributes: map[string]any{
 							"config_path": "~/.kube/config",
 						},
 					},

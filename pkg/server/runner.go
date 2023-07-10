@@ -539,7 +539,7 @@ func getModelClient(drvDialect string, drv *sql.DB) *model.Client {
 	logger := log.WithName("model")
 
 	return model.NewClient(
-		model.Log(func(args ...interface{}) { logger.Debug(args...) }),
+		model.Log(func(args ...any) { logger.Debug(args...) }),
 		model.Driver(entsql.NewDriver(drvDialect, entsql.Conn{ExecQuerier: drv})),
 	)
 }

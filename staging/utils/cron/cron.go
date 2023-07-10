@@ -17,11 +17,11 @@ type Task interface {
 	// Name return name for task.
 	Name() string
 	// Process executes the task main logic.
-	Process(ctx context.Context, args ...interface{}) error
+	Process(ctx context.Context, args ...any) error
 }
 
 // TaskFunc implements the Task interface to provide a convenient wrapper.
-type TaskFunc func(ctx context.Context, args ...interface{}) error
+type TaskFunc func(ctx context.Context, args ...any) error
 
 // Expr holds the definition of cron expression.
 type Expr interface {
@@ -37,12 +37,12 @@ var (
 )
 
 func init() {
-	gocron.SetPanicHandler(func(jobName string, recoverData interface{}) {
+	gocron.SetPanicHandler(func(jobName string, recoverData any) {
 		log.WithName("task").Errorf("panic in job: %s, recover data: %v", jobName, recoverData)
 	})
 }
 
-func (fn TaskFunc) Process(ctx context.Context, args ...interface{}) error {
+func (fn TaskFunc) Process(ctx context.Context, args ...any) error {
 	if fn == nil {
 		return nil
 	}
@@ -105,7 +105,7 @@ type Scheduler interface {
 	// Remove from scheduler if the given Expr is blank.
 	// If the given name job has found,
 	// Schedule updates it with the new Expr.
-	Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) error
+	Schedule(name string, cron Expr, task Task, taskArgs ...any) error
 	// Start starts scheduling.
 	Start(ctx context.Context) error
 	// Stop stops scheduling.
@@ -123,7 +123,7 @@ type timeoutTask struct {
 	task    Task
 }
 
-func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
+func (in timeoutTask) Process(ctx context.Context, args ...any) error {
 	logger := log.WithName("task")
 
 	ctx, cancel := context.WithTimeout(ctx, in.timeout)
@@ -151,7 +151,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 	if len(args) == 0 {
 		err = in.task.Process(ctx)
 	} else {
-		t, ok := args[0].([]interface{})
+		t, ok := args[0].([]any)
 		if !ok {
 			err = in.task.Process(ctx)
 		} else {
@@ -184,7 +184,7 @@ func (in timeoutTask) Process(ctx context.Context, args ...interface{}) error {
 
 type emptyVariadicList struct{}
 
-func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) (err error) {
+func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...any) (err error) {
 	ce := cron.String()
 
 	ceParsed, err := parseCronExpr(ce, false)
@@ -236,7 +236,7 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 		task:    task,
 	}
 
-	var variadicArgs interface{}
+	var variadicArgs any
 	if len(taskArgs) == 0 {
 		variadicArgs = emptyVariadicList{}
 	} else {
@@ -281,12 +281,12 @@ func New() Scheduler {
 // Remove from scheduler if the given Expr is blank.
 // If the given name task has found,
 // Schedule updates it with the new Expr.
-func Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) error {
+func Schedule(name string, cron Expr, task Task, taskArgs ...any) error {
 	return globalScheduler.Schedule(name, cron, task, taskArgs...)
 }
 
 // MustSchedule likes Schedule, but panic if error found.
-func MustSchedule(name string, cron Expr, task Task, taskArgs ...interface{}) {
+func MustSchedule(name string, cron Expr, task Task, taskArgs ...any) {
 	err := Schedule(name, cron, task, taskArgs...)
 	if err != nil {
 		panic(err)

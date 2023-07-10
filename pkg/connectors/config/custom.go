@@ -12,14 +12,14 @@ import (
 // E.g. A custom helm connector
 //
 //	configData := CustomConfig{
-//		Attributes: map[string]interface{}{
+//		Attributes: map[string]any{
 //			"access_url": "http://localhost:8080",
 //		},
 //		Dependencies: []Dependency{
 //			{
 //				Type: "kubernetes",
 //				Label: []string{},
-//				Attributes: map[string]interface{}{
+//				Attributes: map[string]any{
 //					"config_path": "/home/user/.kube/config",
 //				},
 //			},
@@ -37,7 +37,7 @@ import (
 type CustomConfig struct {
 	// Attributes is the custom connector attribute
 	// e.g. access_key, secret_key, etc.
-	Attributes map[string]interface{} `json:"attributes"`
+	Attributes map[string]any `json:"attributes"`
 
 	// TODO add block support, some custom connector may need Dependencies(blocks)
 	// Dependencies is the dependencies of the custom connector.
@@ -46,9 +46,9 @@ type CustomConfig struct {
 
 // Dependency is the dependency of a custom connector.
 type Dependency struct {
-	Type       string                 `json:"type"`
-	Label      []string               `json:"label"`
-	Attributes map[string]interface{} `json:"attributes"`
+	Type       string         `json:"type"`
+	Label      []string       `json:"label"`
+	Attributes map[string]any `json:"attributes"`
 
 	Children []Dependency `json:"children"`
 }
@@ -60,7 +60,7 @@ func LoadCustomConfig(c *model.Connector) (*CustomConfig, error) {
 	}
 
 	cc := &CustomConfig{
-		Attributes: make(map[string]interface{}),
+		Attributes: make(map[string]any),
 	}
 	for k, d := range c.ConfigData {
 		cc.Attributes[k] = d.Value

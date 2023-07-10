@@ -34,7 +34,7 @@ type Hub interface {
 }
 
 // Message defines the message to be transferred.
-type Message interface{}
+type Message any
 
 // Topic defines the name of the Subscriber.
 type Topic string
