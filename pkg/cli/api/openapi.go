@@ -287,18 +287,18 @@ func schemaType(s *openapi3.Schema) (string, string, interface{}) {
 	switch {
 	case extType != "":
 		typ = extType
-	case s.Type == "array":
-		typ = "array[object]"
+	case s.Type == openapi3.TypeArray:
+		typ = ValueTypeArrayObject
 
 		if s.Items != nil && s.Items.Value != nil {
 			typ = fmt.Sprintf("array[%s]", s.Items.Value.Type)
 			des = s.Items.Value.Description
 			def = s.Items.Value.Default
 		}
-	case s.Type == "object":
+	case s.Type == openapi3.TypeObject:
 		// Only id.
 		if _, ok := s.Properties["id"]; ok && len(s.Properties) == 1 {
-			typ = "objectID"
+			typ = ValueTypeObjectID
 		}
 	}
 
