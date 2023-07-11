@@ -139,61 +139,61 @@ func AddFlag(name, schemaType, description string, value interface{}, flags *pfl
 		}
 
 		return flags.String(name, def, description)
-	case "map[string]string":
+	case ValueTypeMapStringString:
 		var def map[string]string
 		if value != nil {
 			def = value.(map[string]string)
 		}
 
 		return flags.StringToString(name, def, description)
-	case "map[string]int":
+	case ValueTypeMapStringInt:
 		var def map[string]int
 		if value != nil {
 			def, _ = value.(map[string]int)
 		}
 
 		return flags.StringToInt(name, def, description)
-	case "map[string]int64", "map[string]int32":
+	case ValueTypeMapStringInt64, ValueTypeMapStringInt32:
 		var def map[string]int64
 		if value != nil {
 			def, _ = value.(map[string]int64)
 		}
 
 		return flags.StringToInt64(name, def, description)
-	case "array[boolean]":
+	case ValueTypeArrayBoolean:
 		var def []bool
 		if value != nil {
 			def = value.([]bool)
 		}
 
 		return flags.BoolSlice(name, def, description)
-	case "array[integer]":
+	case ValueTypeArrayInt:
 		var def []int
 		if value != nil {
 			def = value.([]int)
 		}
 
 		return flags.IntSlice(name, def, description)
-	case "array[number]":
+	case ValueTypeArrayNumber:
 		var def []float64
 		if value != nil {
 			def = value.([]float64)
 		}
 
 		return flags.Float64Slice(name, def, description)
-	case "array[string]":
+	case ValueTypeArrayString:
 		var def []string
 		if value != nil {
 			def = value.([]string)
 		}
 
 		return flags.StringSlice(name, def, description)
-	case "array[object]":
+	case ValueTypeArrayObject:
 		ao := &ArrayObjectFlag{}
 		flags.Var(ao, name, description)
 
 		return ao
-	case "objectID":
+	case ValueTypeObjectID:
 		name := fmt.Sprintf("%s-id", name)
 
 		existed := flags.Lookup(name)

@@ -47,7 +47,7 @@ func (p Param) Serialize(value interface{}) []string {
 	}
 
 	switch p.Type {
-	case "boolean", "integer", "number", "string":
+	case openapi3.TypeBoolean, openapi3.TypeInteger, openapi3.TypeNumber, openapi3.TypeString:
 		switch p.Style {
 		case openapi3.SerializationForm:
 			return []string{fmt.Sprintf("%s=%v", p.Name, value)}
@@ -55,7 +55,7 @@ func (p Param) Serialize(value interface{}) []string {
 			return []string{fmt.Sprintf("%v", value)}
 		}
 
-	case "array[boolean]", "array[integer]", "array[number]", "array[string]":
+	case ValueTypeArrayBoolean, ValueTypeArrayInt, ValueTypeArrayNumber, ValueTypeArrayString:
 		var encoded []string
 
 		switch p.Style {

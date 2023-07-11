@@ -598,7 +598,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: "map[string]string",
+				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringString,
 			},
 		},
 	}
@@ -611,7 +611,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: "map[string]int",
+				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt,
 			},
 		},
 	}
@@ -624,7 +624,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: "map[string]int32",
+				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt32,
 			},
 		},
 	}
@@ -637,7 +637,7 @@ var (
 				},
 			},
 			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: "map[string]int64",
+				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt64,
 			},
 		},
 	}
