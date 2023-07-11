@@ -199,37 +199,24 @@ func serviceRelationshipUpdateDependants(ctx context.Context, mc model.ClientSet
 
 	newPostDependencies := make([]*model.ServiceRelationship, 0, len(s.Edges.Dependencies))
 
-	if len(s.Edges.Dependencies) == 0 {
-		for _, sd := range postDependencies {
-			path := serviceRelationshipGetDependantPath(s.ID, sd.Path)
+	for _, sd := range s.Edges.Dependencies {
+		for _, osd := range postDependencies {
+			path := make([]oid.ID, len(sd.Path)-1, len(sd.Path)+len(osd.Path))
+			copy(path, sd.Path[:len(sd.Path)-1])
+			path = append(path, serviceRelationshipGetDependantPath(s.ID, osd.Path)...)
 
-			newPostDependencies = append(newPostDependencies, &model.ServiceRelationship{
-				ServiceID:    sd.ServiceID,
-				DependencyID: s.ID,
+			newDependency := &model.ServiceRelationship{
+				ServiceID:    osd.ServiceID,
+				DependencyID: osd.DependencyID,
 				Type:         types.ServiceRelationshipTypeImplicit,
 				Path:         path,
-			})
-		}
-	} else {
-		for _, sd := range s.Edges.Dependencies {
-			for _, osd := range postDependencies {
-				path := make([]oid.ID, len(sd.Path)-1, len(sd.Path)+len(osd.Path))
-				copy(path, sd.Path[:len(sd.Path)-1])
-				path = append(path, serviceRelationshipGetDependantPath(s.ID, osd.Path)...)
-
-				newDependency := &model.ServiceRelationship{
-					ServiceID:    osd.ServiceID,
-					DependencyID: sd.ServiceID,
-					Type:         types.ServiceRelationshipTypeImplicit,
-					Path:         path,
-				}
-
-				if existCycle := ServiceRelationshipCheckCycle(newDependency); existCycle {
-					return errors.New("service dependency contains cycle")
-				}
-
-				newPostDependencies = append(newPostDependencies, newDependency)
 			}
+
+			if existCycle := ServiceRelationshipCheckCycle(newDependency); existCycle {
+				return errors.New("service dependency contains cycle")
+			}
+
+			newPostDependencies = append(newPostDependencies, newDependency)
 		}
 	}
 
