@@ -41,8 +41,6 @@ type ServiceCreateInput struct {
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
-	// Dependencies holds the value of the dependencies edge.
-	Dependencies []*ServiceRelationshipCreateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceCreateInput to Service.
@@ -55,12 +53,6 @@ func (in ServiceCreateInput) Model() *Service {
 		Attributes:  in.Attributes,
 	}
 	entity.EnvironmentID = in.Environment.ID
-	for i := 0; i < len(in.Dependencies); i++ {
-		if in.Dependencies[i] == nil {
-			continue
-		}
-		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
-	}
 	return entity
 }
 
@@ -78,8 +70,6 @@ type ServiceUpdateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
-	// Dependencies holds the value of the dependencies edge.
-	Dependencies []*ServiceRelationshipUpdateInput `json:"dependencies,omitempty"`
 }
 
 // Model converts the ServiceUpdateInput to Service.
@@ -91,12 +81,6 @@ func (in ServiceUpdateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
-	}
-	for i := 0; i < len(in.Dependencies); i++ {
-		if in.Dependencies[i] == nil {
-			continue
-		}
-		entity.Edges.Dependencies = append(entity.Edges.Dependencies, in.Dependencies[i].Model())
 	}
 	return entity
 }
@@ -125,8 +109,6 @@ type ServiceOutput struct {
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Environment to which the service belongs.
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
-	// Dependencies holds the value of the dependencies edge.
-	Dependencies []*ServiceRelationshipOutput `json:"dependencies,omitempty"`
 }
 
 // ExposeService converts the Service to ServiceOutput.
@@ -135,18 +117,17 @@ func ExposeService(in *Service) *ServiceOutput {
 		return nil
 	}
 	var entity = &ServiceOutput{
-		ID:           in.ID,
-		Name:         in.Name,
-		Description:  in.Description,
-		Labels:       in.Labels,
-		CreateTime:   in.CreateTime,
-		UpdateTime:   in.UpdateTime,
-		Status:       in.Status,
-		Template:     in.Template,
-		Attributes:   in.Attributes,
-		Project:      ExposeProject(in.Edges.Project),
-		Environment:  ExposeEnvironment(in.Edges.Environment),
-		Dependencies: ExposeServiceRelationships(in.Edges.Dependencies),
+		ID:          in.ID,
+		Name:        in.Name,
+		Description: in.Description,
+		Labels:      in.Labels,
+		CreateTime:  in.CreateTime,
+		UpdateTime:  in.UpdateTime,
+		Status:      in.Status,
+		Template:    in.Template,
+		Attributes:  in.Attributes,
+		Project:     ExposeProject(in.Edges.Project),
+		Environment: ExposeEnvironment(in.Edges.Environment),
 	}
 	if in.ProjectID != "" {
 		if entity.Project == nil {
