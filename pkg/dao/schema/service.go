@@ -83,6 +83,8 @@ func (Service) Edges() []ent.Edge {
 		edge.To("dependencies", Service.Type).
 			StructTag(`json:"dependencies,omitempty" sql:"dependencies"`).
 			Comment("Dependency services that belong to the service.").
-			Through("serviceRelationships", ServiceRelationship.Type),
+			Through("serviceRelationships", ServiceRelationship.Type).
+			Annotations(
+				io.Disable()),
 	}
 }
