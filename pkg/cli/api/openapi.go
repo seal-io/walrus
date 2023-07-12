@@ -223,6 +223,10 @@ func toBodyParams(bodyRef *openapi3.RequestBodyRef, comps *openapi3.Components) 
 				continue
 			}
 
+			if isIgnore(ps.Extensions) {
+				continue
+			}
+
 			typ, des, def := schemaType(ps)
 			bp := &BodyParam{
 				Name:        n,

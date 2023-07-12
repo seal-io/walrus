@@ -25,7 +25,8 @@ import (
 type CreateRequest struct {
 	model.EnvironmentCreateInput `json:",inline"`
 
-	Services []model.ServiceCreateInput `json:"services"`
+	//nolint:staticcheck
+	Services []model.ServiceCreateInput `json:"services,cli-ignore"`
 
 	// Project id and project name are used in permission checking.
 	ProjectID   oid.ID `query:"projectID,omitempty"`
