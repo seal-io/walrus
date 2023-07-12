@@ -239,6 +239,8 @@ func toSchemaRequestBody(r route, ip *InputProfile) *openapi3.RequestBodyRef {
 			if schema == nil {
 				schema = openapi3.NewObjectSchema()
 			}
+			schema.Extensions = ip.Extension
+
 			content[contentType] = &openapi3.MediaType{
 				Schema: schema.NewRef(),
 			}
@@ -589,59 +591,43 @@ var basicSchemas = map[string]*openapi3.Schema{
 }
 
 var (
-	stringToStringSchema = &openapi3.SchemaRef{
-		Value: &openapi3.Schema{
-			Type: "object",
-			AdditionalProperties: openapi3.AdditionalProperties{
-				Schema: &openapi3.SchemaRef{
-					Value: openapi3.NewStringSchema(),
-				},
-			},
-			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringString,
-			},
-		},
+	stringToStringSchema = func(ext map[string]any) *openapi3.SchemaRef {
+		return mapSchema(cliapi.ValueTypeMapStringString, openapi3.NewStringSchema(), ext)
 	}
-	stringToIntSchema = &openapi3.SchemaRef{
-		Value: &openapi3.Schema{
-			Type: "object",
-			AdditionalProperties: openapi3.AdditionalProperties{
-				Schema: &openapi3.SchemaRef{
-					Value: openapi3.NewIntegerSchema(),
-				},
-			},
-			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt,
-			},
-		},
+
+	stringToIntSchema = func(ext map[string]any) *openapi3.SchemaRef {
+		return mapSchema(cliapi.ValueTypeMapStringInt, openapi3.NewIntegerSchema(), ext)
 	}
-	stringToInt32Schema = &openapi3.SchemaRef{
-		Value: &openapi3.Schema{
-			Type: "object",
-			AdditionalProperties: openapi3.AdditionalProperties{
-				Schema: &openapi3.SchemaRef{
-					Value: openapi3.NewInt32Schema(),
-				},
-			},
-			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt32,
-			},
-		},
+
+	stringToInt32Schema = func(ext map[string]any) *openapi3.SchemaRef {
+		return mapSchema(cliapi.ValueTypeMapStringInt32, openapi3.NewInt32Schema(), ext)
 	}
-	stringToInt64Schema = &openapi3.SchemaRef{
-		Value: &openapi3.Schema{
-			Type: "object",
-			AdditionalProperties: openapi3.AdditionalProperties{
-				Schema: &openapi3.SchemaRef{
-					Value: openapi3.NewInt64Schema(),
-				},
-			},
-			Extensions: map[string]interface{}{
-				cliapi.ExtCliSchemaTypeName: cliapi.ValueTypeMapStringInt64,
-			},
-		},
+
+	stringToInt64Schema = func(ext map[string]any) *openapi3.SchemaRef {
+		return mapSchema(cliapi.ValueTypeMapStringInt64, openapi3.NewInt64Schema(), ext)
 	}
 )
+
+func mapSchema(valueType string, valueSchema *openapi3.Schema, ext map[string]any) *openapi3.SchemaRef {
+	extension := map[string]any{
+		cliapi.ExtCliSchemaTypeName: valueType,
+	}
+	for k, v := range ext {
+		extension[k] = v
+	}
+
+	return &openapi3.SchemaRef{
+		Value: &openapi3.Schema{
+			Type: "object",
+			AdditionalProperties: openapi3.AdditionalProperties{
+				Schema: &openapi3.SchemaRef{
+					Value: valueSchema,
+				},
+			},
+			Extensions: extension,
+		},
+	}
+}
 
 func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil {
@@ -650,12 +636,13 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 	switch prop.Type {
 	default:
-		return openapi3.NewObjectSchema().NewRef()
+		schema := newObjectSchema(prop.Extension)
+		return schema.NewRef()
 	case ProfileTypeBasic:
-		return basicSchemas[prop.TypeDescriptor].NewRef()
+		return getBasicSchemas(prop.TypeDescriptor, prop.Extension).NewRef()
 	case ProfileTypeArray:
-		schema, exist := basicSchemas[prop.TypeDescriptor]
-		if exist {
+		schema := getBasicSchemas(prop.TypeDescriptor, prop.Extension)
+		if schema != nil {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
 			if prop.TypeArrayLength != 0 {
@@ -671,7 +658,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 	switch prop.TypeDescriptor {
 	case "object":
-		schema := openapi3.NewObjectSchema()
+		schema := newObjectSchema(prop.Extension)
 		if prop.Type == ProfileTypeArray {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
@@ -684,15 +671,16 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 		return schema.NewRef()
 	case "array":
-		schema := openapi3.NewObjectSchema().NewRef()
+		schema := newObjectSchema(prop.Extension).NewRef()
 		if len(prop.Properties) == 1 {
 			schema = toSchemaSchema(category, &prop.Properties[0])
 		}
 
 		if prop.Type == ProfileTypeArray {
 			s := openapi3.Schema{
-				Type:  openapi3.TypeArray,
-				Items: schema,
+				Type:       openapi3.TypeArray,
+				Items:      schema,
+				Extensions: prop.Extension,
 			}
 
 			if prop.TypeArrayLength != 0 {
@@ -703,8 +691,10 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 			return s.NewRef()
 		}
+
+		return schema
 	case "map[string]string":
-		schema := stringToStringSchema.Value
+		schema := stringToStringSchema(prop.Extension).Value
 		if prop.Type == ProfileTypeArray {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
@@ -717,7 +707,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 		return schema.NewRef()
 	case "map[string]int":
-		schema := stringToIntSchema.Value
+		schema := stringToIntSchema(prop.Extension).Value
 		if prop.Type == ProfileTypeArray {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
@@ -730,7 +720,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 		return schema.NewRef()
 	case "map[string]int32":
-		schema := stringToInt32Schema.Value
+		schema := stringToInt32Schema(prop.Extension).Value
 		if prop.Type == ProfileTypeArray {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
@@ -743,7 +733,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 		return schema.NewRef()
 	case "map[string]int64":
-		schema := stringToInt64Schema.Value
+		schema := stringToInt64Schema(prop.Extension).Value
 		if prop.Type == ProfileTypeArray {
 			schema = openapi3.NewArraySchema().WithItems(schema)
 
@@ -764,6 +754,8 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 
 	if prop.TypeRefer {
 		schema := openapi3.NewSchemaRef("#/components/schemas/"+schemaID, openapi3.NewSchema())
+		schema.Value.Extensions = prop.Extension
+
 		if prop.Type == ProfileTypeArray {
 			schema = &openapi3.SchemaRef{
 				Value: &openapi3.Schema{
@@ -805,11 +797,13 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 	}
 
 	schema := openapi3.NewSchemaRef("#/components/schemas/"+schemaID, namedSchema)
+
 	if prop.Type == ProfileTypeArray {
 		schema = &openapi3.SchemaRef{
 			Value: &openapi3.Schema{
-				Type:  openapi3.TypeArray,
-				Items: schema,
+				Type:       openapi3.TypeArray,
+				Items:      schema,
+				Extensions: prop.Extension,
 			},
 		}
 
@@ -878,4 +872,22 @@ var injectProjectQueryParameter = map[string]*openapi3.ParameterRef{
 			Schema:   basicSchemas["string"].NewRef(),
 		},
 	},
+}
+
+func newObjectSchema(ext map[string]any) *openapi3.Schema {
+	s := openapi3.NewObjectSchema()
+	s.Extensions = ext
+
+	return s
+}
+
+func getBasicSchemas(typeDescriptor string, ext map[string]any) *openapi3.Schema {
+	schema := basicSchemas[typeDescriptor]
+	if schema == nil {
+		return nil
+	}
+
+	schema.Extensions = ext
+
+	return schema
 }

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 	"reflect"
@@ -86,6 +87,8 @@ type ProfileProperty struct {
 	TypeRefer bool
 	// Properties stores the properties of the type.
 	Properties []ProfileProperty
+	// Extension stores extra data, like cli config.
+	Extension map[string]any
 }
 
 // State returns the state to describe what categories the ProfileProperty have.
@@ -310,6 +313,7 @@ func getProfileProperty(
 		Name:           name,
 		Type:           ProfileTypeBasic,
 		TypeDescriptor: t.String(),
+		Extension:      getProfilePropertyExtension(attrs),
 	}
 
 	// Well known basic type.
@@ -523,4 +527,17 @@ func decodeTypePointer(t reflect.Type) reflect.Type {
 	}
 
 	return t
+}
+
+func getProfilePropertyExtension(attrs []string) map[string]any {
+	ext := make(map[string]any)
+
+	for _, v := range attrs {
+		if strings.HasPrefix(v, "cli") {
+			key := fmt.Sprintf("x-%s", v)
+			ext[key] = true
+		}
+	}
+
+	return ext
 }
