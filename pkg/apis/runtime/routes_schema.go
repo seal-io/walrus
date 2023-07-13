@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
+// OpenAPI generate OpenAPI schema.
 func OpenAPI(i *openapi3.Info) openapi3.T {
 	sc := *spec
 	if i != nil {
@@ -37,6 +38,7 @@ var spec = &openapi3.T{
 	},
 }
 
+// getSchemaResponseHTTPs returns all supported http status code.
 func getSchemaResponseHTTPs() []int {
 	return []int{
 		http.StatusNoContent,
@@ -58,6 +60,7 @@ func getSchemaResponseHTTPs() []int {
 	}
 }
 
+// getSchemaHTTPResponses return openapi3.Responses with all supported http status code.
 func getSchemaHTTPResponses() openapi3.Responses {
 	httpc := getSchemaResponseHTTPs()
 	resps := openapi3.Responses{}
@@ -86,6 +89,7 @@ func getSchemaHTTPResponses() openapi3.Responses {
 	return resps
 }
 
+// schemeRoute register route to schema.
 func schemeRoute(resource, handle, method, path string, ip *InputProfile, op *OutputProfile) {
 	switch method {
 	case http.MethodPost:
@@ -99,6 +103,7 @@ func schemeRoute(resource, handle, method, path string, ip *InputProfile, op *Ou
 	}
 }
 
+// toSchemaPath convert path to openapi3.PathItem.
 func toSchemaPath(path string) *openapi3.PathItem {
 	paths := strings.Split(path, "/")
 	for i := range paths {
@@ -120,6 +125,7 @@ func toSchemaPath(path string) *openapi3.PathItem {
 	return spec.Paths[path]
 }
 
+// toSchemaOperation generate openapi3.Operation from handler and resource.
 func toSchemaOperation(
 	resource,
 	handle,
@@ -154,6 +160,7 @@ func toSchemaOperation(
 	return o
 }
 
+// toSchemaParameters generate openapi3.Parameters from InputProfile.
 func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 	if ip == nil {
 		return nil
@@ -195,7 +202,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 				In:       in,
 				Name:     props[i].Name,
 				Required: props[i].Required,
-				Schema:   toSchemaSchema(ProfileCategoryQuery, &props[i]),
+				Schema:   profilePropertyToSchema(ProfileCategoryQuery, &props[i]),
 			},
 		}
 		params = append(params, param)
@@ -213,6 +220,7 @@ func toSchemaParameters(r route, ip *InputProfile) []*openapi3.ParameterRef {
 	return params
 }
 
+// toSchemaRequestBody generate openapi3.RequestBody from InputProfile.
 func toSchemaRequestBody(r route, ip *InputProfile) *openapi3.RequestBodyRef {
 	if r.method == http.MethodGet || ip == nil {
 		return nil
@@ -247,7 +255,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *openapi3.RequestBodyRef {
 		}
 
 		if len(props) == 1 && ip.Type == ProfileTypeArray {
-			schema := toSchemaSchema(category, &props[0])
+			schema := profilePropertyToSchema(category, &props[0])
 			if schema != nil {
 				content[contentType] = &openapi3.MediaType{
 					Schema: schema,
@@ -291,6 +299,7 @@ func toSchemaRequestBody(r route, ip *InputProfile) *openapi3.RequestBodyRef {
 	return req
 }
 
+// toSchemaResponses generate openapi3.Responses from OutputProfile.
 func toSchemaResponses(r route, op *OutputProfile) map[string]*openapi3.ResponseRef {
 	c := http.StatusOK
 	if r.method == http.MethodPost {
@@ -312,6 +321,7 @@ func toSchemaResponses(r route, op *OutputProfile) map[string]*openapi3.Response
 	}
 }
 
+// toSchemaResponse generate openapi3.Response from OutputProfile.
 func toSchemaResponse(_ route, op *OutputProfile) *openapi3.Response {
 	if op == nil {
 		return nil
@@ -338,7 +348,7 @@ func toSchemaResponse(_ route, op *OutputProfile) *openapi3.Response {
 
 		if len(props) == 1 && (op.Type == ProfileTypeArray || op.TypeDescriptor == "render.Render") {
 			content[contentType] = &openapi3.MediaType{
-				Schema: toSchemaSchema(category, &props[0]),
+				Schema: profilePropertyToSchema(category, &props[0]),
 			}
 
 			continue
@@ -411,14 +421,16 @@ func toSchemaResponse(_ route, op *OutputProfile) *openapi3.Response {
 	return resp
 }
 
+// toSchemaProperty generate openapi3.SchemaRef from ProfileProperty.
 func toSchemaProperty(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil || prop.Name == "" {
 		return nil
 	}
 
-	return toSchemaSchema(category, prop)
+	return profilePropertyToSchema(category, prop)
 }
 
+// toSchemaSummary generate summary from resource, handle and method.
 func toSchemaSummary(resource, handle, method string) string {
 	var summary, subresource, handleName string
 
@@ -495,6 +507,7 @@ func toSchemaSummary(resource, handle, method string) string {
 }
 
 var (
+	// CliIgnoreResources is a list of resources to ignore when generating CLI commands.
 	cliIgnoreResources = []string{
 		"subjects",
 		"tokens",
@@ -503,6 +516,7 @@ var (
 		"templateCompletions",
 		"costs",
 	}
+	// CliIgnorePaths is a list of paths to ignore when generating CLI commands.
 	cliIgnorePaths = []string{
 		"/service-revisions/:id/terraform-states",
 		"/connectors/:id/repositories",
@@ -513,12 +527,14 @@ var (
 		"/service-resources/:id/keys",
 		"/service-resources/_/graph",
 	}
+	// CliJsonYamlOutputFormatPaths is a list of paths that should be output as JSON/YAML.
 	cliJsonYamlOutputFormatPaths = []string{
 		"/service-revisions/:id/diff-latest",
 		"/service-revisions/:id/diff-previous",
 	}
 )
 
+// toSchemaExtension returns the OpenAPI schema extension for the given resource, handle and path.
 func toSchemaExtension(resource, handle, path string) map[string]interface{} {
 	var (
 		ext              = make(map[string]interface{})
@@ -566,6 +582,7 @@ func toSchemaExtension(resource, handle, path string) map[string]interface{} {
 	return ext
 }
 
+// basicSchemas is a map of supported types to OpenAPI schemas.
 var basicSchemas = map[string]*openapi3.Schema{
 	"bool":                 openapi3.NewBoolSchema(),
 	"string":               openapi3.NewStringSchema(),
@@ -591,23 +608,28 @@ var basicSchemas = map[string]*openapi3.Schema{
 }
 
 var (
+	// StringToStringSchema is the OpenAPI schema for a map with string value type.
 	stringToStringSchema = func(ext map[string]any) *openapi3.SchemaRef {
 		return mapSchema(cliapi.ValueTypeMapStringString, openapi3.NewStringSchema(), ext)
 	}
 
+	// StringToIntSchema is the OpenAPI schema for a map with int value type.
 	stringToIntSchema = func(ext map[string]any) *openapi3.SchemaRef {
 		return mapSchema(cliapi.ValueTypeMapStringInt, openapi3.NewIntegerSchema(), ext)
 	}
 
+	// StringToInt32Schema is the OpenAPI schema for a map with int32 value type.
 	stringToInt32Schema = func(ext map[string]any) *openapi3.SchemaRef {
 		return mapSchema(cliapi.ValueTypeMapStringInt32, openapi3.NewInt32Schema(), ext)
 	}
 
+	// StringToInt64Schema is the OpenAPI schema for a map with int64 value type.
 	stringToInt64Schema = func(ext map[string]any) *openapi3.SchemaRef {
 		return mapSchema(cliapi.ValueTypeMapStringInt64, openapi3.NewInt64Schema(), ext)
 	}
 )
 
+// mapSchema generates an OpenAPI schema for a map with different value type.
 func mapSchema(valueType string, valueSchema *openapi3.Schema, ext map[string]any) *openapi3.SchemaRef {
 	extension := map[string]any{
 		cliapi.ExtCliSchemaTypeName: valueType,
@@ -629,7 +651,8 @@ func mapSchema(valueType string, valueSchema *openapi3.Schema, ext map[string]an
 	}
 }
 
-func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef {
+// profilePropertyToSchema converts a ProfileProperty to an OpenAPI schema.
+func profilePropertyToSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef {
 	if prop == nil {
 		return nil
 	}
@@ -673,7 +696,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 	case "array":
 		schema := newObjectSchema(prop.Extension).NewRef()
 		if len(prop.Properties) == 1 {
-			schema = toSchemaSchema(category, &prop.Properties[0])
+			schema = profilePropertyToSchema(category, &prop.Properties[0])
 		}
 
 		if prop.Type == ProfileTypeArray {
@@ -817,6 +840,7 @@ func toSchemaSchema(category string, prop *ProfileProperty) *openapi3.SchemaRef 
 	return schema
 }
 
+// getRoute returns a route object from method and path.
 func getRoute(method, path string) route {
 	pathParams := sets.Set[string]{}
 
@@ -855,6 +879,7 @@ var injectProjectQueryPath = sets.NewString(
 	"/services/:id/upgrade",
 )
 
+// injectProjectQueryParameter is a map for project id and project name query parameter.
 var injectProjectQueryParameter = map[string]*openapi3.ParameterRef{
 	"projectID": {
 		Value: &openapi3.Parameter{
@@ -874,6 +899,7 @@ var injectProjectQueryParameter = map[string]*openapi3.ParameterRef{
 	},
 }
 
+// newObjectSchema returns a new object schema with extension.
 func newObjectSchema(ext map[string]any) *openapi3.Schema {
 	s := openapi3.NewObjectSchema()
 	s.Extensions = ext
@@ -881,6 +907,7 @@ func newObjectSchema(ext map[string]any) *openapi3.Schema {
 	return s
 }
 
+// getBasicSchemas returns a basic schema with type and extension.
 func getBasicSchemas(typeDescriptor string, ext map[string]any) *openapi3.Schema {
 	schema := basicSchemas[typeDescriptor]
 	if schema == nil {
