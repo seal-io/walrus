@@ -23,6 +23,7 @@ import (
 	"k8s.io/klog"
 	klogv2 "k8s.io/klog/v2"
 
+	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/consts"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -64,6 +65,11 @@ type Server struct {
 	DataSourceConnMaxLife    time.Duration
 	DataSourceDataEncryptAlg string
 	DataSourceDataEncryptKey []byte
+
+	CacheSourceAddress     string
+	CacheSourceConnMaxOpen int
+	CacheSourceConnMaxIdle int
+	CacheSourceMaxLife     time.Duration
 
 	EnableAuthn         bool
 	AuthnSessionMaxIdle time.Duration
@@ -228,11 +234,7 @@ func (r *Server) Flags(cmd *cli.Command) {
 		&cli.StringFlag{
 			Name: "data-source-address",
 			Usage: "The addresses for connecting data source, e.g. " +
-				"Postgres(postgres://[username[:password]@][protocol[(address)]]/dbname" +
-				"[?param1=value1&...&paramN=valueN]), " +
-				"MySQL(mysql://[username[:password]@][protocol[(address)]]/dbname" +
-				"[?param1=value1&...&paramN=valueN]), " +
-				"SQLite3(file:dbpath[?param1=value1&...&paramN=valueN]).",
+				"Postgres(postgres://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN]).",
 			Destination: &r.DataSourceAddress,
 			Value:       r.DataSourceAddress,
 		},
@@ -284,6 +286,33 @@ func (r *Server) Flags(cmd *cli.Command) {
 				r.DataSourceDataEncryptAlg, r.DataSourceDataEncryptKey = alg, key
 				return nil
 			},
+		},
+		&cli.StringFlag{
+			Name: "cache-source-address",
+			Usage: "The addresses for connecting cache source, e.g. " +
+				"Redis(redis://[username[:password]@]host[:port]/dbname[?param1=value1&...&paramN=valueN]), " +
+				"Redis Cluster(rediss://[username[:password]@]host[:port]?addr=host2[:port2]&addr=host3" +
+				"[:port3][&param1=value1&...&paramN=valueN]).",
+			Destination: &r.CacheSourceAddress,
+			Value:       r.CacheSourceAddress,
+		},
+		&cli.IntFlag{
+			Name:        "cache-source-conn-max-open",
+			Usage:       "The maximum opening connections for connecting cache source.",
+			Destination: &r.CacheSourceConnMaxOpen,
+			Value:       r.CacheSourceConnMaxOpen,
+		},
+		&cli.IntFlag{
+			Name:        "cache-source-conn-max-idle",
+			Usage:       "The maximum idling connections for connecting cache source.",
+			Destination: &r.CacheSourceConnMaxIdle,
+			Value:       r.CacheSourceConnMaxIdle,
+		},
+		&cli.DurationFlag{
+			Name:        "cache-source-conn-max-life",
+			Usage:       "The maximum lifetime for connecting cache source.",
+			Destination: &r.CacheSourceMaxLife,
+			Value:       r.CacheSourceMaxLife,
 		},
 		&cli.BoolFlag{
 			Name:        "enable-authn",
@@ -371,6 +400,7 @@ func (r *Server) Run(c context.Context) error {
 			return fmt.Errorf("error getting embedded kubernetes config: %w", err)
 		}
 	}
+
 	// Wait kubernetes to be ready.
 	if err = k8s.Wait(ctx, k8sCfg); err != nil {
 		return fmt.Errorf("error waiting kubernetes cluster ready: %w", err)
@@ -400,6 +430,7 @@ func (r *Server) Run(c context.Context) error {
 			return fmt.Errorf("error getting embedded database driver: %w", err)
 		}
 	}
+
 	// Wait database to be ready.
 	if err = rds.Wait(ctx, rdsDrv); err != nil {
 		return fmt.Errorf("error waiting database ready: %w", err)
@@ -407,8 +438,24 @@ func (r *Server) Run(c context.Context) error {
 
 	r.setDataSourceDriver(rdsDrv)
 
+	// Load cache driver if needed.
+	var cacheDrv cache.Driver
+	if r.CacheSourceAddress != "" {
+		_, cacheDrv, err = cache.LoadDriver(r.CacheSourceAddress)
+		if err != nil {
+			return fmt.Errorf("error loading cache driver: %w", err)
+		}
+
+		r.setCacheDriver(cacheDrv)
+
+		// Wait cache to be ready.
+		if err = cache.Wait(ctx, cacheDrv); err != nil {
+			return fmt.Errorf("error waiting cache ready: %w", err)
+		}
+	}
+
+	// Enable authentication if needed.
 	if r.EnableAuthn {
-		// Enable authentication.
 		if r.CasdoorServer == "" {
 			// If not specified, launch embedded casdoor,.
 			var e casdoor.Embedded
@@ -446,6 +493,7 @@ func (r *Server) Run(c context.Context) error {
 		SkipTLSVerify: len(r.TlsAutoCertDomains) != 0,
 		RdsDialect:    rdsDrvDialect,
 		RdsDriver:     rdsDrv,
+		CacheDriver:   cacheDrv,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -530,6 +578,13 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 }
 
 func (r *Server) setDataSourceDriver(drv *sql.DB) {
+	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
+	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
+	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)
+}
+
+func (r *Server) setCacheDriver(drv cache.Driver) {
+	drv.SetConnMaxIdleTime(-1)
 	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
 	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
 	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)

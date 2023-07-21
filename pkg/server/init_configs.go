@@ -9,15 +9,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/seal-io/seal/pkg/auths"
+	"github.com/seal-io/seal/pkg/cache"
+	"github.com/seal-io/seal/pkg/caches"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/settings"
+	cacheutil "github.com/seal-io/seal/utils/cache"
 	"github.com/seal-io/seal/utils/cryptox"
 	"github.com/seal-io/seal/utils/strs"
 )
 
 func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) {
+	err = configureCaches(ctx, opts.CacheDriver)
+	if err != nil {
+		return
+	}
+
 	err = validateDataEncryption(ctx, opts.ModelClient)
 	if err != nil {
 		return
@@ -29,6 +39,65 @@ func (r *Server) initConfigs(ctx context.Context, opts initOptions) (err error) 
 	}
 
 	return
+}
+
+// configureCaches configures the caches.
+func configureCaches(ctx context.Context, remoteDrv cache.Driver) error {
+	layers := make([]cacheutil.Cache, 0, 2)
+
+	// Configure memory cache.
+	memoryCfg := cacheutil.MemoryConfig{
+		EntryMaxAge:       1 * time.Minute,
+		LazyEntryEviction: true,
+		Buckets:           128,
+		BucketCapacity:    1,
+	}
+
+	if remoteDrv == nil {
+		// If no remote cache is configured,
+		// we can use a more aggressive memory cache.
+		memoryCfg = cacheutil.MemoryConfig{
+			EntryMaxAge:       5 * time.Minute,
+			LazyEntryEviction: false,
+			Buckets:           256,
+			BucketCapacity:    2,
+		}
+	}
+
+	memory, err := cacheutil.NewMemoryWithConfig(ctx, memoryCfg)
+	if err != nil {
+		return err
+	}
+
+	layers = append(layers, memory)
+
+	// Configure remote cache if needed.
+	if remoteDrv != nil {
+		dialect, cli, err := remoteDrv.Underlay(ctx)
+		if err != nil {
+			return err
+		}
+
+		switch dialect {
+		case cache.DialectRedis, cache.DialectRedisCluster:
+			remoteCfg := cacheutil.RemoteRedisConfig{
+				Namespace:   "seal",
+				EntryMaxAge: 5 * time.Minute,
+				Client:      cli.(redis.UniversalClient),
+			}
+
+			remote, err := cacheutil.NewRemoteRedisWithConfig(ctx, remoteCfg)
+			if err != nil {
+				return err
+			}
+
+			layers = append(layers, remote)
+		}
+	}
+
+	caches.Stack.Set(layers)
+
+	return nil
 }
 
 // validateDataEncryption validates settings.DataEncryptionSentry with data encryption key.

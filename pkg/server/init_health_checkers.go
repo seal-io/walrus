@@ -6,6 +6,7 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/health"
 	"github.com/seal-io/seal/pkg/k8s"
@@ -24,6 +25,10 @@ func (r *Server) initHealthCheckers(ctx context.Context, opts initOptions) error
 		health.CheckerFunc("k8sctrl", getKubernetesControllerHealthChecker(opts.K8sCacheReady)),
 		health.CheckerFunc("db", getDatabaseHealthChecker(opts.RdsDriver)),
 		health.CheckerFunc("gopool", getGoPoolHealthChecker()),
+	}
+
+	if opts.CacheDriver != nil {
+		cs = append(cs, health.CheckerFunc("cache", getCacheHealthChecker(opts.CacheDriver)))
 	}
 
 	if r.EnableAuthn {
@@ -53,6 +58,12 @@ func getKubernetesControllerHealthChecker(done <-chan struct{}) health.Check {
 func getDatabaseHealthChecker(db *sql.DB) health.Check {
 	return func(ctx context.Context) error {
 		return rds.IsConnected(ctx, db)
+	}
+}
+
+func getCacheHealthChecker(cacheDriver cache.Driver) health.Check {
+	return func(ctx context.Context) error {
+		return cache.IsConnected(ctx, cacheDriver)
 	}
 }
 
