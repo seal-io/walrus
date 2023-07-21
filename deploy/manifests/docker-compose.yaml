@@ -29,6 +29,32 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_DB=seal
 
+  redis:
+    image: "redis:6.2.11"
+    restart: always
+    container_name: redis
+    ports:
+      # external redis db of seal(user/password: default:Default123),
+      # expose for local debugging.
+      #
+      - "16379:6379"
+    command:
+      - redis-server
+      - "--save"
+      - "\"\""
+      - "--appendonly"
+      - "no"
+      - "--databases"
+      - "1"
+      - "--maxmemory"
+      - "1gb"
+      - "--maxmemory-policy"
+      - "allkeys-lru"
+      - "--requirepass"
+      # update the '--cache-source-address' if change the following content.
+      #
+      - "Default123"
+
   seal:
     image: "sealio/seal-server:main"
     restart: always
@@ -45,12 +71,14 @@ services:
       - "--log-debug"
       - "--log-verbosity=4"
       - "--data-source-address=postgres://root:Root123@postgres:5432/seal?sslmode=disable"
+      - "--cache-source-address=redis://default:Default123@redis:6379/0"
       - "--casdoor-server=http://casdoor:8000"
     volumes:
       - seal-data:/var/run/seal
     depends_on:
       - postgres
       - casdoor
+      - redis
     ports:
       - "80:80"
       - "443:443"

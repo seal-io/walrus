@@ -64,10 +64,26 @@ $ docker run -d -p 8000:8000 sealio/casdoor:v1.197.0-seal.3
 
 ```
 
+### (Optional) Local Redis via [Docker](https://docs.docker.com/desktop/install/mac-install/)
+
+```bash
+$ docker run -d -p 6379:6379 redis:6.2.11 redis-server --save "" --appendonly no --databases 1 --requirepass Default123
+ 
+```
+
 ### Run
 
 ```bash
-$ go run cmd/server/server.go --log-debug --data-source-address="postgres://root:Root123@127.0.0.1:5432/seal?sslmode=disable" --casdoor-server="http://127.0.0.1:8000"
+$ # default.
+$ go run cmd/server/server.go --log-debug \
+  --data-source-address="postgres://root:Root123@127.0.0.1:5432/seal?sslmode=disable" \
+  --casdoor-server="http://127.0.0.1:8000"
+
+$ # with cache data source.
+$ go run cmd/server/server.go --log-debug \
+  --data-source-address="postgres://root:Root123@127.0.0.1:5432/seal?sslmode=disable" \
+  --casdoor-server="http://127.0.0.1:8000" \
+  --cache-source-address="redis://default:Default123@127.0.0.1:6379/0"
 
 ```
 

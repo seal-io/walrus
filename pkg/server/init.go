@@ -7,6 +7,7 @@ import (
 
 	"k8s.io/client-go/rest"
 
+	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -17,6 +18,7 @@ type initOptions struct {
 	SkipTLSVerify bool
 	RdsDialect    string
 	RdsDriver     *sql.DB
+	CacheDriver   cache.Driver
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
