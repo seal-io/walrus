@@ -5,7 +5,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -28,19 +27,19 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 
 func (ServiceRevision) Fields() []ent.Field {
 	return []ent.Field{
-		object.IDField("serviceID").
-			Comment("ID of the service to which the revision belongs.").
-			NotEmpty().
-			Immutable(),
-		object.IDField("environmentID").
+		object.IDField("environment_id").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),
-		field.String("templateID").
+		object.IDField("service_id").
+			Comment("ID of the service to which the revision belongs.").
+			NotEmpty().
+			Immutable(),
+		field.String("template_id").
 			Comment("ID of the template.").
 			NotEmpty().
 			Immutable(),
-		field.String("templateVersion").
+		field.String("template_version").
 			Comment("Version of the template.").
 			NotEmpty(),
 		property.ValuesField("attributes").
@@ -49,19 +48,19 @@ func (ServiceRevision) Fields() []ent.Field {
 		crypto.MapField[string, string]("variables").
 			Comment("Variables of the revision.").
 			Default(crypto.Map[string, string]{}),
-		field.String("inputPlan").
+		field.String("input_plan").
 			Comment("Input plan of the revision.").
 			Sensitive(),
 		field.String("output").
 			Comment("Output of the revision.").
 			Sensitive(),
-		field.String("deployerType").
+		field.String("deployer_type").
 			Comment("Type of deployer.").
 			Default(types.DeployerTypeTF),
 		field.Int("duration").
 			Comment("Duration in seconds of the revision deploying.").
 			Default(0),
-		field.JSON("previousRequiredProviders", []types.ProviderRequirement{}).
+		field.JSON("previous_required_providers", []types.ProviderRequirement{}).
 			Comment("Previous provider requirement of the revision.").
 			Default([]types.ProviderRequirement{}),
 		field.Strings("tags").
@@ -72,35 +71,29 @@ func (ServiceRevision) Fields() []ent.Field {
 
 func (ServiceRevision) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* service revisions.
+		// Project 1-* ServiceRevisions.
 		edge.From("project", Project.Type).
-			Ref("serviceRevisions").
-			Field("projectID").
+			Ref("service_revisions").
+			Field("project_id").
 			Comment("Project to which the revision belongs.").
 			Unique().
 			Required().
-			Immutable().
-			Annotations(
-				io.DisableInput()),
-		// Environment 1-* service revisions.
+			Immutable(),
+		// Environment 1-* ServiceRevisions.
 		edge.From("environment", Environment.Type).
-			Ref("serviceRevisions").
-			Field("environmentID").
+			Ref("service_revisions").
+			Field("environment_id").
 			Comment("Environment to which the revision deploys.").
 			Unique().
 			Required().
-			Immutable().
-			Annotations(
-				io.DisableInput()),
-		// Service 1-* service revisions.
+			Immutable(),
+		// Service 1-* ServiceRevisions.
 		edge.From("service", Service.Type).
 			Ref("revisions").
-			Field("serviceID").
+			Field("service_id").
 			Comment("Service to which the revision belongs.").
 			Unique().
 			Required().
-			Immutable().
-			Annotations(
-				io.DisableInput()),
+			Immutable(),
 	}
 }

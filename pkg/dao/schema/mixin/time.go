@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 )
 
 func Time() time {
@@ -28,28 +28,28 @@ func (i time) WithoutUpdateTime() time {
 
 func (time) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("createTime"),
+		index.Fields("create_time"),
 	}
 }
 
 func (i time) Fields() []ent.Field {
 	fs := []ent.Field{
-		field.Time("createTime").
+		field.Time("create_time").
 			Nillable().
 			Default(stdtime.Now).
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 	}
 
 	if !i.withoutUpdateTime {
 		fs = append(fs,
-			field.Time("updateTime").
+			field.Time("update_time").
 				Nillable().
 				Default(stdtime.Now).
 				UpdateDefault(stdtime.Now).
 				Annotations(
-					io.DisableInput()),
+					entx.SkipInput()),
 		)
 	}
 

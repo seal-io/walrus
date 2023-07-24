@@ -3,11 +3,12 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
@@ -34,12 +35,10 @@ func (ServiceRelationship) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("service_id").
 			Comment("ID of the service that deploys after the dependency finished.").
-			StructTag(`json:"serviceID" sql:"serviceID"`).
 			NotEmpty().
 			Immutable(),
 		object.IDField("dependency_id").
 			Comment("ID of the service that deploys before the service begins.").
-			StructTag(`json:"dependencyID" sql:"dependencyID"`).
 			NotEmpty().
 			Immutable(),
 		field.JSON("path", []object.ID{}).
@@ -47,13 +46,13 @@ func (ServiceRelationship) Fields() []ent.Field {
 			Default([]object.ID{}).
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 		field.String("type").
 			Comment("Type of the relationship.").
 			NotEmpty().
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 	}
 }
 
@@ -67,7 +66,7 @@ func (ServiceRelationship) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
+				entx.SkipIO()),
 		edge.To("dependency", Service.Type).
 			Field("dependency_id").
 			Comment("Service to which the dependency belongs.").
@@ -75,6 +74,13 @@ func (ServiceRelationship) Edges() []ent.Edge {
 			Required().
 			Immutable().
 			Annotations(
-				entsql.OnDelete(entsql.Restrict)),
+				entsql.OnDelete(entsql.Restrict),
+				entx.Input(entx.WithUpdate())),
+	}
+}
+
+func (ServiceRelationship) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entx.SkipClearingOptionalField(),
 	}
 }

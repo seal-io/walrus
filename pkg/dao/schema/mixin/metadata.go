@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
@@ -47,9 +47,7 @@ func (i metadata) WithoutUpdateTime() metadata {
 func (i metadata) Fields() []ent.Field {
 	fs := []ent.Field{
 		object.IDField("id").
-			Immutable().
-			Annotations(
-				io.DisableInputWhenCreating()),
+			Immutable(),
 		field.String("name").
 			NotEmpty(),
 	}
@@ -75,27 +73,28 @@ func (i metadata) Fields() []ent.Field {
 				Optional().
 				Default(map[string]string{}).
 				Annotations(
-					io.Disable()),
+					entx.SkipInput(),
+					entx.SkipOutput()),
 		)
 	}
 
 	fs = append(fs,
-		field.Time("createTime").
+		field.Time("create_time").
 			Nillable().
 			Default(stdtime.Now).
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 	)
 
 	if !i.withoutUpdateTime {
 		fs = append(fs,
-			field.Time("updateTime").
+			field.Time("update_time").
 				Nillable().
 				Default(stdtime.Now).
 				UpdateDefault(stdtime.Now).
 				Annotations(
-					io.DisableInput()),
+					entx.SkipInput()),
 		)
 	}
 

@@ -29,16 +29,16 @@ func (Perspective) Indexes() []ent.Index {
 
 func (Perspective) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("startTime").
+		field.String("start_time").
 			Comment("Start time for the perspective.").
 			NotEmpty(),
-		field.String("endTime").
+		field.String("end_time").
 			Comment("End time for the perspective.").
 			NotEmpty(),
 		field.Bool("builtin").
 			Comment("Is builtin perspective.").
 			Default(false),
-		field.JSON("allocationQueries", []types.QueryCondition{}).
+		field.JSON("allocation_queries", []types.QueryCondition{}).
 			Comment("Indicated the perspective included allocation queries, record the used query condition.").
 			Default([]types.QueryCondition{}),
 	}

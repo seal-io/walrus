@@ -1,11 +1,14 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -42,24 +45,50 @@ func (Role) Fields() []ent.Field {
 			Default(false).
 			Immutable().
 			Annotations(
-				io.Disable()),
+				entx.SkipIO()),
 		field.Bool("builtin").
 			Comment("Indicate whether the role is builtin, decide when creating.").
 			Default(false).
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 	}
 }
 
 func (Role) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Subjects *-* roles.
+		// Subjects *-* Roles.
 		edge.From("subjects", Subject.Type).
 			Ref("roles").
 			Comment("Subjects to which the role configures.").
-			Through("subjectRoleRelationships", SubjectRoleRelationship.Type).
+			Through("subject_role_relationships", SubjectRoleRelationship.Type).
 			Annotations(
-				io.Disable()),
+				entx.SkipIO()),
+	}
+}
+
+func (Role) Hooks() []ent.Hook {
+	// Normalize policies.
+	normalizePolicies := func(n ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate | ent.OpUpdate | ent.OpUpdateOne) {
+				return n.Mutate(ctx, m)
+			}
+
+			if v, ok := m.Field("policies"); ok && len(v.(types.RolePolicies)) != 0 {
+				policies := v.(types.RolePolicies).Normalize().Deduplicate().Sort()
+
+				err := m.SetField("policies", policies)
+				if err != nil {
+					return nil, fmt.Errorf("error normalizing policies: %w", err)
+				}
+			}
+
+			return n.Mutate(ctx, m)
+		})
+	}
+
+	return []ent.Hook{
+		normalizePolicies,
 	}
 }

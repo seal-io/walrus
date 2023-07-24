@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -35,14 +35,21 @@ func (Subject) Fields() []ent.Field {
 		field.String("kind").
 			Comment("The kind of the subject.").
 			Default(types.SubjectKindUser).
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.Input(entx.WithUpdate())),
 		field.String("domain").
 			Comment("The domain of the subject.").
-			Default(types.SubjectDomainBuiltin),
+			Default(types.SubjectDomainBuiltin).
+			Immutable().
+			Annotations(
+				entx.Input(entx.WithUpdate())),
 		field.String("name").
 			Comment("The name of the subject.").
 			NotEmpty().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.Input(entx.WithUpdate())),
 		field.String("description").
 			Comment("The detail of the subject.").
 			Optional(),
@@ -55,15 +62,15 @@ func (Subject) Fields() []ent.Field {
 
 func (Subject) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Subject 1-* tokens.
+		// Subject 1-* Tokens.
 		edge.To("tokens", Token.Type).
 			Comment("Tokens that belong to the subject.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
-		// Subjects *-* roles.
+				entx.SkipIO()),
+		// Subjects *-* Roles.
 		edge.To("roles", Role.Type).
 			Comment("Roles that configure to the subject.").
-			Through("subjectRoleRelationships", SubjectRoleRelationship.Type),
+			Through("subject_role_relationships", SubjectRoleRelationship.Type),
 	}
 }
