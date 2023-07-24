@@ -35,7 +35,7 @@ func (Service) Indexes() []ent.Index {
 
 func (Service) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("environmentID").
+		object.IDField("environmentID").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),

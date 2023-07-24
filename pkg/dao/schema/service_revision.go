@@ -28,11 +28,11 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 
 func (ServiceRevision) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("serviceID").
+		object.IDField("serviceID").
 			Comment("ID of the service to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
-		object.Field("environmentID").
+		object.IDField("environmentID").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),

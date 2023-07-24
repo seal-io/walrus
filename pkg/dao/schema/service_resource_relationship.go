@@ -32,12 +32,12 @@ func (ServiceResourceRelationship) Indexes() []ent.Index {
 
 func (ServiceResourceRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("service_resource_id").
+		object.IDField("service_resource_id").
 			Comment("ID of the service resource.").
 			StructTag(`json:"serviceResourceID" sql:"serviceResourceID"`).
 			NotEmpty().
 			Immutable(),
-		object.Field("dependency_id").
+		object.IDField("dependency_id").
 			Comment("ID of the resource that resource depends on.").
 			StructTag(`json:"dependencyID" sql:"dependencyID"`).
 			NotEmpty().

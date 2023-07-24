@@ -86,7 +86,7 @@ func (b *fieldBuilder) StorageKey(key string) *fieldBuilder {
 // Annotations adds a list of annotations to the field object to be used by
 // codegen extensions.
 //
-//	object.Field("link").
+//	object.IDField("link").
 //		Annotations(
 //			entgql.OrderField("LINK"),
 //		)

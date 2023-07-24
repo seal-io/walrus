@@ -32,12 +32,12 @@ func (ServiceRelationship) Indexes() []ent.Index {
 
 func (ServiceRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("service_id").
+		object.IDField("service_id").
 			Comment("ID of the service that deploys after the dependency finished.").
 			StructTag(`json:"serviceID" sql:"serviceID"`).
 			NotEmpty().
 			Immutable(),
-		object.Field("dependency_id").
+		object.IDField("dependency_id").
 			Comment("ID of the service that deploys before the service begins.").
 			StructTag(`json:"dependencyID" sql:"dependencyID"`).
 			NotEmpty().
