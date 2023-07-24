@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -77,14 +77,14 @@ func (ru *RoleUpdate) AppendPolicies(tp types.RolePolicies) *RoleUpdate {
 }
 
 // AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
-func (ru *RoleUpdate) AddSubjectIDs(ids ...oid.ID) *RoleUpdate {
+func (ru *RoleUpdate) AddSubjectIDs(ids ...object.ID) *RoleUpdate {
 	ru.mutation.AddSubjectIDs(ids...)
 	return ru
 }
 
 // AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
 func (ru *RoleUpdate) AddSubjects(s ...*SubjectRoleRelationship) *RoleUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -103,14 +103,14 @@ func (ru *RoleUpdate) ClearSubjects() *RoleUpdate {
 }
 
 // RemoveSubjectIDs removes the "subjects" edge to SubjectRoleRelationship entities by IDs.
-func (ru *RoleUpdate) RemoveSubjectIDs(ids ...oid.ID) *RoleUpdate {
+func (ru *RoleUpdate) RemoveSubjectIDs(ids ...object.ID) *RoleUpdate {
 	ru.mutation.RemoveSubjectIDs(ids...)
 	return ru
 }
 
 // RemoveSubjects removes "subjects" edges to SubjectRoleRelationship entities.
 func (ru *RoleUpdate) RemoveSubjects(s ...*SubjectRoleRelationship) *RoleUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -308,14 +308,14 @@ func (ruo *RoleUpdateOne) AppendPolicies(tp types.RolePolicies) *RoleUpdateOne {
 }
 
 // AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
-func (ruo *RoleUpdateOne) AddSubjectIDs(ids ...oid.ID) *RoleUpdateOne {
+func (ruo *RoleUpdateOne) AddSubjectIDs(ids ...object.ID) *RoleUpdateOne {
 	ruo.mutation.AddSubjectIDs(ids...)
 	return ruo
 }
 
 // AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
 func (ruo *RoleUpdateOne) AddSubjects(s ...*SubjectRoleRelationship) *RoleUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -334,14 +334,14 @@ func (ruo *RoleUpdateOne) ClearSubjects() *RoleUpdateOne {
 }
 
 // RemoveSubjectIDs removes the "subjects" edge to SubjectRoleRelationship entities by IDs.
-func (ruo *RoleUpdateOne) RemoveSubjectIDs(ids ...oid.ID) *RoleUpdateOne {
+func (ruo *RoleUpdateOne) RemoveSubjectIDs(ids ...object.ID) *RoleUpdateOne {
 	ruo.mutation.RemoveSubjectIDs(ids...)
 	return ruo
 }
 
 // RemoveSubjects removes "subjects" edges to SubjectRoleRelationship entities.
 func (ruo *RoleUpdateOne) RemoveSubjects(s ...*SubjectRoleRelationship) *RoleUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

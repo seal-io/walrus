@@ -14,14 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/subject"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Subject is the model entity for the Subject schema.
 type Subject struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// UpdateTime holds the value of the "updateTime" field.
@@ -77,7 +77,7 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case subject.FieldID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case subject.FieldBuiltin:
 			values[i] = new(sql.NullBool)
 		case subject.FieldKind, subject.FieldDomain, subject.FieldName, subject.FieldDescription:
@@ -100,7 +100,7 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case subject.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				s.ID = *value

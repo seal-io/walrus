@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func Metadata() metadata {
@@ -46,7 +46,7 @@ func (i metadata) WithoutUpdateTime() metadata {
 
 func (i metadata) Fields() []ent.Field {
 	fs := []ent.Field{
-		oid.Field("id").
+		object.Field("id").
 			Immutable().
 			Annotations(
 				io.DisableInputWhenCreating()),
@@ -104,6 +104,6 @@ func (i metadata) Fields() []ent.Field {
 
 func (metadata) Hooks() []ent.Hook {
 	return []ent.Hook{
-		oid.Hook(),
+		object.Hook(),
 	}
 }

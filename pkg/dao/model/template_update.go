@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateUpdate is the builder for updating Template entities.
@@ -135,14 +135,14 @@ func (tu *TemplateUpdate) SetSource(s string) *TemplateUpdate {
 }
 
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by IDs.
-func (tu *TemplateUpdate) AddVersionIDs(ids ...oid.ID) *TemplateUpdate {
+func (tu *TemplateUpdate) AddVersionIDs(ids ...object.ID) *TemplateUpdate {
 	tu.mutation.AddVersionIDs(ids...)
 	return tu
 }
 
 // AddVersions adds the "versions" edges to the TemplateVersion entity.
 func (tu *TemplateUpdate) AddVersions(t ...*TemplateVersion) *TemplateUpdate {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -161,14 +161,14 @@ func (tu *TemplateUpdate) ClearVersions() *TemplateUpdate {
 }
 
 // RemoveVersionIDs removes the "versions" edge to TemplateVersion entities by IDs.
-func (tu *TemplateUpdate) RemoveVersionIDs(ids ...oid.ID) *TemplateUpdate {
+func (tu *TemplateUpdate) RemoveVersionIDs(ids ...object.ID) *TemplateUpdate {
 	tu.mutation.RemoveVersionIDs(ids...)
 	return tu
 }
 
 // RemoveVersions removes "versions" edges to TemplateVersion entities.
 func (tu *TemplateUpdate) RemoveVersions(t ...*TemplateVersion) *TemplateUpdate {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -443,14 +443,14 @@ func (tuo *TemplateUpdateOne) SetSource(s string) *TemplateUpdateOne {
 }
 
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by IDs.
-func (tuo *TemplateUpdateOne) AddVersionIDs(ids ...oid.ID) *TemplateUpdateOne {
+func (tuo *TemplateUpdateOne) AddVersionIDs(ids ...object.ID) *TemplateUpdateOne {
 	tuo.mutation.AddVersionIDs(ids...)
 	return tuo
 }
 
 // AddVersions adds the "versions" edges to the TemplateVersion entity.
 func (tuo *TemplateUpdateOne) AddVersions(t ...*TemplateVersion) *TemplateUpdateOne {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -469,14 +469,14 @@ func (tuo *TemplateUpdateOne) ClearVersions() *TemplateUpdateOne {
 }
 
 // RemoveVersionIDs removes the "versions" edge to TemplateVersion entities by IDs.
-func (tuo *TemplateUpdateOne) RemoveVersionIDs(ids ...oid.ID) *TemplateUpdateOne {
+func (tuo *TemplateUpdateOne) RemoveVersionIDs(ids ...object.ID) *TemplateUpdateOne {
 	tuo.mutation.RemoveVersionIDs(ids...)
 	return tuo
 }
 
 // RemoveVersions removes "versions" edges to TemplateVersion entities.
 func (tuo *TemplateUpdateOne) RemoveVersions(t ...*TemplateVersion) *TemplateUpdateOne {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}

@@ -10,14 +10,14 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ServiceRevisionQueryInput is the input for the ServiceRevision query.
 type ServiceRevisionQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ServiceRevisionQueryInput to ServiceRevision.
@@ -71,7 +71,7 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 // ServiceRevisionUpdateInput is the input for the ServiceRevision modification.
 type ServiceRevisionUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Version of the template.
 	TemplateVersion string `json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
@@ -112,7 +112,7 @@ func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 // ServiceRevisionOutput is the output for the ServiceRevision.
 type ServiceRevisionOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Status holds the value of the "status" field.

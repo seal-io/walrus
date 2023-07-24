@@ -6,7 +6,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Basic APIs.
@@ -14,7 +14,7 @@ import (
 type CreateRequest struct {
 	model.SubjectRoleRelationshipCreateInput `json:",inline"`
 
-	ProjectID oid.ID `query:"projectID,omitempty"`
+	ProjectID object.ID `query:"projectID,omitempty"`
 }
 
 func (r *CreateRequest) Validate() error {
@@ -38,7 +38,7 @@ type CreateResponse = *model.SubjectRoleRelationshipOutput
 type DeleteRequest struct {
 	model.SubjectRoleRelationshipQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID,omitempty"`
+	ProjectID object.ID `query:"projectID,omitempty"`
 }
 
 func (r *DeleteRequest) Validate() error {
@@ -75,7 +75,7 @@ type CollectionGetRequest struct {
 	runtime.RequestPagination                                   `query:",inline"`
 	runtime.RequestSorting[subjectrolerelationship.OrderOption] `query:",inline"`
 
-	ProjectID oid.ID `query:"projectID,omitempty"`
+	ProjectID object.ID `query:"projectID,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {

@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/auths/session"
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
 	"github.com/seal-io/seal/utils/log"
@@ -181,14 +181,14 @@ func Destroy(
 	return dp.Destroy(ctx, entity, destroyOpts)
 }
 
-func GetSubjectID(entity *model.Service) (oid.ID, error) {
+func GetSubjectID(entity *model.Service) (object.ID, error) {
 	if entity == nil {
 		return "", fmt.Errorf("service is nil")
 	}
 
 	subjectIDStr := entity.Annotations[annotationSubjectIDName]
 
-	return oid.ID(subjectIDStr), nil
+	return object.ID(subjectIDStr), nil
 }
 
 func SetSubjectID(ctx context.Context, services ...*model.Service) error {

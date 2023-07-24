@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/utils/gopool"
@@ -127,7 +127,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 func (in *ComponentsDiscoverTask) buildSyncTask(
 	ctx context.Context,
 	op optypes.Operator,
-	connectorID oid.ID,
+	connectorID object.ID,
 	offset,
 	limit int,
 ) func() error {
@@ -181,7 +181,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 				c := observedComps[j]
 				observedCompsIndex[strs.Join("/", c.Type, c.Name)] = c
 			}
-			deleteCompIDs := make([]oid.ID, 0, len(recordComps))
+			deleteCompIDs := make([]object.ID, 0, len(recordComps))
 
 			for _, c := range recordComps {
 				k := strs.Join("/", c.Type, c.Name)

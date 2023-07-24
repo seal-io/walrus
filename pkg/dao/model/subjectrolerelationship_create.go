@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectRoleRelationshipCreate is the builder for creating a SubjectRoleRelationship entity.
@@ -46,13 +46,13 @@ func (srrc *SubjectRoleRelationshipCreate) SetNillableCreateTime(t *time.Time) *
 }
 
 // SetProjectID sets the "projectID" field.
-func (srrc *SubjectRoleRelationshipCreate) SetProjectID(o oid.ID) *SubjectRoleRelationshipCreate {
+func (srrc *SubjectRoleRelationshipCreate) SetProjectID(o object.ID) *SubjectRoleRelationshipCreate {
 	srrc.mutation.SetProjectID(o)
 	return srrc
 }
 
 // SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (srrc *SubjectRoleRelationshipCreate) SetNillableProjectID(o *oid.ID) *SubjectRoleRelationshipCreate {
+func (srrc *SubjectRoleRelationshipCreate) SetNillableProjectID(o *object.ID) *SubjectRoleRelationshipCreate {
 	if o != nil {
 		srrc.SetProjectID(*o)
 	}
@@ -60,7 +60,7 @@ func (srrc *SubjectRoleRelationshipCreate) SetNillableProjectID(o *oid.ID) *Subj
 }
 
 // SetSubjectID sets the "subject_id" field.
-func (srrc *SubjectRoleRelationshipCreate) SetSubjectID(o oid.ID) *SubjectRoleRelationshipCreate {
+func (srrc *SubjectRoleRelationshipCreate) SetSubjectID(o object.ID) *SubjectRoleRelationshipCreate {
 	srrc.mutation.SetSubjectID(o)
 	return srrc
 }
@@ -72,7 +72,7 @@ func (srrc *SubjectRoleRelationshipCreate) SetRoleID(s string) *SubjectRoleRelat
 }
 
 // SetID sets the "id" field.
-func (srrc *SubjectRoleRelationshipCreate) SetID(o oid.ID) *SubjectRoleRelationshipCreate {
+func (srrc *SubjectRoleRelationshipCreate) SetID(o object.ID) *SubjectRoleRelationshipCreate {
 	srrc.mutation.SetID(o)
 	return srrc
 }
@@ -181,7 +181,7 @@ func (srrc *SubjectRoleRelationshipCreate) sqlSave(ctx context.Context) (*Subjec
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -389,7 +389,7 @@ func (u *SubjectRoleRelationshipUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *SubjectRoleRelationshipUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *SubjectRoleRelationshipUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -403,7 +403,7 @@ func (u *SubjectRoleRelationshipUpsertOne) ID(ctx context.Context) (id oid.ID, e
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *SubjectRoleRelationshipUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *SubjectRoleRelationshipUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

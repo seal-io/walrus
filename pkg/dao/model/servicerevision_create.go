@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
@@ -49,7 +49,7 @@ func (src *ServiceRevisionCreate) SetNillableCreateTime(t *time.Time) *ServiceRe
 }
 
 // SetProjectID sets the "projectID" field.
-func (src *ServiceRevisionCreate) SetProjectID(o oid.ID) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetProjectID(o object.ID) *ServiceRevisionCreate {
 	src.mutation.SetProjectID(o)
 	return src
 }
@@ -83,13 +83,13 @@ func (src *ServiceRevisionCreate) SetNillableStatusMessage(s *string) *ServiceRe
 }
 
 // SetServiceID sets the "serviceID" field.
-func (src *ServiceRevisionCreate) SetServiceID(o oid.ID) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetServiceID(o object.ID) *ServiceRevisionCreate {
 	src.mutation.SetServiceID(o)
 	return src
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (src *ServiceRevisionCreate) SetEnvironmentID(o oid.ID) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetEnvironmentID(o object.ID) *ServiceRevisionCreate {
 	src.mutation.SetEnvironmentID(o)
 	return src
 }
@@ -171,7 +171,7 @@ func (src *ServiceRevisionCreate) SetTags(s []string) *ServiceRevisionCreate {
 }
 
 // SetID sets the "id" field.
-func (src *ServiceRevisionCreate) SetID(o oid.ID) *ServiceRevisionCreate {
+func (src *ServiceRevisionCreate) SetID(o object.ID) *ServiceRevisionCreate {
 	src.mutation.SetID(o)
 	return src
 }
@@ -348,7 +348,7 @@ func (src *ServiceRevisionCreate) sqlSave(ctx context.Context) (*ServiceRevision
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -945,7 +945,7 @@ func (u *ServiceRevisionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ServiceRevisionUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ServiceRevisionUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -959,7 +959,7 @@ func (u *ServiceRevisionUpsertOne) ID(ctx context.Context) (id oid.ID, err error
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ServiceRevisionUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ServiceRevisionUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

@@ -18,7 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceRelationshipCreate is the builder for creating a ServiceRelationship entity.
@@ -44,19 +44,19 @@ func (src *ServiceRelationshipCreate) SetNillableCreateTime(t *time.Time) *Servi
 }
 
 // SetServiceID sets the "service_id" field.
-func (src *ServiceRelationshipCreate) SetServiceID(o oid.ID) *ServiceRelationshipCreate {
+func (src *ServiceRelationshipCreate) SetServiceID(o object.ID) *ServiceRelationshipCreate {
 	src.mutation.SetServiceID(o)
 	return src
 }
 
 // SetDependencyID sets the "dependency_id" field.
-func (src *ServiceRelationshipCreate) SetDependencyID(o oid.ID) *ServiceRelationshipCreate {
+func (src *ServiceRelationshipCreate) SetDependencyID(o object.ID) *ServiceRelationshipCreate {
 	src.mutation.SetDependencyID(o)
 	return src
 }
 
 // SetPath sets the "path" field.
-func (src *ServiceRelationshipCreate) SetPath(o []oid.ID) *ServiceRelationshipCreate {
+func (src *ServiceRelationshipCreate) SetPath(o []object.ID) *ServiceRelationshipCreate {
 	src.mutation.SetPath(o)
 	return src
 }
@@ -68,7 +68,7 @@ func (src *ServiceRelationshipCreate) SetType(s string) *ServiceRelationshipCrea
 }
 
 // SetID sets the "id" field.
-func (src *ServiceRelationshipCreate) SetID(o oid.ID) *ServiceRelationshipCreate {
+func (src *ServiceRelationshipCreate) SetID(o object.ID) *ServiceRelationshipCreate {
 	src.mutation.SetID(o)
 	return src
 }
@@ -187,7 +187,7 @@ func (src *ServiceRelationshipCreate) sqlSave(ctx context.Context) (*ServiceRela
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -388,7 +388,7 @@ func (u *ServiceRelationshipUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ServiceRelationshipUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ServiceRelationshipUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -402,7 +402,7 @@ func (u *ServiceRelationshipUpsertOne) ID(ctx context.Context) (id oid.ID, err e
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ServiceRelationshipUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ServiceRelationshipUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

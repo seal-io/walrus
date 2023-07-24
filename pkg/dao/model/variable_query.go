@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // VariableQuery is the builder for querying Variable entities.
@@ -143,8 +143,8 @@ func (vq *VariableQuery) FirstX(ctx context.Context) *Variable {
 
 // FirstID returns the first Variable ID from the query.
 // Returns a *NotFoundError when no Variable ID was found.
-func (vq *VariableQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (vq *VariableQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = vq.Limit(1).IDs(setContextOp(ctx, vq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (vq *VariableQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (vq *VariableQuery) FirstIDX(ctx context.Context) oid.ID {
+func (vq *VariableQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := vq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -194,8 +194,8 @@ func (vq *VariableQuery) OnlyX(ctx context.Context) *Variable {
 // OnlyID is like Only, but returns the only Variable ID in the query.
 // Returns a *NotSingularError when more than one Variable ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (vq *VariableQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (vq *VariableQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = vq.Limit(2).IDs(setContextOp(ctx, vq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -211,7 +211,7 @@ func (vq *VariableQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (vq *VariableQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (vq *VariableQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := vq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -239,7 +239,7 @@ func (vq *VariableQuery) AllX(ctx context.Context) []*Variable {
 }
 
 // IDs executes the query and returns a list of Variable IDs.
-func (vq *VariableQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (vq *VariableQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if vq.ctx.Unique == nil && vq.path != nil {
 		vq.Unique(true)
 	}
@@ -251,7 +251,7 @@ func (vq *VariableQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (vq *VariableQuery) IDsX(ctx context.Context) []oid.ID {
+func (vq *VariableQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := vq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -463,8 +463,8 @@ func (vq *VariableQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Var
 }
 
 func (vq *VariableQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Variable, init func(*Variable), assign func(*Variable, *Project)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*Variable)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Variable)
 	for i := range nodes {
 		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
@@ -492,8 +492,8 @@ func (vq *VariableQuery) loadProject(ctx context.Context, query *ProjectQuery, n
 	return nil
 }
 func (vq *VariableQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*Variable, init func(*Variable), assign func(*Variable, *Environment)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*Variable)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Variable)
 	for i := range nodes {
 		fk := nodes[i].EnvironmentID
 		if _, ok := nodeids[fk]; !ok {

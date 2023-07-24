@@ -14,51 +14,51 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.Connector {
+func ID(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.Connector {
+func IDEQ(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.Connector {
+func IDNEQ(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.Connector {
+func IDIn(ids ...object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.Connector {
+func IDNotIn(ids ...object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.Connector {
+func IDGT(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.Connector {
+func IDGTE(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.Connector {
+func IDLT(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.Connector {
+func IDLTE(id object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldID, id))
 }
 
@@ -83,7 +83,7 @@ func UpdateTime(v time.Time) predicate.Connector {
 }
 
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Connector {
+func ProjectID(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
 }
 
@@ -353,59 +353,59 @@ func UpdateTimeLTE(v time.Time) predicate.Connector {
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.Connector {
+func ProjectIDEQ(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.Connector {
+func ProjectIDNEQ(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldNEQ(FieldProjectID, v))
 }
 
 // ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.Connector {
+func ProjectIDIn(vs ...object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldIn(FieldProjectID, vs...))
 }
 
 // ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.Connector {
+func ProjectIDNotIn(vs ...object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldNotIn(FieldProjectID, vs...))
 }
 
 // ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.Connector {
+func ProjectIDGT(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldGT(FieldProjectID, v))
 }
 
 // ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.Connector {
+func ProjectIDGTE(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldGTE(FieldProjectID, v))
 }
 
 // ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.Connector {
+func ProjectIDLT(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldLT(FieldProjectID, v))
 }
 
 // ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.Connector {
+func ProjectIDLTE(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldProjectID, v))
 }
 
 // ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.Connector {
+func ProjectIDContains(v object.ID) predicate.Connector {
 	vc := string(v)
 	return predicate.Connector(sql.FieldContains(FieldProjectID, vc))
 }
 
 // ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.Connector {
+func ProjectIDHasPrefix(v object.ID) predicate.Connector {
 	vc := string(v)
 	return predicate.Connector(sql.FieldHasPrefix(FieldProjectID, vc))
 }
 
 // ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.Connector {
+func ProjectIDHasSuffix(v object.ID) predicate.Connector {
 	vc := string(v)
 	return predicate.Connector(sql.FieldHasSuffix(FieldProjectID, vc))
 }
@@ -421,13 +421,13 @@ func ProjectIDNotNil() predicate.Connector {
 }
 
 // ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.Connector {
+func ProjectIDEqualFold(v object.ID) predicate.Connector {
 	vc := string(v)
 	return predicate.Connector(sql.FieldEqualFold(FieldProjectID, vc))
 }
 
 // ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.Connector {
+func ProjectIDContainsFold(v object.ID) predicate.Connector {
 	vc := string(v)
 	return predicate.Connector(sql.FieldContainsFold(FieldProjectID, vc))
 }

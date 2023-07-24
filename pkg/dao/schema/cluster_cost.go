@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ClusterCost holds the schema definition for the cluster hourly cost.
@@ -33,7 +33,7 @@ func (ClusterCost) Fields() []ent.Field {
 		field.Float("minutes").
 			Comment("Usage minutes from start time to end time.").
 			Immutable(),
-		oid.Field("connectorID").
+		object.Field("connectorID").
 			Comment("ID of the connector.").
 			NotEmpty().
 			Immutable(),

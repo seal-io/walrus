@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/operator"
@@ -88,7 +88,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -243,7 +243,7 @@ func (h Handler) CollectionStream(
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -390,7 +390,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	// Calculate creating list and deleting list.
 	observedRessIndex := dao.ServiceResourceToMap(observedRess)
 
-	deleteRessIDs := make([]oid.ID, 0, len(recordRess))
+	deleteRessIDs := make([]object.ID, 0, len(recordRess))
 
 	for _, c := range recordRess {
 		k := key(c)
@@ -456,7 +456,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	}
 
 	// State/label the new resources async.
-	ids := make(map[oid.ID][]oid.ID)
+	ids := make(map[object.ID][]object.ID)
 	createRessIndex := dao.ServiceResourceToMap(createRess)
 
 	for _, ress := range createRessIndex {
@@ -484,7 +484,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 func (h Handler) SyncServiceStatusAndResourceLabel(
 	ctx context.Context,
 	entity *model.ServiceRevision,
-	ids map[oid.ID][]oid.ID,
+	ids map[object.ID][]object.ID,
 ) error {
 	logger := log.WithName("api").WithName("service-revision")
 
@@ -504,7 +504,7 @@ func (h Handler) SyncServiceStatusAndResourceLabel(
 		return fmt.Errorf("cannot list connectors: %w", err)
 	}
 
-	csidx := make(map[oid.ID]*model.Connector, len(cs))
+	csidx := make(map[object.ID]*model.Connector, len(cs))
 	for i := range cs {
 		csidx[cs[i].ID] = cs[i]
 	}

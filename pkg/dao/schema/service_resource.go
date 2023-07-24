@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type ServiceResource struct {
@@ -26,19 +26,19 @@ func (ServiceResource) Mixin() []ent.Mixin {
 
 func (ServiceResource) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("serviceID").
+		object.Field("serviceID").
 			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
-		oid.Field("connectorID").
+		object.Field("connectorID").
 			Comment("ID of the connector to which the resource deploys.").
 			NotEmpty().
 			Immutable(),
-		oid.Field("compositionID").
+		object.Field("compositionID").
 			Comment("ID of the parent resource.").
 			Optional().
 			Immutable(),
-		oid.Field("classID").
+		object.Field("classID").
 			Comment("ID of the parent class of the resource realization.").
 			Optional().
 			Immutable(),

@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // AllocationCostCreate is the builder for creating a AllocationCost entity.
@@ -48,7 +48,7 @@ func (acc *AllocationCostCreate) SetMinutes(f float64) *AllocationCostCreate {
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (acc *AllocationCostCreate) SetConnectorID(o oid.ID) *AllocationCostCreate {
+func (acc *AllocationCostCreate) SetConnectorID(o object.ID) *AllocationCostCreate {
 	acc.mutation.SetConnectorID(o)
 	return acc
 }

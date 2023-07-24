@@ -17,20 +17,20 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Variable is the model entity for the Variable schema.
 type Variable struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong, empty means for all projects.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// The name of variable.
 	Name string `json:"name,omitempty" sql:"name"`
 	// The value of variable, store in string.
@@ -40,7 +40,7 @@ type Variable struct {
 	// Description of the variable.
 	Description string `json:"description,omitempty" sql:"description"`
 	// ID of the environment to which the variable belongs to.
-	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
+	EnvironmentID object.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VariableQuery when eager-loading is set.
 	Edges        VariableEdges `json:"edges"`
@@ -92,7 +92,7 @@ func (*Variable) scanValues(columns []string) ([]any, error) {
 		case variable.FieldValue:
 			values[i] = new(crypto.String)
 		case variable.FieldID, variable.FieldProjectID, variable.FieldEnvironmentID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case variable.FieldSensitive:
 			values[i] = new(sql.NullBool)
 		case variable.FieldName, variable.FieldDescription:
@@ -115,7 +115,7 @@ func (v *Variable) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case variable.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				v.ID = *value
@@ -135,7 +135,7 @@ func (v *Variable) assignValues(columns []string, values []any) error {
 				*v.UpdateTime = value.Time
 			}
 		case variable.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				v.ProjectID = *value
@@ -165,7 +165,7 @@ func (v *Variable) assignValues(columns []string, values []any) error {
 				v.Description = value.String
 			}
 		case variable.FieldEnvironmentID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
 			} else if value != nil {
 				v.EnvironmentID = *value

@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -28,19 +28,19 @@ import (
 type ServiceRevision struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty" sql:"status"`
 	// StatusMessage holds the value of the "statusMessage" field.
 	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
 	// ID of the service to which the revision belongs.
-	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
+	ServiceID object.ID `json:"serviceID,omitempty" sql:"serviceID"`
 	// ID of the environment to which the service deploys.
-	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
+	EnvironmentID object.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// ID of the template.
 	TemplateID string `json:"templateID,omitempty" sql:"templateID"`
 	// Version of the template.
@@ -129,7 +129,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 		case servicerevision.FieldVariables:
 			values[i] = new(crypto.Map[string, string])
 		case servicerevision.FieldID, servicerevision.FieldProjectID, servicerevision.FieldServiceID, servicerevision.FieldEnvironmentID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case servicerevision.FieldAttributes:
 			values[i] = new(property.Values)
 		case servicerevision.FieldDuration:
@@ -154,7 +154,7 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case servicerevision.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				sr.ID = *value
@@ -167,7 +167,7 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				*sr.CreateTime = value.Time
 			}
 		case servicerevision.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				sr.ProjectID = *value
@@ -185,13 +185,13 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				sr.StatusMessage = value.String
 			}
 		case servicerevision.FieldServiceID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field serviceID", values[i])
 			} else if value != nil {
 				sr.ServiceID = *value
 			}
 		case servicerevision.FieldEnvironmentID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
 			} else if value != nil {
 				sr.EnvironmentID = *value

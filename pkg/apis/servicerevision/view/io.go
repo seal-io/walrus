@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -21,7 +21,7 @@ import (
 type GetRequest struct {
 	model.ServiceRevisionQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *GetRequest) Validate() error {
@@ -39,8 +39,8 @@ func (r *GetRequest) Validate() error {
 type GetResponse = *model.ServiceRevisionOutput
 
 type StreamRequest struct {
-	ID        oid.ID `uri:"id"`
-	ProjectID oid.ID `query:"projectID"`
+	ID        object.ID `uri:"id"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -66,7 +66,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 
 type StreamResponse struct {
 	Type       datamessage.EventType          `json:"type"`
-	IDs        []oid.ID                       `json:"ids,omitempty"`
+	IDs        []object.ID                    `json:"ids,omitempty"`
 	Collection []*model.ServiceRevisionOutput `json:"collection,omitempty"`
 }
 
@@ -80,7 +80,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	var (
-		ids         = make([]oid.ID, 0, len(r))
+		ids         = make([]object.ID, 0, len(r))
 		modelClient = input.(model.ClientSet)
 	)
 
@@ -135,11 +135,11 @@ type CollectionGetRequest struct {
 	runtime.RequestExtracting                           `query:",inline"`
 	runtime.RequestSorting[servicerevision.OrderOption] `query:",inline"`
 
-	ProjectID       oid.ID `query:"projectID"`
-	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName string `query:"environmentName,omitempty"`
-	ServiceID       oid.ID `query:"serviceID,omitempty"`
-	ServiceName     string `query:"serviceName,omitempty"`
+	ProjectID       object.ID `query:"projectID"`
+	EnvironmentID   object.ID `query:"environmentID,omitempty"`
+	EnvironmentName string    `query:"environmentName,omitempty"`
+	ServiceID       object.ID `query:"serviceID,omitempty"`
+	ServiceName     string    `query:"serviceName,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -199,8 +199,8 @@ type CollectionGetResponse = []*model.ServiceRevisionOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
-	ServiceID oid.ID `query:"serviceID,omitempty"`
+	ProjectID object.ID `query:"projectID"`
+	ServiceID object.ID `query:"serviceID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -239,9 +239,9 @@ type UpdateTerraformStatesRequest struct {
 }
 
 type StreamLogRequest struct {
-	ID        oid.ID `uri:"id"`
-	ProjectID oid.ID `query:"projectID"`
-	JobType   string `query:"jobType,omitempty"`
+	ID        object.ID `uri:"id"`
+	ProjectID object.ID `query:"projectID"`
+	JobType   string    `query:"jobType,omitempty"`
 }
 
 func (r *StreamLogRequest) Validate() error {
@@ -265,8 +265,8 @@ func (r *StreamLogRequest) Validate() error {
 }
 
 type DiffLatestRequest struct {
-	ID        oid.ID `uri:"id"`
-	ProjectID oid.ID `query:"projectID"`
+	ID        object.ID `uri:"id"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *DiffLatestRequest) Validate() error {
@@ -282,8 +282,8 @@ func (r *DiffLatestRequest) Validate() error {
 }
 
 type RevisionDiffPreviousRequest struct {
-	ID        oid.ID `uri:"id"`
-	ProjectID oid.ID `query:"projectID"`
+	ID        object.ID `uri:"id"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *RevisionDiffPreviousRequest) Validate() error {

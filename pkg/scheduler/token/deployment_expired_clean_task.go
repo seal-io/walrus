@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -62,7 +62,7 @@ func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...inter
 		return nil
 	}
 
-	ids := make([]oid.ID, len(entities))
+	ids := make([]object.ID, len(entities))
 	for i := range entities {
 		ids[i] = entities[i].ID
 	}

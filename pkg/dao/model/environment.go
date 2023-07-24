@@ -15,7 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -23,7 +23,7 @@ import (
 type Environment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description holds the value of the "description" field.
@@ -37,7 +37,7 @@ type Environment struct {
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentQuery when eager-loading is set.
 	Edges        EnvironmentEdges `json:"edges"`
@@ -118,7 +118,7 @@ func (*Environment) scanValues(columns []string) ([]any, error) {
 		case environment.FieldLabels, environment.FieldAnnotations:
 			values[i] = new([]byte)
 		case environment.FieldID, environment.FieldProjectID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case environment.FieldName, environment.FieldDescription:
 			values[i] = new(sql.NullString)
 		case environment.FieldCreateTime, environment.FieldUpdateTime:
@@ -139,7 +139,7 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case environment.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				e.ID = *value
@@ -187,7 +187,7 @@ func (e *Environment) assignValues(columns []string, values []any) error {
 				*e.UpdateTime = value.Time
 			}
 		case environment.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				e.ProjectID = *value

@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ProjectCreate is the builder for creating a Project entity.
@@ -95,20 +95,20 @@ func (pc *ProjectCreate) SetNillableUpdateTime(t *time.Time) *ProjectCreate {
 }
 
 // SetID sets the "id" field.
-func (pc *ProjectCreate) SetID(o oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) SetID(o object.ID) *ProjectCreate {
 	pc.mutation.SetID(o)
 	return pc
 }
 
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
-func (pc *ProjectCreate) AddEnvironmentIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddEnvironmentIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddEnvironmentIDs(ids...)
 	return pc
 }
 
 // AddEnvironments adds the "environments" edges to the Environment entity.
 func (pc *ProjectCreate) AddEnvironments(e ...*Environment) *ProjectCreate {
-	ids := make([]oid.ID, len(e))
+	ids := make([]object.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -116,14 +116,14 @@ func (pc *ProjectCreate) AddEnvironments(e ...*Environment) *ProjectCreate {
 }
 
 // AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
-func (pc *ProjectCreate) AddConnectorIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddConnectorIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddConnectorIDs(ids...)
 	return pc
 }
 
 // AddConnectors adds the "connectors" edges to the Connector entity.
 func (pc *ProjectCreate) AddConnectors(c ...*Connector) *ProjectCreate {
-	ids := make([]oid.ID, len(c))
+	ids := make([]object.ID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -131,14 +131,14 @@ func (pc *ProjectCreate) AddConnectors(c ...*Connector) *ProjectCreate {
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (pc *ProjectCreate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddSubjectRoleIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddSubjectRoleIDs(ids...)
 	return pc
 }
 
 // AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
 func (pc *ProjectCreate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -146,14 +146,14 @@ func (pc *ProjectCreate) AddSubjectRoles(s ...*SubjectRoleRelationship) *Project
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (pc *ProjectCreate) AddServiceIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddServiceIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddServiceIDs(ids...)
 	return pc
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (pc *ProjectCreate) AddServices(s ...*Service) *ProjectCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -161,14 +161,14 @@ func (pc *ProjectCreate) AddServices(s ...*Service) *ProjectCreate {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (pc *ProjectCreate) AddServiceRevisionIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddServiceRevisionIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddServiceRevisionIDs(ids...)
 	return pc
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -176,14 +176,14 @@ func (pc *ProjectCreate) AddServiceRevisions(s ...*ServiceRevision) *ProjectCrea
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (pc *ProjectCreate) AddVariableIDs(ids ...oid.ID) *ProjectCreate {
+func (pc *ProjectCreate) AddVariableIDs(ids ...object.ID) *ProjectCreate {
 	pc.mutation.AddVariableIDs(ids...)
 	return pc
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (pc *ProjectCreate) AddVariables(v ...*Variable) *ProjectCreate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -283,7 +283,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -719,7 +719,7 @@ func (u *ProjectUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ProjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ProjectUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -733,7 +733,7 @@ func (u *ProjectUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ProjectUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ProjectUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

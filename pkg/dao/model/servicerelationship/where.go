@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.ServiceRelationship {
+func ID(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.ServiceRelationship {
+func IDEQ(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.ServiceRelationship {
+func IDNEQ(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.ServiceRelationship {
+func IDIn(ids ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.ServiceRelationship {
+func IDNotIn(ids ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.ServiceRelationship {
+func IDGT(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.ServiceRelationship {
+func IDGTE(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.ServiceRelationship {
+func IDLT(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.ServiceRelationship {
+func IDLTE(id object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLTE(FieldID, id))
 }
 
@@ -67,12 +67,12 @@ func CreateTime(v time.Time) predicate.ServiceRelationship {
 }
 
 // ServiceID applies equality check predicate on the "service_id" field. It's identical to ServiceIDEQ.
-func ServiceID(v oid.ID) predicate.ServiceRelationship {
+func ServiceID(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldServiceID, v))
 }
 
 // DependencyID applies equality check predicate on the "dependency_id" field. It's identical to DependencyIDEQ.
-func DependencyID(v oid.ID) predicate.ServiceRelationship {
+func DependencyID(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldDependencyID, v))
 }
 
@@ -122,141 +122,141 @@ func CreateTimeLTE(v time.Time) predicate.ServiceRelationship {
 }
 
 // ServiceIDEQ applies the EQ predicate on the "service_id" field.
-func ServiceIDEQ(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDEQ(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldServiceID, v))
 }
 
 // ServiceIDNEQ applies the NEQ predicate on the "service_id" field.
-func ServiceIDNEQ(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDNEQ(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNEQ(FieldServiceID, v))
 }
 
 // ServiceIDIn applies the In predicate on the "service_id" field.
-func ServiceIDIn(vs ...oid.ID) predicate.ServiceRelationship {
+func ServiceIDIn(vs ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldIn(FieldServiceID, vs...))
 }
 
 // ServiceIDNotIn applies the NotIn predicate on the "service_id" field.
-func ServiceIDNotIn(vs ...oid.ID) predicate.ServiceRelationship {
+func ServiceIDNotIn(vs ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNotIn(FieldServiceID, vs...))
 }
 
 // ServiceIDGT applies the GT predicate on the "service_id" field.
-func ServiceIDGT(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDGT(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGT(FieldServiceID, v))
 }
 
 // ServiceIDGTE applies the GTE predicate on the "service_id" field.
-func ServiceIDGTE(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDGTE(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGTE(FieldServiceID, v))
 }
 
 // ServiceIDLT applies the LT predicate on the "service_id" field.
-func ServiceIDLT(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDLT(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLT(FieldServiceID, v))
 }
 
 // ServiceIDLTE applies the LTE predicate on the "service_id" field.
-func ServiceIDLTE(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDLTE(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLTE(FieldServiceID, v))
 }
 
 // ServiceIDContains applies the Contains predicate on the "service_id" field.
-func ServiceIDContains(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDContains(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldContains(FieldServiceID, vc))
 }
 
 // ServiceIDHasPrefix applies the HasPrefix predicate on the "service_id" field.
-func ServiceIDHasPrefix(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDHasPrefix(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldHasPrefix(FieldServiceID, vc))
 }
 
 // ServiceIDHasSuffix applies the HasSuffix predicate on the "service_id" field.
-func ServiceIDHasSuffix(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDHasSuffix(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldHasSuffix(FieldServiceID, vc))
 }
 
 // ServiceIDEqualFold applies the EqualFold predicate on the "service_id" field.
-func ServiceIDEqualFold(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDEqualFold(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldEqualFold(FieldServiceID, vc))
 }
 
 // ServiceIDContainsFold applies the ContainsFold predicate on the "service_id" field.
-func ServiceIDContainsFold(v oid.ID) predicate.ServiceRelationship {
+func ServiceIDContainsFold(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldContainsFold(FieldServiceID, vc))
 }
 
 // DependencyIDEQ applies the EQ predicate on the "dependency_id" field.
-func DependencyIDEQ(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDEQ(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldEQ(FieldDependencyID, v))
 }
 
 // DependencyIDNEQ applies the NEQ predicate on the "dependency_id" field.
-func DependencyIDNEQ(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDNEQ(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNEQ(FieldDependencyID, v))
 }
 
 // DependencyIDIn applies the In predicate on the "dependency_id" field.
-func DependencyIDIn(vs ...oid.ID) predicate.ServiceRelationship {
+func DependencyIDIn(vs ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldIn(FieldDependencyID, vs...))
 }
 
 // DependencyIDNotIn applies the NotIn predicate on the "dependency_id" field.
-func DependencyIDNotIn(vs ...oid.ID) predicate.ServiceRelationship {
+func DependencyIDNotIn(vs ...object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldNotIn(FieldDependencyID, vs...))
 }
 
 // DependencyIDGT applies the GT predicate on the "dependency_id" field.
-func DependencyIDGT(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDGT(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGT(FieldDependencyID, v))
 }
 
 // DependencyIDGTE applies the GTE predicate on the "dependency_id" field.
-func DependencyIDGTE(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDGTE(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldGTE(FieldDependencyID, v))
 }
 
 // DependencyIDLT applies the LT predicate on the "dependency_id" field.
-func DependencyIDLT(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDLT(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLT(FieldDependencyID, v))
 }
 
 // DependencyIDLTE applies the LTE predicate on the "dependency_id" field.
-func DependencyIDLTE(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDLTE(v object.ID) predicate.ServiceRelationship {
 	return predicate.ServiceRelationship(sql.FieldLTE(FieldDependencyID, v))
 }
 
 // DependencyIDContains applies the Contains predicate on the "dependency_id" field.
-func DependencyIDContains(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDContains(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldContains(FieldDependencyID, vc))
 }
 
 // DependencyIDHasPrefix applies the HasPrefix predicate on the "dependency_id" field.
-func DependencyIDHasPrefix(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDHasPrefix(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldHasPrefix(FieldDependencyID, vc))
 }
 
 // DependencyIDHasSuffix applies the HasSuffix predicate on the "dependency_id" field.
-func DependencyIDHasSuffix(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDHasSuffix(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldHasSuffix(FieldDependencyID, vc))
 }
 
 // DependencyIDEqualFold applies the EqualFold predicate on the "dependency_id" field.
-func DependencyIDEqualFold(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDEqualFold(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldEqualFold(FieldDependencyID, vc))
 }
 
 // DependencyIDContainsFold applies the ContainsFold predicate on the "dependency_id" field.
-func DependencyIDContainsFold(v oid.ID) predicate.ServiceRelationship {
+func DependencyIDContainsFold(v object.ID) predicate.ServiceRelationship {
 	vc := string(v)
 	return predicate.ServiceRelationship(sql.FieldContainsFold(FieldDependencyID, vc))
 }

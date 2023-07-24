@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer"
 	deployertf "github.com/seal-io/seal/pkg/deployer/terraform"
@@ -181,7 +181,7 @@ func (in *RelationshipCheckTask) checkDependencies(ctx context.Context, svc *mod
 		return true, nil
 	}
 
-	serviceIDs := make([]oid.ID, 0, len(dependencies))
+	serviceIDs := make([]object.ID, 0, len(dependencies))
 
 	for _, d := range dependencies {
 		if existCycle := dao.ServiceRelationshipCheckCycle(d); existCycle {

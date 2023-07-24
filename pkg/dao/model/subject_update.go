@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectUpdate is the builder for updating Subject entities.
@@ -78,14 +78,14 @@ func (su *SubjectUpdate) ClearDescription() *SubjectUpdate {
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
-func (su *SubjectUpdate) AddTokenIDs(ids ...oid.ID) *SubjectUpdate {
+func (su *SubjectUpdate) AddTokenIDs(ids ...object.ID) *SubjectUpdate {
 	su.mutation.AddTokenIDs(ids...)
 	return su
 }
 
 // AddTokens adds the "tokens" edges to the Token entity.
 func (su *SubjectUpdate) AddTokens(t ...*Token) *SubjectUpdate {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -93,14 +93,14 @@ func (su *SubjectUpdate) AddTokens(t ...*Token) *SubjectUpdate {
 }
 
 // AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by IDs.
-func (su *SubjectUpdate) AddRoleIDs(ids ...oid.ID) *SubjectUpdate {
+func (su *SubjectUpdate) AddRoleIDs(ids ...object.ID) *SubjectUpdate {
 	su.mutation.AddRoleIDs(ids...)
 	return su
 }
 
 // AddRoles adds the "roles" edges to the SubjectRoleRelationship entity.
 func (su *SubjectUpdate) AddRoles(s ...*SubjectRoleRelationship) *SubjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -119,14 +119,14 @@ func (su *SubjectUpdate) ClearTokens() *SubjectUpdate {
 }
 
 // RemoveTokenIDs removes the "tokens" edge to Token entities by IDs.
-func (su *SubjectUpdate) RemoveTokenIDs(ids ...oid.ID) *SubjectUpdate {
+func (su *SubjectUpdate) RemoveTokenIDs(ids ...object.ID) *SubjectUpdate {
 	su.mutation.RemoveTokenIDs(ids...)
 	return su
 }
 
 // RemoveTokens removes "tokens" edges to Token entities.
 func (su *SubjectUpdate) RemoveTokens(t ...*Token) *SubjectUpdate {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -140,14 +140,14 @@ func (su *SubjectUpdate) ClearRoles() *SubjectUpdate {
 }
 
 // RemoveRoleIDs removes the "roles" edge to SubjectRoleRelationship entities by IDs.
-func (su *SubjectUpdate) RemoveRoleIDs(ids ...oid.ID) *SubjectUpdate {
+func (su *SubjectUpdate) RemoveRoleIDs(ids ...object.ID) *SubjectUpdate {
 	su.mutation.RemoveRoleIDs(ids...)
 	return su
 }
 
 // RemoveRoles removes "roles" edges to SubjectRoleRelationship entities.
 func (su *SubjectUpdate) RemoveRoles(s ...*SubjectRoleRelationship) *SubjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -396,14 +396,14 @@ func (suo *SubjectUpdateOne) ClearDescription() *SubjectUpdateOne {
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by IDs.
-func (suo *SubjectUpdateOne) AddTokenIDs(ids ...oid.ID) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) AddTokenIDs(ids ...object.ID) *SubjectUpdateOne {
 	suo.mutation.AddTokenIDs(ids...)
 	return suo
 }
 
 // AddTokens adds the "tokens" edges to the Token entity.
 func (suo *SubjectUpdateOne) AddTokens(t ...*Token) *SubjectUpdateOne {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -411,14 +411,14 @@ func (suo *SubjectUpdateOne) AddTokens(t ...*Token) *SubjectUpdateOne {
 }
 
 // AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by IDs.
-func (suo *SubjectUpdateOne) AddRoleIDs(ids ...oid.ID) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) AddRoleIDs(ids ...object.ID) *SubjectUpdateOne {
 	suo.mutation.AddRoleIDs(ids...)
 	return suo
 }
 
 // AddRoles adds the "roles" edges to the SubjectRoleRelationship entity.
 func (suo *SubjectUpdateOne) AddRoles(s ...*SubjectRoleRelationship) *SubjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -437,14 +437,14 @@ func (suo *SubjectUpdateOne) ClearTokens() *SubjectUpdateOne {
 }
 
 // RemoveTokenIDs removes the "tokens" edge to Token entities by IDs.
-func (suo *SubjectUpdateOne) RemoveTokenIDs(ids ...oid.ID) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) RemoveTokenIDs(ids ...object.ID) *SubjectUpdateOne {
 	suo.mutation.RemoveTokenIDs(ids...)
 	return suo
 }
 
 // RemoveTokens removes "tokens" edges to Token entities.
 func (suo *SubjectUpdateOne) RemoveTokens(t ...*Token) *SubjectUpdateOne {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -458,14 +458,14 @@ func (suo *SubjectUpdateOne) ClearRoles() *SubjectUpdateOne {
 }
 
 // RemoveRoleIDs removes the "roles" edge to SubjectRoleRelationship entities by IDs.
-func (suo *SubjectUpdateOne) RemoveRoleIDs(ids ...oid.ID) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) RemoveRoleIDs(ids ...object.ID) *SubjectUpdateOne {
 	suo.mutation.RemoveRoleIDs(ids...)
 	return suo
 }
 
 // RemoveRoles removes "roles" edges to SubjectRoleRelationship entities.
 func (suo *SubjectUpdateOne) RemoveRoles(s ...*SubjectRoleRelationship) *SubjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

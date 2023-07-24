@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ProjectUpdate is the builder for updating Project entities.
@@ -98,14 +98,14 @@ func (pu *ProjectUpdate) SetUpdateTime(t time.Time) *ProjectUpdate {
 }
 
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
-func (pu *ProjectUpdate) AddEnvironmentIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddEnvironmentIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddEnvironmentIDs(ids...)
 	return pu
 }
 
 // AddEnvironments adds the "environments" edges to the Environment entity.
 func (pu *ProjectUpdate) AddEnvironments(e ...*Environment) *ProjectUpdate {
-	ids := make([]oid.ID, len(e))
+	ids := make([]object.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -113,14 +113,14 @@ func (pu *ProjectUpdate) AddEnvironments(e ...*Environment) *ProjectUpdate {
 }
 
 // AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
-func (pu *ProjectUpdate) AddConnectorIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddConnectorIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddConnectorIDs(ids...)
 	return pu
 }
 
 // AddConnectors adds the "connectors" edges to the Connector entity.
 func (pu *ProjectUpdate) AddConnectors(c ...*Connector) *ProjectUpdate {
-	ids := make([]oid.ID, len(c))
+	ids := make([]object.ID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -128,14 +128,14 @@ func (pu *ProjectUpdate) AddConnectors(c ...*Connector) *ProjectUpdate {
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (pu *ProjectUpdate) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddSubjectRoleIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddSubjectRoleIDs(ids...)
 	return pu
 }
 
 // AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
 func (pu *ProjectUpdate) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -143,14 +143,14 @@ func (pu *ProjectUpdate) AddSubjectRoles(s ...*SubjectRoleRelationship) *Project
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (pu *ProjectUpdate) AddServiceIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddServiceIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddServiceIDs(ids...)
 	return pu
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (pu *ProjectUpdate) AddServices(s ...*Service) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -158,14 +158,14 @@ func (pu *ProjectUpdate) AddServices(s ...*Service) *ProjectUpdate {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (pu *ProjectUpdate) AddServiceRevisionIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddServiceRevisionIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddServiceRevisionIDs(ids...)
 	return pu
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (pu *ProjectUpdate) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -173,14 +173,14 @@ func (pu *ProjectUpdate) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpda
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (pu *ProjectUpdate) AddVariableIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) AddVariableIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.AddVariableIDs(ids...)
 	return pu
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (pu *ProjectUpdate) AddVariables(v ...*Variable) *ProjectUpdate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -199,14 +199,14 @@ func (pu *ProjectUpdate) ClearEnvironments() *ProjectUpdate {
 }
 
 // RemoveEnvironmentIDs removes the "environments" edge to Environment entities by IDs.
-func (pu *ProjectUpdate) RemoveEnvironmentIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveEnvironmentIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveEnvironmentIDs(ids...)
 	return pu
 }
 
 // RemoveEnvironments removes "environments" edges to Environment entities.
 func (pu *ProjectUpdate) RemoveEnvironments(e ...*Environment) *ProjectUpdate {
-	ids := make([]oid.ID, len(e))
+	ids := make([]object.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -220,14 +220,14 @@ func (pu *ProjectUpdate) ClearConnectors() *ProjectUpdate {
 }
 
 // RemoveConnectorIDs removes the "connectors" edge to Connector entities by IDs.
-func (pu *ProjectUpdate) RemoveConnectorIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveConnectorIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveConnectorIDs(ids...)
 	return pu
 }
 
 // RemoveConnectors removes "connectors" edges to Connector entities.
 func (pu *ProjectUpdate) RemoveConnectors(c ...*Connector) *ProjectUpdate {
-	ids := make([]oid.ID, len(c))
+	ids := make([]object.ID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -241,14 +241,14 @@ func (pu *ProjectUpdate) ClearSubjectRoles() *ProjectUpdate {
 }
 
 // RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
-func (pu *ProjectUpdate) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveSubjectRoleIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveSubjectRoleIDs(ids...)
 	return pu
 }
 
 // RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
 func (pu *ProjectUpdate) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -262,14 +262,14 @@ func (pu *ProjectUpdate) ClearServices() *ProjectUpdate {
 }
 
 // RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (pu *ProjectUpdate) RemoveServiceIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveServiceIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveServiceIDs(ids...)
 	return pu
 }
 
 // RemoveServices removes "services" edges to Service entities.
 func (pu *ProjectUpdate) RemoveServices(s ...*Service) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -283,14 +283,14 @@ func (pu *ProjectUpdate) ClearServiceRevisions() *ProjectUpdate {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
-func (pu *ProjectUpdate) RemoveServiceRevisionIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveServiceRevisionIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveServiceRevisionIDs(ids...)
 	return pu
 }
 
 // RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
 func (pu *ProjectUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -304,14 +304,14 @@ func (pu *ProjectUpdate) ClearVariables() *ProjectUpdate {
 }
 
 // RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
-func (pu *ProjectUpdate) RemoveVariableIDs(ids ...oid.ID) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveVariableIDs(ids ...object.ID) *ProjectUpdate {
 	pu.mutation.RemoveVariableIDs(ids...)
 	return pu
 }
 
 // RemoveVariables removes "variables" edges to Variable entities.
 func (pu *ProjectUpdate) RemoveVariables(v ...*Variable) *ProjectUpdate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -781,14 +781,14 @@ func (puo *ProjectUpdateOne) SetUpdateTime(t time.Time) *ProjectUpdateOne {
 }
 
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by IDs.
-func (puo *ProjectUpdateOne) AddEnvironmentIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddEnvironmentIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddEnvironmentIDs(ids...)
 	return puo
 }
 
 // AddEnvironments adds the "environments" edges to the Environment entity.
 func (puo *ProjectUpdateOne) AddEnvironments(e ...*Environment) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(e))
+	ids := make([]object.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -796,14 +796,14 @@ func (puo *ProjectUpdateOne) AddEnvironments(e ...*Environment) *ProjectUpdateOn
 }
 
 // AddConnectorIDs adds the "connectors" edge to the Connector entity by IDs.
-func (puo *ProjectUpdateOne) AddConnectorIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddConnectorIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddConnectorIDs(ids...)
 	return puo
 }
 
 // AddConnectors adds the "connectors" edges to the Connector entity.
 func (puo *ProjectUpdateOne) AddConnectors(c ...*Connector) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(c))
+	ids := make([]object.ID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -811,14 +811,14 @@ func (puo *ProjectUpdateOne) AddConnectors(c ...*Connector) *ProjectUpdateOne {
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (puo *ProjectUpdateOne) AddSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddSubjectRoleIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddSubjectRoleIDs(ids...)
 	return puo
 }
 
 // AddSubjectRoles adds the "subjectRoles" edges to the SubjectRoleRelationship entity.
 func (puo *ProjectUpdateOne) AddSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -826,14 +826,14 @@ func (puo *ProjectUpdateOne) AddSubjectRoles(s ...*SubjectRoleRelationship) *Pro
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (puo *ProjectUpdateOne) AddServiceIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddServiceIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddServiceIDs(ids...)
 	return puo
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (puo *ProjectUpdateOne) AddServices(s ...*Service) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -841,14 +841,14 @@ func (puo *ProjectUpdateOne) AddServices(s ...*Service) *ProjectUpdateOne {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (puo *ProjectUpdateOne) AddServiceRevisionIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddServiceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddServiceRevisionIDs(ids...)
 	return puo
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (puo *ProjectUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -856,14 +856,14 @@ func (puo *ProjectUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Project
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (puo *ProjectUpdateOne) AddVariableIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddVariableIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.AddVariableIDs(ids...)
 	return puo
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (puo *ProjectUpdateOne) AddVariables(v ...*Variable) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -882,14 +882,14 @@ func (puo *ProjectUpdateOne) ClearEnvironments() *ProjectUpdateOne {
 }
 
 // RemoveEnvironmentIDs removes the "environments" edge to Environment entities by IDs.
-func (puo *ProjectUpdateOne) RemoveEnvironmentIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveEnvironmentIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveEnvironmentIDs(ids...)
 	return puo
 }
 
 // RemoveEnvironments removes "environments" edges to Environment entities.
 func (puo *ProjectUpdateOne) RemoveEnvironments(e ...*Environment) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(e))
+	ids := make([]object.ID, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -903,14 +903,14 @@ func (puo *ProjectUpdateOne) ClearConnectors() *ProjectUpdateOne {
 }
 
 // RemoveConnectorIDs removes the "connectors" edge to Connector entities by IDs.
-func (puo *ProjectUpdateOne) RemoveConnectorIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveConnectorIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveConnectorIDs(ids...)
 	return puo
 }
 
 // RemoveConnectors removes "connectors" edges to Connector entities.
 func (puo *ProjectUpdateOne) RemoveConnectors(c ...*Connector) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(c))
+	ids := make([]object.ID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -924,14 +924,14 @@ func (puo *ProjectUpdateOne) ClearSubjectRoles() *ProjectUpdateOne {
 }
 
 // RemoveSubjectRoleIDs removes the "subjectRoles" edge to SubjectRoleRelationship entities by IDs.
-func (puo *ProjectUpdateOne) RemoveSubjectRoleIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveSubjectRoleIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveSubjectRoleIDs(ids...)
 	return puo
 }
 
 // RemoveSubjectRoles removes "subjectRoles" edges to SubjectRoleRelationship entities.
 func (puo *ProjectUpdateOne) RemoveSubjectRoles(s ...*SubjectRoleRelationship) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -945,14 +945,14 @@ func (puo *ProjectUpdateOne) ClearServices() *ProjectUpdateOne {
 }
 
 // RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (puo *ProjectUpdateOne) RemoveServiceIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveServiceIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveServiceIDs(ids...)
 	return puo
 }
 
 // RemoveServices removes "services" edges to Service entities.
 func (puo *ProjectUpdateOne) RemoveServices(s ...*Service) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -966,14 +966,14 @@ func (puo *ProjectUpdateOne) ClearServiceRevisions() *ProjectUpdateOne {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
-func (puo *ProjectUpdateOne) RemoveServiceRevisionIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveServiceRevisionIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveServiceRevisionIDs(ids...)
 	return puo
 }
 
 // RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
 func (puo *ProjectUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -987,14 +987,14 @@ func (puo *ProjectUpdateOne) ClearVariables() *ProjectUpdateOne {
 }
 
 // RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
-func (puo *ProjectUpdateOne) RemoveVariableIDs(ids ...oid.ID) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveVariableIDs(ids ...object.ID) *ProjectUpdateOne {
 	puo.mutation.RemoveVariableIDs(ids...)
 	return puo
 }
 
 // RemoveVariables removes "variables" edges to Variable entities.
 func (puo *ProjectUpdateOne) RemoveVariables(v ...*Variable) *ProjectUpdateOne {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}

@@ -6,7 +6,7 @@ import (
 
 	costvalidation "github.com/seal-io/seal/pkg/apis/cost/validation"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -107,7 +107,7 @@ type SummaryClusterCostRequest struct {
 
 	StartTime   time.Time `json:"startTime,omitempty"`
 	EndTime     time.Time `json:"endTime,omitempty"`
-	ConnectorID oid.ID    `json:"connectorID,omitempty"`
+	ConnectorID object.ID `json:"connectorID,omitempty"`
 }
 
 func (r *SummaryClusterCostRequest) Validate() error {

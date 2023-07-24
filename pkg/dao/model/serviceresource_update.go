@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceUpdate is the builder for updating ServiceResource entities.
@@ -64,14 +64,14 @@ func (sru *ServiceResourceUpdate) ClearStatus() *ServiceResourceUpdate {
 }
 
 // AddComponentIDs adds the "components" edge to the ServiceResource entity by IDs.
-func (sru *ServiceResourceUpdate) AddComponentIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) AddComponentIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.AddComponentIDs(ids...)
 	return sru
 }
 
 // AddComponents adds the "components" edges to the ServiceResource entity.
 func (sru *ServiceResourceUpdate) AddComponents(s ...*ServiceResource) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -79,14 +79,14 @@ func (sru *ServiceResourceUpdate) AddComponents(s ...*ServiceResource) *ServiceR
 }
 
 // AddInstanceIDs adds the "instances" edge to the ServiceResource entity by IDs.
-func (sru *ServiceResourceUpdate) AddInstanceIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) AddInstanceIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.AddInstanceIDs(ids...)
 	return sru
 }
 
 // AddInstances adds the "instances" edges to the ServiceResource entity.
 func (sru *ServiceResourceUpdate) AddInstances(s ...*ServiceResource) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -94,14 +94,14 @@ func (sru *ServiceResourceUpdate) AddInstances(s ...*ServiceResource) *ServiceRe
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceResourceRelationship entity by IDs.
-func (sru *ServiceResourceUpdate) AddDependencyIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) AddDependencyIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.AddDependencyIDs(ids...)
 	return sru
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceResourceRelationship entity.
 func (sru *ServiceResourceUpdate) AddDependencies(s ...*ServiceResourceRelationship) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -120,14 +120,14 @@ func (sru *ServiceResourceUpdate) ClearComponents() *ServiceResourceUpdate {
 }
 
 // RemoveComponentIDs removes the "components" edge to ServiceResource entities by IDs.
-func (sru *ServiceResourceUpdate) RemoveComponentIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) RemoveComponentIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.RemoveComponentIDs(ids...)
 	return sru
 }
 
 // RemoveComponents removes "components" edges to ServiceResource entities.
 func (sru *ServiceResourceUpdate) RemoveComponents(s ...*ServiceResource) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -141,14 +141,14 @@ func (sru *ServiceResourceUpdate) ClearInstances() *ServiceResourceUpdate {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ServiceResource entities by IDs.
-func (sru *ServiceResourceUpdate) RemoveInstanceIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) RemoveInstanceIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.RemoveInstanceIDs(ids...)
 	return sru
 }
 
 // RemoveInstances removes "instances" edges to ServiceResource entities.
 func (sru *ServiceResourceUpdate) RemoveInstances(s ...*ServiceResource) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -162,14 +162,14 @@ func (sru *ServiceResourceUpdate) ClearDependencies() *ServiceResourceUpdate {
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ServiceResourceRelationship entities by IDs.
-func (sru *ServiceResourceUpdate) RemoveDependencyIDs(ids ...oid.ID) *ServiceResourceUpdate {
+func (sru *ServiceResourceUpdate) RemoveDependencyIDs(ids ...object.ID) *ServiceResourceUpdate {
 	sru.mutation.RemoveDependencyIDs(ids...)
 	return sru
 }
 
 // RemoveDependencies removes "dependencies" edges to ServiceResourceRelationship entities.
 func (sru *ServiceResourceUpdate) RemoveDependencies(s ...*ServiceResourceRelationship) *ServiceResourceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -463,14 +463,14 @@ func (sruo *ServiceResourceUpdateOne) ClearStatus() *ServiceResourceUpdateOne {
 }
 
 // AddComponentIDs adds the "components" edge to the ServiceResource entity by IDs.
-func (sruo *ServiceResourceUpdateOne) AddComponentIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) AddComponentIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.AddComponentIDs(ids...)
 	return sruo
 }
 
 // AddComponents adds the "components" edges to the ServiceResource entity.
 func (sruo *ServiceResourceUpdateOne) AddComponents(s ...*ServiceResource) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -478,14 +478,14 @@ func (sruo *ServiceResourceUpdateOne) AddComponents(s ...*ServiceResource) *Serv
 }
 
 // AddInstanceIDs adds the "instances" edge to the ServiceResource entity by IDs.
-func (sruo *ServiceResourceUpdateOne) AddInstanceIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) AddInstanceIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.AddInstanceIDs(ids...)
 	return sruo
 }
 
 // AddInstances adds the "instances" edges to the ServiceResource entity.
 func (sruo *ServiceResourceUpdateOne) AddInstances(s ...*ServiceResource) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -493,14 +493,14 @@ func (sruo *ServiceResourceUpdateOne) AddInstances(s ...*ServiceResource) *Servi
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceResourceRelationship entity by IDs.
-func (sruo *ServiceResourceUpdateOne) AddDependencyIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) AddDependencyIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.AddDependencyIDs(ids...)
 	return sruo
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceResourceRelationship entity.
 func (sruo *ServiceResourceUpdateOne) AddDependencies(s ...*ServiceResourceRelationship) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -519,14 +519,14 @@ func (sruo *ServiceResourceUpdateOne) ClearComponents() *ServiceResourceUpdateOn
 }
 
 // RemoveComponentIDs removes the "components" edge to ServiceResource entities by IDs.
-func (sruo *ServiceResourceUpdateOne) RemoveComponentIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) RemoveComponentIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.RemoveComponentIDs(ids...)
 	return sruo
 }
 
 // RemoveComponents removes "components" edges to ServiceResource entities.
 func (sruo *ServiceResourceUpdateOne) RemoveComponents(s ...*ServiceResource) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -540,14 +540,14 @@ func (sruo *ServiceResourceUpdateOne) ClearInstances() *ServiceResourceUpdateOne
 }
 
 // RemoveInstanceIDs removes the "instances" edge to ServiceResource entities by IDs.
-func (sruo *ServiceResourceUpdateOne) RemoveInstanceIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) RemoveInstanceIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.RemoveInstanceIDs(ids...)
 	return sruo
 }
 
 // RemoveInstances removes "instances" edges to ServiceResource entities.
 func (sruo *ServiceResourceUpdateOne) RemoveInstances(s ...*ServiceResource) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -561,14 +561,14 @@ func (sruo *ServiceResourceUpdateOne) ClearDependencies() *ServiceResourceUpdate
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ServiceResourceRelationship entities by IDs.
-func (sruo *ServiceResourceUpdateOne) RemoveDependencyIDs(ids ...oid.ID) *ServiceResourceUpdateOne {
+func (sruo *ServiceResourceUpdateOne) RemoveDependencyIDs(ids ...object.ID) *ServiceResourceUpdateOne {
 	sruo.mutation.RemoveDependencyIDs(ids...)
 	return sruo
 }
 
 // RemoveDependencies removes "dependencies" edges to ServiceResourceRelationship entities.
 func (sruo *ServiceResourceUpdateOne) RemoveDependencies(s ...*ServiceResourceRelationship) *ServiceResourceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

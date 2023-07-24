@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func Handle(mc model.ClientSet) Handler {
@@ -142,7 +142,7 @@ func (h Handler) CollectionGet(
 
 	s := session.MustGetSubject(ctx)
 	if !s.IsAdmin() {
-		pids := make([]oid.ID, len(s.ProjectRoles))
+		pids := make([]object.ID, len(s.ProjectRoles))
 		for i := range s.ProjectRoles {
 			pids[i] = s.ProjectRoles[i].Project.ID
 		}

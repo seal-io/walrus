@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.SubjectRoleRelationship {
+func ID(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.SubjectRoleRelationship {
+func IDEQ(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.SubjectRoleRelationship {
+func IDNEQ(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.SubjectRoleRelationship {
+func IDIn(ids ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.SubjectRoleRelationship {
+func IDNotIn(ids ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.SubjectRoleRelationship {
+func IDGT(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.SubjectRoleRelationship {
+func IDGTE(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.SubjectRoleRelationship {
+func IDLT(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.SubjectRoleRelationship {
+func IDLTE(id object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldID, id))
 }
 
@@ -67,12 +67,12 @@ func CreateTime(v time.Time) predicate.SubjectRoleRelationship {
 }
 
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectID(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldProjectID, v))
 }
 
 // SubjectID applies equality check predicate on the "subject_id" field. It's identical to SubjectIDEQ.
-func SubjectID(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectID(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldSubjectID, v))
 }
 
@@ -122,59 +122,59 @@ func CreateTimeLTE(v time.Time) predicate.SubjectRoleRelationship {
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDEQ(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDNEQ(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNEQ(FieldProjectID, v))
 }
 
 // ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDIn(vs ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldIn(FieldProjectID, vs...))
 }
 
 // ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDNotIn(vs ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNotIn(FieldProjectID, vs...))
 }
 
 // ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDGT(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGT(FieldProjectID, v))
 }
 
 // ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDGTE(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGTE(FieldProjectID, v))
 }
 
 // ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDLT(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLT(FieldProjectID, v))
 }
 
 // ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDLTE(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldProjectID, v))
 }
 
 // ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDContains(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldContains(FieldProjectID, vc))
 }
 
 // ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDHasPrefix(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldHasPrefix(FieldProjectID, vc))
 }
 
 // ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDHasSuffix(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldHasSuffix(FieldProjectID, vc))
 }
@@ -190,83 +190,83 @@ func ProjectIDNotNil() predicate.SubjectRoleRelationship {
 }
 
 // ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDEqualFold(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldEqualFold(FieldProjectID, vc))
 }
 
 // ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.SubjectRoleRelationship {
+func ProjectIDContainsFold(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
 // SubjectIDEQ applies the EQ predicate on the "subject_id" field.
-func SubjectIDEQ(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDEQ(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldEQ(FieldSubjectID, v))
 }
 
 // SubjectIDNEQ applies the NEQ predicate on the "subject_id" field.
-func SubjectIDNEQ(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDNEQ(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNEQ(FieldSubjectID, v))
 }
 
 // SubjectIDIn applies the In predicate on the "subject_id" field.
-func SubjectIDIn(vs ...oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDIn(vs ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldIn(FieldSubjectID, vs...))
 }
 
 // SubjectIDNotIn applies the NotIn predicate on the "subject_id" field.
-func SubjectIDNotIn(vs ...oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDNotIn(vs ...object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldNotIn(FieldSubjectID, vs...))
 }
 
 // SubjectIDGT applies the GT predicate on the "subject_id" field.
-func SubjectIDGT(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDGT(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGT(FieldSubjectID, v))
 }
 
 // SubjectIDGTE applies the GTE predicate on the "subject_id" field.
-func SubjectIDGTE(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDGTE(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldGTE(FieldSubjectID, v))
 }
 
 // SubjectIDLT applies the LT predicate on the "subject_id" field.
-func SubjectIDLT(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDLT(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLT(FieldSubjectID, v))
 }
 
 // SubjectIDLTE applies the LTE predicate on the "subject_id" field.
-func SubjectIDLTE(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDLTE(v object.ID) predicate.SubjectRoleRelationship {
 	return predicate.SubjectRoleRelationship(sql.FieldLTE(FieldSubjectID, v))
 }
 
 // SubjectIDContains applies the Contains predicate on the "subject_id" field.
-func SubjectIDContains(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDContains(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldContains(FieldSubjectID, vc))
 }
 
 // SubjectIDHasPrefix applies the HasPrefix predicate on the "subject_id" field.
-func SubjectIDHasPrefix(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDHasPrefix(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldHasPrefix(FieldSubjectID, vc))
 }
 
 // SubjectIDHasSuffix applies the HasSuffix predicate on the "subject_id" field.
-func SubjectIDHasSuffix(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDHasSuffix(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldHasSuffix(FieldSubjectID, vc))
 }
 
 // SubjectIDEqualFold applies the EqualFold predicate on the "subject_id" field.
-func SubjectIDEqualFold(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDEqualFold(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldEqualFold(FieldSubjectID, vc))
 }
 
 // SubjectIDContainsFold applies the ContainsFold predicate on the "subject_id" field.
-func SubjectIDContainsFold(v oid.ID) predicate.SubjectRoleRelationship {
+func SubjectIDContainsFold(v object.ID) predicate.SubjectRoleRelationship {
 	vc := string(v)
 	return predicate.SubjectRoleRelationship(sql.FieldContainsFold(FieldSubjectID, vc))
 }

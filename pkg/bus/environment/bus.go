@@ -5,7 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/bus"
 )
 
@@ -30,7 +30,7 @@ type BusMessage struct {
 }
 
 // NotifyIDs notifies the changed model.Environment IDs.
-func NotifyIDs(ctx context.Context, mc model.ClientSet, event Event, ids ...oid.ID) error {
+func NotifyIDs(ctx context.Context, mc model.ClientSet, event Event, ids ...object.ID) error {
 	envs, err := dao.GetEnvironmentsByIDs(ctx, mc, ids...)
 	if err != nil {
 		return err

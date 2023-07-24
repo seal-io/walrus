@@ -18,7 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateCreate is the builder for creating a Template entity.
@@ -132,14 +132,14 @@ func (tc *TemplateCreate) SetID(s string) *TemplateCreate {
 }
 
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by IDs.
-func (tc *TemplateCreate) AddVersionIDs(ids ...oid.ID) *TemplateCreate {
+func (tc *TemplateCreate) AddVersionIDs(ids ...object.ID) *TemplateCreate {
 	tc.mutation.AddVersionIDs(ids...)
 	return tc
 }
 
 // AddVersions adds the "versions" edges to the TemplateVersion entity.
 func (tc *TemplateCreate) AddVersions(t ...*TemplateVersion) *TemplateCreate {
-	ids := make([]oid.ID, len(t))
+	ids := make([]object.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}

@@ -14,52 +14,52 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.ServiceRevision {
+func ID(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.ServiceRevision {
+func IDEQ(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.ServiceRevision {
+func IDNEQ(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.ServiceRevision {
+func IDIn(ids ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.ServiceRevision {
+func IDNotIn(ids ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.ServiceRevision {
+func IDGT(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.ServiceRevision {
+func IDGTE(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.ServiceRevision {
+func IDLT(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.ServiceRevision {
+func IDLTE(id object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldID, id))
 }
 
@@ -69,7 +69,7 @@ func CreateTime(v time.Time) predicate.ServiceRevision {
 }
 
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.ServiceRevision {
+func ProjectID(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldProjectID, v))
 }
 
@@ -84,12 +84,12 @@ func StatusMessage(v string) predicate.ServiceRevision {
 }
 
 // ServiceID applies equality check predicate on the "serviceID" field. It's identical to ServiceIDEQ.
-func ServiceID(v oid.ID) predicate.ServiceRevision {
+func ServiceID(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldServiceID, v))
 }
 
 // EnvironmentID applies equality check predicate on the "environmentID" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v oid.ID) predicate.ServiceRevision {
+func EnvironmentID(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
@@ -174,71 +174,71 @@ func CreateTimeLTE(v time.Time) predicate.ServiceRevision {
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.ServiceRevision {
+func ProjectIDEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.ServiceRevision {
+func ProjectIDNEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNEQ(FieldProjectID, v))
 }
 
 // ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.ServiceRevision {
+func ProjectIDIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldIn(FieldProjectID, vs...))
 }
 
 // ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.ServiceRevision {
+func ProjectIDNotIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNotIn(FieldProjectID, vs...))
 }
 
 // ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.ServiceRevision {
+func ProjectIDGT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGT(FieldProjectID, v))
 }
 
 // ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.ServiceRevision {
+func ProjectIDGTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGTE(FieldProjectID, v))
 }
 
 // ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.ServiceRevision {
+func ProjectIDLT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLT(FieldProjectID, v))
 }
 
 // ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.ServiceRevision {
+func ProjectIDLTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldProjectID, v))
 }
 
 // ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.ServiceRevision {
+func ProjectIDContains(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContains(FieldProjectID, vc))
 }
 
 // ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.ServiceRevision {
+func ProjectIDHasPrefix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldProjectID, vc))
 }
 
 // ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.ServiceRevision {
+func ProjectIDHasSuffix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldProjectID, vc))
 }
 
 // ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.ServiceRevision {
+func ProjectIDEqualFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldEqualFold(FieldProjectID, vc))
 }
 
 // ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.ServiceRevision {
+func ProjectIDContainsFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldProjectID, vc))
 }
@@ -394,141 +394,141 @@ func StatusMessageContainsFold(v string) predicate.ServiceRevision {
 }
 
 // ServiceIDEQ applies the EQ predicate on the "serviceID" field.
-func ServiceIDEQ(v oid.ID) predicate.ServiceRevision {
+func ServiceIDEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldServiceID, v))
 }
 
 // ServiceIDNEQ applies the NEQ predicate on the "serviceID" field.
-func ServiceIDNEQ(v oid.ID) predicate.ServiceRevision {
+func ServiceIDNEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNEQ(FieldServiceID, v))
 }
 
 // ServiceIDIn applies the In predicate on the "serviceID" field.
-func ServiceIDIn(vs ...oid.ID) predicate.ServiceRevision {
+func ServiceIDIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldIn(FieldServiceID, vs...))
 }
 
 // ServiceIDNotIn applies the NotIn predicate on the "serviceID" field.
-func ServiceIDNotIn(vs ...oid.ID) predicate.ServiceRevision {
+func ServiceIDNotIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNotIn(FieldServiceID, vs...))
 }
 
 // ServiceIDGT applies the GT predicate on the "serviceID" field.
-func ServiceIDGT(v oid.ID) predicate.ServiceRevision {
+func ServiceIDGT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGT(FieldServiceID, v))
 }
 
 // ServiceIDGTE applies the GTE predicate on the "serviceID" field.
-func ServiceIDGTE(v oid.ID) predicate.ServiceRevision {
+func ServiceIDGTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGTE(FieldServiceID, v))
 }
 
 // ServiceIDLT applies the LT predicate on the "serviceID" field.
-func ServiceIDLT(v oid.ID) predicate.ServiceRevision {
+func ServiceIDLT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLT(FieldServiceID, v))
 }
 
 // ServiceIDLTE applies the LTE predicate on the "serviceID" field.
-func ServiceIDLTE(v oid.ID) predicate.ServiceRevision {
+func ServiceIDLTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldServiceID, v))
 }
 
 // ServiceIDContains applies the Contains predicate on the "serviceID" field.
-func ServiceIDContains(v oid.ID) predicate.ServiceRevision {
+func ServiceIDContains(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContains(FieldServiceID, vc))
 }
 
 // ServiceIDHasPrefix applies the HasPrefix predicate on the "serviceID" field.
-func ServiceIDHasPrefix(v oid.ID) predicate.ServiceRevision {
+func ServiceIDHasPrefix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldServiceID, vc))
 }
 
 // ServiceIDHasSuffix applies the HasSuffix predicate on the "serviceID" field.
-func ServiceIDHasSuffix(v oid.ID) predicate.ServiceRevision {
+func ServiceIDHasSuffix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldServiceID, vc))
 }
 
 // ServiceIDEqualFold applies the EqualFold predicate on the "serviceID" field.
-func ServiceIDEqualFold(v oid.ID) predicate.ServiceRevision {
+func ServiceIDEqualFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldEqualFold(FieldServiceID, vc))
 }
 
 // ServiceIDContainsFold applies the ContainsFold predicate on the "serviceID" field.
-func ServiceIDContainsFold(v oid.ID) predicate.ServiceRevision {
+func ServiceIDContainsFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldServiceID, vc))
 }
 
 // EnvironmentIDEQ applies the EQ predicate on the "environmentID" field.
-func EnvironmentIDEQ(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDNEQ applies the NEQ predicate on the "environmentID" field.
-func EnvironmentIDNEQ(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDNEQ(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNEQ(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDIn applies the In predicate on the "environmentID" field.
-func EnvironmentIDIn(vs ...oid.ID) predicate.ServiceRevision {
+func EnvironmentIDIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDNotIn applies the NotIn predicate on the "environmentID" field.
-func EnvironmentIDNotIn(vs ...oid.ID) predicate.ServiceRevision {
+func EnvironmentIDNotIn(vs ...object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldNotIn(FieldEnvironmentID, vs...))
 }
 
 // EnvironmentIDGT applies the GT predicate on the "environmentID" field.
-func EnvironmentIDGT(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDGT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDGTE applies the GTE predicate on the "environmentID" field.
-func EnvironmentIDGTE(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDGTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldGTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLT applies the LT predicate on the "environmentID" field.
-func EnvironmentIDLT(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDLT(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLT(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDLTE applies the LTE predicate on the "environmentID" field.
-func EnvironmentIDLTE(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDLTE(v object.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldLTE(FieldEnvironmentID, v))
 }
 
 // EnvironmentIDContains applies the Contains predicate on the "environmentID" field.
-func EnvironmentIDContains(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDContains(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContains(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environmentID" field.
-func EnvironmentIDHasPrefix(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDHasPrefix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environmentID" field.
-func EnvironmentIDHasSuffix(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDHasSuffix(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDEqualFold applies the EqualFold predicate on the "environmentID" field.
-func EnvironmentIDEqualFold(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDEqualFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldEqualFold(FieldEnvironmentID, vc))
 }
 
 // EnvironmentIDContainsFold applies the ContainsFold predicate on the "environmentID" field.
-func EnvironmentIDContainsFold(v oid.ID) predicate.ServiceRevision {
+func EnvironmentIDContainsFold(v object.ID) predicate.ServiceRevision {
 	vc := string(v)
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }

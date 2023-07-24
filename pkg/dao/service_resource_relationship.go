@@ -11,7 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -55,7 +55,7 @@ func ServiceResourceRelationshipUpdateWithDependencies(
 
 	resourceMap := ServiceResourceToMap(append(recordResources, createResources...))
 
-	recordResourceIDs := make([]oid.ID, 0, len(recordResources))
+	recordResourceIDs := make([]object.ID, 0, len(recordResources))
 	for _, r := range recordResources {
 		recordResourceIDs = append(recordResourceIDs, r.ID)
 	}

@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/deployer"
@@ -124,7 +124,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 	return h.getEntityOutput(ctx, req.ID)
 }
 
-func (h Handler) getEntityOutput(ctx context.Context, id oid.ID) (*model.ServiceOutput, error) {
+func (h Handler) getEntityOutput(ctx context.Context, id object.ID) (*model.ServiceOutput, error) {
 	entity, err := h.modelClient.Services().Query().
 		Where(service.ID(id)).
 		WithProject(func(pq *model.ProjectQuery) {
@@ -157,7 +157,7 @@ func (h Handler) Stream(ctx runtime.RequestUnidiStream, req view.StreamRequest) 
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -303,7 +303,7 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -495,7 +495,7 @@ func (h Handler) RouteAccessEndpoints(
 	return h.accessEndpoints(ctx, req.ID)
 }
 
-func (h Handler) accessEndpoints(ctx context.Context, serviceID oid.ID) (view.RouteAccessEndpointResponse, error) {
+func (h Handler) accessEndpoints(ctx context.Context, serviceID object.ID) (view.RouteAccessEndpointResponse, error) {
 	// Endpoints from output.
 	endpoints, err := h.endpointsFromOutput(ctx, serviceID)
 	if err != nil {
@@ -510,7 +510,10 @@ func (h Handler) accessEndpoints(ctx context.Context, serviceID oid.ID) (view.Ro
 	return h.endpointsFromResources(ctx, serviceID)
 }
 
-func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (view.RouteAccessEndpointResponse, error) {
+func (h Handler) endpointsFromOutput(
+	ctx context.Context,
+	serviceID object.ID,
+) (view.RouteAccessEndpointResponse, error) {
 	outputs, err := h.getServiceOutputs(ctx, serviceID, true)
 	if err != nil {
 		return nil, err
@@ -579,7 +582,7 @@ func (h Handler) endpointsFromOutput(ctx context.Context, serviceID oid.ID) (vie
 	return endpoints, nil
 }
 
-func (h Handler) endpointsFromResources(ctx context.Context, serviceID oid.ID) ([]view.AccessEndpoint, error) {
+func (h Handler) endpointsFromResources(ctx context.Context, serviceID object.ID) ([]view.AccessEndpoint, error) {
 	res, err := h.modelClient.ServiceResources().Query().
 		Where(
 			serviceresource.ServiceID(serviceID),
@@ -620,7 +623,7 @@ func (h Handler) RouteOutputs(ctx *gin.Context, req view.RouteOutputRequest) (vi
 
 func (h Handler) getServiceOutputs(
 	ctx context.Context,
-	serviceID oid.ID,
+	serviceID object.ID,
 	onlySuccess bool,
 ) ([]types.OutputValue, error) {
 	sr, err := h.modelClient.ServiceRevisions().Query().
@@ -673,7 +676,7 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -726,7 +729,7 @@ func (h Handler) StreamAccessEndpoint(ctx runtime.RequestUnidiStream, req view.G
 	}
 }
 
-func (h Handler) getRevisionByID(ctx context.Context, id oid.ID) (*model.ServiceRevision, error) {
+func (h Handler) getRevisionByID(ctx context.Context, id object.ID) (*model.ServiceRevision, error) {
 	return h.modelClient.ServiceRevisions().Query().
 		Where(servicerevision.ID(id)).
 		Only(ctx)
@@ -748,7 +751,7 @@ func (h Handler) StreamOutput(ctx runtime.RequestUnidiStream, req view.GetReques
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -844,7 +847,7 @@ func (h Handler) CollectionGetGraph(
 	var (
 		vertices  = make([]view.GraphVertex, 0, verticesCap)
 		edges     = make([]view.GraphEdge, 0, edgesCap)
-		operators = make(map[oid.ID]optypes.Operator)
+		operators = make(map[object.ID]optypes.Operator)
 	)
 
 	for i := 0; i < len(entities); i++ {

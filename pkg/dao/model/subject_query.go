@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectQuery is the builder for querying Subject entities.
@@ -144,8 +144,8 @@ func (sq *SubjectQuery) FirstX(ctx context.Context) *Subject {
 
 // FirstID returns the first Subject ID from the query.
 // Returns a *NotFoundError when no Subject ID was found.
-func (sq *SubjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SubjectQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (sq *SubjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SubjectQuery) FirstIDX(ctx context.Context) oid.ID {
+func (sq *SubjectQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -195,8 +195,8 @@ func (sq *SubjectQuery) OnlyX(ctx context.Context) *Subject {
 // OnlyID is like Only, but returns the only Subject ID in the query.
 // Returns a *NotSingularError when more than one Subject ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SubjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SubjectQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -212,7 +212,7 @@ func (sq *SubjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SubjectQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (sq *SubjectQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -240,7 +240,7 @@ func (sq *SubjectQuery) AllX(ctx context.Context) []*Subject {
 }
 
 // IDs executes the query and returns a list of Subject IDs.
-func (sq *SubjectQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (sq *SubjectQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -252,7 +252,7 @@ func (sq *SubjectQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SubjectQuery) IDsX(ctx context.Context) []oid.ID {
+func (sq *SubjectQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -467,7 +467,7 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 
 func (sq *SubjectQuery) loadTokens(ctx context.Context, query *TokenQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *Token)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Subject)
+	nodeids := make(map[object.ID]*Subject)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -497,7 +497,7 @@ func (sq *SubjectQuery) loadTokens(ctx context.Context, query *TokenQuery, nodes
 }
 func (sq *SubjectQuery) loadRoles(ctx context.Context, query *SubjectRoleRelationshipQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *SubjectRoleRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Subject)
+	nodeids := make(map[object.ID]*Subject)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

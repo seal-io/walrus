@@ -15,20 +15,20 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationship is the model entity for the ServiceResourceRelationship schema.
 type ServiceResourceRelationship struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the service resource.
-	ServiceResourceID oid.ID `json:"serviceResourceID" sql:"serviceResourceID"`
+	ServiceResourceID object.ID `json:"serviceResourceID" sql:"serviceResourceID"`
 	// ID of the resource that resource depends on.
-	DependencyID oid.ID `json:"dependencyID" sql:"dependencyID"`
+	DependencyID object.ID `json:"dependencyID" sql:"dependencyID"`
 	// Type of the relationship.
 	Type string `json:"type,omitempty" sql:"type"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -80,7 +80,7 @@ func (*ServiceResourceRelationship) scanValues(columns []string) ([]any, error) 
 	for i := range columns {
 		switch columns[i] {
 		case serviceresourcerelationship.FieldID, serviceresourcerelationship.FieldServiceResourceID, serviceresourcerelationship.FieldDependencyID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case serviceresourcerelationship.FieldType:
 			values[i] = new(sql.NullString)
 		case serviceresourcerelationship.FieldCreateTime:
@@ -101,7 +101,7 @@ func (srr *ServiceResourceRelationship) assignValues(columns []string, values []
 	for i := range columns {
 		switch columns[i] {
 		case serviceresourcerelationship.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				srr.ID = *value
@@ -114,13 +114,13 @@ func (srr *ServiceResourceRelationship) assignValues(columns []string, values []
 				*srr.CreateTime = value.Time
 			}
 		case serviceresourcerelationship.FieldServiceResourceID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field service_resource_id", values[i])
 			} else if value != nil {
 				srr.ServiceResourceID = *value
 			}
 		case serviceresourcerelationship.FieldDependencyID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_id", values[i])
 			} else if value != nil {
 				srr.DependencyID = *value

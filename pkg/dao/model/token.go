@@ -16,18 +16,18 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Token is the model entity for the Token schema.
 type Token struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the subject to belong.
-	SubjectID oid.ID `json:"subjectID,omitempty" sql:"subjectID"`
+	SubjectID object.ID `json:"subjectID,omitempty" sql:"subjectID"`
 	// The kind of token.
 	Kind string `json:"kind,omitempty" sql:"kind"`
 	// The name of token.
@@ -72,7 +72,7 @@ func (*Token) scanValues(columns []string) ([]any, error) {
 		case token.FieldValue:
 			values[i] = new(crypto.String)
 		case token.FieldID, token.FieldSubjectID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case token.FieldKind, token.FieldName:
 			values[i] = new(sql.NullString)
 		case token.FieldCreateTime, token.FieldExpiration:
@@ -93,7 +93,7 @@ func (t *Token) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case token.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				t.ID = *value
@@ -106,7 +106,7 @@ func (t *Token) assignValues(columns []string, values []any) error {
 				*t.CreateTime = value.Time
 			}
 		case token.FieldSubjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field subjectID", values[i])
 			} else if value != nil {
 				t.SubjectID = *value

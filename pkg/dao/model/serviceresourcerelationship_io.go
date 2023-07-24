@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationshipQueryInput is the input for the ServiceResourceRelationship query.
 type ServiceResourceRelationshipQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ServiceResourceRelationshipQueryInput to ServiceResourceRelationship.
@@ -44,7 +44,7 @@ func (in ServiceResourceRelationshipCreateInput) Model() *ServiceResourceRelatio
 // ServiceResourceRelationshipUpdateInput is the input for the ServiceResourceRelationship modification.
 type ServiceResourceRelationshipUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Service resource to which the dependency belongs.
 	Dependency ServiceResourceQueryInput `json:"dependency,omitempty"`
 }
@@ -61,7 +61,7 @@ func (in ServiceResourceRelationshipUpdateInput) Model() *ServiceResourceRelatio
 // ServiceResourceRelationshipOutput is the output for the ServiceResourceRelationship.
 type ServiceResourceRelationshipOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Type of the relationship.

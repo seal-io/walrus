@@ -13,7 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	pkgservice "github.com/seal-io/seal/pkg/service"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -149,7 +149,7 @@ func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, e
 
 func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteRequest) error {
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		ids := make([]oid.ID, len(req))
+		ids := make([]object.ID, len(req))
 		for i := range req {
 			ids[i] = req[i].ID
 		}

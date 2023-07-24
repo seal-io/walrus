@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -137,7 +137,7 @@ func ServiceUpdate(
 func GetLatestRevisions(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	serviceIDs ...oid.ID,
+	serviceIDs ...object.ID,
 ) ([]*model.ServiceRevision, error) {
 	// Get the latest revisions of given services by the following sql:
 	// SELECT service_revisions.*
@@ -187,7 +187,7 @@ func GetLatestRevisions(
 		All(ctx)
 }
 
-func GetServiceNamesByIDs(ctx context.Context, modelClient model.ClientSet, serviceIDs ...oid.ID) ([]string, error) {
+func GetServiceNamesByIDs(ctx context.Context, modelClient model.ClientSet, serviceIDs ...object.ID) ([]string, error) {
 	var names []string
 	err := modelClient.Services().Query().
 		Where(service.IDIn(serviceIDs...)).

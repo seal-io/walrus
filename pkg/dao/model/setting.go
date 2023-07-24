@@ -15,14 +15,14 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Setting is the model entity for the Setting schema.
 type Setting struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// UpdateTime holds the value of the "updateTime" field.
@@ -50,7 +50,7 @@ func (*Setting) scanValues(columns []string) ([]any, error) {
 		case setting.FieldValue:
 			values[i] = new(crypto.String)
 		case setting.FieldID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case setting.FieldHidden, setting.FieldEditable, setting.FieldSensitive, setting.FieldPrivate:
 			values[i] = new(sql.NullBool)
 		case setting.FieldName:
@@ -73,7 +73,7 @@ func (s *Setting) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case setting.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				s.ID = *value

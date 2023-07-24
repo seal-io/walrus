@@ -7,12 +7,12 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/log"
 )
 
 type ServiceNode struct {
-	ID       oid.ID         `json:"id"`
+	ID       object.ID      `json:"id"`
 	Name     string         `json:"name"`
 	Service  *model.Service `json:"service"`
 	Children []*ServiceNode `json:"children"`

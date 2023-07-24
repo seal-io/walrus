@@ -25,7 +25,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ProjectQuery is the builder for querying Project entities.
@@ -252,8 +252,8 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 
 // FirstID returns the first Project ID from the query.
 // Returns a *NotFoundError when no Project ID was found.
-func (pq *ProjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (pq *ProjectQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -265,7 +265,7 @@ func (pq *ProjectQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pq *ProjectQuery) FirstIDX(ctx context.Context) oid.ID {
+func (pq *ProjectQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -303,8 +303,8 @@ func (pq *ProjectQuery) OnlyX(ctx context.Context) *Project {
 // OnlyID is like Only, but returns the only Project ID in the query.
 // Returns a *NotSingularError when more than one Project ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (pq *ProjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (pq *ProjectQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -320,7 +320,7 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pq *ProjectQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (pq *ProjectQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -348,7 +348,7 @@ func (pq *ProjectQuery) AllX(ctx context.Context) []*Project {
 }
 
 // IDs executes the query and returns a list of Project IDs.
-func (pq *ProjectQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (pq *ProjectQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if pq.ctx.Unique == nil && pq.path != nil {
 		pq.Unique(true)
 	}
@@ -360,7 +360,7 @@ func (pq *ProjectQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *ProjectQuery) IDsX(ctx context.Context) []oid.ID {
+func (pq *ProjectQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -655,7 +655,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 
 func (pq *ProjectQuery) loadEnvironments(ctx context.Context, query *EnvironmentQuery, nodes []*Project, init func(*Project), assign func(*Project, *Environment)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -685,7 +685,7 @@ func (pq *ProjectQuery) loadEnvironments(ctx context.Context, query *Environment
 }
 func (pq *ProjectQuery) loadConnectors(ctx context.Context, query *ConnectorQuery, nodes []*Project, init func(*Project), assign func(*Project, *Connector)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -715,7 +715,7 @@ func (pq *ProjectQuery) loadConnectors(ctx context.Context, query *ConnectorQuer
 }
 func (pq *ProjectQuery) loadSubjectRoles(ctx context.Context, query *SubjectRoleRelationshipQuery, nodes []*Project, init func(*Project), assign func(*Project, *SubjectRoleRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -745,7 +745,7 @@ func (pq *ProjectQuery) loadSubjectRoles(ctx context.Context, query *SubjectRole
 }
 func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*Project, init func(*Project), assign func(*Project, *Service)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -775,7 +775,7 @@ func (pq *ProjectQuery) loadServices(ctx context.Context, query *ServiceQuery, n
 }
 func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Project, init func(*Project), assign func(*Project, *ServiceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -805,7 +805,7 @@ func (pq *ProjectQuery) loadServiceRevisions(ctx context.Context, query *Service
 }
 func (pq *ProjectQuery) loadVariables(ctx context.Context, query *VariableQuery, nodes []*Project, init func(*Project), assign func(*Project, *Variable)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Project)
+	nodeids := make(map[object.ID]*Project)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

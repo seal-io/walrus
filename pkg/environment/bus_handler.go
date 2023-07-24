@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	opk8s "github.com/seal-io/seal/pkg/operator/k8s"
 )
 
@@ -35,7 +35,7 @@ func SyncManagedKubernetesNamespace(ctx context.Context, m envbus.BusMessage) er
 			continue
 		}
 
-		connectorIDs := make([]oid.ID, len(e.Edges.Connectors))
+		connectorIDs := make([]object.ID, len(e.Edges.Connectors))
 		for i := range e.Edges.Connectors {
 			connectorIDs[i] = e.Edges.Connectors[i].ConnectorID
 		}

@@ -15,7 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -23,15 +23,15 @@ import (
 type ServiceRelationship struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the service that deploys after the dependency finished.
-	ServiceID oid.ID `json:"serviceID" sql:"serviceID"`
+	ServiceID object.ID `json:"serviceID" sql:"serviceID"`
 	// ID of the service that deploys before the service begins.
-	DependencyID oid.ID `json:"dependencyID" sql:"dependencyID"`
+	DependencyID object.ID `json:"dependencyID" sql:"dependencyID"`
 	// ID list of the service includes all dependencies and the service itself.
-	Path []oid.ID `json:"path,omitempty" sql:"path"`
+	Path []object.ID `json:"path,omitempty" sql:"path"`
 	// Type of the relationship.
 	Type string `json:"type,omitempty" sql:"type"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -85,7 +85,7 @@ func (*ServiceRelationship) scanValues(columns []string) ([]any, error) {
 		case servicerelationship.FieldPath:
 			values[i] = new([]byte)
 		case servicerelationship.FieldID, servicerelationship.FieldServiceID, servicerelationship.FieldDependencyID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case servicerelationship.FieldType:
 			values[i] = new(sql.NullString)
 		case servicerelationship.FieldCreateTime:
@@ -106,7 +106,7 @@ func (sr *ServiceRelationship) assignValues(columns []string, values []any) erro
 	for i := range columns {
 		switch columns[i] {
 		case servicerelationship.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				sr.ID = *value
@@ -119,13 +119,13 @@ func (sr *ServiceRelationship) assignValues(columns []string, values []any) erro
 				*sr.CreateTime = value.Time
 			}
 		case servicerelationship.FieldServiceID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field service_id", values[i])
 			} else if value != nil {
 				sr.ServiceID = *value
 			}
 		case servicerelationship.FieldDependencyID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_id", values[i])
 			} else if value != nil {
 				sr.DependencyID = *value

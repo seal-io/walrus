@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
 	"github.com/seal-io/seal/utils/log"
 )
@@ -48,7 +48,7 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			// e.g. delete error is still a write error, not a read error.
 			// We only warn out the error to prevent change watching breaking the default behavior.
 			logger.Errorf("error getting ids notifier: %v", err)
-			return v, nil //nolint: nilerr
+			return v, nil // nolint: nilerr
 		}
 
 		if notify == nil {
@@ -99,8 +99,8 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 func getIdsNotifier(ctx context.Context, m model.Mutation) (notify func() error, err error) {
 	typ, op := m.Type(), m.Op()
 
-	// Models used oid.ID as ID type.
-	oids, ok, err := getIds[oid.ID](ctx, m)
+	// Models used object.ID as ID type.
+	oids, ok, err := getIds[object.ID](ctx, m)
 	if err != nil {
 		return
 	}

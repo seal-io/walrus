@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -24,7 +24,7 @@ import (
 type TemplateVersion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// UpdateTime holds the value of the "updateTime" field.
@@ -73,7 +73,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 		case templateversion.FieldSchema:
 			values[i] = new([]byte)
 		case templateversion.FieldID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case templateversion.FieldTemplateID, templateversion.FieldVersion, templateversion.FieldSource:
 			values[i] = new(sql.NullString)
 		case templateversion.FieldCreateTime, templateversion.FieldUpdateTime:
@@ -94,7 +94,7 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case templateversion.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				tv.ID = *value

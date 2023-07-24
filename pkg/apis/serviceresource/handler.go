@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	pkgresource "github.com/seal-io/seal/pkg/serviceresources"
@@ -134,7 +134,7 @@ func (h Handler) CollectionStream(
 			return err
 		}
 
-		dm, ok := event.Data.(datamessage.Message[oid.ID])
+		dm, ok := event.Data.(datamessage.Message[object.ID])
 		if !ok {
 			continue
 		}
@@ -301,7 +301,7 @@ func (h Handler) CollectionGetGraph(
 	var (
 		vertices  = make([]types.GraphVertex, 0, verticesCap)
 		edges     = make([]types.GraphEdge, 0, edgesCap)
-		operators = make(map[oid.ID]optypes.Operator)
+		operators = make(map[object.ID]optypes.Operator)
 	)
 
 	pkgresource.SetKeys(ctx, entities, operators)
@@ -347,7 +347,7 @@ func getCollection(
 		return entities, nil
 	}
 
-	operators := make(map[oid.ID]optypes.Operator)
+	operators := make(map[object.ID]optypes.Operator)
 	entities = pkgresource.SetKeys(ctx, entities, operators)
 
 	return entities, nil

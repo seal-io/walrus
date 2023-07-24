@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -127,14 +127,14 @@ func (rc *RoleCreate) SetID(s string) *RoleCreate {
 }
 
 // AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by IDs.
-func (rc *RoleCreate) AddSubjectIDs(ids ...oid.ID) *RoleCreate {
+func (rc *RoleCreate) AddSubjectIDs(ids ...object.ID) *RoleCreate {
 	rc.mutation.AddSubjectIDs(ids...)
 	return rc
 }
 
 // AddSubjects adds the "subjects" edges to the SubjectRoleRelationship entity.
 func (rc *RoleCreate) AddSubjects(s ...*SubjectRoleRelationship) *RoleCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

@@ -17,7 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
@@ -27,7 +27,7 @@ import (
 type Service struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description holds the value of the "description" field.
@@ -41,11 +41,11 @@ type Service struct {
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// ID of the environment to which the service deploys.
-	EnvironmentID oid.ID `json:"environmentID,omitempty" sql:"environmentID"`
+	EnvironmentID object.ID `json:"environmentID,omitempty" sql:"environmentID"`
 	// Template ID and version.
 	Template types.TemplateVersionRef `json:"template,omitempty" sql:"template"`
 	// Attributes to configure the template.
@@ -134,7 +134,7 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus, service.FieldTemplate:
 			values[i] = new([]byte)
 		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case service.FieldAttributes:
 			values[i] = new(property.Values)
 		case service.FieldName, service.FieldDescription:
@@ -157,7 +157,7 @@ func (s *Service) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case service.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				s.ID = *value
@@ -205,7 +205,7 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				*s.UpdateTime = value.Time
 			}
 		case service.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				s.ProjectID = *value
@@ -219,7 +219,7 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				}
 			}
 		case service.FieldEnvironmentID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environmentID", values[i])
 			} else if value != nil {
 				s.EnvironmentID = *value

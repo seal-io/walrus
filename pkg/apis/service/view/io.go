@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/terraform/convertor"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -34,9 +34,9 @@ import (
 type CreateRequest struct {
 	model.ServiceCreateInput `json:",inline"`
 
-	ProjectID   oid.ID   `query:"projectID"`
-	ProjectName string   `query:"projectName"`
-	RemarkTags  []string `json:"remarkTags,omitempty"`
+	ProjectID   object.ID `query:"projectID"`
+	ProjectName string    `query:"projectName"`
+	RemarkTags  []string  `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -109,8 +109,8 @@ type CreateResponse = *model.ServiceOutput
 type DeleteRequest struct {
 	model.ServiceQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
-	Force     *bool  `query:"force,default=true"`
+	ProjectID object.ID `query:"projectID"`
+	Force     *bool     `query:"force,default=true"`
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -159,7 +159,7 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 type GetRequest struct {
 	model.ServiceQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *GetRequest) Validate() error {
@@ -177,9 +177,9 @@ func (r *GetRequest) Validate() error {
 type GetResponse = *model.ServiceOutput
 
 type StreamRequest struct {
-	ID oid.ID `uri:"id"`
+	ID object.ID `uri:"id"`
 
-	ProjectID oid.ID `query:"projectID"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -205,7 +205,7 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 
 type StreamResponse struct {
 	Type       datamessage.EventType  `json:"type"`
-	IDs        []oid.ID               `json:"ids,omitempty"`
+	IDs        []object.ID            `json:"ids,omitempty"`
 	Collection []*model.ServiceOutput `json:"collection,omitempty"`
 }
 
@@ -214,9 +214,9 @@ type StreamResponse struct {
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Service, service.OrderOption] `query:",inline"`
 
-	ProjectID       oid.ID `query:"projectID"`
-	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName string `query:"environmentName,omitempty"`
+	ProjectID       object.ID `query:"projectID"`
+	EnvironmentID   object.ID `query:"environmentID,omitempty"`
+	EnvironmentName string    `query:"environmentName,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -254,7 +254,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 }
 
 type CollectionCreateRequest struct {
-	EnvironmentIDs []oid.ID                   `json:"environmentIDs"`
+	EnvironmentIDs []object.ID                `json:"environmentIDs"`
 	Services       []model.ServiceCreateInput `json:"services"`
 }
 
@@ -373,8 +373,8 @@ type CollectionGetResponse = []*model.ServiceOutput
 type CollectionStreamRequest struct {
 	runtime.RequestExtracting `query:",inline"`
 
-	ProjectID     oid.ID `query:"projectID"`
-	EnvironmentID oid.ID `query:"environmentID,omitempty"`
+	ProjectID     object.ID `query:"projectID"`
+	EnvironmentID object.ID `query:"environmentID,omitempty"`
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -401,10 +401,10 @@ func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) e
 }
 
 type CollectionDeleteRequest struct {
-	IDs []oid.ID `json:"ids,omitempty"`
+	IDs []object.ID `json:"ids,omitempty"`
 
-	ProjectID oid.ID `query:"projectID"`
-	Force     bool   `query:"force,default=true"`
+	ProjectID object.ID `query:"projectID"`
+	Force     bool      `query:"force,default=true"`
 }
 
 func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -425,8 +425,8 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 		return runtime.Errorw(err, "failed to get service dependencies")
 	}
 
-	dependantIDSet := sets.New[oid.ID](ids...)
-	toDeleteIDSet := sets.New[oid.ID](r.IDs...)
+	dependantIDSet := sets.New[object.ID](ids...)
+	toDeleteIDSet := sets.New[object.ID](r.IDs...)
 
 	diffIDSet := dependantIDSet.Difference(toDeleteIDSet)
 	if diffIDSet.Len() > 0 {
@@ -458,8 +458,8 @@ type RouteUpgradeRequest struct {
 
 	model.ServiceUpdateInput `uri:",inline" json:",inline"`
 
-	ProjectID  oid.ID   `query:"projectID"`
-	RemarkTags []string `json:"remarkTags,omitempty"`
+	ProjectID  object.ID `query:"projectID"`
+	RemarkTags []string  `json:"remarkTags,omitempty"`
 }
 
 func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
@@ -515,8 +515,8 @@ type RouteRollbackRequest struct {
 
 	model.ServiceQueryInput `uri:",inline" json:",inline"`
 
-	ProjectID  oid.ID `query:"projectID"`
-	RevisionID oid.ID `query:"revisionID"`
+	ProjectID  object.ID `query:"projectID"`
+	RevisionID object.ID `query:"revisionID"`
 }
 
 func (r *RouteRollbackRequest) ValidateWith(ctx context.Context, input any) error {
@@ -560,7 +560,7 @@ type RouteAccessEndpointRequest struct {
 
 	model.ServiceQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *RouteAccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
@@ -598,7 +598,7 @@ type RouteOutputRequest struct {
 
 	model.ServiceQueryInput `uri:",inline"`
 
-	ProjectID oid.ID `query:"projectID"`
+	ProjectID object.ID `query:"projectID"`
 }
 
 func (r *RouteOutputRequest) ValidateWith(ctx context.Context, input any) error {
@@ -625,10 +625,10 @@ func (r *RouteOutputRequest) ValidateWith(ctx context.Context, input any) error 
 type RouteOutputResponse = []types.OutputValue
 
 type CreateCloneRequest struct {
-	ID            oid.ID   `uri:"id"`
-	EnvironmentID oid.ID   `json:"environmentID"`
-	Name          string   `json:"name"`
-	RemarkTags    []string `json:"remarkTags,omitempty"`
+	ID            object.ID `uri:"id"`
+	EnvironmentID object.ID `json:"environmentID"`
+	Name          string    `json:"name"`
+	RemarkTags    []string  `json:"remarkTags,omitempty"`
 }
 
 func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error {
@@ -660,7 +660,7 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 func validateRevisionsStatus(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	serviceIDs ...oid.ID,
+	serviceIDs ...object.ID,
 ) error {
 	revisions, err := dao.GetLatestRevisions(ctx, modelClient, serviceIDs...)
 	if err != nil {
@@ -701,9 +701,9 @@ type StreamOutputResponse struct {
 }
 
 type CollectionGetGraphRequest struct {
-	ProjectID       oid.ID `query:"projectID"`
-	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName string `query:"environmentName,omitempty"`
+	ProjectID       object.ID `query:"projectID"`
+	EnvironmentID   object.ID `query:"environmentID,omitempty"`
+	EnvironmentName string    `query:"environmentName,omitempty"`
 }
 
 func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any) error {

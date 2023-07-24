@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -136,14 +136,14 @@ func (su *ServiceUpdate) ClearAttributes() *ServiceUpdate {
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
-func (su *ServiceUpdate) AddRevisionIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) AddRevisionIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.AddRevisionIDs(ids...)
 	return su
 }
 
 // AddRevisions adds the "revisions" edges to the ServiceRevision entity.
 func (su *ServiceUpdate) AddRevisions(s ...*ServiceRevision) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -151,14 +151,14 @@ func (su *ServiceUpdate) AddRevisions(s ...*ServiceRevision) *ServiceUpdate {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (su *ServiceUpdate) AddResourceIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) AddResourceIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.AddResourceIDs(ids...)
 	return su
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (su *ServiceUpdate) AddResources(s ...*ServiceResource) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -166,14 +166,14 @@ func (su *ServiceUpdate) AddResources(s ...*ServiceResource) *ServiceUpdate {
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by IDs.
-func (su *ServiceUpdate) AddDependencyIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) AddDependencyIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.AddDependencyIDs(ids...)
 	return su
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceRelationship entity.
 func (su *ServiceUpdate) AddDependencies(s ...*ServiceRelationship) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -192,14 +192,14 @@ func (su *ServiceUpdate) ClearRevisions() *ServiceUpdate {
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ServiceRevision entities by IDs.
-func (su *ServiceUpdate) RemoveRevisionIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) RemoveRevisionIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.RemoveRevisionIDs(ids...)
 	return su
 }
 
 // RemoveRevisions removes "revisions" edges to ServiceRevision entities.
 func (su *ServiceUpdate) RemoveRevisions(s ...*ServiceRevision) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -213,14 +213,14 @@ func (su *ServiceUpdate) ClearResources() *ServiceUpdate {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
-func (su *ServiceUpdate) RemoveResourceIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) RemoveResourceIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.RemoveResourceIDs(ids...)
 	return su
 }
 
 // RemoveResources removes "resources" edges to ServiceResource entities.
 func (su *ServiceUpdate) RemoveResources(s ...*ServiceResource) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -234,14 +234,14 @@ func (su *ServiceUpdate) ClearDependencies() *ServiceUpdate {
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ServiceRelationship entities by IDs.
-func (su *ServiceUpdate) RemoveDependencyIDs(ids ...oid.ID) *ServiceUpdate {
+func (su *ServiceUpdate) RemoveDependencyIDs(ids ...object.ID) *ServiceUpdate {
 	su.mutation.RemoveDependencyIDs(ids...)
 	return su
 }
 
 // RemoveDependencies removes "dependencies" edges to ServiceRelationship entities.
 func (su *ServiceUpdate) RemoveDependencies(s ...*ServiceRelationship) *ServiceUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -638,14 +638,14 @@ func (suo *ServiceUpdateOne) ClearAttributes() *ServiceUpdateOne {
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
-func (suo *ServiceUpdateOne) AddRevisionIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) AddRevisionIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.AddRevisionIDs(ids...)
 	return suo
 }
 
 // AddRevisions adds the "revisions" edges to the ServiceRevision entity.
 func (suo *ServiceUpdateOne) AddRevisions(s ...*ServiceRevision) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -653,14 +653,14 @@ func (suo *ServiceUpdateOne) AddRevisions(s ...*ServiceRevision) *ServiceUpdateO
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (suo *ServiceUpdateOne) AddResourceIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) AddResourceIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.AddResourceIDs(ids...)
 	return suo
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (suo *ServiceUpdateOne) AddResources(s ...*ServiceResource) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -668,14 +668,14 @@ func (suo *ServiceUpdateOne) AddResources(s ...*ServiceResource) *ServiceUpdateO
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by IDs.
-func (suo *ServiceUpdateOne) AddDependencyIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) AddDependencyIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.AddDependencyIDs(ids...)
 	return suo
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceRelationship entity.
 func (suo *ServiceUpdateOne) AddDependencies(s ...*ServiceRelationship) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -694,14 +694,14 @@ func (suo *ServiceUpdateOne) ClearRevisions() *ServiceUpdateOne {
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to ServiceRevision entities by IDs.
-func (suo *ServiceUpdateOne) RemoveRevisionIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) RemoveRevisionIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.RemoveRevisionIDs(ids...)
 	return suo
 }
 
 // RemoveRevisions removes "revisions" edges to ServiceRevision entities.
 func (suo *ServiceUpdateOne) RemoveRevisions(s ...*ServiceRevision) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -715,14 +715,14 @@ func (suo *ServiceUpdateOne) ClearResources() *ServiceUpdateOne {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
-func (suo *ServiceUpdateOne) RemoveResourceIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) RemoveResourceIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.RemoveResourceIDs(ids...)
 	return suo
 }
 
 // RemoveResources removes "resources" edges to ServiceResource entities.
 func (suo *ServiceUpdateOne) RemoveResources(s ...*ServiceResource) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -736,14 +736,14 @@ func (suo *ServiceUpdateOne) ClearDependencies() *ServiceUpdateOne {
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ServiceRelationship entities by IDs.
-func (suo *ServiceUpdateOne) RemoveDependencyIDs(ids ...oid.ID) *ServiceUpdateOne {
+func (suo *ServiceUpdateOne) RemoveDependencyIDs(ids ...object.ID) *ServiceUpdateOne {
 	suo.mutation.RemoveDependencyIDs(ids...)
 	return suo
 }
 
 // RemoveDependencies removes "dependencies" edges to ServiceRelationship entities.
 func (suo *ServiceUpdateOne) RemoveDependencies(s ...*ServiceRelationship) *ServiceUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

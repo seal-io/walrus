@@ -15,7 +15,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ClusterCost is the model entity for the ClusterCost schema.
@@ -30,7 +30,7 @@ type ClusterCost struct {
 	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty" sql:"minutes"`
 	// ID of the connector.
-	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
+	ConnectorID object.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// Cluster name for current cost.
 	ClusterName string `json:"clusterName,omitempty" sql:"clusterName"`
 	// Cost number.
@@ -77,7 +77,7 @@ func (*ClusterCost) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case clustercost.FieldConnectorID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case clustercost.FieldMinutes, clustercost.FieldTotalCost, clustercost.FieldAllocationCost, clustercost.FieldIdleCost, clustercost.FieldManagementCost:
 			values[i] = new(sql.NullFloat64)
 		case clustercost.FieldID, clustercost.FieldCurrency:
@@ -126,7 +126,7 @@ func (cc *ClusterCost) assignValues(columns []string, values []any) error {
 				cc.Minutes = value.Float64
 			}
 		case clustercost.FieldConnectorID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				cc.ConnectorID = *value

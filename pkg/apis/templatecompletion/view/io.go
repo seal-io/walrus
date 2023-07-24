@@ -3,7 +3,7 @@ package view
 import (
 	"errors"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type CompletionResponse struct {
@@ -75,11 +75,11 @@ type TemplateCompletionPromptExample struct {
 type CreatePrRequest struct {
 	_ struct{} `route:"POST=/create-pr"`
 
-	ConnectorID oid.ID `json:"connectorID"`
-	Repository  string `json:"repository"`
-	Branch      string `json:"branch"`
-	Path        string `json:"path"`
-	Content     string `json:"content"`
+	ConnectorID object.ID `json:"connectorID"`
+	Repository  string    `json:"repository"`
+	Branch      string    `json:"branch"`
+	Path        string    `json:"path"`
+	Content     string    `json:"content"`
 }
 
 func (r *CreatePrRequest) Validate() error {

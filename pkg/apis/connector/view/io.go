@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/topic/datamessage"
@@ -27,8 +27,8 @@ import (
 type CreateRequest struct {
 	model.ConnectorCreateInput `json:",inline"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -78,8 +78,8 @@ type CreateResponse = *model.ConnectorOutput
 type DeleteRequest struct {
 	model.ConnectorQueryInput `uri:",inline"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -128,9 +128,9 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 type UpdateRequest struct {
 	model.ConnectorUpdateInput `uri:",inline" json:",inline"`
 
-	Type        string `json:"type"`
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	Type        string    `json:"type"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *UpdateRequest) Model() *model.Connector {
@@ -218,11 +218,11 @@ type GetResponse = *model.ConnectorOutput
 
 type StreamResponse struct {
 	Type       datamessage.EventType    `json:"type"`
-	IDs        []oid.ID                 `json:"ids,omitempty"`
+	IDs        []object.ID              `json:"ids,omitempty"`
 	Collection []*model.ConnectorOutput `json:"collection,omitempty"`
 }
 type StreamRequest struct {
-	ID oid.ID `uri:"id"`
+	ID object.ID `uri:"id"`
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
@@ -248,8 +248,8 @@ func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
 type CollectionDeleteRequest struct {
 	Items []*model.ConnectorQueryInput `json:"items"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -284,7 +284,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	// FIXME(thxCode): a workaround to protect general user deleting global connector,
 	//   returns a not found error instead of forbidden.
 	if r.ProjectID != "" {
-		ids := make([]oid.ID, len(r.Items))
+		ids := make([]object.ID, len(r.Items))
 		for i := range r.Items {
 			ids[i] = r.Items[i].ID
 		}
@@ -312,9 +312,9 @@ type CollectionGetRequest struct {
 	Category string `query:"category,omitempty"`
 	Type     string `query:"type,omitempty"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
-	WithGlobal  bool   `query:"withGlobal,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
+	WithGlobal  bool      `query:"withGlobal,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
@@ -359,7 +359,7 @@ type CollectionStreamRequest struct {
 type ApplyCostToolsRequest struct {
 	_ struct{} `route:"POST=/apply-cost-tools"`
 
-	ID oid.ID `uri:"id"`
+	ID object.ID `uri:"id"`
 }
 
 func (r *ApplyCostToolsRequest) ValidateWith(ctx context.Context, input any) error {
@@ -375,7 +375,7 @@ func (r *ApplyCostToolsRequest) ValidateWith(ctx context.Context, input any) err
 type SyncCostDataRequest struct {
 	_ struct{} `route:"POST=/sync-cost-data"`
 
-	ID oid.ID `uri:"id"`
+	ID object.ID `uri:"id"`
 }
 
 func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error {
@@ -388,7 +388,7 @@ func (r *SyncCostDataRequest) ValidateWith(ctx context.Context, input any) error
 	return validateConnectorType(ctx, modelClient, r.ID)
 }
 
-func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id oid.ID) error {
+func validateConnectorType(ctx context.Context, modelClient model.ClientSet, id object.ID) error {
 	conn, err := modelClient.Connectors().Query().
 		Select(connector.FieldType).
 		Where(connector.ID(id)).
@@ -409,7 +409,7 @@ type GetRepositoriesRequest struct {
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
 
-	ID oid.ID `uri:"id"`
+	ID object.ID `uri:"id"`
 }
 
 type GetRepositoriesResponse = []*scm.Repository
@@ -419,8 +419,8 @@ type GetBranchesRequest struct {
 
 	runtime.RequestCollection[predicate.Connector, connector.OrderOption] `query:",inline"`
 
-	ID         oid.ID `uri:"id"`
-	Repository string `query:"repository"`
+	ID         object.ID `uri:"id"`
+	Repository string    `query:"repository"`
 }
 
 type GetBranchesResponse = []*scm.Reference

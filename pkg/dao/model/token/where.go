@@ -14,51 +14,51 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.Token {
+func ID(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.Token {
+func IDEQ(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.Token {
+func IDNEQ(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.Token {
+func IDIn(ids ...object.ID) predicate.Token {
 	return predicate.Token(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.Token {
+func IDNotIn(ids ...object.ID) predicate.Token {
 	return predicate.Token(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.Token {
+func IDGT(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.Token {
+func IDGTE(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.Token {
+func IDLT(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.Token {
+func IDLTE(id object.ID) predicate.Token {
 	return predicate.Token(sql.FieldLTE(FieldID, id))
 }
 
@@ -68,7 +68,7 @@ func CreateTime(v time.Time) predicate.Token {
 }
 
 // SubjectID applies equality check predicate on the "subjectID" field. It's identical to SubjectIDEQ.
-func SubjectID(v oid.ID) predicate.Token {
+func SubjectID(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldSubjectID, v))
 }
 
@@ -133,71 +133,71 @@ func CreateTimeLTE(v time.Time) predicate.Token {
 }
 
 // SubjectIDEQ applies the EQ predicate on the "subjectID" field.
-func SubjectIDEQ(v oid.ID) predicate.Token {
+func SubjectIDEQ(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldEQ(FieldSubjectID, v))
 }
 
 // SubjectIDNEQ applies the NEQ predicate on the "subjectID" field.
-func SubjectIDNEQ(v oid.ID) predicate.Token {
+func SubjectIDNEQ(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldNEQ(FieldSubjectID, v))
 }
 
 // SubjectIDIn applies the In predicate on the "subjectID" field.
-func SubjectIDIn(vs ...oid.ID) predicate.Token {
+func SubjectIDIn(vs ...object.ID) predicate.Token {
 	return predicate.Token(sql.FieldIn(FieldSubjectID, vs...))
 }
 
 // SubjectIDNotIn applies the NotIn predicate on the "subjectID" field.
-func SubjectIDNotIn(vs ...oid.ID) predicate.Token {
+func SubjectIDNotIn(vs ...object.ID) predicate.Token {
 	return predicate.Token(sql.FieldNotIn(FieldSubjectID, vs...))
 }
 
 // SubjectIDGT applies the GT predicate on the "subjectID" field.
-func SubjectIDGT(v oid.ID) predicate.Token {
+func SubjectIDGT(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldGT(FieldSubjectID, v))
 }
 
 // SubjectIDGTE applies the GTE predicate on the "subjectID" field.
-func SubjectIDGTE(v oid.ID) predicate.Token {
+func SubjectIDGTE(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldGTE(FieldSubjectID, v))
 }
 
 // SubjectIDLT applies the LT predicate on the "subjectID" field.
-func SubjectIDLT(v oid.ID) predicate.Token {
+func SubjectIDLT(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldLT(FieldSubjectID, v))
 }
 
 // SubjectIDLTE applies the LTE predicate on the "subjectID" field.
-func SubjectIDLTE(v oid.ID) predicate.Token {
+func SubjectIDLTE(v object.ID) predicate.Token {
 	return predicate.Token(sql.FieldLTE(FieldSubjectID, v))
 }
 
 // SubjectIDContains applies the Contains predicate on the "subjectID" field.
-func SubjectIDContains(v oid.ID) predicate.Token {
+func SubjectIDContains(v object.ID) predicate.Token {
 	vc := string(v)
 	return predicate.Token(sql.FieldContains(FieldSubjectID, vc))
 }
 
 // SubjectIDHasPrefix applies the HasPrefix predicate on the "subjectID" field.
-func SubjectIDHasPrefix(v oid.ID) predicate.Token {
+func SubjectIDHasPrefix(v object.ID) predicate.Token {
 	vc := string(v)
 	return predicate.Token(sql.FieldHasPrefix(FieldSubjectID, vc))
 }
 
 // SubjectIDHasSuffix applies the HasSuffix predicate on the "subjectID" field.
-func SubjectIDHasSuffix(v oid.ID) predicate.Token {
+func SubjectIDHasSuffix(v object.ID) predicate.Token {
 	vc := string(v)
 	return predicate.Token(sql.FieldHasSuffix(FieldSubjectID, vc))
 }
 
 // SubjectIDEqualFold applies the EqualFold predicate on the "subjectID" field.
-func SubjectIDEqualFold(v oid.ID) predicate.Token {
+func SubjectIDEqualFold(v object.ID) predicate.Token {
 	vc := string(v)
 	return predicate.Token(sql.FieldEqualFold(FieldSubjectID, vc))
 }
 
 // SubjectIDContainsFold applies the ContainsFold predicate on the "subjectID" field.
-func SubjectIDContainsFold(v oid.ID) predicate.Token {
+func SubjectIDContainsFold(v object.ID) predicate.Token {
 	vc := string(v)
 	return predicate.Token(sql.FieldContainsFold(FieldSubjectID, vc))
 }

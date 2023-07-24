@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func OwnByProject() ownByProject {
@@ -27,7 +27,7 @@ func (i ownByProject) Optional() ownByProject {
 }
 
 func (i ownByProject) Fields() []ent.Field {
-	f := oid.Field("projectID").
+	f := object.Field("projectID").
 		Immutable()
 
 	if i.optional {
@@ -43,8 +43,8 @@ func (i ownByProject) Fields() []ent.Field {
 
 func (i ownByProject) Hooks() []ent.Hook {
 	type target interface {
-		SetProjectID(oid.ID)
-		ProjectID() (oid.ID, bool)
+		SetProjectID(object.ID)
+		ProjectID() (object.ID, bool)
 		WhereP(...func(*sql.Selector))
 	}
 
@@ -107,11 +107,11 @@ func (i ownByProject) Interceptors() []ent.Interceptor {
 	}
 }
 
-func (i ownByProject) injectWith(sj session.Subject, t interface{ SetProjectID(oid.ID) }) {
+func (i ownByProject) injectWith(sj session.Subject, t interface{ SetProjectID(object.ID) }) {
 	// Inject `projectID` query value if found.
 	pid := sj.Ctx.Query("projectID")
 	if pid != "" {
-		t.SetProjectID(oid.ID(pid))
+		t.SetProjectID(object.ID(pid))
 	}
 }
 

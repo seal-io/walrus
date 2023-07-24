@@ -3,11 +3,11 @@ package dashboard
 import (
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // predicateIn converts the given field name and values into an IN predicate.
-func predicateIn[T ~func(*sql.Selector)](isAdmin bool, name string, values []oid.ID) []T {
+func predicateIn[T ~func(*sql.Selector)](isAdmin bool, name string, values []object.ID) []T {
 	if isAdmin {
 		return nil
 	}

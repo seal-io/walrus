@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/sqlx"
 	"github.com/seal-io/seal/utils/timex"
@@ -99,12 +99,12 @@ func (h Handler) CollectionRouteBasicInformation(
 
 	var (
 		isAdmin = sj.IsAdmin()
-		ids     []oid.ID
+		ids     []object.ID
 	)
 
 	if !isAdmin {
 		// Get owned project id list.
-		ids = make([]oid.ID, len(sj.ProjectRoles))
+		ids = make([]object.ID, len(sj.ProjectRoles))
 		for i := range sj.ProjectRoles {
 			ids[i] = sj.ProjectRoles[i].Project.ID
 		}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/utils/log"
@@ -17,7 +17,7 @@ func GetVerticesAndEdges(
 	vertices []types.GraphVertex,
 	edges []types.GraphEdge,
 ) ([]types.GraphVertex, []types.GraphEdge) {
-	cache := make(map[oid.ID]*model.ServiceResource)
+	cache := make(map[object.ID]*model.ServiceResource)
 
 	// DFS function to get vertices and edges.
 	var fn func(entity *model.ServiceResource)
@@ -111,13 +111,13 @@ func GetVerticesAndEdges(
 func SetKeys(
 	ctx context.Context,
 	entities model.ServiceResources,
-	operators map[oid.ID]optypes.Operator,
+	operators map[object.ID]optypes.Operator,
 ) model.ServiceResources {
 	logger := log.WithName("service-resource")
-	cache := make(map[oid.ID]*model.ServiceResource)
+	cache := make(map[object.ID]*model.ServiceResource)
 
 	if operators == nil {
-		operators = make(map[oid.ID]optypes.Operator)
+		operators = make(map[object.ID]optypes.Operator)
 	}
 
 	// DFS function to get resource keys.
@@ -159,7 +159,7 @@ func SetKeys(
 	}
 
 	if operators == nil {
-		operators = make(map[oid.ID]optypes.Operator)
+		operators = make(map[object.ID]optypes.Operator)
 	}
 
 	for i := 0; i < len(entities); i++ {

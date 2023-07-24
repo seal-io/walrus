@@ -31,7 +31,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -452,7 +452,7 @@ func init() {
 	// servicerelationshipDescPath is the schema descriptor for path field.
 	servicerelationshipDescPath := servicerelationshipFields[2].Descriptor()
 	// servicerelationship.DefaultPath holds the default value on creation for the path field.
-	servicerelationship.DefaultPath = servicerelationshipDescPath.Default.([]oid.ID)
+	servicerelationship.DefaultPath = servicerelationshipDescPath.Default.([]object.ID)
 	// servicerelationshipDescType is the schema descriptor for type field.
 	servicerelationshipDescType := servicerelationshipFields[3].Descriptor()
 	// servicerelationship.TypeValidator is a validator for the "type" field. It is called by the builders before save.

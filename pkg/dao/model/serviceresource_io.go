@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceQueryInput is the input for the ServiceResource query.
 type ServiceResourceQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ServiceResourceQueryInput to ServiceResource.
@@ -28,7 +28,7 @@ func (in ServiceResourceQueryInput) Model() *ServiceResource {
 // ServiceResourceCreateInput is the input for the ServiceResource creation.
 type ServiceResourceCreateInput struct {
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID"`
+	ProjectID object.ID `json:"projectID"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
@@ -78,7 +78,7 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 // ServiceResourceUpdateInput is the input for the ServiceResource modification.
 type ServiceResourceUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
@@ -103,13 +103,13 @@ func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 // ServiceResourceOutput is the output for the ServiceResource.
 type ServiceResourceOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty"`
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID,omitempty"`
+	ProjectID object.ID `json:"projectID,omitempty"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode,omitempty"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.

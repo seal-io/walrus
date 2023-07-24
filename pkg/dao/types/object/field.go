@@ -1,4 +1,4 @@
-package oid
+package object
 
 import (
 	"database/sql/driver"

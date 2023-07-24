@@ -1,4 +1,4 @@
-package oid
+package object
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"github.com/seal-io/seal/utils/vars"
 )
 
-// Config holds the config of the oid.ID generation.
+// Config holds the config of the object.ID generation.
 var Config = vars.SetOnce[sonyflake.Settings]{}
 
-// Field returns a new ent.Field with type oid.ID.
+// Field returns a new ent.Field with type object.ID.
 func Field(name string) *fieldBuilder {
 	return &fieldBuilder{
 		desc: field.String(name).
@@ -29,7 +29,7 @@ func Field(name string) *fieldBuilder {
 	}
 }
 
-// Hook returns a new ent.Hook for generating the oid.ID.
+// Hook returns a new ent.Hook for generating the object.ID.
 func Hook() ent.Hook {
 	type setter interface {
 		SetID(ID)

@@ -17,20 +17,20 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectRoleRelationship is the model entity for the SubjectRoleRelationship schema.
 type SubjectRoleRelationship struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the project to belong, empty means for all projects.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// ID of the subject to which the relationship connects.
-	SubjectID oid.ID `json:"subjectID" sql:"subjectID"`
+	SubjectID object.ID `json:"subjectID" sql:"subjectID"`
 	// ID of the role to which the relationship connects.
 	RoleID string `json:"roleID" sql:"roleID"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -97,7 +97,7 @@ func (*SubjectRoleRelationship) scanValues(columns []string) ([]any, error) {
 	for i := range columns {
 		switch columns[i] {
 		case subjectrolerelationship.FieldID, subjectrolerelationship.FieldProjectID, subjectrolerelationship.FieldSubjectID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case subjectrolerelationship.FieldRoleID:
 			values[i] = new(sql.NullString)
 		case subjectrolerelationship.FieldCreateTime:
@@ -118,7 +118,7 @@ func (srr *SubjectRoleRelationship) assignValues(columns []string, values []any)
 	for i := range columns {
 		switch columns[i] {
 		case subjectrolerelationship.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				srr.ID = *value
@@ -131,13 +131,13 @@ func (srr *SubjectRoleRelationship) assignValues(columns []string, values []any)
 				*srr.CreateTime = value.Time
 			}
 		case subjectrolerelationship.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				srr.ProjectID = *value
 			}
 		case subjectrolerelationship.FieldSubjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field subject_id", values[i])
 			} else if value != nil {
 				srr.SubjectID = *value

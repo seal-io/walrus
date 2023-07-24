@@ -38,7 +38,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -126,7 +126,7 @@ type AllocationCostMutation struct {
 	ramByteUsageMax        *float64
 	addramByteUsageMax     *float64
 	clearedFields          map[string]struct{}
-	connector              *oid.ID
+	connector              *object.ID
 	clearedconnector       bool
 	done                   bool
 	oldValue               func(context.Context) (*AllocationCost, error)
@@ -360,12 +360,12 @@ func (m *AllocationCostMutation) ResetMinutes() {
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (m *AllocationCostMutation) SetConnectorID(o oid.ID) {
+func (m *AllocationCostMutation) SetConnectorID(o object.ID) {
 	m.connector = &o
 }
 
 // ConnectorID returns the value of the "connectorID" field in the mutation.
-func (m *AllocationCostMutation) ConnectorID() (r oid.ID, exists bool) {
+func (m *AllocationCostMutation) ConnectorID() (r object.ID, exists bool) {
 	v := m.connector
 	if v == nil {
 		return
@@ -376,7 +376,7 @@ func (m *AllocationCostMutation) ConnectorID() (r oid.ID, exists bool) {
 // OldConnectorID returns the old "connectorID" field's value of the AllocationCost entity.
 // If the AllocationCost object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AllocationCostMutation) OldConnectorID(ctx context.Context) (v oid.ID, err error) {
+func (m *AllocationCostMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
 	}
@@ -1749,7 +1749,7 @@ func (m *AllocationCostMutation) ConnectorCleared() bool {
 // ConnectorIDs returns the "connector" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ConnectorID instead. It exists only for internal usage by the builders.
-func (m *AllocationCostMutation) ConnectorIDs() (ids []oid.ID) {
+func (m *AllocationCostMutation) ConnectorIDs() (ids []object.ID) {
 	if id := m.connector; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2055,7 +2055,7 @@ func (m *AllocationCostMutation) SetField(name string, value ent.Value) error {
 		m.SetMinutes(v)
 		return nil
 	case allocationcost.FieldConnectorID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2728,7 +2728,7 @@ type ClusterCostMutation struct {
 	managementCost    *float64
 	addmanagementCost *float64
 	clearedFields     map[string]struct{}
-	connector         *oid.ID
+	connector         *object.ID
 	clearedconnector  bool
 	done              bool
 	oldValue          func(context.Context) (*ClusterCost, error)
@@ -2962,12 +2962,12 @@ func (m *ClusterCostMutation) ResetMinutes() {
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (m *ClusterCostMutation) SetConnectorID(o oid.ID) {
+func (m *ClusterCostMutation) SetConnectorID(o object.ID) {
 	m.connector = &o
 }
 
 // ConnectorID returns the value of the "connectorID" field in the mutation.
-func (m *ClusterCostMutation) ConnectorID() (r oid.ID, exists bool) {
+func (m *ClusterCostMutation) ConnectorID() (r object.ID, exists bool) {
 	v := m.connector
 	if v == nil {
 		return
@@ -2978,7 +2978,7 @@ func (m *ClusterCostMutation) ConnectorID() (r oid.ID, exists bool) {
 // OldConnectorID returns the old "connectorID" field's value of the ClusterCost entity.
 // If the ClusterCost object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClusterCostMutation) OldConnectorID(ctx context.Context) (v oid.ID, err error) {
+func (m *ClusterCostMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
 	}
@@ -3340,7 +3340,7 @@ func (m *ClusterCostMutation) ConnectorCleared() bool {
 // ConnectorIDs returns the "connector" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ConnectorID instead. It exists only for internal usage by the builders.
-func (m *ClusterCostMutation) ConnectorIDs() (ids []oid.ID) {
+func (m *ClusterCostMutation) ConnectorIDs() (ids []object.ID) {
 	if id := m.connector; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3506,7 +3506,7 @@ func (m *ClusterCostMutation) SetField(name string, value ent.Value) error {
 		m.SetMinutes(v)
 		return nil
 	case clustercost.FieldConnectorID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3800,7 +3800,7 @@ type ConnectorMutation struct {
 	config
 	op                     Op
 	typ                    string
-	id                     *oid.ID
+	id                     *object.ID
 	name                   *string
 	description            *string
 	labels                 *map[string]string
@@ -3815,10 +3815,10 @@ type ConnectorMutation struct {
 	finOpsCustomPricing    **types.FinOpsCustomPricing
 	category               *string
 	clearedFields          map[string]struct{}
-	project                *oid.ID
+	project                *object.ID
 	clearedproject         bool
-	resources              map[oid.ID]struct{}
-	removedresources       map[oid.ID]struct{}
+	resources              map[object.ID]struct{}
+	removedresources       map[object.ID]struct{}
 	clearedresources       bool
 	clusterCosts           map[int]struct{}
 	removedclusterCosts    map[int]struct{}
@@ -3851,7 +3851,7 @@ func newConnectorMutation(c config, op Op, opts ...connectorOption) *ConnectorMu
 }
 
 // withConnectorID sets the ID field of the mutation.
-func withConnectorID(id oid.ID) connectorOption {
+func withConnectorID(id object.ID) connectorOption {
 	return func(m *ConnectorMutation) {
 		var (
 			err   error
@@ -3903,13 +3903,13 @@ func (m ConnectorMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Connector entities.
-func (m *ConnectorMutation) SetID(id oid.ID) {
+func (m *ConnectorMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ConnectorMutation) ID() (id oid.ID, exists bool) {
+func (m *ConnectorMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3920,12 +3920,12 @@ func (m *ConnectorMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ConnectorMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ConnectorMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4191,12 +4191,12 @@ func (m *ConnectorMutation) ResetUpdateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *ConnectorMutation) SetProjectID(o oid.ID) {
+func (m *ConnectorMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ConnectorMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *ConnectorMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -4207,7 +4207,7 @@ func (m *ConnectorMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the Connector entity.
 // If the Connector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *ConnectorMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -4530,7 +4530,7 @@ func (m *ConnectorMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *ConnectorMutation) ProjectIDs() (ids []oid.ID) {
+func (m *ConnectorMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -4544,9 +4544,9 @@ func (m *ConnectorMutation) ResetProject() {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by ids.
-func (m *ConnectorMutation) AddResourceIDs(ids ...oid.ID) {
+func (m *ConnectorMutation) AddResourceIDs(ids ...object.ID) {
 	if m.resources == nil {
-		m.resources = make(map[oid.ID]struct{})
+		m.resources = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.resources[ids[i]] = struct{}{}
@@ -4564,9 +4564,9 @@ func (m *ConnectorMutation) ResourcesCleared() bool {
 }
 
 // RemoveResourceIDs removes the "resources" edge to the ServiceResource entity by IDs.
-func (m *ConnectorMutation) RemoveResourceIDs(ids ...oid.ID) {
+func (m *ConnectorMutation) RemoveResourceIDs(ids ...object.ID) {
 	if m.removedresources == nil {
-		m.removedresources = make(map[oid.ID]struct{})
+		m.removedresources = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.resources, ids[i])
@@ -4575,7 +4575,7 @@ func (m *ConnectorMutation) RemoveResourceIDs(ids ...oid.ID) {
 }
 
 // RemovedResources returns the removed IDs of the "resources" edge to the ServiceResource entity.
-func (m *ConnectorMutation) RemovedResourcesIDs() (ids []oid.ID) {
+func (m *ConnectorMutation) RemovedResourcesIDs() (ids []object.ID) {
 	for id := range m.removedresources {
 		ids = append(ids, id)
 	}
@@ -4583,7 +4583,7 @@ func (m *ConnectorMutation) RemovedResourcesIDs() (ids []oid.ID) {
 }
 
 // ResourcesIDs returns the "resources" edge IDs in the mutation.
-func (m *ConnectorMutation) ResourcesIDs() (ids []oid.ID) {
+func (m *ConnectorMutation) ResourcesIDs() (ids []object.ID) {
 	for id := range m.resources {
 		ids = append(ids, id)
 	}
@@ -4907,7 +4907,7 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case connector.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5255,7 +5255,7 @@ type EnvironmentMutation struct {
 	config
 	op                      Op
 	typ                     string
-	id                      *oid.ID
+	id                      *object.ID
 	name                    *string
 	description             *string
 	labels                  *map[string]string
@@ -5263,16 +5263,16 @@ type EnvironmentMutation struct {
 	createTime              *time.Time
 	updateTime              *time.Time
 	clearedFields           map[string]struct{}
-	project                 *oid.ID
+	project                 *object.ID
 	clearedproject          bool
-	services                map[oid.ID]struct{}
-	removedservices         map[oid.ID]struct{}
+	services                map[object.ID]struct{}
+	removedservices         map[object.ID]struct{}
 	clearedservices         bool
-	serviceRevisions        map[oid.ID]struct{}
-	removedserviceRevisions map[oid.ID]struct{}
+	serviceRevisions        map[object.ID]struct{}
+	removedserviceRevisions map[object.ID]struct{}
 	clearedserviceRevisions bool
-	variables               map[oid.ID]struct{}
-	removedvariables        map[oid.ID]struct{}
+	variables               map[object.ID]struct{}
+	removedvariables        map[object.ID]struct{}
 	clearedvariables        bool
 	done                    bool
 	oldValue                func(context.Context) (*Environment, error)
@@ -5299,7 +5299,7 @@ func newEnvironmentMutation(c config, op Op, opts ...environmentOption) *Environ
 }
 
 // withEnvironmentID sets the ID field of the mutation.
-func withEnvironmentID(id oid.ID) environmentOption {
+func withEnvironmentID(id object.ID) environmentOption {
 	return func(m *EnvironmentMutation) {
 		var (
 			err   error
@@ -5351,13 +5351,13 @@ func (m EnvironmentMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Environment entities.
-func (m *EnvironmentMutation) SetID(id oid.ID) {
+func (m *EnvironmentMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EnvironmentMutation) ID() (id oid.ID, exists bool) {
+func (m *EnvironmentMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -5368,12 +5368,12 @@ func (m *EnvironmentMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EnvironmentMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *EnvironmentMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -5639,12 +5639,12 @@ func (m *EnvironmentMutation) ResetUpdateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *EnvironmentMutation) SetProjectID(o oid.ID) {
+func (m *EnvironmentMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *EnvironmentMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *EnvironmentMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -5655,7 +5655,7 @@ func (m *EnvironmentMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the Environment entity.
 // If the Environment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EnvironmentMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *EnvironmentMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -5687,7 +5687,7 @@ func (m *EnvironmentMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *EnvironmentMutation) ProjectIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -5701,9 +5701,9 @@ func (m *EnvironmentMutation) ResetProject() {
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by ids.
-func (m *EnvironmentMutation) AddServiceIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) AddServiceIDs(ids ...object.ID) {
 	if m.services == nil {
-		m.services = make(map[oid.ID]struct{})
+		m.services = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.services[ids[i]] = struct{}{}
@@ -5721,9 +5721,9 @@ func (m *EnvironmentMutation) ServicesCleared() bool {
 }
 
 // RemoveServiceIDs removes the "services" edge to the Service entity by IDs.
-func (m *EnvironmentMutation) RemoveServiceIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) RemoveServiceIDs(ids ...object.ID) {
 	if m.removedservices == nil {
-		m.removedservices = make(map[oid.ID]struct{})
+		m.removedservices = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.services, ids[i])
@@ -5732,7 +5732,7 @@ func (m *EnvironmentMutation) RemoveServiceIDs(ids ...oid.ID) {
 }
 
 // RemovedServices returns the removed IDs of the "services" edge to the Service entity.
-func (m *EnvironmentMutation) RemovedServicesIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) RemovedServicesIDs() (ids []object.ID) {
 	for id := range m.removedservices {
 		ids = append(ids, id)
 	}
@@ -5740,7 +5740,7 @@ func (m *EnvironmentMutation) RemovedServicesIDs() (ids []oid.ID) {
 }
 
 // ServicesIDs returns the "services" edge IDs in the mutation.
-func (m *EnvironmentMutation) ServicesIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) ServicesIDs() (ids []object.ID) {
 	for id := range m.services {
 		ids = append(ids, id)
 	}
@@ -5755,9 +5755,9 @@ func (m *EnvironmentMutation) ResetServices() {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by ids.
-func (m *EnvironmentMutation) AddServiceRevisionIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) AddServiceRevisionIDs(ids ...object.ID) {
 	if m.serviceRevisions == nil {
-		m.serviceRevisions = make(map[oid.ID]struct{})
+		m.serviceRevisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.serviceRevisions[ids[i]] = struct{}{}
@@ -5775,9 +5775,9 @@ func (m *EnvironmentMutation) ServiceRevisionsCleared() bool {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (m *EnvironmentMutation) RemoveServiceRevisionIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) RemoveServiceRevisionIDs(ids ...object.ID) {
 	if m.removedserviceRevisions == nil {
-		m.removedserviceRevisions = make(map[oid.ID]struct{})
+		m.removedserviceRevisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.serviceRevisions, ids[i])
@@ -5786,7 +5786,7 @@ func (m *EnvironmentMutation) RemoveServiceRevisionIDs(ids ...oid.ID) {
 }
 
 // RemovedServiceRevisions returns the removed IDs of the "serviceRevisions" edge to the ServiceRevision entity.
-func (m *EnvironmentMutation) RemovedServiceRevisionsIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) RemovedServiceRevisionsIDs() (ids []object.ID) {
 	for id := range m.removedserviceRevisions {
 		ids = append(ids, id)
 	}
@@ -5794,7 +5794,7 @@ func (m *EnvironmentMutation) RemovedServiceRevisionsIDs() (ids []oid.ID) {
 }
 
 // ServiceRevisionsIDs returns the "serviceRevisions" edge IDs in the mutation.
-func (m *EnvironmentMutation) ServiceRevisionsIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) ServiceRevisionsIDs() (ids []object.ID) {
 	for id := range m.serviceRevisions {
 		ids = append(ids, id)
 	}
@@ -5809,9 +5809,9 @@ func (m *EnvironmentMutation) ResetServiceRevisions() {
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by ids.
-func (m *EnvironmentMutation) AddVariableIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) AddVariableIDs(ids ...object.ID) {
 	if m.variables == nil {
-		m.variables = make(map[oid.ID]struct{})
+		m.variables = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.variables[ids[i]] = struct{}{}
@@ -5829,9 +5829,9 @@ func (m *EnvironmentMutation) VariablesCleared() bool {
 }
 
 // RemoveVariableIDs removes the "variables" edge to the Variable entity by IDs.
-func (m *EnvironmentMutation) RemoveVariableIDs(ids ...oid.ID) {
+func (m *EnvironmentMutation) RemoveVariableIDs(ids ...object.ID) {
 	if m.removedvariables == nil {
-		m.removedvariables = make(map[oid.ID]struct{})
+		m.removedvariables = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.variables, ids[i])
@@ -5840,7 +5840,7 @@ func (m *EnvironmentMutation) RemoveVariableIDs(ids ...oid.ID) {
 }
 
 // RemovedVariables returns the removed IDs of the "variables" edge to the Variable entity.
-func (m *EnvironmentMutation) RemovedVariablesIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) RemovedVariablesIDs() (ids []object.ID) {
 	for id := range m.removedvariables {
 		ids = append(ids, id)
 	}
@@ -5848,7 +5848,7 @@ func (m *EnvironmentMutation) RemovedVariablesIDs() (ids []oid.ID) {
 }
 
 // VariablesIDs returns the "variables" edge IDs in the mutation.
-func (m *EnvironmentMutation) VariablesIDs() (ids []oid.ID) {
+func (m *EnvironmentMutation) VariablesIDs() (ids []object.ID) {
 	for id := range m.variables {
 		ids = append(ids, id)
 	}
@@ -6015,7 +6015,7 @@ func (m *EnvironmentMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case environment.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6277,9 +6277,9 @@ type EnvironmentConnectorRelationshipMutation struct {
 	typ                string
 	createTime         *time.Time
 	clearedFields      map[string]struct{}
-	environment        *oid.ID
+	environment        *object.ID
 	clearedenvironment bool
-	connector          *oid.ID
+	connector          *object.ID
 	clearedconnector   bool
 	done               bool
 	oldValue           func(context.Context) (*EnvironmentConnectorRelationship, error)
@@ -6344,12 +6344,12 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetCreateTime() {
 }
 
 // SetEnvironmentID sets the "environment_id" field.
-func (m *EnvironmentConnectorRelationshipMutation) SetEnvironmentID(o oid.ID) {
+func (m *EnvironmentConnectorRelationshipMutation) SetEnvironmentID(o object.ID) {
 	m.environment = &o
 }
 
 // EnvironmentID returns the value of the "environment_id" field in the mutation.
-func (m *EnvironmentConnectorRelationshipMutation) EnvironmentID() (r oid.ID, exists bool) {
+func (m *EnvironmentConnectorRelationshipMutation) EnvironmentID() (r object.ID, exists bool) {
 	v := m.environment
 	if v == nil {
 		return
@@ -6363,12 +6363,12 @@ func (m *EnvironmentConnectorRelationshipMutation) ResetEnvironmentID() {
 }
 
 // SetConnectorID sets the "connector_id" field.
-func (m *EnvironmentConnectorRelationshipMutation) SetConnectorID(o oid.ID) {
+func (m *EnvironmentConnectorRelationshipMutation) SetConnectorID(o object.ID) {
 	m.connector = &o
 }
 
 // ConnectorID returns the value of the "connector_id" field in the mutation.
-func (m *EnvironmentConnectorRelationshipMutation) ConnectorID() (r oid.ID, exists bool) {
+func (m *EnvironmentConnectorRelationshipMutation) ConnectorID() (r object.ID, exists bool) {
 	v := m.connector
 	if v == nil {
 		return
@@ -6394,7 +6394,7 @@ func (m *EnvironmentConnectorRelationshipMutation) EnvironmentCleared() bool {
 // EnvironmentIDs returns the "environment" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *EnvironmentConnectorRelationshipMutation) EnvironmentIDs() (ids []oid.ID) {
+func (m *EnvironmentConnectorRelationshipMutation) EnvironmentIDs() (ids []object.ID) {
 	if id := m.environment; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6420,7 +6420,7 @@ func (m *EnvironmentConnectorRelationshipMutation) ConnectorCleared() bool {
 // ConnectorIDs returns the "connector" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ConnectorID instead. It exists only for internal usage by the builders.
-func (m *EnvironmentConnectorRelationshipMutation) ConnectorIDs() (ids []oid.ID) {
+func (m *EnvironmentConnectorRelationshipMutation) ConnectorIDs() (ids []object.ID) {
 	if id := m.connector; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6515,14 +6515,14 @@ func (m *EnvironmentConnectorRelationshipMutation) SetField(name string, value e
 		m.SetCreateTime(v)
 		return nil
 	case environmentconnectorrelationship.FieldEnvironmentID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnvironmentID(v)
 		return nil
 	case environmentconnectorrelationship.FieldConnectorID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6687,7 +6687,7 @@ type PerspectiveMutation struct {
 	config
 	op                      Op
 	typ                     string
-	id                      *oid.ID
+	id                      *object.ID
 	name                    *string
 	description             *string
 	labels                  *map[string]string
@@ -6725,7 +6725,7 @@ func newPerspectiveMutation(c config, op Op, opts ...perspectiveOption) *Perspec
 }
 
 // withPerspectiveID sets the ID field of the mutation.
-func withPerspectiveID(id oid.ID) perspectiveOption {
+func withPerspectiveID(id object.ID) perspectiveOption {
 	return func(m *PerspectiveMutation) {
 		var (
 			err   error
@@ -6777,13 +6777,13 @@ func (m PerspectiveMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Perspective entities.
-func (m *PerspectiveMutation) SetID(id oid.ID) {
+func (m *PerspectiveMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PerspectiveMutation) ID() (id oid.ID, exists bool) {
+func (m *PerspectiveMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -6794,12 +6794,12 @@ func (m *PerspectiveMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PerspectiveMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *PerspectiveMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -7581,7 +7581,7 @@ type ProjectMutation struct {
 	config
 	op                      Op
 	typ                     string
-	id                      *oid.ID
+	id                      *object.ID
 	name                    *string
 	description             *string
 	labels                  *map[string]string
@@ -7589,23 +7589,23 @@ type ProjectMutation struct {
 	createTime              *time.Time
 	updateTime              *time.Time
 	clearedFields           map[string]struct{}
-	environments            map[oid.ID]struct{}
-	removedenvironments     map[oid.ID]struct{}
+	environments            map[object.ID]struct{}
+	removedenvironments     map[object.ID]struct{}
 	clearedenvironments     bool
-	connectors              map[oid.ID]struct{}
-	removedconnectors       map[oid.ID]struct{}
+	connectors              map[object.ID]struct{}
+	removedconnectors       map[object.ID]struct{}
 	clearedconnectors       bool
-	subjectRoles            map[oid.ID]struct{}
-	removedsubjectRoles     map[oid.ID]struct{}
+	subjectRoles            map[object.ID]struct{}
+	removedsubjectRoles     map[object.ID]struct{}
 	clearedsubjectRoles     bool
-	services                map[oid.ID]struct{}
-	removedservices         map[oid.ID]struct{}
+	services                map[object.ID]struct{}
+	removedservices         map[object.ID]struct{}
 	clearedservices         bool
-	serviceRevisions        map[oid.ID]struct{}
-	removedserviceRevisions map[oid.ID]struct{}
+	serviceRevisions        map[object.ID]struct{}
+	removedserviceRevisions map[object.ID]struct{}
 	clearedserviceRevisions bool
-	variables               map[oid.ID]struct{}
-	removedvariables        map[oid.ID]struct{}
+	variables               map[object.ID]struct{}
+	removedvariables        map[object.ID]struct{}
 	clearedvariables        bool
 	done                    bool
 	oldValue                func(context.Context) (*Project, error)
@@ -7632,7 +7632,7 @@ func newProjectMutation(c config, op Op, opts ...projectOption) *ProjectMutation
 }
 
 // withProjectID sets the ID field of the mutation.
-func withProjectID(id oid.ID) projectOption {
+func withProjectID(id object.ID) projectOption {
 	return func(m *ProjectMutation) {
 		var (
 			err   error
@@ -7684,13 +7684,13 @@ func (m ProjectMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Project entities.
-func (m *ProjectMutation) SetID(id oid.ID) {
+func (m *ProjectMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ProjectMutation) ID() (id oid.ID, exists bool) {
+func (m *ProjectMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -7701,12 +7701,12 @@ func (m *ProjectMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ProjectMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ProjectMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -7972,9 +7972,9 @@ func (m *ProjectMutation) ResetUpdateTime() {
 }
 
 // AddEnvironmentIDs adds the "environments" edge to the Environment entity by ids.
-func (m *ProjectMutation) AddEnvironmentIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddEnvironmentIDs(ids ...object.ID) {
 	if m.environments == nil {
-		m.environments = make(map[oid.ID]struct{})
+		m.environments = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.environments[ids[i]] = struct{}{}
@@ -7992,9 +7992,9 @@ func (m *ProjectMutation) EnvironmentsCleared() bool {
 }
 
 // RemoveEnvironmentIDs removes the "environments" edge to the Environment entity by IDs.
-func (m *ProjectMutation) RemoveEnvironmentIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveEnvironmentIDs(ids ...object.ID) {
 	if m.removedenvironments == nil {
-		m.removedenvironments = make(map[oid.ID]struct{})
+		m.removedenvironments = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.environments, ids[i])
@@ -8003,7 +8003,7 @@ func (m *ProjectMutation) RemoveEnvironmentIDs(ids ...oid.ID) {
 }
 
 // RemovedEnvironments returns the removed IDs of the "environments" edge to the Environment entity.
-func (m *ProjectMutation) RemovedEnvironmentsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedEnvironmentsIDs() (ids []object.ID) {
 	for id := range m.removedenvironments {
 		ids = append(ids, id)
 	}
@@ -8011,7 +8011,7 @@ func (m *ProjectMutation) RemovedEnvironmentsIDs() (ids []oid.ID) {
 }
 
 // EnvironmentsIDs returns the "environments" edge IDs in the mutation.
-func (m *ProjectMutation) EnvironmentsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) EnvironmentsIDs() (ids []object.ID) {
 	for id := range m.environments {
 		ids = append(ids, id)
 	}
@@ -8026,9 +8026,9 @@ func (m *ProjectMutation) ResetEnvironments() {
 }
 
 // AddConnectorIDs adds the "connectors" edge to the Connector entity by ids.
-func (m *ProjectMutation) AddConnectorIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddConnectorIDs(ids ...object.ID) {
 	if m.connectors == nil {
-		m.connectors = make(map[oid.ID]struct{})
+		m.connectors = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.connectors[ids[i]] = struct{}{}
@@ -8046,9 +8046,9 @@ func (m *ProjectMutation) ConnectorsCleared() bool {
 }
 
 // RemoveConnectorIDs removes the "connectors" edge to the Connector entity by IDs.
-func (m *ProjectMutation) RemoveConnectorIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveConnectorIDs(ids ...object.ID) {
 	if m.removedconnectors == nil {
-		m.removedconnectors = make(map[oid.ID]struct{})
+		m.removedconnectors = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.connectors, ids[i])
@@ -8057,7 +8057,7 @@ func (m *ProjectMutation) RemoveConnectorIDs(ids ...oid.ID) {
 }
 
 // RemovedConnectors returns the removed IDs of the "connectors" edge to the Connector entity.
-func (m *ProjectMutation) RemovedConnectorsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedConnectorsIDs() (ids []object.ID) {
 	for id := range m.removedconnectors {
 		ids = append(ids, id)
 	}
@@ -8065,7 +8065,7 @@ func (m *ProjectMutation) RemovedConnectorsIDs() (ids []oid.ID) {
 }
 
 // ConnectorsIDs returns the "connectors" edge IDs in the mutation.
-func (m *ProjectMutation) ConnectorsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) ConnectorsIDs() (ids []object.ID) {
 	for id := range m.connectors {
 		ids = append(ids, id)
 	}
@@ -8080,9 +8080,9 @@ func (m *ProjectMutation) ResetConnectors() {
 }
 
 // AddSubjectRoleIDs adds the "subjectRoles" edge to the SubjectRoleRelationship entity by ids.
-func (m *ProjectMutation) AddSubjectRoleIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddSubjectRoleIDs(ids ...object.ID) {
 	if m.subjectRoles == nil {
-		m.subjectRoles = make(map[oid.ID]struct{})
+		m.subjectRoles = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.subjectRoles[ids[i]] = struct{}{}
@@ -8100,9 +8100,9 @@ func (m *ProjectMutation) SubjectRolesCleared() bool {
 }
 
 // RemoveSubjectRoleIDs removes the "subjectRoles" edge to the SubjectRoleRelationship entity by IDs.
-func (m *ProjectMutation) RemoveSubjectRoleIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveSubjectRoleIDs(ids ...object.ID) {
 	if m.removedsubjectRoles == nil {
-		m.removedsubjectRoles = make(map[oid.ID]struct{})
+		m.removedsubjectRoles = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.subjectRoles, ids[i])
@@ -8111,7 +8111,7 @@ func (m *ProjectMutation) RemoveSubjectRoleIDs(ids ...oid.ID) {
 }
 
 // RemovedSubjectRoles returns the removed IDs of the "subjectRoles" edge to the SubjectRoleRelationship entity.
-func (m *ProjectMutation) RemovedSubjectRolesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedSubjectRolesIDs() (ids []object.ID) {
 	for id := range m.removedsubjectRoles {
 		ids = append(ids, id)
 	}
@@ -8119,7 +8119,7 @@ func (m *ProjectMutation) RemovedSubjectRolesIDs() (ids []oid.ID) {
 }
 
 // SubjectRolesIDs returns the "subjectRoles" edge IDs in the mutation.
-func (m *ProjectMutation) SubjectRolesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) SubjectRolesIDs() (ids []object.ID) {
 	for id := range m.subjectRoles {
 		ids = append(ids, id)
 	}
@@ -8134,9 +8134,9 @@ func (m *ProjectMutation) ResetSubjectRoles() {
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by ids.
-func (m *ProjectMutation) AddServiceIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddServiceIDs(ids ...object.ID) {
 	if m.services == nil {
-		m.services = make(map[oid.ID]struct{})
+		m.services = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.services[ids[i]] = struct{}{}
@@ -8154,9 +8154,9 @@ func (m *ProjectMutation) ServicesCleared() bool {
 }
 
 // RemoveServiceIDs removes the "services" edge to the Service entity by IDs.
-func (m *ProjectMutation) RemoveServiceIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveServiceIDs(ids ...object.ID) {
 	if m.removedservices == nil {
-		m.removedservices = make(map[oid.ID]struct{})
+		m.removedservices = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.services, ids[i])
@@ -8165,7 +8165,7 @@ func (m *ProjectMutation) RemoveServiceIDs(ids ...oid.ID) {
 }
 
 // RemovedServices returns the removed IDs of the "services" edge to the Service entity.
-func (m *ProjectMutation) RemovedServicesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedServicesIDs() (ids []object.ID) {
 	for id := range m.removedservices {
 		ids = append(ids, id)
 	}
@@ -8173,7 +8173,7 @@ func (m *ProjectMutation) RemovedServicesIDs() (ids []oid.ID) {
 }
 
 // ServicesIDs returns the "services" edge IDs in the mutation.
-func (m *ProjectMutation) ServicesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) ServicesIDs() (ids []object.ID) {
 	for id := range m.services {
 		ids = append(ids, id)
 	}
@@ -8188,9 +8188,9 @@ func (m *ProjectMutation) ResetServices() {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by ids.
-func (m *ProjectMutation) AddServiceRevisionIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddServiceRevisionIDs(ids ...object.ID) {
 	if m.serviceRevisions == nil {
-		m.serviceRevisions = make(map[oid.ID]struct{})
+		m.serviceRevisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.serviceRevisions[ids[i]] = struct{}{}
@@ -8208,9 +8208,9 @@ func (m *ProjectMutation) ServiceRevisionsCleared() bool {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (m *ProjectMutation) RemoveServiceRevisionIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveServiceRevisionIDs(ids ...object.ID) {
 	if m.removedserviceRevisions == nil {
-		m.removedserviceRevisions = make(map[oid.ID]struct{})
+		m.removedserviceRevisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.serviceRevisions, ids[i])
@@ -8219,7 +8219,7 @@ func (m *ProjectMutation) RemoveServiceRevisionIDs(ids ...oid.ID) {
 }
 
 // RemovedServiceRevisions returns the removed IDs of the "serviceRevisions" edge to the ServiceRevision entity.
-func (m *ProjectMutation) RemovedServiceRevisionsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedServiceRevisionsIDs() (ids []object.ID) {
 	for id := range m.removedserviceRevisions {
 		ids = append(ids, id)
 	}
@@ -8227,7 +8227,7 @@ func (m *ProjectMutation) RemovedServiceRevisionsIDs() (ids []oid.ID) {
 }
 
 // ServiceRevisionsIDs returns the "serviceRevisions" edge IDs in the mutation.
-func (m *ProjectMutation) ServiceRevisionsIDs() (ids []oid.ID) {
+func (m *ProjectMutation) ServiceRevisionsIDs() (ids []object.ID) {
 	for id := range m.serviceRevisions {
 		ids = append(ids, id)
 	}
@@ -8242,9 +8242,9 @@ func (m *ProjectMutation) ResetServiceRevisions() {
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by ids.
-func (m *ProjectMutation) AddVariableIDs(ids ...oid.ID) {
+func (m *ProjectMutation) AddVariableIDs(ids ...object.ID) {
 	if m.variables == nil {
-		m.variables = make(map[oid.ID]struct{})
+		m.variables = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.variables[ids[i]] = struct{}{}
@@ -8262,9 +8262,9 @@ func (m *ProjectMutation) VariablesCleared() bool {
 }
 
 // RemoveVariableIDs removes the "variables" edge to the Variable entity by IDs.
-func (m *ProjectMutation) RemoveVariableIDs(ids ...oid.ID) {
+func (m *ProjectMutation) RemoveVariableIDs(ids ...object.ID) {
 	if m.removedvariables == nil {
-		m.removedvariables = make(map[oid.ID]struct{})
+		m.removedvariables = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.variables, ids[i])
@@ -8273,7 +8273,7 @@ func (m *ProjectMutation) RemoveVariableIDs(ids ...oid.ID) {
 }
 
 // RemovedVariables returns the removed IDs of the "variables" edge to the Variable entity.
-func (m *ProjectMutation) RemovedVariablesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) RemovedVariablesIDs() (ids []object.ID) {
 	for id := range m.removedvariables {
 		ids = append(ids, id)
 	}
@@ -8281,7 +8281,7 @@ func (m *ProjectMutation) RemovedVariablesIDs() (ids []oid.ID) {
 }
 
 // VariablesIDs returns the "variables" edge IDs in the mutation.
-func (m *ProjectMutation) VariablesIDs() (ids []oid.ID) {
+func (m *ProjectMutation) VariablesIDs() (ids []object.ID) {
 	for id := range m.variables {
 		ids = append(ids, id)
 	}
@@ -8761,8 +8761,8 @@ type RoleMutation struct {
 	session         *bool
 	builtin         *bool
 	clearedFields   map[string]struct{}
-	subjects        map[oid.ID]struct{}
-	removedsubjects map[oid.ID]struct{}
+	subjects        map[object.ID]struct{}
+	removedsubjects map[object.ID]struct{}
 	clearedsubjects bool
 	done            bool
 	oldValue        func(context.Context) (*Role, error)
@@ -9154,9 +9154,9 @@ func (m *RoleMutation) ResetBuiltin() {
 }
 
 // AddSubjectIDs adds the "subjects" edge to the SubjectRoleRelationship entity by ids.
-func (m *RoleMutation) AddSubjectIDs(ids ...oid.ID) {
+func (m *RoleMutation) AddSubjectIDs(ids ...object.ID) {
 	if m.subjects == nil {
-		m.subjects = make(map[oid.ID]struct{})
+		m.subjects = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.subjects[ids[i]] = struct{}{}
@@ -9174,9 +9174,9 @@ func (m *RoleMutation) SubjectsCleared() bool {
 }
 
 // RemoveSubjectIDs removes the "subjects" edge to the SubjectRoleRelationship entity by IDs.
-func (m *RoleMutation) RemoveSubjectIDs(ids ...oid.ID) {
+func (m *RoleMutation) RemoveSubjectIDs(ids ...object.ID) {
 	if m.removedsubjects == nil {
-		m.removedsubjects = make(map[oid.ID]struct{})
+		m.removedsubjects = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.subjects, ids[i])
@@ -9185,7 +9185,7 @@ func (m *RoleMutation) RemoveSubjectIDs(ids ...oid.ID) {
 }
 
 // RemovedSubjects returns the removed IDs of the "subjects" edge to the SubjectRoleRelationship entity.
-func (m *RoleMutation) RemovedSubjectsIDs() (ids []oid.ID) {
+func (m *RoleMutation) RemovedSubjectsIDs() (ids []object.ID) {
 	for id := range m.removedsubjects {
 		ids = append(ids, id)
 	}
@@ -9193,7 +9193,7 @@ func (m *RoleMutation) RemovedSubjectsIDs() (ids []oid.ID) {
 }
 
 // SubjectsIDs returns the "subjects" edge IDs in the mutation.
-func (m *RoleMutation) SubjectsIDs() (ids []oid.ID) {
+func (m *RoleMutation) SubjectsIDs() (ids []object.ID) {
 	for id := range m.subjects {
 		ids = append(ids, id)
 	}
@@ -9538,7 +9538,7 @@ type ServiceMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *oid.ID
+	id                  *object.ID
 	name                *string
 	description         *string
 	labels              *map[string]string
@@ -9549,18 +9549,18 @@ type ServiceMutation struct {
 	template            *types.TemplateVersionRef
 	attributes          *property.Values
 	clearedFields       map[string]struct{}
-	project             *oid.ID
+	project             *object.ID
 	clearedproject      bool
-	environment         *oid.ID
+	environment         *object.ID
 	clearedenvironment  bool
-	revisions           map[oid.ID]struct{}
-	removedrevisions    map[oid.ID]struct{}
+	revisions           map[object.ID]struct{}
+	removedrevisions    map[object.ID]struct{}
 	clearedrevisions    bool
-	resources           map[oid.ID]struct{}
-	removedresources    map[oid.ID]struct{}
+	resources           map[object.ID]struct{}
+	removedresources    map[object.ID]struct{}
 	clearedresources    bool
-	dependencies        map[oid.ID]struct{}
-	removeddependencies map[oid.ID]struct{}
+	dependencies        map[object.ID]struct{}
+	removeddependencies map[object.ID]struct{}
 	cleareddependencies bool
 	done                bool
 	oldValue            func(context.Context) (*Service, error)
@@ -9587,7 +9587,7 @@ func newServiceMutation(c config, op Op, opts ...serviceOption) *ServiceMutation
 }
 
 // withServiceID sets the ID field of the mutation.
-func withServiceID(id oid.ID) serviceOption {
+func withServiceID(id object.ID) serviceOption {
 	return func(m *ServiceMutation) {
 		var (
 			err   error
@@ -9639,13 +9639,13 @@ func (m ServiceMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Service entities.
-func (m *ServiceMutation) SetID(id oid.ID) {
+func (m *ServiceMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -9656,12 +9656,12 @@ func (m *ServiceMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -9927,12 +9927,12 @@ func (m *ServiceMutation) ResetUpdateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *ServiceMutation) SetProjectID(o oid.ID) {
+func (m *ServiceMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ServiceMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *ServiceMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -9943,7 +9943,7 @@ func (m *ServiceMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the Service entity.
 // If the Service object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -10012,12 +10012,12 @@ func (m *ServiceMutation) ResetStatus() {
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (m *ServiceMutation) SetEnvironmentID(o oid.ID) {
+func (m *ServiceMutation) SetEnvironmentID(o object.ID) {
 	m.environment = &o
 }
 
 // EnvironmentID returns the value of the "environmentID" field in the mutation.
-func (m *ServiceMutation) EnvironmentID() (r oid.ID, exists bool) {
+func (m *ServiceMutation) EnvironmentID() (r object.ID, exists bool) {
 	v := m.environment
 	if v == nil {
 		return
@@ -10028,7 +10028,7 @@ func (m *ServiceMutation) EnvironmentID() (r oid.ID, exists bool) {
 // OldEnvironmentID returns the old "environmentID" field's value of the Service entity.
 // If the Service object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldEnvironmentID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
 	}
@@ -10145,7 +10145,7 @@ func (m *ServiceMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *ServiceMutation) ProjectIDs() (ids []oid.ID) {
+func (m *ServiceMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -10171,7 +10171,7 @@ func (m *ServiceMutation) EnvironmentCleared() bool {
 // EnvironmentIDs returns the "environment" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *ServiceMutation) EnvironmentIDs() (ids []oid.ID) {
+func (m *ServiceMutation) EnvironmentIDs() (ids []object.ID) {
 	if id := m.environment; id != nil {
 		ids = append(ids, *id)
 	}
@@ -10185,9 +10185,9 @@ func (m *ServiceMutation) ResetEnvironment() {
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by ids.
-func (m *ServiceMutation) AddRevisionIDs(ids ...oid.ID) {
+func (m *ServiceMutation) AddRevisionIDs(ids ...object.ID) {
 	if m.revisions == nil {
-		m.revisions = make(map[oid.ID]struct{})
+		m.revisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.revisions[ids[i]] = struct{}{}
@@ -10205,9 +10205,9 @@ func (m *ServiceMutation) RevisionsCleared() bool {
 }
 
 // RemoveRevisionIDs removes the "revisions" edge to the ServiceRevision entity by IDs.
-func (m *ServiceMutation) RemoveRevisionIDs(ids ...oid.ID) {
+func (m *ServiceMutation) RemoveRevisionIDs(ids ...object.ID) {
 	if m.removedrevisions == nil {
-		m.removedrevisions = make(map[oid.ID]struct{})
+		m.removedrevisions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.revisions, ids[i])
@@ -10216,7 +10216,7 @@ func (m *ServiceMutation) RemoveRevisionIDs(ids ...oid.ID) {
 }
 
 // RemovedRevisions returns the removed IDs of the "revisions" edge to the ServiceRevision entity.
-func (m *ServiceMutation) RemovedRevisionsIDs() (ids []oid.ID) {
+func (m *ServiceMutation) RemovedRevisionsIDs() (ids []object.ID) {
 	for id := range m.removedrevisions {
 		ids = append(ids, id)
 	}
@@ -10224,7 +10224,7 @@ func (m *ServiceMutation) RemovedRevisionsIDs() (ids []oid.ID) {
 }
 
 // RevisionsIDs returns the "revisions" edge IDs in the mutation.
-func (m *ServiceMutation) RevisionsIDs() (ids []oid.ID) {
+func (m *ServiceMutation) RevisionsIDs() (ids []object.ID) {
 	for id := range m.revisions {
 		ids = append(ids, id)
 	}
@@ -10239,9 +10239,9 @@ func (m *ServiceMutation) ResetRevisions() {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by ids.
-func (m *ServiceMutation) AddResourceIDs(ids ...oid.ID) {
+func (m *ServiceMutation) AddResourceIDs(ids ...object.ID) {
 	if m.resources == nil {
-		m.resources = make(map[oid.ID]struct{})
+		m.resources = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.resources[ids[i]] = struct{}{}
@@ -10259,9 +10259,9 @@ func (m *ServiceMutation) ResourcesCleared() bool {
 }
 
 // RemoveResourceIDs removes the "resources" edge to the ServiceResource entity by IDs.
-func (m *ServiceMutation) RemoveResourceIDs(ids ...oid.ID) {
+func (m *ServiceMutation) RemoveResourceIDs(ids ...object.ID) {
 	if m.removedresources == nil {
-		m.removedresources = make(map[oid.ID]struct{})
+		m.removedresources = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.resources, ids[i])
@@ -10270,7 +10270,7 @@ func (m *ServiceMutation) RemoveResourceIDs(ids ...oid.ID) {
 }
 
 // RemovedResources returns the removed IDs of the "resources" edge to the ServiceResource entity.
-func (m *ServiceMutation) RemovedResourcesIDs() (ids []oid.ID) {
+func (m *ServiceMutation) RemovedResourcesIDs() (ids []object.ID) {
 	for id := range m.removedresources {
 		ids = append(ids, id)
 	}
@@ -10278,7 +10278,7 @@ func (m *ServiceMutation) RemovedResourcesIDs() (ids []oid.ID) {
 }
 
 // ResourcesIDs returns the "resources" edge IDs in the mutation.
-func (m *ServiceMutation) ResourcesIDs() (ids []oid.ID) {
+func (m *ServiceMutation) ResourcesIDs() (ids []object.ID) {
 	for id := range m.resources {
 		ids = append(ids, id)
 	}
@@ -10293,9 +10293,9 @@ func (m *ServiceMutation) ResetResources() {
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by ids.
-func (m *ServiceMutation) AddDependencyIDs(ids ...oid.ID) {
+func (m *ServiceMutation) AddDependencyIDs(ids ...object.ID) {
 	if m.dependencies == nil {
-		m.dependencies = make(map[oid.ID]struct{})
+		m.dependencies = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.dependencies[ids[i]] = struct{}{}
@@ -10313,9 +10313,9 @@ func (m *ServiceMutation) DependenciesCleared() bool {
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to the ServiceRelationship entity by IDs.
-func (m *ServiceMutation) RemoveDependencyIDs(ids ...oid.ID) {
+func (m *ServiceMutation) RemoveDependencyIDs(ids ...object.ID) {
 	if m.removeddependencies == nil {
-		m.removeddependencies = make(map[oid.ID]struct{})
+		m.removeddependencies = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.dependencies, ids[i])
@@ -10324,7 +10324,7 @@ func (m *ServiceMutation) RemoveDependencyIDs(ids ...oid.ID) {
 }
 
 // RemovedDependencies returns the removed IDs of the "dependencies" edge to the ServiceRelationship entity.
-func (m *ServiceMutation) RemovedDependenciesIDs() (ids []oid.ID) {
+func (m *ServiceMutation) RemovedDependenciesIDs() (ids []object.ID) {
 	for id := range m.removeddependencies {
 		ids = append(ids, id)
 	}
@@ -10332,7 +10332,7 @@ func (m *ServiceMutation) RemovedDependenciesIDs() (ids []oid.ID) {
 }
 
 // DependenciesIDs returns the "dependencies" edge IDs in the mutation.
-func (m *ServiceMutation) DependenciesIDs() (ids []oid.ID) {
+func (m *ServiceMutation) DependenciesIDs() (ids []object.ID) {
 	for id := range m.dependencies {
 		ids = append(ids, id)
 	}
@@ -10527,7 +10527,7 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case service.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10541,7 +10541,7 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case service.FieldEnvironmentID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10857,15 +10857,15 @@ type ServiceRelationshipMutation struct {
 	config
 	op                Op
 	typ               string
-	id                *oid.ID
+	id                *object.ID
 	createTime        *time.Time
-	_path             *[]oid.ID
-	append_path       []oid.ID
+	_path             *[]object.ID
+	append_path       []object.ID
 	_type             *string
 	clearedFields     map[string]struct{}
-	service           *oid.ID
+	service           *object.ID
 	clearedservice    bool
-	dependency        *oid.ID
+	dependency        *object.ID
 	cleareddependency bool
 	done              bool
 	oldValue          func(context.Context) (*ServiceRelationship, error)
@@ -10892,7 +10892,7 @@ func newServiceRelationshipMutation(c config, op Op, opts ...serviceRelationship
 }
 
 // withServiceRelationshipID sets the ID field of the mutation.
-func withServiceRelationshipID(id oid.ID) serviceRelationshipOption {
+func withServiceRelationshipID(id object.ID) serviceRelationshipOption {
 	return func(m *ServiceRelationshipMutation) {
 		var (
 			err   error
@@ -10944,13 +10944,13 @@ func (m ServiceRelationshipMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of ServiceRelationship entities.
-func (m *ServiceRelationshipMutation) SetID(id oid.ID) {
+func (m *ServiceRelationshipMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceRelationshipMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -10961,12 +10961,12 @@ func (m *ServiceRelationshipMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceRelationshipMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceRelationshipMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -11013,12 +11013,12 @@ func (m *ServiceRelationshipMutation) ResetCreateTime() {
 }
 
 // SetServiceID sets the "service_id" field.
-func (m *ServiceRelationshipMutation) SetServiceID(o oid.ID) {
+func (m *ServiceRelationshipMutation) SetServiceID(o object.ID) {
 	m.service = &o
 }
 
 // ServiceID returns the value of the "service_id" field in the mutation.
-func (m *ServiceRelationshipMutation) ServiceID() (r oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) ServiceID() (r object.ID, exists bool) {
 	v := m.service
 	if v == nil {
 		return
@@ -11029,7 +11029,7 @@ func (m *ServiceRelationshipMutation) ServiceID() (r oid.ID, exists bool) {
 // OldServiceID returns the old "service_id" field's value of the ServiceRelationship entity.
 // If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRelationshipMutation) OldServiceID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldServiceID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldServiceID is only allowed on UpdateOne operations")
 	}
@@ -11049,12 +11049,12 @@ func (m *ServiceRelationshipMutation) ResetServiceID() {
 }
 
 // SetDependencyID sets the "dependency_id" field.
-func (m *ServiceRelationshipMutation) SetDependencyID(o oid.ID) {
+func (m *ServiceRelationshipMutation) SetDependencyID(o object.ID) {
 	m.dependency = &o
 }
 
 // DependencyID returns the value of the "dependency_id" field in the mutation.
-func (m *ServiceRelationshipMutation) DependencyID() (r oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) DependencyID() (r object.ID, exists bool) {
 	v := m.dependency
 	if v == nil {
 		return
@@ -11065,7 +11065,7 @@ func (m *ServiceRelationshipMutation) DependencyID() (r oid.ID, exists bool) {
 // OldDependencyID returns the old "dependency_id" field's value of the ServiceRelationship entity.
 // If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRelationshipMutation) OldDependencyID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldDependencyID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDependencyID is only allowed on UpdateOne operations")
 	}
@@ -11085,13 +11085,13 @@ func (m *ServiceRelationshipMutation) ResetDependencyID() {
 }
 
 // SetPath sets the "path" field.
-func (m *ServiceRelationshipMutation) SetPath(o []oid.ID) {
+func (m *ServiceRelationshipMutation) SetPath(o []object.ID) {
 	m._path = &o
 	m.append_path = nil
 }
 
 // Path returns the value of the "path" field in the mutation.
-func (m *ServiceRelationshipMutation) Path() (r []oid.ID, exists bool) {
+func (m *ServiceRelationshipMutation) Path() (r []object.ID, exists bool) {
 	v := m._path
 	if v == nil {
 		return
@@ -11102,7 +11102,7 @@ func (m *ServiceRelationshipMutation) Path() (r []oid.ID, exists bool) {
 // OldPath returns the old "path" field's value of the ServiceRelationship entity.
 // If the ServiceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRelationshipMutation) OldPath(ctx context.Context) (v []oid.ID, err error) {
+func (m *ServiceRelationshipMutation) OldPath(ctx context.Context) (v []object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPath is only allowed on UpdateOne operations")
 	}
@@ -11117,12 +11117,12 @@ func (m *ServiceRelationshipMutation) OldPath(ctx context.Context) (v []oid.ID, 
 }
 
 // AppendPath adds o to the "path" field.
-func (m *ServiceRelationshipMutation) AppendPath(o []oid.ID) {
+func (m *ServiceRelationshipMutation) AppendPath(o []object.ID) {
 	m.append_path = append(m.append_path, o...)
 }
 
 // AppendedPath returns the list of values that were appended to the "path" field in this mutation.
-func (m *ServiceRelationshipMutation) AppendedPath() ([]oid.ID, bool) {
+func (m *ServiceRelationshipMutation) AppendedPath() ([]object.ID, bool) {
 	if len(m.append_path) == 0 {
 		return nil, false
 	}
@@ -11184,7 +11184,7 @@ func (m *ServiceRelationshipMutation) ServiceCleared() bool {
 // ServiceIDs returns the "service" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ServiceID instead. It exists only for internal usage by the builders.
-func (m *ServiceRelationshipMutation) ServiceIDs() (ids []oid.ID) {
+func (m *ServiceRelationshipMutation) ServiceIDs() (ids []object.ID) {
 	if id := m.service; id != nil {
 		ids = append(ids, *id)
 	}
@@ -11210,7 +11210,7 @@ func (m *ServiceRelationshipMutation) DependencyCleared() bool {
 // DependencyIDs returns the "dependency" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // DependencyID instead. It exists only for internal usage by the builders.
-func (m *ServiceRelationshipMutation) DependencyIDs() (ids []oid.ID) {
+func (m *ServiceRelationshipMutation) DependencyIDs() (ids []object.ID) {
 	if id := m.dependency; id != nil {
 		ids = append(ids, *id)
 	}
@@ -11327,21 +11327,21 @@ func (m *ServiceRelationshipMutation) SetField(name string, value ent.Value) err
 		m.SetCreateTime(v)
 		return nil
 	case servicerelationship.FieldServiceID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetServiceID(v)
 		return nil
 	case servicerelationship.FieldDependencyID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDependencyID(v)
 		return nil
 	case servicerelationship.FieldPath:
-		v, ok := value.([]oid.ID)
+		v, ok := value.([]object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -11519,10 +11519,10 @@ type ServiceResourceMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *oid.ID
+	id                  *object.ID
 	createTime          *time.Time
 	updateTime          *time.Time
-	projectID           *oid.ID
+	projectID           *object.ID
 	mode                *string
 	_type               *string
 	name                *string
@@ -11530,22 +11530,22 @@ type ServiceResourceMutation struct {
 	shape               *string
 	status              *types.ServiceResourceStatus
 	clearedFields       map[string]struct{}
-	service             *oid.ID
+	service             *object.ID
 	clearedservice      bool
-	connector           *oid.ID
+	connector           *object.ID
 	clearedconnector    bool
-	composition         *oid.ID
+	composition         *object.ID
 	clearedcomposition  bool
-	components          map[oid.ID]struct{}
-	removedcomponents   map[oid.ID]struct{}
+	components          map[object.ID]struct{}
+	removedcomponents   map[object.ID]struct{}
 	clearedcomponents   bool
-	class               *oid.ID
+	class               *object.ID
 	clearedclass        bool
-	instances           map[oid.ID]struct{}
-	removedinstances    map[oid.ID]struct{}
+	instances           map[object.ID]struct{}
+	removedinstances    map[object.ID]struct{}
 	clearedinstances    bool
-	dependencies        map[oid.ID]struct{}
-	removeddependencies map[oid.ID]struct{}
+	dependencies        map[object.ID]struct{}
+	removeddependencies map[object.ID]struct{}
 	cleareddependencies bool
 	done                bool
 	oldValue            func(context.Context) (*ServiceResource, error)
@@ -11572,7 +11572,7 @@ func newServiceResourceMutation(c config, op Op, opts ...serviceResourceOption) 
 }
 
 // withServiceResourceID sets the ID field of the mutation.
-func withServiceResourceID(id oid.ID) serviceResourceOption {
+func withServiceResourceID(id object.ID) serviceResourceOption {
 	return func(m *ServiceResourceMutation) {
 		var (
 			err   error
@@ -11624,13 +11624,13 @@ func (m ServiceResourceMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of ServiceResource entities.
-func (m *ServiceResourceMutation) SetID(id oid.ID) {
+func (m *ServiceResourceMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceResourceMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceResourceMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -11641,12 +11641,12 @@ func (m *ServiceResourceMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceResourceMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceResourceMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -11729,12 +11729,12 @@ func (m *ServiceResourceMutation) ResetUpdateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *ServiceResourceMutation) SetProjectID(o oid.ID) {
+func (m *ServiceResourceMutation) SetProjectID(o object.ID) {
 	m.projectID = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ServiceResourceMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *ServiceResourceMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.projectID
 	if v == nil {
 		return
@@ -11745,7 +11745,7 @@ func (m *ServiceResourceMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the ServiceResource entity.
 // If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -11765,12 +11765,12 @@ func (m *ServiceResourceMutation) ResetProjectID() {
 }
 
 // SetServiceID sets the "serviceID" field.
-func (m *ServiceResourceMutation) SetServiceID(o oid.ID) {
+func (m *ServiceResourceMutation) SetServiceID(o object.ID) {
 	m.service = &o
 }
 
 // ServiceID returns the value of the "serviceID" field in the mutation.
-func (m *ServiceResourceMutation) ServiceID() (r oid.ID, exists bool) {
+func (m *ServiceResourceMutation) ServiceID() (r object.ID, exists bool) {
 	v := m.service
 	if v == nil {
 		return
@@ -11781,7 +11781,7 @@ func (m *ServiceResourceMutation) ServiceID() (r oid.ID, exists bool) {
 // OldServiceID returns the old "serviceID" field's value of the ServiceResource entity.
 // If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldServiceID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceMutation) OldServiceID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldServiceID is only allowed on UpdateOne operations")
 	}
@@ -11801,12 +11801,12 @@ func (m *ServiceResourceMutation) ResetServiceID() {
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (m *ServiceResourceMutation) SetConnectorID(o oid.ID) {
+func (m *ServiceResourceMutation) SetConnectorID(o object.ID) {
 	m.connector = &o
 }
 
 // ConnectorID returns the value of the "connectorID" field in the mutation.
-func (m *ServiceResourceMutation) ConnectorID() (r oid.ID, exists bool) {
+func (m *ServiceResourceMutation) ConnectorID() (r object.ID, exists bool) {
 	v := m.connector
 	if v == nil {
 		return
@@ -11817,7 +11817,7 @@ func (m *ServiceResourceMutation) ConnectorID() (r oid.ID, exists bool) {
 // OldConnectorID returns the old "connectorID" field's value of the ServiceResource entity.
 // If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldConnectorID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceMutation) OldConnectorID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldConnectorID is only allowed on UpdateOne operations")
 	}
@@ -11837,12 +11837,12 @@ func (m *ServiceResourceMutation) ResetConnectorID() {
 }
 
 // SetCompositionID sets the "compositionID" field.
-func (m *ServiceResourceMutation) SetCompositionID(o oid.ID) {
+func (m *ServiceResourceMutation) SetCompositionID(o object.ID) {
 	m.composition = &o
 }
 
 // CompositionID returns the value of the "compositionID" field in the mutation.
-func (m *ServiceResourceMutation) CompositionID() (r oid.ID, exists bool) {
+func (m *ServiceResourceMutation) CompositionID() (r object.ID, exists bool) {
 	v := m.composition
 	if v == nil {
 		return
@@ -11853,7 +11853,7 @@ func (m *ServiceResourceMutation) CompositionID() (r oid.ID, exists bool) {
 // OldCompositionID returns the old "compositionID" field's value of the ServiceResource entity.
 // If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldCompositionID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceMutation) OldCompositionID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCompositionID is only allowed on UpdateOne operations")
 	}
@@ -11886,12 +11886,12 @@ func (m *ServiceResourceMutation) ResetCompositionID() {
 }
 
 // SetClassID sets the "classID" field.
-func (m *ServiceResourceMutation) SetClassID(o oid.ID) {
+func (m *ServiceResourceMutation) SetClassID(o object.ID) {
 	m.class = &o
 }
 
 // ClassID returns the value of the "classID" field in the mutation.
-func (m *ServiceResourceMutation) ClassID() (r oid.ID, exists bool) {
+func (m *ServiceResourceMutation) ClassID() (r object.ID, exists bool) {
 	v := m.class
 	if v == nil {
 		return
@@ -11902,7 +11902,7 @@ func (m *ServiceResourceMutation) ClassID() (r oid.ID, exists bool) {
 // OldClassID returns the old "classID" field's value of the ServiceResource entity.
 // If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceMutation) OldClassID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceMutation) OldClassID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldClassID is only allowed on UpdateOne operations")
 	}
@@ -12176,7 +12176,7 @@ func (m *ServiceResourceMutation) ServiceCleared() bool {
 // ServiceIDs returns the "service" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ServiceID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceMutation) ServiceIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) ServiceIDs() (ids []object.ID) {
 	if id := m.service; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12202,7 +12202,7 @@ func (m *ServiceResourceMutation) ConnectorCleared() bool {
 // ConnectorIDs returns the "connector" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ConnectorID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceMutation) ConnectorIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) ConnectorIDs() (ids []object.ID) {
 	if id := m.connector; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12228,7 +12228,7 @@ func (m *ServiceResourceMutation) CompositionCleared() bool {
 // CompositionIDs returns the "composition" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CompositionID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceMutation) CompositionIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) CompositionIDs() (ids []object.ID) {
 	if id := m.composition; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12242,9 +12242,9 @@ func (m *ServiceResourceMutation) ResetComposition() {
 }
 
 // AddComponentIDs adds the "components" edge to the ServiceResource entity by ids.
-func (m *ServiceResourceMutation) AddComponentIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) AddComponentIDs(ids ...object.ID) {
 	if m.components == nil {
-		m.components = make(map[oid.ID]struct{})
+		m.components = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.components[ids[i]] = struct{}{}
@@ -12262,9 +12262,9 @@ func (m *ServiceResourceMutation) ComponentsCleared() bool {
 }
 
 // RemoveComponentIDs removes the "components" edge to the ServiceResource entity by IDs.
-func (m *ServiceResourceMutation) RemoveComponentIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) RemoveComponentIDs(ids ...object.ID) {
 	if m.removedcomponents == nil {
-		m.removedcomponents = make(map[oid.ID]struct{})
+		m.removedcomponents = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.components, ids[i])
@@ -12273,7 +12273,7 @@ func (m *ServiceResourceMutation) RemoveComponentIDs(ids ...oid.ID) {
 }
 
 // RemovedComponents returns the removed IDs of the "components" edge to the ServiceResource entity.
-func (m *ServiceResourceMutation) RemovedComponentsIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) RemovedComponentsIDs() (ids []object.ID) {
 	for id := range m.removedcomponents {
 		ids = append(ids, id)
 	}
@@ -12281,7 +12281,7 @@ func (m *ServiceResourceMutation) RemovedComponentsIDs() (ids []oid.ID) {
 }
 
 // ComponentsIDs returns the "components" edge IDs in the mutation.
-func (m *ServiceResourceMutation) ComponentsIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) ComponentsIDs() (ids []object.ID) {
 	for id := range m.components {
 		ids = append(ids, id)
 	}
@@ -12308,7 +12308,7 @@ func (m *ServiceResourceMutation) ClassCleared() bool {
 // ClassIDs returns the "class" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ClassID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceMutation) ClassIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) ClassIDs() (ids []object.ID) {
 	if id := m.class; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12322,9 +12322,9 @@ func (m *ServiceResourceMutation) ResetClass() {
 }
 
 // AddInstanceIDs adds the "instances" edge to the ServiceResource entity by ids.
-func (m *ServiceResourceMutation) AddInstanceIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) AddInstanceIDs(ids ...object.ID) {
 	if m.instances == nil {
-		m.instances = make(map[oid.ID]struct{})
+		m.instances = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.instances[ids[i]] = struct{}{}
@@ -12342,9 +12342,9 @@ func (m *ServiceResourceMutation) InstancesCleared() bool {
 }
 
 // RemoveInstanceIDs removes the "instances" edge to the ServiceResource entity by IDs.
-func (m *ServiceResourceMutation) RemoveInstanceIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) RemoveInstanceIDs(ids ...object.ID) {
 	if m.removedinstances == nil {
-		m.removedinstances = make(map[oid.ID]struct{})
+		m.removedinstances = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.instances, ids[i])
@@ -12353,7 +12353,7 @@ func (m *ServiceResourceMutation) RemoveInstanceIDs(ids ...oid.ID) {
 }
 
 // RemovedInstances returns the removed IDs of the "instances" edge to the ServiceResource entity.
-func (m *ServiceResourceMutation) RemovedInstancesIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) RemovedInstancesIDs() (ids []object.ID) {
 	for id := range m.removedinstances {
 		ids = append(ids, id)
 	}
@@ -12361,7 +12361,7 @@ func (m *ServiceResourceMutation) RemovedInstancesIDs() (ids []oid.ID) {
 }
 
 // InstancesIDs returns the "instances" edge IDs in the mutation.
-func (m *ServiceResourceMutation) InstancesIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) InstancesIDs() (ids []object.ID) {
 	for id := range m.instances {
 		ids = append(ids, id)
 	}
@@ -12376,9 +12376,9 @@ func (m *ServiceResourceMutation) ResetInstances() {
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceResourceRelationship entity by ids.
-func (m *ServiceResourceMutation) AddDependencyIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) AddDependencyIDs(ids ...object.ID) {
 	if m.dependencies == nil {
-		m.dependencies = make(map[oid.ID]struct{})
+		m.dependencies = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.dependencies[ids[i]] = struct{}{}
@@ -12396,9 +12396,9 @@ func (m *ServiceResourceMutation) DependenciesCleared() bool {
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to the ServiceResourceRelationship entity by IDs.
-func (m *ServiceResourceMutation) RemoveDependencyIDs(ids ...oid.ID) {
+func (m *ServiceResourceMutation) RemoveDependencyIDs(ids ...object.ID) {
 	if m.removeddependencies == nil {
-		m.removeddependencies = make(map[oid.ID]struct{})
+		m.removeddependencies = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.dependencies, ids[i])
@@ -12407,7 +12407,7 @@ func (m *ServiceResourceMutation) RemoveDependencyIDs(ids ...oid.ID) {
 }
 
 // RemovedDependencies returns the removed IDs of the "dependencies" edge to the ServiceResourceRelationship entity.
-func (m *ServiceResourceMutation) RemovedDependenciesIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) RemovedDependenciesIDs() (ids []object.ID) {
 	for id := range m.removeddependencies {
 		ids = append(ids, id)
 	}
@@ -12415,7 +12415,7 @@ func (m *ServiceResourceMutation) RemovedDependenciesIDs() (ids []oid.ID) {
 }
 
 // DependenciesIDs returns the "dependencies" edge IDs in the mutation.
-func (m *ServiceResourceMutation) DependenciesIDs() (ids []oid.ID) {
+func (m *ServiceResourceMutation) DependenciesIDs() (ids []object.ID) {
 	for id := range m.dependencies {
 		ids = append(ids, id)
 	}
@@ -12596,35 +12596,35 @@ func (m *ServiceResourceMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case serviceresource.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProjectID(v)
 		return nil
 	case serviceresource.FieldServiceID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetServiceID(v)
 		return nil
 	case serviceresource.FieldConnectorID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetConnectorID(v)
 		return nil
 	case serviceresource.FieldCompositionID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCompositionID(v)
 		return nil
 	case serviceresource.FieldClassID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -12998,13 +12998,13 @@ type ServiceResourceRelationshipMutation struct {
 	config
 	op                     Op
 	typ                    string
-	id                     *oid.ID
+	id                     *object.ID
 	createTime             *time.Time
 	_type                  *string
 	clearedFields          map[string]struct{}
-	serviceResource        *oid.ID
+	serviceResource        *object.ID
 	clearedserviceResource bool
-	dependency             *oid.ID
+	dependency             *object.ID
 	cleareddependency      bool
 	done                   bool
 	oldValue               func(context.Context) (*ServiceResourceRelationship, error)
@@ -13031,7 +13031,7 @@ func newServiceResourceRelationshipMutation(c config, op Op, opts ...serviceReso
 }
 
 // withServiceResourceRelationshipID sets the ID field of the mutation.
-func withServiceResourceRelationshipID(id oid.ID) serviceResourceRelationshipOption {
+func withServiceResourceRelationshipID(id object.ID) serviceResourceRelationshipOption {
 	return func(m *ServiceResourceRelationshipMutation) {
 		var (
 			err   error
@@ -13083,13 +13083,13 @@ func (m ServiceResourceRelationshipMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of ServiceResourceRelationship entities.
-func (m *ServiceResourceRelationshipMutation) SetID(id oid.ID) {
+func (m *ServiceResourceRelationshipMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceResourceRelationshipMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceResourceRelationshipMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -13100,12 +13100,12 @@ func (m *ServiceResourceRelationshipMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceResourceRelationshipMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceResourceRelationshipMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -13152,12 +13152,12 @@ func (m *ServiceResourceRelationshipMutation) ResetCreateTime() {
 }
 
 // SetServiceResourceID sets the "service_resource_id" field.
-func (m *ServiceResourceRelationshipMutation) SetServiceResourceID(o oid.ID) {
+func (m *ServiceResourceRelationshipMutation) SetServiceResourceID(o object.ID) {
 	m.serviceResource = &o
 }
 
 // ServiceResourceID returns the value of the "service_resource_id" field in the mutation.
-func (m *ServiceResourceRelationshipMutation) ServiceResourceID() (r oid.ID, exists bool) {
+func (m *ServiceResourceRelationshipMutation) ServiceResourceID() (r object.ID, exists bool) {
 	v := m.serviceResource
 	if v == nil {
 		return
@@ -13168,7 +13168,7 @@ func (m *ServiceResourceRelationshipMutation) ServiceResourceID() (r oid.ID, exi
 // OldServiceResourceID returns the old "service_resource_id" field's value of the ServiceResourceRelationship entity.
 // If the ServiceResourceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceRelationshipMutation) OldServiceResourceID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceRelationshipMutation) OldServiceResourceID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldServiceResourceID is only allowed on UpdateOne operations")
 	}
@@ -13188,12 +13188,12 @@ func (m *ServiceResourceRelationshipMutation) ResetServiceResourceID() {
 }
 
 // SetDependencyID sets the "dependency_id" field.
-func (m *ServiceResourceRelationshipMutation) SetDependencyID(o oid.ID) {
+func (m *ServiceResourceRelationshipMutation) SetDependencyID(o object.ID) {
 	m.dependency = &o
 }
 
 // DependencyID returns the value of the "dependency_id" field in the mutation.
-func (m *ServiceResourceRelationshipMutation) DependencyID() (r oid.ID, exists bool) {
+func (m *ServiceResourceRelationshipMutation) DependencyID() (r object.ID, exists bool) {
 	v := m.dependency
 	if v == nil {
 		return
@@ -13204,7 +13204,7 @@ func (m *ServiceResourceRelationshipMutation) DependencyID() (r oid.ID, exists b
 // OldDependencyID returns the old "dependency_id" field's value of the ServiceResourceRelationship entity.
 // If the ServiceResourceRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceResourceRelationshipMutation) OldDependencyID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceResourceRelationshipMutation) OldDependencyID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDependencyID is only allowed on UpdateOne operations")
 	}
@@ -13272,7 +13272,7 @@ func (m *ServiceResourceRelationshipMutation) ServiceResourceCleared() bool {
 // ServiceResourceIDs returns the "serviceResource" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ServiceResourceID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceRelationshipMutation) ServiceResourceIDs() (ids []oid.ID) {
+func (m *ServiceResourceRelationshipMutation) ServiceResourceIDs() (ids []object.ID) {
 	if id := m.serviceResource; id != nil {
 		ids = append(ids, *id)
 	}
@@ -13298,7 +13298,7 @@ func (m *ServiceResourceRelationshipMutation) DependencyCleared() bool {
 // DependencyIDs returns the "dependency" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // DependencyID instead. It exists only for internal usage by the builders.
-func (m *ServiceResourceRelationshipMutation) DependencyIDs() (ids []oid.ID) {
+func (m *ServiceResourceRelationshipMutation) DependencyIDs() (ids []object.ID) {
 	if id := m.dependency; id != nil {
 		ids = append(ids, *id)
 	}
@@ -13408,14 +13408,14 @@ func (m *ServiceResourceRelationshipMutation) SetField(name string, value ent.Va
 		m.SetCreateTime(v)
 		return nil
 	case serviceresourcerelationship.FieldServiceResourceID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetServiceResourceID(v)
 		return nil
 	case serviceresourcerelationship.FieldDependencyID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -13590,7 +13590,7 @@ type ServiceRevisionMutation struct {
 	config
 	op                              Op
 	typ                             string
-	id                              *oid.ID
+	id                              *object.ID
 	createTime                      *time.Time
 	status                          *string
 	statusMessage                   *string
@@ -13608,11 +13608,11 @@ type ServiceRevisionMutation struct {
 	tags                            *[]string
 	appendtags                      []string
 	clearedFields                   map[string]struct{}
-	project                         *oid.ID
+	project                         *object.ID
 	clearedproject                  bool
-	environment                     *oid.ID
+	environment                     *object.ID
 	clearedenvironment              bool
-	service                         *oid.ID
+	service                         *object.ID
 	clearedservice                  bool
 	done                            bool
 	oldValue                        func(context.Context) (*ServiceRevision, error)
@@ -13639,7 +13639,7 @@ func newServiceRevisionMutation(c config, op Op, opts ...serviceRevisionOption) 
 }
 
 // withServiceRevisionID sets the ID field of the mutation.
-func withServiceRevisionID(id oid.ID) serviceRevisionOption {
+func withServiceRevisionID(id object.ID) serviceRevisionOption {
 	return func(m *ServiceRevisionMutation) {
 		var (
 			err   error
@@ -13691,13 +13691,13 @@ func (m ServiceRevisionMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of ServiceRevision entities.
-func (m *ServiceRevisionMutation) SetID(id oid.ID) {
+func (m *ServiceRevisionMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ServiceRevisionMutation) ID() (id oid.ID, exists bool) {
+func (m *ServiceRevisionMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -13708,12 +13708,12 @@ func (m *ServiceRevisionMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ServiceRevisionMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *ServiceRevisionMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -13760,12 +13760,12 @@ func (m *ServiceRevisionMutation) ResetCreateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *ServiceRevisionMutation) SetProjectID(o oid.ID) {
+func (m *ServiceRevisionMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *ServiceRevisionMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *ServiceRevisionMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -13776,7 +13776,7 @@ func (m *ServiceRevisionMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the ServiceRevision entity.
 // If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRevisionMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -13894,12 +13894,12 @@ func (m *ServiceRevisionMutation) ResetStatusMessage() {
 }
 
 // SetServiceID sets the "serviceID" field.
-func (m *ServiceRevisionMutation) SetServiceID(o oid.ID) {
+func (m *ServiceRevisionMutation) SetServiceID(o object.ID) {
 	m.service = &o
 }
 
 // ServiceID returns the value of the "serviceID" field in the mutation.
-func (m *ServiceRevisionMutation) ServiceID() (r oid.ID, exists bool) {
+func (m *ServiceRevisionMutation) ServiceID() (r object.ID, exists bool) {
 	v := m.service
 	if v == nil {
 		return
@@ -13910,7 +13910,7 @@ func (m *ServiceRevisionMutation) ServiceID() (r oid.ID, exists bool) {
 // OldServiceID returns the old "serviceID" field's value of the ServiceRevision entity.
 // If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldServiceID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRevisionMutation) OldServiceID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldServiceID is only allowed on UpdateOne operations")
 	}
@@ -13930,12 +13930,12 @@ func (m *ServiceRevisionMutation) ResetServiceID() {
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (m *ServiceRevisionMutation) SetEnvironmentID(o oid.ID) {
+func (m *ServiceRevisionMutation) SetEnvironmentID(o object.ID) {
 	m.environment = &o
 }
 
 // EnvironmentID returns the value of the "environmentID" field in the mutation.
-func (m *ServiceRevisionMutation) EnvironmentID() (r oid.ID, exists bool) {
+func (m *ServiceRevisionMutation) EnvironmentID() (r object.ID, exists bool) {
 	v := m.environment
 	if v == nil {
 		return
@@ -13946,7 +13946,7 @@ func (m *ServiceRevisionMutation) EnvironmentID() (r oid.ID, exists bool) {
 // OldEnvironmentID returns the old "environmentID" field's value of the ServiceRevision entity.
 // If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldEnvironmentID(ctx context.Context) (v oid.ID, err error) {
+func (m *ServiceRevisionMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
 	}
@@ -14401,7 +14401,7 @@ func (m *ServiceRevisionMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *ServiceRevisionMutation) ProjectIDs() (ids []oid.ID) {
+func (m *ServiceRevisionMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -14427,7 +14427,7 @@ func (m *ServiceRevisionMutation) EnvironmentCleared() bool {
 // EnvironmentIDs returns the "environment" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *ServiceRevisionMutation) EnvironmentIDs() (ids []oid.ID) {
+func (m *ServiceRevisionMutation) EnvironmentIDs() (ids []object.ID) {
 	if id := m.environment; id != nil {
 		ids = append(ids, *id)
 	}
@@ -14453,7 +14453,7 @@ func (m *ServiceRevisionMutation) ServiceCleared() bool {
 // ServiceIDs returns the "service" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ServiceID instead. It exists only for internal usage by the builders.
-func (m *ServiceRevisionMutation) ServiceIDs() (ids []oid.ID) {
+func (m *ServiceRevisionMutation) ServiceIDs() (ids []object.ID) {
 	if id := m.service; id != nil {
 		ids = append(ids, *id)
 	}
@@ -14647,7 +14647,7 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 		m.SetCreateTime(v)
 		return nil
 	case servicerevision.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -14668,14 +14668,14 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 		m.SetStatusMessage(v)
 		return nil
 	case servicerevision.FieldServiceID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetServiceID(v)
 		return nil
 	case servicerevision.FieldEnvironmentID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -15003,7 +15003,7 @@ type SettingMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *oid.ID
+	id            *object.ID
 	createTime    *time.Time
 	updateTime    *time.Time
 	name          *string
@@ -15038,7 +15038,7 @@ func newSettingMutation(c config, op Op, opts ...settingOption) *SettingMutation
 }
 
 // withSettingID sets the ID field of the mutation.
-func withSettingID(id oid.ID) settingOption {
+func withSettingID(id object.ID) settingOption {
 	return func(m *SettingMutation) {
 		var (
 			err   error
@@ -15090,13 +15090,13 @@ func (m SettingMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Setting entities.
-func (m *SettingMutation) SetID(id oid.ID) {
+func (m *SettingMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SettingMutation) ID() (id oid.ID, exists bool) {
+func (m *SettingMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -15107,12 +15107,12 @@ func (m *SettingMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SettingMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *SettingMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -15792,7 +15792,7 @@ type SubjectMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *oid.ID
+	id            *object.ID
 	createTime    *time.Time
 	updateTime    *time.Time
 	kind          *string
@@ -15801,11 +15801,11 @@ type SubjectMutation struct {
 	description   *string
 	builtin       *bool
 	clearedFields map[string]struct{}
-	tokens        map[oid.ID]struct{}
-	removedtokens map[oid.ID]struct{}
+	tokens        map[object.ID]struct{}
+	removedtokens map[object.ID]struct{}
 	clearedtokens bool
-	roles         map[oid.ID]struct{}
-	removedroles  map[oid.ID]struct{}
+	roles         map[object.ID]struct{}
+	removedroles  map[object.ID]struct{}
 	clearedroles  bool
 	done          bool
 	oldValue      func(context.Context) (*Subject, error)
@@ -15832,7 +15832,7 @@ func newSubjectMutation(c config, op Op, opts ...subjectOption) *SubjectMutation
 }
 
 // withSubjectID sets the ID field of the mutation.
-func withSubjectID(id oid.ID) subjectOption {
+func withSubjectID(id object.ID) subjectOption {
 	return func(m *SubjectMutation) {
 		var (
 			err   error
@@ -15884,13 +15884,13 @@ func (m SubjectMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Subject entities.
-func (m *SubjectMutation) SetID(id oid.ID) {
+func (m *SubjectMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SubjectMutation) ID() (id oid.ID, exists bool) {
+func (m *SubjectMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -15901,12 +15901,12 @@ func (m *SubjectMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SubjectMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *SubjectMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -16182,9 +16182,9 @@ func (m *SubjectMutation) ResetBuiltin() {
 }
 
 // AddTokenIDs adds the "tokens" edge to the Token entity by ids.
-func (m *SubjectMutation) AddTokenIDs(ids ...oid.ID) {
+func (m *SubjectMutation) AddTokenIDs(ids ...object.ID) {
 	if m.tokens == nil {
-		m.tokens = make(map[oid.ID]struct{})
+		m.tokens = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.tokens[ids[i]] = struct{}{}
@@ -16202,9 +16202,9 @@ func (m *SubjectMutation) TokensCleared() bool {
 }
 
 // RemoveTokenIDs removes the "tokens" edge to the Token entity by IDs.
-func (m *SubjectMutation) RemoveTokenIDs(ids ...oid.ID) {
+func (m *SubjectMutation) RemoveTokenIDs(ids ...object.ID) {
 	if m.removedtokens == nil {
-		m.removedtokens = make(map[oid.ID]struct{})
+		m.removedtokens = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.tokens, ids[i])
@@ -16213,7 +16213,7 @@ func (m *SubjectMutation) RemoveTokenIDs(ids ...oid.ID) {
 }
 
 // RemovedTokens returns the removed IDs of the "tokens" edge to the Token entity.
-func (m *SubjectMutation) RemovedTokensIDs() (ids []oid.ID) {
+func (m *SubjectMutation) RemovedTokensIDs() (ids []object.ID) {
 	for id := range m.removedtokens {
 		ids = append(ids, id)
 	}
@@ -16221,7 +16221,7 @@ func (m *SubjectMutation) RemovedTokensIDs() (ids []oid.ID) {
 }
 
 // TokensIDs returns the "tokens" edge IDs in the mutation.
-func (m *SubjectMutation) TokensIDs() (ids []oid.ID) {
+func (m *SubjectMutation) TokensIDs() (ids []object.ID) {
 	for id := range m.tokens {
 		ids = append(ids, id)
 	}
@@ -16236,9 +16236,9 @@ func (m *SubjectMutation) ResetTokens() {
 }
 
 // AddRoleIDs adds the "roles" edge to the SubjectRoleRelationship entity by ids.
-func (m *SubjectMutation) AddRoleIDs(ids ...oid.ID) {
+func (m *SubjectMutation) AddRoleIDs(ids ...object.ID) {
 	if m.roles == nil {
-		m.roles = make(map[oid.ID]struct{})
+		m.roles = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.roles[ids[i]] = struct{}{}
@@ -16256,9 +16256,9 @@ func (m *SubjectMutation) RolesCleared() bool {
 }
 
 // RemoveRoleIDs removes the "roles" edge to the SubjectRoleRelationship entity by IDs.
-func (m *SubjectMutation) RemoveRoleIDs(ids ...oid.ID) {
+func (m *SubjectMutation) RemoveRoleIDs(ids ...object.ID) {
 	if m.removedroles == nil {
-		m.removedroles = make(map[oid.ID]struct{})
+		m.removedroles = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.roles, ids[i])
@@ -16267,7 +16267,7 @@ func (m *SubjectMutation) RemoveRoleIDs(ids ...oid.ID) {
 }
 
 // RemovedRoles returns the removed IDs of the "roles" edge to the SubjectRoleRelationship entity.
-func (m *SubjectMutation) RemovedRolesIDs() (ids []oid.ID) {
+func (m *SubjectMutation) RemovedRolesIDs() (ids []object.ID) {
 	for id := range m.removedroles {
 		ids = append(ids, id)
 	}
@@ -16275,7 +16275,7 @@ func (m *SubjectMutation) RemovedRolesIDs() (ids []oid.ID) {
 }
 
 // RolesIDs returns the "roles" edge IDs in the mutation.
-func (m *SubjectMutation) RolesIDs() (ids []oid.ID) {
+func (m *SubjectMutation) RolesIDs() (ids []object.ID) {
 	for id := range m.roles {
 		ids = append(ids, id)
 	}
@@ -16646,12 +16646,12 @@ type SubjectRoleRelationshipMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *oid.ID
+	id             *object.ID
 	createTime     *time.Time
 	clearedFields  map[string]struct{}
-	project        *oid.ID
+	project        *object.ID
 	clearedproject bool
-	subject        *oid.ID
+	subject        *object.ID
 	clearedsubject bool
 	role           *string
 	clearedrole    bool
@@ -16680,7 +16680,7 @@ func newSubjectRoleRelationshipMutation(c config, op Op, opts ...subjectRoleRela
 }
 
 // withSubjectRoleRelationshipID sets the ID field of the mutation.
-func withSubjectRoleRelationshipID(id oid.ID) subjectRoleRelationshipOption {
+func withSubjectRoleRelationshipID(id object.ID) subjectRoleRelationshipOption {
 	return func(m *SubjectRoleRelationshipMutation) {
 		var (
 			err   error
@@ -16732,13 +16732,13 @@ func (m SubjectRoleRelationshipMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of SubjectRoleRelationship entities.
-func (m *SubjectRoleRelationshipMutation) SetID(id oid.ID) {
+func (m *SubjectRoleRelationshipMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SubjectRoleRelationshipMutation) ID() (id oid.ID, exists bool) {
+func (m *SubjectRoleRelationshipMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -16749,12 +16749,12 @@ func (m *SubjectRoleRelationshipMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SubjectRoleRelationshipMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *SubjectRoleRelationshipMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -16801,12 +16801,12 @@ func (m *SubjectRoleRelationshipMutation) ResetCreateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *SubjectRoleRelationshipMutation) SetProjectID(o oid.ID) {
+func (m *SubjectRoleRelationshipMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *SubjectRoleRelationshipMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *SubjectRoleRelationshipMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -16817,7 +16817,7 @@ func (m *SubjectRoleRelationshipMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the SubjectRoleRelationship entity.
 // If the SubjectRoleRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SubjectRoleRelationshipMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *SubjectRoleRelationshipMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -16850,12 +16850,12 @@ func (m *SubjectRoleRelationshipMutation) ResetProjectID() {
 }
 
 // SetSubjectID sets the "subject_id" field.
-func (m *SubjectRoleRelationshipMutation) SetSubjectID(o oid.ID) {
+func (m *SubjectRoleRelationshipMutation) SetSubjectID(o object.ID) {
 	m.subject = &o
 }
 
 // SubjectID returns the value of the "subject_id" field in the mutation.
-func (m *SubjectRoleRelationshipMutation) SubjectID() (r oid.ID, exists bool) {
+func (m *SubjectRoleRelationshipMutation) SubjectID() (r object.ID, exists bool) {
 	v := m.subject
 	if v == nil {
 		return
@@ -16866,7 +16866,7 @@ func (m *SubjectRoleRelationshipMutation) SubjectID() (r oid.ID, exists bool) {
 // OldSubjectID returns the old "subject_id" field's value of the SubjectRoleRelationship entity.
 // If the SubjectRoleRelationship object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SubjectRoleRelationshipMutation) OldSubjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *SubjectRoleRelationshipMutation) OldSubjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSubjectID is only allowed on UpdateOne operations")
 	}
@@ -16934,7 +16934,7 @@ func (m *SubjectRoleRelationshipMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *SubjectRoleRelationshipMutation) ProjectIDs() (ids []oid.ID) {
+func (m *SubjectRoleRelationshipMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -16960,7 +16960,7 @@ func (m *SubjectRoleRelationshipMutation) SubjectCleared() bool {
 // SubjectIDs returns the "subject" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SubjectID instead. It exists only for internal usage by the builders.
-func (m *SubjectRoleRelationshipMutation) SubjectIDs() (ids []oid.ID) {
+func (m *SubjectRoleRelationshipMutation) SubjectIDs() (ids []object.ID) {
 	if id := m.subject; id != nil {
 		ids = append(ids, *id)
 	}
@@ -17096,14 +17096,14 @@ func (m *SubjectRoleRelationshipMutation) SetField(name string, value ent.Value)
 		m.SetCreateTime(v)
 		return nil
 	case subjectrolerelationship.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProjectID(v)
 		return nil
 	case subjectrolerelationship.FieldSubjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -17315,8 +17315,8 @@ type TemplateMutation struct {
 	labels          *map[string]string
 	source          *string
 	clearedFields   map[string]struct{}
-	versions        map[oid.ID]struct{}
-	removedversions map[oid.ID]struct{}
+	versions        map[object.ID]struct{}
+	removedversions map[object.ID]struct{}
 	clearedversions bool
 	done            bool
 	oldValue        func(context.Context) (*Template, error)
@@ -17768,9 +17768,9 @@ func (m *TemplateMutation) ResetSource() {
 }
 
 // AddVersionIDs adds the "versions" edge to the TemplateVersion entity by ids.
-func (m *TemplateMutation) AddVersionIDs(ids ...oid.ID) {
+func (m *TemplateMutation) AddVersionIDs(ids ...object.ID) {
 	if m.versions == nil {
-		m.versions = make(map[oid.ID]struct{})
+		m.versions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		m.versions[ids[i]] = struct{}{}
@@ -17788,9 +17788,9 @@ func (m *TemplateMutation) VersionsCleared() bool {
 }
 
 // RemoveVersionIDs removes the "versions" edge to the TemplateVersion entity by IDs.
-func (m *TemplateMutation) RemoveVersionIDs(ids ...oid.ID) {
+func (m *TemplateMutation) RemoveVersionIDs(ids ...object.ID) {
 	if m.removedversions == nil {
-		m.removedversions = make(map[oid.ID]struct{})
+		m.removedversions = make(map[object.ID]struct{})
 	}
 	for i := range ids {
 		delete(m.versions, ids[i])
@@ -17799,7 +17799,7 @@ func (m *TemplateMutation) RemoveVersionIDs(ids ...oid.ID) {
 }
 
 // RemovedVersions returns the removed IDs of the "versions" edge to the TemplateVersion entity.
-func (m *TemplateMutation) RemovedVersionsIDs() (ids []oid.ID) {
+func (m *TemplateMutation) RemovedVersionsIDs() (ids []object.ID) {
 	for id := range m.removedversions {
 		ids = append(ids, id)
 	}
@@ -17807,7 +17807,7 @@ func (m *TemplateMutation) RemovedVersionsIDs() (ids []oid.ID) {
 }
 
 // VersionsIDs returns the "versions" edge IDs in the mutation.
-func (m *TemplateMutation) VersionsIDs() (ids []oid.ID) {
+func (m *TemplateMutation) VersionsIDs() (ids []object.ID) {
 	for id := range m.versions {
 		ids = append(ids, id)
 	}
@@ -18187,7 +18187,7 @@ type TemplateVersionMutation struct {
 	config
 	op              Op
 	typ             string
-	id              *oid.ID
+	id              *object.ID
 	createTime      *time.Time
 	updateTime      *time.Time
 	version         *string
@@ -18221,7 +18221,7 @@ func newTemplateVersionMutation(c config, op Op, opts ...templateVersionOption) 
 }
 
 // withTemplateVersionID sets the ID field of the mutation.
-func withTemplateVersionID(id oid.ID) templateVersionOption {
+func withTemplateVersionID(id object.ID) templateVersionOption {
 	return func(m *TemplateVersionMutation) {
 		var (
 			err   error
@@ -18273,13 +18273,13 @@ func (m TemplateVersionMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of TemplateVersion entities.
-func (m *TemplateVersionMutation) SetID(id oid.ID) {
+func (m *TemplateVersionMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TemplateVersionMutation) ID() (id oid.ID, exists bool) {
+func (m *TemplateVersionMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -18290,12 +18290,12 @@ func (m *TemplateVersionMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TemplateVersionMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *TemplateVersionMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -18842,14 +18842,14 @@ type TokenMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *oid.ID
+	id             *object.ID
 	createTime     *time.Time
 	kind           *string
 	name           *string
 	expiration     *time.Time
 	value          *crypto.String
 	clearedFields  map[string]struct{}
-	subject        *oid.ID
+	subject        *object.ID
 	clearedsubject bool
 	done           bool
 	oldValue       func(context.Context) (*Token, error)
@@ -18876,7 +18876,7 @@ func newTokenMutation(c config, op Op, opts ...tokenOption) *TokenMutation {
 }
 
 // withTokenID sets the ID field of the mutation.
-func withTokenID(id oid.ID) tokenOption {
+func withTokenID(id object.ID) tokenOption {
 	return func(m *TokenMutation) {
 		var (
 			err   error
@@ -18928,13 +18928,13 @@ func (m TokenMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Token entities.
-func (m *TokenMutation) SetID(id oid.ID) {
+func (m *TokenMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TokenMutation) ID() (id oid.ID, exists bool) {
+func (m *TokenMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -18945,12 +18945,12 @@ func (m *TokenMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TokenMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *TokenMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -18997,12 +18997,12 @@ func (m *TokenMutation) ResetCreateTime() {
 }
 
 // SetSubjectID sets the "subjectID" field.
-func (m *TokenMutation) SetSubjectID(o oid.ID) {
+func (m *TokenMutation) SetSubjectID(o object.ID) {
 	m.subject = &o
 }
 
 // SubjectID returns the value of the "subjectID" field in the mutation.
-func (m *TokenMutation) SubjectID() (r oid.ID, exists bool) {
+func (m *TokenMutation) SubjectID() (r object.ID, exists bool) {
 	v := m.subject
 	if v == nil {
 		return
@@ -19013,7 +19013,7 @@ func (m *TokenMutation) SubjectID() (r oid.ID, exists bool) {
 // OldSubjectID returns the old "subjectID" field's value of the Token entity.
 // If the Token object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TokenMutation) OldSubjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *TokenMutation) OldSubjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSubjectID is only allowed on UpdateOne operations")
 	}
@@ -19202,7 +19202,7 @@ func (m *TokenMutation) SubjectCleared() bool {
 // SubjectIDs returns the "subject" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SubjectID instead. It exists only for internal usage by the builders.
-func (m *TokenMutation) SubjectIDs() (ids []oid.ID) {
+func (m *TokenMutation) SubjectIDs() (ids []object.ID) {
 	if id := m.subject; id != nil {
 		ids = append(ids, *id)
 	}
@@ -19326,7 +19326,7 @@ func (m *TokenMutation) SetField(name string, value ent.Value) error {
 		m.SetCreateTime(v)
 		return nil
 	case token.FieldSubjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -19519,7 +19519,7 @@ type VariableMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *oid.ID
+	id                 *object.ID
 	createTime         *time.Time
 	updateTime         *time.Time
 	name               *string
@@ -19527,9 +19527,9 @@ type VariableMutation struct {
 	sensitive          *bool
 	description        *string
 	clearedFields      map[string]struct{}
-	project            *oid.ID
+	project            *object.ID
 	clearedproject     bool
-	environment        *oid.ID
+	environment        *object.ID
 	clearedenvironment bool
 	done               bool
 	oldValue           func(context.Context) (*Variable, error)
@@ -19556,7 +19556,7 @@ func newVariableMutation(c config, op Op, opts ...variableOption) *VariableMutat
 }
 
 // withVariableID sets the ID field of the mutation.
-func withVariableID(id oid.ID) variableOption {
+func withVariableID(id object.ID) variableOption {
 	return func(m *VariableMutation) {
 		var (
 			err   error
@@ -19608,13 +19608,13 @@ func (m VariableMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Variable entities.
-func (m *VariableMutation) SetID(id oid.ID) {
+func (m *VariableMutation) SetID(id object.ID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *VariableMutation) ID() (id oid.ID, exists bool) {
+func (m *VariableMutation) ID() (id object.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -19625,12 +19625,12 @@ func (m *VariableMutation) ID() (id oid.ID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *VariableMutation) IDs(ctx context.Context) ([]oid.ID, error) {
+func (m *VariableMutation) IDs(ctx context.Context) ([]object.ID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []oid.ID{id}, nil
+			return []object.ID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -19713,12 +19713,12 @@ func (m *VariableMutation) ResetUpdateTime() {
 }
 
 // SetProjectID sets the "projectID" field.
-func (m *VariableMutation) SetProjectID(o oid.ID) {
+func (m *VariableMutation) SetProjectID(o object.ID) {
 	m.project = &o
 }
 
 // ProjectID returns the value of the "projectID" field in the mutation.
-func (m *VariableMutation) ProjectID() (r oid.ID, exists bool) {
+func (m *VariableMutation) ProjectID() (r object.ID, exists bool) {
 	v := m.project
 	if v == nil {
 		return
@@ -19729,7 +19729,7 @@ func (m *VariableMutation) ProjectID() (r oid.ID, exists bool) {
 // OldProjectID returns the old "projectID" field's value of the Variable entity.
 // If the Variable object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VariableMutation) OldProjectID(ctx context.Context) (v oid.ID, err error) {
+func (m *VariableMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
 	}
@@ -19919,12 +19919,12 @@ func (m *VariableMutation) ResetDescription() {
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (m *VariableMutation) SetEnvironmentID(o oid.ID) {
+func (m *VariableMutation) SetEnvironmentID(o object.ID) {
 	m.environment = &o
 }
 
 // EnvironmentID returns the value of the "environmentID" field in the mutation.
-func (m *VariableMutation) EnvironmentID() (r oid.ID, exists bool) {
+func (m *VariableMutation) EnvironmentID() (r object.ID, exists bool) {
 	v := m.environment
 	if v == nil {
 		return
@@ -19935,7 +19935,7 @@ func (m *VariableMutation) EnvironmentID() (r oid.ID, exists bool) {
 // OldEnvironmentID returns the old "environmentID" field's value of the Variable entity.
 // If the Variable object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VariableMutation) OldEnvironmentID(ctx context.Context) (v oid.ID, err error) {
+func (m *VariableMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
 	}
@@ -19980,7 +19980,7 @@ func (m *VariableMutation) ProjectCleared() bool {
 // ProjectIDs returns the "project" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProjectID instead. It exists only for internal usage by the builders.
-func (m *VariableMutation) ProjectIDs() (ids []oid.ID) {
+func (m *VariableMutation) ProjectIDs() (ids []object.ID) {
 	if id := m.project; id != nil {
 		ids = append(ids, *id)
 	}
@@ -20006,7 +20006,7 @@ func (m *VariableMutation) EnvironmentCleared() bool {
 // EnvironmentIDs returns the "environment" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EnvironmentID instead. It exists only for internal usage by the builders.
-func (m *VariableMutation) EnvironmentIDs() (ids []oid.ID) {
+func (m *VariableMutation) EnvironmentIDs() (ids []object.ID) {
 	if id := m.environment; id != nil {
 		ids = append(ids, *id)
 	}
@@ -20151,7 +20151,7 @@ func (m *VariableMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case variable.FieldProjectID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -20186,7 +20186,7 @@ func (m *VariableMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case variable.FieldEnvironmentID:
-		v, ok := value.(oid.ID)
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

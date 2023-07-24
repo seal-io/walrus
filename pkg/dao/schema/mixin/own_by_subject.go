@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func OwnBySubject() ownBySubject {
@@ -21,7 +21,7 @@ type ownBySubject struct {
 
 func (i ownBySubject) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("subjectID").
+		object.Field("subjectID").
 			Comment("ID of the subject to belong.").
 			NotEmpty().
 			Immutable(),
@@ -30,8 +30,8 @@ func (i ownBySubject) Fields() []ent.Field {
 
 func (i ownBySubject) Hooks() []ent.Hook {
 	type target interface {
-		SetSubjectID(oid.ID)
-		SubjectID() (oid.ID, bool)
+		SetSubjectID(object.ID)
+		SubjectID() (object.ID, bool)
 		WhereP(...func(*sql.Selector))
 	}
 
