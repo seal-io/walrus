@@ -42,7 +42,7 @@ func (SubjectRoleRelationship) Indexes() []ent.Index {
 
 func (SubjectRoleRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("subject_id").
+		object.IDField("subject_id").
 			Comment("ID of the subject to which the relationship connects.").
 			StructTag(`json:"subjectID" sql:"subjectID"`).
 			NotEmpty().

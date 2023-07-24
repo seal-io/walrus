@@ -18,7 +18,7 @@ type id struct {
 
 func (i id) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("id").
+		object.IDField("id").
 			Immutable().
 			Annotations(
 				io.DisableInputWhenCreating()),
@@ -27,6 +27,6 @@ func (i id) Fields() []ent.Field {
 
 func (id) Hooks() []ent.Hook {
 	return []ent.Hook{
-		object.Hook(),
+		object.IDHook(),
 	}
 }

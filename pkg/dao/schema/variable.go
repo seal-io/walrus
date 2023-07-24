@@ -56,7 +56,7 @@ func (Variable) Fields() []ent.Field {
 		field.String("description").
 			Comment("Description of the variable.").
 			Optional(),
-		object.Field("environmentID").
+		object.IDField("environmentID").
 			Comment("ID of the environment to which the variable belongs to.").
 			Optional().
 			Immutable(),

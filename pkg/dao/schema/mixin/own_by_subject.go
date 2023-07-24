@@ -21,7 +21,7 @@ type ownBySubject struct {
 
 func (i ownBySubject) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("subjectID").
+		object.IDField("subjectID").
 			Comment("ID of the subject to belong.").
 			NotEmpty().
 			Immutable(),

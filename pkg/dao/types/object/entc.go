@@ -15,8 +15,8 @@ import (
 // Config holds the config of the object.ID generation.
 var Config = vars.SetOnce[sonyflake.Settings]{}
 
-// Field returns a new ent.Field with type object.ID.
-func Field(name string) *fieldBuilder {
+// IDField returns a new ent.Field with type object.ID.
+func IDField(name string) *fieldBuilder {
 	return &fieldBuilder{
 		desc: field.String(name).
 			GoType(ID("")).
@@ -29,8 +29,8 @@ func Field(name string) *fieldBuilder {
 	}
 }
 
-// Hook returns a new ent.Hook for generating the object.ID.
-func Hook() ent.Hook {
+// IDHook returns a new ent.Hook for generating the object.ID.
+func IDHook() ent.Hook {
 	type setter interface {
 		SetID(ID)
 	}
@@ -52,7 +52,7 @@ func Hook() ent.Hook {
 				return "", fmt.Errorf("error generating id: %w", err)
 			}
 
-			is.SetID(New(id))
+			is.SetID(NewID(id))
 
 			return n.Mutate(ctx, m)
 		})

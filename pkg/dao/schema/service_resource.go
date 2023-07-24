@@ -26,19 +26,19 @@ func (ServiceResource) Mixin() []ent.Mixin {
 
 func (ServiceResource) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("serviceID").
+		object.IDField("serviceID").
 			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
-		object.Field("connectorID").
+		object.IDField("connectorID").
 			Comment("ID of the connector to which the resource deploys.").
 			NotEmpty().
 			Immutable(),
-		object.Field("compositionID").
+		object.IDField("compositionID").
 			Comment("ID of the parent resource.").
 			Optional().
 			Immutable(),
-		object.Field("classID").
+		object.IDField("classID").
 			Comment("ID of the parent class of the resource realization.").
 			Optional().
 			Immutable(),

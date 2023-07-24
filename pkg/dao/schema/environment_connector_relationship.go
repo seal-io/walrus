@@ -30,12 +30,12 @@ func (EnvironmentConnectorRelationship) Annotations() []ents.Annotation {
 
 func (EnvironmentConnectorRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		object.Field("environment_id").
+		object.IDField("environment_id").
 			Comment("ID of the environment to which the relationship connects.").
 			StructTag(`json:"environmentID" sql:"environmentID"`).
 			NotEmpty().
 			Immutable(),
-		object.Field("connector_id").
+		object.IDField("connector_id").
 			Comment("ID of the connector to which the relationship connects.").
 			StructTag(`json:"connectorID" sql:"connectorID"`).
 			NotEmpty().

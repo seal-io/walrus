@@ -33,7 +33,7 @@ func (ClusterCost) Fields() []ent.Field {
 		field.Float("minutes").
 			Comment("Usage minutes from start time to end time.").
 			Immutable(),
-		object.Field("connectorID").
+		object.IDField("connectorID").
 			Comment("ID of the connector.").
 			NotEmpty().
 			Immutable(),

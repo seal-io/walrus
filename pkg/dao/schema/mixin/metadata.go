@@ -46,7 +46,7 @@ func (i metadata) WithoutUpdateTime() metadata {
 
 func (i metadata) Fields() []ent.Field {
 	fs := []ent.Field{
-		object.Field("id").
+		object.IDField("id").
 			Immutable().
 			Annotations(
 				io.DisableInputWhenCreating()),
@@ -104,6 +104,6 @@ func (i metadata) Fields() []ent.Field {
 
 func (metadata) Hooks() []ent.Hook {
 	return []ent.Hook{
-		object.Hook(),
+		object.IDHook(),
 	}
 }
