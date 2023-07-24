@@ -4,23 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"entgo.io/ent/entc"
-	"entgo.io/ent/entc/gen"
-	"golang.org/x/tools/imports"
-
-	"github.com/seal-io/seal/pkg/dao/schema/io"
-	"github.com/seal-io/seal/utils/files"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/strs"
 )
-
-func init() {
-	configStyle()
-	configTemplateFuncs()
-	configTemplate()
-}
 
 func main() {
 	err := generate()
@@ -30,109 +17,30 @@ func main() {
 }
 
 // generate produces DAO APIs in a safer and cleaner way.
-func generate() (err error) {
+func generate() error {
 	// Prepare.
-	workingDir, err := os.Getwd()
+	pwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("error getting working directory: %w", err)
 	}
-	targetDir := filepath.Join(workingDir, "/pkg/dao/model")
-	schemaDir := filepath.Join(workingDir, "/pkg/dao/schema")
-	templateDir := filepath.Join(workingDir, "/pkg/dao/template")
-	generatingDir := files.TempDir("seal-dao-generated-*")
 
-	defer func() {
-		_ = os.RemoveAll(generatingDir)
-	}()
-	newGeneratedDir := filepath.Join(generatingDir, "/new")
-	oldGeneratedDir := filepath.Join(generatingDir, "/old")
-
-	header, err := os.ReadFile(filepath.Join(workingDir, "/hack/boilerplate/go.txt"))
+	header, err := os.ReadFile(filepath.Join(pwd, "/hack/boilerplate/go.txt"))
 	if err != nil {
 		return err
 	}
 
 	// Generate.
-	feats := []gen.Feature{
-		gen.FeatureSnapshot,
-		gen.FeatureSchemaConfig,
-		gen.FeatureLock,
-		gen.FeatureModifier,
-		gen.FeatureExecQuery,
-		gen.FeatureUpsert,
-		gen.FeatureVersionedMigration,
-	}
-	cfg := gen.Config{
-		Features: feats,
-		Header:   string(header),
-		Target:   newGeneratedDir,
-		Schema:   "github.com/seal-io/seal/pkg/dao/schema",
-		Package:  "github.com/seal-io/seal/pkg/dao/model",
+	cfg := entx.Config{
+		ProjectDir: pwd,
+		Project:    "github.com/seal-io/seal",
+		Package:    "github.com/seal-io/seal/pkg/dao",
+		Header:     string(header),
 	}
 
-	err = entc.Generate(schemaDir, &cfg, entc.TemplateDir(templateDir))
+	err = entx.Generate(cfg)
 	if err != nil {
-		return err
-	}
-
-	// Save new generated.
-	err = os.Rename(targetDir, oldGeneratedDir)
-	if err != nil {
-		if !strings.Contains(err.Error(), "no such file or directory") {
-			return fmt.Errorf("error cleaning stale generated files: %w", err)
-		}
-	}
-
-	defer func() {
-		if err != nil {
-			_ = os.Rename(oldGeneratedDir, targetDir)
-		}
-	}()
-
-	err = os.Rename(newGeneratedDir, targetDir)
-	if err != nil {
-		return fmt.Errorf("error move new generated files to %s: %w", targetDir, err)
+		log.Fatalf("error generating: %v", err)
 	}
 
 	return nil
-}
-
-// configStyle configures the style of generation.
-func configStyle() {
-	// Goimports prefix.
-	imports.LocalPrefix = "github.com/seal-io/seal"
-}
-
-// configTemplateFuncs configures the functions of template generation.
-func configTemplateFuncs() {
-	// Override.
-	gen.Funcs["camel"] = strs.CamelizeDownFirst
-	gen.Funcs["snake"] = strs.Underscore
-	gen.Funcs["pascal"] = strs.Camelize
-	// Extend.
-	gen.Funcs["getInputFields"] = getInputFields
-	gen.Funcs["getInputEdges"] = getInputEdges
-	gen.Funcs["getOutputFields"] = getOutputFields
-	gen.Funcs["getOutputEdges"] = getOutputEdges
-	gen.Funcs["hasAnnotation"] = io.HasAnnotation
-	gen.Funcs["inlineType"] = inlineType
-}
-
-// configTemplate configures the template of generation.
-func configTemplate() {
-	pkgf := func(s string) func(t *gen.Type) string {
-		return func(t *gen.Type) string { return fmt.Sprintf(s, t.PackageDir()) }
-	}
-	// Generate io file for per model.
-	gen.Templates = append(gen.Templates, gen.TypeTemplate{
-		Name:   "io",
-		Format: pkgf("%s_io.go"),
-		ExtendPatterns: []string{
-			// Combine the go templates that matches the following patterns together,
-			// render and output to the file path formatted by `pkgf`.
-			"io",
-			"io/additional/*",
-			"io/fields/additional/*",
-		},
-	})
 }

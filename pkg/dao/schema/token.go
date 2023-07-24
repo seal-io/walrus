@@ -2,10 +2,11 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -43,20 +44,32 @@ func (Token) Fields() []ent.Field {
 			NotEmpty().
 			Immutable().
 			Sensitive(),
+		field.String("access_token").
+			Comment("AccessToken is the token used for authentication.").
+			Optional().
+			Annotations(
+				entx.SkipInput(),
+				entx.SkipStoringField()),
 	}
 }
 
 func (Token) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Subject 1-* tokens.
+		// Subject 1-* Tokens.
 		edge.From("subject", Subject.Type).
 			Ref("tokens").
-			Field("subjectID").
+			Field("subject_id").
 			Comment("Subject to which the token belongs.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
+	}
+}
+
+func (Token) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entx.SkipClearingOptionalField(),
 	}
 }

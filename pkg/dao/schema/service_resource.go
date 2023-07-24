@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -26,19 +26,19 @@ func (ServiceResource) Mixin() []ent.Mixin {
 
 func (ServiceResource) Fields() []ent.Field {
 	return []ent.Field{
-		object.IDField("serviceID").
+		object.IDField("service_id").
 			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
 			Immutable(),
-		object.IDField("connectorID").
+		object.IDField("connector_id").
 			Comment("ID of the connector to which the resource deploys.").
 			NotEmpty().
 			Immutable(),
-		object.IDField("compositionID").
+		object.IDField("composition_id").
 			Comment("ID of the parent resource.").
 			Optional().
 			Immutable(),
-		object.IDField("classID").
+		object.IDField("class_id").
 			Comment("ID of the parent class of the resource realization.").
 			Optional().
 			Immutable(),
@@ -60,7 +60,7 @@ func (ServiceResource) Fields() []ent.Field {
 				"which provides by deployer.").
 			NotEmpty().
 			Immutable(),
-		field.String("deployerType").
+		field.String("deployer_type").
 			Comment("Type of deployer.").
 			NotEmpty().
 			Immutable(),
@@ -71,53 +71,56 @@ func (ServiceResource) Fields() []ent.Field {
 		field.JSON("status", types.ServiceResourceStatus{}).
 			Comment("Status of the resource.").
 			Optional(),
+		field.JSON("keys", &types.ServiceResourceOperationKeys{}).
+			Comment("Keys of the resource.").
+			Optional().
+			Annotations(
+				entx.SkipInput(),
+				entx.SkipStoringField()),
 	}
 }
 
 func (ServiceResource) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Service 1-* service resources.
+		// Service 1-* ServiceResources.
 		edge.From("service", Service.Type).
 			Ref("resources").
-			Field("serviceID").
+			Field("service_id").
 			Comment("Service to which the resource belongs.").
 			Unique().
 			Required().
-			Immutable().
-			Annotations(
-				io.DisableInput()),
-		// Connector 1-* service resources.
+			Immutable(),
+		// Connector 1-* ServiceResources.
 		edge.From("connector", Connector.Type).
 			Ref("resources").
-			Field("connectorID").
+			Field("connector_id").
 			Comment("Connector to which the resource deploys.").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
-				io.DisableInput()),
-		// Service resource(!discovered) 1-* service resources(discovered).
+				entx.SkipInput()),
+		// ServiceResource (!discovered) 1-* ServiceResources (discovered).
 		edge.To("components", ServiceResource.Type).
-			Comment("Sub-resources that make up the resource.").
+			Comment("Components that makes up the service resource.").
 			From("composition").
-			Field("compositionID").
+			Field("composition_id").
 			Unique().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
-		// Service resource(class) 1-* service resources(instance).
+		// ServiceResource (class) 1-* ServiceResources (instance).
 		edge.To("instances", ServiceResource.Type).
-			Comment("Service resource instances to which the resource defines.").
+			Comment("Instances that realizes the service resource.").
 			From("class").
-			Field("classID").
+			Field("class_id").
 			Unique().
 			Immutable().
 			Annotations(
 				entsql.OnDelete(entsql.Cascade)),
-		// Service resource 1-* service resource dependencies.
+		// ServiceResource 1-* ServiceResource (dependency).
 		edge.To("dependencies", ServiceResource.Type).
-			StructTag(`json:"dependencies,omitempty" sql:"dependencies"`).
-			Comment("Dependency service resources that belong to the service resource.").
-			Through("serviceResourceRelationships", ServiceResourceRelationship.Type),
+			Comment("Dependencies that requires for the service resource.").
+			Through("service_resource_relationships", ServiceResourceRelationship.Type),
 	}
 }

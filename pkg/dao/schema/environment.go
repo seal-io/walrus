@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
@@ -23,42 +23,42 @@ func (Environment) Mixin() []ent.Mixin {
 
 func (Environment) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("projectID", "name").
+		index.Fields("project_id", "name").
 			Unique(),
 	}
 }
 
 func (Environment) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* environments.
+		// Project 1-* Environments.
 		edge.From("project", Project.Type).
 			Ref("environments").
-			Field("projectID").
+			Field("project_id").
 			Comment("Project to which the environment belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// Environments *-* connectors.
+		// Environments *-* Connectors.
 		edge.To("connectors", Connector.Type).
 			Comment("Connectors that configure to the environment.").
-			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type),
-		// Environment 1-* services.
+			Through("environment_connector_relationships", EnvironmentConnectorRelationship.Type),
+		// Environment 1-* Services.
 		edge.To("services", Service.Type).
 			Comment("Services that belong to the environment.").
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
-				io.Disable()),
-		// Environment 1-* service revisions.
-		edge.To("serviceRevisions", ServiceRevision.Type).
-			Comment("Services revisions that belong to the environment.").
+				entx.SkipIO()),
+		// Environment 1-* ServiceRevisions.
+		edge.To("service_revisions", ServiceRevision.Type).
+			Comment("ServicesRevisions that belong to the environment.").
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
-				io.Disable()),
-		// Environment 1-* variables.
+				entx.SkipIO()),
+		// Environment 1-* Variables.
 		edge.To("variables", Variable.Type).
 			Comment("Variables that belong to the environment.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
+				entx.SkipIO()),
 	}
 }

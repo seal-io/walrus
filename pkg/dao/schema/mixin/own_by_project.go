@@ -27,7 +27,7 @@ func (i ownByProject) Optional() ownByProject {
 }
 
 func (i ownByProject) Fields() []ent.Field {
-	f := object.IDField("projectID").
+	f := object.IDField("project_id").
 		Immutable()
 
 	if i.optional {

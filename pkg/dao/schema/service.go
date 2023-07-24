@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -28,14 +28,14 @@ func (Service) Mixin() []ent.Mixin {
 
 func (Service) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("projectID", "environmentID", "name").
+		index.Fields("project_id", "environment_id", "name").
 			Unique(),
 	}
 }
 
 func (Service) Fields() []ent.Field {
 	return []ent.Field{
-		object.IDField("environmentID").
+		object.IDField("environment_id").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),
@@ -49,42 +49,39 @@ func (Service) Fields() []ent.Field {
 
 func (Service) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* services.
+		// Project 1-* Services.
 		edge.From("project", Project.Type).
 			Ref("services").
-			Field("projectID").
+			Field("project_id").
 			Comment("Project to which the service belongs.").
 			Unique().
 			Required().
-			Immutable().
-			Annotations(
-				io.DisableInput()),
-		// Environment 1-* services.
+			Immutable(),
+		// Environment 1-* Services.
 		edge.From("environment", Environment.Type).
 			Ref("services").
-			Field("environmentID").
+			Field("environment_id").
 			Comment("Environment to which the service belongs.").
 			Unique().
 			Required().
 			Immutable(),
-		// Service 1-* service revisions.
+		// Service 1-* ServiceRevisions.
 		edge.To("revisions", ServiceRevision.Type).
 			Comment("Revisions that belong to the service.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
-		// Service 1-* service resources.
+				entx.SkipIO()),
+		// Service 1-* ServiceResources.
 		edge.To("resources", ServiceResource.Type).
 			Comment("Resources that belong to the service.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
-		// Service 1-* service dependencies.
+				entx.SkipIO()),
+		// Service 1-* Services (dependency).
 		edge.To("dependencies", Service.Type).
-			StructTag(`json:"dependencies,omitempty" sql:"dependencies"`).
-			Comment("Dependency services that belong to the service.").
-			Through("serviceRelationships", ServiceRelationship.Type).
+			Comment("Dependencies that requires for the service.").
+			Through("service_relationships", ServiceRelationship.Type).
 			Annotations(
-				io.Disable()),
+				entx.SkipIO()),
 	}
 }

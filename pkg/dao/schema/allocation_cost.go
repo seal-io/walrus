@@ -1,14 +1,19 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 // AllocationCost holds the schema definition for the cluster allocated resource hourly cost.
@@ -18,24 +23,23 @@ type AllocationCost struct {
 
 func (AllocationCost) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("startTime", "endTime", "connectorID"),
-		index.Fields("startTime", "endTime", "connectorID", "fingerprint").
+		index.Fields("start_time", "end_time", "connector_id", "fingerprint").
 			Unique(),
 	}
 }
 
 func (AllocationCost) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("startTime").
+		field.Time("start_time").
 			Comment("Usage start time for current cost.").
 			Immutable(),
-		field.Time("endTime").
+		field.Time("end_time").
 			Comment("Usage end time for current cost.").
 			Immutable(),
 		field.Float("minutes").
 			Comment("Usage minutes from start time to end time.").
 			Immutable(),
-		object.IDField("connectorID").
+		object.IDField("connector_id").
 			Comment("ID of the connector.").
 			NotEmpty().
 			Immutable(),
@@ -46,7 +50,7 @@ func (AllocationCost) Fields() []ent.Field {
 			Comment("String generated from resource properties, used to identify this cost.").
 			Immutable(),
 		// For k8s.
-		field.String("clusterName").
+		field.String("cluster_name").
 			Comment("Cluster name for current cost.").
 			Optional().
 			Immutable(),
@@ -62,7 +66,7 @@ func (AllocationCost) Fields() []ent.Field {
 			Comment("Controller name for the cost linked resource.").
 			Optional().
 			Immutable(),
-		field.String("controllerKind").
+		field.String("controller_kind").
 			Comment("Controller kind for the cost linked resource, deployment, statefulSet etc.").
 			Optional().
 			Immutable(),
@@ -90,59 +94,59 @@ func (AllocationCost) Fields() []ent.Field {
 		field.Int("currency").
 			Comment("Cost currency.").
 			Optional(),
-		field.Float("cpuCost").
+		field.Float("cpu_cost").
 			Comment("Cpu cost for current cost.").
 			Default(0).
 			Min(0),
-		field.Float("cpuCoreRequest").
+		field.Float("cpu_core_request").
 			Comment("Cpu core requested.").
 			Default(0).
 			Min(0).
 			Immutable(),
-		field.Float("gpuCost").
+		field.Float("gpu_cost").
 			Comment("GPU cost for current cost.").
 			Default(0).
 			Min(0),
-		field.Float("gpuCount").
+		field.Float("gpu_count").
 			Comment("GPU core count.").
 			Default(0).
 			Min(0).
 			Immutable(),
-		field.Float("ramCost").
+		field.Float("ram_cost").
 			Comment("Ram cost for current cost.").
 			Default(0).
 			Min(0),
-		field.Float("ramByteRequest").
+		field.Float("ram_byte_request").
 			Comment("Ram requested in byte.").
 			Default(0).
 			Min(0).
 			Immutable(),
-		field.Float("pvCost").
+		field.Float("pv_cost").
 			Comment("PV cost for current cost linked.").
 			Default(0).
 			Min(0),
-		field.Float("pvBytes").
+		field.Float("pv_bytes").
 			Comment("PV bytes for current cost linked.").
 			Default(0).
 			Min(0),
-		field.Float("loadBalancerCost").
+		field.Float("load_balancer_cost").
 			Comment("LoadBalancer cost for current cost linked.").
 			Default(0).
 			Min(0),
 		// Usage.
-		field.Float("cpuCoreUsageAverage").
+		field.Float("cpu_core_usage_average").
 			Comment("CPU core average usage.").
 			Default(0).
 			Min(0),
-		field.Float("cpuCoreUsageMax").
+		field.Float("cpu_core_usage_max").
 			Comment("CPU core max usage.").
 			Default(0).
 			Min(0),
-		field.Float("ramByteUsageAverage").
+		field.Float("ram_byte_usage_average").
 			Comment("Ram average usage in byte.").
 			Default(0).
 			Min(0),
-		field.Float("ramByteUsageMax").
+		field.Float("ram_byte_usage_max").
 			Comment("Ram max usage in byte.").
 			Default(0).
 			Min(0),
@@ -151,15 +155,65 @@ func (AllocationCost) Fields() []ent.Field {
 
 func (AllocationCost) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Connector 1-* allocation cost.
+		// Connector 1-* AllocationCosts.
 		edge.From("connector", Connector.Type).
 			Comment("Connector current cost linked.").
-			Ref("allocationCosts").
-			Field("connectorID").
+			Ref("allocation_costs").
+			Field("connector_id").
 			Unique().
 			Required().
 			Immutable().
 			Annotations(
-				io.Disable()),
+				entx.SkipIO()),
+	}
+}
+
+func (AllocationCost) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entx.SkipClearingOptionalField(),
+	}
+}
+
+func (AllocationCost) Hooks() []ent.Hook {
+	// Generate fingerprint by conditions.
+	generateFingerprint := func(n ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate | ent.OpUpdate | ent.OpUpdateOne) {
+				return n.Mutate(ctx, m)
+			}
+
+			var cn, nd, ns, pd, cd string
+
+			if v, ok := m.Field("cluster_name"); ok {
+				cn = v.(string)
+			}
+
+			if v, ok := m.Field("node"); ok {
+				nd = v.(string)
+			}
+
+			if v, ok := m.Field("namespace"); ok {
+				ns = v.(string)
+			}
+
+			if v, ok := m.Field("pod"); ok {
+				pd = v.(string)
+			}
+
+			if v, ok := m.Field("container"); ok {
+				cd = v.(string)
+			}
+
+			err := m.SetField("fingerprint", strs.Join("/", cn, nd, ns, pd, cd))
+			if err != nil {
+				return nil, fmt.Errorf("error generating fingerprint: %w", err)
+			}
+
+			return n.Mutate(ctx, m)
+		})
+	}
+
+	return []ent.Hook{
+		generateFingerprint,
 	}
 }

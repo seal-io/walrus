@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
@@ -46,11 +46,11 @@ func (Template) Fields() []ent.Field {
 
 func (Template) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Template 1-* template versions.
+		// Template 1-* TemplateVersions.
 		edge.To("versions", TemplateVersion.Type).
-			Comment("versions of the template.").
+			Comment("Versions of the template.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
+				entx.SkipIO()),
 	}
 }

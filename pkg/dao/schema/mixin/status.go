@@ -1,12 +1,16 @@
 package mixin
 
 import (
+	"context"
+	"fmt"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	daostatus "github.com/seal-io/seal/pkg/dao/types/status"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 func Status() status {
@@ -22,7 +26,7 @@ func (i status) Fields() []ent.Field {
 		field.JSON("status", daostatus.Status{}).
 			Optional().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
 	}
 }
 
@@ -39,10 +43,34 @@ func (i legacyStatus) Fields() []ent.Field {
 		field.String("status").
 			Optional().
 			Annotations(
-				io.DisableInput()),
-		field.String("statusMessage").
+				entx.SkipInput()),
+		field.String("status_message").
 			Optional().
 			Annotations(
-				io.DisableInput()),
+				entx.SkipInput()),
+	}
+}
+
+func (legacyStatus) Hooks() []ent.Hook {
+	// Normalize special chars in status message.
+	normalizeStatusMessage := func(n ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate | ent.OpUpdate | ent.OpUpdateOne) {
+				return n.Mutate(ctx, m)
+			}
+
+			if v, ok := m.Field("status_message"); ok && v.(string) != "" {
+				err := m.SetField("status_message", strs.NormalizeSpecialChars(v.(string)))
+				if err != nil {
+					return nil, fmt.Errorf("error normalizing status message: %w", err)
+				}
+			}
+
+			return n.Mutate(ctx, m)
+		})
+	}
+
+	return []ent.Hook{
+		normalizeStatusMessage,
 	}
 }

@@ -1,13 +1,16 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
-	"github.com/seal-io/seal/pkg/dao/schema/io"
+	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -30,7 +33,7 @@ func (Connector) Indexes() []ent.Index {
 		// NB(thxCode): since null project connector belongs to the organization(beyond any project),
 		// single unique constraint index cannot cover null column value,
 		// so we leverage conditional indexes to run this case.
-		index.Fields("projectID", "name").
+		index.Fields("project_id", "name").
 			Unique().
 			Annotations(
 				entsql.IndexWhere("project_id IS NOT NULL")),
@@ -46,18 +49,22 @@ func (Connector) Fields() []ent.Field {
 		field.String("type").
 			Comment("Type of the connector.").
 			NotEmpty().
-			Immutable(),
-		field.String("configVersion").
+			Immutable().
+			Annotations(
+				entx.Input(entx.WithUpdate())),
+		field.String("config_version").
 			Comment("Connector config version.").
 			NotEmpty(),
-		crypto.PropertiesField("configData").
+		crypto.PropertiesField("config_data").
 			Comment("Connector config data.").
 			Default(crypto.Properties{}),
-		field.Bool("enableFinOps").
+		field.Bool("enable_fin_ops").
 			Comment("Config whether enable finOps, will install prometheus and opencost while enable."),
-		field.JSON("finOpsCustomPricing", &types.FinOpsCustomPricing{}).
+		field.JSON("fin_ops_custom_pricing", &types.FinOpsCustomPricing{}).
 			Comment("Custom pricing user defined.").
-			Optional(),
+			Optional().
+			Annotations(
+				entx.SkipClearingOptionalField()),
 		field.String("category").
 			Comment("Category of the connector.").
 			NotEmpty(),
@@ -66,37 +73,65 @@ func (Connector) Fields() []ent.Field {
 
 func (Connector) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Project 1-* connectors.
+		// Project 1-* Connectors.
 		edge.From("project", Project.Type).
 			Ref("connectors").
-			Field("projectID").
+			Field("project_id").
 			Comment("Project to which the connector belongs.").
 			Unique().
 			Immutable(),
-		// Environments *-* connectors.
+		// Environments *-* Connectors.
 		edge.From("environments", Environment.Type).
 			Ref("connectors").
 			Comment("Environments to which the connector configures.").
-			Through("environmentConnectorRelationships", EnvironmentConnectorRelationship.Type).
+			Through("environment_connector_relationships", EnvironmentConnectorRelationship.Type).
 			Annotations(
-				io.Disable()),
-		// Connector 1-* service resources.
+				entx.SkipIO()),
+		// Connector 1-* ServiceResources.
 		edge.To("resources", ServiceResource.Type).
-			Comment("Service resources that use the connector.").
+			Comment("ServiceResources that use the connector.").
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
-				io.Disable()),
-		// Connector 1-* cluster costs.
-		edge.To("clusterCosts", ClusterCost.Type).
-			Comment("Cluster costs that linked to the connection").
+				entx.SkipIO()),
+		// Connector 1-* ClusterCosts.
+		edge.To("cluster_costs", ClusterCost.Type).
+			Comment("ClusterCosts that linked to the connection").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
-		// Connector 1-* allocation costs.
-		edge.To("allocationCosts", AllocationCost.Type).
-			Comment("Cluster allocation resource costs that linked to the connection.").
+				entx.SkipIO()),
+		// Connector 1-* AllocationCosts.
+		edge.To("allocation_costs", AllocationCost.Type).
+			Comment("AllocationCosts that linked to the connection.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				io.Disable()),
+				entx.SkipIO()),
+	}
+}
+
+func (Connector) Hooks() []ent.Hook {
+	// Set default pricing for Kubernetes connector.
+	defaultK8sFinOps := func(n ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if !m.Op().Is(ent.OpCreate) {
+				return n.Mutate(ctx, m)
+			}
+
+			if v, ok := m.Field("type"); !ok || v.(string) != types.ConnectorTypeK8s {
+				return n.Mutate(ctx, m)
+			}
+
+			if v, ok := m.Field("fin_ops_custom_pricing"); !ok || v.(*types.FinOpsCustomPricing).IsZero() {
+				err := m.SetField("fin_ops_custom_pricing", types.DefaultFinOpsCustomPricing())
+				if err != nil {
+					return nil, fmt.Errorf("error setting default finOps custom pricing: %w", err)
+				}
+			}
+
+			return n.Mutate(ctx, m)
+		})
+	}
+
+	return []ent.Hook{
+		defaultK8sFinOps,
 	}
 }
