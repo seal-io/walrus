@@ -42,11 +42,11 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 
-		r.Project = model.ProjectQueryInput{
+		r.Project = &model.ProjectQueryInput{
 			ID: r.ProjectID,
 		}
 	case r.ProjectName != "":
@@ -58,7 +58,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 
 		r.ProjectID = projectID
-		r.Project = model.ProjectQueryInput{
+		r.Project = &model.ProjectQueryInput{
 			ID: projectID,
 		}
 	default:
@@ -150,7 +150,7 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -190,7 +190,7 @@ func validateConnectors(ctx context.Context, client model.ClientSet, connectorID
 	}
 
 	for _, id := range connectorIDs {
-		if !id.Valid(0) {
+		if !id.Valid() {
 			return errors.New("invalid connector id: blank")
 		}
 	}
@@ -235,7 +235,7 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -254,7 +254,7 @@ func (r CollectionDeleteRequest) Validate() error {
 	}
 
 	for _, i := range r {
-		if !i.ID.Valid(0) {
+		if !i.ID.Valid() {
 			return errors.New("invalid id: blank")
 		}
 	}
@@ -273,7 +273,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":

@@ -24,24 +24,21 @@ type UpdateRequest struct {
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
-	if !r.ID.Valid(1) {
+	if r.ID == "" {
 		return errors.New("invalid id: blank")
 	}
 
-	var id predicate.Setting
-
-	switch {
-	case r.ID.IsNaive():
-		id = setting.ID(r.ID)
-	default:
-		keys := r.ID.Split()
-		id = setting.Name(keys[0])
+	var p predicate.Setting
+	if r.ID.Valid() {
+		p = setting.ID(r.ID)
+	} else {
+		p = setting.Name(string(r.ID))
 	}
 
 	// Only allow updating publicly editable setting.
 	entity, err := modelClient.Settings().Query().
 		Where(
-			id,
+			p,
 			setting.Private(false),
 			setting.Editable(true)).
 		Select(setting.FieldName).
@@ -61,7 +58,7 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	if !r.ID.Valid(1) {
+	if r.ID == "" {
 		return errors.New("invalid id: blank")
 	}
 
@@ -106,7 +103,7 @@ type CollectionGetRequest struct {
 
 func (r *CollectionGetRequest) Validate() error {
 	for i := range r.IDs {
-		if !r.IDs[i].Valid(1) {
+		if r.IDs[i] == "" {
 			return errors.New("invalid id: blank")
 		}
 	}

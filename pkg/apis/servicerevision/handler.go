@@ -316,12 +316,9 @@ func (h Handler) UpdateTerraformStates(
 	}
 	entity.Output = string(req.RawMessage)
 
-	update, err := dao.ServiceRevisionUpdate(h.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	entity, err = update.Save(ctx)
+	err = h.modelClient.ServiceRevisions().UpdateOne(entity).
+		SetOutput(entity.Output).
+		Exec(ctx)
 	if err != nil {
 		return err
 	}
@@ -338,19 +335,16 @@ func (h Handler) UpdateTerraformStates(
 		entity.Status = status.ServiceRevisionStatusFailed
 		entity.StatusMessage = err.Error()
 
-		revisionUpdate, updateErr := dao.ServiceRevisionUpdate(h.modelClient, entity)
-		if updateErr != nil {
-			logger.Error(updateErr)
-			return
-		}
-
-		updateRevision, updateErr := revisionUpdate.Save(updateCtx)
-		if updateErr != nil {
+		uerr := h.modelClient.ServiceRevisions().UpdateOne(entity).
+			SetStatus(entity.Status).
+			SetStatusMessage(entity.StatusMessage).
+			Exec(updateCtx)
+		if uerr != nil {
 			logger.Errorf("update status failed: %v", err)
 			return
 		}
 
-		if nerr := revisionbus.Notify(ctx, h.modelClient, updateRevision); nerr != nil {
+		if nerr := revisionbus.Notify(ctx, h.modelClient, entity); nerr != nil {
 			logger.Errorf("notify failed: %v", nerr)
 		}
 	}()
@@ -365,9 +359,6 @@ func (h Handler) UpdateTerraformStates(
 // manageResources manages the resources of the given revision,
 // and states/labels the resources within 3 minutes in the background.
 func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevision) error {
-	// TODO(thxCode): generate by entc.
-	key := dao.ServiceResourceGetUniqueKey
-
 	var p tfparser.Parser
 
 	observedRess, dependencies, err := p.ParseServiceRevision(entity)
@@ -393,7 +384,7 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	deleteRessIDs := make([]object.ID, 0, len(recordRess))
 
 	for _, c := range recordRess {
-		k := key(c)
+		k := dao.ServiceResourceGetUniqueKey(c)
 		if observedRessIndex[k] != nil {
 			delete(observedRessIndex, k)
 			continue
@@ -417,24 +408,21 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
 		// Create new resources.
 		if len(createRess) != 0 {
-			creates, err := dao.ServiceResourceCreates(tx, createRess...)
+			createRess, err = tx.ServiceResources().CreateBulk().
+				Set(createRess...).
+				SaveE(ctx, dao.ServiceResourceInstancesEdgeSave)
 			if err != nil {
 				return err
 			}
 
-			createRess = make(model.ServiceResources, len(creates))
-			for i, c := range creates {
-				createRess[i], err = c.Save(ctx)
-				if err != nil {
-					return err
-				}
-			}
+			// TODO(thxCode): move the following codes into DAO.
 
 			err = dao.ServiceResourceRelationshipUpdateWithDependencies(ctx, tx, dependencies, recordRess, createRess)
 			if err != nil {
 				return err
 			}
 		}
+
 		// Delete stale resources.
 		if len(deleteRessIDs) != 0 {
 			_, err = tx.ServiceResources().Delete().
@@ -577,12 +565,11 @@ func (h Handler) SyncServiceStatusAndResourceLabel(
 		status.ServiceStatusReady.True(i, "")
 	}
 
-	update, err := dao.ServiceStatusUpdate(h.modelClient, i)
-	if err != nil {
-		return err
-	}
+	i.Status.SetSummary(status.WalkService(&i.Status))
 
-	return update.Exec(ctx)
+	return h.modelClient.Services().UpdateOne(i).
+		SetStatus(i.Status).
+		Exec(ctx)
 }
 
 func (h Handler) StreamLog(ctx runtime.RequestUnidiStream, req view.StreamLogRequest) error {

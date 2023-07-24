@@ -147,9 +147,9 @@ func (r *stepDistributor) AllocationCosts(
 				sql.Raw(fmt.Sprintf(`%s AS "itemName"`, groupBy)),
 				sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldTotalCost), "totalCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldCpuCost), "cpuCost")(s)),
+				sql.Expr(model.As(model.Sum(allocationcost.FieldCPUCost), "cpuCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldGpuCost), "gpuCost")(s)),
-				sql.Expr(model.As(model.Sum(allocationcost.FieldRamCost), "ramCost")(s)),
+				sql.Expr(model.As(model.Sum(allocationcost.FieldRAMCost), "ramCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldPvCost), "pvCost")(s)),
 				sql.Expr(model.As(model.Sum(allocationcost.FieldLoadBalancerCost), "loadBalancerCost")(s)),
 			).
@@ -302,7 +302,7 @@ func (r *stepDistributor) sharedIdleCost(
 	ps = append(ps, timePs...)
 
 	for _, v := range cond.IdleCostFilters {
-		if v.ConnectorID.IsNaive() {
+		if v.ConnectorID.Valid() {
 			ps = append(ps, sql.EQ("connector_id", v.ConnectorID))
 		}
 	}
@@ -354,7 +354,7 @@ func (r *stepDistributor) sharedManagementCost(
 	}
 
 	for _, v := range cond.ManagementCostFilters {
-		if v.ConnectorID.IsNaive() {
+		if v.ConnectorID.Valid() {
 			ps = append(ps, sql.EQ(clustercost.FieldConnectorID, v.ConnectorID))
 		}
 	}

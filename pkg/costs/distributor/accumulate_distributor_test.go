@@ -9,7 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/enttest"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
@@ -431,22 +430,16 @@ func testData(ctx context.Context, client *model.Client, startTime, endTime time
 		cc = append(cc, testCc("c1", startTime.Add(time.Duration(i)*time.Hour), conn))
 	}
 
-	acs, err := dao.AllocationCostCreates(client, ac...)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.AllocationCosts().CreateBulk(acs...).Exec(ctx)
+	err = client.AllocationCosts().CreateBulk().
+		Set(ac...).
+		Exec(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error batch create allocation costs: %w", err)
 	}
 
-	ccs, err := dao.ClusterCostCreates(client, cc...)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.ClusterCosts().CreateBulk(ccs...).Exec(ctx)
+	err = client.ClusterCosts().CreateBulk().
+		Set(cc...).
+		Exec(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error batch create cluster costs: %w", err)
 	}
@@ -474,19 +467,19 @@ func testAc(name string, startTime time.Time, conn *model.Connector) *model.Allo
 		},
 		TotalCost: 10,
 		Currency:  1,
-		CpuCost:   1,
+		CPUCost:   1,
 		GpuCost:   2,
-		RamCost:   3,
+		RAMCost:   3,
 		PvCost:    4,
 
-		CpuCoreRequest:      100,
+		CPUCoreRequest:      100,
 		GpuCount:            200,
-		RamByteRequest:      300,
+		RAMByteRequest:      300,
 		PvBytes:             400,
-		CpuCoreUsageAverage: 100,
-		CpuCoreUsageMax:     100,
-		RamByteUsageAverage: 300,
-		RamByteUsageMax:     300,
+		CPUCoreUsageAverage: 100,
+		CPUCoreUsageMax:     100,
+		RAMByteUsageAverage: 300,
+		RAMByteUsageMax:     300,
 	}
 }
 

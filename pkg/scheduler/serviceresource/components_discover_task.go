@@ -10,7 +10,6 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -181,6 +180,7 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 				c := observedComps[j]
 				observedCompsIndex[strs.Join("/", c.Type, c.Name)] = c
 			}
+
 			deleteCompIDs := make([]object.ID, 0, len(recordComps))
 
 			for _, c := range recordComps {
@@ -202,14 +202,11 @@ func (in *ComponentsDiscoverTask) buildSyncTask(
 
 			// Create new components.
 			if len(createComps) != 0 {
-				creates, err := dao.ServiceResourceCreates(in.modelClient, createComps...)
-				if !multierr.AppendInto(&berr, err) {
-					for _, c := range creates {
-						_, err := c.Save(ctx)
-						if err != nil {
-							berr = multierr.Append(berr, err)
-						}
-					}
+				err = in.modelClient.ServiceResources().CreateBulk().
+					Set(createComps...).
+					Exec(ctx)
+				if err != nil {
+					berr = multierr.Append(berr, err)
 				}
 			}
 

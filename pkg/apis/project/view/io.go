@@ -34,7 +34,7 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -50,7 +50,7 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -69,7 +69,7 @@ func (r CollectionDeleteRequest) Validate() error {
 	}
 
 	for _, i := range r {
-		if !i.ID.Valid(0) {
+		if !i.ID.Valid() {
 			return errors.New("invalid id: blank")
 		}
 	}

@@ -25,11 +25,11 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -44,11 +44,11 @@ type StreamRequest struct {
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -85,7 +85,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	)
 
 	for _, i := range r {
-		if !i.ID.Valid(0) {
+		if !i.ID.Valid() {
 			return errors.New("invalid ids: blank")
 		}
 
@@ -145,12 +145,12 @@ type CollectionGetRequest struct {
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	switch {
-	case r.ServiceID.Valid(0):
+	case r.ServiceID.Valid():
 		_, err := modelClient.Services().Query().
 			Where(service.ID(r.ServiceID)).
 			OnlyID(ctx)
@@ -159,7 +159,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		}
 	case r.ServiceName != "":
 		switch {
-		case r.EnvironmentID.Valid(0):
+		case r.EnvironmentID.Valid():
 			id, err := modelClient.Services().Query().
 				Where(
 					service.ProjectID(r.ProjectID),
@@ -204,12 +204,12 @@ type CollectionStreamRequest struct {
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	if r.ServiceID != "" {
-		if !r.ServiceID.IsNaive() {
+		if !r.ServiceID.Valid() {
 			return errors.New("invalid service id")
 		}
 
@@ -245,11 +245,11 @@ type StreamLogRequest struct {
 }
 
 func (r *StreamLogRequest) Validate() error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -270,11 +270,11 @@ type DiffLatestRequest struct {
 }
 
 func (r *DiffLatestRequest) Validate() error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -287,11 +287,11 @@ type RevisionDiffPreviousRequest struct {
 }
 
 func (r *RevisionDiffPreviousRequest) Validate() error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 

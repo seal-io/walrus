@@ -2,8 +2,6 @@ package syncer
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/costs/collector"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
@@ -103,17 +100,16 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 			continue
 		}
 
-		if err = in.client.WithTx(ctx, func(tx *model.Tx) error {
-			if err = in.batchCreateClusterCosts(ctx, cc); err != nil {
-				return err
-			}
-			return in.batchCreateAllocationCosts(ctx, ac)
-		}); err != nil {
-			return err
+		if err = in.batchCreateClusterCosts(ctx, cc); err != nil {
+			return fmt.Errorf("error creating cluster costs: %w", err)
 		}
 
-		in.logger.Debugf("create %d clusterCosts, %d allocationResourceCosts for connector:%s, within %s, %s",
-			len(cc), len(ac), conn.Name, stepStart.String(), stepEnd.String(),
+		if err = in.batchCreateAllocationCosts(ctx, ac); err != nil {
+			return fmt.Errorf("error creating allocation costs: %w", err)
+		}
+
+		in.logger.Debugf("create %d cluster costs, %d allocation costs for connector %q, within %s, %s",
+			len(cc), len(ac), conn.ID, stepStart.String(), stepEnd.String(),
 		)
 		stepStart = stepEnd
 	}
@@ -122,12 +118,8 @@ func (in *K8sCostSyncer) syncCost(ctx context.Context, conn *model.Connector, st
 }
 
 func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*model.ClusterCost) error {
-	creates, err := dao.ClusterCostCreates(in.client, costs...)
-	if err != nil {
-		return err
-	}
-
-	err = in.client.ClusterCosts().CreateBulk(creates...).
+	return in.client.ClusterCosts().CreateBulk().
+		Set(costs...).
 		OnConflictColumns(
 			clustercost.FieldStartTime,
 			clustercost.FieldEndTime,
@@ -135,20 +127,11 @@ func (in *K8sCostSyncer) batchCreateClusterCosts(ctx context.Context, costs []*m
 		).
 		DoNothing().
 		Exec(ctx)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("error batch create cluster costs: %w", err)
-	}
-
-	return nil
 }
 
 func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs []*model.AllocationCost) error {
-	creates, err := dao.AllocationCostCreates(in.client, costs...)
-	if err != nil {
-		return err
-	}
-
-	err = in.client.AllocationCosts().CreateBulk(creates...).
+	return in.client.AllocationCosts().CreateBulk().
+		Set(costs...).
 		OnConflictColumns(
 			allocationcost.FieldStartTime,
 			allocationcost.FieldEndTime,
@@ -157,11 +140,6 @@ func (in *K8sCostSyncer) batchCreateAllocationCosts(ctx context.Context, costs [
 		).
 		DoNothing().
 		Exec(ctx)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("error batch create allocation costs: %w", err)
-	}
-
-	return nil
 }
 
 func (in *K8sCostSyncer) timeRange(

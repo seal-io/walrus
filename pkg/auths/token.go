@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -113,12 +112,9 @@ func CreateAccessToken(
 		entity.Expiration = &e
 	}
 
-	creates, err := dao.TokenCreates(mc, entity)
-	if err != nil {
-		return nil, err
-	}
-
-	entity, err = creates[0].Save(ctx)
+	entity, err := mc.Tokens().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}

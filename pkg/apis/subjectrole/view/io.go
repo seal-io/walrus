@@ -18,11 +18,11 @@ type CreateRequest struct {
 }
 
 func (r *CreateRequest) Validate() error {
-	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+	if r.ProjectID != "" && !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.Subject.ID.Valid(0) {
+	if !r.Subject.ID.Valid() {
 		return errors.New("invalid subject id: blank")
 	}
 
@@ -42,11 +42,11 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) Validate() error {
-	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+	if r.ProjectID != "" && !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -63,7 +63,7 @@ func (r CollectionDeleteRequest) Validate() error {
 	}
 
 	for _, i := range r {
-		if !i.ID.Valid(0) {
+		if !i.ID.Valid() {
 			return errors.New("invalid id: blank")
 		}
 	}
@@ -81,7 +81,7 @@ type CollectionGetRequest struct {
 func (r *CollectionGetRequest) Validate() error {
 	// Query global scope subject roles if the given `ProjectID` is empty,
 	// otherwise, query project scope subject roles.
-	if r.ProjectID != "" && !r.ProjectID.Valid(0) {
+	if r.ProjectID != "" && !r.ProjectID.Valid() {
 		return errors.New("invalid project id")
 	}
 

@@ -97,13 +97,11 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) (err error) {
 
 	// Mark status to deleting.
 	status.ServiceStatusDeleted.Reset(entity, "")
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
 
-	update, err := dao.ServiceUpdate(h.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	entity, err = update.Save(ctx)
+	entity, err = h.modelClient.Services().UpdateOne(entity).
+		SetStatus(entity.Status).
+		Save(ctx)
 	if err != nil {
 		return err
 	}
@@ -367,11 +365,14 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 		for _, s := range services {
 			// Mark status to deleting.
 			status.ServiceStatusDeleted.Reset(s, "")
-		}
+			s.Status.SetSummary(status.WalkService(&s.Status))
 
-		updates, err := dao.ServiceUpdates(tx, services...)
-		if err != nil {
-			return err
+			err = tx.Services().UpdateOne(s).
+				SetStatus(s.Status).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		deployerOpts := deptypes.CreateOptions{
@@ -389,12 +390,6 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 			TlsCertified: h.tlsCertified,
 		}
 
-		for _, u := range updates {
-			if err = u.Exec(ctx); err != nil {
-				return err
-			}
-		}
-
 		for _, s := range services {
 			if err = pkgservice.Destroy(ctx, tx, dp, s, destroyOpts); err != nil {
 				return err
@@ -409,21 +404,17 @@ func (h Handler) CollectionDelete(ctx *gin.Context, req view.CollectionDeleteReq
 
 func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (err error) {
 	entity := req.Model()
+
 	// Update service, mark status from deploying.
 	status.ServiceStatusDeployed.Reset(entity, "Upgrading")
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
 
-	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		update, err := dao.ServiceUpdate(tx, entity)
-		if err != nil {
-			return err
-		}
+	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		entity, err = tx.Services().UpdateOne(entity).
+			Set(entity).
+			SaveE(ctx, dao.ServiceDependenciesEdgeSave)
 
-		entity, err = update.Save(ctx)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	})
 	if err != nil {
 		return err
@@ -445,33 +436,26 @@ func (h Handler) RouteUpgrade(ctx *gin.Context, req view.RouteUpgradeRequest) (e
 
 // RouteRollback rolls back a service to a specific revision.
 func (h Handler) RouteRollback(ctx *gin.Context, req view.RouteRollbackRequest) error {
-	service, err := h.modelClient.Services().Get(ctx, req.ID)
+	rev, err := h.modelClient.ServiceRevisions().Query().
+		Where(
+			servicerevision.ID(req.RevisionID),
+			servicerevision.ServiceID(req.ID)).
+		WithService().
+		Only(ctx)
 	if err != nil {
 		return err
 	}
 
-	serviceRevision, err := h.modelClient.ServiceRevisions().Get(ctx, req.RevisionID)
-	if err != nil {
-		return err
-	}
+	entity := rev.Edges.Service
 
-	service.Template.Version = serviceRevision.TemplateVersion
-	service.Attributes = serviceRevision.Attributes
-	status.ServiceStatusDeployed.Reset(service, "Rolling back")
+	entity.Template.Version = rev.TemplateVersion
+	entity.Attributes = rev.Attributes
+	status.ServiceStatusDeployed.Reset(entity, "Rolling back")
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
 
-	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		update, err := dao.ServiceUpdate(tx, service)
-		if err != nil {
-			return err
-		}
-
-		service, err = update.Save(ctx)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	entity, err = h.modelClient.Services().UpdateOne(entity).
+		Set(entity).
+		SaveE(ctx, dao.ServiceDependenciesEdgeSave)
 	if err != nil {
 		return err
 	}
@@ -485,7 +469,7 @@ func (h Handler) RouteRollback(ctx *gin.Context, req view.RouteRollbackRequest) 
 		TlsCertified: h.tlsCertified,
 	}
 
-	return pkgservice.Apply(ctx, h.modelClient, dp, service, applyOpts)
+	return pkgservice.Apply(ctx, h.modelClient, dp, entity, applyOpts)
 }
 
 func (h Handler) RouteAccessEndpoints(

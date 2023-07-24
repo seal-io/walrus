@@ -61,18 +61,17 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (*view.GetResponse, error) {
-	input := []predicate.Setting{
-		setting.Private(false),
-	}
-	if req.ID.IsNaive() {
-		input = append(input, setting.ID(req.ID))
+	var p predicate.Setting
+	if req.ID.Valid() {
+		p = setting.ID(req.ID)
 	} else {
-		keys := req.ID.Split()
-		input = append(input, setting.Name(keys[0]))
+		p = setting.Name(string(req.ID))
 	}
 
 	entity, err := h.modelClient.Settings().Query().
-		Where(input...).
+		Where(
+			p,
+			setting.Private(false)).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -133,11 +132,10 @@ func (h Handler) CollectionGet(
 		var sps []predicate.Setting
 
 		for i := 0; i < len(req.IDs); i++ {
-			if req.IDs[i].IsNaive() {
+			if req.IDs[i].Valid() {
 				sps = append(sps, setting.ID(req.IDs[i]))
 			} else {
-				keys := req.IDs[i].Split()
-				sps = append(sps, setting.Name(keys[0]))
+				sps = append(sps, setting.Name(string(req.IDs[i])))
 			}
 		}
 

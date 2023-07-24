@@ -41,16 +41,15 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		creates, err := dao.EnvironmentCreates(tx, entity)
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		entity, err = tx.Environments().Create().
+			Set(entity).
+			SaveE(ctx, dao.EnvironmentConnectorsEdgeSave)
 		if err != nil {
 			return err
 		}
 
-		entity, err = creates[0].Save(ctx)
-		if err != nil {
-			return err
-		}
+		// TODO(thxCode): move the following codes into DAO.
 
 		serviceInputs := make(model.Services, 0, len(req.Services))
 
@@ -60,7 +59,7 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 			serviceInputs = append(serviceInputs, svc)
 		}
 
-		if err := pkgservice.SetSubjectID(ctx, serviceInputs...); err != nil {
+		if err = pkgservice.SetSubjectID(ctx, serviceInputs...); err != nil {
 			return err
 		}
 
@@ -104,12 +103,10 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
 
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		updates, err := dao.EnvironmentUpdates(tx, entity)
+		err := tx.Environments().UpdateOne(entity).
+			Set(entity).
+			ExecE(ctx, dao.EnvironmentConnectorsEdgeSave)
 		if err != nil {
-			return err
-		}
-
-		if err = updates[0].Exec(ctx); err != nil {
 			return err
 		}
 

@@ -137,6 +137,7 @@ func (d Deployer) Apply(ctx context.Context, service *model.Service, opts deptyp
 		if err == nil {
 			return
 		}
+
 		// Report to service revision.
 		_ = d.updateRevisionStatus(ctx, revision, status.ServiceRevisionStatusFailed, err.Error())
 	}()
@@ -325,14 +326,11 @@ func (d Deployer) updateRevisionStatus(ctx context.Context, ar *model.ServiceRev
 	ar.Status = s
 	ar.StatusMessage = m
 
-	update, err := dao.ServiceRevisionUpdate(d.modelClient, ar)
+	ar, err := d.modelClient.ServiceRevisions().UpdateOne(ar).
+		SetStatus(ar.Status).
+		SetStatusMessage(ar.StatusMessage).
+		Save(ctx)
 	if err != nil {
-		return err
-	}
-
-	ar, err = update.Save(ctx)
-	if err != nil {
-		d.logger.Error(err)
 		return err
 	}
 
@@ -414,9 +412,11 @@ func (d Deployer) CreateServiceRevision(
 		if prevEntity.Status == status.ServiceRevisionStatusRunning {
 			return nil, errors.New("service deployment is running")
 		}
+
 		// Inherit the output of previous revision.
 		entity.Output = prevEntity.Output
 
+		// Get required providers.
 		requiredProviders, err := d.getRequiredProviders(ctx, opts.Service.ID, entity.Output)
 		if err != nil {
 			return nil, err
@@ -436,18 +436,16 @@ func (d Deployer) CreateServiceRevision(
 	}
 
 	// Create revision, mark status to running.
-	creates, err := dao.ServiceRevisionCreates(d.modelClient, entity)
+	entity, err = d.modelClient.ServiceRevisions().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	revision, err := creates[0].Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-	revision.Edges.Service = opts.Service
+	entity.Edges.Service = opts.Service
 
-	return revision, nil
+	return entity, nil
 }
 
 func (d Deployer) getRequiredProviders(
@@ -589,12 +587,9 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		opts.ServiceRevision.Variables = variableMap
 	}
 
-	update, err := dao.ServiceRevisionUpdate(d.modelClient, opts.ServiceRevision)
-	if err != nil {
-		return nil, err
-	}
-
-	revision, err := update.Save(ctx)
+	revision, err := d.modelClient.ServiceRevisions().UpdateOne(opts.ServiceRevision).
+		Set(opts.ServiceRevision).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -889,7 +884,7 @@ func (d Deployer) getServiceDependencyOutputs(
 	serviceID object.ID,
 	dependOutputs []string,
 ) (map[string]parser.OutputState, error) {
-	service, err := d.modelClient.Services().Query().
+	entity, err := d.modelClient.Services().Query().
 		Where(service.ID(serviceID)).
 		WithDependencies(func(sq *model.ServiceRelationshipQuery) {
 			sq.Where(func(s *sql.Selector) {
@@ -901,9 +896,9 @@ func (d Deployer) getServiceDependencyOutputs(
 		return nil, err
 	}
 
-	dependencyServiceIDs := make([]object.ID, 0, len(service.Edges.Dependencies))
+	dependencyServiceIDs := make([]object.ID, 0, len(entity.Edges.Dependencies))
 
-	for _, d := range service.Edges.Dependencies {
+	for _, d := range entity.Edges.Dependencies {
 		if d.Type != types.ServiceRelationshipTypeImplicit {
 			continue
 		}
@@ -966,7 +961,7 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 	)
 
 	// Report to service.
-	service, err := mc.Services().Query().
+	entity, err := mc.Services().Query().
 		Where(service.ID(revision.ServiceID)).
 		Select(
 			service.FieldID,
@@ -977,39 +972,30 @@ func SyncServiceRevisionStatus(ctx context.Context, bm revisionbus.BusMessage) (
 		return err
 	}
 
-	var serviceStatusUpdate *model.ServiceUpdateOne
-
 	switch revision.Status {
 	case status.ServiceRevisionStatusSucceeded:
-		if status.ServiceStatusDeleted.IsUnknown(service) {
-			err = mc.Services().DeleteOne(service).
+		if status.ServiceStatusDeleted.IsUnknown(entity) {
+			return mc.Services().DeleteOne(entity).
 				Exec(ctx)
-		} else {
-			status.ServiceStatusDeployed.True(service, "")
-			status.ServiceStatusReady.Unknown(service, "")
-
-			serviceStatusUpdate, err = dao.ServiceStatusUpdate(mc, service)
-			if err != nil {
-				return err
-			}
-			err = serviceStatusUpdate.Exec(ctx)
 		}
+
+		status.ServiceStatusDeployed.True(entity, "")
+		status.ServiceStatusReady.Unknown(entity, "")
 	case status.ServiceRevisionStatusFailed:
-		if status.ServiceStatusDeleted.IsUnknown(service) {
-			status.ServiceStatusDeleted.False(service, "")
+		if status.ServiceStatusDeleted.IsUnknown(entity) {
+			status.ServiceStatusDeleted.False(entity, "")
 		} else {
-			status.ServiceStatusDeployed.False(service, "")
+			status.ServiceStatusDeployed.False(entity, "")
 		}
-		service.Status.SummaryStatusMessage = revision.StatusMessage
 
-		serviceStatusUpdate, err = dao.ServiceStatusUpdate(mc, service)
-		if err != nil {
-			return err
-		}
-		err = serviceStatusUpdate.Exec(ctx)
+		entity.Status.SummaryStatusMessage = revision.StatusMessage
 	}
 
-	return err
+	entity.Status.SetSummary(status.WalkService(&entity.Status))
+
+	return mc.Services().UpdateOne(entity).
+		SetStatus(entity.Status).
+		Exec(ctx)
 }
 
 // parseAttributeReplace parses attribute variable ${var.name} replaces it with ${var._variablePrefix+name},

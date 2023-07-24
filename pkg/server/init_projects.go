@@ -11,8 +11,10 @@ import (
 )
 
 func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
+	mc := opts.ModelClient
+
 	// Get system admin user.
-	adminID, err := opts.ModelClient.Subjects().Query().
+	adminID, err := mc.Subjects().Query().
 		Where(
 			subject.Kind(types.SubjectKindUser),
 			subject.Domain(types.SubjectDomainBuiltin),
@@ -42,7 +44,7 @@ func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
 	builtin := make([]*model.Project, 0, len(candidate))
 
 	for i := range candidate {
-		_, err = opts.ModelClient.Projects().Query().
+		_, err = mc.Projects().Query().
 			Where(project.Name(candidate[i].Name)).
 			FirstID(ctx)
 		if err == nil {
@@ -60,18 +62,9 @@ func (r *Server) initProjects(ctx context.Context, opts initOptions) error {
 		return nil
 	}
 
-	creates, err := dao.ProjectCreates(opts.ModelClient, builtin...)
-	if err != nil {
-		return err
-	}
-
-	for i := range creates {
-		// Do nothing if the project has been created.
-		err = creates[i].Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return mc.WithTx(ctx, func(tx *model.Tx) error {
+		return tx.Projects().CreateBulk().
+			Set(builtin...).
+			ExecE(ctx, dao.ProjectSubjectRolesEdgeSave)
+	})
 }

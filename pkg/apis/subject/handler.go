@@ -1,8 +1,6 @@
 package subject
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -40,13 +38,10 @@ func (h Handler) Kind() string {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		creates, err := dao.SubjectCreates(tx, entity)
-		if err != nil {
-			return err
-		}
-
-		entity, err = creates[0].Save(ctx)
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		entity, err = tx.Subjects().Create().
+			Set(entity).
+			SaveE(ctx, dao.SubjectRolesEdgeSave)
 		if err != nil {
 			return err
 		}
@@ -130,30 +125,14 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 }
 
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
-	entity, err := h.modelClient.Subjects().Query().
-		Where(subject.ID(req.ID)).
-		Select(
-			subject.FieldID,
-			subject.FieldKind,
-			subject.FieldDomain,
-			subject.FieldName).
-		Only(ctx)
-	if err != nil {
-		return err
-	}
+	entity := req.Model()
 
 	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		updates, err := dao.SubjectUpdates(tx, req.Model())
+		err := tx.Subjects().UpdateOne(entity).
+			Set(entity).
+			ExecE(ctx, dao.SubjectRolesEdgeSave)
 		if err != nil {
 			return err
-		}
-
-		err = updates[0].Exec(ctx)
-		if err != nil {
-			if !errors.Is(err, sql.ErrNoRows) {
-				return err
-			}
-			// Maybe nothing change but password.
 		}
 
 		if entity.Kind != types.SubjectKindUser ||

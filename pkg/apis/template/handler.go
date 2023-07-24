@@ -6,7 +6,6 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/apis/template/view"
 	modbus "github.com/seal-io/seal/pkg/bus/template"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -37,12 +36,9 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	creates, err := dao.TemplateCreates(h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
-
-	entity, err = creates[0].Save(ctx)
+	entity, err := h.modelClient.Templates().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,12 +71,10 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 		entity.StatusMessage = ""
 	}
 
-	update, err := dao.TemplateUpdate(h.modelClient, entity)
+	entity, err = h.modelClient.Templates().UpdateOne(entity).
+		Set(entity).
+		Save(ctx)
 	if err != nil {
-		return err
-	}
-
-	if _, err = update.Save(ctx); err != nil {
 		return err
 	}
 
@@ -230,21 +224,19 @@ func (h Handler) CollectionStream(ctx runtime.RequestUnidiStream, req view.Colle
 // Extensional APIs.
 
 func (h Handler) RouteRefresh(ctx *gin.Context, req view.RefreshRequest) error {
-	t, err := h.modelClient.Templates().Get(ctx, req.ID)
+	entity, err := h.modelClient.Templates().Get(ctx, req.ID)
 	if err != nil {
 		return err
 	}
-	t.Status = status.TemplateStatusInitializing
-	t.StatusMessage = ""
+	entity.Status = status.TemplateStatusInitializing
+	entity.StatusMessage = ""
 
-	update, err := dao.TemplateUpdate(h.modelClient, t)
+	entity, err = h.modelClient.Templates().UpdateOne(entity).
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err = update.Exec(ctx); err != nil {
-		return err
-	}
-
-	return modbus.Notify(ctx, t)
+	return modbus.Notify(ctx, entity)
 }
