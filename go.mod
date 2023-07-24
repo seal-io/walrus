@@ -44,6 +44,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mmmorris1975/ssm-session-client v0.400.1
 	github.com/opencost/opencost v1.100.1
+	github.com/posthog/posthog-go v0.0.0-20221221115252-24dfed35d71a
 	github.com/prometheus/client_golang v1.16.0
 	github.com/sashabaranov/go-openai v1.5.4
 	github.com/seal-io/seal/utils v0.0.0-00010101000000-000000000000
@@ -52,7 +53,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.14.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zclconf/go-cty v1.12.1
 	go.uber.org/multierr v1.11.0
@@ -286,6 +287,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect

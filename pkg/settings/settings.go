@@ -111,6 +111,18 @@ var (
 		editable|sensitive,
 		nil,
 		nil)
+	// InstallationUUID keeps the uuid for installation.
+	InstallationUUID = newValue(
+		"InstallationUUID",
+		private,
+		initializeFrom(strs.Hex(16)),
+		modifyWith(never))
+	// EnableTelemetry keeps the user config for enable telemetry or not.
+	EnableTelemetry = newValue(
+		"EnableTelemetry",
+		editable,
+		initializeFrom("true"),
+		modifyWith(notBlank))
 )
 
 // the built-in settings for server cron jobs.
@@ -170,6 +182,14 @@ var (
 		"ServiceRelationshipCheckCronExpr",
 		editable,
 		initializeFrom("*/30 * * ? * *"),
+		modifyWith(notBlank, cronExpression),
+	)
+	// TelemetryPeriodicReportCronExpr indicates the cron expression of telemetry synchronization event,
+	// default cron expression means sync at 2 o'clock evey day.
+	TelemetryPeriodicReportCronExpr = newValue(
+		"TelemetryPeriodicReportCronExpr",
+		private,
+		initializeFrom("0 0 2 * * *"),
 		modifyWith(notBlank, cronExpression),
 	)
 )
