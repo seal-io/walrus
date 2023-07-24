@@ -13,8 +13,7 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/lib/pq"           // Db = postgres.
-	_ "github.com/mattn/go-sqlite3" // Db = sqlite3.
+	_ "github.com/lib/pq" // Db = postgres.
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -29,8 +28,8 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // Default = ent.
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/database"
 	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/pkg/rds"
 	"github.com/seal-io/seal/utils/clis"
 	"github.com/seal-io/seal/utils/cryptox"
 	"github.com/seal-io/seal/utils/files"
@@ -401,18 +400,18 @@ func (r *Server) Run(c context.Context) error {
 		}
 	}
 
+	r.setKubernetesConfig(k8sCfg)
+
 	// Wait kubernetes to be ready.
 	if err = k8s.Wait(ctx, k8sCfg); err != nil {
 		return fmt.Errorf("error waiting kubernetes cluster ready: %w", err)
 	}
 
-	r.setKubernetesConfig(k8sCfg)
-
 	// Load database driver.
-	rdsDrvDialect, rdsDrv, err := rds.LoadDriver(r.DataSourceAddress)
+	databaseDrvDialect, databaseDrv, err := database.LoadDriver(r.DataSourceAddress)
 	if err != nil {
 		// If not found, launch embedded database.
-		var e rds.Embedded
+		var e database.Embedded
 
 		g.Go(func() error {
 			log.Info("running embedded database")
@@ -425,18 +424,18 @@ func (r *Server) Run(c context.Context) error {
 			return err
 		})
 		// And get embedded database driver.
-		r.DataSourceAddress, rdsDrvDialect, rdsDrv, err = e.GetDriver(ctx)
+		r.DataSourceAddress, databaseDrvDialect, databaseDrv, err = e.GetDriver(ctx)
 		if err != nil {
 			return fmt.Errorf("error getting embedded database driver: %w", err)
 		}
 	}
 
+	r.setDatabaseDriver(databaseDrv)
+
 	// Wait database to be ready.
-	if err = rds.Wait(ctx, rdsDrv); err != nil {
+	if err = database.Wait(ctx, databaseDrv); err != nil {
 		return fmt.Errorf("error waiting database ready: %w", err)
 	}
-
-	r.setDataSourceDriver(rdsDrv)
 
 	// Load cache driver if needed.
 	var cacheDrv cache.Driver
@@ -484,16 +483,15 @@ func (r *Server) Run(c context.Context) error {
 
 	// Initialize some resources.
 	log.Info("initializing")
-	modelClient := getModelClient(rdsDrvDialect, rdsDrv)
+	modelClient := getModelClient(databaseDrvDialect, databaseDrv)
 
 	initOpts := initOptions{
-		K8sConfig:     k8sCfg,
-		K8sCacheReady: make(chan struct{}),
-		ModelClient:   modelClient,
-		SkipTLSVerify: len(r.TlsAutoCertDomains) != 0,
-		RdsDialect:    rdsDrvDialect,
-		RdsDriver:     rdsDrv,
-		CacheDriver:   cacheDrv,
+		K8sConfig:      k8sCfg,
+		K8sCacheReady:  make(chan struct{}),
+		ModelClient:    modelClient,
+		SkipTLSVerify:  len(r.TlsAutoCertDomains) != 0,
+		DatabaseDriver: databaseDrv,
+		CacheDriver:    cacheDrv,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -577,7 +575,8 @@ func (r *Server) setKubernetesConfig(cfg *rest.Config) {
 	cfg.UserAgent = version.GetUserAgent()
 }
 
-func (r *Server) setDataSourceDriver(drv *sql.DB) {
+func (r *Server) setDatabaseDriver(drv *sql.DB) {
+	drv.SetConnMaxIdleTime(-1)
 	drv.SetConnMaxLifetime(r.DataSourceConnMaxLife)
 	drv.SetMaxIdleConns(r.DataSourceConnMaxIdle)
 	drv.SetMaxOpenConns(r.DataSourceConnMaxOpen)

@@ -1,4 +1,4 @@
-package rds
+package database
 
 import (
 	"context"
