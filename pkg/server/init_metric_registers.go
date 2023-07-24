@@ -5,15 +5,15 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/cache"
+	"github.com/seal-io/seal/pkg/database"
 	"github.com/seal-io/seal/pkg/metric"
-	"github.com/seal-io/seal/pkg/rds"
 	"github.com/seal-io/seal/utils/cron"
 	"github.com/seal-io/seal/utils/gopool"
 )
 
 func (r *Server) initMetrics(ctx context.Context, opts initOptions) error {
 	cs := metric.Collectors{
-		rds.NewStatsCollectorWith(opts.RdsDriver),
+		database.NewStatsCollectorWith(opts.DatabaseDriver),
 		gopool.NewStatsCollector(),
 		cron.NewStatsCollector(),
 		runtime.NewStatsCollector(),

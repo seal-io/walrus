@@ -8,9 +8,9 @@ import (
 
 	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/casdoor"
+	"github.com/seal-io/seal/pkg/database"
 	"github.com/seal-io/seal/pkg/health"
 	"github.com/seal-io/seal/pkg/k8s"
-	"github.com/seal-io/seal/pkg/rds"
 	"github.com/seal-io/seal/utils/gopool"
 )
 
@@ -23,7 +23,7 @@ func (r *Server) initHealthCheckers(ctx context.Context, opts initOptions) error
 	cs := health.Checkers{
 		health.CheckerFunc("k8s", getKubernetesHealthChecker(k8sClientSet)),
 		health.CheckerFunc("k8sctrl", getKubernetesControllerHealthChecker(opts.K8sCacheReady)),
-		health.CheckerFunc("db", getDatabaseHealthChecker(opts.RdsDriver)),
+		health.CheckerFunc("database", getDatabaseHealthChecker(opts.DatabaseDriver)),
 		health.CheckerFunc("gopool", getGoPoolHealthChecker()),
 	}
 
@@ -55,9 +55,9 @@ func getKubernetesControllerHealthChecker(done <-chan struct{}) health.Check {
 	}
 }
 
-func getDatabaseHealthChecker(db *sql.DB) health.Check {
+func getDatabaseHealthChecker(databaseDriver *sql.DB) health.Check {
 	return func(ctx context.Context) error {
-		return rds.IsConnected(ctx, db)
+		return database.IsConnected(ctx, databaseDriver)
 	}
 }
 

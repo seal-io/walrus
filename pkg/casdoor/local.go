@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/consts"
-	"github.com/seal-io/seal/pkg/rds"
+	"github.com/seal-io/seal/pkg/database"
 	"github.com/seal-io/seal/utils/bytespool"
 	"github.com/seal-io/seal/utils/files"
 	"github.com/seal-io/seal/utils/log"
@@ -96,7 +96,7 @@ func (Embedded) GetAddress(ctx context.Context) (string, error) {
 }
 
 func writeConfig(dataSourceAddress, dataDir string) (string, error) {
-	dsd, dsn, err := rds.GetDriverAndName(dataSourceAddress)
+	dsd, dsn, err := database.GetDriverAndName(dataSourceAddress)
 	if err != nil {
 		return "", err
 	}

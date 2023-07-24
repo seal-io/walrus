@@ -1,4 +1,4 @@
-package rds
+package database
 
 import (
 	"context"
@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql" // Db = mysql.
-	_ "github.com/lib/pq"              // Db = postgres.
-	_ "github.com/mattn/go-sqlite3"    // Db = sqlite3.
+	_ "github.com/lib/pq" // Db = postgres.
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/seal-io/seal/utils/log"
+)
+
+const (
+	DialectPostgres = "postgres"
 )
 
 func GetDriverAndName(dataSourceAddress string) (dsd, dsn string, err error) {
@@ -21,16 +23,9 @@ func GetDriverAndName(dataSourceAddress string) (dsd, dsn string, err error) {
 		return
 	}
 
-	switch {
-	case strings.HasPrefix(dataSourceAddress, "postgres://"):
-		dsd = "postgres"
+	if strings.HasPrefix(dataSourceAddress, "postgres://") {
+		dsd = DialectPostgres
 		dsn = dataSourceAddress
-	case strings.HasPrefix(dataSourceAddress, "file:"):
-		dsd = "sqlite3"
-		dsn = dataSourceAddress
-	case strings.HasPrefix(dataSourceAddress, "mysql://"):
-		dsd = "mysql"
-		dsn = strings.TrimPrefix(dataSourceAddress, "mysql://")
 	}
 
 	if dsd == "" {
