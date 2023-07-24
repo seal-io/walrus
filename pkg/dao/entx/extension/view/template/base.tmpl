@@ -1,0 +1,26 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "base" }}
+
+{{ template "header" $ }}
+
+{{ template "import" $ }}
+
+type inputConfig struct {
+    context.Context
+	ClientSet
+}
+
+func (ic *inputConfig) SetContext(ctx context.Context) {
+	if ic.Context == nil {
+		ic.Context = ctx
+    }
+}
+
+func (ic *inputConfig) SetClientSet(cs ClientSet) {
+	if ic.ClientSet == nil {
+        ic.ClientSet = cs
+    }
+}
+
+{{ end }}

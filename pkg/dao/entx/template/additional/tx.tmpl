@@ -1,0 +1,72 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "tx/additional/client-getter" }}
+
+{{- range $n := $.Nodes }}
+// {{ plural $n.Name }} implements the ClientSet.
+func (tx *Tx) {{ plural $n.Name }}() *{{ $n.Name }}Client {
+    return tx.{{ $n.Name }}
+}
+{{- end }}
+
+{{ end }}
+
+{{ define "tx/additional/dialect" }}
+
+// Dialect returns the dialect name of the driver.
+func (tx *Tx) Dialect() string {
+    return tx.driver.Dialect()
+}
+
+{{ end }}
+
+{{ define "tx/additional/use" }}
+
+// Use adds the mutation hooks to all the entity clients.
+func (tx *Tx) Use(hooks ...Hook) {
+    {{- range $n := $.Nodes }}
+        tx.{{ $n.Name }}.Use(hooks...)
+    {{- end }}
+}
+
+{{ end }}
+
+{{ define "tx/additional/intercept" }}
+
+// Intercept adds the query interceptors to all the entity clients.
+func (tx *Tx) Intercept(interceptors ...Interceptor) {
+    {{- range $n := $.Nodes }}
+        tx.{{ $n.Name }}.Intercept(interceptors...)
+    {{- end }}
+}
+
+{{ end }}
+
+{{ define "tx/additional/with-debug" }}
+
+// WithDebug enables the debug mode of the client.
+func (tx *Tx) WithDebug() ClientSet {
+    if tx.debug {
+        return tx
+    }
+	cfg := tx.config
+	cfg.driver = dialect.Debug(tx.driver, tx.log)
+	dtx := &Tx{
+		ctx: tx.ctx,
+		config: cfg,
+	}
+	dtx.init()
+	return dtx
+}
+
+{{ end }}
+
+{{ define "tx/additional/withtx" }}
+
+// WithTx gives a new transactional client in the callback function,
+// if already in a transaction, this will keep in the same transaction.
+func (tx *Tx) WithTx(ctx context.Context, cb func(tx *Tx) error) error {
+    return cb(tx)
+}
+
+{{ end }}

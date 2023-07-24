@@ -1,0 +1,351 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{ define "dialect/sql/create/additional/introspection" }}
+
+{{ $util := lower $.Name }}
+
+{{ $indexFields := getIndexFields $.Type }}
+
+{{ $builder := pascal $.CreateName }}
+{{ $receiver := receiver $builder }}
+
+// Set is different from other Set* methods,
+// it sets the value by judging the definition of each field within the entire object.
+//
+// For required fields, Set calls directly.
+//
+// For optional fields, Set calls if the value is not zero.
+//
+// For example:
+//
+//   ## Required
+//
+//   db.SetX(obj.X)
+//
+//   ## Optional or Default
+//
+//   if _is_zero_value_(obj.X) {
+//      db.SetX(obj.X)
+//   }
+func ({{ $receiver }} *{{ $builder }}) Set(obj *{{ $.Name }}) *{{ $builder }} {
+    // Required.
+    {{- if and $.ID.UserDefined (ne $.ID.Type.Ident "object.ID") }}
+        {{ $receiver }}.SetID(obj.ID)
+    {{- end }}
+    {{- range $f := $.Fields }}
+        {{- $fn := $f.StructField }}
+        {{- if not (or $f.Optional $f.NillableValue) }}
+            {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+        {{- end }}
+    {{- end }}
+
+    // Optional.
+    {{- range $f := $.Fields }}
+        {{- $fn := $f.StructField }}
+        {{- if or $f.Optional $f.NillableValue }}
+            if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+            }
+        {{- end }}
+    {{- end }}
+
+    // Record the given object.
+    {{ $receiver }}.object = obj
+
+    return {{ $receiver }}
+}
+
+// getClientSet returns the ClientSet for the given builder.
+func ({{ $receiver }} *{{ $builder }}) getClientSet() (mc ClientSet) {
+    if _, ok := {{ $receiver }}.config.driver.(*txDriver); ok {
+        tx := &Tx{config: {{ $receiver }}.config}
+        tx.init()
+        mc = tx
+    } else {
+        cli := &Client{config: {{ $receiver }}.config}
+        cli.init()
+        mc = cli
+    }
+    return mc
+}
+
+// SaveE calls the given function after created the {{ $.Name }} entity,
+// which is always good for cascading create operations.
+func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) (*{{ $.Name }}, error) {
+    obj, err := {{ $receiver }}.Save(ctx)
+    if err != nil {
+        return nil, err
+    }
+
+    if len(cbs) == 0 {
+        return obj, err
+    }
+
+    mc := {{ $receiver }}.getClientSet()
+
+    {{- if ne (len $indexFields) 0 }}
+    if {{ $receiver }}.fromUpsert {
+        q := mc.{{ $.Name }}s().Query().
+            Where(
+            {{- range $f := $indexFields }}
+                {{- if not $f.Optional }}
+                    {{- $fn := $f.StructField }}
+                    {{ $util }}.{{ $fn }}(obj.{{ $fn }}),
+                {{- end }}
+            {{- end }}
+            )
+        {{- range $f := $indexFields }}
+            {{- if $f.Optional }}
+                {{- $fn := $f.StructField }}
+                if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                    q.Where({{ $util }}.{{ $fn }}(obj.{{ $fn }}))
+                } else {
+                    q.Where({{ $util }}.{{ $fn }}IsNil())
+                }
+            {{- end }}
+        {{- end }}
+        obj.ID, err = q.OnlyID(ctx)
+        if err != nil {
+            return nil, fmt.Errorf("model: failed to query id of {{ $.Name }} entity: %w", err)
+        }
+    }
+    {{- end }}
+
+    if x := {{ $receiver }}.object; x != nil {
+        {{- range $f := $.Fields }}
+            {{- if not $f.Default }}
+                {{- $fn := $f.StructField }}
+                if _, set := {{ $receiver }}.mutation.Field({{ $util }}.Field{{ $fn }}); set {
+                    obj.{{ $fn }} = x.{{ $fn }}
+                }
+            {{- end }}
+        {{- end }}
+
+        {{- if $.Edges }}
+            obj.Edges = x.Edges
+        {{- end }}
+    }
+
+    for i := range cbs {
+        if err = cbs[i](ctx, mc, obj); err != nil {
+            return nil, err
+        }
+    }
+
+    return obj, nil
+}
+
+// SaveEX is like SaveE, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) SaveEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) *{{ $.Name }} {
+    obj, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    if err != nil {
+        panic(err)
+    }
+    return obj
+}
+
+// ExecE calls the given function after executed the query,
+// which is always good for cascading create operations.
+func ({{ $receiver }} *{{ $builder }}) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) error {
+    _, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    return err
+}
+
+// ExecEX is like ExecE, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) {
+    if err := {{ $receiver }}.ExecE(ctx, cbs...); err != nil {
+        panic(err)
+    }
+}
+
+{{ $builder = $.CreateBulkName }}
+{{ $receiver = receiver $builder }}
+
+// Set leverages the {{ $.CreateName }} Set method,
+// it sets the value by judging the definition of each field within the entire item of the given list.
+//
+// For required fields, Set calls directly.
+//
+// For optional fields, Set calls if the value is not zero.
+//
+// For example:
+//
+//   ## Required
+//
+//   db.SetX(obj.X)
+//
+//   ## Optional or Default
+//
+//   if _is_zero_value_(obj.X) {
+//      db.SetX(obj.X)
+//   }
+func ({{ $receiver }} *{{ $builder }}) Set(objs ...*{{ $.Name }}) *{{ $builder }} {
+    if len(objs) != 0 {
+        client := New{{ $.ClientName }}({{ $receiver }}.config)
+
+        {{ $receiver }}.builders = make([]*{{ $.CreateName }}, len(objs))
+        for i := range objs {
+            {{ $receiver }}.builders[i] = client.Create().Set(objs[i])
+        }
+
+        // Record the given objects.
+        {{ $receiver }}.objects = objs
+    }
+
+    return {{ $receiver }}
+}
+
+// getClientSet returns the ClientSet for the given builder.
+func ({{ $receiver }} *{{ $builder }}) getClientSet() (mc ClientSet) {
+    if _, ok := {{ $receiver }}.config.driver.(*txDriver); ok {
+        tx := &Tx{config: {{ $receiver }}.config}
+        tx.init()
+        mc = tx
+    } else {
+        cli := &Client{config: {{ $receiver }}.config}
+        cli.init()
+        mc = cli
+    }
+    return mc
+}
+
+// SaveE calls the given function after created the {{ $.Name }} entities,
+// which is always good for cascading create operations.
+func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) ([]*{{ $.Name }}, error) {
+    objs, err := {{ $receiver }}.Save(ctx)
+    if err != nil {
+        return nil, err
+    }
+
+    if len(cbs) == 0 {
+        return objs, err
+    }
+
+    mc := {{ $receiver }}.getClientSet()
+
+    {{- if ne (len $indexFields) 0 }}
+    if {{ $receiver }}.fromUpsert {
+        for i := range objs {
+			obj := objs[i]
+            q := mc.{{ $.Name }}s().Query().
+                Where(
+                {{- range $f := $indexFields }}
+                    {{- if not $f.Optional }}
+                        {{- $fn := $f.StructField }}
+                        {{ $util }}.{{ $fn }}(obj.{{ $fn }}),
+                    {{- end }}
+                {{- end }}
+                )
+            {{- range $f := $indexFields }}
+                {{- if $f.Optional }}
+                    {{- $fn := $f.StructField }}
+                    if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                        q.Where({{ $util }}.{{ $fn }}(obj.{{ $fn }}))
+                    } else {
+                        q.Where({{ $util }}.{{ $fn }}IsNil())
+                    }
+                {{- end }}
+            {{- end }}
+            objs[i].ID, err = q.OnlyID(ctx)
+            if err != nil {
+                return nil, fmt.Errorf("model: failed to query id of {{ $.Name }} entity: %w", err)
+            }
+        }
+    }
+    {{- end }}
+
+    if x := {{ $receiver }}.objects; x != nil {
+        for i := range x {
+            {{- range $f := $.Fields }}
+                {{- if not $f.Default }}
+                    {{- $fn := $f.StructField }}
+                    if _, set := {{ $receiver }}.builders[i].mutation.Field({{ $util }}.Field{{ $fn }}); set {
+                        objs[i].{{ $fn }} = x[i].{{ $fn }}
+                    }
+                {{- end }}
+            {{- end }}
+
+            {{- if $.Edges }}
+                objs[i].Edges = x[i].Edges
+            {{- end }}
+        }
+    }
+
+    for i := range objs {
+        for j := range cbs {
+            if err = cbs[j](ctx, mc, objs[i]); err != nil {
+                return nil, err
+            }
+        }
+    }
+
+    return objs, nil
+}
+
+// SaveEX is like SaveE, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) SaveEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) []*{{ $.Name }} {
+    objs, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    if err != nil {
+        panic(err)
+    }
+    return objs
+}
+
+// ExecE calls the given function after executed the query,
+// which is always good for cascading create operations.
+func ({{ $receiver }} *{{ $builder }}) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) error {
+    _, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    return err
+}
+
+// ExecEX is like ExecE, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, created *{{ $.Name }}) error) {
+    if err := {{ $receiver }}.ExecE(ctx, cbs...); err != nil {
+        panic(err)
+    }
+}
+
+{{ $builder = print $.Name "UpsertOne" }}
+
+// ExecE calls the given function after executed the query,
+// which is always good for cascading create operations.
+func (u *{{ $builder }}) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) error {
+    if len(u.create.conflict) == 0 {
+        return errors.New("model: missing options for {{ $builder }}.OnConflict")
+    }
+    u.create.fromUpsert = true
+    return u.create.ExecE(ctx, cbs...)
+}
+
+// ExecEX is like ExecE, but panics if an error occurs.
+func (u *{{ $builder }}) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) {
+    if err := u.ExecE(ctx, cbs...); err != nil {
+        panic(err)
+    }
+}
+
+{{ $builder = print $.Name "UpsertBulk" }}
+
+// ExecE calls the given function after executed the query,
+// which is always good for cascading create operations.
+func (u *{{ $builder }}) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) error {
+    for i, b := range u.create.builders {
+        if len(b.conflict) != 0 {
+            return fmt.Errorf("model: OnConflict was set for builder %d. Set it on the {{ $builder }} instead", i)
+        }
+    }
+    if len(u.create.conflict) == 0 {
+        return errors.New("model: missing options for {{ $builder }}.OnConflict")
+    }
+    u.create.fromUpsert = true
+    return u.create.ExecE(ctx, cbs...)
+}
+
+// ExecEX is like ExecE, but panics if an error occurs.
+func (u *{{ $builder }}) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) {
+    if err := u.ExecE(ctx, cbs...); err != nil {
+        panic(err)
+    }
+}
+
+{{ end }}

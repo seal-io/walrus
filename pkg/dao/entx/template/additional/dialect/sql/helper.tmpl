@@ -1,0 +1,41 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{- define "helper/introspection/is-not-zero" }}
+    {{- $fn := $.StructField }}
+    {{- if $.NillableValue }}
+        obj.{{ $fn }} != nil {{ if hasIsZero $ }} && !obj.{{ $fn }}.IsZero() {{ end }}
+    {{- else if $.IsBool }}
+        {{ if isPointer $ }} obj.{{ $fn }} != nil && *{{ end }}obj.{{ $fn }}
+    {{- else if $.IsTime }}
+        {{ if isPointer $ }} obj.{{ $fn }} != nil && *{{ end }}!obj.{{ $fn }}.IsZero()
+    {{- else if or $.IsString $.IsEnum }}
+        {{ if isPointer $ }} obj.{{ $fn }} != nil && *{{ end }}obj.{{ $fn }} != ""
+    {{- else if and $.Type (ge $.Type.Type 9) }} {{- /* Numeric */}}
+        {{ if isPointer $ }} obj.{{ $fn }} != nil && *{{ end }}obj.{{ $fn }} != 0
+    {{- else if hasIsZero $ }}
+	    {{ if isPointer $ }} obj.{{ $fn }} != nil && {{ end }}!obj.{{ $fn }}.IsZero()
+    {{- else }}
+        !reflect.ValueOf(obj.{{ $fn }}).IsZero()
+    {{- end }}
+{{- end }}
+
+{{- define "helper/introspection/is-not-equal" }}
+    {{- $fn := $.StructField }}
+    {{- if $.NillableValue }}
+        !reflect.DeepEqual(db.{{ $fn }}, obj.{{ $fn }})
+    {{- else if $.IsBool }}
+        db.{{ $fn }} != obj.{{ $fn }}
+    {{- else if $.IsTime }}
+        !db.{{ $fn }}.Equal(obj.{{ $fn }})
+    {{- else if $.IsBytes }}
+        !bytes.Equal(db.{{ $fn }}, obj.{{ $fn }})
+    {{- else if or $.IsString $.IsEnum }}
+        db.{{ $fn }} != obj.{{ $fn }}
+    {{- else if and $.Type (ge $.Type.Type 9) }} {{- /* Numeric */}}
+        db.{{ $fn }} != obj.{{ $fn }}
+    {{- else if hasEqual $ }}
+	    !db.{{ $fn }}.Equal(obj.{{ $fn }})
+	{{- else }}
+        !reflect.DeepEqual(db.{{ $fn }}, obj.{{ $fn }})
+    {{- end }}
+{{- end }}
