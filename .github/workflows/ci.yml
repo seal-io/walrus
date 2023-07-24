@@ -83,6 +83,7 @@ jobs:
           CI_CHECK: "${{ needs.skip.outputs.should != 'true' }}"
           LINT_DIRTY: "true"
           PACKAGE_BUILD: "false"
+          SEAL_TELEMETRY_API_KEY: "${{ github.event_name != 'pull_request' && secrets.CI_TELEMETRY_API_KEY || '' }}"
       - name: Archive Publish Result
         uses: actions/cache/save@v3
         with:

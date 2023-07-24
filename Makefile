@@ -31,6 +31,7 @@ help:
 	#           - `OS=linux ARCH=arm64 make build` build all targets run on linux/arm64 arch.
 	#           - `BUILD_TAGS="jsoniter" make build` build with specified tags.
 	#           - `BUILD_PLATFORMS="linux/amd64,linux/arm64" make build` do multiple platforms go build.
+	#           - `SEAL_TELEMETRY_API_KEY="phc_xxx" make build` build with telemetry api key.
 	#
 	#   * [dev] `make package`, embed running resources into a Docker image on one platform.
 	#           - `REPO=xyz make package` package all targets named with xyz repository.
