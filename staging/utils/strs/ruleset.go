@@ -9,9 +9,13 @@ import (
 	"github.com/go-openapi/inflect"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-var globalRuleset = inflect.NewDefaultRuleset()
+var (
+	globalRuleset = inflect.NewDefaultRuleset()
+	acronymSet    = sets.Set[string]{}
+)
 
 func init() {
 	for _, w := range []string{
@@ -22,6 +26,7 @@ func init() {
 		"XML", "XMPP", "XSRF", "XSS",
 	} {
 		globalRuleset.AddAcronym(w)
+		acronymSet.Insert(w)
 	}
 
 	for s, p := range map[string]string{
@@ -46,14 +51,44 @@ func SingularizeWithArticle(word string) string {
 	return indefinite.AddArticle(globalRuleset.Singularize(word))
 }
 
-// Camelize returns the string in camel case, "dino_party" -> "DinoParty".
+// Camelize returns the string in camel case, "group_id" -> "GroupID".
 func Camelize(word string) string {
-	return globalRuleset.Camelize(word)
+	words := strings.Split(globalRuleset.Underscore(word), "_")
+
+	for i, w := range words {
+		upper := strings.ToUpper(w)
+		if acronymSet.Has(upper) {
+			words[i] = upper
+		} else {
+			words[i] = globalRuleset.Capitalize(w)
+		}
+	}
+
+	return strings.Join(words, "")
 }
 
-// CamelizeDownFirst is the same as Camelize but with first lowercase char.
+// CamelizeDownFirst is the same as Camelize but with first lowercase char,
+// "IDRef" -> "idRef.
 func CamelizeDownFirst(word string) string {
-	return globalRuleset.CamelizeDownFirst(word)
+	words := strings.Split(globalRuleset.Underscore(word), "_")
+
+	switch len(words) {
+	case 0:
+		return ""
+	case 1:
+		return words[0]
+	}
+
+	for i, w := range words[1:] {
+		upper := strings.ToUpper(w)
+		if acronymSet.Has(upper) {
+			words[1:][i] = upper
+		} else {
+			words[1:][i] = globalRuleset.Capitalize(w)
+		}
+	}
+
+	return strings.Join(words, "")
 }
 
 // Decamelize converts camel-case words to space-split words, "DinoParty" -> "Dino Party".

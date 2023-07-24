@@ -1,6 +1,6 @@
 {{/* gotype: entgo.io/ent/entc/gen.Graph */}}
 
-{{ define "client/additional/clientset" }}
+{{ define "client/additional/client-getter" }}
 
 {{- range $n := $.Nodes }}
 // {{ plural $n.Name }} implements the ClientSet.
@@ -8,6 +8,24 @@ func (c *Client) {{ plural $n.Name }}() *{{ $n.Name }}Client {
     return c.{{ $n.Name }}
 }
 {{- end }}
+
+{{ end }}
+
+{{ define "client/additional/dialect" }}
+
+// Dialect returns the dialect name of the driver.
+func (c *Client) Dialect() string {
+    return c.driver.Dialect()
+}
+
+{{ end }}
+
+{{ define "client/additional/with-debug" }}
+
+// WithDebug enables the debug mode of the client.
+func (c *Client) WithDebug() ClientSet {
+    return c.Debug()
+}
 
 {{ end }}
 
@@ -37,22 +55,13 @@ func (c *Client) WithTx(ctx context.Context, fn func(tx *Tx) error) (err error) 
     if err = fn(tx); err != nil {
         if txErr := tx.Rollback(); txErr != nil {
             err = fmt.Errorf("try to rollback as received %w, but failed: %v", err, txErr)
-		}
+        }
         return
     }
     if txErr := tx.Commit(); txErr != nil {
         err = fmt.Errorf("try to commit, but failed: %v", txErr)
     }
     return
-}
-
-{{ end }}
-
-{{ define "client/additional/dialect" }}
-
-// Dialect returns the dialect name of the driver.
-func (c *Client) Dialect() string {
-    return c.driver.Dialect()
 }
 
 {{ end }}

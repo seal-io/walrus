@@ -1,0 +1,257 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{- define "import/additional/stdsql" }}
+    stdsql "database/sql"
+{{- end }}
+
+{{ define "dialect/sql/update/additional/introspection" }}
+
+{{ if genUpdater $.Type }}
+
+{{ $util := lower $.Name }}
+
+{{ $builder := pascal $.Scope.Builder }}
+{{ $receiver := receiver $builder }}
+
+{{ if not (hasSuffix $builder "One") }}
+
+// Set is different from other Set* methods,
+// it sets the value by judging the definition of each field within the entire object.
+//
+// For default fields, Set calls if the value is not zero.
+//
+// For no default but required fields, Set calls directly.
+//
+// For no default but optional fields, Set calls if the value is not zero,
+// or clears if the value is zero.
+//
+// For example:
+//
+//   ## Without Default
+//
+//   ### Required
+//
+//   db.SetX(obj.X)
+//
+//   ### Optional or Default
+//
+//   if _is_zero_value_(obj.X) {
+//      db.SetX(obj.X)
+//   } else {
+//      db.ClearX()
+//   }
+//
+//   ## With Default
+//
+//   if _is_zero_value_(obj.X) {
+//      db.SetX(obj.X)
+//   }
+//
+func ({{ $receiver }} *{{ $builder }}) Set(obj *{{ $.Name }}) *{{ $builder }} {
+    // Without Default.
+    {{- range $f := $.Fields }}
+        {{- if and (not $f.Immutable) (not $f.UpdateDefault) }}
+            {{- $fn := $f.StructField }}
+            {{- if not (or $f.Optional $f.NillableValue) }}
+                {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+            {{- else }}
+                if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                    {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+                {{- if and (genUpdaterClearer $.Type) (genUpdaterClearer $f) }}
+                } else {
+                    {{ $receiver }}.{{ print "Clear" $fn }}()
+                {{- end }}
+                }
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    // With Default.
+    {{- range $f := $.Fields }}
+        {{- if and (not $f.Immutable) $f.UpdateDefault }}
+            {{- $fn := $f.StructField }}
+            if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+            }
+        {{- end }}
+    {{- end }}
+
+    // Record the given object.
+    {{ $receiver }}.object = obj
+
+    return {{ $receiver }}
+}
+
+{{ else }}
+
+// Set is different from other Set* methods,
+// it sets the value by judging the definition of each field within the entire object.
+//
+// For default fields, Set calls if the value changes from the original.
+//
+// For no default but required fields, Set calls if the value changes from the original.
+//
+// For no default but optional fields, Set calls if the value changes from the original,
+// or clears if changes to zero.
+//
+// For example:
+//
+//   ## Without Default
+//
+//   ### Required
+//
+//   db.SetX(obj.X)
+//
+//   ### Optional or Default
+//
+//   if _is_zero_value_(obj.X) {
+//      if _is_not_equal_(db.X, obj.X) {
+//         db.SetX(obj.X)
+//      }
+//   } else {
+//      db.ClearX()
+//   }
+//
+//   ## With Default
+//
+//   if _is_zero_value_(obj.X) && _is_not_equal_(db.X, obj.X) {
+//      db.SetX(obj.X)
+//   }
+//
+func ({{ $receiver }} *{{ $builder }}) Set(obj *{{ $.Name }}) *{{ $builder }} {
+    h := func(n ent.Mutator) ent.Mutator {
+        return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+            {{- $n := pascal $.Name }}
+            mt := m.(*{{ $n }}Mutation)
+            db, err := mt.Client().{{ $n }}.Get(ctx, *mt.id)
+            if err != nil {
+                return nil, fmt.Errorf("failed getting {{ $n }} with id: %v", *mt.id)
+            }
+
+            // Without Default.
+            {{- range $f := $.Fields }}
+                {{- if and (not $f.Immutable) (not $f.UpdateDefault) }}
+                    {{- $fn := $f.StructField }}
+                    {{- if not $f.Optional }}
+                        if {{ xtemplate "helper/introspection/is-not-equal" $f }} {
+                            {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+                        }
+                    {{- else }}
+                        if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
+                            if {{ xtemplate "helper/introspection/is-not-equal" $f }} {
+                                {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+                            }
+                        {{- if and (genUpdaterClearer $.Type) (genUpdaterClearer $f) }}
+                        } else {
+                            {{ $receiver }}.{{ print "Clear" $fn }}()
+                        {{- end }}
+                        }
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+
+            // With Default.
+            {{- range $f := $.Fields }}
+                {{- if and (not $f.Immutable) $f.UpdateDefault }}
+                    {{- $fn := $f.StructField }}
+                    if ({{ xtemplate "helper/introspection/is-not-zero" $f }}) && ({{ xtemplate "helper/introspection/is-not-equal" $f }}) {
+                        {{ $receiver }}.{{ print "Set" $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }})
+                    }
+                {{- end }}
+            {{- end }}
+
+            // Record the given object.
+            {{ $receiver }}.object = obj
+
+            return n.Mutate(ctx, m)
+        })
+    }
+
+    {{ $receiver }}.hooks = append({{ $receiver }}.hooks, h)
+
+    return {{ $receiver }}
+}
+
+// getClientSet returns the ClientSet for the given builder.
+func ({{ $receiver }} *{{ $builder }}) getClientSet() (mc ClientSet) {
+    if _, ok := {{ $receiver }}.config.driver.(*txDriver); ok {
+        tx := &Tx{config: {{ $receiver }}.config}
+        tx.init()
+        mc = tx
+    } else {
+        cli := &Client{config: {{ $receiver }}.config}
+        cli.init()
+        mc = cli
+    }
+    return mc
+}
+
+// SaveE calls the given function after updated the {{ $.Name }} entity,
+// which is always good for cascading update operations.
+func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) (*{{ $.Name }}, error) {
+    obj, err := {{ $receiver }}.Save(ctx)
+    if err != nil &&
+        ({{ $receiver }}.object == nil || !errors.Is(err, stdsql.ErrNoRows)) {
+        return nil, err
+    }
+
+    if len(cbs) == 0 {
+        return obj, err
+    }
+
+    mc := {{ $receiver }}.getClientSet()
+
+    if obj == nil {
+        obj = {{ $receiver }}.object
+    } else if x := {{ $receiver }}.object; x != nil {
+        {{- range $f := $.Fields }}
+            {{- if and (not $f.Immutable) (not $f.UpdateDefault) }}
+                {{- $fn := $f.StructField }}
+                if _, set := {{ $receiver }}.mutation.Field({{ $util }}.Field{{ $fn }}); set {
+                    obj.{{ $fn }} = x.{{ $fn }}
+                }
+            {{- end }}
+        {{- end }}
+
+        {{- if $.Edges }}
+            obj.Edges = x.Edges
+        {{- end }}
+    }
+
+    for i := range cbs {
+        if err = cbs[i](ctx, mc, obj); err != nil {
+            return nil, err
+        }
+    }
+
+    return obj, nil
+}
+
+// SaveEX is like SaveE, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) SaveEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) *{{ $.Name }} {
+    obj, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    if err != nil {
+        panic(err)
+    }
+    return obj
+}
+
+// ExecE calls the given function after executed the query,
+// which is always good for cascading update operations.
+func ({{ $receiver }} *{{ $builder }}) ExecE(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) error {
+    _, err := {{ $receiver }}.SaveE(ctx, cbs...)
+    return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func ({{ $receiver }} *{{ $builder }}) ExecEX(ctx context.Context, cbs ...func(ctx context.Context, mc ClientSet, updated *{{ $.Name }}) error) {
+    if err := {{ $receiver }}.ExecE(ctx, cbs...); err != nil {
+        panic(err)
+    }
+}
+
+{{ end }}
+
+{{ end }}
+
+{{ end }}

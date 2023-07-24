@@ -8,10 +8,10 @@
 // WhereP appends storage-level predicates to the {{ $builder }} builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
 func ({{ $receiver }} *{{ $builder }}) WhereP(ps ...func({{ $.Storage.Builder }})) {
-var wps = make([]predicate.{{ $.Name }}, 0, len(ps))
-for i := 0; i<len(ps); i++ {
-wps = append(wps, predicate.{{ $.Name }}(ps[i]))
-}
-{{ $receiver}}.predicates = append({{ $receiver }}.predicates, wps...)
+    var wps = make([]predicate.{{ $.Name }}, 0, len(ps))
+    for i := 0; i<len(ps); i++ {
+        wps = append(wps, predicate.{{ $.Name }}(ps[i]))
+    }
+    {{ $receiver}}.predicates = append({{ $receiver }}.predicates, wps...)
 }
 {{ end }}

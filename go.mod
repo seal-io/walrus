@@ -1,7 +1,6 @@
 module github.com/seal-io/seal
 
 replace (
-	entgo.io/ent => github.com/seal-io/ent v0.12.3-0.20230428070942-14b3d70efdac
 	github.com/drone/go-scm => github.com/seal-io/go-scm v0.0.0-20230324055818-b35f74bd9b42
 	github.com/gin-gonic/gin => github.com/seal-io/gin v1.9.1-0.20230428052531-9c348ba0987e
 	github.com/seal-io/seal/utils => ./staging/utils
@@ -10,7 +9,7 @@ replace (
 go 1.19
 
 require (
-	entgo.io/ent v0.12.2
+	entgo.io/ent v0.12.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.3
@@ -59,9 +58,10 @@ require (
 	go.uber.org/multierr v1.11.0
 	golang.org/x/crypto v0.10.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
+	golang.org/x/mod v0.11.0
 	golang.org/x/text v0.10.0
 	golang.org/x/time v0.3.0
-	golang.org/x/tools v0.7.0
+	golang.org/x/tools v0.8.1-0.20230428195545-5283a0178901
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.1
 	k8s.io/api v0.26.2
@@ -75,7 +75,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.10.0 // indirect
+	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf // indirect
 	cloud.google.com/go v0.105.0 // indirect
 	cloud.google.com/go/bigquery v1.42.0 // indirect
 	cloud.google.com/go/compute v1.12.1 // indirect
@@ -297,7 +297,6 @@ require (
 	go.uber.org/automaxprocs v1.5.2 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
-	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
