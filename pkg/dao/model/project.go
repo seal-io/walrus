@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/project"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -22,7 +22,7 @@ import (
 type Project struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description holds the value of the "description" field.
@@ -122,7 +122,7 @@ func (*Project) scanValues(columns []string) ([]any, error) {
 		case project.FieldLabels, project.FieldAnnotations:
 			values[i] = new([]byte)
 		case project.FieldID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case project.FieldName, project.FieldDescription:
 			values[i] = new(sql.NullString)
 		case project.FieldCreateTime, project.FieldUpdateTime:
@@ -143,7 +143,7 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case project.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				pr.ID = *value

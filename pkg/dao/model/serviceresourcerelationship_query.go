@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationshipQuery is the builder for querying ServiceResourceRelationship entities.
@@ -142,8 +142,8 @@ func (srrq *ServiceResourceRelationshipQuery) FirstX(ctx context.Context) *Servi
 
 // FirstID returns the first ServiceResourceRelationship ID from the query.
 // Returns a *NotFoundError when no ServiceResourceRelationship ID was found.
-func (srrq *ServiceResourceRelationshipQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srrq *ServiceResourceRelationshipQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srrq.Limit(1).IDs(setContextOp(ctx, srrq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -155,7 +155,7 @@ func (srrq *ServiceResourceRelationshipQuery) FirstID(ctx context.Context) (id o
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (srrq *ServiceResourceRelationshipQuery) FirstIDX(ctx context.Context) oid.ID {
+func (srrq *ServiceResourceRelationshipQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := srrq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -193,8 +193,8 @@ func (srrq *ServiceResourceRelationshipQuery) OnlyX(ctx context.Context) *Servic
 // OnlyID is like Only, but returns the only ServiceResourceRelationship ID in the query.
 // Returns a *NotSingularError when more than one ServiceResourceRelationship ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (srrq *ServiceResourceRelationshipQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srrq *ServiceResourceRelationshipQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srrq.Limit(2).IDs(setContextOp(ctx, srrq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -210,7 +210,7 @@ func (srrq *ServiceResourceRelationshipQuery) OnlyID(ctx context.Context) (id oi
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (srrq *ServiceResourceRelationshipQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (srrq *ServiceResourceRelationshipQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := srrq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -238,7 +238,7 @@ func (srrq *ServiceResourceRelationshipQuery) AllX(ctx context.Context) []*Servi
 }
 
 // IDs executes the query and returns a list of ServiceResourceRelationship IDs.
-func (srrq *ServiceResourceRelationshipQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (srrq *ServiceResourceRelationshipQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if srrq.ctx.Unique == nil && srrq.path != nil {
 		srrq.Unique(true)
 	}
@@ -250,7 +250,7 @@ func (srrq *ServiceResourceRelationshipQuery) IDs(ctx context.Context) (ids []oi
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (srrq *ServiceResourceRelationshipQuery) IDsX(ctx context.Context) []oid.ID {
+func (srrq *ServiceResourceRelationshipQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := srrq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -462,8 +462,8 @@ func (srrq *ServiceResourceRelationshipQuery) sqlAll(ctx context.Context, hooks 
 }
 
 func (srrq *ServiceResourceRelationshipQuery) loadServiceResource(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResourceRelationship, init func(*ServiceResourceRelationship), assign func(*ServiceResourceRelationship, *ServiceResource)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResourceRelationship)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResourceRelationship)
 	for i := range nodes {
 		fk := nodes[i].ServiceResourceID
 		if _, ok := nodeids[fk]; !ok {
@@ -491,8 +491,8 @@ func (srrq *ServiceResourceRelationshipQuery) loadServiceResource(ctx context.Co
 	return nil
 }
 func (srrq *ServiceResourceRelationshipQuery) loadDependency(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResourceRelationship, init func(*ServiceResourceRelationship), assign func(*ServiceResourceRelationship, *ServiceResource)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResourceRelationship)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResourceRelationship)
 	for i := range nodes {
 		fk := nodes[i].DependencyID
 		if _, ok := nodeids[fk]; !ok {

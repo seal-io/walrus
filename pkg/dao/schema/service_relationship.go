@@ -9,7 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type ServiceRelationship struct {
@@ -32,19 +32,19 @@ func (ServiceRelationship) Indexes() []ent.Index {
 
 func (ServiceRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("service_id").
+		object.Field("service_id").
 			Comment("ID of the service that deploys after the dependency finished.").
 			StructTag(`json:"serviceID" sql:"serviceID"`).
 			NotEmpty().
 			Immutable(),
-		oid.Field("dependency_id").
+		object.Field("dependency_id").
 			Comment("ID of the service that deploys before the service begins.").
 			StructTag(`json:"dependencyID" sql:"dependencyID"`).
 			NotEmpty().
 			Immutable(),
-		field.JSON("path", []oid.ID{}).
+		field.JSON("path", []object.ID{}).
 			Comment("ID list of the service includes all dependencies and the service itself.").
-			Default([]oid.ID{}).
+			Default([]object.ID{}).
 			Immutable().
 			Annotations(
 				io.DisableInput()),

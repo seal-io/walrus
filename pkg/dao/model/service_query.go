@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceQuery is the builder for querying Service entities.
@@ -225,8 +225,8 @@ func (sq *ServiceQuery) FirstX(ctx context.Context) *Service {
 
 // FirstID returns the first Service ID from the query.
 // Returns a *NotFoundError when no Service ID was found.
-func (sq *ServiceQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *ServiceQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -238,7 +238,7 @@ func (sq *ServiceQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *ServiceQuery) FirstIDX(ctx context.Context) oid.ID {
+func (sq *ServiceQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -276,8 +276,8 @@ func (sq *ServiceQuery) OnlyX(ctx context.Context) *Service {
 // OnlyID is like Only, but returns the only Service ID in the query.
 // Returns a *NotSingularError when more than one Service ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *ServiceQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *ServiceQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -293,7 +293,7 @@ func (sq *ServiceQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *ServiceQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (sq *ServiceQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -321,7 +321,7 @@ func (sq *ServiceQuery) AllX(ctx context.Context) []*Service {
 }
 
 // IDs executes the query and returns a list of Service IDs.
-func (sq *ServiceQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (sq *ServiceQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -333,7 +333,7 @@ func (sq *ServiceQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *ServiceQuery) IDsX(ctx context.Context) []oid.ID {
+func (sq *ServiceQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -605,8 +605,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 }
 
 func (sq *ServiceQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*Service, init func(*Service), assign func(*Service, *Project)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*Service)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Service)
 	for i := range nodes {
 		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
@@ -634,8 +634,8 @@ func (sq *ServiceQuery) loadProject(ctx context.Context, query *ProjectQuery, no
 	return nil
 }
 func (sq *ServiceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQuery, nodes []*Service, init func(*Service), assign func(*Service, *Environment)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*Service)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Service)
 	for i := range nodes {
 		fk := nodes[i].EnvironmentID
 		if _, ok := nodeids[fk]; !ok {
@@ -664,7 +664,7 @@ func (sq *ServiceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQ
 }
 func (sq *ServiceQuery) loadRevisions(ctx context.Context, query *ServiceRevisionQuery, nodes []*Service, init func(*Service), assign func(*Service, *ServiceRevision)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Service)
+	nodeids := make(map[object.ID]*Service)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -694,7 +694,7 @@ func (sq *ServiceQuery) loadRevisions(ctx context.Context, query *ServiceRevisio
 }
 func (sq *ServiceQuery) loadResources(ctx context.Context, query *ServiceResourceQuery, nodes []*Service, init func(*Service), assign func(*Service, *ServiceResource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Service)
+	nodeids := make(map[object.ID]*Service)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -724,7 +724,7 @@ func (sq *ServiceQuery) loadResources(ctx context.Context, query *ServiceResourc
 }
 func (sq *ServiceQuery) loadDependencies(ctx context.Context, query *ServiceRelationshipQuery, nodes []*Service, init func(*Service), assign func(*Service, *ServiceRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*Service)
+	nodeids := make(map[object.ID]*Service)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

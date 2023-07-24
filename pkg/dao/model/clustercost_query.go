@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ClusterCostQuery is the builder for querying ClusterCost entities.
@@ -417,8 +417,8 @@ func (ccq *ClusterCostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 }
 
 func (ccq *ClusterCostQuery) loadConnector(ctx context.Context, query *ConnectorQuery, nodes []*ClusterCost, init func(*ClusterCost), assign func(*ClusterCost, *Connector)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ClusterCost)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ClusterCost)
 	for i := range nodes {
 		fk := nodes[i].ConnectorID
 		if _, ok := nodeids[fk]; !ok {

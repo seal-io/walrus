@@ -13,51 +13,51 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id oid.ID) predicate.Environment {
+func ID(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id oid.ID) predicate.Environment {
+func IDEQ(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id oid.ID) predicate.Environment {
+func IDNEQ(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...oid.ID) predicate.Environment {
+func IDIn(ids ...object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...oid.ID) predicate.Environment {
+func IDNotIn(ids ...object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id oid.ID) predicate.Environment {
+func IDGT(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id oid.ID) predicate.Environment {
+func IDGTE(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id oid.ID) predicate.Environment {
+func IDLT(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id oid.ID) predicate.Environment {
+func IDLTE(id object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldID, id))
 }
 
@@ -82,7 +82,7 @@ func UpdateTime(v time.Time) predicate.Environment {
 }
 
 // ProjectID applies equality check predicate on the "projectID" field. It's identical to ProjectIDEQ.
-func ProjectID(v oid.ID) predicate.Environment {
+func ProjectID(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldProjectID, v))
 }
 
@@ -327,71 +327,71 @@ func UpdateTimeLTE(v time.Time) predicate.Environment {
 }
 
 // ProjectIDEQ applies the EQ predicate on the "projectID" field.
-func ProjectIDEQ(v oid.ID) predicate.Environment {
+func ProjectIDEQ(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldEQ(FieldProjectID, v))
 }
 
 // ProjectIDNEQ applies the NEQ predicate on the "projectID" field.
-func ProjectIDNEQ(v oid.ID) predicate.Environment {
+func ProjectIDNEQ(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNEQ(FieldProjectID, v))
 }
 
 // ProjectIDIn applies the In predicate on the "projectID" field.
-func ProjectIDIn(vs ...oid.ID) predicate.Environment {
+func ProjectIDIn(vs ...object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldIn(FieldProjectID, vs...))
 }
 
 // ProjectIDNotIn applies the NotIn predicate on the "projectID" field.
-func ProjectIDNotIn(vs ...oid.ID) predicate.Environment {
+func ProjectIDNotIn(vs ...object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldNotIn(FieldProjectID, vs...))
 }
 
 // ProjectIDGT applies the GT predicate on the "projectID" field.
-func ProjectIDGT(v oid.ID) predicate.Environment {
+func ProjectIDGT(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGT(FieldProjectID, v))
 }
 
 // ProjectIDGTE applies the GTE predicate on the "projectID" field.
-func ProjectIDGTE(v oid.ID) predicate.Environment {
+func ProjectIDGTE(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldGTE(FieldProjectID, v))
 }
 
 // ProjectIDLT applies the LT predicate on the "projectID" field.
-func ProjectIDLT(v oid.ID) predicate.Environment {
+func ProjectIDLT(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLT(FieldProjectID, v))
 }
 
 // ProjectIDLTE applies the LTE predicate on the "projectID" field.
-func ProjectIDLTE(v oid.ID) predicate.Environment {
+func ProjectIDLTE(v object.ID) predicate.Environment {
 	return predicate.Environment(sql.FieldLTE(FieldProjectID, v))
 }
 
 // ProjectIDContains applies the Contains predicate on the "projectID" field.
-func ProjectIDContains(v oid.ID) predicate.Environment {
+func ProjectIDContains(v object.ID) predicate.Environment {
 	vc := string(v)
 	return predicate.Environment(sql.FieldContains(FieldProjectID, vc))
 }
 
 // ProjectIDHasPrefix applies the HasPrefix predicate on the "projectID" field.
-func ProjectIDHasPrefix(v oid.ID) predicate.Environment {
+func ProjectIDHasPrefix(v object.ID) predicate.Environment {
 	vc := string(v)
 	return predicate.Environment(sql.FieldHasPrefix(FieldProjectID, vc))
 }
 
 // ProjectIDHasSuffix applies the HasSuffix predicate on the "projectID" field.
-func ProjectIDHasSuffix(v oid.ID) predicate.Environment {
+func ProjectIDHasSuffix(v object.ID) predicate.Environment {
 	vc := string(v)
 	return predicate.Environment(sql.FieldHasSuffix(FieldProjectID, vc))
 }
 
 // ProjectIDEqualFold applies the EqualFold predicate on the "projectID" field.
-func ProjectIDEqualFold(v oid.ID) predicate.Environment {
+func ProjectIDEqualFold(v object.ID) predicate.Environment {
 	vc := string(v)
 	return predicate.Environment(sql.FieldEqualFold(FieldProjectID, vc))
 }
 
 // ProjectIDContainsFold applies the ContainsFold predicate on the "projectID" field.
-func ProjectIDContainsFold(v oid.ID) predicate.Environment {
+func ProjectIDContainsFold(v object.ID) predicate.Environment {
 	vc := string(v)
 	return predicate.Environment(sql.FieldContainsFold(FieldProjectID, vc))
 }

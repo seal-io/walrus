@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // EnvironmentCreate is the builder for creating a Environment entity.
@@ -93,13 +93,13 @@ func (ec *EnvironmentCreate) SetNillableUpdateTime(t *time.Time) *EnvironmentCre
 }
 
 // SetProjectID sets the "projectID" field.
-func (ec *EnvironmentCreate) SetProjectID(o oid.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) SetProjectID(o object.ID) *EnvironmentCreate {
 	ec.mutation.SetProjectID(o)
 	return ec
 }
 
 // SetID sets the "id" field.
-func (ec *EnvironmentCreate) SetID(o oid.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) SetID(o object.ID) *EnvironmentCreate {
 	ec.mutation.SetID(o)
 	return ec
 }
@@ -110,14 +110,14 @@ func (ec *EnvironmentCreate) SetProject(p *Project) *EnvironmentCreate {
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (ec *EnvironmentCreate) AddServiceIDs(ids ...oid.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) AddServiceIDs(ids ...object.ID) *EnvironmentCreate {
 	ec.mutation.AddServiceIDs(ids...)
 	return ec
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (ec *EnvironmentCreate) AddServices(s ...*Service) *EnvironmentCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -125,14 +125,14 @@ func (ec *EnvironmentCreate) AddServices(s ...*Service) *EnvironmentCreate {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (ec *EnvironmentCreate) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) AddServiceRevisionIDs(ids ...object.ID) *EnvironmentCreate {
 	ec.mutation.AddServiceRevisionIDs(ids...)
 	return ec
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (ec *EnvironmentCreate) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -140,14 +140,14 @@ func (ec *EnvironmentCreate) AddServiceRevisions(s ...*ServiceRevision) *Environ
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (ec *EnvironmentCreate) AddVariableIDs(ids ...oid.ID) *EnvironmentCreate {
+func (ec *EnvironmentCreate) AddVariableIDs(ids ...object.ID) *EnvironmentCreate {
 	ec.mutation.AddVariableIDs(ids...)
 	return ec
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (ec *EnvironmentCreate) AddVariables(v ...*Variable) *EnvironmentCreate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -258,7 +258,7 @@ func (ec *EnvironmentCreate) sqlSave(ctx context.Context) (*Environment, error) 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -664,7 +664,7 @@ func (u *EnvironmentUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -678,7 +678,7 @@ func (u *EnvironmentUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *EnvironmentUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *EnvironmentUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

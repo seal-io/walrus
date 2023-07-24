@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateVersionCreate is the builder for creating a TemplateVersion entity.
@@ -83,7 +83,7 @@ func (tvc *TemplateVersionCreate) SetSchema(ts *types.TemplateSchema) *TemplateV
 }
 
 // SetID sets the "id" field.
-func (tvc *TemplateVersionCreate) SetID(o oid.ID) *TemplateVersionCreate {
+func (tvc *TemplateVersionCreate) SetID(o object.ID) *TemplateVersionCreate {
 	tvc.mutation.SetID(o)
 	return tvc
 }
@@ -204,7 +204,7 @@ func (tvc *TemplateVersionCreate) sqlSave(ctx context.Context) (*TemplateVersion
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -444,7 +444,7 @@ func (u *TemplateVersionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *TemplateVersionUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *TemplateVersionUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -458,7 +458,7 @@ func (u *TemplateVersionUpsertOne) ID(ctx context.Context) (id oid.ID, err error
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *TemplateVersionUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *TemplateVersionUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

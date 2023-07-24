@@ -13,7 +13,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ID filters vertices based on their ID field.
@@ -77,7 +77,7 @@ func Minutes(v float64) predicate.ClusterCost {
 }
 
 // ConnectorID applies equality check predicate on the "connectorID" field. It's identical to ConnectorIDEQ.
-func ConnectorID(v oid.ID) predicate.ClusterCost {
+func ConnectorID(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldEQ(FieldConnectorID, v))
 }
 
@@ -232,71 +232,71 @@ func MinutesLTE(v float64) predicate.ClusterCost {
 }
 
 // ConnectorIDEQ applies the EQ predicate on the "connectorID" field.
-func ConnectorIDEQ(v oid.ID) predicate.ClusterCost {
+func ConnectorIDEQ(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldEQ(FieldConnectorID, v))
 }
 
 // ConnectorIDNEQ applies the NEQ predicate on the "connectorID" field.
-func ConnectorIDNEQ(v oid.ID) predicate.ClusterCost {
+func ConnectorIDNEQ(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldNEQ(FieldConnectorID, v))
 }
 
 // ConnectorIDIn applies the In predicate on the "connectorID" field.
-func ConnectorIDIn(vs ...oid.ID) predicate.ClusterCost {
+func ConnectorIDIn(vs ...object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldIn(FieldConnectorID, vs...))
 }
 
 // ConnectorIDNotIn applies the NotIn predicate on the "connectorID" field.
-func ConnectorIDNotIn(vs ...oid.ID) predicate.ClusterCost {
+func ConnectorIDNotIn(vs ...object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldNotIn(FieldConnectorID, vs...))
 }
 
 // ConnectorIDGT applies the GT predicate on the "connectorID" field.
-func ConnectorIDGT(v oid.ID) predicate.ClusterCost {
+func ConnectorIDGT(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldGT(FieldConnectorID, v))
 }
 
 // ConnectorIDGTE applies the GTE predicate on the "connectorID" field.
-func ConnectorIDGTE(v oid.ID) predicate.ClusterCost {
+func ConnectorIDGTE(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldGTE(FieldConnectorID, v))
 }
 
 // ConnectorIDLT applies the LT predicate on the "connectorID" field.
-func ConnectorIDLT(v oid.ID) predicate.ClusterCost {
+func ConnectorIDLT(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldLT(FieldConnectorID, v))
 }
 
 // ConnectorIDLTE applies the LTE predicate on the "connectorID" field.
-func ConnectorIDLTE(v oid.ID) predicate.ClusterCost {
+func ConnectorIDLTE(v object.ID) predicate.ClusterCost {
 	return predicate.ClusterCost(sql.FieldLTE(FieldConnectorID, v))
 }
 
 // ConnectorIDContains applies the Contains predicate on the "connectorID" field.
-func ConnectorIDContains(v oid.ID) predicate.ClusterCost {
+func ConnectorIDContains(v object.ID) predicate.ClusterCost {
 	vc := string(v)
 	return predicate.ClusterCost(sql.FieldContains(FieldConnectorID, vc))
 }
 
 // ConnectorIDHasPrefix applies the HasPrefix predicate on the "connectorID" field.
-func ConnectorIDHasPrefix(v oid.ID) predicate.ClusterCost {
+func ConnectorIDHasPrefix(v object.ID) predicate.ClusterCost {
 	vc := string(v)
 	return predicate.ClusterCost(sql.FieldHasPrefix(FieldConnectorID, vc))
 }
 
 // ConnectorIDHasSuffix applies the HasSuffix predicate on the "connectorID" field.
-func ConnectorIDHasSuffix(v oid.ID) predicate.ClusterCost {
+func ConnectorIDHasSuffix(v object.ID) predicate.ClusterCost {
 	vc := string(v)
 	return predicate.ClusterCost(sql.FieldHasSuffix(FieldConnectorID, vc))
 }
 
 // ConnectorIDEqualFold applies the EqualFold predicate on the "connectorID" field.
-func ConnectorIDEqualFold(v oid.ID) predicate.ClusterCost {
+func ConnectorIDEqualFold(v object.ID) predicate.ClusterCost {
 	vc := string(v)
 	return predicate.ClusterCost(sql.FieldEqualFold(FieldConnectorID, vc))
 }
 
 // ConnectorIDContainsFold applies the ContainsFold predicate on the "connectorID" field.
-func ConnectorIDContainsFold(v oid.ID) predicate.ClusterCost {
+func ConnectorIDContainsFold(v object.ID) predicate.ClusterCost {
 	vc := string(v)
 	return predicate.ClusterCost(sql.FieldContainsFold(FieldConnectorID, vc))
 }

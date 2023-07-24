@@ -22,7 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceQuery is the builder for querying ServiceResource entities.
@@ -275,8 +275,8 @@ func (srq *ServiceResourceQuery) FirstX(ctx context.Context) *ServiceResource {
 
 // FirstID returns the first ServiceResource ID from the query.
 // Returns a *NotFoundError when no ServiceResource ID was found.
-func (srq *ServiceResourceQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srq *ServiceResourceQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srq.Limit(1).IDs(setContextOp(ctx, srq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -288,7 +288,7 @@ func (srq *ServiceResourceQuery) FirstID(ctx context.Context) (id oid.ID, err er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (srq *ServiceResourceQuery) FirstIDX(ctx context.Context) oid.ID {
+func (srq *ServiceResourceQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := srq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -326,8 +326,8 @@ func (srq *ServiceResourceQuery) OnlyX(ctx context.Context) *ServiceResource {
 // OnlyID is like Only, but returns the only ServiceResource ID in the query.
 // Returns a *NotSingularError when more than one ServiceResource ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (srq *ServiceResourceQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srq *ServiceResourceQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srq.Limit(2).IDs(setContextOp(ctx, srq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -343,7 +343,7 @@ func (srq *ServiceResourceQuery) OnlyID(ctx context.Context) (id oid.ID, err err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (srq *ServiceResourceQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (srq *ServiceResourceQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := srq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -371,7 +371,7 @@ func (srq *ServiceResourceQuery) AllX(ctx context.Context) []*ServiceResource {
 }
 
 // IDs executes the query and returns a list of ServiceResource IDs.
-func (srq *ServiceResourceQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (srq *ServiceResourceQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if srq.ctx.Unique == nil && srq.path != nil {
 		srq.Unique(true)
 	}
@@ -383,7 +383,7 @@ func (srq *ServiceResourceQuery) IDs(ctx context.Context) (ids []oid.ID, err err
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (srq *ServiceResourceQuery) IDsX(ctx context.Context) []oid.ID {
+func (srq *ServiceResourceQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := srq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -695,8 +695,8 @@ func (srq *ServiceResourceQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 }
 
 func (srq *ServiceResourceQuery) loadService(ctx context.Context, query *ServiceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *Service)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResource)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResource)
 	for i := range nodes {
 		fk := nodes[i].ServiceID
 		if _, ok := nodeids[fk]; !ok {
@@ -724,8 +724,8 @@ func (srq *ServiceResourceQuery) loadService(ctx context.Context, query *Service
 	return nil
 }
 func (srq *ServiceResourceQuery) loadConnector(ctx context.Context, query *ConnectorQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *Connector)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResource)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResource)
 	for i := range nodes {
 		fk := nodes[i].ConnectorID
 		if _, ok := nodeids[fk]; !ok {
@@ -753,8 +753,8 @@ func (srq *ServiceResourceQuery) loadConnector(ctx context.Context, query *Conne
 	return nil
 }
 func (srq *ServiceResourceQuery) loadComposition(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResource)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResource)
 	for i := range nodes {
 		fk := nodes[i].CompositionID
 		if _, ok := nodeids[fk]; !ok {
@@ -783,7 +783,7 @@ func (srq *ServiceResourceQuery) loadComposition(ctx context.Context, query *Ser
 }
 func (srq *ServiceResourceQuery) loadComponents(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*ServiceResource)
+	nodeids := make(map[object.ID]*ServiceResource)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -812,8 +812,8 @@ func (srq *ServiceResourceQuery) loadComponents(ctx context.Context, query *Serv
 	return nil
 }
 func (srq *ServiceResourceQuery) loadClass(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*ServiceResource)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*ServiceResource)
 	for i := range nodes {
 		fk := nodes[i].ClassID
 		if _, ok := nodeids[fk]; !ok {
@@ -842,7 +842,7 @@ func (srq *ServiceResourceQuery) loadClass(ctx context.Context, query *ServiceRe
 }
 func (srq *ServiceResourceQuery) loadInstances(ctx context.Context, query *ServiceResourceQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResource)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*ServiceResource)
+	nodeids := make(map[object.ID]*ServiceResource)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -872,7 +872,7 @@ func (srq *ServiceResourceQuery) loadInstances(ctx context.Context, query *Servi
 }
 func (srq *ServiceResourceQuery) loadDependencies(ctx context.Context, query *ServiceResourceRelationshipQuery, nodes []*ServiceResource, init func(*ServiceResource), assign func(*ServiceResource, *ServiceResourceRelationship)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[oid.ID]*ServiceResource)
+	nodeids := make(map[object.ID]*ServiceResource)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]

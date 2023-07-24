@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -97,7 +97,7 @@ func (sc *ServiceCreate) SetNillableUpdateTime(t *time.Time) *ServiceCreate {
 }
 
 // SetProjectID sets the "projectID" field.
-func (sc *ServiceCreate) SetProjectID(o oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) SetProjectID(o object.ID) *ServiceCreate {
 	sc.mutation.SetProjectID(o)
 	return sc
 }
@@ -117,7 +117,7 @@ func (sc *ServiceCreate) SetNillableStatus(s *status.Status) *ServiceCreate {
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (sc *ServiceCreate) SetEnvironmentID(o oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) SetEnvironmentID(o object.ID) *ServiceCreate {
 	sc.mutation.SetEnvironmentID(o)
 	return sc
 }
@@ -135,7 +135,7 @@ func (sc *ServiceCreate) SetAttributes(pr property.Values) *ServiceCreate {
 }
 
 // SetID sets the "id" field.
-func (sc *ServiceCreate) SetID(o oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) SetID(o object.ID) *ServiceCreate {
 	sc.mutation.SetID(o)
 	return sc
 }
@@ -151,14 +151,14 @@ func (sc *ServiceCreate) SetEnvironment(e *Environment) *ServiceCreate {
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
-func (sc *ServiceCreate) AddRevisionIDs(ids ...oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) AddRevisionIDs(ids ...object.ID) *ServiceCreate {
 	sc.mutation.AddRevisionIDs(ids...)
 	return sc
 }
 
 // AddRevisions adds the "revisions" edges to the ServiceRevision entity.
 func (sc *ServiceCreate) AddRevisions(s ...*ServiceRevision) *ServiceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -166,14 +166,14 @@ func (sc *ServiceCreate) AddRevisions(s ...*ServiceRevision) *ServiceCreate {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (sc *ServiceCreate) AddResourceIDs(ids ...oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) AddResourceIDs(ids ...object.ID) *ServiceCreate {
 	sc.mutation.AddResourceIDs(ids...)
 	return sc
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (sc *ServiceCreate) AddResources(s ...*ServiceResource) *ServiceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -181,14 +181,14 @@ func (sc *ServiceCreate) AddResources(s ...*ServiceResource) *ServiceCreate {
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceRelationship entity by IDs.
-func (sc *ServiceCreate) AddDependencyIDs(ids ...oid.ID) *ServiceCreate {
+func (sc *ServiceCreate) AddDependencyIDs(ids ...object.ID) *ServiceCreate {
 	sc.mutation.AddDependencyIDs(ids...)
 	return sc
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceRelationship entity.
 func (sc *ServiceCreate) AddDependencies(s ...*ServiceRelationship) *ServiceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -313,7 +313,7 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -860,7 +860,7 @@ func (u *ServiceUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ServiceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ServiceUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -874,7 +874,7 @@ func (u *ServiceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ServiceUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ServiceUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

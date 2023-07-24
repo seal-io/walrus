@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 )
 
 const SessionCookieName = "seal_session"
 
-func decodeSession(r *http.Request) (subjectID oid.ID, domain, value string) {
+func decodeSession(r *http.Request) (subjectID object.ID, domain, value string) {
 	v := getAccessSession(r)
 	if v == "" {
 		return
@@ -34,7 +34,7 @@ func flushSession(r *http.Request, rw http.ResponseWriter, elements ...string) e
 
 	switch {
 	case len(elements) == 3:
-		v, err = wrapAccessSession(oid.ID(elements[0]), elements[1], elements[2])
+		v, err = wrapAccessSession(object.ID(elements[0]), elements[1], elements[2])
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func getAccessSession(r *http.Request) string {
 	return c.Value
 }
 
-func unwrapAccessSession(accessSession string) (subjectID oid.ID, domain, value string, err error) {
+func unwrapAccessSession(accessSession string) (subjectID object.ID, domain, value string, err error) {
 	ct, err := strs.DecodeBase64(accessSession)
 	if err != nil {
 		return
@@ -103,13 +103,13 @@ func unwrapAccessSession(accessSession string) (subjectID oid.ID, domain, value 
 	pt := strs.FromBytes(&ptbs)
 
 	if ss := strings.SplitN(pt, ":", 3); len(ss) == 3 {
-		return oid.ID(ss[0]), ss[1], ss[2], nil
+		return object.ID(ss[0]), ss[1], ss[2], nil
 	}
 
 	return "", "", pt, nil
 }
 
-func wrapAccessSession(subjectID oid.ID, domain, value string) (accessSession string, err error) {
+func wrapAccessSession(subjectID object.ID, domain, value string) (accessSession string, err error) {
 	pt := strs.Join(":", string(subjectID), domain, value)
 	ptbs := strs.ToBytes(&pt)
 

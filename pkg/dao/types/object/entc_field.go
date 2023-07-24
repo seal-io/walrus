@@ -1,4 +1,4 @@
-package oid
+package object
 
 import (
 	"errors"
@@ -86,7 +86,7 @@ func (b *fieldBuilder) StorageKey(key string) *fieldBuilder {
 // Annotations adds a list of annotations to the field object to be used by
 // codegen extensions.
 //
-//	oid.Field("link").
+//	object.Field("link").
 //		Annotations(
 //			entgql.OrderField("LINK"),
 //		)

@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceRelationshipQueryInput is the input for the ServiceRelationship query.
 type ServiceRelationshipQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ServiceRelationshipQueryInput to ServiceRelationship.
@@ -40,7 +40,7 @@ func (in ServiceRelationshipCreateInput) Model() *ServiceRelationship {
 // ServiceRelationshipUpdateInput is the input for the ServiceRelationship modification.
 type ServiceRelationshipUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Service to which the dependency belongs.
 	Dependency ServiceQueryInput `json:"dependency,omitempty"`
 }
@@ -57,11 +57,11 @@ func (in ServiceRelationshipUpdateInput) Model() *ServiceRelationship {
 // ServiceRelationshipOutput is the output for the ServiceRelationship.
 type ServiceRelationshipOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// ID list of the service includes all dependencies and the service itself.
-	Path []oid.ID `json:"path,omitempty"`
+	Path []object.ID `json:"path,omitempty"`
 	// Type of the relationship.
 	Type string `json:"type,omitempty"`
 	// Service to which the dependency belongs.

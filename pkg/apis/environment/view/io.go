@@ -15,7 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/validation"
 )
@@ -29,8 +29,8 @@ type CreateRequest struct {
 	Services []model.ServiceCreateInput `json:"services,cli-ignore"`
 
 	// Project id and project name are used in permission checking.
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -129,7 +129,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		}
 	}
 
-	connectorIDs := make([]oid.ID, len(r.Connectors))
+	connectorIDs := make([]object.ID, len(r.Connectors))
 	for i, c := range r.Connectors {
 		connectorIDs[i] = c.Connector.ID
 	}
@@ -171,7 +171,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 		return runtime.Error(http.StatusNotFound, "environment is not found")
 	}
 
-	connectorIDs := make([]oid.ID, len(r.Connectors))
+	connectorIDs := make([]object.ID, len(r.Connectors))
 	for i, c := range r.Connectors {
 		connectorIDs[i] = c.Connector.ID
 	}
@@ -184,7 +184,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 }
 
 // validateConnectors checks if given connector IDs are valid within the same project or globally.
-func validateConnectors(ctx context.Context, client model.ClientSet, connectorIDs []oid.ID) error {
+func validateConnectors(ctx context.Context, client model.ClientSet, connectorIDs []object.ID) error {
 	if len(connectorIDs) == 0 {
 		return nil
 	}
@@ -264,8 +264,8 @@ func (r CollectionDeleteRequest) Validate() error {
 
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Environment, environment.OrderOption] `query:",inline"`
-	ProjectID                                                                 oid.ID `query:"projectID,omitempty"`
-	ProjectName                                                               string `query:"projectName,omitempty"`
+	ProjectID                                                                 object.ID `query:"projectID,omitempty"`
+	ProjectName                                                               string    `query:"projectName,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {

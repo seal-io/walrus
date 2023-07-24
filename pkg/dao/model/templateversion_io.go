@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateVersionQueryInput is the input for the TemplateVersion query.
 type TemplateVersionQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the TemplateVersionQueryInput to TemplateVersion.
@@ -48,7 +48,7 @@ func (in TemplateVersionCreateInput) Model() *TemplateVersion {
 // TemplateVersionUpdateInput is the input for the TemplateVersion modification.
 type TemplateVersionUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Schema of the template.
 	Schema *types.TemplateSchema `json:"schema,omitempty"`
 }
@@ -65,7 +65,7 @@ func (in TemplateVersionUpdateInput) Model() *TemplateVersion {
 // TemplateVersionOutput is the output for the TemplateVersion.
 type TemplateVersionOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// UpdateTime holds the value of the "updateTime" field.

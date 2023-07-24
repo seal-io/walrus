@@ -13,7 +13,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
@@ -75,7 +75,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if len(cs) == 0 {
 		return nil
 	}
-	ops := make(map[oid.ID]optypes.Operator, len(cs))
+	ops := make(map[object.ID]optypes.Operator, len(cs))
 
 	for i := range cs {
 		op, err := operator.Get(ctx, optypes.CreateOptions{
@@ -117,7 +117,7 @@ func (in *StatusSyncTask) buildStateTasks(
 	ctx context.Context,
 	offset,
 	limit int,
-	ops map[oid.ID]optypes.Operator,
+	ops map[object.ID]optypes.Operator,
 ) func() error {
 	return func() error {
 		is, err := in.modelClient.Services().Query().
@@ -147,7 +147,7 @@ func (in *StatusSyncTask) buildStateTasks(
 func (in *StatusSyncTask) buildStateTask(
 	ctx context.Context,
 	i *model.Service,
-	ops map[oid.ID]optypes.Operator,
+	ops map[object.ID]optypes.Operator,
 ) func() error {
 	return func() (berr error) {
 		rs, err := i.QueryResources().
@@ -167,7 +167,7 @@ func (in *StatusSyncTask) buildStateTask(
 			return fmt.Errorf("error listing service resources: %w", err)
 		}
 
-		ids := make(map[oid.ID][]*model.ServiceResource)
+		ids := make(map[object.ID][]*model.ServiceResource)
 		for y := range rs {
 			// Group resources by connector.
 			ids[rs[y].ConnectorID] = append(ids[rs[y].ConnectorID],

@@ -3,7 +3,7 @@ package types
 import (
 	"strings"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // QueryCondition indicated the filters, groupBys, step, and shared costs query params.
@@ -38,14 +38,14 @@ type (
 
 	IdleCostFilters []IdleCostFilter
 	IdleCostFilter  struct {
-		ConnectorID oid.ID `json:"connectorID,omitempty"`
-		IncludeAll  bool   `json:"includeAll,omitempty"`
+		ConnectorID object.ID `json:"connectorID,omitempty"`
+		IncludeAll  bool      `json:"includeAll,omitempty"`
 	}
 
 	ManagementCostFilters []ManagementCostFilter
 	ManagementCostFilter  struct {
-		ConnectorID oid.ID `json:"connectorID,omitempty"`
-		IncludeAll  bool   `json:"includeAll,omitempty"`
+		ConnectorID object.ID `json:"connectorID,omitempty"`
+		IncludeAll  bool      `json:"includeAll,omitempty"`
 	}
 )
 

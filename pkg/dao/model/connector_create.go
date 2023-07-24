@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -96,13 +96,13 @@ func (cc *ConnectorCreate) SetNillableUpdateTime(t *time.Time) *ConnectorCreate 
 }
 
 // SetProjectID sets the "projectID" field.
-func (cc *ConnectorCreate) SetProjectID(o oid.ID) *ConnectorCreate {
+func (cc *ConnectorCreate) SetProjectID(o object.ID) *ConnectorCreate {
 	cc.mutation.SetProjectID(o)
 	return cc
 }
 
 // SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableProjectID(o *oid.ID) *ConnectorCreate {
+func (cc *ConnectorCreate) SetNillableProjectID(o *object.ID) *ConnectorCreate {
 	if o != nil {
 		cc.SetProjectID(*o)
 	}
@@ -160,7 +160,7 @@ func (cc *ConnectorCreate) SetCategory(s string) *ConnectorCreate {
 }
 
 // SetID sets the "id" field.
-func (cc *ConnectorCreate) SetID(o oid.ID) *ConnectorCreate {
+func (cc *ConnectorCreate) SetID(o object.ID) *ConnectorCreate {
 	cc.mutation.SetID(o)
 	return cc
 }
@@ -171,14 +171,14 @@ func (cc *ConnectorCreate) SetProject(p *Project) *ConnectorCreate {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (cc *ConnectorCreate) AddResourceIDs(ids ...oid.ID) *ConnectorCreate {
+func (cc *ConnectorCreate) AddResourceIDs(ids ...object.ID) *ConnectorCreate {
 	cc.mutation.AddResourceIDs(ids...)
 	return cc
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (cc *ConnectorCreate) AddResources(s ...*ServiceResource) *ConnectorCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -342,7 +342,7 @@ func (cc *ConnectorCreate) sqlSave(ctx context.Context) (*Connector, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -961,7 +961,7 @@ func (u *ConnectorUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ConnectorUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ConnectorUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -975,7 +975,7 @@ func (u *ConnectorUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ConnectorUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ConnectorUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

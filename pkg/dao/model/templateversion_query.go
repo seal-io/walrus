@@ -19,7 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TemplateVersionQuery is the builder for querying TemplateVersion entities.
@@ -116,8 +116,8 @@ func (tvq *TemplateVersionQuery) FirstX(ctx context.Context) *TemplateVersion {
 
 // FirstID returns the first TemplateVersion ID from the query.
 // Returns a *NotFoundError when no TemplateVersion ID was found.
-func (tvq *TemplateVersionQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (tvq *TemplateVersionQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = tvq.Limit(1).IDs(setContextOp(ctx, tvq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ func (tvq *TemplateVersionQuery) FirstID(ctx context.Context) (id oid.ID, err er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tvq *TemplateVersionQuery) FirstIDX(ctx context.Context) oid.ID {
+func (tvq *TemplateVersionQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := tvq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -167,8 +167,8 @@ func (tvq *TemplateVersionQuery) OnlyX(ctx context.Context) *TemplateVersion {
 // OnlyID is like Only, but returns the only TemplateVersion ID in the query.
 // Returns a *NotSingularError when more than one TemplateVersion ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (tvq *TemplateVersionQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (tvq *TemplateVersionQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = tvq.Limit(2).IDs(setContextOp(ctx, tvq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -184,7 +184,7 @@ func (tvq *TemplateVersionQuery) OnlyID(ctx context.Context) (id oid.ID, err err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tvq *TemplateVersionQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (tvq *TemplateVersionQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := tvq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -212,7 +212,7 @@ func (tvq *TemplateVersionQuery) AllX(ctx context.Context) []*TemplateVersion {
 }
 
 // IDs executes the query and returns a list of TemplateVersion IDs.
-func (tvq *TemplateVersionQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (tvq *TemplateVersionQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if tvq.ctx.Unique == nil && tvq.path != nil {
 		tvq.Unique(true)
 	}
@@ -224,7 +224,7 @@ func (tvq *TemplateVersionQuery) IDs(ctx context.Context) (ids []oid.ID, err err
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tvq *TemplateVersionQuery) IDsX(ctx context.Context) []oid.ID {
+func (tvq *TemplateVersionQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := tvq.IDs(ctx)
 	if err != nil {
 		panic(err)

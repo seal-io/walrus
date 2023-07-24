@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // EnvironmentUpdate is the builder for updating Environment entities.
@@ -95,14 +95,14 @@ func (eu *EnvironmentUpdate) SetUpdateTime(t time.Time) *EnvironmentUpdate {
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (eu *EnvironmentUpdate) AddServiceIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) AddServiceIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.AddServiceIDs(ids...)
 	return eu
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (eu *EnvironmentUpdate) AddServices(s ...*Service) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -110,14 +110,14 @@ func (eu *EnvironmentUpdate) AddServices(s ...*Service) *EnvironmentUpdate {
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (eu *EnvironmentUpdate) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) AddServiceRevisionIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.AddServiceRevisionIDs(ids...)
 	return eu
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (eu *EnvironmentUpdate) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -125,14 +125,14 @@ func (eu *EnvironmentUpdate) AddServiceRevisions(s ...*ServiceRevision) *Environ
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (eu *EnvironmentUpdate) AddVariableIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) AddVariableIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.AddVariableIDs(ids...)
 	return eu
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (eu *EnvironmentUpdate) AddVariables(v ...*Variable) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -151,14 +151,14 @@ func (eu *EnvironmentUpdate) ClearServices() *EnvironmentUpdate {
 }
 
 // RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (eu *EnvironmentUpdate) RemoveServiceIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) RemoveServiceIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.RemoveServiceIDs(ids...)
 	return eu
 }
 
 // RemoveServices removes "services" edges to Service entities.
 func (eu *EnvironmentUpdate) RemoveServices(s ...*Service) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -172,14 +172,14 @@ func (eu *EnvironmentUpdate) ClearServiceRevisions() *EnvironmentUpdate {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
-func (eu *EnvironmentUpdate) RemoveServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) RemoveServiceRevisionIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.RemoveServiceRevisionIDs(ids...)
 	return eu
 }
 
 // RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
 func (eu *EnvironmentUpdate) RemoveServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -193,14 +193,14 @@ func (eu *EnvironmentUpdate) ClearVariables() *EnvironmentUpdate {
 }
 
 // RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
-func (eu *EnvironmentUpdate) RemoveVariableIDs(ids ...oid.ID) *EnvironmentUpdate {
+func (eu *EnvironmentUpdate) RemoveVariableIDs(ids ...object.ID) *EnvironmentUpdate {
 	eu.mutation.RemoveVariableIDs(ids...)
 	return eu
 }
 
 // RemoveVariables removes "variables" edges to Variable entities.
 func (eu *EnvironmentUpdate) RemoveVariables(v ...*Variable) *EnvironmentUpdate {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -529,14 +529,14 @@ func (euo *EnvironmentUpdateOne) SetUpdateTime(t time.Time) *EnvironmentUpdateOn
 }
 
 // AddServiceIDs adds the "services" edge to the Service entity by IDs.
-func (euo *EnvironmentUpdateOne) AddServiceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) AddServiceIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddServiceIDs(ids...)
 	return euo
 }
 
 // AddServices adds the "services" edges to the Service entity.
 func (euo *EnvironmentUpdateOne) AddServices(s ...*Service) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -544,14 +544,14 @@ func (euo *EnvironmentUpdateOne) AddServices(s ...*Service) *EnvironmentUpdateOn
 }
 
 // AddServiceRevisionIDs adds the "serviceRevisions" edge to the ServiceRevision entity by IDs.
-func (euo *EnvironmentUpdateOne) AddServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) AddServiceRevisionIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddServiceRevisionIDs(ids...)
 	return euo
 }
 
 // AddServiceRevisions adds the "serviceRevisions" edges to the ServiceRevision entity.
 func (euo *EnvironmentUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -559,14 +559,14 @@ func (euo *EnvironmentUpdateOne) AddServiceRevisions(s ...*ServiceRevision) *Env
 }
 
 // AddVariableIDs adds the "variables" edge to the Variable entity by IDs.
-func (euo *EnvironmentUpdateOne) AddVariableIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) AddVariableIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.AddVariableIDs(ids...)
 	return euo
 }
 
 // AddVariables adds the "variables" edges to the Variable entity.
 func (euo *EnvironmentUpdateOne) AddVariables(v ...*Variable) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -585,14 +585,14 @@ func (euo *EnvironmentUpdateOne) ClearServices() *EnvironmentUpdateOne {
 }
 
 // RemoveServiceIDs removes the "services" edge to Service entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveServiceIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) RemoveServiceIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.RemoveServiceIDs(ids...)
 	return euo
 }
 
 // RemoveServices removes "services" edges to Service entities.
 func (euo *EnvironmentUpdateOne) RemoveServices(s ...*Service) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -606,14 +606,14 @@ func (euo *EnvironmentUpdateOne) ClearServiceRevisions() *EnvironmentUpdateOne {
 }
 
 // RemoveServiceRevisionIDs removes the "serviceRevisions" edge to ServiceRevision entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveServiceRevisionIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) RemoveServiceRevisionIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.RemoveServiceRevisionIDs(ids...)
 	return euo
 }
 
 // RemoveServiceRevisions removes "serviceRevisions" edges to ServiceRevision entities.
 func (euo *EnvironmentUpdateOne) RemoveServiceRevisions(s ...*ServiceRevision) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -627,14 +627,14 @@ func (euo *EnvironmentUpdateOne) ClearVariables() *EnvironmentUpdateOne {
 }
 
 // RemoveVariableIDs removes the "variables" edge to Variable entities by IDs.
-func (euo *EnvironmentUpdateOne) RemoveVariableIDs(ids ...oid.ID) *EnvironmentUpdateOne {
+func (euo *EnvironmentUpdateOne) RemoveVariableIDs(ids ...object.ID) *EnvironmentUpdateOne {
 	euo.mutation.RemoveVariableIDs(ids...)
 	return euo
 }
 
 // RemoveVariables removes "variables" edges to Variable entities.
 func (euo *EnvironmentUpdateOne) RemoveVariables(v ...*Variable) *EnvironmentUpdateOne {
-	ids := make([]oid.ID, len(v))
+	ids := make([]object.ID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}

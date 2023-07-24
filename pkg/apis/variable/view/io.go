@@ -12,7 +12,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -21,10 +21,10 @@ import (
 type CreateRequest struct {
 	model.VariableCreateInput `json:",inline"`
 
-	ProjectID       oid.ID `query:"projectID,omitempty"`
-	ProjectName     string `query:"projectName,omitempty"`
-	EnvironmentID   oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName string `query:"environmentName,omitempty"`
+	ProjectID       object.ID `query:"projectID,omitempty"`
+	ProjectName     string    `query:"projectName,omitempty"`
+	EnvironmentID   object.ID `query:"environmentID,omitempty"`
+	EnvironmentName string    `query:"environmentName,omitempty"`
 }
 
 func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -111,8 +111,8 @@ func ExposeVariable(in *model.Variable) *model.VariableOutput {
 type DeleteRequest struct {
 	model.VariableQueryInput `uri:",inline"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -161,8 +161,8 @@ func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 type UpdateRequest struct {
 	model.VariableUpdateInput `uri:",inline" json:",inline"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
@@ -217,8 +217,8 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 type CollectionDeleteRequest struct {
 	Items []*model.VariableQueryInput `json:"items"`
 
-	ProjectID   oid.ID `query:"projectID,omitempty"`
-	ProjectName string `query:"projectName,omitempty"`
+	ProjectID   object.ID `query:"projectID,omitempty"`
+	ProjectName string    `query:"projectName,omitempty"`
 }
 
 func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) error {
@@ -253,7 +253,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	// FIXME(thxCode): a workaround to protect general user deleting global variable,
 	//   returns a not found error instead of forbidden.
 	if r.ProjectID != "" {
-		ids := make([]oid.ID, len(r.Items))
+		ids := make([]object.ID, len(r.Items))
 		for i := range r.Items {
 			ids[i] = r.Items[i].ID
 		}
@@ -278,11 +278,11 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 type CollectionGetRequest struct {
 	runtime.RequestCollection[predicate.Variable, variable.OrderOption] `query:",inline"`
 
-	ProjectID        oid.ID `query:"projectID,omitempty"`
-	ProjectName      string `query:"projectName,omitempty"`
-	EnvironmentID    oid.ID `query:"environmentID,omitempty"`
-	EnvironmentName  string `query:"environmentName,omitempty"`
-	IncludeInherited bool   `query:"includeInherited,omitempty"`
+	ProjectID        object.ID `query:"projectID,omitempty"`
+	ProjectName      string    `query:"projectName,omitempty"`
+	EnvironmentID    object.ID `query:"environmentID,omitempty"`
+	EnvironmentName  string    `query:"environmentName,omitempty"`
+	IncludeInherited bool      `query:"includeInherited,omitempty"`
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {

@@ -9,7 +9,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
@@ -28,11 +28,11 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 
 func (ServiceRevision) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("serviceID").
+		object.Field("serviceID").
 			Comment("ID of the service to which the revision belongs.").
 			NotEmpty().
 			Immutable(),
-		oid.Field("environmentID").
+		object.Field("environmentID").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),

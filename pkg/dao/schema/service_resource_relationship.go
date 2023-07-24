@@ -9,7 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type ServiceResourceRelationship struct {
@@ -32,12 +32,12 @@ func (ServiceResourceRelationship) Indexes() []ent.Index {
 
 func (ServiceResourceRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("service_resource_id").
+		object.Field("service_resource_id").
 			Comment("ID of the service resource.").
 			StructTag(`json:"serviceResourceID" sql:"serviceResourceID"`).
 			NotEmpty().
 			Immutable(),
-		oid.Field("dependency_id").
+		object.Field("dependency_id").
 			Comment("ID of the resource that resource depends on.").
 			StructTag(`json:"dependencyID" sql:"dependencyID"`).
 			NotEmpty().

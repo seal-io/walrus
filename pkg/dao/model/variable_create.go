@@ -20,7 +20,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // VariableCreate is the builder for creating a Variable entity.
@@ -60,13 +60,13 @@ func (vc *VariableCreate) SetNillableUpdateTime(t *time.Time) *VariableCreate {
 }
 
 // SetProjectID sets the "projectID" field.
-func (vc *VariableCreate) SetProjectID(o oid.ID) *VariableCreate {
+func (vc *VariableCreate) SetProjectID(o object.ID) *VariableCreate {
 	vc.mutation.SetProjectID(o)
 	return vc
 }
 
 // SetNillableProjectID sets the "projectID" field if the given value is not nil.
-func (vc *VariableCreate) SetNillableProjectID(o *oid.ID) *VariableCreate {
+func (vc *VariableCreate) SetNillableProjectID(o *object.ID) *VariableCreate {
 	if o != nil {
 		vc.SetProjectID(*o)
 	}
@@ -114,13 +114,13 @@ func (vc *VariableCreate) SetNillableDescription(s *string) *VariableCreate {
 }
 
 // SetEnvironmentID sets the "environmentID" field.
-func (vc *VariableCreate) SetEnvironmentID(o oid.ID) *VariableCreate {
+func (vc *VariableCreate) SetEnvironmentID(o object.ID) *VariableCreate {
 	vc.mutation.SetEnvironmentID(o)
 	return vc
 }
 
 // SetNillableEnvironmentID sets the "environmentID" field if the given value is not nil.
-func (vc *VariableCreate) SetNillableEnvironmentID(o *oid.ID) *VariableCreate {
+func (vc *VariableCreate) SetNillableEnvironmentID(o *object.ID) *VariableCreate {
 	if o != nil {
 		vc.SetEnvironmentID(*o)
 	}
@@ -128,7 +128,7 @@ func (vc *VariableCreate) SetNillableEnvironmentID(o *oid.ID) *VariableCreate {
 }
 
 // SetID sets the "id" field.
-func (vc *VariableCreate) SetID(o oid.ID) *VariableCreate {
+func (vc *VariableCreate) SetID(o object.ID) *VariableCreate {
 	vc.mutation.SetID(o)
 	return vc
 }
@@ -243,7 +243,7 @@ func (vc *VariableCreate) sqlSave(ctx context.Context) (*Variable, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -570,7 +570,7 @@ func (u *VariableUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *VariableUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *VariableUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -584,7 +584,7 @@ func (u *VariableUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *VariableUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *VariableUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

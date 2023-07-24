@@ -17,7 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/utils/json"
 )
@@ -26,7 +26,7 @@ import (
 type Connector struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" sql:"name"`
 	// Description holds the value of the "description" field.
@@ -40,7 +40,7 @@ type Connector struct {
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong, empty means for all projects.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty" sql:"status"`
 	// Type of the connector.
@@ -137,7 +137,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 		case connector.FieldConfigData:
 			values[i] = new(crypto.Properties)
 		case connector.FieldID, connector.FieldProjectID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
 		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion, connector.FieldCategory:
@@ -160,7 +160,7 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case connector.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				c.ID = *value
@@ -208,7 +208,7 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				*c.UpdateTime = value.Time
 			}
 		case connector.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				c.ProjectID = *value

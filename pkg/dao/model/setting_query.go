@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SettingQuery is the builder for querying Setting entities.
@@ -89,8 +89,8 @@ func (sq *SettingQuery) FirstX(ctx context.Context) *Setting {
 
 // FirstID returns the first Setting ID from the query.
 // Returns a *NotFoundError when no Setting ID was found.
-func (sq *SettingQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SettingQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func (sq *SettingQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SettingQuery) FirstIDX(ctx context.Context) oid.ID {
+func (sq *SettingQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +140,8 @@ func (sq *SettingQuery) OnlyX(ctx context.Context) *Setting {
 // OnlyID is like Only, but returns the only Setting ID in the query.
 // Returns a *NotSingularError when more than one Setting ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SettingQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (sq *SettingQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (sq *SettingQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SettingQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (sq *SettingQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,7 +185,7 @@ func (sq *SettingQuery) AllX(ctx context.Context) []*Setting {
 }
 
 // IDs executes the query and returns a list of Setting IDs.
-func (sq *SettingQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (sq *SettingQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -197,7 +197,7 @@ func (sq *SettingQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SettingQuery) IDsX(ctx context.Context) []oid.ID {
+func (sq *SettingQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)

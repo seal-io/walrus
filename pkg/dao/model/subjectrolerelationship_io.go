@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectRoleRelationshipQueryInput is the input for the SubjectRoleRelationship query.
 type SubjectRoleRelationshipQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the SubjectRoleRelationshipQueryInput to SubjectRoleRelationship.
@@ -43,7 +43,7 @@ func (in SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationship {
 // SubjectRoleRelationshipUpdateInput is the input for the SubjectRoleRelationship modification.
 type SubjectRoleRelationshipUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Subject that connect to the relationship.
 	Subject SubjectQueryInput `json:"subject,omitempty"`
 	// Role that connect to the relationship.
@@ -63,7 +63,7 @@ func (in SubjectRoleRelationshipUpdateInput) Model() *SubjectRoleRelationship {
 // SubjectRoleRelationshipOutput is the output for the SubjectRoleRelationship.
 type SubjectRoleRelationshipOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// Project to which the subject role belongs.

@@ -8,14 +8,14 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ListCandidatesPageByConnector gets the candidates for Label or State by connector id in pagination.
 func ListCandidatesPageByConnector(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	connectorID oid.ID,
+	connectorID object.ID,
 	offset,
 	limit int,
 ) ([]*model.ServiceResource, error) {
@@ -30,7 +30,7 @@ func ListCandidatesPageByConnector(
 func ListCandidatesByIDs(
 	ctx context.Context,
 	modelClient model.ClientSet,
-	ids []oid.ID,
+	ids []object.ID,
 ) ([]*model.ServiceResource, error) {
 	return queryCandidates(modelClient).
 		Where(serviceresource.IDIn(ids...)).

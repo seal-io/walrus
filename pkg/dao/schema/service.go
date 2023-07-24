@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
@@ -35,7 +35,7 @@ func (Service) Indexes() []ent.Index {
 
 func (Service) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("environmentID").
+		object.Field("environmentID").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),

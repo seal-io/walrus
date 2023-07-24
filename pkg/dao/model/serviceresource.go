@@ -17,7 +17,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -25,21 +25,21 @@ import (
 type ServiceResource struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID oid.ID `json:"id,omitempty" sql:"id"`
+	ID object.ID `json:"id,omitempty" sql:"id"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// UpdateTime holds the value of the "updateTime" field.
 	UpdateTime *time.Time `json:"updateTime,omitempty" sql:"updateTime"`
 	// ID of the project to belong.
-	ProjectID oid.ID `json:"projectID,omitempty" sql:"projectID"`
+	ProjectID object.ID `json:"projectID,omitempty" sql:"projectID"`
 	// ID of the service to which the resource belongs.
-	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
+	ServiceID object.ID `json:"serviceID,omitempty" sql:"serviceID"`
 	// ID of the connector to which the resource deploys.
-	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
+	ConnectorID object.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// ID of the parent resource.
-	CompositionID oid.ID `json:"compositionID,omitempty" sql:"compositionID"`
+	CompositionID object.ID `json:"compositionID,omitempty" sql:"compositionID"`
 	// ID of the parent class of the resource realization.
-	ClassID oid.ID `json:"classID,omitempty" sql:"classID"`
+	ClassID object.ID `json:"classID,omitempty" sql:"classID"`
 	// Mode that manages the generated resource, it is the management way of the deployer to the resource, which provides by deployer.
 	Mode string `json:"mode,omitempty" sql:"mode"`
 	// Type of the generated resource, it is the type of the resource which the deployer observes, which provides by deployer.
@@ -170,7 +170,7 @@ func (*ServiceResource) scanValues(columns []string) ([]any, error) {
 		case serviceresource.FieldStatus:
 			values[i] = new([]byte)
 		case serviceresource.FieldID, serviceresource.FieldProjectID, serviceresource.FieldServiceID, serviceresource.FieldConnectorID, serviceresource.FieldCompositionID, serviceresource.FieldClassID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case serviceresource.FieldMode, serviceresource.FieldType, serviceresource.FieldName, serviceresource.FieldDeployerType, serviceresource.FieldShape:
 			values[i] = new(sql.NullString)
 		case serviceresource.FieldCreateTime, serviceresource.FieldUpdateTime:
@@ -191,7 +191,7 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case serviceresource.FieldID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				sr.ID = *value
@@ -211,31 +211,31 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 				*sr.UpdateTime = value.Time
 			}
 		case serviceresource.FieldProjectID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field projectID", values[i])
 			} else if value != nil {
 				sr.ProjectID = *value
 			}
 		case serviceresource.FieldServiceID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field serviceID", values[i])
 			} else if value != nil {
 				sr.ServiceID = *value
 			}
 		case serviceresource.FieldConnectorID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				sr.ConnectorID = *value
 			}
 		case serviceresource.FieldCompositionID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field compositionID", values[i])
 			} else if value != nil {
 				sr.CompositionID = *value
 			}
 		case serviceresource.FieldClassID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field classID", values[i])
 			} else if value != nil {
 				sr.ClassID = *value

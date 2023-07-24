@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
 	"github.com/seal-io/seal/pkg/serviceresources"
@@ -116,7 +116,7 @@ func (in *LabelApplyTask) buildApplyTasks(ctx context.Context, c *model.Connecto
 func (in *LabelApplyTask) buildApplyTask(
 	ctx context.Context,
 	op optypes.Operator,
-	connectorID oid.ID,
+	connectorID object.ID,
 	offset,
 	limit int,
 ) func() error {

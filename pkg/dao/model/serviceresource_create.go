@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceCreate is the builder for creating a ServiceResource entity.
@@ -61,31 +61,31 @@ func (src *ServiceResourceCreate) SetNillableUpdateTime(t *time.Time) *ServiceRe
 }
 
 // SetProjectID sets the "projectID" field.
-func (src *ServiceResourceCreate) SetProjectID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetProjectID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetProjectID(o)
 	return src
 }
 
 // SetServiceID sets the "serviceID" field.
-func (src *ServiceResourceCreate) SetServiceID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetServiceID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetServiceID(o)
 	return src
 }
 
 // SetConnectorID sets the "connectorID" field.
-func (src *ServiceResourceCreate) SetConnectorID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetConnectorID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetConnectorID(o)
 	return src
 }
 
 // SetCompositionID sets the "compositionID" field.
-func (src *ServiceResourceCreate) SetCompositionID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetCompositionID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetCompositionID(o)
 	return src
 }
 
 // SetNillableCompositionID sets the "compositionID" field if the given value is not nil.
-func (src *ServiceResourceCreate) SetNillableCompositionID(o *oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetNillableCompositionID(o *object.ID) *ServiceResourceCreate {
 	if o != nil {
 		src.SetCompositionID(*o)
 	}
@@ -93,13 +93,13 @@ func (src *ServiceResourceCreate) SetNillableCompositionID(o *oid.ID) *ServiceRe
 }
 
 // SetClassID sets the "classID" field.
-func (src *ServiceResourceCreate) SetClassID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetClassID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetClassID(o)
 	return src
 }
 
 // SetNillableClassID sets the "classID" field if the given value is not nil.
-func (src *ServiceResourceCreate) SetNillableClassID(o *oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetNillableClassID(o *object.ID) *ServiceResourceCreate {
 	if o != nil {
 		src.SetClassID(*o)
 	}
@@ -151,7 +151,7 @@ func (src *ServiceResourceCreate) SetNillableStatus(trs *types.ServiceResourceSt
 }
 
 // SetID sets the "id" field.
-func (src *ServiceResourceCreate) SetID(o oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) SetID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetID(o)
 	return src
 }
@@ -172,14 +172,14 @@ func (src *ServiceResourceCreate) SetComposition(s *ServiceResource) *ServiceRes
 }
 
 // AddComponentIDs adds the "components" edge to the ServiceResource entity by IDs.
-func (src *ServiceResourceCreate) AddComponentIDs(ids ...oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) AddComponentIDs(ids ...object.ID) *ServiceResourceCreate {
 	src.mutation.AddComponentIDs(ids...)
 	return src
 }
 
 // AddComponents adds the "components" edges to the ServiceResource entity.
 func (src *ServiceResourceCreate) AddComponents(s ...*ServiceResource) *ServiceResourceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -192,14 +192,14 @@ func (src *ServiceResourceCreate) SetClass(s *ServiceResource) *ServiceResourceC
 }
 
 // AddInstanceIDs adds the "instances" edge to the ServiceResource entity by IDs.
-func (src *ServiceResourceCreate) AddInstanceIDs(ids ...oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) AddInstanceIDs(ids ...object.ID) *ServiceResourceCreate {
 	src.mutation.AddInstanceIDs(ids...)
 	return src
 }
 
 // AddInstances adds the "instances" edges to the ServiceResource entity.
 func (src *ServiceResourceCreate) AddInstances(s ...*ServiceResource) *ServiceResourceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -207,14 +207,14 @@ func (src *ServiceResourceCreate) AddInstances(s ...*ServiceResource) *ServiceRe
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ServiceResourceRelationship entity by IDs.
-func (src *ServiceResourceCreate) AddDependencyIDs(ids ...oid.ID) *ServiceResourceCreate {
+func (src *ServiceResourceCreate) AddDependencyIDs(ids ...object.ID) *ServiceResourceCreate {
 	src.mutation.AddDependencyIDs(ids...)
 	return src
 }
 
 // AddDependencies adds the "dependencies" edges to the ServiceResourceRelationship entity.
 func (src *ServiceResourceCreate) AddDependencies(s ...*ServiceResourceRelationship) *ServiceResourceCreate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -368,7 +368,7 @@ func (src *ServiceResourceCreate) sqlSave(ctx context.Context) (*ServiceResource
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -767,7 +767,7 @@ func (u *ServiceResourceUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ServiceResourceUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ServiceResourceUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -781,7 +781,7 @@ func (u *ServiceResourceUpsertOne) ID(ctx context.Context) (id oid.ID, err error
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ServiceResourceUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ServiceResourceUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

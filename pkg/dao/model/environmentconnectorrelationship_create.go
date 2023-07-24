@@ -18,7 +18,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // EnvironmentConnectorRelationshipCreate is the builder for creating a EnvironmentConnectorRelationship entity.
@@ -44,13 +44,13 @@ func (ecrc *EnvironmentConnectorRelationshipCreate) SetNillableCreateTime(t *tim
 }
 
 // SetEnvironmentID sets the "environment_id" field.
-func (ecrc *EnvironmentConnectorRelationshipCreate) SetEnvironmentID(o oid.ID) *EnvironmentConnectorRelationshipCreate {
+func (ecrc *EnvironmentConnectorRelationshipCreate) SetEnvironmentID(o object.ID) *EnvironmentConnectorRelationshipCreate {
 	ecrc.mutation.SetEnvironmentID(o)
 	return ecrc
 }
 
 // SetConnectorID sets the "connector_id" field.
-func (ecrc *EnvironmentConnectorRelationshipCreate) SetConnectorID(o oid.ID) *EnvironmentConnectorRelationshipCreate {
+func (ecrc *EnvironmentConnectorRelationshipCreate) SetConnectorID(o object.ID) *EnvironmentConnectorRelationshipCreate {
 	ecrc.mutation.SetConnectorID(o)
 	return ecrc
 }

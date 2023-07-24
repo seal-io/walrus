@@ -9,7 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type SubjectRoleRelationship struct {
@@ -42,7 +42,7 @@ func (SubjectRoleRelationship) Indexes() []ent.Index {
 
 func (SubjectRoleRelationship) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("subject_id").
+		object.Field("subject_id").
 			Comment("ID of the subject to which the relationship connects.").
 			StructTag(`json:"subjectID" sql:"subjectID"`).
 			NotEmpty().

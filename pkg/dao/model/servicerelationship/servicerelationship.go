@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 const (
@@ -86,7 +86,7 @@ var (
 	// DependencyIDValidator is a validator for the "dependency_id" field. It is called by the builders before save.
 	DependencyIDValidator func(string) error
 	// DefaultPath holds the default value on creation for the "path" field.
-	DefaultPath []oid.ID
+	DefaultPath []object.ID
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 )

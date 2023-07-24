@@ -9,11 +9,11 @@ import (
 	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func decodeToken(r *http.Request) (subjectID, tokenID oid.ID, tokenValue string) {
+func decodeToken(r *http.Request) (subjectID, tokenID object.ID, tokenValue string) {
 	v := getAccessToken(r)
 	if v == "" {
 		return
@@ -55,7 +55,7 @@ func getAccessToken(r *http.Request) string {
 	return ""
 }
 
-func unwrapAccessToken(accessToken string) (subjectID, tokenID oid.ID, tokenValue string, err error) {
+func unwrapAccessToken(accessToken string) (subjectID, tokenID object.ID, tokenValue string, err error) {
 	ct, err := strs.DecodeBase64(accessToken)
 	if err != nil {
 		return
@@ -69,13 +69,13 @@ func unwrapAccessToken(accessToken string) (subjectID, tokenID oid.ID, tokenValu
 	pt := strs.FromBytes(&ptbs)
 
 	if ss := strings.SplitN(pt, ":", 3); len(ss) == 3 {
-		return oid.ID(ss[0]), oid.ID(ss[1]), ss[2], nil
+		return object.ID(ss[0]), object.ID(ss[1]), ss[2], nil
 	}
 
 	return "", "", pt, nil
 }
 
-func wrapAccessToken(subjectID, tokenID oid.ID, tokenValue string) (accessToken string, err error) {
+func wrapAccessToken(subjectID, tokenID object.ID, tokenValue string) (accessToken string, err error) {
 	pt := strs.Join(":", string(subjectID), string(tokenID), tokenValue)
 	ptbs := strs.ToBytes(&pt)
 
@@ -97,7 +97,7 @@ type AccessToken struct {
 func CreateAccessToken(
 	ctx context.Context,
 	mc model.ClientSet,
-	subjectID oid.ID,
+	subjectID object.ID,
 	kind, name string,
 	expirationSeconds *int,
 ) (*AccessToken, error) {

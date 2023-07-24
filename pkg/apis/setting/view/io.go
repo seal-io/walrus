@@ -9,13 +9,13 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // Basic APIs.
 
 type UpdateRequest struct {
-	ID    oid.ID        `uri:"id,omitempty" json:"id,omitempty"`
+	ID    object.ID     `uri:"id,omitempty" json:"id,omitempty"`
 	Value crypto.String `json:"value"`
 
 	Name string `json:"-"`
@@ -101,7 +101,7 @@ func (r CollectionUpdateRequest) ValidateWith(ctx context.Context, input any) er
 type CollectionGetRequest struct {
 	runtime.RequestPagination `query:",inline"`
 
-	IDs []oid.ID `query:"id,omitempty"`
+	IDs []object.ID `query:"id,omitempty"`
 }
 
 func (r *CollectionGetRequest) Validate() error {

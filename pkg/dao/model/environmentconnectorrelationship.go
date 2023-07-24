@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // EnvironmentConnectorRelationship is the model entity for the EnvironmentConnectorRelationship schema.
@@ -25,9 +25,9 @@ type EnvironmentConnectorRelationship struct {
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty" sql:"createTime"`
 	// ID of the environment to which the relationship connects.
-	EnvironmentID oid.ID `json:"environmentID" sql:"environmentID"`
+	EnvironmentID object.ID `json:"environmentID" sql:"environmentID"`
 	// ID of the connector to which the relationship connects.
-	ConnectorID oid.ID `json:"connectorID" sql:"connectorID"`
+	ConnectorID object.ID `json:"connectorID" sql:"connectorID"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EnvironmentConnectorRelationshipQuery when eager-loading is set.
 	Edges        EnvironmentConnectorRelationshipEdges `json:"edges"`
@@ -77,7 +77,7 @@ func (*EnvironmentConnectorRelationship) scanValues(columns []string) ([]any, er
 	for i := range columns {
 		switch columns[i] {
 		case environmentconnectorrelationship.FieldEnvironmentID, environmentconnectorrelationship.FieldConnectorID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case environmentconnectorrelationship.FieldCreateTime:
 			values[i] = new(sql.NullTime)
 		default:
@@ -103,13 +103,13 @@ func (ecr *EnvironmentConnectorRelationship) assignValues(columns []string, valu
 				*ecr.CreateTime = value.Time
 			}
 		case environmentconnectorrelationship.FieldEnvironmentID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
 			} else if value != nil {
 				ecr.EnvironmentID = *value
 			}
 		case environmentconnectorrelationship.FieldConnectorID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connector_id", values[i])
 			} else if value != nil {
 				ecr.ConnectorID = *value

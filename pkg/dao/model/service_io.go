@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -17,7 +17,7 @@ import (
 // ServiceQueryInput is the input for the Service query.
 type ServiceQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the ServiceQueryInput to Service.
@@ -59,7 +59,7 @@ func (in ServiceCreateInput) Model() *Service {
 // ServiceUpdateInput is the input for the Service modification.
 type ServiceUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -88,7 +88,7 @@ func (in ServiceUpdateInput) Model() *Service {
 // ServiceOutput is the output for the Service.
 type ServiceOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.

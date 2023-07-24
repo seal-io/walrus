@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/log"
 	"github.com/seal-io/seal/utils/strs"
 )
@@ -388,7 +388,7 @@ func RouteResource(r gin.IRoutes, h Resource) error {
 			}
 
 			var (
-				pid   = oid.ID(c.Query("projectID"))
+				pid   = object.ID(c.Query("projectID"))
 				pName = c.Query("projectName")
 				act   = c.Request.Method
 				rid   = c.Param("id")

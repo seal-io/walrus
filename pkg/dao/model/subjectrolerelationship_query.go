@@ -21,7 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/role"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectRoleRelationshipQuery is the builder for querying SubjectRoleRelationship entities.
@@ -170,8 +170,8 @@ func (srrq *SubjectRoleRelationshipQuery) FirstX(ctx context.Context) *SubjectRo
 
 // FirstID returns the first SubjectRoleRelationship ID from the query.
 // Returns a *NotFoundError when no SubjectRoleRelationship ID was found.
-func (srrq *SubjectRoleRelationshipQuery) FirstID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srrq *SubjectRoleRelationshipQuery) FirstID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srrq.Limit(1).IDs(setContextOp(ctx, srrq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -183,7 +183,7 @@ func (srrq *SubjectRoleRelationshipQuery) FirstID(ctx context.Context) (id oid.I
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (srrq *SubjectRoleRelationshipQuery) FirstIDX(ctx context.Context) oid.ID {
+func (srrq *SubjectRoleRelationshipQuery) FirstIDX(ctx context.Context) object.ID {
 	id, err := srrq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -221,8 +221,8 @@ func (srrq *SubjectRoleRelationshipQuery) OnlyX(ctx context.Context) *SubjectRol
 // OnlyID is like Only, but returns the only SubjectRoleRelationship ID in the query.
 // Returns a *NotSingularError when more than one SubjectRoleRelationship ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (srrq *SubjectRoleRelationshipQuery) OnlyID(ctx context.Context) (id oid.ID, err error) {
-	var ids []oid.ID
+func (srrq *SubjectRoleRelationshipQuery) OnlyID(ctx context.Context) (id object.ID, err error) {
+	var ids []object.ID
 	if ids, err = srrq.Limit(2).IDs(setContextOp(ctx, srrq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -238,7 +238,7 @@ func (srrq *SubjectRoleRelationshipQuery) OnlyID(ctx context.Context) (id oid.ID
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (srrq *SubjectRoleRelationshipQuery) OnlyIDX(ctx context.Context) oid.ID {
+func (srrq *SubjectRoleRelationshipQuery) OnlyIDX(ctx context.Context) object.ID {
 	id, err := srrq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -266,7 +266,7 @@ func (srrq *SubjectRoleRelationshipQuery) AllX(ctx context.Context) []*SubjectRo
 }
 
 // IDs executes the query and returns a list of SubjectRoleRelationship IDs.
-func (srrq *SubjectRoleRelationshipQuery) IDs(ctx context.Context) (ids []oid.ID, err error) {
+func (srrq *SubjectRoleRelationshipQuery) IDs(ctx context.Context) (ids []object.ID, err error) {
 	if srrq.ctx.Unique == nil && srrq.path != nil {
 		srrq.Unique(true)
 	}
@@ -278,7 +278,7 @@ func (srrq *SubjectRoleRelationshipQuery) IDs(ctx context.Context) (ids []oid.ID
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (srrq *SubjectRoleRelationshipQuery) IDsX(ctx context.Context) []oid.ID {
+func (srrq *SubjectRoleRelationshipQuery) IDsX(ctx context.Context) []object.ID {
 	ids, err := srrq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -509,8 +509,8 @@ func (srrq *SubjectRoleRelationshipQuery) sqlAll(ctx context.Context, hooks ...q
 }
 
 func (srrq *SubjectRoleRelationshipQuery) loadProject(ctx context.Context, query *ProjectQuery, nodes []*SubjectRoleRelationship, init func(*SubjectRoleRelationship), assign func(*SubjectRoleRelationship, *Project)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*SubjectRoleRelationship)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*SubjectRoleRelationship)
 	for i := range nodes {
 		fk := nodes[i].ProjectID
 		if _, ok := nodeids[fk]; !ok {
@@ -538,8 +538,8 @@ func (srrq *SubjectRoleRelationshipQuery) loadProject(ctx context.Context, query
 	return nil
 }
 func (srrq *SubjectRoleRelationshipQuery) loadSubject(ctx context.Context, query *SubjectQuery, nodes []*SubjectRoleRelationship, init func(*SubjectRoleRelationship), assign func(*SubjectRoleRelationship, *Subject)) error {
-	ids := make([]oid.ID, 0, len(nodes))
-	nodeids := make(map[oid.ID][]*SubjectRoleRelationship)
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*SubjectRoleRelationship)
 	for i := range nodes {
 		fk := nodes[i].SubjectID
 		if _, ok := nodeids[fk]; !ok {

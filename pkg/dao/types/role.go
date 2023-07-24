@@ -130,10 +130,10 @@ type RolePolicy struct {
 
 	// Resources specifies the including resource list of this policy.
 	Resources []string `json:"resources,omitempty"`
-	// ObjectIDs specifies the including oid.ID list of this policy,
+	// ObjectIDs specifies the including object.ID list of this policy,
 	// only works if the Resources specified as ["<a kind of resource>"].
 	ObjectIDs []string `json:"objectIDs,omitempty"`
-	// ObjectIDExcludes specifies the excluding oid.ID list of this policy,
+	// ObjectIDExcludes specifies the excluding object.ID list of this policy,
 	// only works if the Resources specified as ["<a kind of resource>"]
 	// and ObjectIDs specified as ["*"].
 	ObjectIDExcludes []string `json:"objectIDExcludes,omitempty"`

@@ -31,7 +31,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/variable"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	deptypes "github.com/seal-io/seal/pkg/deployer/types"
@@ -68,14 +68,14 @@ type CreateSecretsOptions struct {
 	SkipTLSVerify   bool
 	ServiceRevision *model.ServiceRevision
 	Connectors      model.Connectors
-	ProjectID       oid.ID
-	EnvironmentID   oid.ID
-	SubjectID       oid.ID
+	ProjectID       object.ID
+	EnvironmentID   object.ID
+	SubjectID       object.ID
 	// Metadata.
 	ProjectName          string
 	EnvironmentName      string
 	ServiceName          string
-	ServiceID            oid.ID
+	ServiceID            object.ID
 	ManagedNamespaceName string
 }
 
@@ -210,7 +210,7 @@ func (d Deployer) CreateK8sJob(ctx context.Context, opts CreateJobOptions) error
 		return err
 	}
 
-	var subjectID oid.ID
+	var subjectID object.ID
 
 	sj, _ := session.GetSubject(ctx)
 	if sj.ID != "" {
@@ -452,7 +452,7 @@ func (d Deployer) CreateServiceRevision(
 
 func (d Deployer) getRequiredProviders(
 	ctx context.Context,
-	instanceID oid.ID,
+	instanceID object.ID,
 	previousOutput string,
 ) ([]types.ProviderRequirement, error) {
 	stateRequiredProviderSet := sets.NewString()
@@ -747,7 +747,7 @@ func (d Deployer) parseModuleAttributes(
 func (d Deployer) getVariables(
 	ctx context.Context,
 	variableNames []string,
-	projectID, environmentID oid.ID,
+	projectID, environmentID object.ID,
 ) (model.Variables, error) {
 	nameIn := make([]any, len(variableNames))
 	for i, name := range variableNames {
@@ -850,7 +850,7 @@ func (d Deployer) getVariables(
 // NB(alex): the previous revision may be failed, the failed revision may not contain required providers of states.
 func (d Deployer) getPreviousRequiredProviders(
 	ctx context.Context,
-	serviceID oid.ID,
+	serviceID object.ID,
 ) ([]types.ProviderRequirement, error) {
 	prevRequiredProviders := make([]types.ProviderRequirement, 0)
 
@@ -886,7 +886,7 @@ func (d Deployer) getPreviousRequiredProviders(
 // getServiceDependencyOutputs gets the dependency outputs of the service.
 func (d Deployer) getServiceDependencyOutputs(
 	ctx context.Context,
-	serviceID oid.ID,
+	serviceID object.ID,
 	dependOutputs []string,
 ) (map[string]parser.OutputState, error) {
 	service, err := d.modelClient.Services().Query().
@@ -901,7 +901,7 @@ func (d Deployer) getServiceDependencyOutputs(
 		return nil, err
 	}
 
-	dependencyServiceIDs := make([]oid.ID, 0, len(service.Edges.Dependencies))
+	dependencyServiceIDs := make([]object.ID, 0, len(service.Edges.Dependencies))
 
 	for _, d := range service.Edges.Dependencies {
 		if d.Type != types.ServiceRelationshipTypeImplicit {

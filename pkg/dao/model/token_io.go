@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // TokenQueryInput is the input for the Token query.
 type TokenQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the TokenQueryInput to Token.
@@ -51,7 +51,7 @@ func (in TokenCreateInput) Model() *Token {
 // TokenUpdateInput is the input for the Token modification.
 type TokenUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 }
 
 // Model converts the TokenUpdateInput to Token.
@@ -65,7 +65,7 @@ func (in TokenUpdateInput) Model() *Token {
 // TokenOutput is the output for the Token.
 type TokenOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// The kind of token.

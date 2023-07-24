@@ -8,7 +8,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func Login(c *gin.Context, username, password string) (sessionValue string, err error) {
@@ -38,7 +38,7 @@ func Logout(c *gin.Context, sessionValue string) {
 	_ = casdoor.SignOutUser(c, s)
 }
 
-func Validate(c *gin.Context, sid oid.ID, sv string) (domain string, groups []string, name string, err error) {
+func Validate(c *gin.Context, sid object.ID, sv string) (domain string, groups []string, name string, err error) {
 	domain, groups, name, exist := getCached(c, sv)
 	if exist {
 		return

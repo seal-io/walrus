@@ -18,7 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // ServiceResourceRelationshipCreate is the builder for creating a ServiceResourceRelationship entity.
@@ -44,13 +44,13 @@ func (srrc *ServiceResourceRelationshipCreate) SetNillableCreateTime(t *time.Tim
 }
 
 // SetServiceResourceID sets the "service_resource_id" field.
-func (srrc *ServiceResourceRelationshipCreate) SetServiceResourceID(o oid.ID) *ServiceResourceRelationshipCreate {
+func (srrc *ServiceResourceRelationshipCreate) SetServiceResourceID(o object.ID) *ServiceResourceRelationshipCreate {
 	srrc.mutation.SetServiceResourceID(o)
 	return srrc
 }
 
 // SetDependencyID sets the "dependency_id" field.
-func (srrc *ServiceResourceRelationshipCreate) SetDependencyID(o oid.ID) *ServiceResourceRelationshipCreate {
+func (srrc *ServiceResourceRelationshipCreate) SetDependencyID(o object.ID) *ServiceResourceRelationshipCreate {
 	srrc.mutation.SetDependencyID(o)
 	return srrc
 }
@@ -62,7 +62,7 @@ func (srrc *ServiceResourceRelationshipCreate) SetType(s string) *ServiceResourc
 }
 
 // SetID sets the "id" field.
-func (srrc *ServiceResourceRelationshipCreate) SetID(o oid.ID) *ServiceResourceRelationshipCreate {
+func (srrc *ServiceResourceRelationshipCreate) SetID(o object.ID) *ServiceResourceRelationshipCreate {
 	srrc.mutation.SetID(o)
 	return srrc
 }
@@ -174,7 +174,7 @@ func (srrc *ServiceResourceRelationshipCreate) sqlSave(ctx context.Context) (*Se
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*oid.ID); ok {
+		if id, ok := _spec.ID.Value.(*object.ID); ok {
 			_node.ID = *id
 		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
 			return nil, err
@@ -368,7 +368,7 @@ func (u *ServiceResourceRelationshipUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *ServiceResourceRelationshipUpsertOne) ID(ctx context.Context) (id oid.ID, err error) {
+func (u *ServiceResourceRelationshipUpsertOne) ID(ctx context.Context) (id object.ID, err error) {
 	if u.create.driver.Dialect() == dialect.MySQL {
 		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
 		// fields from the database since MySQL does not support the RETURNING clause.
@@ -382,7 +382,7 @@ func (u *ServiceResourceRelationshipUpsertOne) ID(ctx context.Context) (id oid.I
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *ServiceResourceRelationshipUpsertOne) IDX(ctx context.Context) oid.ID {
+func (u *ServiceResourceRelationshipUpsertOne) IDX(ctx context.Context) object.ID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)

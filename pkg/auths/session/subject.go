@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/slice"
 )
 
@@ -31,7 +31,7 @@ func (r Role) enforce(res, act, rid, path string) bool {
 
 type Project struct {
 	// ID indicates the id of the project.
-	ID oid.ID `json:"id"`
+	ID object.ID `json:"id"`
 	// Name indicates the name of the project.
 	Name string `json:"name"`
 }
@@ -43,7 +43,7 @@ type ProjectRole struct {
 	Roles []Role `json:"roles"`
 }
 
-func (r ProjectRole) match(pid oid.ID, pName string) bool {
+func (r ProjectRole) match(pid object.ID, pName string) bool {
 	if pid != "" && pName != "" {
 		// Expect either one is set.
 		return false
@@ -70,7 +70,7 @@ type Subject struct {
 	// Ctx holds the request gin.Context.
 	Ctx *gin.Context `json:"-"`
 	// ID indicates the id of the subject.
-	ID oid.ID `json:"id"`
+	ID object.ID `json:"id"`
 	// Domain indicates the domain of the subject.
 	Domain string `json:"domain"`
 	// Groups indicates all superior groups which the subject belong to.
@@ -100,7 +100,7 @@ func (s Subject) IsAdmin() bool {
 }
 
 // Enforce returns true if the given conditions if allowing.
-func (s Subject) Enforce(pid oid.ID, pName, res, act, rid, path string) bool {
+func (s Subject) Enforce(pid object.ID, pName, res, act, rid, path string) bool {
 	for i := range s.Roles {
 		if s.Roles[i].ID == types.SystemRoleAdmin {
 			return true

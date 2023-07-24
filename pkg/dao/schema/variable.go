@@ -9,7 +9,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type Variable struct {
@@ -56,7 +56,7 @@ func (Variable) Fields() []ent.Field {
 		field.String("description").
 			Comment("Description of the variable.").
 			Optional(),
-		oid.Field("environmentID").
+		object.Field("environmentID").
 			Comment("ID of the environment to which the variable belongs to.").
 			Optional().
 			Immutable(),

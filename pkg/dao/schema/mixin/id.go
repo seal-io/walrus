@@ -5,7 +5,7 @@ import (
 	"entgo.io/ent/schema/mixin"
 
 	"github.com/seal-io/seal/pkg/dao/schema/io"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func ID() id {
@@ -18,7 +18,7 @@ type id struct {
 
 func (i id) Fields() []ent.Field {
 	return []ent.Field{
-		oid.Field("id").
+		object.Field("id").
 			Immutable().
 			Annotations(
 				io.DisableInputWhenCreating()),
@@ -27,6 +27,6 @@ func (i id) Fields() []ent.Field {
 
 func (id) Hooks() []ent.Hook {
 	return []ent.Hook{
-		oid.Hook(),
+		object.Hook(),
 	}
 }

@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 )
 
@@ -45,7 +45,7 @@ func serviceRelationshipCreate(ctx context.Context, mc model.ClientSet, input *m
 }
 
 // serviceRelationshipGetDependantPath returns the path from the service to the end of the path.
-func serviceRelationshipGetDependantPath(serviceID oid.ID, path []oid.ID) []oid.ID {
+func serviceRelationshipGetDependantPath(serviceID object.ID, path []object.ID) []object.ID {
 	for i := 0; i < len(path)-1; i++ {
 		if path[i] == serviceID {
 			return path[i:]
@@ -106,8 +106,8 @@ func GetServiceDependantNames(
 }
 
 // GetServiceDependantIDs gets IDs of services that depend on the given services.
-func GetServiceDependantIDs(ctx context.Context, mc model.ClientSet, serviceIDs ...oid.ID) ([]oid.ID, error) {
-	var ids []oid.ID
+func GetServiceDependantIDs(ctx context.Context, mc model.ClientSet, serviceIDs ...object.ID) ([]object.ID, error) {
+	var ids []object.ID
 
 	err := mc.ServiceRelationships().Query().
 		Where(
@@ -151,14 +151,14 @@ func serviceRelationshipGetDependencies(
 	dependencies = append(dependencies, &model.ServiceRelationship{
 		ServiceID:    entity.ID,
 		DependencyID: entity.ID,
-		Path:         []oid.ID{entity.ID},
+		Path:         []object.ID{entity.ID},
 		Type:         types.ServiceRelationshipTypeImplicit,
 	})
 
 	// TODO (alex): handle the case for user add explicit dependency.
 	for _, preSvc := range dependencyServices {
 		for _, d := range preSvc.Edges.Dependencies {
-			path := make([]oid.ID, len(d.Path), len(d.Path)+1)
+			path := make([]object.ID, len(d.Path), len(d.Path)+1)
 			copy(path, d.Path)
 			path = append(path, entity.ID)
 
@@ -201,7 +201,7 @@ func serviceRelationshipUpdateDependants(ctx context.Context, mc model.ClientSet
 
 	for _, sd := range s.Edges.Dependencies {
 		for _, osd := range postDependencies {
-			path := make([]oid.ID, len(sd.Path)-1, len(sd.Path)+len(osd.Path))
+			path := make([]object.ID, len(sd.Path)-1, len(sd.Path)+len(osd.Path))
 			copy(path, sd.Path[:len(sd.Path)-1])
 			path = append(path, serviceRelationshipGetDependantPath(s.ID, osd.Path)...)
 
@@ -261,5 +261,5 @@ func serviceRelationshipUpdateDependants(ctx context.Context, mc model.ClientSet
 
 // ServiceRelationshipCheckCycle checks if the path contains a dependency cycle.
 func ServiceRelationshipCheckCycle(s *model.ServiceRelationship) bool {
-	return sets.New[oid.ID](s.Path...).Len() != len(s.Path)
+	return sets.New[object.ID](s.Path...).Len() != len(s.Path)
 }

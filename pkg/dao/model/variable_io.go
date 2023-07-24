@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // VariableQueryInput is the input for the Variable query.
 type VariableQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the VariableQueryInput to Variable.
@@ -61,7 +61,7 @@ func (in VariableCreateInput) Model() *Variable {
 // VariableUpdateInput is the input for the Variable modification.
 type VariableUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// The value of variable, store in string.
 	Value crypto.String `json:"value,omitempty"`
 	// The value is sensitive or not.
@@ -84,7 +84,7 @@ func (in VariableUpdateInput) Model() *Variable {
 // VariableOutput is the output for the Variable.
 type VariableOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// UpdateTime holds the value of the "updateTime" field.

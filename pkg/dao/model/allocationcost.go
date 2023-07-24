@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
@@ -32,7 +32,7 @@ type AllocationCost struct {
 	// Usage minutes from start time to end time.
 	Minutes float64 `json:"minutes,omitempty" sql:"minutes"`
 	// ID of the connector.
-	ConnectorID oid.ID `json:"connectorID,omitempty" sql:"connectorID"`
+	ConnectorID object.ID `json:"connectorID,omitempty" sql:"connectorID"`
 	// Resource name for current cost, could be __unmounted__.
 	Name string `json:"name,omitempty" sql:"name"`
 	// String generated from resource properties, used to identify this cost.
@@ -121,7 +121,7 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 		case allocationcost.FieldPvs, allocationcost.FieldLabels:
 			values[i] = new([]byte)
 		case allocationcost.FieldConnectorID:
-			values[i] = new(oid.ID)
+			values[i] = new(object.ID)
 		case allocationcost.FieldMinutes, allocationcost.FieldTotalCost, allocationcost.FieldCpuCost, allocationcost.FieldCpuCoreRequest, allocationcost.FieldGpuCost, allocationcost.FieldGpuCount, allocationcost.FieldRamCost, allocationcost.FieldRamByteRequest, allocationcost.FieldPvCost, allocationcost.FieldPvBytes, allocationcost.FieldLoadBalancerCost, allocationcost.FieldCpuCoreUsageAverage, allocationcost.FieldCpuCoreUsageMax, allocationcost.FieldRamByteUsageAverage, allocationcost.FieldRamByteUsageMax:
 			values[i] = new(sql.NullFloat64)
 		case allocationcost.FieldID, allocationcost.FieldCurrency:
@@ -170,7 +170,7 @@ func (ac *AllocationCost) assignValues(columns []string, values []any) error {
 				ac.Minutes = value.Float64
 			}
 		case allocationcost.FieldConnectorID:
-			if value, ok := values[i].(*oid.ID); !ok {
+			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connectorID", values[i])
 			} else if value != nil {
 				ac.ConnectorID = *value

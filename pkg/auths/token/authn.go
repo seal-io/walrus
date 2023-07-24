@@ -8,13 +8,13 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/token"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 func Validate(
 	c *gin.Context,
 	mc model.ClientSet,
-	sid, tid oid.ID,
+	sid, tid object.ID,
 	tv string,
 ) (domain string, groups []string, name string, err error) {
 	domain, groups, name, exist := getCached(c, tv)

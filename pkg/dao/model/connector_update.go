@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
@@ -154,14 +154,14 @@ func (cu *ConnectorUpdate) SetCategory(s string) *ConnectorUpdate {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (cu *ConnectorUpdate) AddResourceIDs(ids ...oid.ID) *ConnectorUpdate {
+func (cu *ConnectorUpdate) AddResourceIDs(ids ...object.ID) *ConnectorUpdate {
 	cu.mutation.AddResourceIDs(ids...)
 	return cu
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (cu *ConnectorUpdate) AddResources(s ...*ServiceResource) *ConnectorUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -210,14 +210,14 @@ func (cu *ConnectorUpdate) ClearResources() *ConnectorUpdate {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
-func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdate {
+func (cu *ConnectorUpdate) RemoveResourceIDs(ids ...object.ID) *ConnectorUpdate {
 	cu.mutation.RemoveResourceIDs(ids...)
 	return cu
 }
 
 // RemoveResources removes "resources" edges to ServiceResource entities.
 func (cu *ConnectorUpdate) RemoveResources(s ...*ServiceResource) *ConnectorUpdate {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -675,14 +675,14 @@ func (cuo *ConnectorUpdateOne) SetCategory(s string) *ConnectorUpdateOne {
 }
 
 // AddResourceIDs adds the "resources" edge to the ServiceResource entity by IDs.
-func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) AddResourceIDs(ids ...object.ID) *ConnectorUpdateOne {
 	cuo.mutation.AddResourceIDs(ids...)
 	return cuo
 }
 
 // AddResources adds the "resources" edges to the ServiceResource entity.
 func (cuo *ConnectorUpdateOne) AddResources(s ...*ServiceResource) *ConnectorUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -731,14 +731,14 @@ func (cuo *ConnectorUpdateOne) ClearResources() *ConnectorUpdateOne {
 }
 
 // RemoveResourceIDs removes the "resources" edge to ServiceResource entities by IDs.
-func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...oid.ID) *ConnectorUpdateOne {
+func (cuo *ConnectorUpdateOne) RemoveResourceIDs(ids ...object.ID) *ConnectorUpdateOne {
 	cuo.mutation.RemoveResourceIDs(ids...)
 	return cuo
 }
 
 // RemoveResources removes "resources" edges to ServiceResource entities.
 func (cuo *ConnectorUpdateOne) RemoveResources(s ...*ServiceResource) *ConnectorUpdateOne {
-	ids := make([]oid.ID, len(s))
+	ids := make([]object.ID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

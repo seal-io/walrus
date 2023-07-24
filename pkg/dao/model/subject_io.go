@@ -8,13 +8,13 @@ package model
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/types/oid"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 // SubjectQueryInput is the input for the Subject query.
 type SubjectQueryInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id,omitempty" json:"id,omitempty"`
+	ID object.ID `uri:"id,omitempty" json:"id,omitempty"`
 }
 
 // Model converts the SubjectQueryInput to Subject.
@@ -61,7 +61,7 @@ func (in SubjectCreateInput) Model() *Subject {
 // SubjectUpdateInput is the input for the Subject modification.
 type SubjectUpdateInput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `uri:"id" json:"-"`
+	ID object.ID `uri:"id" json:"-"`
 	// The domain of the subject.
 	Domain string `json:"domain,omitempty"`
 	// The detail of the subject.
@@ -89,7 +89,7 @@ func (in SubjectUpdateInput) Model() *Subject {
 // SubjectOutput is the output for the Subject.
 type SubjectOutput struct {
 	// ID holds the value of the "id" field.
-	ID oid.ID `json:"id,omitempty"`
+	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "createTime" field.
 	CreateTime *time.Time `json:"createTime,omitempty"`
 	// UpdateTime holds the value of the "updateTime" field.
