@@ -32,7 +32,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 
@@ -59,7 +59,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 			return errors.New("invalid project id: blank")
 		}
 
-		if !r.EnvironmentID.Valid(0) {
+		if !r.EnvironmentID.Valid() {
 			return errors.New("invalid environment id: blank")
 		}
 
@@ -118,13 +118,13 @@ type DeleteRequest struct {
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":
@@ -168,7 +168,7 @@ type UpdateRequest struct {
 func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -178,7 +178,7 @@ func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":
@@ -229,14 +229,14 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	for _, i := range r.Items {
-		if !i.ID.Valid(0) {
+		if !i.ID.Valid() {
 			return errors.New("invalid id: blank")
 		}
 	}
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":
@@ -290,7 +290,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":
@@ -310,7 +310,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 			return errors.New("invalid project id: blank")
 		}
 
-		if !r.EnvironmentID.Valid(0) {
+		if !r.EnvironmentID.Valid() {
 			return errors.New("invalid environment id: blank")
 		}
 	case r.EnvironmentName != "":

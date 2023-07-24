@@ -8,7 +8,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/apis/variable/view"
 	"github.com/seal-io/seal/pkg/auths/session"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
@@ -37,15 +36,9 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		creates, err := dao.VariableCreates(tx, entity)
-		if err != nil {
-			return err
-		}
-		entity, err = creates[0].Save(ctx)
-
-		return err
-	})
+	entity, err := h.modelClient.Variables().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -60,14 +53,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
 
-	return h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		updates, err := dao.VariableUpdates(tx, entity)
-		if err != nil {
-			return err
-		}
-
-		return updates[0].Exec(ctx)
-	})
+	return h.modelClient.Variables().UpdateOne(entity).
+		Set(entity).
+		Exec(ctx)
 }
 
 // Batch APIs.

@@ -19,7 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	revisionbus "github.com/seal-io/seal/pkg/bus/servicerevision"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -148,12 +147,11 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	appRevision.StatusMessage = revisionStatusMessage
 	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
 
-	update, err := dao.ServiceRevisionUpdate(r.ModelClient, appRevision)
-	if err != nil {
-		return err
-	}
-
-	appRevision, err = update.Save(ctx)
+	appRevision, err = r.ModelClient.ServiceRevisions().UpdateOne(appRevision).
+		SetStatus(appRevision.Status).
+		SetStatusMessage(appRevision.StatusMessage).
+		SetDuration(appRevision.Duration).
+		Save(ctx)
 	if err != nil {
 		return err
 	}

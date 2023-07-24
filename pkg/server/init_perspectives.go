@@ -6,7 +6,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
 	"github.com/seal-io/seal/pkg/dao/types"
 
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -17,21 +16,11 @@ func (r *Server) initPerspectives(ctx context.Context, opts initOptions) error {
 		perspectiveProject(),
 	}
 
-	creates, err := dao.PerspectiveCreates(opts.ModelClient, builtin...)
-	if err != nil {
-		return err
-	}
-
-	for i := range creates {
-		err = creates[i].OnConflictColumns(perspective.FieldName).
-			UpdateNewValues().
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return opts.ModelClient.Perspectives().CreateBulk().
+		Set(builtin...).
+		OnConflictColumns(perspective.FieldName).
+		UpdateNewValues().
+		Exec(ctx)
 }
 
 func perspectiveAll() *model.Perspective {

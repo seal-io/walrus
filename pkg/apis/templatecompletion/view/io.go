@@ -83,7 +83,7 @@ type CreatePrRequest struct {
 }
 
 func (r *CreatePrRequest) Validate() error {
-	if !r.ConnectorID.Valid(0) {
+	if !r.ConnectorID.Valid() {
 		return errors.New("invalid connector id: blank")
 	}
 

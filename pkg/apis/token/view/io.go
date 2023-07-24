@@ -42,7 +42,7 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 

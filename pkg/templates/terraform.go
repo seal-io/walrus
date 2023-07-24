@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/bus/template"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -107,26 +106,23 @@ func (s schemaSyncer) Do(_ context.Context, message template.BusMessage) error {
 	gopool.Go(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
-		m := message.Refer
 
+		m := message.Refer
 		logger.Debugf("syncing schema for template %s", m.ID)
 
+		// Sync schema.
 		err := syncSchema(ctx, s.mc, m)
 		if err == nil {
 			return
 		}
 
 		logger.Warnf("recording syncing template %s schema failed: %v", m.ID, err)
-		m.Status = status.TemplateStatusError
-		m.StatusMessage = fmt.Sprintf("sync schema failed: %v", err)
 
-		update, err := dao.TemplateUpdate(s.mc, m)
-		if err != nil {
-			logger.Errorf("failed to prepare template %s update: %v", m.ID, err)
-			return
-		}
-
-		err = update.Exec(ctx)
+		// State template.
+		err = s.mc.Templates().UpdateOne(m).
+			SetStatus(status.TemplateStatusError).
+			SetStatusMessage(fmt.Sprintf("sync schema failed: %v", err)).
+			Exec(ctx)
 		if err != nil {
 			logger.Errorf("failed to update template %s: %v", m.ID, err)
 		}
@@ -151,27 +147,17 @@ func syncSchema(ctx context.Context, mc model.ClientSet, t *model.Template) erro
 		}
 
 		// Create new template versions.
-		creates, err := dao.TemplateVersionCreates(tx, versions...)
+		err = tx.TemplateVersions().CreateBulk().
+			Set(versions...).
+			Exec(ctx)
 		if err != nil {
 			return err
-		}
-
-		for _, c := range creates {
-			_, err = c.Save(ctx)
-			if err != nil {
-				return err
-			}
 		}
 
 		// State template.
-		t.Status = status.TemplateStatusReady
-
-		update, err := dao.TemplateUpdate(tx, t)
-		if err != nil {
-			return err
-		}
-
-		return update.Exec(ctx)
+		return tx.Templates().UpdateOne(t).
+			SetStatus(status.TemplateStatusReady).
+			Exec(ctx)
 	})
 }
 

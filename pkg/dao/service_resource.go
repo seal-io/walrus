@@ -11,111 +11,39 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func ServiceResourceCreates(
-	mc model.ClientSet,
-	input ...*model.ServiceResource,
-) ([]*WrappedServiceResourceCreate, error) {
-	creates, err := serviceResourceCreates(mc, input...)
+// ServiceResourceInstancesEdgeSave saves the edge instances of model.ServiceResource entity.
+func ServiceResourceInstancesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model.ServiceResource) error {
+	if entity.Edges.Instances == nil {
+		return nil
+	}
+
+	// Delete stale items.
+	_, err := mc.ServiceResources().Delete().
+		Where(serviceresource.ClassID(entity.ID)).
+		Exec(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	rrs := make([]*WrappedServiceResourceCreate, len(creates))
-
-	for i, c := range creates {
-		rrs[i] = &WrappedServiceResourceCreate{
-			ServiceResourceCreate: c,
-			entity:                input[i],
+	// Add new items.
+	newItems := entity.Edges.Instances
+	for i := range newItems {
+		if newItems[i] == nil {
+			return errors.New("invalid input: nil relationship")
 		}
+		newItems[i].ClassID = entity.ID
 	}
 
-	return rrs, nil
-}
-
-func serviceResourceCreates(
-	mc model.ClientSet,
-	input ...*model.ServiceResource,
-) ([]*model.ServiceResourceCreate, error) {
-	if len(input) == 0 {
-		return nil, errors.New("invalid input: empty list")
-	}
-
-	rrs := make([]*model.ServiceResourceCreate, len(input))
-
-	for i, r := range input {
-		if r == nil {
-			return nil, errors.New("invalid input: nil entity")
-		}
-
-		// Required.
-		c := mc.ServiceResources().Create().
-			SetProjectID(r.ProjectID).
-			SetServiceID(r.ServiceID).
-			SetConnectorID(r.ConnectorID).
-			SetName(r.Name).
-			SetType(r.Type).
-			SetMode(r.Mode).
-			SetDeployerType(r.DeployerType).
-			SetShape(r.Shape)
-
-		// Optional.
-		if r.CompositionID.Valid(0) {
-			c.SetCompositionID(r.CompositionID)
-		}
-
-		if r.ClassID.Valid(0) {
-			c.SetClassID(r.ClassID)
-		}
-
-		rrs[i] = c
-	}
-
-	return rrs, nil
-}
-
-type WrappedServiceResourceCreate struct {
-	*model.ServiceResourceCreate
-
-	entity *model.ServiceResource
-}
-
-func (r *WrappedServiceResourceCreate) Save(ctx context.Context) (created *model.ServiceResource, err error) {
-	mc := r.ServiceResourceCreate.Mutation().Client()
-
-	created, err = r.ServiceResourceCreate.Save(ctx)
+	newItems, err = mc.ServiceResources().CreateBulk().
+		Set(newItems...).
+		Save(ctx)
 	if err != nil {
-		return
+		return err
 	}
 
-	// Create instance services.
-	if len(r.entity.Edges.Instances) > 0 {
-		instances := make(model.ServiceResources, len(r.entity.Edges.Instances))
+	entity.Edges.Instances = newItems // Feedback.
 
-		for i, r := range r.entity.Edges.Instances {
-			instances[i] = r
-			instances[i].ClassID = created.ID
-		}
-
-		var instanceCreates []*model.ServiceResourceCreate
-
-		instanceCreates, err = serviceResourceCreates(mc, instances...)
-		if err != nil {
-			return nil, err
-		}
-
-		for i, c := range instanceCreates {
-			var instance *model.ServiceResource
-
-			instance, err = c.Save(ctx)
-			if err != nil {
-				return
-			}
-			instances[i] = instance
-		}
-		created.Edges.Instances = instances
-	}
-
-	return
+	return nil
 }
 
 // ServiceResourceShapeClassQuery returns a query that selects a shape class service resource,

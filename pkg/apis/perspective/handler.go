@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/perspective/view"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -40,12 +39,9 @@ func (h Handler) Validating() any {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	creates, err := dao.PerspectiveCreates(h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
-
-	entity, err = creates[0].Save(ctx)
+	entity, err := h.modelClient.Perspectives().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +56,9 @@ func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
 func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 	entity := req.Model()
 
-	update, err := dao.PerspectiveUpdate(h.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	return update.Exec(ctx)
+	return h.modelClient.Perspectives().UpdateOne(entity).
+		Set(entity).
+		Exec(ctx)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {

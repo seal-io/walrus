@@ -44,7 +44,7 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 
 	switch {
 	case r.ProjectID != "":
-		if !r.ProjectID.Valid(0) {
+		if !r.ProjectID.Valid() {
 			return errors.New("invalid project id: blank")
 		}
 	case r.ProjectName != "":
@@ -58,11 +58,11 @@ func (r *CreateRequest) ValidateWith(ctx context.Context, input any) error {
 		r.ProjectID = projectID
 	}
 
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.Environment.ID.Valid(0) {
+	if !r.Environment.ID.Valid() {
 		return errors.New("invalid environment id: blank")
 	}
 
@@ -114,11 +114,11 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -163,11 +163,11 @@ type GetRequest struct {
 }
 
 func (r *GetRequest) Validate() error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -183,11 +183,11 @@ type StreamRequest struct {
 }
 
 func (r *StreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -220,14 +220,14 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.EnvironmentID.Valid(0):
+	case r.EnvironmentID.Valid():
 		_, err := modelClient.Environments().Query().
 			Where(environment.ID(r.EnvironmentID)).
 			OnlyID(ctx)
@@ -268,7 +268,7 @@ func (r *CollectionCreateRequest) ValidateWith(ctx context.Context, input any) e
 	}
 
 	for _, envID := range r.EnvironmentIDs {
-		if !envID.Valid(0) {
+		if !envID.Valid() {
 			return errors.New("invalid environment id: blank")
 		}
 	}
@@ -378,14 +378,14 @@ type CollectionStreamRequest struct {
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if r.EnvironmentID.Valid(0) {
+	if r.EnvironmentID.Valid() {
 		modelClient := input.(model.ClientSet)
 
-		if !r.EnvironmentID.Valid(0) {
+		if !r.EnvironmentID.Valid() {
 			return errors.New("invalid environment id: blank")
 		}
 
@@ -413,7 +413,7 @@ func (r CollectionDeleteRequest) ValidateWith(ctx context.Context, input any) er
 	}
 
 	for _, i := range r.IDs {
-		if !i.Valid(0) {
+		if !i.Valid() {
 			return errors.New("invalid id: blank")
 		}
 	}
@@ -463,11 +463,11 @@ type RouteUpgradeRequest struct {
 }
 
 func (r *RouteUpgradeRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -520,15 +520,15 @@ type RouteRollbackRequest struct {
 }
 
 func (r *RouteRollbackRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.RevisionID.Valid(0) {
+	if !r.RevisionID.Valid() {
 		return errors.New("invalid revision id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -564,11 +564,11 @@ type RouteAccessEndpointRequest struct {
 }
 
 func (r *RouteAccessEndpointRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -602,11 +602,11 @@ type RouteOutputRequest struct {
 }
 
 func (r *RouteOutputRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -632,7 +632,7 @@ type CreateCloneRequest struct {
 }
 
 func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -641,7 +641,7 @@ func (r *CreateCloneRequest) ValidateWith(ctx context.Context, input any) error 
 	}
 
 	if r.EnvironmentID != "" {
-		if !r.EnvironmentID.IsNaive() {
+		if !r.EnvironmentID.Valid() {
 			return fmt.Errorf("invalid environment id: %s", r.EnvironmentID)
 		}
 		modelClient := input.(model.ClientSet)
@@ -707,14 +707,14 @@ type CollectionGetGraphRequest struct {
 }
 
 func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.EnvironmentID.Valid(0):
+	case r.EnvironmentID.Valid():
 		_, err := modelClient.Environments().Query().
 			Where(environment.ID(r.EnvironmentID)).
 			OnlyID(ctx)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/costs/syncer"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
@@ -205,19 +204,19 @@ func UpdateStatus(ctx context.Context, client model.ClientSet, conn *model.Conne
 	}
 
 	return client.WithTx(ctx, func(tx *model.Tx) error {
-		_, err := client.Connectors().Query().
+		_, err := tx.Connectors().Query().
 			Where(connector.ID(conn.ID)).
+			Select(
+				connector.FieldID,
+				connector.FieldStatus).
 			ForUpdate().
 			Only(ctx)
 		if err != nil {
 			return err
 		}
 
-		update, err := dao.ConnectorUpdate(tx, conn)
-		if err != nil {
-			return err
-		}
-
-		return update.Exec(ctx)
+		return tx.Connectors().UpdateOne(conn).
+			SetStatus(conn.Status).
+			Exec(ctx)
 	})
 }

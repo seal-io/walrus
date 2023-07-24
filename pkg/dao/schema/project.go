@@ -46,7 +46,6 @@ func (Project) Edges() []ent.Edge {
 			Comment("Roles of a subject that belong to the project.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
-				entx.SkipInput(),
 				entx.SkipOutput()),
 		// Project 1-* Services.
 		edge.To("services", Service.Type).

@@ -48,7 +48,7 @@ func dispatchModelChange(n model.Mutator) model.Mutator {
 			// e.g. delete error is still a write error, not a read error.
 			// We only warn out the error to prevent change watching breaking the default behavior.
 			logger.Errorf("error getting ids notifier: %v", err)
-			return v, nil // nolint: nilerr
+			return v, nil //nolint: nilerr
 		}
 
 		if notify == nil {

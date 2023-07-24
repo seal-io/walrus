@@ -2,134 +2,86 @@ package dao
 
 import (
 	"context"
+	stdsql "database/sql"
 	"errors"
 
+	"entgo.io/ent/dialect/sql"
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/predicate"
-	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/types/object"
+	"github.com/seal-io/seal/utils/strs"
 )
 
-// WrappedProjectCreate is a wrapper for model.ProjectCreate
-// to process the relationship with model.Role.
-type WrappedProjectCreate struct {
-	*model.ProjectCreate
+// ProjectSubjectRolesEdgeSave saves the edge subject roles of model.Project entity.
+func ProjectSubjectRolesEdgeSave(ctx context.Context, mc model.ClientSet, entity *model.Project) error {
+	if entity.Edges.SubjectRoles == nil {
+		return nil
+	}
 
-	entity *model.Project
-}
+	// Default new items and create key set for items.
+	var (
+		newItems       = entity.Edges.SubjectRoles
+		newItemsKeySet = sets.New[string]()
+	)
 
-func (sc *WrappedProjectCreate) Save(ctx context.Context) (created *model.Project, err error) {
-	mc := sc.ProjectCreate.Mutation().Client()
+	for i := range newItems {
+		if newItems[i] == nil {
+			return errors.New("invalid input: nil relationship")
+		}
+		newItems[i].ProjectID = entity.ID
 
-	// Save entity.
-	created, err = sc.ProjectCreate.Save(ctx)
+		newItemsKeySet.Insert(strs.Join("/", string(newItems[i].SubjectID), newItems[i].RoleID))
+	}
+
+	// Add/Update new items.
+	if len(newItems) != 0 {
+		err := mc.SubjectRoleRelationships().CreateBulk().
+			Set(newItems...).
+			OnConflict(
+				sql.ConflictWhere(sql.P().
+					NotNull(subjectrolerelationship.FieldProjectID)),
+				sql.ConflictColumns(
+					subjectrolerelationship.FieldProjectID,
+					subjectrolerelationship.FieldSubjectID,
+					subjectrolerelationship.FieldRoleID,
+				)).
+			DoNothing().
+			Exec(ctx)
+		if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
+			return err
+		}
+
+		entity.Edges.SubjectRoles = newItems // Feedback.
+	}
+
+	// Delete stale items.
+	oldItems, err := mc.SubjectRoleRelationships().Query().
+		Where(subjectrolerelationship.ProjectID(entity.ID)).
+		All(ctx)
 	if err != nil {
-		return
+		return err
 	}
 
-	// Construct relationships.
-	newRss := sc.entity.Edges.SubjectRoles
-	createRss := make([]*model.SubjectRoleRelationshipCreate, len(newRss))
+	deletedIDs := make([]object.ID, 0, len(oldItems))
 
-	for i, rs := range newRss {
-		if rs == nil {
-			return nil, errors.New("invalid input: nil relationship")
+	for i := range oldItems {
+		if newItemsKeySet.Has(strs.Join("/", string(oldItems[i].SubjectID), oldItems[i].RoleID)) {
+			continue
 		}
 
-		// Required.
-		c := mc.SubjectRoleRelationships().Create().
-			SetProjectID(created.ID).
-			SetSubjectID(rs.SubjectID).
-			SetRoleID(rs.RoleID)
-
-		createRss[i] = c
+		deletedIDs = append(deletedIDs, oldItems[i].ID)
 	}
 
-	// Save relationships.
-	newRss, err = mc.SubjectRoleRelationships().CreateBulk(createRss...).
-		Save(ctx)
-	if err != nil {
-		return
-	}
-	created.Edges.SubjectRoles = newRss
-
-	return created, nil
-}
-
-func (sc *WrappedProjectCreate) Exec(ctx context.Context) error {
-	_, err := sc.Save(ctx)
-	return err
-}
-
-func ProjectCreates(mc model.ClientSet, input ...*model.Project) ([]*WrappedProjectCreate, error) {
-	if len(input) == 0 {
-		return nil, errors.New("invalid input: empty list")
-	}
-
-	rrs := make([]*WrappedProjectCreate, len(input))
-
-	for i, r := range input {
-		if r == nil {
-			return nil, errors.New("invalid input: nil entity")
-		}
-
-		// Required.
-		c := mc.Projects().Create().
-			SetName(r.Name)
-
-		// Optional.
-		c.SetDescription(r.Description)
-
-		if r.Labels != nil {
-			c.SetLabels(r.Labels)
-		}
-		rrs[i] = &WrappedProjectCreate{
-			ProjectCreate: c,
-			entity:        input[i],
+	if len(deletedIDs) != 0 {
+		_, err = mc.SubjectRoleRelationships().Delete().
+			Where(subjectrolerelationship.IDIn(deletedIDs...)).
+			Exec(ctx)
+		if err != nil {
+			return err
 		}
 	}
 
-	return rrs, nil
-}
-
-func ProjectUpdates(mc model.ClientSet, input ...*model.Project) ([]*model.ProjectUpdate, error) {
-	if len(input) == 0 {
-		return nil, errors.New("invalid input: empty list")
-	}
-
-	rrs := make([]*model.ProjectUpdate, len(input))
-
-	for i, r := range input {
-		if r == nil {
-			return nil, errors.New("invalid input: nil entity")
-		}
-
-		// Predicated.
-		var ps []predicate.Project
-
-		switch {
-		case r.ID.IsNaive():
-			ps = append(ps, project.ID(r.ID))
-		case r.Name != "":
-			ps = append(ps, project.Name(r.Name))
-		}
-
-		if len(ps) == 0 {
-			return nil, errors.New("invalid input: illegal predicates")
-		}
-
-		// Conditional.
-		c := mc.Projects().Update().
-			Where(ps...).
-			SetDescription(r.Description)
-		if r.Name != "" {
-			c.SetName(r.Name)
-		}
-
-		if r.Labels != nil {
-			c.SetLabels(r.Labels)
-		}
-		rrs[i] = c
-	}
-
-	return rrs, nil
+	return nil
 }

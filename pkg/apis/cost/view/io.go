@@ -115,7 +115,7 @@ func (r *SummaryClusterCostRequest) Validate() error {
 		return err
 	}
 
-	if !r.ConnectorID.IsNaive() {
+	if !r.ConnectorID.Valid() {
 		return errors.New("invalid connector id")
 	}
 

@@ -26,7 +26,7 @@ type ServiceResourceQuery struct {
 func (r *ServiceResourceQuery) ValidateWith(ctx context.Context, input any) error {
 	modelClient := input.(model.ClientSet)
 
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -66,14 +66,14 @@ type CollectionGetRequest struct {
 }
 
 func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.ServiceID.Valid(0):
+	case r.ServiceID.Valid():
 		_, err := modelClient.Services().Query().
 			Where(service.ID(r.ServiceID)).
 			OnlyID(ctx)
@@ -82,7 +82,7 @@ func (r *CollectionGetRequest) ValidateWith(ctx context.Context, input any) erro
 		}
 	case r.ServiceName != "":
 		switch {
-		case r.EnvironmentID.Valid(0):
+		case r.EnvironmentID.Valid():
 			id, err := modelClient.Services().Query().
 				Where(
 					service.ProjectID(r.ProjectID),
@@ -130,14 +130,14 @@ type CollectionStreamRequest struct {
 }
 
 func (r *CollectionStreamRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	if r.ServiceID != "" {
 		modelClient := input.(model.ClientSet)
 
-		if !r.ServiceID.Valid(0) {
+		if !r.ServiceID.Valid() {
 			return errors.New("invalid service id: blank")
 		}
 
@@ -167,7 +167,7 @@ type GetKeysRequest struct {
 }
 
 func (r *GetKeysRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
@@ -188,7 +188,7 @@ type StreamLogRequest struct {
 }
 
 func (r *StreamLogRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
@@ -216,7 +216,7 @@ type StreamExecRequest struct {
 }
 
 func (r *StreamExecRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
@@ -252,14 +252,14 @@ type CollectionGetGraphRequest struct {
 }
 
 func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any) error {
-	if !r.ProjectID.Valid(0) {
+	if !r.ProjectID.Valid() {
 		return errors.New("invalid project id: blank")
 	}
 
 	modelClient := input.(model.ClientSet)
 
 	switch {
-	case r.ServiceID.Valid(0):
+	case r.ServiceID.Valid():
 		_, err := modelClient.Services().Query().
 			Where(service.ID(r.ServiceID)).
 			OnlyID(ctx)
@@ -270,7 +270,7 @@ func (r *CollectionGetGraphRequest) ValidateWith(ctx context.Context, input any)
 		var svcID object.ID
 
 		switch {
-		case r.EnvironmentID.Valid(0):
+		case r.EnvironmentID.Valid():
 			var err error
 
 			svcID, err = modelClient.Services().Query().

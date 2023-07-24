@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/seal-io/seal/pkg/apis/subjectrole/view"
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/subject"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
@@ -29,15 +28,9 @@ func (h Handler) Kind() string {
 func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateResponse, error) {
 	entity := req.Model()
 
-	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
-		creates, err := dao.SubjectRoleRelationshipCreates(tx, entity)
-		if err != nil {
-			return err
-		}
-		entity, err = creates[0].Save(ctx)
-
-		return err
-	})
+	entity, err := h.modelClient.SubjectRoleRelationships().Create().
+		Set(entity).
+		Save(ctx)
 	if err != nil {
 		return nil, err
 	}

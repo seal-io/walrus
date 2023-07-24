@@ -1,6 +1,7 @@
 package view
 
 import (
+	"context"
 	"errors"
 
 	"github.com/seal-io/seal/pkg/apis/runtime"
@@ -43,7 +44,7 @@ type DeleteRequest struct {
 }
 
 func (r *DeleteRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
 
@@ -57,9 +58,30 @@ type UpdateRequest struct {
 }
 
 func (r *UpdateRequest) Validate() error {
-	if !r.ID.Valid(0) {
+	if !r.ID.Valid() {
 		return errors.New("invalid id: blank")
 	}
+
+	return nil
+}
+
+func (r *UpdateRequest) ValidateWith(ctx context.Context, input any) error {
+	modelClient := input.(model.ClientSet)
+
+	entity, err := modelClient.Subjects().Query().
+		Where(subject.ID(r.ID)).
+		Select(
+			subject.FieldKind,
+			subject.FieldDomain,
+			subject.FieldName).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	r.Kind = entity.Kind
+	r.Domain = entity.Domain
+	r.Name = entity.Name
 
 	return nil
 }

@@ -115,7 +115,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 		// Management.
 		if len(v.ManagementCostFilters) != 0 {
 			for _, mf := range v.ManagementCostFilters {
-				if !mf.IncludeAll && !mf.ConnectorID.IsNaive() {
+				if !mf.IncludeAll && !mf.ConnectorID.Valid() {
 					return errors.New("invalid management share cost: blank connector id")
 				}
 			}
@@ -124,7 +124,7 @@ func ValidateShareCostFilters(filters types.ShareCosts) error {
 		// Idle cost.
 		if len(v.IdleCostFilters) != 0 {
 			for _, idf := range v.IdleCostFilters {
-				if !idf.IncludeAll && !idf.ConnectorID.IsNaive() {
+				if !idf.IncludeAll && !idf.ConnectorID.Valid() {
 					return errors.New("invalid idle share cost: blank connector id")
 				}
 			}

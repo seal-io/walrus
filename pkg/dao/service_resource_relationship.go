@@ -16,33 +16,6 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-func ServiceResourceRelationshipCreates(
-	mc model.ClientSet,
-	input ...*model.ServiceResourceRelationship,
-) ([]*model.ServiceResourceRelationshipCreate, error) {
-	if len(input) == 0 {
-		return nil, errors.New("invalid input: empty list")
-	}
-
-	rrs := make([]*model.ServiceResourceRelationshipCreate, len(input))
-
-	for i, r := range input {
-		if r == nil {
-			return nil, errors.New("invalid input: nil entity")
-		}
-
-		// Required.
-		c := mc.ServiceResourceRelationships().Create().
-			SetServiceResourceID(r.ServiceResourceID).
-			SetDependencyID(r.DependencyID).
-			SetType(r.Type)
-
-		rrs[i] = c
-	}
-
-	return rrs, nil
-}
-
 // ServiceResourceRelationshipUpdateWithDependencies updates the relationship with dependencies and resources.
 func ServiceResourceRelationshipUpdateWithDependencies(
 	ctx context.Context,
@@ -111,23 +84,18 @@ func ServiceResourceRelationshipUpdateWithDependencies(
 
 	if len(createResourceRelationships) > 0 {
 		// Create relationships.
-		creates, err := ServiceResourceRelationshipCreates(mc, createResourceRelationships...)
-		if err != nil {
-			return err
-		}
-
-		for _, c := range creates {
-			err := c.OnConflict(
+		err = mc.ServiceResourceRelationships().CreateBulk().
+			Set(createResourceRelationships...).
+			OnConflict(
 				sql.ConflictColumns(
 					serviceresourcerelationship.FieldServiceResourceID,
 					serviceresourcerelationship.FieldDependencyID,
 					serviceresourcerelationship.FieldType,
 				)).
-				DoNothing().
-				Exec(ctx)
-			if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
-				return err
-			}
+			DoNothing().
+			Exec(ctx)
+		if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
+			return err
 		}
 	}
 

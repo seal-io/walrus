@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"net/http"
 
 	"github.com/seal-io/seal/pkg/dao"
@@ -182,25 +180,14 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 		},
 	}
 
-	creates, err := dao.RoleCreates(mc, builtin...)
-	if err != nil {
-		return err
-	}
-
-	for i := range creates {
-		err = creates[i].
-			OnConflictColumns(role.FieldID).
-			Update(func(upsert *model.RoleUpsert) {
-				upsert.UpdatePolicies()
-				upsert.UpdateUpdateTime()
-			}).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return mc.Roles().CreateBulk().
+		Set(builtin...).
+		OnConflictColumns(role.FieldID).
+		Update(func(upsert *model.RoleUpsert) {
+			upsert.UpdatePolicies()
+			upsert.UpdateUpdateTime()
+		}).
+		Exec(ctx)
 }
 
 func createSubjects(ctx context.Context, mc model.ClientSet) error {
@@ -222,29 +209,15 @@ func createSubjects(ctx context.Context, mc model.ClientSet) error {
 		},
 	}
 
-	creates, err := dao.SubjectCreates(mc, builtin...)
-	if err != nil {
-		return err
-	}
-
-	for i := range creates {
-		err = creates[i].
+	return mc.WithTx(ctx, func(tx *model.Tx) error {
+		return tx.Subjects().CreateBulk().
+			Set(builtin...).
 			OnConflictColumns(
 				subject.FieldKind,
 				subject.FieldDomain,
 				subject.FieldName,
 			).
 			DoNothing().
-			Exec(ctx)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				// No rows error is reasonable for nothing updating.
-				continue
-			}
-
-			return err
-		}
-	}
-
-	return nil
+			ExecE(ctx, dao.SubjectRolesEdgeSave)
+	})
 }

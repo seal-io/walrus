@@ -8,7 +8,6 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/seal-io/seal/pkg/dao"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
@@ -208,13 +207,11 @@ func (in *StatusSyncTask) buildStateTask(
 			status.ServiceStatusReady.True(i, "")
 		}
 
-		update, err := dao.ServiceStatusUpdate(in.modelClient, i)
-		if err != nil {
-			berr = multierr.Append(berr, err)
-			return
-		}
+		i.Status.SetSummary(status.WalkService(&i.Status))
 
-		err = update.Exec(ctx)
+		err = in.modelClient.Services().UpdateOne(i).
+			SetStatus(i.Status).
+			Exec(ctx)
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}

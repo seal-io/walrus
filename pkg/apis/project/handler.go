@@ -47,12 +47,13 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (view.CreateRe
 		},
 	}
 
-	creates, err := dao.ProjectCreates(h.modelClient, entity)
-	if err != nil {
-		return nil, err
-	}
+	err := h.modelClient.WithTx(ctx, func(tx *model.Tx) (err error) {
+		entity, err = tx.Projects().Create().
+			Set(entity).
+			SaveE(ctx, dao.ProjectSubjectRolesEdgeSave)
 
-	entity, err = creates[0].Save(ctx)
+		return err
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +78,9 @@ func (h Handler) Update(ctx *gin.Context, req view.UpdateRequest) error {
 
 	entity := req.Model()
 
-	updates, err := dao.ProjectUpdates(h.modelClient, entity)
-	if err != nil {
-		return err
-	}
-
-	return updates[0].Exec(ctx)
+	return h.modelClient.Projects().UpdateOne(entity).
+		Set(entity).
+		ExecE(ctx, dao.ProjectSubjectRolesEdgeSave)
 }
 
 func (h Handler) Get(ctx *gin.Context, req view.GetRequest) (view.GetResponse, error) {

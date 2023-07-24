@@ -23,18 +23,14 @@ import (
 var serviceRegexp = regexp.MustCompile(`\${service\.([^.\s]+)\.[^}]+}`)
 
 func serviceRelationshipCreate(ctx context.Context, mc model.ClientSet, input *model.ServiceRelationship) error {
-	c := mc.ServiceRelationships().Create().
-		SetServiceID(input.ServiceID).
-		SetDependencyID(input.DependencyID).
-		SetType(input.Type).
-		SetPath(input.Path)
-
-	err := c.OnConflict(
-		sql.ConflictColumns(
-			servicerelationship.FieldServiceID,
-			servicerelationship.FieldDependencyID,
-			servicerelationship.FieldPath,
-		)).
+	err := mc.ServiceRelationships().Create().
+		Set(input).
+		OnConflict(
+			sql.ConflictColumns(
+				servicerelationship.FieldServiceID,
+				servicerelationship.FieldDependencyID,
+				servicerelationship.FieldPath,
+			)).
 		DoNothing().
 		Exec(ctx)
 	if err != nil && !errors.Is(err, stdsql.ErrNoRows) {
@@ -190,7 +186,7 @@ func serviceRelationshipUpdateDependants(ctx context.Context, mc model.ClientSet
 		Where(
 			servicerelationship.ServiceIDNEQ(s.ID),
 			func(sq *sql.Selector) {
-				sq.Where(sqljson.ValueContains(servicerelationship.FieldPath, s.ID.String()))
+				sq.Where(sqljson.ValueContains(servicerelationship.FieldPath, s.ID))
 			}).
 		All(ctx)
 	if err != nil && !model.IsNotFound(err) {

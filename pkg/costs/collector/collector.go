@@ -147,20 +147,20 @@ func (c *Collector) allocationResourceCosts(
 				Pvs:                 toPVs(v.PVs),
 				Labels:              toLabels(v.Properties.Labels),
 				TotalCost:           ka.TotalCost(),
-				CpuCost:             ka.CPUTotalCost(),
-				CpuCoreRequest:      ka.CPUCoreRequestAverage,
-				RamCost:             ka.RAMTotalCost(),
-				RamByteRequest:      v.RAMBytesRequestAverage,
+				CPUCost:             ka.CPUTotalCost(),
+				CPUCoreRequest:      ka.CPUCoreRequestAverage,
+				RAMCost:             ka.RAMTotalCost(),
+				RAMByteRequest:      v.RAMBytesRequestAverage,
 				PvCost:              ka.PVTotalCost(),
 				PvBytes:             ka.PVBytes(),
 				LoadBalancerCost:    v.LoadBalancerCost,
-				CpuCoreUsageAverage: v.CPUCoreUsageAverage,
-				RamByteUsageAverage: v.RAMBytesUsageAverage,
+				CPUCoreUsageAverage: v.CPUCoreUsageAverage,
+				RAMByteUsageAverage: v.RAMBytesUsageAverage,
 			}
 
 			if v.RawAllocationOnly != nil {
-				cost.CpuCoreUsageMax = v.RawAllocationOnly.CPUCoreUsageMax
-				cost.RamByteUsageMax = v.RawAllocationOnly.RAMBytesUsageMax
+				cost.CPUCoreUsageMax = v.RawAllocationOnly.CPUCoreUsageMax
+				cost.RAMByteUsageMax = v.RawAllocationOnly.RAMBytesUsageMax
 			}
 
 			costs = append(costs, cost)
