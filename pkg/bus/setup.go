@@ -3,10 +3,12 @@ package bus
 import (
 	"context"
 
+	authstoken "github.com/seal-io/seal/pkg/auths/token"
 	"github.com/seal-io/seal/pkg/bus/environment"
 	"github.com/seal-io/seal/pkg/bus/servicerevision"
 	"github.com/seal-io/seal/pkg/bus/setting"
 	"github.com/seal-io/seal/pkg/bus/template"
+	"github.com/seal-io/seal/pkg/bus/token"
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/deployer/terraform"
@@ -26,7 +28,7 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 		return
 	}
 
-	// Service revision.
+	// ServiceRevision.
 	err = servicerevision.AddSubscriber("terraform-sync-service-revision-status",
 		terraform.SyncServiceRevisionStatus)
 	if err != nil {
@@ -34,13 +36,22 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	}
 
 	// Setting.
-	err = setting.AddSubscriber("cron-sync", cron.Sync)
+	err = setting.AddSubscriber("cron-sync",
+		cron.Sync)
 	if err != nil {
 		return
 	}
 
 	// Template.
-	err = template.AddSubscriber("sync-template-schema", templates.SchemaSync(opts.ModelClient).Do)
+	err = template.AddSubscriber("sync-template-schema",
+		templates.SchemaSync(opts.ModelClient).Do)
+	if err != nil {
+		return
+	}
+
+	// Token.
+	err = token.AddSubscriber("auths-token-delete-cached",
+		authstoken.DelCached)
 	if err != nil {
 		return
 	}

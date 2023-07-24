@@ -6,9 +6,11 @@ import (
 	"sync"
 	"time"
 
+	tokenbus "github.com/seal-io/seal/pkg/bus/token"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/types/oid"
 	"github.com/seal-io/seal/utils/log"
 )
 
@@ -43,15 +45,34 @@ func (in *DeploymentExpiredCleanTask) Process(ctx context.Context, args ...inter
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	_, err := in.modelClient.Tokens().Delete().
+	entities, err := in.modelClient.Tokens().Query().
 		Where(
 			token.Kind(types.TokenKindDeployment),
 			token.ExpirationNotNil(),
 			token.ExpirationLTE(time.Now())).
-		Exec(ctx)
+		Select(
+			token.FieldID,
+			token.FieldValue).
+		All(ctx)
 	if err != nil {
-		return fmt.Errorf("error clean deployment expired token: %w", err)
+		return fmt.Errorf("error getting deployment expired token: %w", err)
 	}
 
-	return nil
+	if len(entities) == 0 {
+		return nil
+	}
+
+	ids := make([]oid.ID, len(entities))
+	for i := range entities {
+		ids[i] = entities[i].ID
+	}
+
+	_, err = in.modelClient.Tokens().Delete().
+		Where(token.IDIn(ids...)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("error cleaning deployment expired token: %w", err)
+	}
+
+	return tokenbus.Notify(ctx, entities)
 }

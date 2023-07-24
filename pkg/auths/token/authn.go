@@ -17,6 +17,11 @@ func Validate(
 	sid, tid oid.ID,
 	tv string,
 ) (domain string, groups []string, name string, err error) {
+	domain, groups, name, exist := getCached(c, tv)
+	if exist {
+		return
+	}
+
 	t, err := mc.Tokens().Query().
 		Where(
 			token.ID(tid),
@@ -46,6 +51,8 @@ func Validate(
 	domain = t.Edges.Subject.Domain
 	groups = []string{}
 	name = t.Edges.Subject.Name
+
+	cache(c, tv, domain, groups, name)
 
 	return
 }

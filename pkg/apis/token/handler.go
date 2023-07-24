@@ -6,6 +6,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/token/view"
 	"github.com/seal-io/seal/pkg/auths"
 	"github.com/seal-io/seal/pkg/auths/session"
+	tokenbus "github.com/seal-io/seal/pkg/bus/token"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/token"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -43,7 +44,23 @@ func (h Handler) Create(ctx *gin.Context, req view.CreateRequest) (*view.CreateR
 }
 
 func (h Handler) Delete(ctx *gin.Context, req view.DeleteRequest) error {
-	return h.modelClient.Tokens().DeleteOne(req.Model()).Exec(ctx)
+	entity, err := h.modelClient.Tokens().Query().
+		Where(token.ID(req.ID)).
+		Select(
+			token.FieldID,
+			token.FieldValue).
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = h.modelClient.Tokens().DeleteOne(entity).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return tokenbus.Notify(ctx, model.Tokens{entity})
 }
 
 // Batch APIs.

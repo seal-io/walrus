@@ -29,6 +29,8 @@ func Login(c *gin.Context, username, password string) (sessionValue string, err 
 }
 
 func Logout(c *gin.Context, sessionValue string) {
+	delCached(c, sessionValue)
+
 	// Wrap session with value.
 	s := casdoor.WrapSession(sessionValue)
 
@@ -37,6 +39,11 @@ func Logout(c *gin.Context, sessionValue string) {
 }
 
 func Validate(c *gin.Context, sid oid.ID, sv string) (domain string, groups []string, name string, err error) {
+	domain, groups, name, exist := getCached(c, sv)
+	if exist {
+		return
+	}
+
 	// Wrap session with value.
 	s := casdoor.WrapSession(sv)
 
@@ -49,6 +56,8 @@ func Validate(c *gin.Context, sid oid.ID, sv string) (domain string, groups []st
 	domain = types.SubjectDomainBuiltin
 	groups = []string{}
 	name = r.Name
+
+	cache(c, sv, domain, groups, name)
 
 	return
 }
