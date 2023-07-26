@@ -35,22 +35,22 @@ const (
 type RelationshipCheckTask struct {
 	mu sync.Mutex
 
-	skipTLSVerify bool
-	logger        log.Logger
-	modelClient   model.ClientSet
-	kubeConfig    *rest.Config
-	deployer      deptypes.Deployer
+	tlsCertified bool
+	logger       log.Logger
+	modelClient  model.ClientSet
+	kubeConfig   *rest.Config
+	deployer     deptypes.Deployer
 }
 
 func NewServiceRelationshipCheckTask(
 	mc model.ClientSet,
 	kc *rest.Config,
-	skipTLSVerify bool,
+	tlsCertified bool,
 ) (*RelationshipCheckTask, error) {
 	in := &RelationshipCheckTask{
-		modelClient:   mc,
-		kubeConfig:    kc,
-		skipTLSVerify: skipTLSVerify,
+		modelClient:  mc,
+		kubeConfig:   kc,
+		tlsCertified: tlsCertified,
 	}
 
 	in.logger = log.WithName("task").WithName(in.Name())
@@ -148,7 +148,7 @@ func (in *RelationshipCheckTask) destroyServices(ctx context.Context) error {
 	}
 
 	destroyOpts := pkgservice.Options{
-		TlsCertified: in.skipTLSVerify,
+		TlsCertified: in.tlsCertified,
 	}
 
 	for _, svc := range services {
@@ -233,7 +233,7 @@ func (in *RelationshipCheckTask) deployService(ctx context.Context, entity *mode
 	}
 
 	deployOpts := pkgservice.Options{
-		TlsCertified: in.skipTLSVerify,
+		TlsCertified: in.tlsCertified,
 	}
 
 	return pkgservice.Apply(ctx, in.modelClient, dp, entity, deployOpts)

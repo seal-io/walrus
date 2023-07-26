@@ -489,7 +489,7 @@ func (r *Server) Run(c context.Context) error {
 		K8sConfig:      k8sCfg,
 		K8sCacheReady:  make(chan struct{}),
 		ModelClient:    modelClient,
-		SkipTLSVerify:  len(r.TlsAutoCertDomains) != 0,
+		TlsCertified:   len(r.TlsAutoCertDomains) != 0,
 		DatabaseDriver: databaseDrv,
 		CacheDriver:    cacheDrv,
 	}

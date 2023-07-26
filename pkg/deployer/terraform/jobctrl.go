@@ -60,8 +60,8 @@ const (
 	// _podName the name of the pod.
 	_podName = "seal-system"
 
-	// _applicationRevisionIDLabel pod template label key for application revision id.
-	_applicationRevisionIDLabel = "seal.io/application-revision-id"
+	// _serviceRevisionIDLabel pod template label key for service revision id.
+	_serviceRevisionIDLabel = "seal.io/service-revision-id"
 	// _jobNameFormat the format of job name.
 	_jobNameFormat = "tf-job-%s-%s"
 	// _jobSecretPrefix the prefix of secret name.
@@ -73,10 +73,10 @@ const (
 )
 
 const (
-	// _applyCommands the commands to apply deployment of the application.
-	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color"
-	// _destroyCommands the commands to destroy deployment of the application.
-	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color"
+	// _applyCommands the commands to apply deployment of the service.
+	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color "
+	// _destroyCommands the commands to destroy deployment of the service.
+	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color "
 )
 
 func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -91,7 +91,7 @@ func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	err = r.syncApplicationRevisionStatus(ctx, job)
+	err = r.syncServiceRevisionStatus(ctx, job)
 	if err != nil && !model.IsNotFound(err) {
 		return ctrl.Result{}, err
 	}
@@ -105,20 +105,20 @@ func (r JobReconciler) Setup(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// syncApplicationRevisionStatus sync the application revision status.
-func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
-	appRevisionID, ok := job.Labels[_applicationRevisionIDLabel]
+// syncServiceRevisionStatus sync the service revision status.
+func (r JobReconciler) syncServiceRevisionStatus(ctx context.Context, job *batchv1.Job) (err error) {
+	svcRevisionID, ok := job.Labels[_serviceRevisionIDLabel]
 	if !ok {
 		// Not a deployer job.
 		return nil
 	}
 
-	appRevision, err := r.ModelClient.ServiceRevisions().Get(ctx, oid.ID(appRevisionID))
+	svcRevision, err := r.ModelClient.ServiceRevisions().Get(ctx, oid.ID(svcRevisionID))
 	if err != nil {
 		return err
 	}
-	// If the application revision status is not running, then skip it.
-	if appRevision.Status != status.ServiceRevisionStatusRunning {
+	// If the service revision status is not running, then skip it.
+	if svcRevision.Status != status.ServiceRevisionStatusRunning {
 		return nil
 	}
 
@@ -130,35 +130,35 @@ func (r JobReconciler) syncApplicationRevisionStatus(ctx context.Context, job *b
 	// Get job pods logs.
 	revisionStatusMessage, rerr := r.getJobPodsLogs(ctx, job.Name)
 	if rerr != nil {
-		r.Logger.Error(rerr, "failed to get job pod logs", "application-revision", appRevisionID)
+		r.Logger.Error(rerr, "failed to get job pod logs", "service-revision", svcRevisionID)
 		revisionStatusMessage = rerr.Error()
 	}
 
 	if job.Status.Succeeded > 0 {
-		r.Logger.Info("succeed", "application-revision", appRevisionID)
+		r.Logger.Info("succeed", "service-revision", svcRevisionID)
 	}
 
 	if job.Status.Failed > 0 {
-		r.Logger.Info("failed", "application-revision", appRevisionID)
+		r.Logger.Info("failed", "service-revision", svcRevisionID)
 		revisionStatus = status.ServiceRevisionStatusFailed
 	}
 
-	// Report to application revision.
-	appRevision.Status = revisionStatus
-	appRevision.StatusMessage = revisionStatusMessage
-	appRevision.Duration = int(time.Since(*appRevision.CreateTime).Seconds())
+	// Report to service revision.
+	svcRevision.Status = revisionStatus
+	svcRevision.StatusMessage = revisionStatusMessage
+	svcRevision.Duration = int(time.Since(*svcRevision.CreateTime).Seconds())
 
-	update, err := dao.ServiceRevisionUpdate(r.ModelClient, appRevision)
+	update, err := dao.ServiceRevisionUpdate(r.ModelClient, svcRevision)
 	if err != nil {
 		return err
 	}
 
-	appRevision, err = update.Save(ctx)
+	svcRevision, err = update.Save(ctx)
 	if err != nil {
 		return err
 	}
 
-	return revisionbus.Notify(ctx, r.ModelClient, appRevision)
+	return revisionbus.Notify(ctx, r.ModelClient, svcRevision)
 }
 
 // getJobPodsLogs returns the logs of all pods of a job.
@@ -268,7 +268,7 @@ func CreateSecret(ctx context.Context, clientSet *kubernetes.Clientset, name str
 }
 
 // getPodTemplate returns a pod template for deployment.
-func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
+func getPodTemplate(serviceRevisionID, configName string, opts JobCreateOptions) corev1.PodTemplateSpec {
 	var (
 		command       = []string{"/bin/sh", "-c"}
 		deployCommand = fmt.Sprintf("cp %s/main.tf main.tf && ", _secretMountPath)
@@ -288,7 +288,7 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 		ObjectMeta: metav1.ObjectMeta{
 			Name: _podName,
 			Labels: map[string]string{
-				_applicationRevisionIDLabel: applicationRevisionID,
+				_serviceRevisionIDLabel: serviceRevisionID,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -326,9 +326,9 @@ func getPodTemplate(applicationRevisionID, configName string, opts JobCreateOpti
 	}
 }
 
-// getK8sJobName returns the kubernetes job name for the given application revision id.
-func getK8sJobName(format, jobType, applicationRevisionID string) string {
-	return fmt.Sprintf(format, jobType, applicationRevisionID)
+// getK8sJobName returns the kubernetes job name for the given service revision id.
+func getK8sJobName(format, jobType, serviceRevisionID string) string {
+	return fmt.Sprintf(format, jobType, serviceRevisionID)
 }
 
 // StreamJobLogs streams the logs of a job.

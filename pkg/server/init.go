@@ -15,9 +15,11 @@ type initOptions struct {
 	K8sConfig      *rest.Config
 	K8sCacheReady  chan struct{}
 	ModelClient    *model.Client
-	SkipTLSVerify  bool
+	TlsCertified   bool
 	DatabaseDriver *sql.DB
 	CacheDriver    cache.Driver
+	RdsDialect     string
+	RdsDriver      *sql.DB
 }
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {

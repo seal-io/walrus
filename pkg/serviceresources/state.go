@@ -41,7 +41,7 @@ func State(
 	}
 
 	for i := range candidates {
-		// Get status of the application resource.
+		// Get status of the service resource.
 		st, err := op.GetStatus(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
@@ -49,13 +49,13 @@ func State(
 			sr.merge(st.Error, st.Transitioning)
 		}
 
-		// Get endpoints of the application resource.
+		// Get endpoints of the service resource.
 		eps, err := op.GetEndpoints(ctx, candidates[i])
 		if err != nil {
 			berr = multierr.Append(berr, err)
 		}
 
-		// New application resource status.
+		// New service resource status.
 		newStatus := types.ServiceResourceStatus{
 			Status:            *st,
 			ResourceEndpoints: eps,
@@ -70,7 +70,7 @@ func State(
 			Exec(ctx)
 		if err != nil {
 			if model.IsNotFound(err) {
-				// Application resource has been deleted by other thread processing.
+				// Service resource has been deleted by other thread processing.
 				continue
 			}
 			berr = multierr.Append(berr, err)

@@ -389,7 +389,6 @@ func (h Handler) manageResources(ctx context.Context, entity *model.ServiceRevis
 
 	// Calculate creating list and deleting list.
 	observedRessIndex := dao.ServiceResourceToMap(observedRess)
-
 	deleteRessIDs := make([]oid.ID, 0, len(recordRess))
 
 	for _, c := range recordRess {

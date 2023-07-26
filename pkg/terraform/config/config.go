@@ -14,7 +14,7 @@ import (
 	"github.com/seal-io/seal/utils/strs"
 )
 
-// Config handles the configuration of application to terraform config.
+// Config handles the configuration of service to terraform config.
 type Config struct {
 	// File is the hclwrite.File of the Config.
 	file *hclwrite.File

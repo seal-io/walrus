@@ -49,7 +49,7 @@ func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
 func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
-	applicationResources model.ServiceResources, dependencies map[string][]string, err error,
+	serviceResources model.ServiceResources, dependencies map[string][]string, err error,
 ) {
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 	dependencies = make(map[string][]string)
@@ -87,7 +87,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			continue
 		}
 
-		applicationResource := &model.ServiceResource{
+		serviceResource := &model.ServiceResource{
 			ServiceID:    revision.ServiceID,
 			ConnectorID:  oid.ID(connectorID),
 			Mode:         rs.Mode,
@@ -96,14 +96,14 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			DeployerType: revision.DeployerType,
 			Shape:        types.ServiceResourceShapeClass,
 		}
-		applicationResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
+		serviceResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
 
 		// The module key is used to identify the terraform resource module.
 		mk := strs.Join(".", rs.Module, rs.Type, rs.Name)
 		if rs.Mode == types.ServiceResourceModeData {
 			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
 		}
-		moduleResourceMap[mk] = applicationResource
+		moduleResourceMap[mk] = serviceResource
 
 		for i, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
@@ -149,16 +149,16 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
-			if _, ok := moduleResourceMap[key(applicationResource)]; !ok {
-				resourceDependencies[key(applicationResource)] = is.Dependencies
+			if _, ok := moduleResourceMap[key(serviceResource)]; !ok {
+				resourceDependencies[key(serviceResource)] = is.Dependencies
 			}
 
-			dependencies[key(resource)] = append(dependencies[key(resource)], key(applicationResource))
-			applicationResource.Edges.Instances[i] = resource
+			dependencies[key(resource)] = append(dependencies[key(resource)], key(serviceResource))
+			serviceResource.Edges.Instances[i] = resource
 			resourceDependencies[key(resource)] = is.Dependencies
 		}
 
-		applicationResources = append(applicationResources, applicationResource)
+		serviceResources = append(serviceResources, serviceResource)
 	}
 
 	// Get resource dependencies.
@@ -174,7 +174,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 		}
 	}
 
-	return applicationResources, dependencies, nil
+	return serviceResources, dependencies, nil
 }
 
 func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputState, error) {
@@ -243,7 +243,7 @@ func ParseInstanceProviderConnector(providerString string) (string, error) {
 }
 
 // ParseInstanceID get the real instance id from the instance object state.
-// The instance id is stored in the "name" attribute of application resource.
+// The instance id is stored in the "name" attribute of service resource.
 func ParseInstanceID(is instanceObjectState) (string, error) {
 	if is.Attributes != nil {
 		ty, err := ctyjson.ImpliedType(is.Attributes)

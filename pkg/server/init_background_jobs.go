@@ -8,8 +8,8 @@ import (
 	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	connskd "github.com/seal-io/seal/pkg/scheduler/connector"
-	serviceskd "github.com/seal-io/seal/pkg/scheduler/service"
-	appresskd "github.com/seal-io/seal/pkg/scheduler/serviceresource"
+	svcskd "github.com/seal-io/seal/pkg/scheduler/service"
+	svcresskd "github.com/seal-io/seal/pkg/scheduler/serviceresource"
 	telemetryskd "github.com/seal-io/seal/pkg/scheduler/telemetry"
 	tokenskd "github.com/seal-io/seal/pkg/scheduler/token"
 	"github.com/seal-io/seal/pkg/settings"
@@ -31,7 +31,7 @@ func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error
 		settings.ServiceRelationshipCheckCronExpr.Name(): buildServiceRelationshipCheckJobCreator(
 			opts.ModelClient,
 			opts.K8sConfig,
-			opts.SkipTLSVerify,
+			opts.TlsCertified,
 		),
 	}
 
@@ -62,7 +62,7 @@ func buildConnectorStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewStatusSyncTask(mc)
+		task, err := svcresskd.NewStatusSyncTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -73,7 +73,7 @@ func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewLabelApplyTask(mc)
+		task, err := svcresskd.NewLabelApplyTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -84,7 +84,7 @@ func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 
 func buildResourceComponentsDiscoverJobCreator(mc model.ClientSet) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewComponentsDiscoverTask(mc)
+		task, err := svcresskd.NewComponentsDiscoverTask(mc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -104,9 +104,9 @@ func buildTokenDeploymentExpireCleanJobCreator(mc model.ClientSet) cron.JobCreat
 	}
 }
 
-func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config, skipTLSVerify bool) cron.JobCreator {
+func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config, tlsCertified bool) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := serviceskd.NewServiceRelationshipCheckTask(mc, kc, skipTLSVerify)
+		task, err := svcskd.NewServiceDriftDetectTask(mc, kc, tlsCertified)
 		if err != nil {
 			return nil, nil, err
 		}
