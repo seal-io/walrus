@@ -105,6 +105,10 @@ func ServiceUpdates(
 			c.SetAttributes(r.Attributes)
 		}
 
+		if r.DriftResult != nil {
+			c.SetDriftResult(r.DriftResult)
+		}
+
 		r.Status.SetSummary(status.WalkService(&r.Status))
 
 		if r.Status.Changed() {

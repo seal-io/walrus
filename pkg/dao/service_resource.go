@@ -180,3 +180,28 @@ func ServiceResourceGetUniqueKey(r *model.ServiceResource) string {
 	// Align to schema definition.
 	return strs.Join("-", string(r.ConnectorID), r.Shape, r.Mode, r.Type, r.Name)
 }
+
+func ServiceResourceUpdates(
+	mc model.ClientSet,
+	input ...*model.ServiceResource,
+) ([]*model.ServiceResourceUpdateOne, error) {
+	if len(input) == 0 {
+		return nil, errors.New("invalid input: empty list")
+	}
+
+	rrs := make([]*model.ServiceResourceUpdateOne, len(input))
+
+	for i, r := range input {
+		if r == nil {
+			return nil, errors.New("invalid input: nil entity")
+		}
+
+		// Required.
+		u := mc.ServiceResources().UpdateOneID(r.ID).
+			SetDriftResult(r.DriftResult)
+
+		rrs[i] = u
+	}
+
+	return rrs, nil
+}

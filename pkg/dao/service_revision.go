@@ -24,6 +24,7 @@ func ServiceRevisionCreates(
 
 		// Required.
 		c := mc.ServiceRevisions().Create().
+			SetType(r.Type).
 			SetProjectID(r.ProjectID).
 			SetServiceID(r.ServiceID).
 			SetEnvironmentID(r.EnvironmentID).

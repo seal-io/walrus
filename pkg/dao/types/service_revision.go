@@ -8,3 +8,10 @@ type OutputValue struct {
 	Type      property.Type  `json:"type,omitempty"`
 	Sensitive bool           `json:"sensitive,omitempty"`
 }
+
+const (
+	ServiceRevisionTypeApply   = "apply"
+	ServiceRevisionTypeDestory = "destroy"
+	ServiceRevisionTypeRefresh = "refresh"
+	ServiceRevisionTypeDetect  = "detect"
+)
