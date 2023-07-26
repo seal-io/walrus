@@ -39,6 +39,8 @@ type ServiceCreateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceDriftResult `json:"driftResult,omitempty"`
 	// Environment to which the service belongs.
 	Environment EnvironmentQueryInput `json:"environment"`
 }
@@ -51,6 +53,7 @@ func (in ServiceCreateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
+		DriftResult: in.DriftResult,
 	}
 	entity.EnvironmentID = in.Environment.ID
 	return entity
@@ -70,6 +73,8 @@ type ServiceUpdateInput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceDriftResult `json:"driftResult,omitempty"`
 }
 
 // Model converts the ServiceUpdateInput to Service.
@@ -81,6 +86,7 @@ func (in ServiceUpdateInput) Model() *Service {
 		Labels:      in.Labels,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
+		DriftResult: in.DriftResult,
 	}
 	return entity
 }
@@ -105,6 +111,8 @@ type ServiceOutput struct {
 	Template types.TemplateVersionRef `json:"template,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceDriftResult `json:"driftResult,omitempty"`
 	// Project to which the service belongs.
 	Project *ProjectOutput `json:"project,omitempty"`
 	// Environment to which the service belongs.
@@ -126,6 +134,7 @@ func ExposeService(in *Service) *ServiceOutput {
 		Status:      in.Status,
 		Template:    in.Template,
 		Attributes:  in.Attributes,
+		DriftResult: in.DriftResult,
 		Project:     ExposeProject(in.Edges.Project),
 		Environment: ExposeEnvironment(in.Edges.Environment),
 	}

@@ -135,6 +135,18 @@ func (su *ServiceUpdate) ClearAttributes() *ServiceUpdate {
 	return su
 }
 
+// SetDriftResult sets the "driftResult" field.
+func (su *ServiceUpdate) SetDriftResult(tdr *types.ServiceDriftResult) *ServiceUpdate {
+	su.mutation.SetDriftResult(tdr)
+	return su
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (su *ServiceUpdate) ClearDriftResult() *ServiceUpdate {
+	su.mutation.ClearDriftResult()
+	return su
+}
+
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
 func (su *ServiceUpdate) AddRevisionIDs(ids ...oid.ID) *ServiceUpdate {
 	su.mutation.AddRevisionIDs(ids...)
@@ -362,6 +374,12 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if su.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := su.mutation.DriftResult(); ok {
+		_spec.SetField(service.FieldDriftResult, field.TypeJSON, value)
+	}
+	if su.mutation.DriftResultCleared() {
+		_spec.ClearField(service.FieldDriftResult, field.TypeJSON)
 	}
 	if su.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -637,6 +655,18 @@ func (suo *ServiceUpdateOne) ClearAttributes() *ServiceUpdateOne {
 	return suo
 }
 
+// SetDriftResult sets the "driftResult" field.
+func (suo *ServiceUpdateOne) SetDriftResult(tdr *types.ServiceDriftResult) *ServiceUpdateOne {
+	suo.mutation.SetDriftResult(tdr)
+	return suo
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (suo *ServiceUpdateOne) ClearDriftResult() *ServiceUpdateOne {
+	suo.mutation.ClearDriftResult()
+	return suo
+}
+
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
 func (suo *ServiceUpdateOne) AddRevisionIDs(ids ...oid.ID) *ServiceUpdateOne {
 	suo.mutation.AddRevisionIDs(ids...)
@@ -894,6 +924,12 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	}
 	if suo.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
+	}
+	if value, ok := suo.mutation.DriftResult(); ok {
+		_spec.SetField(service.FieldDriftResult, field.TypeJSON, value)
+	}
+	if suo.mutation.DriftResultCleared() {
+		_spec.ClearField(service.FieldDriftResult, field.TypeJSON)
 	}
 	if suo.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

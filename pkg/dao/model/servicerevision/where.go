@@ -83,6 +83,11 @@ func StatusMessage(v string) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldStatusMessage, v))
 }
 
+// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
+func Type(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldType, v))
+}
+
 // ServiceID applies equality check predicate on the "serviceID" field. It's identical to ServiceIDEQ.
 func ServiceID(v oid.ID) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldEQ(FieldServiceID, v))
@@ -391,6 +396,71 @@ func StatusMessageEqualFold(v string) predicate.ServiceRevision {
 // StatusMessageContainsFold applies the ContainsFold predicate on the "statusMessage" field.
 func StatusMessageContainsFold(v string) predicate.ServiceRevision {
 	return predicate.ServiceRevision(sql.FieldContainsFold(FieldStatusMessage, v))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldNotIn(FieldType, vs...))
+}
+
+// TypeGT applies the GT predicate on the "type" field.
+func TypeGT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGT(FieldType, v))
+}
+
+// TypeGTE applies the GTE predicate on the "type" field.
+func TypeGTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldGTE(FieldType, v))
+}
+
+// TypeLT applies the LT predicate on the "type" field.
+func TypeLT(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLT(FieldType, v))
+}
+
+// TypeLTE applies the LTE predicate on the "type" field.
+func TypeLTE(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldLTE(FieldType, v))
+}
+
+// TypeContains applies the Contains predicate on the "type" field.
+func TypeContains(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContains(FieldType, v))
+}
+
+// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
+func TypeHasPrefix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasPrefix(FieldType, v))
+}
+
+// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
+func TypeHasSuffix(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldHasSuffix(FieldType, v))
+}
+
+// TypeEqualFold applies the EqualFold predicate on the "type" field.
+func TypeEqualFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldEqualFold(FieldType, v))
+}
+
+// TypeContainsFold applies the ContainsFold predicate on the "type" field.
+func TypeContainsFold(v string) predicate.ServiceRevision {
+	return predicate.ServiceRevision(sql.FieldContainsFold(FieldType, v))
 }
 
 // ServiceIDEQ applies the EQ predicate on the "serviceID" field.

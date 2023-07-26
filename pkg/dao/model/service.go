@@ -50,6 +50,8 @@ type Service struct {
 	Template types.TemplateVersionRef `json:"template,omitempty" sql:"template"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty" sql:"attributes"`
+	// Drift detection result.
+	DriftResult *types.ServiceDriftResult `json:"driftResult,omitempty" sql:"driftResult"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
 	Edges        ServiceEdges `json:"edges"`
@@ -131,7 +133,7 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus, service.FieldTemplate:
+		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus, service.FieldTemplate, service.FieldDriftResult:
 			values[i] = new([]byte)
 		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
 			values[i] = new(oid.ID)
@@ -238,6 +240,14 @@ func (s *Service) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				s.Attributes = *value
 			}
+		case service.FieldDriftResult:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field driftResult", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &s.DriftResult); err != nil {
+					return fmt.Errorf("unmarshal field driftResult: %w", err)
+				}
+			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
 		}
@@ -335,6 +345,9 @@ func (s *Service) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", s.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("driftResult=")
+	builder.WriteString(fmt.Sprintf("%v", s.DriftResult))
 	builder.WriteByte(')')
 	return builder.String()
 }

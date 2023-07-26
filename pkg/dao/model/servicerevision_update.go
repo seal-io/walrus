@@ -77,6 +77,12 @@ func (sru *ServiceRevisionUpdate) ClearStatusMessage() *ServiceRevisionUpdate {
 	return sru
 }
 
+// SetType sets the "type" field.
+func (sru *ServiceRevisionUpdate) SetType(s string) *ServiceRevisionUpdate {
+	sru.mutation.SetType(s)
+	return sru
+}
+
 // SetTemplateVersion sets the "templateVersion" field.
 func (sru *ServiceRevisionUpdate) SetTemplateVersion(s string) *ServiceRevisionUpdate {
 	sru.mutation.SetTemplateVersion(s)
@@ -253,6 +259,9 @@ func (sru *ServiceRevisionUpdate) sqlSave(ctx context.Context) (n int, err error
 	if sru.mutation.StatusMessageCleared() {
 		_spec.ClearField(servicerevision.FieldStatusMessage, field.TypeString)
 	}
+	if value, ok := sru.mutation.GetType(); ok {
+		_spec.SetField(servicerevision.FieldType, field.TypeString, value)
+	}
 	if value, ok := sru.mutation.TemplateVersion(); ok {
 		_spec.SetField(servicerevision.FieldTemplateVersion, field.TypeString, value)
 	}
@@ -357,6 +366,12 @@ func (sruo *ServiceRevisionUpdateOne) SetNillableStatusMessage(s *string) *Servi
 // ClearStatusMessage clears the value of the "statusMessage" field.
 func (sruo *ServiceRevisionUpdateOne) ClearStatusMessage() *ServiceRevisionUpdateOne {
 	sruo.mutation.ClearStatusMessage()
+	return sruo
+}
+
+// SetType sets the "type" field.
+func (sruo *ServiceRevisionUpdateOne) SetType(s string) *ServiceRevisionUpdateOne {
+	sruo.mutation.SetType(s)
 	return sruo
 }
 
@@ -565,6 +580,9 @@ func (sruo *ServiceRevisionUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 	}
 	if sruo.mutation.StatusMessageCleared() {
 		_spec.ClearField(servicerevision.FieldStatusMessage, field.TypeString)
+	}
+	if value, ok := sruo.mutation.GetType(); ok {
+		_spec.SetField(servicerevision.FieldType, field.TypeString, value)
 	}
 	if value, ok := sruo.mutation.TemplateVersion(); ok {
 		_spec.SetField(servicerevision.FieldTemplateVersion, field.TypeString, value)

@@ -537,6 +537,16 @@ func AttributesNotNil() predicate.Service {
 	return predicate.Service(sql.FieldNotNull(FieldAttributes))
 }
 
+// DriftResultIsNil applies the IsNil predicate on the "driftResult" field.
+func DriftResultIsNil() predicate.Service {
+	return predicate.Service(sql.FieldIsNull(FieldDriftResult))
+}
+
+// DriftResultNotNil applies the NotNil predicate on the "driftResult" field.
+func DriftResultNotNil() predicate.Service {
+	return predicate.Service(sql.FieldNotNull(FieldDriftResult))
+}
+
 // HasProject applies the HasEdge predicate on the "project" edge.
 func HasProject() predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {

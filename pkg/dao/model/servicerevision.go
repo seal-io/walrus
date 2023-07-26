@@ -37,6 +37,8 @@ type ServiceRevision struct {
 	Status string `json:"status,omitempty" sql:"status"`
 	// StatusMessage holds the value of the "statusMessage" field.
 	StatusMessage string `json:"statusMessage,omitempty" sql:"statusMessage"`
+	// Type of the revision.
+	Type string `json:"type,omitempty" sql:"type"`
 	// ID of the service to which the revision belongs.
 	ServiceID oid.ID `json:"serviceID,omitempty" sql:"serviceID"`
 	// ID of the environment to which the service deploys.
@@ -134,7 +136,7 @@ func (*ServiceRevision) scanValues(columns []string) ([]any, error) {
 			values[i] = new(property.Values)
 		case servicerevision.FieldDuration:
 			values[i] = new(sql.NullInt64)
-		case servicerevision.FieldStatus, servicerevision.FieldStatusMessage, servicerevision.FieldTemplateID, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType:
+		case servicerevision.FieldStatus, servicerevision.FieldStatusMessage, servicerevision.FieldType, servicerevision.FieldTemplateID, servicerevision.FieldTemplateVersion, servicerevision.FieldInputPlan, servicerevision.FieldOutput, servicerevision.FieldDeployerType:
 			values[i] = new(sql.NullString)
 		case servicerevision.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -183,6 +185,12 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field statusMessage", values[i])
 			} else if value.Valid {
 				sr.StatusMessage = value.String
+			}
+		case servicerevision.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				sr.Type = value.String
 			}
 		case servicerevision.FieldServiceID:
 			if value, ok := values[i].(*oid.ID); !ok {
@@ -324,6 +332,9 @@ func (sr *ServiceRevision) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("statusMessage=")
 	builder.WriteString(sr.StatusMessage)
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(sr.Type)
 	builder.WriteString(", ")
 	builder.WriteString("serviceID=")
 	builder.WriteString(fmt.Sprintf("%v", sr.ServiceID))

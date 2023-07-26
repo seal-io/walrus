@@ -41,6 +41,8 @@ type ServiceResourceCreateInput struct {
 	Shape string `json:"shape"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceResourceDriftResult `json:"driftResult,omitempty"`
 	// Composition holds the value of the composition edge.
 	Composition *ServiceResourceQueryInput `json:"composition,omitempty"`
 	// Class holds the value of the class edge.
@@ -59,6 +61,7 @@ func (in ServiceResourceCreateInput) Model() *ServiceResource {
 		DeployerType: in.DeployerType,
 		Shape:        in.Shape,
 		Status:       in.Status,
+		DriftResult:  in.DriftResult,
 	}
 	if in.Composition != nil {
 		entity.CompositionID = in.Composition.ID
@@ -81,6 +84,8 @@ type ServiceResourceUpdateInput struct {
 	ID oid.ID `uri:"id" json:"-"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceResourceDriftResult `json:"driftResult,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
 	Dependencies []*ServiceResourceRelationshipUpdateInput `json:"dependencies,omitempty"`
 }
@@ -88,8 +93,9 @@ type ServiceResourceUpdateInput struct {
 // Model converts the ServiceResourceUpdateInput to ServiceResource.
 func (in ServiceResourceUpdateInput) Model() *ServiceResource {
 	var entity = &ServiceResource{
-		ID:     in.ID,
-		Status: in.Status,
+		ID:          in.ID,
+		Status:      in.Status,
+		DriftResult: in.DriftResult,
 	}
 	for i := 0; i < len(in.Dependencies); i++ {
 		if in.Dependencies[i] == nil {
@@ -122,6 +128,8 @@ type ServiceResourceOutput struct {
 	Shape string `json:"shape,omitempty"`
 	// Status of the resource.
 	Status types.ServiceResourceStatus `json:"status,omitempty"`
+	// Drift detection result.
+	DriftResult *types.ServiceResourceDriftResult `json:"driftResult,omitempty"`
 	// Service to which the resource belongs.
 	Service *ServiceOutput `json:"service,omitempty"`
 	// Connector to which the resource deploys.
@@ -157,6 +165,7 @@ func ExposeServiceResource(in *ServiceResource) *ServiceResourceOutput {
 		DeployerType: in.DeployerType,
 		Shape:        in.Shape,
 		Status:       in.Status,
+		DriftResult:  in.DriftResult,
 		Service:      ExposeService(in.Edges.Service),
 		Connector:    ExposeConnector(in.Edges.Connector),
 		Composition:  ExposeServiceResource(in.Edges.Composition),

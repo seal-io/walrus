@@ -29,6 +29,8 @@ func (in ServiceRevisionQueryInput) Model() *ServiceRevision {
 
 // ServiceRevisionCreateInput is the input for the ServiceRevision creation.
 type ServiceRevisionCreateInput struct {
+	// Type of the revision.
+	Type string `json:"type,omitempty"`
 	// ID of the template.
 	TemplateID string `json:"templateID"`
 	// Version of the template.
@@ -54,6 +56,7 @@ type ServiceRevisionCreateInput struct {
 // Model converts the ServiceRevisionCreateInput to ServiceRevision.
 func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
+		Type:                      in.Type,
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
@@ -72,6 +75,8 @@ func (in ServiceRevisionCreateInput) Model() *ServiceRevision {
 type ServiceRevisionUpdateInput struct {
 	// ID holds the value of the "id" field.
 	ID oid.ID `uri:"id" json:"-"`
+	// Type of the revision.
+	Type string `json:"type,omitempty"`
 	// Version of the template.
 	TemplateVersion string `json:"templateVersion,omitempty"`
 	// Attributes to configure the template.
@@ -96,6 +101,7 @@ type ServiceRevisionUpdateInput struct {
 func (in ServiceRevisionUpdateInput) Model() *ServiceRevision {
 	var entity = &ServiceRevision{
 		ID:                        in.ID,
+		Type:                      in.Type,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,
 		Variables:                 in.Variables,
@@ -119,6 +125,8 @@ type ServiceRevisionOutput struct {
 	Status string `json:"status,omitempty"`
 	// StatusMessage holds the value of the "statusMessage" field.
 	StatusMessage string `json:"statusMessage,omitempty"`
+	// Type of the revision.
+	Type string `json:"type,omitempty"`
 	// ID of the template.
 	TemplateID string `json:"templateID,omitempty"`
 	// Version of the template.
@@ -153,6 +161,7 @@ func ExposeServiceRevision(in *ServiceRevision) *ServiceRevisionOutput {
 		CreateTime:                in.CreateTime,
 		Status:                    in.Status,
 		StatusMessage:             in.StatusMessage,
+		Type:                      in.Type,
 		TemplateID:                in.TemplateID,
 		TemplateVersion:           in.TemplateVersion,
 		Attributes:                in.Attributes,

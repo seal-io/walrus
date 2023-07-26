@@ -40,6 +40,8 @@ const (
 	FieldTemplate = "template"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
+	// FieldDriftResult holds the string denoting the driftresult field in the database.
+	FieldDriftResult = "drift_result"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -103,6 +105,7 @@ var Columns = []string{
 	FieldEnvironmentID,
 	FieldTemplate,
 	FieldAttributes,
+	FieldDriftResult,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

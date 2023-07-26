@@ -44,6 +44,8 @@ const (
 	FieldShape = "shape"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldDriftResult holds the string denoting the driftresult field in the database.
+	FieldDriftResult = "drift_result"
 	// EdgeService holds the string denoting the service edge name in mutations.
 	EdgeService = "service"
 	// EdgeConnector holds the string denoting the connector edge name in mutations.
@@ -115,6 +117,7 @@ var Columns = []string{
 	FieldDeployerType,
 	FieldShape,
 	FieldStatus,
+	FieldDriftResult,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -9548,6 +9548,7 @@ type ServiceMutation struct {
 	status              *status.Status
 	template            *types.TemplateVersionRef
 	attributes          *property.Values
+	driftResult         **types.ServiceDriftResult
 	clearedFields       map[string]struct{}
 	project             *oid.ID
 	clearedproject      bool
@@ -10132,6 +10133,55 @@ func (m *ServiceMutation) ResetAttributes() {
 	delete(m.clearedFields, service.FieldAttributes)
 }
 
+// SetDriftResult sets the "driftResult" field.
+func (m *ServiceMutation) SetDriftResult(tdr *types.ServiceDriftResult) {
+	m.driftResult = &tdr
+}
+
+// DriftResult returns the value of the "driftResult" field in the mutation.
+func (m *ServiceMutation) DriftResult() (r *types.ServiceDriftResult, exists bool) {
+	v := m.driftResult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriftResult returns the old "driftResult" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldDriftResult(ctx context.Context) (v *types.ServiceDriftResult, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriftResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriftResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriftResult: %w", err)
+	}
+	return oldValue.DriftResult, nil
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (m *ServiceMutation) ClearDriftResult() {
+	m.driftResult = nil
+	m.clearedFields[service.FieldDriftResult] = struct{}{}
+}
+
+// DriftResultCleared returns if the "driftResult" field was cleared in this mutation.
+func (m *ServiceMutation) DriftResultCleared() bool {
+	_, ok := m.clearedFields[service.FieldDriftResult]
+	return ok
+}
+
+// ResetDriftResult resets all changes to the "driftResult" field.
+func (m *ServiceMutation) ResetDriftResult() {
+	m.driftResult = nil
+	delete(m.clearedFields, service.FieldDriftResult)
+}
+
 // ClearProject clears the "project" edge to the Project entity.
 func (m *ServiceMutation) ClearProject() {
 	m.clearedproject = true
@@ -10380,7 +10430,7 @@ func (m *ServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.name != nil {
 		fields = append(fields, service.FieldName)
 	}
@@ -10414,6 +10464,9 @@ func (m *ServiceMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, service.FieldAttributes)
 	}
+	if m.driftResult != nil {
+		fields = append(fields, service.FieldDriftResult)
+	}
 	return fields
 }
 
@@ -10444,6 +10497,8 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Template()
 	case service.FieldAttributes:
 		return m.Attributes()
+	case service.FieldDriftResult:
+		return m.DriftResult()
 	}
 	return nil, false
 }
@@ -10475,6 +10530,8 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldTemplate(ctx)
 	case service.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case service.FieldDriftResult:
+		return m.OldDriftResult(ctx)
 	}
 	return nil, fmt.Errorf("unknown Service field %s", name)
 }
@@ -10561,6 +10618,13 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAttributes(v)
 		return nil
+	case service.FieldDriftResult:
+		v, ok := value.(*types.ServiceDriftResult)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriftResult(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
 }
@@ -10606,6 +10670,9 @@ func (m *ServiceMutation) ClearedFields() []string {
 	if m.FieldCleared(service.FieldAttributes) {
 		fields = append(fields, service.FieldAttributes)
 	}
+	if m.FieldCleared(service.FieldDriftResult) {
+		fields = append(fields, service.FieldDriftResult)
+	}
 	return fields
 }
 
@@ -10634,6 +10701,9 @@ func (m *ServiceMutation) ClearField(name string) error {
 		return nil
 	case service.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case service.FieldDriftResult:
+		m.ClearDriftResult()
 		return nil
 	}
 	return fmt.Errorf("unknown Service nullable field %s", name)
@@ -10675,6 +10745,9 @@ func (m *ServiceMutation) ResetField(name string) error {
 		return nil
 	case service.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case service.FieldDriftResult:
+		m.ResetDriftResult()
 		return nil
 	}
 	return fmt.Errorf("unknown Service field %s", name)
@@ -11529,6 +11602,7 @@ type ServiceResourceMutation struct {
 	deployerType        *string
 	shape               *string
 	status              *types.ServiceResourceStatus
+	driftResult         **types.ServiceResourceDriftResult
 	clearedFields       map[string]struct{}
 	service             *oid.ID
 	clearedservice      bool
@@ -12163,6 +12237,55 @@ func (m *ServiceResourceMutation) ResetStatus() {
 	delete(m.clearedFields, serviceresource.FieldStatus)
 }
 
+// SetDriftResult sets the "driftResult" field.
+func (m *ServiceResourceMutation) SetDriftResult(trdr *types.ServiceResourceDriftResult) {
+	m.driftResult = &trdr
+}
+
+// DriftResult returns the value of the "driftResult" field in the mutation.
+func (m *ServiceResourceMutation) DriftResult() (r *types.ServiceResourceDriftResult, exists bool) {
+	v := m.driftResult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriftResult returns the old "driftResult" field's value of the ServiceResource entity.
+// If the ServiceResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceResourceMutation) OldDriftResult(ctx context.Context) (v *types.ServiceResourceDriftResult, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriftResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriftResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriftResult: %w", err)
+	}
+	return oldValue.DriftResult, nil
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (m *ServiceResourceMutation) ClearDriftResult() {
+	m.driftResult = nil
+	m.clearedFields[serviceresource.FieldDriftResult] = struct{}{}
+}
+
+// DriftResultCleared returns if the "driftResult" field was cleared in this mutation.
+func (m *ServiceResourceMutation) DriftResultCleared() bool {
+	_, ok := m.clearedFields[serviceresource.FieldDriftResult]
+	return ok
+}
+
+// ResetDriftResult resets all changes to the "driftResult" field.
+func (m *ServiceResourceMutation) ResetDriftResult() {
+	m.driftResult = nil
+	delete(m.clearedFields, serviceresource.FieldDriftResult)
+}
+
 // ClearService clears the "service" edge to the Service entity.
 func (m *ServiceResourceMutation) ClearService() {
 	m.clearedservice = true
@@ -12463,7 +12586,7 @@ func (m *ServiceResourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceResourceMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.createTime != nil {
 		fields = append(fields, serviceresource.FieldCreateTime)
 	}
@@ -12503,6 +12626,9 @@ func (m *ServiceResourceMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, serviceresource.FieldStatus)
 	}
+	if m.driftResult != nil {
+		fields = append(fields, serviceresource.FieldDriftResult)
+	}
 	return fields
 }
 
@@ -12537,6 +12663,8 @@ func (m *ServiceResourceMutation) Field(name string) (ent.Value, bool) {
 		return m.Shape()
 	case serviceresource.FieldStatus:
 		return m.Status()
+	case serviceresource.FieldDriftResult:
+		return m.DriftResult()
 	}
 	return nil, false
 }
@@ -12572,6 +12700,8 @@ func (m *ServiceResourceMutation) OldField(ctx context.Context, name string) (en
 		return m.OldShape(ctx)
 	case serviceresource.FieldStatus:
 		return m.OldStatus(ctx)
+	case serviceresource.FieldDriftResult:
+		return m.OldDriftResult(ctx)
 	}
 	return nil, fmt.Errorf("unknown ServiceResource field %s", name)
 }
@@ -12672,6 +12802,13 @@ func (m *ServiceResourceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case serviceresource.FieldDriftResult:
+		v, ok := value.(*types.ServiceResourceDriftResult)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriftResult(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ServiceResource field %s", name)
 }
@@ -12711,6 +12848,9 @@ func (m *ServiceResourceMutation) ClearedFields() []string {
 	if m.FieldCleared(serviceresource.FieldStatus) {
 		fields = append(fields, serviceresource.FieldStatus)
 	}
+	if m.FieldCleared(serviceresource.FieldDriftResult) {
+		fields = append(fields, serviceresource.FieldDriftResult)
+	}
 	return fields
 }
 
@@ -12733,6 +12873,9 @@ func (m *ServiceResourceMutation) ClearField(name string) error {
 		return nil
 	case serviceresource.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case serviceresource.FieldDriftResult:
+		m.ClearDriftResult()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceResource nullable field %s", name)
@@ -12780,6 +12923,9 @@ func (m *ServiceResourceMutation) ResetField(name string) error {
 		return nil
 	case serviceresource.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case serviceresource.FieldDriftResult:
+		m.ResetDriftResult()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceResource field %s", name)
@@ -13594,6 +13740,7 @@ type ServiceRevisionMutation struct {
 	createTime                      *time.Time
 	status                          *string
 	statusMessage                   *string
+	_type                           *string
 	templateID                      *string
 	templateVersion                 *string
 	attributes                      *property.Values
@@ -13891,6 +14038,42 @@ func (m *ServiceRevisionMutation) StatusMessageCleared() bool {
 func (m *ServiceRevisionMutation) ResetStatusMessage() {
 	m.statusMessage = nil
 	delete(m.clearedFields, servicerevision.FieldStatusMessage)
+}
+
+// SetType sets the "type" field.
+func (m *ServiceRevisionMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *ServiceRevisionMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the ServiceRevision entity.
+// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceRevisionMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *ServiceRevisionMutation) ResetType() {
+	m._type = nil
 }
 
 // SetServiceID sets the "serviceID" field.
@@ -14500,7 +14683,7 @@ func (m *ServiceRevisionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ServiceRevisionMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.createTime != nil {
 		fields = append(fields, servicerevision.FieldCreateTime)
 	}
@@ -14512,6 +14695,9 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	}
 	if m.statusMessage != nil {
 		fields = append(fields, servicerevision.FieldStatusMessage)
+	}
+	if m._type != nil {
+		fields = append(fields, servicerevision.FieldType)
 	}
 	if m.service != nil {
 		fields = append(fields, servicerevision.FieldServiceID)
@@ -14565,6 +14751,8 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case servicerevision.FieldStatusMessage:
 		return m.StatusMessage()
+	case servicerevision.FieldType:
+		return m.GetType()
 	case servicerevision.FieldServiceID:
 		return m.ServiceID()
 	case servicerevision.FieldEnvironmentID:
@@ -14606,6 +14794,8 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldStatus(ctx)
 	case servicerevision.FieldStatusMessage:
 		return m.OldStatusMessage(ctx)
+	case servicerevision.FieldType:
+		return m.OldType(ctx)
 	case servicerevision.FieldServiceID:
 		return m.OldServiceID(ctx)
 	case servicerevision.FieldEnvironmentID:
@@ -14666,6 +14856,13 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatusMessage(v)
+		return nil
+	case servicerevision.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	case servicerevision.FieldServiceID:
 		v, ok := value.(oid.ID)
@@ -14847,6 +15044,9 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 		return nil
 	case servicerevision.FieldStatusMessage:
 		m.ResetStatusMessage()
+		return nil
+	case servicerevision.FieldType:
+		m.ResetType()
 		return nil
 	case servicerevision.FieldServiceID:
 		m.ResetServiceID()

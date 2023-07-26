@@ -63,6 +63,18 @@ func (sru *ServiceResourceUpdate) ClearStatus() *ServiceResourceUpdate {
 	return sru
 }
 
+// SetDriftResult sets the "driftResult" field.
+func (sru *ServiceResourceUpdate) SetDriftResult(trdr *types.ServiceResourceDriftResult) *ServiceResourceUpdate {
+	sru.mutation.SetDriftResult(trdr)
+	return sru
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (sru *ServiceResourceUpdate) ClearDriftResult() *ServiceResourceUpdate {
+	sru.mutation.ClearDriftResult()
+	return sru
+}
+
 // AddComponentIDs adds the "components" edge to the ServiceResource entity by IDs.
 func (sru *ServiceResourceUpdate) AddComponentIDs(ids ...oid.ID) *ServiceResourceUpdate {
 	sru.mutation.AddComponentIDs(ids...)
@@ -255,6 +267,12 @@ func (sru *ServiceResourceUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if sru.mutation.StatusCleared() {
 		_spec.ClearField(serviceresource.FieldStatus, field.TypeJSON)
+	}
+	if value, ok := sru.mutation.DriftResult(); ok {
+		_spec.SetField(serviceresource.FieldDriftResult, field.TypeJSON, value)
+	}
+	if sru.mutation.DriftResultCleared() {
+		_spec.ClearField(serviceresource.FieldDriftResult, field.TypeJSON)
 	}
 	if sru.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -459,6 +477,18 @@ func (sruo *ServiceResourceUpdateOne) SetNillableStatus(trs *types.ServiceResour
 // ClearStatus clears the value of the "status" field.
 func (sruo *ServiceResourceUpdateOne) ClearStatus() *ServiceResourceUpdateOne {
 	sruo.mutation.ClearStatus()
+	return sruo
+}
+
+// SetDriftResult sets the "driftResult" field.
+func (sruo *ServiceResourceUpdateOne) SetDriftResult(trdr *types.ServiceResourceDriftResult) *ServiceResourceUpdateOne {
+	sruo.mutation.SetDriftResult(trdr)
+	return sruo
+}
+
+// ClearDriftResult clears the value of the "driftResult" field.
+func (sruo *ServiceResourceUpdateOne) ClearDriftResult() *ServiceResourceUpdateOne {
+	sruo.mutation.ClearDriftResult()
 	return sruo
 }
 
@@ -684,6 +714,12 @@ func (sruo *ServiceResourceUpdateOne) sqlSave(ctx context.Context) (_node *Servi
 	}
 	if sruo.mutation.StatusCleared() {
 		_spec.ClearField(serviceresource.FieldStatus, field.TypeJSON)
+	}
+	if value, ok := sruo.mutation.DriftResult(); ok {
+		_spec.SetField(serviceresource.FieldDriftResult, field.TypeJSON, value)
+	}
+	if sruo.mutation.DriftResultCleared() {
+		_spec.ClearField(serviceresource.FieldDriftResult, field.TypeJSON)
 	}
 	if sruo.mutation.ComponentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -308,6 +308,7 @@ var (
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "template", Type: field.TypeJSON},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
+		{Name: "drift_result", Type: field.TypeJSON, Nullable: true},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
@@ -319,13 +320,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "services_environments_services",
-				Columns:    []*schema.Column{ServicesColumns[10]},
+				Columns:    []*schema.Column{ServicesColumns[11]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "services_projects_services",
-				Columns:    []*schema.Column{ServicesColumns[11]},
+				Columns:    []*schema.Column{ServicesColumns[12]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -334,7 +335,7 @@ var (
 			{
 				Name:    "service_project_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ServicesColumns[11], ServicesColumns[10], ServicesColumns[1]},
+				Columns: []*schema.Column{ServicesColumns[12], ServicesColumns[11], ServicesColumns[1]},
 			},
 		},
 	}
@@ -391,6 +392,7 @@ var (
 		{Name: "deployer_type", Type: field.TypeString},
 		{Name: "shape", Type: field.TypeString},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "drift_result", Type: field.TypeJSON, Nullable: true},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -404,25 +406,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_resources_connectors_resources",
-				Columns:    []*schema.Column{ServiceResourcesColumns[10]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "service_resources_services_resources",
-				Columns:    []*schema.Column{ServiceResourcesColumns[11]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[12]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "service_resources_service_resources_components",
-				Columns:    []*schema.Column{ServiceResourcesColumns[12]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[13]},
 				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "service_resources_service_resources_instances",
-				Columns:    []*schema.Column{ServiceResourcesColumns[13]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[14]},
 				RefColumns: []*schema.Column{ServiceResourcesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -481,6 +483,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeString, Nullable: true},
 		{Name: "status_message", Type: field.TypeString, Nullable: true},
+		{Name: "type", Type: field.TypeString},
 		{Name: "template_id", Type: field.TypeString},
 		{Name: "template_version", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
@@ -503,19 +506,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_revisions_environments_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[14]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_projects_serviceRevisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[15]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_revisions_services_revisions",
-				Columns:    []*schema.Column{ServiceRevisionsColumns[16]},
+				Columns:    []*schema.Column{ServiceRevisionsColumns[17]},
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
