@@ -3,8 +3,10 @@ package types
 import (
 	"crypto/md5" // #nosec
 	"encoding/hex"
+	"encoding/json"
 	"reflect"
 	"sort"
+	"time"
 
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
@@ -121,4 +123,31 @@ type ServiceResourceOperationKey struct {
 	Loggable *bool `json:"loggable,omitempty"`
 	// Executable indicates whether to be able to execute remote command.
 	Executable *bool `json:"executable,omitempty"`
+}
+
+type ServiceResourceDriftResult struct {
+	Drifted bool `json:"drifted"`
+	// Time indicates the time when the service is drifted.
+	Time time.Time `json:"time"`
+	// Result indicates the drift result of resource.
+	Result *ResourceDrift `json:"drift"`
+}
+
+type ResourceDrift struct {
+	Address       string  `json:"address"`
+	ModuleAddress string  `json:"module_address"`
+	Mode          string  `json:"mode"`
+	Type          string  `json:"type"`
+	Name          string  `json:"name"`
+	ProviderName  string  `json:"provider_name"`
+	Change        *Change `json:"change"`
+}
+
+type Change struct {
+	Actions         []string        `json:"actions"`
+	Before          json.RawMessage `json:"before"`
+	After           json.RawMessage `json:"after"`
+	AfterUnknown    json.RawMessage `json:"after_unknown"`
+	BeforeSensitive json.RawMessage `json:"before_sensitive"`
+	AfterSensitive  json.RawMessage `json:"after_sensitive"`
 }

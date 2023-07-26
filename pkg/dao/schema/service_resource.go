@@ -71,6 +71,9 @@ func (ServiceResource) Fields() []ent.Field {
 		field.JSON("status", types.ServiceResourceStatus{}).
 			Comment("Status of the resource.").
 			Optional(),
+		field.JSON("driftResult", &types.ServiceResourceDriftResult{}).
+			Comment("Drift detection result.").
+			Optional(),
 	}
 }
 

@@ -44,6 +44,9 @@ func (Service) Fields() []ent.Field {
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
+		field.JSON("driftResult", &types.ServiceDriftResult{}).
+			Comment("Drift detection result.").
+			Optional(),
 	}
 }
 

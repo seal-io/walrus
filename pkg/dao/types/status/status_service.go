@@ -5,6 +5,8 @@ const (
 	ServiceStatusDeleted     ConditionType = "Deleted"
 	ServiceStatusReady       ConditionType = "Ready"
 	ServiceStatusProgressing ConditionType = "Progressing"
+	ServiceStatusSynced      ConditionType = "Synced"
+	ServiceStatusDetected    ConditionType = "Detected"
 )
 
 // serviceStatusPaths makes the following decision.
@@ -18,8 +20,14 @@ const (
 //	| Deployed         | False                   | DeployFailed          | Error                 |
 //	| Deployed         | True                    | Deployed              |                       |
 //	| Ready            | Unknown                 | Preparing             | Transitioning         |
-//	| Ready            | False                   | NotReady               | Error                 |
+//	| Ready            | False                   | NotReady              | Error                 |
 //	| Ready            | True                    | Ready                 |                       |
+//	| Synced           | Unknown                 | Syncing               | Transitioning         |
+//	| Synced		   | False                   | SyncFailed            | Error                 |
+//	| Synced		   | True                    | Synced                |                       |
+//	| Detected         | Unknown                 | Detecting             | Transitioning         |
+//	| Detected         | False                   | DetectFailed          | Error                 |
+//	| Detected         | True                    | Detected              |                       |
 //	| Deleted          | Unknown                 | Deleting              | Transitioning         |
 //	| Deleted          | False                   | DeleteFailed          | Error                 |
 //	| Deleted          | True                    | Deleted               |                       |
