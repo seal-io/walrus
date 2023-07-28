@@ -33,11 +33,6 @@ func NewStatsCollector() prometheus.Collector {
 			"The total number of tasks submitted.",
 			nil, nil,
 		),
-		waitingTasks: prometheus.NewDesc(
-			fqName("waiting_tasks"),
-			"The number of tasks waiting for.",
-			nil, nil,
-		),
 		succeededTasks: prometheus.NewDesc(
 			fqName("succeeded_tasks_total"),
 			"The total number of tasks successful completed.",
@@ -46,6 +41,16 @@ func NewStatsCollector() prometheus.Collector {
 		failedTasks: prometheus.NewDesc(
 			fqName("failed_tasks_total"),
 			"The total number of tasks unsuccessful completed.",
+			nil, nil,
+		),
+		waitingTasks: prometheus.NewDesc(
+			fqName("waiting_tasks"),
+			"The number of tasks waiting for, which has not submitted yet.",
+			nil, nil,
+		),
+		runningTasks: prometheus.NewDesc(
+			fqName("running_tasks"),
+			"The number of tasks running, which has submitted but not completed yet.",
 			nil, nil,
 		),
 	}
@@ -58,9 +63,10 @@ type statsCollector struct {
 
 	maxTasks       *prometheus.Desc
 	submittedTasks *prometheus.Desc
-	waitingTasks   *prometheus.Desc
 	succeededTasks *prometheus.Desc
 	failedTasks    *prometheus.Desc
+	waitingTasks   *prometheus.Desc
+	runningTasks   *prometheus.Desc
 }
 
 func (c *statsCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -82,9 +88,10 @@ func (c *statsCollector) Collect(ch chan<- prometheus.Metric) {
 		inUseWorkers   = runningWorkers - idleWorkers
 		maxTasks       = gp.MaxCapacity()
 		submittedTasks = gp.SubmittedTasks()
-		waitingTasks   = gp.WaitingTasks()
 		succeededTasks = gp.SuccessfulTasks()
-		failedTasks    = submittedTasks - waitingTasks - succeededTasks
+		failedTasks    = gp.FailedTasks()
+		waitingTasks   = gp.WaitingTasks()
+		runningTasks   = submittedTasks - succeededTasks - failedTasks
 	)
 
 	ch <- prometheus.MustNewConstMetric(c.maxWorkers, prometheus.GaugeValue, float64(maxWorkers))
@@ -92,7 +99,8 @@ func (c *statsCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(c.idleWorkers, prometheus.GaugeValue, float64(idleWorkers))
 	ch <- prometheus.MustNewConstMetric(c.maxTasks, prometheus.GaugeValue, float64(maxTasks))
 	ch <- prometheus.MustNewConstMetric(c.submittedTasks, prometheus.CounterValue, float64(submittedTasks))
-	ch <- prometheus.MustNewConstMetric(c.waitingTasks, prometheus.GaugeValue, float64(waitingTasks))
 	ch <- prometheus.MustNewConstMetric(c.succeededTasks, prometheus.CounterValue, float64(succeededTasks))
 	ch <- prometheus.MustNewConstMetric(c.failedTasks, prometheus.CounterValue, float64(failedTasks))
+	ch <- prometheus.MustNewConstMetric(c.waitingTasks, prometheus.GaugeValue, float64(waitingTasks))
+	ch <- prometheus.MustNewConstMetric(c.runningTasks, prometheus.GaugeValue, float64(runningTasks))
 }
