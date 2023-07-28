@@ -66,6 +66,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if cnt == 0 {
 		return nil
 	}
+
 	// Index none custom connectors for reusing.
 	cs, err := listCandidateConnectors(ctx, in.modelClient)
 	if err != nil {
@@ -75,6 +76,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	if len(cs) == 0 {
 		return nil
 	}
+
 	ops := make(map[oid.ID]optypes.Operator, len(cs))
 
 	for i := range cs {
@@ -95,6 +97,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		}
 		ops[cs[i].ID] = op
 	}
+
 	// Execute tasks.
 	const bks = 10
 
@@ -103,6 +106,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		st := in.buildStateTasks(ctx, 0, bks, ops)
 		return st()
 	}
+
 	wg := gopool.Group()
 
 	for bk := 0; bk < bkc; bk++ {
@@ -120,7 +124,7 @@ func (in *StatusSyncTask) buildStateTasks(
 	ops map[oid.ID]optypes.Operator,
 ) func() error {
 	return func() error {
-		is, err := in.modelClient.Services().Query().
+		svcs, err := in.modelClient.Services().Query().
 			Order(model.Desc(service.FieldCreateTime)).
 			Offset(offset).
 			Limit(limit).
@@ -133,10 +137,11 @@ func (in *StatusSyncTask) buildStateTasks(
 			return fmt.Errorf("error listing services in pagination %d,%d: %w",
 				offset, limit, err)
 		}
+
 		wg := gopool.Group()
 
-		for i := range is {
-			at := in.buildStateTask(ctx, is[i], ops)
+		for i := range svcs {
+			at := in.buildStateTask(ctx, svcs[i], ops)
 			wg.Go(at)
 		}
 
@@ -146,11 +151,11 @@ func (in *StatusSyncTask) buildStateTasks(
 
 func (in *StatusSyncTask) buildStateTask(
 	ctx context.Context,
-	i *model.Service,
+	svc *model.Service,
 	ops map[oid.ID]optypes.Operator,
 ) func() error {
 	return func() (berr error) {
-		rs, err := i.QueryResources().
+		rs, err := svc.QueryResources().
 			Order(model.Desc(serviceresource.FieldCreateTime)).
 			Unique(false).
 			Select(
@@ -194,21 +199,21 @@ func (in *StatusSyncTask) buildStateTask(
 		}
 
 		// State service.
-		if status.ServiceStatusDeleted.Exist(i) {
+		if status.ServiceStatusDeleted.Exist(svc) {
 			// Skip if the service is on deleting.
 			return
 		}
 
 		switch {
 		case sr.Error:
-			status.ServiceStatusReady.False(i, "")
+			status.ServiceStatusReady.False(svc, "")
 		case sr.Transitioning:
-			status.ServiceStatusReady.Unknown(i, "")
+			status.ServiceStatusReady.Unknown(svc, "")
 		default:
-			status.ServiceStatusReady.True(i, "")
+			status.ServiceStatusReady.True(svc, "")
 		}
 
-		update, err := dao.ServiceStatusUpdate(in.modelClient, i)
+		update, err := dao.ServiceStatusUpdate(in.modelClient, svc)
 		if err != nil {
 			berr = multierr.Append(berr, err)
 			return

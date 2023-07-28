@@ -45,14 +45,18 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.modelClient.Connectors().Query().Where(
-		connector.CategoryIn(
-			types.ConnectorCategoryKubernetes,
-			types.ConnectorCategoryCloudProvider,
-		),
-	).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().
+		Where(
+			connector.CategoryIn(
+				types.ConnectorCategoryKubernetes,
+				types.ConnectorCategoryCloudProvider)).
+		All(ctx)
 	if err != nil {
 		return err
+	}
+
+	if len(conns) == 0 {
+		return nil
 	}
 
 	var (
@@ -61,11 +65,13 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 	)
 
 	for i := range conns {
-		conn := conns[i]
-		in.logger.Debugf("sync status for connector: %s", conn.Name)
+		c := conns[i]
+
+		in.logger.Debugf("syncing status of connector %q", c.ID)
+
 		wg.Go(func() error {
-			if err := syncer.SyncStatus(ctx, conn); err != nil {
-				return fmt.Errorf("error sync connector %s: %w", conn.Name, err)
+			if err := syncer.SyncStatus(ctx, c); err != nil {
+				return fmt.Errorf("error sync status of connector %s: %w", c.ID, err)
 			}
 
 			return nil

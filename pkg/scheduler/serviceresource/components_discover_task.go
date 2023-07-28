@@ -66,6 +66,7 @@ func (in *ComponentsDiscoverTask) Process(ctx context.Context, args ...interface
 	if len(cs) == 0 {
 		return nil
 	}
+
 	wg := gopool.Group()
 
 	for i := range cs {
@@ -113,6 +114,7 @@ func (in *ComponentsDiscoverTask) buildSyncTasks(ctx context.Context, c *model.C
 			at := in.buildSyncTask(ctx, op, c.ID, 0, bks)
 			return at()
 		}
+
 		wg := gopool.Group()
 
 		for bk := 0; bk < bkc; bk++ {
