@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"go.uber.org/multierr"
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/dao"
@@ -75,11 +76,28 @@ func (in *RelationshipCheckTask) Process(ctx context.Context, args ...interface{
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	if err := in.applyServices(ctx); err != nil {
-		return err
+	var (
+		checkers = []func(context.Context) error{
+			in.applyServices,
+			in.destroyServices,
+		}
+		err error
+	)
+
+	for i := range checkers {
+		// Don't return directly when error occurs,
+		// but records it and continue to handle the next connector,
+		// the final error collect all errors,
+		// and reports this time task running as failure at observing.
+		err = multierr.Append(err, checkers[i](ctx))
+
+		if ctx.Err() != nil {
+			// Give up the loop if the context is canceled.
+			break
+		}
 	}
 
-	return in.destroyServices(ctx)
+	return err
 }
 
 // applyServices applies all services that are in the progressing state.

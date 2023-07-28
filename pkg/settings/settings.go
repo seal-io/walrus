@@ -128,8 +128,7 @@ var (
 // the built-in settings for server cron jobs.
 var (
 	// ConnectorCostCollectCronExpr indicates the cron expression of collect cost data,
-	// default cron expression means executing collection per hour,
-	// the cron expression is in form of `Seconds Minutes Hours DayOfMonth Month DayOfWeek`.
+	// default cron expression means executing collection per hour.
 	ConnectorCostCollectCronExpr = newValue(
 		"ConnectorCostCollectCronExpr",
 		editable,
@@ -172,7 +171,7 @@ var (
 	// default cron expression means cleaning up every 30 minutes.
 	TokenDeploymentExpiredCleanCronExpr = newValue(
 		"TokenDeploymentExpiredCleanCronExpr",
-		hidden,
+		private,
 		initializeFrom("0 */30 * ? * *"),
 		modifyWith(notBlank, cronExpression),
 	)

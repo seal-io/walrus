@@ -70,7 +70,7 @@ func (in *StatusSyncTask) Process(ctx context.Context, args ...interface{}) erro
 		in.logger.Debugf("syncing status of connector %q", c.ID)
 
 		wg.Go(func() error {
-			if err := syncer.SyncStatus(ctx, c); err != nil {
+			if err := syncer.SyncStatus(ctx, c, false); err != nil {
 				return fmt.Errorf("error sync status of connector %s: %w", c.ID, err)
 			}
 
