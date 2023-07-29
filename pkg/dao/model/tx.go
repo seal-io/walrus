@@ -23,6 +23,8 @@ type Tx struct {
 	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
+	// DistributeLock is the client for interacting with the DistributeLock builders.
+	DistributeLock *DistributeLockClient
 	// Environment is the client for interacting with the Environment builders.
 	Environment *EnvironmentClient
 	// EnvironmentConnectorRelationship is the client for interacting with the EnvironmentConnectorRelationship builders.
@@ -191,6 +193,7 @@ func (tx *Tx) init() {
 	tx.AllocationCost = NewAllocationCostClient(tx.config)
 	tx.ClusterCost = NewClusterCostClient(tx.config)
 	tx.Connector = NewConnectorClient(tx.config)
+	tx.DistributeLock = NewDistributeLockClient(tx.config)
 	tx.Environment = NewEnvironmentClient(tx.config)
 	tx.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(tx.config)
 	tx.Perspective = NewPerspectiveClient(tx.config)
@@ -284,6 +287,11 @@ func (tx *Tx) ClusterCosts() *ClusterCostClient {
 // Connectors implements the ClientSet.
 func (tx *Tx) Connectors() *ConnectorClient {
 	return tx.Connector
+}
+
+// DistributeLocks implements the ClientSet.
+func (tx *Tx) DistributeLocks() *DistributeLockClient {
+	return tx.DistributeLock
 }
 
 // Environments implements the ClientSet.
@@ -381,6 +389,7 @@ func (tx *Tx) Intercept(interceptors ...Interceptor) {
 	tx.AllocationCost.Intercept(interceptors...)
 	tx.ClusterCost.Intercept(interceptors...)
 	tx.Connector.Intercept(interceptors...)
+	tx.DistributeLock.Intercept(interceptors...)
 	tx.Environment.Intercept(interceptors...)
 	tx.EnvironmentConnectorRelationship.Intercept(interceptors...)
 	tx.Perspective.Intercept(interceptors...)
@@ -429,6 +438,7 @@ func (tx *Tx) Use(hooks ...Hook) {
 	tx.AllocationCost.Use(hooks...)
 	tx.ClusterCost.Use(hooks...)
 	tx.Connector.Use(hooks...)
+	tx.DistributeLock.Use(hooks...)
 	tx.Environment.Use(hooks...)
 	tx.EnvironmentConnectorRelationship.Use(hooks...)
 	tx.Perspective.Use(hooks...)

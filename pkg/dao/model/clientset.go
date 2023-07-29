@@ -18,6 +18,9 @@ type ClientSet interface {
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
 
+	// DistributeLocks returns the client for interacting with the DistributeLock builders.
+	DistributeLocks() *DistributeLockClient
+
 	// Environments returns the client for interacting with the Environment builders.
 	Environments() *EnvironmentClient
 
@@ -102,6 +105,12 @@ type ClusterCostClientGetter interface {
 type ConnectorClientGetter interface {
 	// Connectors returns the client for interacting with the Connector builders.
 	Connectors() *ConnectorClient
+}
+
+// DistributeLockClientGetter is an interface that allows getting DistributeLockClient.
+type DistributeLockClientGetter interface {
+	// DistributeLocks returns the client for interacting with the DistributeLock builders.
+	DistributeLocks() *DistributeLockClient
 }
 
 // EnvironmentClientGetter is an interface that allows getting EnvironmentClient.

@@ -18,6 +18,9 @@ type ClusterCost func(*sql.Selector)
 // Connector is the predicate function for connector builders.
 type Connector func(*sql.Selector)
 
+// DistributeLock is the predicate function for distributelock builders.
+type DistributeLock func(*sql.Selector)
+
 // Environment is the predicate function for environment builders.
 type Environment func(*sql.Selector)
 

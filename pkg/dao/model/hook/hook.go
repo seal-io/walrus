@@ -48,6 +48,18 @@ func (f ConnectorFunc) Mutate(ctx context.Context, m model.Mutation) (model.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.ConnectorMutation", m)
 }
 
+// The DistributeLockFunc type is an adapter to allow the use of ordinary
+// function as DistributeLock mutator.
+type DistributeLockFunc func(context.Context, *model.DistributeLockMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DistributeLockFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	if mv, ok := m.(*model.DistributeLockMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *model.DistributeLockMutation", m)
+}
+
 // The EnvironmentFunc type is an adapter to allow the use of ordinary
 // function as Environment mutator.
 type EnvironmentFunc func(context.Context, *model.EnvironmentMutation) (model.Value, error)

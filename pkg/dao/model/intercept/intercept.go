@@ -15,6 +15,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
@@ -170,6 +171,33 @@ func (f TraverseConnector) Traverse(ctx context.Context, q model.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.ConnectorQuery", q)
+}
+
+// The DistributeLockFunc type is an adapter to allow the use of ordinary function as a Querier.
+type DistributeLockFunc func(context.Context, *model.DistributeLockQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f DistributeLockFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.DistributeLockQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.DistributeLockQuery", q)
+}
+
+// The TraverseDistributeLock type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseDistributeLock func(context.Context, *model.DistributeLockQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseDistributeLock) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseDistributeLock) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.DistributeLockQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.DistributeLockQuery", q)
 }
 
 // The EnvironmentFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -640,6 +668,8 @@ func NewQuery(q model.Query) (Query, error) {
 		return &query[*model.ClusterCostQuery, predicate.ClusterCost, clustercost.OrderOption]{typ: model.TypeClusterCost, tq: q}, nil
 	case *model.ConnectorQuery:
 		return &query[*model.ConnectorQuery, predicate.Connector, connector.OrderOption]{typ: model.TypeConnector, tq: q}, nil
+	case *model.DistributeLockQuery:
+		return &query[*model.DistributeLockQuery, predicate.DistributeLock, distributelock.OrderOption]{typ: model.TypeDistributeLock, tq: q}, nil
 	case *model.EnvironmentQuery:
 		return &query[*model.EnvironmentQuery, predicate.Environment, environment.OrderOption]{typ: model.TypeEnvironment, tq: q}, nil
 	case *model.EnvironmentConnectorRelationshipQuery:

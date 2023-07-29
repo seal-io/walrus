@@ -152,6 +152,24 @@ var (
 			},
 		},
 	}
+	// DistributeLocksColumns holds the columns for the "distribute_locks" table.
+	DistributeLocksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "expire_at", Type: field.TypeInt64},
+	}
+	// DistributeLocksTable holds the schema information for the "distribute_locks" table.
+	DistributeLocksTable = &schema.Table{
+		Name:       "distribute_locks",
+		Columns:    DistributeLocksColumns,
+		PrimaryKey: []*schema.Column{DistributeLocksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "distributelock_id",
+				Unique:  true,
+				Columns: []*schema.Column{DistributeLocksColumns[0]},
+			},
+		},
+	}
 	// EnvironmentsColumns holds the columns for the "environments" table.
 	EnvironmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -810,6 +828,7 @@ var (
 		AllocationCostsTable,
 		ClusterCostsTable,
 		ConnectorsTable,
+		DistributeLocksTable,
 		EnvironmentsTable,
 		EnvironmentConnectorRelationshipsTable,
 		PerspectivesTable,

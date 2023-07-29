@@ -11,6 +11,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
@@ -224,6 +225,12 @@ func init() {
 	connectorDescCategory := connectorFields[5].Descriptor()
 	// connector.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
 	connector.CategoryValidator = connectorDescCategory.Validators[0].(func(string) error)
+	distributelockFields := schema.DistributeLock{}.Fields()
+	_ = distributelockFields
+	// distributelockDescID is the schema descriptor for id field.
+	distributelockDescID := distributelockFields[0].Descriptor()
+	// distributelock.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	distributelock.IDValidator = distributelockDescID.Validators[0].(func(string) error)
 	environmentMixin := schema.Environment{}.Mixin()
 	environmentMixinHooks0 := environmentMixin[0].Hooks()
 	environmentMixinHooks1 := environmentMixin[1].Hooks()
