@@ -19,6 +19,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
@@ -99,6 +100,7 @@ func checkColumn(table, column string) error {
 			allocationcost.Table:                   allocationcost.ValidColumn,
 			clustercost.Table:                      clustercost.ValidColumn,
 			connector.Table:                        connector.ValidColumn,
+			distributelock.Table:                   distributelock.ValidColumn,
 			environment.Table:                      environment.ValidColumn,
 			environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,
 			perspective.Table:                      perspective.ValidColumn,

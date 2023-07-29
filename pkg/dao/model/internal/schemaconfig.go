@@ -13,6 +13,7 @@ type SchemaConfig struct {
 	AllocationCost                   string // AllocationCost table.
 	ClusterCost                      string // ClusterCost table.
 	Connector                        string // Connector table.
+	DistributeLock                   string // DistributeLock table.
 	Environment                      string // Environment table.
 	EnvironmentConnectorRelationship string // EnvironmentConnectorRelationship table.
 	Perspective                      string // Perspective table.

@@ -22,6 +22,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
@@ -56,6 +57,8 @@ type Client struct {
 	ClusterCost *ClusterCostClient
 	// Connector is the client for interacting with the Connector builders.
 	Connector *ConnectorClient
+	// DistributeLock is the client for interacting with the DistributeLock builders.
+	DistributeLock *DistributeLockClient
 	// Environment is the client for interacting with the Environment builders.
 	Environment *EnvironmentClient
 	// EnvironmentConnectorRelationship is the client for interacting with the EnvironmentConnectorRelationship builders.
@@ -106,6 +109,7 @@ func (c *Client) init() {
 	c.AllocationCost = NewAllocationCostClient(c.config)
 	c.ClusterCost = NewClusterCostClient(c.config)
 	c.Connector = NewConnectorClient(c.config)
+	c.DistributeLock = NewDistributeLockClient(c.config)
 	c.Environment = NewEnvironmentClient(c.config)
 	c.EnvironmentConnectorRelationship = NewEnvironmentConnectorRelationshipClient(c.config)
 	c.Perspective = NewPerspectiveClient(c.config)
@@ -210,6 +214,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AllocationCost:                   NewAllocationCostClient(cfg),
 		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
+		DistributeLock:                   NewDistributeLockClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
@@ -249,6 +254,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AllocationCost:                   NewAllocationCostClient(cfg),
 		ClusterCost:                      NewClusterCostClient(cfg),
 		Connector:                        NewConnectorClient(cfg),
+		DistributeLock:                   NewDistributeLockClient(cfg),
 		Environment:                      NewEnvironmentClient(cfg),
 		EnvironmentConnectorRelationship: NewEnvironmentConnectorRelationshipClient(cfg),
 		Perspective:                      NewPerspectiveClient(cfg),
@@ -295,7 +301,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
+		c.AllocationCost, c.ClusterCost, c.Connector, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -309,7 +315,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AllocationCost, c.ClusterCost, c.Connector, c.Environment,
+		c.AllocationCost, c.ClusterCost, c.Connector, c.DistributeLock, c.Environment,
 		c.EnvironmentConnectorRelationship, c.Perspective, c.Project, c.Role,
 		c.Service, c.ServiceRelationship, c.ServiceResource,
 		c.ServiceResourceRelationship, c.ServiceRevision, c.Setting, c.Subject,
@@ -332,6 +338,11 @@ func (c *Client) ClusterCosts() *ClusterCostClient {
 // Connectors implements the ClientSet.
 func (c *Client) Connectors() *ConnectorClient {
 	return c.Connector
+}
+
+// DistributeLocks implements the ClientSet.
+func (c *Client) DistributeLocks() *DistributeLockClient {
+	return c.DistributeLock
 }
 
 // Environments implements the ClientSet.
@@ -471,6 +482,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ClusterCost.mutate(ctx, m)
 	case *ConnectorMutation:
 		return c.Connector.mutate(ctx, m)
+	case *DistributeLockMutation:
+		return c.DistributeLock.mutate(ctx, m)
 	case *EnvironmentMutation:
 		return c.Environment.mutate(ctx, m)
 	case *EnvironmentConnectorRelationshipMutation:
@@ -997,6 +1010,124 @@ func (c *ConnectorClient) mutate(ctx context.Context, m *ConnectorMutation) (Val
 		return (&ConnectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("model: unknown Connector mutation op: %q", m.Op())
+	}
+}
+
+// DistributeLockClient is a client for the DistributeLock schema.
+type DistributeLockClient struct {
+	config
+}
+
+// NewDistributeLockClient returns a client for the DistributeLock from the given config.
+func NewDistributeLockClient(c config) *DistributeLockClient {
+	return &DistributeLockClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `distributelock.Hooks(f(g(h())))`.
+func (c *DistributeLockClient) Use(hooks ...Hook) {
+	c.hooks.DistributeLock = append(c.hooks.DistributeLock, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `distributelock.Intercept(f(g(h())))`.
+func (c *DistributeLockClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DistributeLock = append(c.inters.DistributeLock, interceptors...)
+}
+
+// Create returns a builder for creating a DistributeLock entity.
+func (c *DistributeLockClient) Create() *DistributeLockCreate {
+	mutation := newDistributeLockMutation(c.config, OpCreate)
+	return &DistributeLockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DistributeLock entities.
+func (c *DistributeLockClient) CreateBulk(builders ...*DistributeLockCreate) *DistributeLockCreateBulk {
+	return &DistributeLockCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DistributeLock.
+func (c *DistributeLockClient) Update() *DistributeLockUpdate {
+	mutation := newDistributeLockMutation(c.config, OpUpdate)
+	return &DistributeLockUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DistributeLockClient) UpdateOne(dl *DistributeLock) *DistributeLockUpdateOne {
+	mutation := newDistributeLockMutation(c.config, OpUpdateOne, withDistributeLock(dl))
+	return &DistributeLockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DistributeLockClient) UpdateOneID(id string) *DistributeLockUpdateOne {
+	mutation := newDistributeLockMutation(c.config, OpUpdateOne, withDistributeLockID(id))
+	return &DistributeLockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DistributeLock.
+func (c *DistributeLockClient) Delete() *DistributeLockDelete {
+	mutation := newDistributeLockMutation(c.config, OpDelete)
+	return &DistributeLockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DistributeLockClient) DeleteOne(dl *DistributeLock) *DistributeLockDeleteOne {
+	return c.DeleteOneID(dl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DistributeLockClient) DeleteOneID(id string) *DistributeLockDeleteOne {
+	builder := c.Delete().Where(distributelock.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DistributeLockDeleteOne{builder}
+}
+
+// Query returns a query builder for DistributeLock.
+func (c *DistributeLockClient) Query() *DistributeLockQuery {
+	return &DistributeLockQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDistributeLock},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DistributeLock entity by its id.
+func (c *DistributeLockClient) Get(ctx context.Context, id string) (*DistributeLock, error) {
+	return c.Query().Where(distributelock.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DistributeLockClient) GetX(ctx context.Context, id string) *DistributeLock {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DistributeLockClient) Hooks() []Hook {
+	return c.hooks.DistributeLock
+}
+
+// Interceptors returns the client interceptors.
+func (c *DistributeLockClient) Interceptors() []Interceptor {
+	return c.inters.DistributeLock
+}
+
+func (c *DistributeLockClient) mutate(ctx context.Context, m *DistributeLockMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DistributeLockCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DistributeLockUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DistributeLockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DistributeLockDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("model: unknown DistributeLock mutation op: %q", m.Op())
 	}
 }
 
@@ -3850,14 +3981,14 @@ func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AllocationCost, ClusterCost, Connector, Environment,
+		AllocationCost, ClusterCost, Connector, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
 		TemplateVersion, Token, Variable []ent.Hook
 	}
 	inters struct {
-		AllocationCost, ClusterCost, Connector, Environment,
+		AllocationCost, ClusterCost, Connector, DistributeLock, Environment,
 		EnvironmentConnectorRelationship, Perspective, Project, Role, Service,
 		ServiceRelationship, ServiceResource, ServiceResourceRelationship,
 		ServiceRevision, Setting, Subject, SubjectRoleRelationship, Template,
