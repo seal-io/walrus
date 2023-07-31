@@ -423,3 +423,14 @@ func ParseAbsProviderString(str string) (*AbsProviderConfig, error) {
 
 	return ret, nil
 }
+
+// ParseDriftOutput parse terraform output, get resource change info.
+func ParseDriftOutput(input string) (*types.ServiceDrift, error) {
+	serviceDrift := &types.ServiceDrift{}
+
+	if err := json.Unmarshal([]byte(input), serviceDrift); err != nil {
+		return nil, err
+	}
+
+	return serviceDrift, nil
+}

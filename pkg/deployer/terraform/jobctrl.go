@@ -30,8 +30,10 @@ import (
 )
 
 const (
-	JobTypeApply   = "apply"
-	JobTypeDestroy = "destroy"
+	JobTypeApply       = types.ServiceRevisionTypeApply
+	JobTypeDestroy     = types.ServiceRevisionTypeDestory
+	JobTypeRefresh     = types.ServiceRevisionTypeRefresh
+	JobTypeDetectDrift = types.ServiceRevisionTypeDetect
 )
 
 type JobCreateOptions struct {
@@ -77,6 +79,12 @@ const (
 	_applyCommands = "terraform init -no-color && terraform apply -auto-approve -no-color "
 	// _destroyCommands the commands to destroy deployment of the service.
 	_destroyCommands = "terraform init -no-color && terraform destroy -auto-approve -no-color "
+	// _detectCommands the commands to detect drift of the service.
+	_detectCommands = "terraform init -no-color > /dev/null 2>&1 && " +
+		"terraform plan -refresh-only -no-color -out=plan.out %s > /dev/null 2>&1 && " +
+		"TF_LOG=ERROR terraform show -json plan.out"
+	// _refreshCommands the commands to refresh deployment of the service.
+	_refreshCommands = "terraform init -no-color && terraform apply -refresh-only -auto-approve -no-color "
 )
 
 func (r JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -280,6 +288,10 @@ func getPodTemplate(serviceRevisionID, configName string, opts JobCreateOptions)
 		deployCommand += _applyCommands + varfile
 	case JobTypeDestroy:
 		deployCommand += _destroyCommands + varfile
+	case JobTypeRefresh:
+		deployCommand += _refreshCommands + varfile
+	case JobTypeDetectDrift:
+		deployCommand += fmt.Sprintf(_detectCommands, varfile)
 	}
 
 	command = append(command, deployCommand)

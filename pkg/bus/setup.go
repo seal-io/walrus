@@ -29,8 +29,8 @@ func Setup(ctx context.Context, opts SetupOptions) (err error) {
 	}
 
 	// ServiceRevision.
-	err = servicerevision.AddSubscriber("terraform-sync-service-revision-status",
-		terraform.SyncServiceRevisionStatus)
+	err = servicerevision.AddSubscriber("terraform-sync-service-status",
+		terraform.SyncServiceStatus)
 	if err != nil {
 		return
 	}

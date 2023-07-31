@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/seal-io/seal/pkg/auths/session"
@@ -104,10 +103,6 @@ func Apply(
 		return fmt.Errorf("service status is not deploying, service: %s", entity.ID)
 	}
 
-	if dp == nil {
-		return errors.New("deployer is not set")
-	}
-
 	applyOpts := deptypes.ApplyOptions{
 		SkipTLSVerify: !opts.TlsCertified,
 		Tags:          opts.Tags,
@@ -143,10 +138,6 @@ func Destroy(
 		return fmt.Errorf("service status is not deleting, service: %s", entity.ID)
 	}
 
-	if dp == nil {
-		return errors.New("deployer is not set")
-	}
-
 	// Check dependants.
 	dependants, err := dao.GetServiceDependantNames(ctx, mc, entity)
 	if err != nil {
@@ -179,6 +170,72 @@ func Destroy(
 	}
 
 	return dp.Destroy(ctx, entity, destroyOpts)
+}
+
+// Refresh Update the service state to match remote systems.
+func Refresh(
+	ctx context.Context,
+	mc model.ClientSet,
+	dp deptypes.Deployer,
+	entity *model.Service,
+	opts Options,
+) (err error) {
+	logger := log.WithName("service")
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		// Update a failure status.
+		status.ServiceStatusSynced.False(entity, err.Error())
+
+		uerr := UpdateStatus(ctx, mc, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of service %s: %v",
+				entity.ID, uerr)
+		}
+	}()
+
+	if !status.ServiceStatusSynced.IsUnknown(entity) {
+		return fmt.Errorf("service status is not syncing, service: %s", entity.ID)
+	}
+
+	return dp.Refresh(ctx, entity, deptypes.RefreshOptions{
+		SkipTLSVerify: !opts.TlsCertified,
+	})
+}
+
+// Detect will detect resource changes from remote system of given service.
+func Detect(
+	ctx context.Context,
+	mc model.ClientSet,
+	dp deptypes.Deployer,
+	entity *model.Service,
+	opts Options,
+) (err error) {
+	logger := log.WithName("service")
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		// Update a failure status.
+		status.ServiceStatusDetected.False(entity, err.Error())
+
+		uerr := UpdateStatus(ctx, mc, entity)
+		if uerr != nil {
+			logger.Errorf("error updating status of service %s: %v",
+				entity.ID, uerr)
+		}
+	}()
+
+	if !status.ServiceStatusDetected.IsUnknown(entity) {
+		return fmt.Errorf("service status is not detecting, service: %s", entity.ID)
+	}
+
+	return dp.Detect(ctx, entity, deptypes.DetectOptions{
+		SkipTLSVerify: !opts.TlsCertified,
+	})
 }
 
 func GetSubjectID(entity *model.Service) (oid.ID, error) {
