@@ -9,6 +9,7 @@ replace (
 go 1.19
 
 require (
+	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf
 	entgo.io/ent v0.12.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/alexeyco/simpletable v1.0.0
@@ -65,7 +66,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.11.1
 	k8s.io/api v0.26.2
-	k8s.io/apimachinery v0.27.3
+	k8s.io/apimachinery v0.27.4
 	k8s.io/client-go v0.26.2
 	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.90.1
@@ -75,7 +76,6 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf // indirect
 	cloud.google.com/go v0.105.0 // indirect
 	cloud.google.com/go/bigquery v1.42.0 // indirect
 	cloud.google.com/go/compute v1.12.1 // indirect
@@ -263,7 +263,7 @@ require (
 	github.com/prometheus/procfs v0.11.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/xid v1.3.0 // indirect
 	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/rubenv/sql-migrate v1.2.0 // indirect

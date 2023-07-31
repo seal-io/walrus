@@ -50,9 +50,9 @@ func (fn TaskFunc) Process(ctx context.Context, args ...interface{}) error {
 	return fn(ctx, args...)
 }
 
-// parseCronExpr parses the given string as cronlib.Schedule,
+// ParseCronExpr parses the given string as cronlib.Schedule,
 // returns nil in none strict mode if passing blank string.
-func parseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
+func ParseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
 	if !strict && ce == "" {
 		return nil, nil
 	}
@@ -67,7 +67,7 @@ func parseCronExpr(ce string, strict bool) (cronlib.Schedule, error) {
 
 // ValidateCronExpr returns error if the given Expr is invalid.
 func ValidateCronExpr(ce string) error {
-	_, err := parseCronExpr(ce, true)
+	_, err := ParseCronExpr(ce, true)
 	if err != nil {
 		return err
 	}
@@ -107,9 +107,11 @@ type Scheduler interface {
 	// Schedule updates it with the new Expr.
 	Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) error
 	// Start starts scheduling.
-	Start(ctx context.Context) error
+	Start(ctx context.Context, lc Locker) error
 	// Stop stops scheduling.
 	Stop() error
+	// Jobs current running.
+	Jobs() []Job
 }
 
 type scheduler struct {
@@ -187,7 +189,7 @@ type emptyVariadicList struct{}
 func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...interface{}) (err error) {
 	ce := cron.String()
 
-	ceParsed, err := parseCronExpr(ce, false)
+	ceParsed, err := ParseCronExpr(ce, false)
 	if err != nil {
 		return
 	}
@@ -243,7 +245,9 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 		variadicArgs = taskArgs
 	}
 
-	s := in.s.CronWithSeconds(ce).Tag(name)
+	s := in.s.CronWithSeconds(ce).
+		Tag(name).
+		Name(name)
 	if cron.runImmediately() {
 		s.StartImmediately()
 	}
@@ -252,11 +256,12 @@ func (in *scheduler) Schedule(name string, cron Expr, task Task, taskArgs ...int
 	return err
 }
 
-func (in *scheduler) Start(ctx context.Context) error {
+func (in *scheduler) Start(ctx context.Context, lc Locker) error {
 	s := gocron.NewScheduler(time.Now().Location())
 	s.WaitForScheduleAll()
 	s.TagsUnique()
 	s.StartAsync()
+	s.WithDistributedLocker(lc)
 	in.c = ctx
 	in.s = s
 
@@ -269,6 +274,45 @@ func (in *scheduler) Stop() error {
 	}
 
 	return nil
+}
+
+func (in *scheduler) Jobs() []Job {
+	var (
+		sj   = in.s.Jobs()
+		jobs = make([]Job, len(sj))
+	)
+
+	for i := range sj {
+		jobs[i] = &job{j: sj[i]}
+	}
+
+	return jobs
+}
+
+// Job represent a cronjob.
+type Job interface {
+	// LastRun return the time job last run.
+	LastRun() time.Time
+	// NextRun return the next time job should be schedule.
+	NextRun() time.Time
+	// Tags return the job tags.
+	Tags() []string
+}
+
+type job struct {
+	j *gocron.Job
+}
+
+func (j *job) Tags() []string {
+	return j.j.Tags()
+}
+
+func (j *job) LastRun() time.Time {
+	return j.j.LastRun()
+}
+
+func (j *job) NextRun() time.Time {
+	return j.j.NextRun()
 }
 
 // New returns a new Scheduler.
@@ -294,11 +338,16 @@ func MustSchedule(name string, cron Expr, task Task, taskArgs ...interface{}) {
 }
 
 // Start starts scheduling.
-func Start(ctx context.Context) error {
-	return globalScheduler.Start(ctx)
+func Start(ctx context.Context, lc Locker) error {
+	return globalScheduler.Start(ctx, lc)
 }
 
 // Stop stops scheduling.
 func Stop() error {
 	return globalScheduler.Stop()
+}
+
+// Jobs return the current running schedule jobs.
+func Jobs() []Job {
+	return globalScheduler.Jobs()
 }
