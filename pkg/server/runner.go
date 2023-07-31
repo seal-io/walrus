@@ -25,10 +25,12 @@ import (
 	"github.com/seal-io/seal/pkg/cache"
 	"github.com/seal-io/seal/pkg/casdoor"
 	"github.com/seal-io/seal/pkg/consts"
+	"github.com/seal-io/seal/pkg/cron"
 	"github.com/seal-io/seal/pkg/dao/model"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime" // Default = ent.
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/database"
+	"github.com/seal-io/seal/pkg/databaselistener"
 	"github.com/seal-io/seal/pkg/k8s"
 	"github.com/seal-io/seal/utils/clis"
 	"github.com/seal-io/seal/utils/cryptox"
@@ -516,6 +518,23 @@ func (r *Server) Run(c context.Context) error {
 		return err
 	})
 
+	// Setup database listener.
+	setupDatabaseListenerOpts := databaselistener.SetupOptions{
+		ModelClient:       modelClient,
+		DataSourceAddress: r.DataSourceAddress,
+	}
+
+	g.Go(func() error {
+		log.Info("setting up database listener")
+
+		err = r.setupDatabaseListener(ctx, setupDatabaseListenerOpts)
+		if err != nil {
+			log.Errorf("error setting up db listener: %v", err)
+		}
+
+		return err
+	})
+
 	// Setup apis.
 	setupApisOpts := setupApisOptions{
 		ModelClient: modelClient,
@@ -528,6 +547,23 @@ func (r *Server) Run(c context.Context) error {
 		err := r.setupApis(ctx, setupApisOpts)
 		if err != nil {
 			log.Errorf("error setting up apis: %v", err)
+		}
+
+		return err
+	})
+
+	// Setup cron spec syncer.
+	setupCronSpecSyncerOpts := cron.SetupSyncerOptions{
+		ModelClient: modelClient,
+		Interval:    5 * time.Minute,
+	}
+
+	g.Go(func() error {
+		log.Info("setting up cron spec syncer")
+
+		err := r.setupCronSpecSyncer(ctx, setupCronSpecSyncerOpts)
+		if err != nil {
+			log.Errorf("error cron spec syncer: %v", err)
 		}
 
 		return err

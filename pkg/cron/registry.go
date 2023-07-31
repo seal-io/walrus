@@ -44,8 +44,11 @@ func Register(ctx context.Context, mc model.ClientSet, cs JobCreators) (err erro
 }
 
 func doRegister(ctx context.Context, mc model.ClientSet) error {
+	// Create locker.
+	locker := NewLocker(mc)
+
 	// NB(thxCode): don't stop the core cron scheduler.
-	err := cron.Start(ctx)
+	err := cron.Start(ctx, locker)
 	if err != nil {
 		return err
 	}

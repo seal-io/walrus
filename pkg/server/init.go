@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/seal-io/seal/pkg/cache"
+	"github.com/seal-io/seal/pkg/dao/migration"
 	"github.com/seal-io/seal/pkg/dao/model"
 )
 
@@ -22,7 +23,7 @@ type initOptions struct {
 
 func (r *Server) init(ctx context.Context, opts initOptions) error {
 	// Create model schema.
-	err := opts.ModelClient.Schema.Create(ctx)
+	err := opts.ModelClient.Schema.Create(ctx, migration.Options...)
 	if err != nil {
 		return fmt.Errorf("error creating model schemas: %w", err)
 	}

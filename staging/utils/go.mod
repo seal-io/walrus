@@ -32,7 +32,7 @@ require (
 	golang.org/x/mod v0.11.0
 	golang.org/x/net v0.11.0
 	golang.org/x/text v0.10.0
-	k8s.io/apimachinery v0.27.3
+	k8s.io/apimachinery v0.27.4
 )
 
 require (
@@ -57,7 +57,7 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

@@ -40,7 +40,7 @@ func (in *testTask) Outputs() []interface{} {
 
 func TestScheduler_Schedule(t *testing.T) {
 	var err error
-	err = Start(context.Background())
+	err = Start(context.Background(), &mockLocker{})
 	assert.Nil(t, err, "error starting")
 
 	var actual testTask
@@ -68,4 +68,18 @@ func TestScheduler_Schedule(t *testing.T) {
 
 	err = Stop()
 	assert.Nil(t, err, "error stopping")
+}
+
+// mockLocker mock the Locker for test.
+type mockLocker struct{}
+
+func (l *mockLocker) Lock(ctx context.Context, key string) (Lock, error) {
+	return &mockLock{}, nil
+}
+
+// mockLock mock the Lock for test.
+type mockLock struct{}
+
+func (l *mockLock) Unlock(ctx context.Context) error {
+	return nil
 }
