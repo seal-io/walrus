@@ -258,6 +258,7 @@ func (h Handler) CollectionGetGraph(
 	fields := []string{
 		serviceresource.FieldServiceID,
 		serviceresource.FieldDeployerType,
+		serviceresource.FieldDriftResult,
 		serviceresource.FieldType,
 		serviceresource.FieldID,
 		serviceresource.FieldName,
@@ -267,6 +268,7 @@ func (h Handler) CollectionGetGraph(
 		serviceresource.FieldCreateTime,
 		serviceresource.FieldUpdateTime,
 		serviceresource.FieldStatus,
+		serviceresource.FieldDriftResult,
 	}
 
 	// Fetch entities.

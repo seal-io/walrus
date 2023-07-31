@@ -89,7 +89,8 @@ func ServiceUpdates(
 		}
 
 		c := mc.Services().UpdateOne(r).
-			SetTemplate(r.Template)
+			SetTemplate(r.Template).
+			SetDriftResult(r.DriftResult)
 
 		c.SetDescription(r.Description)
 
@@ -103,10 +104,6 @@ func ServiceUpdates(
 
 		if r.Attributes != nil {
 			c.SetAttributes(r.Attributes)
-		}
-
-		if r.DriftResult != nil {
-			c.SetDriftResult(r.DriftResult)
 		}
 
 		r.Status.SetSummary(status.WalkService(&r.Status))

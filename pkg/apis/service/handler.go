@@ -935,3 +935,38 @@ func getCaps(entities model.Services) (int, int) {
 
 	return verticesCap, edgesCap
 }
+
+func (h Handler) RouteRefresh(ctx *gin.Context, req view.RouteRefreshRequest) error {
+	entity, err := h.modelClient.Services().Get(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+
+	status.ServiceStatusSynced.Reset(entity, "Sync service status from remote system")
+
+	err = h.modelClient.WithTx(ctx, func(tx *model.Tx) error {
+		update, err := dao.ServiceUpdate(tx, entity)
+		if err != nil {
+			return err
+		}
+
+		entity, err = update.Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	dp, err := h.getDeployer(ctx)
+	if err != nil {
+		return err
+	}
+
+	return pkgservice.Refresh(ctx, h.modelClient, dp, entity, pkgservice.Options{
+		TlsCertified: h.tlsCertified,
+	})
+}

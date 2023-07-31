@@ -781,3 +781,23 @@ func validateEnvironment(
 
 	return err
 }
+
+type RouteRefreshRequest struct {
+	_ struct{} `route:"POST=/refresh"`
+
+	model.ServiceQueryInput `uri:",inline" json:",inline"`
+
+	ProjectID oid.ID `query:"projectID"`
+}
+
+func (r *RouteRefreshRequest) Validate() error {
+	if !r.ProjectID.Valid(0) {
+		return errors.New("invalid project id: blank")
+	}
+
+	if !r.ID.Valid(0) {
+		return errors.New("invalid id: blank")
+	}
+
+	return nil
+}

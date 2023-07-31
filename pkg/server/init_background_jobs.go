@@ -33,6 +33,11 @@ func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error
 			opts.K8sConfig,
 			opts.TlsCertified,
 		),
+		settings.ServiceDriftDetectCronExpr.Name(): buildServiceDriftDetectJobCreator(
+			opts.ModelClient,
+			opts.K8sConfig,
+			opts.TlsCertified,
+		),
 	}
 
 	return cron.Register(ctx, opts.ModelClient, cs)
@@ -105,6 +110,17 @@ func buildTokenDeploymentExpireCleanJobCreator(mc model.ClientSet) cron.JobCreat
 }
 
 func buildServiceRelationshipCheckJobCreator(mc model.ClientSet, kc *rest.Config, tlsCertified bool) cron.JobCreator {
+	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
+		task, err := svcskd.NewServiceRelationshipCheckTask(mc, kc, tlsCertified)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return cron.ImmediateExpr(expr), task, nil
+	}
+}
+
+func buildServiceDriftDetectJobCreator(mc model.ClientSet, kc *rest.Config, tlsCertified bool) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
 		task, err := svcskd.NewServiceDriftDetectTask(mc, kc, tlsCertified)
 		if err != nil {
