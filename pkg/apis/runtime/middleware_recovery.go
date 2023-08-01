@@ -11,41 +11,35 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-// Recovering is a gin middleware,
+// recovering is a gin middleware,
 // which is the same as gin.Recovery,
 // but friendly message information can be provided according to the request header.
-func Recovering() Handle {
-	logger := log.WithName("api")
-
-	return func(c *gin.Context) {
-		defer func() {
-			if r := recover(); r != nil {
-				var e error
-				if err, ok := r.(error); ok {
-					e = err
-				} else {
-					e = fmt.Errorf("%v", r)
-				}
-				cs := callstack(3)
-				logger.Errorf("panic observing: %v, callstack: \n%s", e, cs)
-
-				if isStreamRequest(c) {
-					// Stream request always send header at first,
-					// so we don't need to rewrite.
-					return
-				}
-
-				c.AbortWithStatusJSON(http.StatusInternalServerError, httpError{
-					code: http.StatusInternalServerError,
-				}) // TODO negotiate.
+func recovering(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("panic observing: %v", r)
 			}
-		}()
 
-		c.Next()
-	}
+			log.WithName("api").
+				Errorf("panic observing: %v, callstack: \n%s",
+					err, getPanicCallstack(3))
+
+			if isStreamRequest(c) {
+				// Stream request always send header at first,
+				// so we don't need to rewrite.
+				return
+			}
+
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+	}()
+
+	c.Next()
 }
 
-func callstack(skip int) []byte {
+func getPanicCallstack(skip int) []byte {
 	var buf bytes.Buffer
 
 	for i := skip; ; i++ {

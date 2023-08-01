@@ -51,9 +51,14 @@ func Singularize(word string) string {
 	return globalRuleset.Singularize(word)
 }
 
-// SingularizeWithArticle returns the singular form of a word and prepends the article to it, "dogs" -> "a dog".
-func SingularizeWithArticle(word string) string {
-	return indefinite.AddArticle(globalRuleset.Singularize(word))
+// Article returns the word with article.
+func Article(word string) string {
+	if Singularize(word) != word {
+		// Pluralized word.
+		return word
+	}
+
+	return indefinite.AddArticle(word)
 }
 
 // Camelize returns the string in camel case, "group_id" -> "GroupID".

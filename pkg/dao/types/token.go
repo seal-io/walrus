@@ -1,6 +1,6 @@
 package types
 
-import "github.com/seal-io/seal/utils/slice"
+import "golang.org/x/exp/slices"
 
 const (
 	TokenKindDeployment = "deployment"
@@ -13,5 +13,5 @@ var TokenKinds = []string{
 }
 
 func IsTokenKind(s string) bool {
-	return slice.ContainsAny(TokenKinds, s)
+	return slices.Contains(TokenKinds, s)
 }

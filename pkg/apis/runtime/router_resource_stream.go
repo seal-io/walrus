@@ -18,6 +18,7 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
+// isStreamRequest returns true if the incoming request is a stream request.
 func isStreamRequest(c *gin.Context) bool {
 	return IsUnidiStreamRequest(c) || IsBidiStreamRequest(c)
 }
@@ -28,25 +29,11 @@ func IsUnidiStreamRequest(c *gin.Context) bool {
 		strings.EqualFold(c.Query("watch"), "true")
 }
 
-// IsBidiStreamRequest returns true if the incoming request is a websocket request.
-func IsBidiStreamRequest(c *gin.Context) bool {
-	return c.Request.Method == http.MethodGet &&
-		c.IsWebsocket()
-}
+// doUnidiStreamRequest handles the unidirectional stream request.
+func doUnidiStreamRequest(c *gin.Context, route ResourceRoute, routeInput reflect.Value) {
+	logger := log.WithName("api")
 
-func doStreamRequest(c *gin.Context, mr, ri reflect.Value) {
-	switch {
-	case IsUnidiStreamRequest(c):
-		doUnidiStreamRequest(c, mr, ri)
-	case IsBidiStreamRequest(c):
-		doBidiStreamRequest(c, mr, ri)
-	default:
-		// Unreachable.
-		panic("cannot process as stream request")
-	}
-}
-
-func doUnidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
+	// Ensure chunked request.
 	protoMajor, protoMinor := c.Request.ProtoMajor, c.Request.ProtoMinor
 	if protoMajor == 1 && protoMinor == 0 {
 		// Do not support http/1.0.
@@ -54,16 +41,7 @@ func doUnidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		return
 	}
 
-	logger := log.WithName("api")
-
-	ctx, cancel := context.WithCancel(c.Request.Context())
-	defer cancel()
-	proxy := RequestUnidiStream{
-		ctx:       ctx,
-		ctxCancel: cancel,
-		conn:      c.Writer,
-	}
-
+	// Flush response headers.
 	c.Header("Cache-Control", "no-store")
 	c.Header("Content-Type", "application/octet-stream; charset=ISO-8859-1")
 	c.Header("X-Content-Type-Options", "nosniff")
@@ -74,21 +52,58 @@ func doUnidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 
 	c.Writer.Flush()
 
-	inputs := make([]reflect.Value, 0, 2)
-	inputs = append(inputs, reflect.ValueOf(proxy))
-	inputs = append(inputs, ri)
-	outputs := mr.Call(inputs)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Minute)
+	defer cancel()
 
-	errInterface := outputs[len(outputs)-1].Interface()
-	if errInterface != nil {
-		err := errInterface.(error)
+	stream := RequestUnidiStream{
+		ctx:       ctx,
+		ctxCancel: cancel,
+		conn:      c.Writer,
+	}
+
+	// Discard the underlay context in avoid of conflict using.
+	if route.RequestAttributes.HasAll(RequestWithGinContext) {
+		routeInput.Interface().(ginContextAdviceReceiver).SetGinContext(nil)
+	}
+
+	// Inject request with stream.
+	routeInput.Interface().(unidiStreamAdviceReceiver).SetStream(stream)
+
+	// Handle stream request.
+	if route.RequestType.Kind() != reflect.Pointer {
+		routeInput = routeInput.Elem()
+	}
+	routeOutputs := route.GoCaller.Call([]reflect.Value{routeInput})
+
+	// Handle error if found.
+	if errObj := routeOutputs[len(routeOutputs)-1].Interface(); errObj != nil {
+		err := errObj.(error)
 		if !isUnidiDownstreamCloseError(err) {
 			logger.Errorf("error processing unidirectional stream request: %v", err)
 		}
 	}
 }
 
-func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
+// isUnidiDownstreamCloseError returns true if the error is caused by the downstream closing the connection.
+func isUnidiDownstreamCloseError(err error) bool {
+	if errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	errMsg := err.Error()
+
+	return strings.Contains(errMsg, "client disconnected") ||
+		strings.Contains(errMsg, "stream closed")
+}
+
+// IsBidiStreamRequest returns true if the incoming request is a websocket request.
+func IsBidiStreamRequest(c *gin.Context) bool {
+	return c.Request.Method == http.MethodGet &&
+		c.IsWebsocket()
+}
+
+// doBidiStreamRequest handles the bidirectional stream request.
+func doBidiStreamRequest(c *gin.Context, route ResourceRoute, routeInput reflect.Value) {
 	logger := log.WithName("api")
 
 	const (
@@ -99,6 +114,7 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		pingPeriod = (pongWait * 9) / 10
 	)
 
+	// Ensure websocket request.
 	up := websocket.Upgrader{
 		HandshakeTimeout: 5 * time.Second,
 		ReadBufferSize:   4096,
@@ -115,30 +131,8 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		_ = conn.Close()
 	}()
 
-	ctx, cancel := context.WithCancel(c.Request.Context())
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Minute)
 	defer cancel()
-
-	var (
-		frc = make(chan struct {
-			t int
-			r io.Reader
-			e error
-		})
-		proxy = RequestBidiStream{
-			firstReadOnce:  &sync.Once{},
-			firstReadChan:  frc,
-			ctx:            ctx,
-			ctxCancel:      cancel,
-			conn:           conn,
-			connReadBytes:  &atomic.Int64{},
-			connWriteBytes: &atomic.Int64{},
-		}
-	)
-
-	defer func() {
-		c.Set("request_size", proxy.connReadBytes.Load())
-		c.Set("response_size", proxy.connWriteBytes.Load())
-	}()
 
 	// In order to avoid downstream connection leaking,
 	// we need configuring a handler to close the upstream context.
@@ -149,6 +143,13 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		cancel()
 		return
 	})
+
+	frc := make(chan struct {
+		t int
+		r io.Reader
+		e error
+	})
+
 	gopool.Go(func() {
 		var fr struct {
 			t int
@@ -193,15 +194,40 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 		}
 	})
 
-	closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closed")
-	inputs := make([]reflect.Value, 0, 2)
-	inputs = append(inputs, reflect.ValueOf(proxy))
-	inputs = append(inputs, ri)
-	outputs := mr.Call(inputs)
+	stream := RequestBidiStream{
+		firstReadOnce:  &sync.Once{},
+		firstReadChan:  frc,
+		ctx:            ctx,
+		ctxCancel:      cancel,
+		conn:           conn,
+		connReadBytes:  &atomic.Int64{},
+		connWriteBytes: &atomic.Int64{},
+	}
 
-	errInterface := outputs[len(outputs)-1].Interface()
-	if errInterface != nil {
-		err = errInterface.(error)
+	defer func() {
+		c.Set("request_size", stream.connReadBytes.Load())
+		c.Set("response_size", stream.connWriteBytes.Load())
+	}()
+
+	// Discard the underlay context in avoid of conflict using.
+	if route.RequestAttributes.HasAll(RequestWithGinContext) {
+		routeInput.Interface().(ginContextAdviceReceiver).SetGinContext(nil)
+	}
+
+	// Inject request with stream.
+	routeInput.Interface().(bidiStreamAdviceReceiver).SetStream(stream)
+
+	// Handle stream request.
+	if route.RequestType.Kind() != reflect.Pointer {
+		routeInput = routeInput.Elem()
+	}
+	routeOutputs := route.GoCaller.Call([]reflect.Value{routeInput})
+
+	// Handle error if found.
+	closeMsg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closed")
+
+	if errObj := routeOutputs[len(routeOutputs)-1].Interface(); errObj != nil {
+		err = errObj.(error)
 		if !isBidiDownstreamCloseError(err) {
 			var we *websocket.CloseError
 			if errors.As(err, &we) {
@@ -222,20 +248,11 @@ func doBidiStreamRequest(c *gin.Context, mr, ri reflect.Value) {
 			}
 		}
 	}
+
 	_ = conn.WriteControl(websocket.CloseMessage, closeMsg, getDeadline(pingPeriod))
 }
 
-func isUnidiDownstreamCloseError(err error) bool {
-	if errors.Is(err, context.Canceled) ||
-		errors.Is(err, context.DeadlineExceeded) {
-		return true
-	}
-	errMsg := err.Error()
-
-	return strings.Contains(errMsg, "client disconnected") ||
-		strings.Contains(errMsg, "stream closed")
-}
-
+// isBidiDownstreamCloseError returns true if the error is caused by the downstream closing the connection.
 func isBidiDownstreamCloseError(err error) bool {
 	return errors.Is(err, context.Canceled) ||
 		errors.Is(err, context.DeadlineExceeded) ||
@@ -245,6 +262,7 @@ func isBidiDownstreamCloseError(err error) bool {
 			websocket.CloseGoingAway)
 }
 
+// getDeadline returns a deadline with the given duration.
 func getDeadline(duration time.Duration) time.Time {
 	return time.Now().Add(duration)
 }

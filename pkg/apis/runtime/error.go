@@ -15,7 +15,7 @@ import (
 
 // Errorc wraps an HTTP status code as error.
 func Errorc(c int) error {
-	return asGinErr(c, nil, gin.ErrorTypePublic)
+	return beGinErr(c, nil, gin.ErrorTypePublic)
 }
 
 // Error wraps an HTTP status code and string message or error as error.
@@ -23,10 +23,10 @@ func Error(c int, v any) error {
 	if v != nil {
 		switch t := v.(type) {
 		case error:
-			return asGinErr(c, t, gin.ErrorTypePublic)
+			return beGinErr(c, t, gin.ErrorTypePublic)
 		case string:
 			if t != "" {
-				return asGinErr(c, errors.New(t), gin.ErrorTypePublic)
+				return beGinErr(c, errors.New(t), gin.ErrorTypePublic)
 			}
 		}
 	}
@@ -41,10 +41,10 @@ func Errorf(c int, format string, a ...any) error {
 	}
 
 	if len(a) == 0 {
-		return asGinErr(c, errors.New(format), gin.ErrorTypePublic)
+		return beGinErr(c, errors.New(format), gin.ErrorTypePublic)
 	}
 
-	return asGinErr(c, fmt.Errorf(format, a...), gin.ErrorTypePublic)
+	return beGinErr(c, fmt.Errorf(format, a...), gin.ErrorTypePublic)
 }
 
 // Errorp wraps an HTTP status code and string message as error,
@@ -54,7 +54,7 @@ func Errorp(c int, err error, msg string) error {
 		return Errorc(c)
 	}
 
-	return asGinErr(c, wrapError{internal: err, external: errors.New(msg)}, gin.ErrorTypePrivate)
+	return beGinErr(c, wrapError{internal: err, external: errors.New(msg)}, gin.ErrorTypePrivate)
 }
 
 // Errorpf wraps an HTTP status code, format, and arguments as error,
@@ -68,7 +68,7 @@ func Errorpf(c int, err error, format string, a ...any) error {
 		return Errorp(c, err, format)
 	}
 
-	return asGinErr(c, wrapError{internal: err, external: fmt.Errorf(format, a...)}, gin.ErrorTypePrivate)
+	return beGinErr(c, wrapError{internal: err, external: fmt.Errorf(format, a...)}, gin.ErrorTypePrivate)
 }
 
 // Errorw is similar to Errorp,
@@ -111,7 +111,7 @@ func Errorwf(err error, format string, a ...any) error {
 	}
 }
 
-func asGinErr(c int, err error, typ gin.ErrorType) error {
+func beGinErr(c int, err error, typ gin.ErrorType) error {
 	if c == http.StatusOK {
 		return nil
 	}
@@ -123,16 +123,6 @@ func asGinErr(c int, err error, typ gin.ErrorType) error {
 		},
 		Type: typ,
 	}
-}
-
-func isGinError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	var ge *gin.Error
-
-	return errors.As(err, &ge)
 }
 
 type httpError struct {

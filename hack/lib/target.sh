@@ -5,6 +5,7 @@ readonly DEFAULT_BUILD_TAGS=(
   "urfave_cli_no_docs"
   "jsoniter"
   "sqlite_json"
+  "ginx"
 )
 
 function seal::target::build_tags() {

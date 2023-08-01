@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/seal-io/seal/pkg/dao/types"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 func ValidateCostQueries(queries []types.QueryCondition) error {
@@ -39,7 +40,7 @@ func ValidateCostQuery(query types.QueryCondition) error {
 		return errors.New("invalid group by: blank")
 	}
 
-	if !slice.ContainsAny([]types.GroupByField{
+	if !slices.Contains([]types.GroupByField{
 		types.GroupByFieldConnectorID,
 		types.GroupByFieldNamespace,
 		types.GroupByFieldClusterName,
@@ -64,7 +65,7 @@ func ValidateCostQuery(query types.QueryCondition) error {
 	// Step.
 	if query.Step != "" {
 		// Check support.
-		if !slice.ContainsAny([]types.Step{
+		if !slices.Contains([]types.Step{
 			types.StepDay,
 			types.StepWeek,
 			types.StepMonth,
@@ -73,7 +74,7 @@ func ValidateCostQuery(query types.QueryCondition) error {
 		}
 
 		// Check conflict with group by day bucket.
-		if slice.ContainsAny([]types.GroupByField{
+		if slices.Contains([]types.GroupByField{
 			types.GroupByFieldDay,
 			types.GroupByFieldWeek,
 			types.GroupByFieldMonth,
@@ -104,7 +105,7 @@ func ValidateCostQuery(query types.QueryCondition) error {
 
 func ValidateShareCostFilters(options *types.SharedCostOptions) error {
 	isValidStrategy := func(strategy types.SharingStrategy) bool {
-		return slice.ContainsAny([]types.SharingStrategy{
+		return slices.Contains([]types.SharingStrategy{
 			types.SharingStrategyProportionally,
 			types.SharingStrategyEqually,
 		}, strategy)
@@ -156,7 +157,7 @@ func ValidateCostFilters(filters types.CostFilters) error {
 			}
 
 			// Operator.
-			if !slice.ContainsAny([]types.Operator{
+			if !slices.Contains([]types.Operator{
 				types.OperatorIn,
 				types.OperatorNotIn,
 			}, condAnd.Operator) {

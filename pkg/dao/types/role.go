@@ -4,9 +4,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/sets"
-
-	"github.com/seal-io/seal/utils/slice"
 )
 
 const (
@@ -20,7 +19,7 @@ var RoleKinds = []string{
 }
 
 func IsRoleKind(s string) bool {
-	return slice.ContainsAny(RoleKinds, s)
+	return slices.Contains(RoleKinds, s)
 }
 
 const (

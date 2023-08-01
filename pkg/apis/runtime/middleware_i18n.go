@@ -1,16 +1,17 @@
 package runtime
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
-	_ "github.com/seal-io/seal/pkg/i18n"
 	"github.com/seal-io/seal/utils/log"
 )
 
 const (
-	languageContextKey = "language"
+	languageContextKey = "request_language"
 )
 
 var (
@@ -37,30 +38,39 @@ func setLanguageTag(c *gin.Context) {
 
 	tags, _, err := language.ParseAcceptLanguage(acceptLanguage)
 	if err != nil {
-		log.Warnf("failed to parse the Accept-Language header %q: %w", acceptLanguage, err)
+		log.WithName("api").
+			Warnf("failed to parse the Accept-Language header %q: %w", acceptLanguage, err)
 		return
 	}
 	tag, _, _ := matcher.Match(tags...)
 	c.Set(languageContextKey, tag)
 }
 
-func getLanguageTag(c *gin.Context) language.Tag {
-	defaultLanguage := language.English
-	v, exist := c.Get(languageContextKey)
+func getLanguageTag(ctx context.Context) language.Tag {
+	def := language.English
 
+	c, ok := ctx.(*gin.Context)
+	if !ok {
+		c, ok = ctx.Value(gin.ContextKey).(*gin.Context)
+		if !ok {
+			return def
+		}
+	}
+
+	v, exist := c.Get(languageContextKey)
 	if !exist {
-		return defaultLanguage
+		return def
 	}
 
 	if tag, ok := v.(language.Tag); ok {
 		return tag
 	}
 
-	return defaultLanguage
+	return def
 }
 
-func Translate(c *gin.Context, s string) string {
-	tag := getLanguageTag(c)
+func Translate(ctx context.Context, s string) string {
+	tag := getLanguageTag(ctx)
 	p := message.NewPrinter(tag)
 
 	return p.Sprintf(s)
