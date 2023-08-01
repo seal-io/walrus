@@ -8,30 +8,44 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-// ConnectorCreateInput holds the creation input of the Connector entity.
+// ConnectorCreateInput holds the creation input of the Connector entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to create Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Category            string                     `uri:"-" query:"-" json:"category"`
-	EnableFinOps        bool                       `uri:"-" query:"-" json:"enableFinOps"`
-	ConfigVersion       string                     `uri:"-" query:"-" json:"configVersion"`
-	Type                string                     `uri:"-" query:"-" json:"type"`
-	Name                string                     `uri:"-" query:"-" json:"name"`
-	Description         string                     `uri:"-" query:"-" json:"description,omitempty"`
-	Labels              map[string]string          `uri:"-" query:"-" json:"labels,omitempty"`
-	ConfigData          crypto.Properties          `uri:"-" query:"-" json:"configData,omitempty"`
-	FinOpsCustomPricing *types.FinOpsCustomPricing `uri:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `path:"-" query:"-" json:"enableFinOps"`
+	// Connector config version.
+	ConfigVersion string `path:"-" query:"-" json:"configVersion"`
+	// Type of the connector.
+	Type string `path:"-" query:"-" json:"type"`
+	// Category of the connector.
+	Category string `path:"-" query:"-" json:"category"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Connector config data.
+	ConfigData crypto.Properties `path:"-" query:"-" json:"configData,omitempty"`
+	// Custom pricing user defined.
+	FinOpsCustomPricing *types.FinOpsCustomPricing `path:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
 }
 
 // Model returns the Connector entity for creating,
@@ -42,10 +56,10 @@ func (cci *ConnectorCreateInput) Model() *Connector {
 	}
 
 	_c := &Connector{
-		Category:            cci.Category,
 		EnableFinOps:        cci.EnableFinOps,
 		ConfigVersion:       cci.ConfigVersion,
 		Type:                cci.Type,
+		Category:            cci.Category,
 		Name:                cci.Name,
 		Description:         cci.Description,
 		Labels:              cci.Labels,
@@ -60,27 +74,29 @@ func (cci *ConnectorCreateInput) Model() *Connector {
 	return _c
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cci *ConnectorCreateInput) Load() error {
+// Validate checks the ConnectorCreateInput entity.
+func (cci *ConnectorCreateInput) Validate() error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cci.LoadWith(cci.inputConfig.Context, cci.inputConfig.ClientSet)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cci *ConnectorCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorCreateInput entity with the given context and client set.
+func (cci *ConnectorCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when creating under the Project route.
 	if cci.Project != nil {
-		err = cci.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := cci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cci.Project = nil
+			}
 		}
 	}
 
@@ -89,24 +105,45 @@ func (cci *ConnectorCreateInput) LoadWith(ctx context.Context, cs ClientSet) (er
 
 // ConnectorCreateInputs holds the creation input item of the Connector entities.
 type ConnectorCreateInputsItem struct {
-	Category            string                     `uri:"-" query:"-" json:"category"`
-	EnableFinOps        bool                       `uri:"-" query:"-" json:"enableFinOps"`
-	ConfigVersion       string                     `uri:"-" query:"-" json:"configVersion"`
-	Type                string                     `uri:"-" query:"-" json:"type"`
-	Name                string                     `uri:"-" query:"-" json:"name"`
-	Description         string                     `uri:"-" query:"-" json:"description,omitempty"`
-	Labels              map[string]string          `uri:"-" query:"-" json:"labels,omitempty"`
-	ConfigData          crypto.Properties          `uri:"-" query:"-" json:"configData,omitempty"`
-	FinOpsCustomPricing *types.FinOpsCustomPricing `uri:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `path:"-" query:"-" json:"enableFinOps"`
+	// Connector config version.
+	ConfigVersion string `path:"-" query:"-" json:"configVersion"`
+	// Type of the connector.
+	Type string `path:"-" query:"-" json:"type"`
+	// Category of the connector.
+	Category string `path:"-" query:"-" json:"category"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Connector config data.
+	ConfigData crypto.Properties `path:"-" query:"-" json:"configData,omitempty"`
+	// Custom pricing user defined.
+	FinOpsCustomPricing *types.FinOpsCustomPricing `path:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
 }
 
-// ConnectorCreateInputs holds the creation input of the Connector entities.
+// ValidateWith checks the ConnectorCreateInputsItem entity with the given context and client set.
+func (cci *ConnectorCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if cci == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// ConnectorCreateInputs holds the creation input of the Connector entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to create Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ConnectorCreateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ConnectorCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Connector entities for creating,
@@ -120,10 +157,10 @@ func (cci *ConnectorCreateInputs) Model() []*Connector {
 
 	for i := range cci.Items {
 		_c := &Connector{
-			Category:            cci.Items[i].Category,
 			EnableFinOps:        cci.Items[i].EnableFinOps,
 			ConfigVersion:       cci.Items[i].ConfigVersion,
 			Type:                cci.Items[i].Type,
+			Category:            cci.Items[i].Category,
 			Name:                cci.Items[i].Name,
 			Description:         cci.Items[i].Description,
 			Labels:              cci.Items[i].Labels,
@@ -141,19 +178,17 @@ func (cci *ConnectorCreateInputs) Model() []*Connector {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cci *ConnectorCreateInputs) Load() error {
+// Validate checks the ConnectorCreateInputs entity .
+func (cci *ConnectorCreateInputs) Validate() error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cci.LoadWith(cci.inputConfig.Context, cci.inputConfig.ClientSet)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cci *ConnectorCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorCreateInputs entity with the given context and client set.
+func (cci *ConnectorCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
@@ -162,30 +197,52 @@ func (cci *ConnectorCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (e
 		return errors.New("empty items")
 	}
 
+	// Validate when creating under the Project route.
 	if cci.Project != nil {
-		err = cci.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := cci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cci.Project = nil
+			}
+		}
+	}
+
+	for i := range cci.Items {
+		if cci.Items[i] == nil {
+			continue
+		}
+
+		if err := cci.Items[i].ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ConnectorDeleteInput holds the deletion input of the Connector entity.
+// ConnectorDeleteInput holds the deletion input of the Connector entity,
+// please tags with `path:",inline"` if embedding.
 type ConnectorDeleteInput = ConnectorQueryInput
 
 // ConnectorDeleteInputs holds the deletion input item of the Connector entities.
 type ConnectorDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Connector entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Connector entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// ConnectorDeleteInputs holds the deletion input of the Connector entities.
+// ConnectorDeleteInputs holds the deletion input of the Connector entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to delete Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ConnectorDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ConnectorDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Connector entities for deleting,
@@ -204,19 +261,31 @@ func (cdi *ConnectorDeleteInputs) Model() []*Connector {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cdi *ConnectorDeleteInputs) Load() error {
+// IDs returns the ID list of the Connector entities for deleting,
+// after validating.
+func (cdi *ConnectorDeleteInputs) IDs() []object.ID {
+	if cdi == nil || len(cdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(cdi.Items))
+	for i := range cdi.Items {
+		ids[i] = cdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ConnectorDeleteInputs entity.
+func (cdi *ConnectorDeleteInputs) Validate() error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cdi.LoadWith(cdi.inputConfig.Context, cdi.inputConfig.ClientSet)
+	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cdi *ConnectorDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorDeleteInputs entity with the given context and client set.
+func (cdi *ConnectorDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -227,16 +296,28 @@ func (cdi *ConnectorDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (e
 
 	q := cs.Connectors().Query()
 
+	// Validate when deleting under the Project route.
 	if cdi.Project != nil {
-		err = cdi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := cdi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cdi.Project = nil
+				q.Where(
+					connector.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				connector.ProjectID(cdi.Project.ID))
 		}
+	} else {
 		q.Where(
-			connector.ProjectID(cdi.Project.ID))
+			connector.ProjectIDIsNil())
 	}
 
 	ids := make([]object.ID, 0, len(cdi.Items))
+	ors := make([]predicate.Connector, 0, len(cdi.Items))
 
 	for i := range cdi.Items {
 		if cdi.Items[i] == nil {
@@ -245,34 +326,57 @@ func (cdi *ConnectorDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (e
 
 		if cdi.Items[i].ID != "" {
 			ids = append(ids, cdi.Items[i].ID)
+			ors = append(ors, connector.ID(cdi.Items[i].ID))
+		} else if cdi.Items[i].Name != "" {
+			ors = append(ors, connector.And(
+				connector.Name(cdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := connector.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = connector.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(connector.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		cdi.Items[i].ID = es[i].ID
+		cdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// ConnectorQueryInput holds the query input of the Connector entity.
+// ConnectorQueryInput holds the query input of the Connector entity,
+// please tags with `path:",inline"` if embedding.
 type ConnectorQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to query Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project,omitempty"`
 
-	Refer *object.Refer `uri:"connector,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Connector entity.
+	Refer *object.Refer `path:"connector,default=" query:"-" json:"-"`
+	// ID of the Connector entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Connector entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Connector entity for querying,
@@ -283,40 +387,47 @@ func (cqi *ConnectorQueryInput) Model() *Connector {
 	}
 
 	return &Connector{
-		ID: cqi.ID,
+		ID:   cqi.ID,
+		Name: cqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cqi *ConnectorQueryInput) Load() error {
+// Validate checks the ConnectorQueryInput entity.
+func (cqi *ConnectorQueryInput) Validate() error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.LoadWith(cqi.inputConfig.Context, cqi.inputConfig.ClientSet)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cqi *ConnectorQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorQueryInput entity with the given context and client set.
+func (cqi *ConnectorQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if cqi.Refer != nil && *cqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", connector.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Connectors().Query()
 
+	// Validate when querying under the Project route.
 	if cqi.Project != nil {
-		err = cqi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := cqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cqi.Project = nil
+				q.Where(
+					connector.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				connector.ProjectID(cqi.Project.ID))
 		}
-		q.Where(
-			connector.ProjectID(cqi.Project.ID))
 	} else {
 		q.Where(
 			connector.ProjectIDIsNil())
@@ -326,67 +437,99 @@ func (cqi *ConnectorQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err
 		if cqi.Refer.IsID() {
 			q.Where(
 				connector.ID(cqi.Refer.ID()))
+		} else if refers := cqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				connector.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of connector")
 		}
 	} else if cqi.ID != "" {
 		q.Where(
 			connector.ID(cqi.ID))
+	} else if cqi.Name != "" {
+		q.Where(
+			connector.Name(cqi.Name))
 	} else {
 		return errors.New("invalid identify of connector")
 	}
 
-	cqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		cqi.ID = e.ID
+		cqi.Name = e.Name
+	}
 	return err
 }
 
-// ConnectorQueryInputs holds the query input of the Connector entities.
+// ConnectorQueryInputs holds the query input of the Connector entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type ConnectorQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to query Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Category of the connector.
+	Category string `path:"-" query:"category,omitempty" json:"-"`
+	// Type of the connector.
+	Type string `path:"-" query:"type,omitempty" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cqi *ConnectorQueryInputs) Load() error {
+// Validate checks the ConnectorQueryInputs entity.
+func (cqi *ConnectorQueryInputs) Validate() error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.LoadWith(cqi.inputConfig.Context, cqi.inputConfig.ClientSet)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cqi *ConnectorQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorQueryInputs entity with the given context and client set.
+func (cqi *ConnectorQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when querying under the Project route.
 	if cqi.Project != nil {
-		err = cqi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := cqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cqi.Project = nil
+			}
 		}
 	}
 
-	return err
+	return nil
 }
 
-// ConnectorUpdateInput holds the modification input of the Connector entity.
+// ConnectorUpdateInput holds the modification input of the Connector entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorUpdateInput struct {
-	ConnectorQueryInput `uri:",inline" query:"-" json:",inline"`
+	ConnectorQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name                string                     `uri:"-" query:"-" json:"name,omitempty"`
-	Description         string                     `uri:"-" query:"-" json:"description,omitempty"`
-	Labels              map[string]string          `uri:"-" query:"-" json:"labels,omitempty"`
-	Type                string                     `uri:"-" query:"-" json:"type,omitempty"`
-	ConfigVersion       string                     `uri:"-" query:"-" json:"configVersion,omitempty"`
-	ConfigData          crypto.Properties          `uri:"-" query:"-" json:"configData,omitempty"`
-	EnableFinOps        bool                       `uri:"-" query:"-" json:"enableFinOps,omitempty"`
-	FinOpsCustomPricing *types.FinOpsCustomPricing `uri:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
-	Category            string                     `uri:"-" query:"-" json:"category,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Category of the connector.
+	Category string `path:"-" query:"-" json:"category,omitempty"`
+	// Type of the connector.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+	// Connector config version.
+	ConfigVersion string `path:"-" query:"-" json:"configVersion,omitempty"`
+	// Connector config data.
+	ConfigData crypto.Properties `path:"-" query:"-" json:"configData,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `path:"-" query:"-" json:"enableFinOps,omitempty"`
+	// Custom pricing user defined.
+	FinOpsCustomPricing *types.FinOpsCustomPricing `path:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
 }
 
 // Model returns the Connector entity for modifying,
@@ -398,42 +541,81 @@ func (cui *ConnectorUpdateInput) Model() *Connector {
 
 	_c := &Connector{
 		ID:                  cui.ID,
-		Name:                cui.Name,
 		Description:         cui.Description,
 		Labels:              cui.Labels,
+		Category:            cui.Category,
 		Type:                cui.Type,
 		ConfigVersion:       cui.ConfigVersion,
 		ConfigData:          cui.ConfigData,
 		EnableFinOps:        cui.EnableFinOps,
 		FinOpsCustomPricing: cui.FinOpsCustomPricing,
-		Category:            cui.Category,
 	}
 
 	return _c
 }
 
-// ConnectorUpdateInputs holds the modification input item of the Connector entities.
-type ConnectorUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the ConnectorUpdateInput entity.
+func (cui *ConnectorUpdateInput) Validate() error {
+	if cui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name                string                     `uri:"-" query:"-" json:"name,omitempty"`
-	Description         string                     `uri:"-" query:"-" json:"description,omitempty"`
-	Labels              map[string]string          `uri:"-" query:"-" json:"labels,omitempty"`
-	Type                string                     `uri:"-" query:"-" json:"type,omitempty"`
-	ConfigVersion       string                     `uri:"-" query:"-" json:"configVersion,omitempty"`
-	ConfigData          crypto.Properties          `uri:"-" query:"-" json:"configData,omitempty"`
-	EnableFinOps        bool                       `uri:"-" query:"-" json:"enableFinOps,omitempty"`
-	FinOpsCustomPricing *types.FinOpsCustomPricing `uri:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
-	Category            string                     `uri:"-" query:"-" json:"category,omitempty"`
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
 }
 
-// ConnectorUpdateInputs holds the modification input of the Connector entities.
+// ValidateWith checks the ConnectorUpdateInput entity with the given context and client set.
+func (cui *ConnectorUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := cui.ConnectorQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ConnectorUpdateInputs holds the modification input item of the Connector entities.
+type ConnectorUpdateInputsItem struct {
+	// ID of the Connector entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Connector entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Category of the connector.
+	Category string `path:"-" query:"-" json:"category"`
+	// Type of the connector.
+	Type string `path:"-" query:"-" json:"type"`
+	// Connector config version.
+	ConfigVersion string `path:"-" query:"-" json:"configVersion"`
+	// Connector config data.
+	ConfigData crypto.Properties `path:"-" query:"-" json:"configData,omitempty"`
+	// Config whether enable finOps, will install prometheus and opencost while enable.
+	EnableFinOps bool `path:"-" query:"-" json:"enableFinOps"`
+	// Custom pricing user defined.
+	FinOpsCustomPricing *types.FinOpsCustomPricing `path:"-" query:"-" json:"finOpsCustomPricing,omitempty"`
+}
+
+// ValidateWith checks the ConnectorUpdateInputsItem entity with the given context and client set.
+func (cui *ConnectorUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if cui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// ConnectorUpdateInputs holds the modification input of the Connector entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ConnectorUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project *ProjectQueryInput `uri:",inline" query:"-" json:"project,omitempty"`
+	// Project indicates to update Connector entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ConnectorUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ConnectorUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Connector entities for modifying,
@@ -448,15 +630,14 @@ func (cui *ConnectorUpdateInputs) Model() []*Connector {
 	for i := range cui.Items {
 		_c := &Connector{
 			ID:                  cui.Items[i].ID,
-			Name:                cui.Items[i].Name,
 			Description:         cui.Items[i].Description,
 			Labels:              cui.Items[i].Labels,
+			Category:            cui.Items[i].Category,
 			Type:                cui.Items[i].Type,
 			ConfigVersion:       cui.Items[i].ConfigVersion,
 			ConfigData:          cui.Items[i].ConfigData,
 			EnableFinOps:        cui.Items[i].EnableFinOps,
 			FinOpsCustomPricing: cui.Items[i].FinOpsCustomPricing,
-			Category:            cui.Items[i].Category,
 		}
 
 		_cs[i] = _c
@@ -465,19 +646,31 @@ func (cui *ConnectorUpdateInputs) Model() []*Connector {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cui *ConnectorUpdateInputs) Load() error {
+// IDs returns the ID list of the Connector entities for modifying,
+// after validating.
+func (cui *ConnectorUpdateInputs) IDs() []object.ID {
+	if cui == nil || len(cui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(cui.Items))
+	for i := range cui.Items {
+		ids[i] = cui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ConnectorUpdateInputs entity.
+func (cui *ConnectorUpdateInputs) Validate() error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cui.LoadWith(cui.inputConfig.Context, cui.inputConfig.ClientSet)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cui *ConnectorUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ConnectorUpdateInputs entity with the given context and client set.
+func (cui *ConnectorUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
@@ -488,16 +681,28 @@ func (cui *ConnectorUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (e
 
 	q := cs.Connectors().Query()
 
+	// Validate when updating under the Project route.
 	if cui.Project != nil {
-		err = cui.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := cui.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				cui.Project = nil
+				q.Where(
+					connector.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				connector.ProjectID(cui.Project.ID))
 		}
+	} else {
 		q.Where(
-			connector.ProjectID(cui.Project.ID))
+			connector.ProjectIDIsNil())
 	}
 
 	ids := make([]object.ID, 0, len(cui.Items))
+	ors := make([]predicate.Connector, 0, len(cui.Items))
 
 	for i := range cui.Items {
 		if cui.Items[i] == nil {
@@ -506,21 +711,48 @@ func (cui *ConnectorUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (e
 
 		if cui.Items[i].ID != "" {
 			ids = append(ids, cui.Items[i].ID)
+			ors = append(ors, connector.ID(cui.Items[i].ID))
+		} else if cui.Items[i].Name != "" {
+			ors = append(ors, connector.And(
+				connector.Name(cui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := connector.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = connector.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(connector.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			connector.FieldID,
+			connector.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		cui.Items[i].ID = es[i].ID
+		cui.Items[i].Name = es[i].Name
+	}
+
+	for i := range cui.Items {
+		if cui.Items[i] == nil {
+			continue
+		}
+
+		if err := cui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -535,22 +767,22 @@ type ConnectorOutput struct {
 	CreateTime          *time.Time                 `json:"createTime,omitempty"`
 	UpdateTime          *time.Time                 `json:"updateTime,omitempty"`
 	Status              status.Status              `json:"status,omitempty"`
+	Category            string                     `json:"category,omitempty"`
 	Type                string                     `json:"type,omitempty"`
 	ConfigVersion       string                     `json:"configVersion,omitempty"`
 	ConfigData          crypto.Properties          `json:"configData,omitempty"`
 	EnableFinOps        bool                       `json:"enableFinOps,omitempty"`
 	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"finOpsCustomPricing,omitempty"`
-	Category            string                     `json:"category,omitempty"`
 
 	Project *ProjectOutput `json:"project,omitempty"`
 }
 
-// View returns the output of Connector.
+// View returns the output of Connector entity.
 func (_c *Connector) View() *ConnectorOutput {
 	return ExposeConnector(_c)
 }
 
-// View returns the output of Connectors.
+// View returns the output of Connector entities.
 func (_cs Connectors) View() []*ConnectorOutput {
 	return ExposeConnectors(_cs)
 }
@@ -569,12 +801,12 @@ func ExposeConnector(_c *Connector) *ConnectorOutput {
 		CreateTime:          _c.CreateTime,
 		UpdateTime:          _c.UpdateTime,
 		Status:              _c.Status,
+		Category:            _c.Category,
 		Type:                _c.Type,
 		ConfigVersion:       _c.ConfigVersion,
 		ConfigData:          _c.ConfigData,
 		EnableFinOps:        _c.EnableFinOps,
 		FinOpsCustomPricing: _c.FinOpsCustomPricing,
-		Category:            _c.Category,
 	}
 
 	if _c.Edges.Project != nil {

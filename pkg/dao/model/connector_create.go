@@ -98,6 +98,20 @@ func (cc *ConnectorCreate) SetNillableUpdateTime(t *time.Time) *ConnectorCreate 
 	return cc
 }
 
+// SetStatus sets the "status" field.
+func (cc *ConnectorCreate) SetStatus(s status.Status) *ConnectorCreate {
+	cc.mutation.SetStatus(s)
+	return cc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cc *ConnectorCreate) SetNillableStatus(s *status.Status) *ConnectorCreate {
+	if s != nil {
+		cc.SetStatus(*s)
+	}
+	return cc
+}
+
 // SetProjectID sets the "project_id" field.
 func (cc *ConnectorCreate) SetProjectID(o object.ID) *ConnectorCreate {
 	cc.mutation.SetProjectID(o)
@@ -112,17 +126,9 @@ func (cc *ConnectorCreate) SetNillableProjectID(o *object.ID) *ConnectorCreate {
 	return cc
 }
 
-// SetStatus sets the "status" field.
-func (cc *ConnectorCreate) SetStatus(s status.Status) *ConnectorCreate {
-	cc.mutation.SetStatus(s)
-	return cc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (cc *ConnectorCreate) SetNillableStatus(s *status.Status) *ConnectorCreate {
-	if s != nil {
-		cc.SetStatus(*s)
-	}
+// SetCategory sets the "category" field.
+func (cc *ConnectorCreate) SetCategory(s string) *ConnectorCreate {
+	cc.mutation.SetCategory(s)
 	return cc
 }
 
@@ -153,12 +159,6 @@ func (cc *ConnectorCreate) SetEnableFinOps(b bool) *ConnectorCreate {
 // SetFinOpsCustomPricing sets the "fin_ops_custom_pricing" field.
 func (cc *ConnectorCreate) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricing) *ConnectorCreate {
 	cc.mutation.SetFinOpsCustomPricing(tocp)
-	return cc
-}
-
-// SetCategory sets the "category" field.
-func (cc *ConnectorCreate) SetCategory(s string) *ConnectorCreate {
-	cc.mutation.SetCategory(s)
 	return cc
 }
 
@@ -300,6 +300,14 @@ func (cc *ConnectorCreate) check() error {
 	if _, ok := cc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`model: missing required field "Connector.update_time"`)}
 	}
+	if _, ok := cc.mutation.Category(); !ok {
+		return &ValidationError{Name: "category", err: errors.New(`model: missing required field "Connector.category"`)}
+	}
+	if v, ok := cc.mutation.Category(); ok {
+		if err := connector.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
+		}
+	}
 	if _, ok := cc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`model: missing required field "Connector.type"`)}
 	}
@@ -318,14 +326,6 @@ func (cc *ConnectorCreate) check() error {
 	}
 	if _, ok := cc.mutation.EnableFinOps(); !ok {
 		return &ValidationError{Name: "enable_fin_ops", err: errors.New(`model: missing required field "Connector.enable_fin_ops"`)}
-	}
-	if _, ok := cc.mutation.Category(); !ok {
-		return &ValidationError{Name: "category", err: errors.New(`model: missing required field "Connector.category"`)}
-	}
-	if v, ok := cc.mutation.Category(); ok {
-		if err := connector.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
-		}
 	}
 	return nil
 }
@@ -392,6 +392,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 		_spec.SetField(connector.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
+	if value, ok := cc.mutation.Category(); ok {
+		_spec.SetField(connector.FieldCategory, field.TypeString, value)
+		_node.Category = value
+	}
 	if value, ok := cc.mutation.GetType(); ok {
 		_spec.SetField(connector.FieldType, field.TypeString, value)
 		_node.Type = value
@@ -411,10 +415,6 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.FinOpsCustomPricing(); ok {
 		_spec.SetField(connector.FieldFinOpsCustomPricing, field.TypeJSON, value)
 		_node.FinOpsCustomPricing = value
-	}
-	if value, ok := cc.mutation.Category(); ok {
-		_spec.SetField(connector.FieldCategory, field.TypeString, value)
-		_node.Category = value
 	}
 	if nodes := cc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -509,10 +509,10 @@ func (cc *ConnectorCreate) createSpec() (*Connector, *sqlgraph.CreateSpec) {
 func (cc *ConnectorCreate) Set(obj *Connector) *ConnectorCreate {
 	// Required.
 	cc.SetName(obj.Name)
+	cc.SetCategory(obj.Category)
 	cc.SetType(obj.Type)
 	cc.SetConfigVersion(obj.ConfigVersion)
 	cc.SetEnableFinOps(obj.EnableFinOps)
-	cc.SetCategory(obj.Category)
 
 	// Optional.
 	if obj.Description != "" {
@@ -530,11 +530,11 @@ func (cc *ConnectorCreate) Set(obj *Connector) *ConnectorCreate {
 	if obj.UpdateTime != nil {
 		cc.SetUpdateTime(*obj.UpdateTime)
 	}
-	if obj.ProjectID != "" {
-		cc.SetProjectID(obj.ProjectID)
-	}
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		cc.SetStatus(obj.Status)
+	}
+	if obj.ProjectID != "" {
+		cc.SetProjectID(obj.ProjectID)
 	}
 	if !reflect.ValueOf(obj.ConfigData).IsZero() {
 		cc.SetConfigData(obj.ConfigData)
@@ -576,6 +576,21 @@ func (cc *ConnectorCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Co
 	}
 
 	mc := cc.getClientSet()
+	if cc.fromUpsert {
+		q := mc.Connectors().Query().
+			Where(
+				connector.Name(obj.Name),
+			)
+		if obj.ProjectID != "" {
+			q.Where(connector.ProjectID(obj.ProjectID))
+		} else {
+			q.Where(connector.ProjectIDIsNil())
+		}
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Connector entity: %w", err)
+		}
+	}
 
 	if x := cc.object; x != nil {
 		if _, set := cc.mutation.Field(connector.FieldName); set {
@@ -584,11 +599,14 @@ func (cc *ConnectorCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Co
 		if _, set := cc.mutation.Field(connector.FieldDescription); set {
 			obj.Description = x.Description
 		}
+		if _, set := cc.mutation.Field(connector.FieldStatus); set {
+			obj.Status = x.Status
+		}
 		if _, set := cc.mutation.Field(connector.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
 		}
-		if _, set := cc.mutation.Field(connector.FieldStatus); set {
-			obj.Status = x.Status
+		if _, set := cc.mutation.Field(connector.FieldCategory); set {
+			obj.Category = x.Category
 		}
 		if _, set := cc.mutation.Field(connector.FieldType); set {
 			obj.Type = x.Type
@@ -601,9 +619,6 @@ func (cc *ConnectorCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Co
 		}
 		if _, set := cc.mutation.Field(connector.FieldFinOpsCustomPricing); set {
 			obj.FinOpsCustomPricing = x.FinOpsCustomPricing
-		}
-		if _, set := cc.mutation.Field(connector.FieldCategory); set {
-			obj.Category = x.Category
 		}
 		obj.Edges = x.Edges
 	}
@@ -701,6 +716,24 @@ func (ccb *ConnectorCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx conte
 	}
 
 	mc := ccb.getClientSet()
+	if ccb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Connectors().Query().
+				Where(
+					connector.Name(obj.Name),
+				)
+			if obj.ProjectID != "" {
+				q.Where(connector.ProjectID(obj.ProjectID))
+			} else {
+				q.Where(connector.ProjectIDIsNil())
+			}
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Connector entity: %w", err)
+			}
+		}
+	}
 
 	if x := ccb.objects; x != nil {
 		for i := range x {
@@ -710,11 +743,14 @@ func (ccb *ConnectorCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx conte
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldDescription); set {
 				objs[i].Description = x[i].Description
 			}
+			if _, set := ccb.builders[i].mutation.Field(connector.FieldStatus); set {
+				objs[i].Status = x[i].Status
+			}
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
 			}
-			if _, set := ccb.builders[i].mutation.Field(connector.FieldStatus); set {
-				objs[i].Status = x[i].Status
+			if _, set := ccb.builders[i].mutation.Field(connector.FieldCategory); set {
+				objs[i].Category = x[i].Category
 			}
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldType); set {
 				objs[i].Type = x[i].Type
@@ -727,9 +763,6 @@ func (ccb *ConnectorCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx conte
 			}
 			if _, set := ccb.builders[i].mutation.Field(connector.FieldFinOpsCustomPricing); set {
 				objs[i].FinOpsCustomPricing = x[i].FinOpsCustomPricing
-			}
-			if _, set := ccb.builders[i].mutation.Field(connector.FieldCategory); set {
-				objs[i].Category = x[i].Category
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -856,18 +889,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetName sets the "name" field.
-func (u *ConnectorUpsert) SetName(v string) *ConnectorUpsert {
-	u.Set(connector.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateName() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldName)
-	return u
-}
 
 // SetDescription sets the "description" field.
 func (u *ConnectorUpsert) SetDescription(v string) *ConnectorUpsert {
@@ -1013,18 +1034,6 @@ func (u *ConnectorUpsert) ClearFinOpsCustomPricing() *ConnectorUpsert {
 	return u
 }
 
-// SetCategory sets the "category" field.
-func (u *ConnectorUpsert) SetCategory(v string) *ConnectorUpsert {
-	u.Set(connector.FieldCategory, v)
-	return u
-}
-
-// UpdateCategory sets the "category" field to the value that was provided on create.
-func (u *ConnectorUpsert) UpdateCategory() *ConnectorUpsert {
-	u.SetExcluded(connector.FieldCategory)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1042,11 +1051,17 @@ func (u *ConnectorUpsertOne) UpdateNewValues() *ConnectorUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(connector.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(connector.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(connector.FieldCreateTime)
 		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(connector.FieldProjectID)
+		}
+		if _, exists := u.create.mutation.Category(); exists {
+			s.SetIgnore(connector.FieldCategory)
 		}
 		if _, exists := u.create.mutation.GetType(); exists {
 			s.SetIgnore(connector.FieldType)
@@ -1080,20 +1095,6 @@ func (u *ConnectorUpsertOne) Update(set func(*ConnectorUpsert)) *ConnectorUpsert
 		set(&ConnectorUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ConnectorUpsertOne) SetName(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateName() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1261,20 +1262,6 @@ func (u *ConnectorUpsertOne) UpdateFinOpsCustomPricing() *ConnectorUpsertOne {
 func (u *ConnectorUpsertOne) ClearFinOpsCustomPricing() *ConnectorUpsertOne {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsCustomPricing()
-	})
-}
-
-// SetCategory sets the "category" field.
-func (u *ConnectorUpsertOne) SetCategory(v string) *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetCategory(v)
-	})
-}
-
-// UpdateCategory sets the "category" field to the value that was provided on create.
-func (u *ConnectorUpsertOne) UpdateCategory() *ConnectorUpsertOne {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateCategory()
 	})
 }
 
@@ -1459,11 +1446,17 @@ func (u *ConnectorUpsertBulk) UpdateNewValues() *ConnectorUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(connector.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(connector.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(connector.FieldCreateTime)
 			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(connector.FieldProjectID)
+			}
+			if _, exists := b.mutation.Category(); exists {
+				s.SetIgnore(connector.FieldCategory)
 			}
 			if _, exists := b.mutation.GetType(); exists {
 				s.SetIgnore(connector.FieldType)
@@ -1498,20 +1491,6 @@ func (u *ConnectorUpsertBulk) Update(set func(*ConnectorUpsert)) *ConnectorUpser
 		set(&ConnectorUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ConnectorUpsertBulk) SetName(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateName() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1679,20 +1658,6 @@ func (u *ConnectorUpsertBulk) UpdateFinOpsCustomPricing() *ConnectorUpsertBulk {
 func (u *ConnectorUpsertBulk) ClearFinOpsCustomPricing() *ConnectorUpsertBulk {
 	return u.Update(func(s *ConnectorUpsert) {
 		s.ClearFinOpsCustomPricing()
-	})
-}
-
-// SetCategory sets the "category" field.
-func (u *ConnectorUpsertBulk) SetCategory(v string) *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.SetCategory(v)
-	})
-}
-
-// UpdateCategory sets the "category" field to the value that was provided on create.
-func (u *ConnectorUpsertBulk) UpdateCategory() *ConnectorUpsertBulk {
-	return u.Update(func(s *ConnectorUpsert) {
-		s.UpdateCategory()
 	})
 }
 

@@ -430,6 +430,16 @@ func (tc *TemplateCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 	}
 
 	mc := tc.getClientSet()
+	if tc.fromUpsert {
+		q := mc.Templates().Query().
+			Where(
+				template.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Template entity: %w", err)
+		}
+	}
 
 	if x := tc.object; x != nil {
 		if _, set := tc.mutation.Field(template.FieldName); set {
@@ -546,6 +556,19 @@ func (tcb *TemplateCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 	}
 
 	mc := tcb.getClientSet()
+	if tcb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Templates().Query().
+				Where(
+					template.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Template entity: %w", err)
+			}
+		}
+	}
 
 	if x := tcb.objects; x != nil {
 		for i := range x {
@@ -693,18 +716,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *TemplateUpsert) SetName(v string) *TemplateUpsert {
-	u.Set(template.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TemplateUpsert) UpdateName() *TemplateUpsert {
-	u.SetExcluded(template.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *TemplateUpsert) SetDescription(v string) *TemplateUpsert {
 	u.Set(template.FieldDescription, v)
@@ -818,6 +829,9 @@ func (u *TemplateUpsertOne) UpdateNewValues() *TemplateUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(template.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(template.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(template.FieldCreateTime)
 		}
@@ -853,20 +867,6 @@ func (u *TemplateUpsertOne) Update(set func(*TemplateUpsert)) *TemplateUpsertOne
 		set(&TemplateUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *TemplateUpsertOne) SetName(v string) *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TemplateUpsertOne) UpdateName() *TemplateUpsertOne {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1162,6 +1162,9 @@ func (u *TemplateUpsertBulk) UpdateNewValues() *TemplateUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(template.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(template.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(template.FieldCreateTime)
 			}
@@ -1198,20 +1201,6 @@ func (u *TemplateUpsertBulk) Update(set func(*TemplateUpsert)) *TemplateUpsertBu
 		set(&TemplateUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *TemplateUpsertBulk) SetName(v string) *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *TemplateUpsertBulk) UpdateName() *TemplateUpsertBulk {
-	return u.Update(func(s *TemplateUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.

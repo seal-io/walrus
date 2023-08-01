@@ -105,24 +105,24 @@ func (cru *CostReportUpdate) AddCPUCost(f float64) *CostReportUpdate {
 	return cru
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (cru *CostReportUpdate) SetGpuCost(f float64) *CostReportUpdate {
-	cru.mutation.ResetGpuCost()
-	cru.mutation.SetGpuCost(f)
+// SetGPUCost sets the "gpu_cost" field.
+func (cru *CostReportUpdate) SetGPUCost(f float64) *CostReportUpdate {
+	cru.mutation.ResetGPUCost()
+	cru.mutation.SetGPUCost(f)
 	return cru
 }
 
-// SetNillableGpuCost sets the "gpu_cost" field if the given value is not nil.
-func (cru *CostReportUpdate) SetNillableGpuCost(f *float64) *CostReportUpdate {
+// SetNillableGPUCost sets the "gpu_cost" field if the given value is not nil.
+func (cru *CostReportUpdate) SetNillableGPUCost(f *float64) *CostReportUpdate {
 	if f != nil {
-		cru.SetGpuCost(*f)
+		cru.SetGPUCost(*f)
 	}
 	return cru
 }
 
-// AddGpuCost adds f to the "gpu_cost" field.
-func (cru *CostReportUpdate) AddGpuCost(f float64) *CostReportUpdate {
-	cru.mutation.AddGpuCost(f)
+// AddGPUCost adds f to the "gpu_cost" field.
+func (cru *CostReportUpdate) AddGPUCost(f float64) *CostReportUpdate {
+	cru.mutation.AddGPUCost(f)
 	return cru
 }
 
@@ -147,45 +147,45 @@ func (cru *CostReportUpdate) AddRAMCost(f float64) *CostReportUpdate {
 	return cru
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (cru *CostReportUpdate) SetPvCost(f float64) *CostReportUpdate {
-	cru.mutation.ResetPvCost()
-	cru.mutation.SetPvCost(f)
+// SetPVCost sets the "pv_cost" field.
+func (cru *CostReportUpdate) SetPVCost(f float64) *CostReportUpdate {
+	cru.mutation.ResetPVCost()
+	cru.mutation.SetPVCost(f)
 	return cru
 }
 
-// SetNillablePvCost sets the "pv_cost" field if the given value is not nil.
-func (cru *CostReportUpdate) SetNillablePvCost(f *float64) *CostReportUpdate {
+// SetNillablePVCost sets the "pv_cost" field if the given value is not nil.
+func (cru *CostReportUpdate) SetNillablePVCost(f *float64) *CostReportUpdate {
 	if f != nil {
-		cru.SetPvCost(*f)
+		cru.SetPVCost(*f)
 	}
 	return cru
 }
 
-// AddPvCost adds f to the "pv_cost" field.
-func (cru *CostReportUpdate) AddPvCost(f float64) *CostReportUpdate {
-	cru.mutation.AddPvCost(f)
+// AddPVCost adds f to the "pv_cost" field.
+func (cru *CostReportUpdate) AddPVCost(f float64) *CostReportUpdate {
+	cru.mutation.AddPVCost(f)
 	return cru
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (cru *CostReportUpdate) SetPvBytes(f float64) *CostReportUpdate {
-	cru.mutation.ResetPvBytes()
-	cru.mutation.SetPvBytes(f)
+// SetPVBytes sets the "pv_bytes" field.
+func (cru *CostReportUpdate) SetPVBytes(f float64) *CostReportUpdate {
+	cru.mutation.ResetPVBytes()
+	cru.mutation.SetPVBytes(f)
 	return cru
 }
 
-// SetNillablePvBytes sets the "pv_bytes" field if the given value is not nil.
-func (cru *CostReportUpdate) SetNillablePvBytes(f *float64) *CostReportUpdate {
+// SetNillablePVBytes sets the "pv_bytes" field if the given value is not nil.
+func (cru *CostReportUpdate) SetNillablePVBytes(f *float64) *CostReportUpdate {
 	if f != nil {
-		cru.SetPvBytes(*f)
+		cru.SetPVBytes(*f)
 	}
 	return cru
 }
 
-// AddPvBytes adds f to the "pv_bytes" field.
-func (cru *CostReportUpdate) AddPvBytes(f float64) *CostReportUpdate {
-	cru.mutation.AddPvBytes(f)
+// AddPVBytes adds f to the "pv_bytes" field.
+func (cru *CostReportUpdate) AddPVBytes(f float64) *CostReportUpdate {
+	cru.mutation.AddPVBytes(f)
 	return cru
 }
 
@@ -372,10 +372,10 @@ func (cru *CostReportUpdate) Set(obj *CostReport) *CostReportUpdate {
 		cru.SetCurrency(obj.Currency)
 	}
 	cru.SetCPUCost(obj.CPUCost)
-	cru.SetGpuCost(obj.GpuCost)
+	cru.SetGPUCost(obj.GPUCost)
 	cru.SetRAMCost(obj.RAMCost)
-	cru.SetPvCost(obj.PvCost)
-	cru.SetPvBytes(obj.PvBytes)
+	cru.SetPVCost(obj.PVCost)
+	cru.SetPVBytes(obj.PVBytes)
 	cru.SetLoadBalancerCost(obj.LoadBalancerCost)
 	cru.SetCPUCoreUsageAverage(obj.CPUCoreUsageAverage)
 	cru.SetCPUCoreUsageMax(obj.CPUCoreUsageMax)
@@ -450,11 +450,11 @@ func (cru *CostReportUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cru.mutation.AddedCPUCost(); ok {
 		_spec.AddField(costreport.FieldCPUCost, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.GpuCost(); ok {
-		_spec.SetField(costreport.FieldGpuCost, field.TypeFloat64, value)
+	if value, ok := cru.mutation.GPUCost(); ok {
+		_spec.SetField(costreport.FieldGPUCost, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.AddedGpuCost(); ok {
-		_spec.AddField(costreport.FieldGpuCost, field.TypeFloat64, value)
+	if value, ok := cru.mutation.AddedGPUCost(); ok {
+		_spec.AddField(costreport.FieldGPUCost, field.TypeFloat64, value)
 	}
 	if value, ok := cru.mutation.RAMCost(); ok {
 		_spec.SetField(costreport.FieldRAMCost, field.TypeFloat64, value)
@@ -462,17 +462,17 @@ func (cru *CostReportUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cru.mutation.AddedRAMCost(); ok {
 		_spec.AddField(costreport.FieldRAMCost, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.PvCost(); ok {
-		_spec.SetField(costreport.FieldPvCost, field.TypeFloat64, value)
+	if value, ok := cru.mutation.PVCost(); ok {
+		_spec.SetField(costreport.FieldPVCost, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.AddedPvCost(); ok {
-		_spec.AddField(costreport.FieldPvCost, field.TypeFloat64, value)
+	if value, ok := cru.mutation.AddedPVCost(); ok {
+		_spec.AddField(costreport.FieldPVCost, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.PvBytes(); ok {
-		_spec.SetField(costreport.FieldPvBytes, field.TypeFloat64, value)
+	if value, ok := cru.mutation.PVBytes(); ok {
+		_spec.SetField(costreport.FieldPVBytes, field.TypeFloat64, value)
 	}
-	if value, ok := cru.mutation.AddedPvBytes(); ok {
-		_spec.AddField(costreport.FieldPvBytes, field.TypeFloat64, value)
+	if value, ok := cru.mutation.AddedPVBytes(); ok {
+		_spec.AddField(costreport.FieldPVBytes, field.TypeFloat64, value)
 	}
 	if value, ok := cru.mutation.LoadBalancerCost(); ok {
 		_spec.SetField(costreport.FieldLoadBalancerCost, field.TypeFloat64, value)
@@ -598,24 +598,24 @@ func (cruo *CostReportUpdateOne) AddCPUCost(f float64) *CostReportUpdateOne {
 	return cruo
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (cruo *CostReportUpdateOne) SetGpuCost(f float64) *CostReportUpdateOne {
-	cruo.mutation.ResetGpuCost()
-	cruo.mutation.SetGpuCost(f)
+// SetGPUCost sets the "gpu_cost" field.
+func (cruo *CostReportUpdateOne) SetGPUCost(f float64) *CostReportUpdateOne {
+	cruo.mutation.ResetGPUCost()
+	cruo.mutation.SetGPUCost(f)
 	return cruo
 }
 
-// SetNillableGpuCost sets the "gpu_cost" field if the given value is not nil.
-func (cruo *CostReportUpdateOne) SetNillableGpuCost(f *float64) *CostReportUpdateOne {
+// SetNillableGPUCost sets the "gpu_cost" field if the given value is not nil.
+func (cruo *CostReportUpdateOne) SetNillableGPUCost(f *float64) *CostReportUpdateOne {
 	if f != nil {
-		cruo.SetGpuCost(*f)
+		cruo.SetGPUCost(*f)
 	}
 	return cruo
 }
 
-// AddGpuCost adds f to the "gpu_cost" field.
-func (cruo *CostReportUpdateOne) AddGpuCost(f float64) *CostReportUpdateOne {
-	cruo.mutation.AddGpuCost(f)
+// AddGPUCost adds f to the "gpu_cost" field.
+func (cruo *CostReportUpdateOne) AddGPUCost(f float64) *CostReportUpdateOne {
+	cruo.mutation.AddGPUCost(f)
 	return cruo
 }
 
@@ -640,45 +640,45 @@ func (cruo *CostReportUpdateOne) AddRAMCost(f float64) *CostReportUpdateOne {
 	return cruo
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (cruo *CostReportUpdateOne) SetPvCost(f float64) *CostReportUpdateOne {
-	cruo.mutation.ResetPvCost()
-	cruo.mutation.SetPvCost(f)
+// SetPVCost sets the "pv_cost" field.
+func (cruo *CostReportUpdateOne) SetPVCost(f float64) *CostReportUpdateOne {
+	cruo.mutation.ResetPVCost()
+	cruo.mutation.SetPVCost(f)
 	return cruo
 }
 
-// SetNillablePvCost sets the "pv_cost" field if the given value is not nil.
-func (cruo *CostReportUpdateOne) SetNillablePvCost(f *float64) *CostReportUpdateOne {
+// SetNillablePVCost sets the "pv_cost" field if the given value is not nil.
+func (cruo *CostReportUpdateOne) SetNillablePVCost(f *float64) *CostReportUpdateOne {
 	if f != nil {
-		cruo.SetPvCost(*f)
+		cruo.SetPVCost(*f)
 	}
 	return cruo
 }
 
-// AddPvCost adds f to the "pv_cost" field.
-func (cruo *CostReportUpdateOne) AddPvCost(f float64) *CostReportUpdateOne {
-	cruo.mutation.AddPvCost(f)
+// AddPVCost adds f to the "pv_cost" field.
+func (cruo *CostReportUpdateOne) AddPVCost(f float64) *CostReportUpdateOne {
+	cruo.mutation.AddPVCost(f)
 	return cruo
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (cruo *CostReportUpdateOne) SetPvBytes(f float64) *CostReportUpdateOne {
-	cruo.mutation.ResetPvBytes()
-	cruo.mutation.SetPvBytes(f)
+// SetPVBytes sets the "pv_bytes" field.
+func (cruo *CostReportUpdateOne) SetPVBytes(f float64) *CostReportUpdateOne {
+	cruo.mutation.ResetPVBytes()
+	cruo.mutation.SetPVBytes(f)
 	return cruo
 }
 
-// SetNillablePvBytes sets the "pv_bytes" field if the given value is not nil.
-func (cruo *CostReportUpdateOne) SetNillablePvBytes(f *float64) *CostReportUpdateOne {
+// SetNillablePVBytes sets the "pv_bytes" field if the given value is not nil.
+func (cruo *CostReportUpdateOne) SetNillablePVBytes(f *float64) *CostReportUpdateOne {
 	if f != nil {
-		cruo.SetPvBytes(*f)
+		cruo.SetPVBytes(*f)
 	}
 	return cruo
 }
 
-// AddPvBytes adds f to the "pv_bytes" field.
-func (cruo *CostReportUpdateOne) AddPvBytes(f float64) *CostReportUpdateOne {
-	cruo.mutation.AddPvBytes(f)
+// AddPVBytes adds f to the "pv_bytes" field.
+func (cruo *CostReportUpdateOne) AddPVBytes(f float64) *CostReportUpdateOne {
+	cruo.mutation.AddPVBytes(f)
 	return cruo
 }
 
@@ -894,17 +894,17 @@ func (cruo *CostReportUpdateOne) Set(obj *CostReport) *CostReportUpdateOne {
 			if db.CPUCost != obj.CPUCost {
 				cruo.SetCPUCost(obj.CPUCost)
 			}
-			if db.GpuCost != obj.GpuCost {
-				cruo.SetGpuCost(obj.GpuCost)
+			if db.GPUCost != obj.GPUCost {
+				cruo.SetGPUCost(obj.GPUCost)
 			}
 			if db.RAMCost != obj.RAMCost {
 				cruo.SetRAMCost(obj.RAMCost)
 			}
-			if db.PvCost != obj.PvCost {
-				cruo.SetPvCost(obj.PvCost)
+			if db.PVCost != obj.PVCost {
+				cruo.SetPVCost(obj.PVCost)
 			}
-			if db.PvBytes != obj.PvBytes {
-				cruo.SetPvBytes(obj.PvBytes)
+			if db.PVBytes != obj.PVBytes {
+				cruo.SetPVBytes(obj.PVBytes)
 			}
 			if db.LoadBalancerCost != obj.LoadBalancerCost {
 				cruo.SetLoadBalancerCost(obj.LoadBalancerCost)
@@ -977,17 +977,17 @@ func (cruo *CostReportUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx cont
 		if _, set := cruo.mutation.Field(costreport.FieldCPUCost); set {
 			obj.CPUCost = x.CPUCost
 		}
-		if _, set := cruo.mutation.Field(costreport.FieldGpuCost); set {
-			obj.GpuCost = x.GpuCost
+		if _, set := cruo.mutation.Field(costreport.FieldGPUCost); set {
+			obj.GPUCost = x.GPUCost
 		}
 		if _, set := cruo.mutation.Field(costreport.FieldRAMCost); set {
 			obj.RAMCost = x.RAMCost
 		}
-		if _, set := cruo.mutation.Field(costreport.FieldPvCost); set {
-			obj.PvCost = x.PvCost
+		if _, set := cruo.mutation.Field(costreport.FieldPVCost); set {
+			obj.PVCost = x.PVCost
 		}
-		if _, set := cruo.mutation.Field(costreport.FieldPvBytes); set {
-			obj.PvBytes = x.PvBytes
+		if _, set := cruo.mutation.Field(costreport.FieldPVBytes); set {
+			obj.PVBytes = x.PVBytes
 		}
 		if _, set := cruo.mutation.Field(costreport.FieldLoadBalancerCost); set {
 			obj.LoadBalancerCost = x.LoadBalancerCost
@@ -1116,11 +1116,11 @@ func (cruo *CostReportUpdateOne) sqlSave(ctx context.Context) (_node *CostReport
 	if value, ok := cruo.mutation.AddedCPUCost(); ok {
 		_spec.AddField(costreport.FieldCPUCost, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.GpuCost(); ok {
-		_spec.SetField(costreport.FieldGpuCost, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.GPUCost(); ok {
+		_spec.SetField(costreport.FieldGPUCost, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.AddedGpuCost(); ok {
-		_spec.AddField(costreport.FieldGpuCost, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.AddedGPUCost(); ok {
+		_spec.AddField(costreport.FieldGPUCost, field.TypeFloat64, value)
 	}
 	if value, ok := cruo.mutation.RAMCost(); ok {
 		_spec.SetField(costreport.FieldRAMCost, field.TypeFloat64, value)
@@ -1128,17 +1128,17 @@ func (cruo *CostReportUpdateOne) sqlSave(ctx context.Context) (_node *CostReport
 	if value, ok := cruo.mutation.AddedRAMCost(); ok {
 		_spec.AddField(costreport.FieldRAMCost, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.PvCost(); ok {
-		_spec.SetField(costreport.FieldPvCost, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.PVCost(); ok {
+		_spec.SetField(costreport.FieldPVCost, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.AddedPvCost(); ok {
-		_spec.AddField(costreport.FieldPvCost, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.AddedPVCost(); ok {
+		_spec.AddField(costreport.FieldPVCost, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.PvBytes(); ok {
-		_spec.SetField(costreport.FieldPvBytes, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.PVBytes(); ok {
+		_spec.SetField(costreport.FieldPVBytes, field.TypeFloat64, value)
 	}
-	if value, ok := cruo.mutation.AddedPvBytes(); ok {
-		_spec.AddField(costreport.FieldPvBytes, field.TypeFloat64, value)
+	if value, ok := cruo.mutation.AddedPVBytes(); ok {
+		_spec.AddField(costreport.FieldPVBytes, field.TypeFloat64, value)
 	}
 	if value, ok := cruo.mutation.LoadBalancerCost(); ok {
 		_spec.SetField(costreport.FieldLoadBalancerCost, field.TypeFloat64, value)

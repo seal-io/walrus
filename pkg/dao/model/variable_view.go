@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -16,17 +17,24 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// VariableCreateInput holds the creation input of the Variable entity.
+// VariableCreateInput holds the creation input of the Variable entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type VariableCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to create Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Value       crypto.String `uri:"-" query:"-" json:"value"`
-	Name        string        `uri:"-" query:"-" json:"name"`
-	Sensitive   bool          `uri:"-" query:"-" json:"sensitive,omitempty"`
-	Description string        `uri:"-" query:"-" json:"description,omitempty"`
+	// The value of variable, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+	// The name of variable.
+	Name string `path:"-" query:"-" json:"name"`
+	// The value is sensitive or not.
+	Sensitive bool `path:"-" query:"-" json:"sensitive,omitempty"`
+	// Description of the variable.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
 }
 
 // Model returns the Variable entity for creating,
@@ -53,33 +61,39 @@ func (vci *VariableCreateInput) Model() *Variable {
 	return _v
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vci *VariableCreateInput) Load() error {
+// Validate checks the VariableCreateInput entity.
+func (vci *VariableCreateInput) Validate() error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vci.LoadWith(vci.inputConfig.Context, vci.inputConfig.ClientSet)
+	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vci *VariableCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableCreateInput entity with the given context and client set.
+func (vci *VariableCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when creating under the Project route.
 	if vci.Project != nil {
-		err = vci.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vci.Project = nil
+			}
 		}
 	}
+	// Validate when creating under the Environment route.
 	if vci.Environment != nil {
-		err = vci.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vci.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vci.Environment = nil
+			}
 		}
 	}
 
@@ -88,20 +102,37 @@ func (vci *VariableCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err
 
 // VariableCreateInputs holds the creation input item of the Variable entities.
 type VariableCreateInputsItem struct {
-	Value       crypto.String `uri:"-" query:"-" json:"value"`
-	Name        string        `uri:"-" query:"-" json:"name"`
-	Sensitive   bool          `uri:"-" query:"-" json:"sensitive,omitempty"`
-	Description string        `uri:"-" query:"-" json:"description,omitempty"`
+	// The value of variable, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+	// The name of variable.
+	Name string `path:"-" query:"-" json:"name"`
+	// The value is sensitive or not.
+	Sensitive bool `path:"-" query:"-" json:"sensitive,omitempty"`
+	// Description of the variable.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
 }
 
-// VariableCreateInputs holds the creation input of the Variable entities.
+// ValidateWith checks the VariableCreateInputsItem entity with the given context and client set.
+func (vci *VariableCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if vci == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// VariableCreateInputs holds the creation input of the Variable entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type VariableCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to create Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*VariableCreateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*VariableCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Variable entities for creating,
@@ -134,19 +165,17 @@ func (vci *VariableCreateInputs) Model() []*Variable {
 	return _vs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vci *VariableCreateInputs) Load() error {
+// Validate checks the VariableCreateInputs entity .
+func (vci *VariableCreateInputs) Validate() error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vci.LoadWith(vci.inputConfig.Context, vci.inputConfig.ClientSet)
+	return vci.ValidateWith(vci.inputConfig.Context, vci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vci *VariableCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableCreateInputs entity with the given context and client set.
+func (vci *VariableCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vci == nil {
 		return errors.New("nil receiver")
 	}
@@ -155,38 +184,64 @@ func (vci *VariableCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 		return errors.New("empty items")
 	}
 
+	// Validate when creating under the Project route.
 	if vci.Project != nil {
-		err = vci.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vci.Project = nil
+			}
 		}
 	}
+	// Validate when creating under the Environment route.
 	if vci.Environment != nil {
-		err = vci.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := vci.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vci.Environment = nil
+			}
+		}
+	}
+
+	for i := range vci.Items {
+		if vci.Items[i] == nil {
+			continue
+		}
+
+		if err := vci.Items[i].ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// VariableDeleteInput holds the deletion input of the Variable entity.
+// VariableDeleteInput holds the deletion input of the Variable entity,
+// please tags with `path:",inline"` if embedding.
 type VariableDeleteInput = VariableQueryInput
 
 // VariableDeleteInputs holds the deletion input item of the Variable entities.
 type VariableDeleteInputsItem struct {
-	ID   object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Name string    `uri:"-" query:"-" json:"name,omitempty"`
+	// ID of the Variable entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Variable entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// VariableDeleteInputs holds the deletion input of the Variable entities.
+// VariableDeleteInputs holds the deletion input of the Variable entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type VariableDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to delete Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to delete Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*VariableDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*VariableDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Variable entities for deleting,
@@ -205,19 +260,31 @@ func (vdi *VariableDeleteInputs) Model() []*Variable {
 	return _vs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vdi *VariableDeleteInputs) Load() error {
+// IDs returns the ID list of the Variable entities for deleting,
+// after validating.
+func (vdi *VariableDeleteInputs) IDs() []object.ID {
+	if vdi == nil || len(vdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(vdi.Items))
+	for i := range vdi.Items {
+		ids[i] = vdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the VariableDeleteInputs entity.
+func (vdi *VariableDeleteInputs) Validate() error {
 	if vdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vdi.LoadWith(vdi.inputConfig.Context, vdi.inputConfig.ClientSet)
+	return vdi.ValidateWith(vdi.inputConfig.Context, vdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vdi *VariableDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableDeleteInputs entity with the given context and client set.
+func (vdi *VariableDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -228,22 +295,42 @@ func (vdi *VariableDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 	q := cs.Variables().Query()
 
+	// Validate when deleting under the Project route.
 	if vdi.Project != nil {
-		err = vdi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vdi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vdi.Project = nil
+				q.Where(
+					variable.ProjectIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.ProjectID(vdi.Project.ID))
 		}
+	} else {
 		q.Where(
-			variable.ProjectID(vdi.Project.ID))
+			variable.ProjectIDIsNil())
 	}
 
+	// Validate when deleting under the Environment route.
 	if vdi.Environment != nil {
-		err = vdi.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vdi.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vdi.Environment = nil
+				q.Where(
+					variable.EnvironmentIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.EnvironmentID(vdi.Environment.ID))
 		}
+	} else {
 		q.Where(
-			variable.EnvironmentID(vdi.Environment.ID))
+			variable.EnvironmentIDIsNil())
 	}
 
 	ids := make([]object.ID, 0, len(vdi.Items))
@@ -265,48 +352,50 @@ func (vdi *VariableDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(variable.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			vdi.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := variable.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = variable.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(variable.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			variable.FieldID,
+			variable.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		vdi.Items[i].ID = es[i].ID
+		vdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// VariableQueryInput holds the query input of the Variable entity.
+// VariableQueryInput holds the query input of the Variable entity,
+// please tags with `path:",inline"` if embedding.
 type VariableQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to query Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project,omitempty"`
+	// Environment indicates to query Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"environment,omitempty"`
 
-	Refer *object.Refer `uri:"variable,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id,omitempty"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
-	Name  string        `uri:"-" query:"-" json:"name,omitempty"`
+	// Refer holds the route path reference of the Variable entity.
+	Refer *object.Refer `path:"variable,default=" query:"-" json:"-"`
+	// ID of the Variable entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Variable entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Variable entity for querying,
@@ -317,52 +406,65 @@ func (vqi *VariableQueryInput) Model() *Variable {
 	}
 
 	return &Variable{
-		ID: vqi.ID,
+		ID:   vqi.ID,
+		Name: vqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vqi *VariableQueryInput) Load() error {
+// Validate checks the VariableQueryInput entity.
+func (vqi *VariableQueryInput) Validate() error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vqi.LoadWith(vqi.inputConfig.Context, vqi.inputConfig.ClientSet)
+	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vqi *VariableQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableQueryInput entity with the given context and client set.
+func (vqi *VariableQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if vqi.Refer != nil && *vqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", variable.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Variables().Query()
 
+	// Validate when querying under the Project route.
 	if vqi.Project != nil {
-		err = vqi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vqi.Project = nil
+				q.Where(
+					variable.ProjectIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.ProjectID(vqi.Project.ID))
 		}
-		q.Where(
-			variable.ProjectID(vqi.Project.ID))
 	} else {
 		q.Where(
 			variable.ProjectIDIsNil())
 	}
 
+	// Validate when querying under the Environment route.
 	if vqi.Environment != nil {
-		err = vqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vqi.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vqi.Environment = nil
+				q.Where(
+					variable.EnvironmentIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.EnvironmentID(vqi.Environment.ID))
 		}
-		q.Where(
-			variable.EnvironmentID(vqi.Environment.ID))
 	} else {
 		q.Where(
 			variable.EnvironmentIDIsNil())
@@ -388,59 +490,81 @@ func (vqi *VariableQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 		return errors.New("invalid identify of variable")
 	}
 
-	vqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			variable.FieldID,
+			variable.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		vqi.ID = e.ID
+		vqi.Name = e.Name
+	}
 	return err
 }
 
-// VariableQueryInputs holds the query input of the Variable entities.
+// VariableQueryInputs holds the query input of the Variable entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type VariableQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to query Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to query Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vqi *VariableQueryInputs) Load() error {
+// Validate checks the VariableQueryInputs entity.
+func (vqi *VariableQueryInputs) Validate() error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vqi.LoadWith(vqi.inputConfig.Context, vqi.inputConfig.ClientSet)
+	return vqi.ValidateWith(vqi.inputConfig.Context, vqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vqi *VariableQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableQueryInputs entity with the given context and client set.
+func (vqi *VariableQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when querying under the Project route.
 	if vqi.Project != nil {
-		err = vqi.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vqi.Project = nil
+			}
 		}
 	}
 
+	// Validate when querying under the Environment route.
 	if vqi.Environment != nil {
-		err = vqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vqi.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vqi.Environment = nil
+			}
 		}
 	}
 
-	return err
+	return nil
 }
 
-// VariableUpdateInput holds the modification input of the Variable entity.
+// VariableUpdateInput holds the modification input of the Variable entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type VariableUpdateInput struct {
-	VariableQueryInput `uri:",inline" query:"-" json:",inline"`
+	VariableQueryInput `path:",inline" query:"-" json:"-"`
 
-	Value       crypto.String `uri:"-" query:"-" json:"value,omitempty"`
-	Sensitive   bool          `uri:"-" query:"-" json:"sensitive,omitempty"`
-	Description string        `uri:"-" query:"-" json:"description,omitempty"`
+	// The value of variable, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
+	// The value is sensitive or not.
+	Sensitive bool `path:"-" query:"-" json:"sensitive,omitempty"`
+	// Description of the variable.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
 }
 
 // Model returns the Variable entity for modifying,
@@ -460,24 +584,60 @@ func (vui *VariableUpdateInput) Model() *Variable {
 	return _v
 }
 
-// VariableUpdateInputs holds the modification input item of the Variable entities.
-type VariableUpdateInputsItem struct {
-	ID   object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Name string    `uri:"-" query:"-" json:"name,omitempty"`
+// Validate checks the VariableUpdateInput entity.
+func (vui *VariableUpdateInput) Validate() error {
+	if vui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Value       crypto.String `uri:"-" query:"-" json:"value,omitempty"`
-	Sensitive   bool          `uri:"-" query:"-" json:"sensitive,omitempty"`
-	Description string        `uri:"-" query:"-" json:"description,omitempty"`
+	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client)
 }
 
-// VariableUpdateInputs holds the modification input of the Variable entities.
+// ValidateWith checks the VariableUpdateInput entity with the given context and client set.
+func (vui *VariableUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := vui.VariableQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// VariableUpdateInputs holds the modification input item of the Variable entities.
+type VariableUpdateInputsItem struct {
+	// ID of the Variable entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Variable entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// The value of variable, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+	// The value is sensitive or not.
+	Sensitive bool `path:"-" query:"-" json:"sensitive"`
+	// Description of the variable.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+}
+
+// ValidateWith checks the VariableUpdateInputsItem entity with the given context and client set.
+func (vui *VariableUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if vui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// VariableUpdateInputs holds the modification input of the Variable entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type VariableUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project,omitempty"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment,omitempty"`
+	// Project indicates to update Variable entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to update Variable entity CAN under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*VariableUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*VariableUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Variable entities for modifying,
@@ -503,19 +663,31 @@ func (vui *VariableUpdateInputs) Model() []*Variable {
 	return _vs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (vui *VariableUpdateInputs) Load() error {
+// IDs returns the ID list of the Variable entities for modifying,
+// after validating.
+func (vui *VariableUpdateInputs) IDs() []object.ID {
+	if vui == nil || len(vui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(vui.Items))
+	for i := range vui.Items {
+		ids[i] = vui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the VariableUpdateInputs entity.
+func (vui *VariableUpdateInputs) Validate() error {
 	if vui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return vui.LoadWith(vui.inputConfig.Context, vui.inputConfig.ClientSet)
+	return vui.ValidateWith(vui.inputConfig.Context, vui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (vui *VariableUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the VariableUpdateInputs entity with the given context and client set.
+func (vui *VariableUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if vui == nil {
 		return errors.New("nil receiver")
 	}
@@ -526,22 +698,42 @@ func (vui *VariableUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 	q := cs.Variables().Query()
 
+	// Validate when updating under the Project route.
 	if vui.Project != nil {
-		err = vui.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vui.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vui.Project = nil
+				q.Where(
+					variable.ProjectIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.ProjectID(vui.Project.ID))
 		}
+	} else {
 		q.Where(
-			variable.ProjectID(vui.Project.ID))
+			variable.ProjectIDIsNil())
 	}
 
+	// Validate when updating under the Environment route.
 	if vui.Environment != nil {
-		err = vui.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := vui.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				vui.Environment = nil
+				q.Where(
+					variable.EnvironmentIDIsNil())
+			}
+		} else {
+			q.Where(
+				variable.EnvironmentID(vui.Environment.ID))
 		}
+	} else {
 		q.Where(
-			variable.EnvironmentID(vui.Environment.ID))
+			variable.EnvironmentIDIsNil())
 	}
 
 	ids := make([]object.ID, 0, len(vui.Items))
@@ -563,33 +755,39 @@ func (vui *VariableUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(variable.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			vui.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := variable.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = variable.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(variable.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			variable.FieldID,
+			variable.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		vui.Items[i].ID = es[i].ID
+		vui.Items[i].Name = es[i].Name
+	}
+
+	for i := range vui.Items {
+		if vui.Items[i] == nil {
+			continue
+		}
+
+		if err := vui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -609,12 +807,12 @@ type VariableOutput struct {
 	Environment *EnvironmentOutput `json:"environment,omitempty"`
 }
 
-// View returns the output of Variable.
+// View returns the output of Variable entity.
 func (_v *Variable) View() *VariableOutput {
 	return ExposeVariable(_v)
 }
 
-// View returns the output of Variables.
+// View returns the output of Variable entities.
 func (_vs Variables) View() []*VariableOutput {
 	return ExposeVariables(_vs)
 }

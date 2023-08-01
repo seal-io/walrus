@@ -8,16 +8,19 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// DistributeLockCreateInput holds the creation input of the DistributeLock entity.
+// DistributeLockCreateInput holds the creation input of the DistributeLock entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type DistributeLockCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	ExpireAt int64 `uri:"-" query:"-" json:"expireAt"`
+	// Expiration timestamp to prevent the lock be occupied for long time.
+	ExpireAt int64 `path:"-" query:"-" json:"expireAt"`
 }
 
 // Model returns the DistributeLock entity for creating,
@@ -34,19 +37,17 @@ func (dlci *DistributeLockCreateInput) Model() *DistributeLock {
 	return _dl
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dlci *DistributeLockCreateInput) Load() error {
+// Validate checks the DistributeLockCreateInput entity.
+func (dlci *DistributeLockCreateInput) Validate() error {
 	if dlci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dlci.LoadWith(dlci.inputConfig.Context, dlci.inputConfig.ClientSet)
+	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dlci *DistributeLockCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockCreateInput entity with the given context and client set.
+func (dlci *DistributeLockCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dlci == nil {
 		return errors.New("nil receiver")
 	}
@@ -56,14 +57,26 @@ func (dlci *DistributeLockCreateInput) LoadWith(ctx context.Context, cs ClientSe
 
 // DistributeLockCreateInputs holds the creation input item of the DistributeLock entities.
 type DistributeLockCreateInputsItem struct {
-	ExpireAt int64 `uri:"-" query:"-" json:"expireAt"`
+	// Expiration timestamp to prevent the lock be occupied for long time.
+	ExpireAt int64 `path:"-" query:"-" json:"expireAt"`
 }
 
-// DistributeLockCreateInputs holds the creation input of the DistributeLock entities.
-type DistributeLockCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the DistributeLockCreateInputsItem entity with the given context and client set.
+func (dlci *DistributeLockCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if dlci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*DistributeLockCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// DistributeLockCreateInputs holds the creation input of the DistributeLock entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type DistributeLockCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*DistributeLockCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the DistributeLock entities for creating,
@@ -86,19 +99,17 @@ func (dlci *DistributeLockCreateInputs) Model() []*DistributeLock {
 	return _dls
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dlci *DistributeLockCreateInputs) Load() error {
+// Validate checks the DistributeLockCreateInputs entity .
+func (dlci *DistributeLockCreateInputs) Validate() error {
 	if dlci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dlci.LoadWith(dlci.inputConfig.Context, dlci.inputConfig.ClientSet)
+	return dlci.ValidateWith(dlci.inputConfig.Context, dlci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dlci *DistributeLockCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockCreateInputs entity with the given context and client set.
+func (dlci *DistributeLockCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dlci == nil {
 		return errors.New("nil receiver")
 	}
@@ -107,22 +118,36 @@ func (dlci *DistributeLockCreateInputs) LoadWith(ctx context.Context, cs ClientS
 		return errors.New("empty items")
 	}
 
+	for i := range dlci.Items {
+		if dlci.Items[i] == nil {
+			continue
+		}
+
+		if err := dlci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// DistributeLockDeleteInput holds the deletion input of the DistributeLock entity.
+// DistributeLockDeleteInput holds the deletion input of the DistributeLock entity,
+// please tags with `path:",inline"` if embedding.
 type DistributeLockDeleteInput = DistributeLockQueryInput
 
 // DistributeLockDeleteInputs holds the deletion input item of the DistributeLock entities.
 type DistributeLockDeleteInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+	// ID of the DistributeLock entity.
+	ID string `path:"-" query:"-" json:"id"`
 }
 
-// DistributeLockDeleteInputs holds the deletion input of the DistributeLock entities.
+// DistributeLockDeleteInputs holds the deletion input of the DistributeLock entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type DistributeLockDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*DistributeLockDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*DistributeLockDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the DistributeLock entities for deleting,
@@ -141,19 +166,31 @@ func (dldi *DistributeLockDeleteInputs) Model() []*DistributeLock {
 	return _dls
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dldi *DistributeLockDeleteInputs) Load() error {
+// IDs returns the ID list of the DistributeLock entities for deleting,
+// after validating.
+func (dldi *DistributeLockDeleteInputs) IDs() []string {
+	if dldi == nil || len(dldi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]string, len(dldi.Items))
+	for i := range dldi.Items {
+		ids[i] = dldi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the DistributeLockDeleteInputs entity.
+func (dldi *DistributeLockDeleteInputs) Validate() error {
 	if dldi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dldi.LoadWith(dldi.inputConfig.Context, dldi.inputConfig.ClientSet)
+	return dldi.ValidateWith(dldi.inputConfig.Context, dldi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dldi *DistributeLockDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockDeleteInputs entity with the given context and client set.
+func (dldi *DistributeLockDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dldi == nil {
 		return errors.New("nil receiver")
 	}
@@ -178,7 +215,9 @@ func (dldi *DistributeLockDeleteInputs) LoadWith(ctx context.Context, cs ClientS
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(distributelock.IDIn(ids...)).
 		Count(ctx)
@@ -186,19 +225,22 @@ func (dldi *DistributeLockDeleteInputs) LoadWith(ctx context.Context, cs ClientS
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// DistributeLockQueryInput holds the query input of the DistributeLock entity.
+// DistributeLockQueryInput holds the query input of the DistributeLock entity,
+// please tags with `path:",inline"` if embedding.
 type DistributeLockQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"distributelock,default=\"\"" query:"-" json:"-"`
-	ID    string        `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the DistributeLock entity.
+	Refer *object.Refer `path:"distributelock,default=" query:"-" json:"-"`
+	// ID of the DistributeLock entity.
+	ID string `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the DistributeLock entity for querying,
@@ -213,25 +255,23 @@ func (dlqi *DistributeLockQueryInput) Model() *DistributeLock {
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dlqi *DistributeLockQueryInput) Load() error {
+// Validate checks the DistributeLockQueryInput entity.
+func (dlqi *DistributeLockQueryInput) Validate() error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dlqi.LoadWith(dlqi.inputConfig.Context, dlqi.inputConfig.ClientSet)
+	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dlqi *DistributeLockQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockQueryInput entity with the given context and client set.
+func (dlqi *DistributeLockQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if dlqi.Refer != nil && *dlqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", distributelock.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.DistributeLocks().Query()
@@ -250,40 +290,42 @@ func (dlqi *DistributeLockQueryInput) LoadWith(ctx context.Context, cs ClientSet
 		return errors.New("invalid identify of distributelock")
 	}
 
+	var err error
 	dlqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// DistributeLockQueryInputs holds the query input of the DistributeLock entities.
+// DistributeLockQueryInputs holds the query input of the DistributeLock entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type DistributeLockQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dlqi *DistributeLockQueryInputs) Load() error {
+// Validate checks the DistributeLockQueryInputs entity.
+func (dlqi *DistributeLockQueryInputs) Validate() error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dlqi.LoadWith(dlqi.inputConfig.Context, dlqi.inputConfig.ClientSet)
+	return dlqi.ValidateWith(dlqi.inputConfig.Context, dlqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dlqi *DistributeLockQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockQueryInputs entity with the given context and client set.
+func (dlqi *DistributeLockQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dlqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// DistributeLockUpdateInput holds the modification input of the DistributeLock entity.
+// DistributeLockUpdateInput holds the modification input of the DistributeLock entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type DistributeLockUpdateInput struct {
-	DistributeLockQueryInput `uri:",inline" query:"-" json:",inline"`
+	DistributeLockQueryInput `path:",inline" query:"-" json:"-"`
 
-	ExpireAt int64 `uri:"-" query:"-" json:"expireAt,omitempty"`
+	// Expiration timestamp to prevent the lock be occupied for long time.
+	ExpireAt int64 `path:"-" query:"-" json:"expireAt,omitempty"`
 }
 
 // Model returns the DistributeLock entity for modifying,
@@ -301,18 +343,49 @@ func (dlui *DistributeLockUpdateInput) Model() *DistributeLock {
 	return _dl
 }
 
-// DistributeLockUpdateInputs holds the modification input item of the DistributeLock entities.
-type DistributeLockUpdateInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+// Validate checks the DistributeLockUpdateInput entity.
+func (dlui *DistributeLockUpdateInput) Validate() error {
+	if dlui == nil {
+		return errors.New("nil receiver")
+	}
 
-	ExpireAt int64 `uri:"-" query:"-" json:"expireAt,omitempty"`
+	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client)
 }
 
-// DistributeLockUpdateInputs holds the modification input of the DistributeLock entities.
-type DistributeLockUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the DistributeLockUpdateInput entity with the given context and client set.
+func (dlui *DistributeLockUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := dlui.DistributeLockQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*DistributeLockUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// DistributeLockUpdateInputs holds the modification input item of the DistributeLock entities.
+type DistributeLockUpdateInputsItem struct {
+	// ID of the DistributeLock entity.
+	ID string `path:"-" query:"-" json:"id"`
+
+	// Expiration timestamp to prevent the lock be occupied for long time.
+	ExpireAt int64 `path:"-" query:"-" json:"expireAt"`
+}
+
+// ValidateWith checks the DistributeLockUpdateInputsItem entity with the given context and client set.
+func (dlui *DistributeLockUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if dlui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// DistributeLockUpdateInputs holds the modification input of the DistributeLock entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type DistributeLockUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*DistributeLockUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the DistributeLock entities for modifying,
@@ -336,19 +409,31 @@ func (dlui *DistributeLockUpdateInputs) Model() []*DistributeLock {
 	return _dls
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (dlui *DistributeLockUpdateInputs) Load() error {
+// IDs returns the ID list of the DistributeLock entities for modifying,
+// after validating.
+func (dlui *DistributeLockUpdateInputs) IDs() []string {
+	if dlui == nil || len(dlui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]string, len(dlui.Items))
+	for i := range dlui.Items {
+		ids[i] = dlui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the DistributeLockUpdateInputs entity.
+func (dlui *DistributeLockUpdateInputs) Validate() error {
 	if dlui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return dlui.LoadWith(dlui.inputConfig.Context, dlui.inputConfig.ClientSet)
+	return dlui.ValidateWith(dlui.inputConfig.Context, dlui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (dlui *DistributeLockUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the DistributeLockUpdateInputs entity with the given context and client set.
+func (dlui *DistributeLockUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if dlui == nil {
 		return errors.New("nil receiver")
 	}
@@ -373,7 +458,9 @@ func (dlui *DistributeLockUpdateInputs) LoadWith(ctx context.Context, cs ClientS
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(distributelock.IDIn(ids...)).
 		Count(ctx)
@@ -381,8 +468,18 @@ func (dlui *DistributeLockUpdateInputs) LoadWith(ctx context.Context, cs ClientS
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range dlui.Items {
+		if dlui.Items[i] == nil {
+			continue
+		}
+
+		if err := dlui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -394,12 +491,12 @@ type DistributeLockOutput struct {
 	ExpireAt int64  `json:"expireAt,omitempty"`
 }
 
-// View returns the output of DistributeLock.
+// View returns the output of DistributeLock entity.
 func (_dl *DistributeLock) View() *DistributeLockOutput {
 	return ExposeDistributeLock(_dl)
 }
 
-// View returns the output of DistributeLocks.
+// View returns the output of DistributeLock entities.
 func (_dls DistributeLocks) View() []*DistributeLockOutput {
 	return ExposeDistributeLocks(_dls)
 }

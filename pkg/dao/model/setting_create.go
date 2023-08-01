@@ -370,6 +370,16 @@ func (sc *SettingCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 	}
 
 	mc := sc.getClientSet()
+	if sc.fromUpsert {
+		q := mc.Settings().Query().
+			Where(
+				setting.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Setting entity: %w", err)
+		}
+	}
 
 	if x := sc.object; x != nil {
 		if _, set := sc.mutation.Field(setting.FieldName); set {
@@ -473,6 +483,19 @@ func (scb *SettingCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 	}
 
 	mc := scb.getClientSet()
+	if scb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Settings().Query().
+				Where(
+					setting.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Setting entity: %w", err)
+			}
+		}
+	}
 
 	if x := scb.objects; x != nil {
 		for i := range x {
@@ -619,18 +642,6 @@ func (u *SettingUpsert) UpdateUpdateTime() *SettingUpsert {
 	return u
 }
 
-// SetName sets the "name" field.
-func (u *SettingUpsert) SetName(v string) *SettingUpsert {
-	u.Set(setting.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *SettingUpsert) UpdateName() *SettingUpsert {
-	u.SetExcluded(setting.FieldName)
-	return u
-}
-
 // SetValue sets the "value" field.
 func (u *SettingUpsert) SetValue(v crypto.String) *SettingUpsert {
 	u.Set(setting.FieldValue, v)
@@ -735,6 +746,9 @@ func (u *SettingUpsertOne) UpdateNewValues() *SettingUpsertOne {
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(setting.FieldCreateTime)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(setting.FieldName)
+		}
 	}))
 	return u
 }
@@ -777,20 +791,6 @@ func (u *SettingUpsertOne) SetUpdateTime(v time.Time) *SettingUpsertOne {
 func (u *SettingUpsertOne) UpdateUpdateTime() *SettingUpsertOne {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *SettingUpsertOne) SetName(v string) *SettingUpsertOne {
-	return u.Update(func(s *SettingUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *SettingUpsertOne) UpdateName() *SettingUpsertOne {
-	return u.Update(func(s *SettingUpsert) {
-		s.UpdateName()
 	})
 }
 
@@ -1076,6 +1076,9 @@ func (u *SettingUpsertBulk) UpdateNewValues() *SettingUpsertBulk {
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(setting.FieldCreateTime)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(setting.FieldName)
+			}
 		}
 	}))
 	return u
@@ -1119,20 +1122,6 @@ func (u *SettingUpsertBulk) SetUpdateTime(v time.Time) *SettingUpsertBulk {
 func (u *SettingUpsertBulk) UpdateUpdateTime() *SettingUpsertBulk {
 	return u.Update(func(s *SettingUpsert) {
 		s.UpdateUpdateTime()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *SettingUpsertBulk) SetName(v string) *SettingUpsertBulk {
-	return u.Update(func(s *SettingUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *SettingUpsertBulk) UpdateName() *SettingUpsertBulk {
-	return u.Update(func(s *SettingUpsert) {
-		s.UpdateName()
 	})
 }
 

@@ -45,12 +45,6 @@ func (su *SettingUpdate) SetUpdateTime(t time.Time) *SettingUpdate {
 	return su
 }
 
-// SetName sets the "name" field.
-func (su *SettingUpdate) SetName(s string) *SettingUpdate {
-	su.mutation.SetName(s)
-	return su
-}
-
 // SetValue sets the "value" field.
 func (su *SettingUpdate) SetValue(c crypto.String) *SettingUpdate {
 	su.mutation.SetValue(c)
@@ -184,16 +178,6 @@ func (su *SettingUpdate) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (su *SettingUpdate) check() error {
-	if v, ok := su.mutation.Name(); ok {
-		if err := setting.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Setting.name": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -227,7 +211,6 @@ func (su *SettingUpdate) check() error {
 //	}
 func (su *SettingUpdate) Set(obj *Setting) *SettingUpdate {
 	// Without Default.
-	su.SetName(obj.Name)
 	su.SetValue(obj.Value)
 	if obj.Hidden != nil {
 		su.SetHidden(*obj.Hidden)
@@ -260,9 +243,6 @@ func (su *SettingUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Settin
 }
 
 func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := su.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(setting.Table, setting.Columns, sqlgraph.NewFieldSpec(setting.FieldID, field.TypeString))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -273,9 +253,6 @@ func (su *SettingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.UpdateTime(); ok {
 		_spec.SetField(setting.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := su.mutation.Name(); ok {
-		_spec.SetField(setting.FieldName, field.TypeString, value)
 	}
 	if value, ok := su.mutation.Value(); ok {
 		_spec.SetField(setting.FieldValue, field.TypeString, value)
@@ -332,12 +309,6 @@ type SettingUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (suo *SettingUpdateOne) SetUpdateTime(t time.Time) *SettingUpdateOne {
 	suo.mutation.SetUpdateTime(t)
-	return suo
-}
-
-// SetName sets the "name" field.
-func (suo *SettingUpdateOne) SetName(s string) *SettingUpdateOne {
-	suo.mutation.SetName(s)
 	return suo
 }
 
@@ -487,16 +458,6 @@ func (suo *SettingUpdateOne) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (suo *SettingUpdateOne) check() error {
-	if v, ok := suo.mutation.Name(); ok {
-		if err := setting.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Setting.name": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -540,9 +501,6 @@ func (suo *SettingUpdateOne) Set(obj *Setting) *SettingUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				suo.SetName(obj.Name)
-			}
 			if db.Value != obj.Value {
 				suo.SetValue(obj.Value)
 			}
@@ -616,9 +574,6 @@ func (suo *SettingUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 	if obj == nil {
 		obj = suo.object
 	} else if x := suo.object; x != nil {
-		if _, set := suo.mutation.Field(setting.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := suo.mutation.Field(setting.FieldValue); set {
 			obj.Value = x.Value
 		}
@@ -675,9 +630,6 @@ func (suo *SettingUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Se
 }
 
 func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err error) {
-	if err := suo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(setting.Table, setting.Columns, sqlgraph.NewFieldSpec(setting.FieldID, field.TypeString))
 	id, ok := suo.mutation.ID()
 	if !ok {
@@ -705,9 +657,6 @@ func (suo *SettingUpdateOne) sqlSave(ctx context.Context) (_node *Setting, err e
 	}
 	if value, ok := suo.mutation.UpdateTime(); ok {
 		_spec.SetField(setting.FieldUpdateTime, field.TypeTime, value)
-	}
-	if value, ok := suo.mutation.Name(); ok {
-		_spec.SetField(setting.FieldName, field.TypeString, value)
 	}
 	if value, ok := suo.mutation.Value(); ok {
 		_spec.SetField(setting.FieldValue, field.TypeString, value)

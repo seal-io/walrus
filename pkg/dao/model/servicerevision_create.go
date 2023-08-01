@@ -51,12 +51,6 @@ func (src *ServiceRevisionCreate) SetNillableCreateTime(t *time.Time) *ServiceRe
 	return src
 }
 
-// SetProjectID sets the "project_id" field.
-func (src *ServiceRevisionCreate) SetProjectID(o object.ID) *ServiceRevisionCreate {
-	src.mutation.SetProjectID(o)
-	return src
-}
-
 // SetStatus sets the "status" field.
 func (src *ServiceRevisionCreate) SetStatus(s string) *ServiceRevisionCreate {
 	src.mutation.SetStatus(s)
@@ -82,6 +76,12 @@ func (src *ServiceRevisionCreate) SetNillableStatusMessage(s *string) *ServiceRe
 	if s != nil {
 		src.SetStatusMessage(*s)
 	}
+	return src
+}
+
+// SetProjectID sets the "project_id" field.
+func (src *ServiceRevisionCreate) SetProjectID(o object.ID) *ServiceRevisionCreate {
+	src.mutation.SetProjectID(o)
 	return src
 }
 
@@ -564,14 +564,14 @@ func (src *ServiceRevisionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 	mc := src.getClientSet()
 
 	if x := src.object; x != nil {
-		if _, set := src.mutation.Field(servicerevision.FieldProjectID); set {
-			obj.ProjectID = x.ProjectID
-		}
 		if _, set := src.mutation.Field(servicerevision.FieldStatus); set {
 			obj.Status = x.Status
 		}
 		if _, set := src.mutation.Field(servicerevision.FieldStatusMessage); set {
 			obj.StatusMessage = x.StatusMessage
+		}
+		if _, set := src.mutation.Field(servicerevision.FieldProjectID); set {
+			obj.ProjectID = x.ProjectID
 		}
 		if _, set := src.mutation.Field(servicerevision.FieldEnvironmentID); set {
 			obj.EnvironmentID = x.EnvironmentID
@@ -693,14 +693,14 @@ func (srcb *ServiceRevisionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 
 	if x := srcb.objects; x != nil {
 		for i := range x {
-			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldProjectID); set {
-				objs[i].ProjectID = x[i].ProjectID
-			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldStatus); set {
 				objs[i].Status = x[i].Status
 			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldStatusMessage); set {
 				objs[i].StatusMessage = x[i].StatusMessage
+			}
+			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldProjectID); set {
+				objs[i].ProjectID = x[i].ProjectID
 			}
 			if _, set := srcb.builders[i].mutation.Field(servicerevision.FieldEnvironmentID); set {
 				objs[i].EnvironmentID = x[i].EnvironmentID

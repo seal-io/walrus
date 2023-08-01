@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -30,20 +31,22 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldProjectID holds the string denoting the project_id field in the database.
-	FieldProjectID = "project_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldProjectID holds the string denoting the project_id field in the database.
+	FieldProjectID = "project_id"
 	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
 	FieldEnvironmentID = "environment_id"
-	// FieldTemplate holds the string denoting the template field in the database.
-	FieldTemplate = "template"
+	// FieldTemplateID holds the string denoting the template_id field in the database.
+	FieldTemplateID = "template_id"
 	// FieldAttributes holds the string denoting the attributes field in the database.
 	FieldAttributes = "attributes"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
 	EdgeEnvironment = "environment"
+	// EdgeTemplate holds the string denoting the template edge name in mutations.
+	EdgeTemplate = "template"
 	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
 	EdgeRevisions = "revisions"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
@@ -66,6 +69,13 @@ const (
 	EnvironmentInverseTable = "environments"
 	// EnvironmentColumn is the table column denoting the environment relation/edge.
 	EnvironmentColumn = "environment_id"
+	// TemplateTable is the table that holds the template relation/edge.
+	TemplateTable = "services"
+	// TemplateInverseTable is the table name for the TemplateVersion entity.
+	// It exists in this package in order to avoid circular dependency with the "templateversion" package.
+	TemplateInverseTable = "template_versions"
+	// TemplateColumn is the table column denoting the template relation/edge.
+	TemplateColumn = "template_id"
 	// RevisionsTable is the table that holds the revisions relation/edge.
 	RevisionsTable = "service_revisions"
 	// RevisionsInverseTable is the table name for the ServiceRevision entity.
@@ -98,10 +108,10 @@ var Columns = []string{
 	FieldAnnotations,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldProjectID,
 	FieldStatus,
+	FieldProjectID,
 	FieldEnvironmentID,
-	FieldTemplate,
+	FieldTemplateID,
 	FieldAttributes,
 }
 
@@ -121,7 +131,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks        [3]ent.Hook
+	Hooks        [1]ent.Hook
 	Interceptors [1]ent.Interceptor
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
@@ -139,6 +149,8 @@ var (
 	ProjectIDValidator func(string) error
 	// EnvironmentIDValidator is a validator for the "environment_id" field. It is called by the builders before save.
 	EnvironmentIDValidator func(string) error
+	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	TemplateIDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Service queries.
@@ -179,6 +191,11 @@ func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
 }
 
+// ByTemplateID orders the results by the template_id field.
+func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
+}
+
 // ByAttributes orders the results by the attributes field.
 func ByAttributes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttributes, opts...).ToFunc()
@@ -195,6 +212,13 @@ func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByEnvironmentField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newEnvironmentStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTemplateField orders the results by template field.
+func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -253,6 +277,13 @@ func newEnvironmentStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, EnvironmentTable, EnvironmentColumn),
 	)
 }
+func newTemplateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TemplateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TemplateTable, TemplateColumn),
+	)
+}
 func newRevisionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -278,7 +309,7 @@ func newDependenciesStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

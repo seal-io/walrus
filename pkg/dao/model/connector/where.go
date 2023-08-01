@@ -87,6 +87,11 @@ func ProjectID(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
 }
 
+// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
+func Category(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldCategory, v))
+}
+
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldType, v))
@@ -105,11 +110,6 @@ func ConfigData(v crypto.Properties) predicate.Connector {
 // EnableFinOps applies equality check predicate on the "enable_fin_ops" field. It's identical to EnableFinOpsEQ.
 func EnableFinOps(v bool) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldEnableFinOps, v))
-}
-
-// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
-func Category(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldCategory, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -352,6 +352,16 @@ func UpdateTimeLTE(v time.Time) predicate.Connector {
 	return predicate.Connector(sql.FieldLTE(FieldUpdateTime, v))
 }
 
+// StatusIsNil applies the IsNil predicate on the "status" field.
+func StatusIsNil() predicate.Connector {
+	return predicate.Connector(sql.FieldIsNull(FieldStatus))
+}
+
+// StatusNotNil applies the NotNil predicate on the "status" field.
+func StatusNotNil() predicate.Connector {
+	return predicate.Connector(sql.FieldNotNull(FieldStatus))
+}
+
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
 func ProjectIDEQ(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldEQ(FieldProjectID, v))
@@ -432,14 +442,69 @@ func ProjectIDContainsFold(v object.ID) predicate.Connector {
 	return predicate.Connector(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
-// StatusIsNil applies the IsNil predicate on the "status" field.
-func StatusIsNil() predicate.Connector {
-	return predicate.Connector(sql.FieldIsNull(FieldStatus))
+// CategoryEQ applies the EQ predicate on the "category" field.
+func CategoryEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEQ(FieldCategory, v))
 }
 
-// StatusNotNil applies the NotNil predicate on the "status" field.
-func StatusNotNil() predicate.Connector {
-	return predicate.Connector(sql.FieldNotNull(FieldStatus))
+// CategoryNEQ applies the NEQ predicate on the "category" field.
+func CategoryNEQ(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldNEQ(FieldCategory, v))
+}
+
+// CategoryIn applies the In predicate on the "category" field.
+func CategoryIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldIn(FieldCategory, vs...))
+}
+
+// CategoryNotIn applies the NotIn predicate on the "category" field.
+func CategoryNotIn(vs ...string) predicate.Connector {
+	return predicate.Connector(sql.FieldNotIn(FieldCategory, vs...))
+}
+
+// CategoryGT applies the GT predicate on the "category" field.
+func CategoryGT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGT(FieldCategory, v))
+}
+
+// CategoryGTE applies the GTE predicate on the "category" field.
+func CategoryGTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldGTE(FieldCategory, v))
+}
+
+// CategoryLT applies the LT predicate on the "category" field.
+func CategoryLT(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLT(FieldCategory, v))
+}
+
+// CategoryLTE applies the LTE predicate on the "category" field.
+func CategoryLTE(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldLTE(FieldCategory, v))
+}
+
+// CategoryContains applies the Contains predicate on the "category" field.
+func CategoryContains(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContains(FieldCategory, v))
+}
+
+// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
+func CategoryHasPrefix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasPrefix(FieldCategory, v))
+}
+
+// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
+func CategoryHasSuffix(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldHasSuffix(FieldCategory, v))
+}
+
+// CategoryEqualFold applies the EqualFold predicate on the "category" field.
+func CategoryEqualFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldEqualFold(FieldCategory, v))
+}
+
+// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
+func CategoryContainsFold(v string) predicate.Connector {
+	return predicate.Connector(sql.FieldContainsFold(FieldCategory, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
@@ -640,71 +705,6 @@ func FinOpsCustomPricingIsNil() predicate.Connector {
 // FinOpsCustomPricingNotNil applies the NotNil predicate on the "fin_ops_custom_pricing" field.
 func FinOpsCustomPricingNotNil() predicate.Connector {
 	return predicate.Connector(sql.FieldNotNull(FieldFinOpsCustomPricing))
-}
-
-// CategoryEQ applies the EQ predicate on the "category" field.
-func CategoryEQ(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEQ(FieldCategory, v))
-}
-
-// CategoryNEQ applies the NEQ predicate on the "category" field.
-func CategoryNEQ(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldNEQ(FieldCategory, v))
-}
-
-// CategoryIn applies the In predicate on the "category" field.
-func CategoryIn(vs ...string) predicate.Connector {
-	return predicate.Connector(sql.FieldIn(FieldCategory, vs...))
-}
-
-// CategoryNotIn applies the NotIn predicate on the "category" field.
-func CategoryNotIn(vs ...string) predicate.Connector {
-	return predicate.Connector(sql.FieldNotIn(FieldCategory, vs...))
-}
-
-// CategoryGT applies the GT predicate on the "category" field.
-func CategoryGT(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldGT(FieldCategory, v))
-}
-
-// CategoryGTE applies the GTE predicate on the "category" field.
-func CategoryGTE(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldGTE(FieldCategory, v))
-}
-
-// CategoryLT applies the LT predicate on the "category" field.
-func CategoryLT(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldLT(FieldCategory, v))
-}
-
-// CategoryLTE applies the LTE predicate on the "category" field.
-func CategoryLTE(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldLTE(FieldCategory, v))
-}
-
-// CategoryContains applies the Contains predicate on the "category" field.
-func CategoryContains(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldContains(FieldCategory, v))
-}
-
-// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
-func CategoryHasPrefix(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldHasPrefix(FieldCategory, v))
-}
-
-// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
-func CategoryHasSuffix(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldHasSuffix(FieldCategory, v))
-}
-
-// CategoryEqualFold applies the EqualFold predicate on the "category" field.
-func CategoryEqualFold(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldEqualFold(FieldCategory, v))
-}
-
-// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
-func CategoryContainsFold(v string) predicate.Connector {
-	return predicate.Connector(sql.FieldContainsFold(FieldCategory, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

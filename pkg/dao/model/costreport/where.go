@@ -146,14 +146,14 @@ func CPUCoreRequest(v float64) predicate.CostReport {
 	return predicate.CostReport(sql.FieldEQ(FieldCPUCoreRequest, v))
 }
 
-// GpuCost applies equality check predicate on the "gpu_cost" field. It's identical to GpuCostEQ.
-func GpuCost(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldGpuCost, v))
+// GPUCost applies equality check predicate on the "gpu_cost" field. It's identical to GPUCostEQ.
+func GPUCost(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldGPUCost, v))
 }
 
-// GpuCount applies equality check predicate on the "gpu_count" field. It's identical to GpuCountEQ.
-func GpuCount(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldGpuCount, v))
+// GPUCount applies equality check predicate on the "gpu_count" field. It's identical to GPUCountEQ.
+func GPUCount(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldGPUCount, v))
 }
 
 // RAMCost applies equality check predicate on the "ram_cost" field. It's identical to RAMCostEQ.
@@ -166,14 +166,14 @@ func RAMByteRequest(v float64) predicate.CostReport {
 	return predicate.CostReport(sql.FieldEQ(FieldRAMByteRequest, v))
 }
 
-// PvCost applies equality check predicate on the "pv_cost" field. It's identical to PvCostEQ.
-func PvCost(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldPvCost, v))
+// PVCost applies equality check predicate on the "pv_cost" field. It's identical to PVCostEQ.
+func PVCost(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldPVCost, v))
 }
 
-// PvBytes applies equality check predicate on the "pv_bytes" field. It's identical to PvBytesEQ.
-func PvBytes(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldPvBytes, v))
+// PVBytes applies equality check predicate on the "pv_bytes" field. It's identical to PVBytesEQ.
+func PVBytes(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldPVBytes, v))
 }
 
 // LoadBalancerCost applies equality check predicate on the "load_balancer_cost" field. It's identical to LoadBalancerCostEQ.
@@ -1216,84 +1216,84 @@ func CPUCoreRequestLTE(v float64) predicate.CostReport {
 	return predicate.CostReport(sql.FieldLTE(FieldCPUCoreRequest, v))
 }
 
-// GpuCostEQ applies the EQ predicate on the "gpu_cost" field.
-func GpuCostEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldGpuCost, v))
+// GPUCostEQ applies the EQ predicate on the "gpu_cost" field.
+func GPUCostEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldGPUCost, v))
 }
 
-// GpuCostNEQ applies the NEQ predicate on the "gpu_cost" field.
-func GpuCostNEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNEQ(FieldGpuCost, v))
+// GPUCostNEQ applies the NEQ predicate on the "gpu_cost" field.
+func GPUCostNEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNEQ(FieldGPUCost, v))
 }
 
-// GpuCostIn applies the In predicate on the "gpu_cost" field.
-func GpuCostIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldIn(FieldGpuCost, vs...))
+// GPUCostIn applies the In predicate on the "gpu_cost" field.
+func GPUCostIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldIn(FieldGPUCost, vs...))
 }
 
-// GpuCostNotIn applies the NotIn predicate on the "gpu_cost" field.
-func GpuCostNotIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNotIn(FieldGpuCost, vs...))
+// GPUCostNotIn applies the NotIn predicate on the "gpu_cost" field.
+func GPUCostNotIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNotIn(FieldGPUCost, vs...))
 }
 
-// GpuCostGT applies the GT predicate on the "gpu_cost" field.
-func GpuCostGT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGT(FieldGpuCost, v))
+// GPUCostGT applies the GT predicate on the "gpu_cost" field.
+func GPUCostGT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGT(FieldGPUCost, v))
 }
 
-// GpuCostGTE applies the GTE predicate on the "gpu_cost" field.
-func GpuCostGTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGTE(FieldGpuCost, v))
+// GPUCostGTE applies the GTE predicate on the "gpu_cost" field.
+func GPUCostGTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGTE(FieldGPUCost, v))
 }
 
-// GpuCostLT applies the LT predicate on the "gpu_cost" field.
-func GpuCostLT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLT(FieldGpuCost, v))
+// GPUCostLT applies the LT predicate on the "gpu_cost" field.
+func GPUCostLT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLT(FieldGPUCost, v))
 }
 
-// GpuCostLTE applies the LTE predicate on the "gpu_cost" field.
-func GpuCostLTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLTE(FieldGpuCost, v))
+// GPUCostLTE applies the LTE predicate on the "gpu_cost" field.
+func GPUCostLTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLTE(FieldGPUCost, v))
 }
 
-// GpuCountEQ applies the EQ predicate on the "gpu_count" field.
-func GpuCountEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldGpuCount, v))
+// GPUCountEQ applies the EQ predicate on the "gpu_count" field.
+func GPUCountEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldGPUCount, v))
 }
 
-// GpuCountNEQ applies the NEQ predicate on the "gpu_count" field.
-func GpuCountNEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNEQ(FieldGpuCount, v))
+// GPUCountNEQ applies the NEQ predicate on the "gpu_count" field.
+func GPUCountNEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNEQ(FieldGPUCount, v))
 }
 
-// GpuCountIn applies the In predicate on the "gpu_count" field.
-func GpuCountIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldIn(FieldGpuCount, vs...))
+// GPUCountIn applies the In predicate on the "gpu_count" field.
+func GPUCountIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldIn(FieldGPUCount, vs...))
 }
 
-// GpuCountNotIn applies the NotIn predicate on the "gpu_count" field.
-func GpuCountNotIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNotIn(FieldGpuCount, vs...))
+// GPUCountNotIn applies the NotIn predicate on the "gpu_count" field.
+func GPUCountNotIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNotIn(FieldGPUCount, vs...))
 }
 
-// GpuCountGT applies the GT predicate on the "gpu_count" field.
-func GpuCountGT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGT(FieldGpuCount, v))
+// GPUCountGT applies the GT predicate on the "gpu_count" field.
+func GPUCountGT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGT(FieldGPUCount, v))
 }
 
-// GpuCountGTE applies the GTE predicate on the "gpu_count" field.
-func GpuCountGTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGTE(FieldGpuCount, v))
+// GPUCountGTE applies the GTE predicate on the "gpu_count" field.
+func GPUCountGTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGTE(FieldGPUCount, v))
 }
 
-// GpuCountLT applies the LT predicate on the "gpu_count" field.
-func GpuCountLT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLT(FieldGpuCount, v))
+// GPUCountLT applies the LT predicate on the "gpu_count" field.
+func GPUCountLT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLT(FieldGPUCount, v))
 }
 
-// GpuCountLTE applies the LTE predicate on the "gpu_count" field.
-func GpuCountLTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLTE(FieldGpuCount, v))
+// GPUCountLTE applies the LTE predicate on the "gpu_count" field.
+func GPUCountLTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLTE(FieldGPUCount, v))
 }
 
 // RAMCostEQ applies the EQ predicate on the "ram_cost" field.
@@ -1376,84 +1376,84 @@ func RAMByteRequestLTE(v float64) predicate.CostReport {
 	return predicate.CostReport(sql.FieldLTE(FieldRAMByteRequest, v))
 }
 
-// PvCostEQ applies the EQ predicate on the "pv_cost" field.
-func PvCostEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldPvCost, v))
+// PVCostEQ applies the EQ predicate on the "pv_cost" field.
+func PVCostEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldPVCost, v))
 }
 
-// PvCostNEQ applies the NEQ predicate on the "pv_cost" field.
-func PvCostNEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNEQ(FieldPvCost, v))
+// PVCostNEQ applies the NEQ predicate on the "pv_cost" field.
+func PVCostNEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNEQ(FieldPVCost, v))
 }
 
-// PvCostIn applies the In predicate on the "pv_cost" field.
-func PvCostIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldIn(FieldPvCost, vs...))
+// PVCostIn applies the In predicate on the "pv_cost" field.
+func PVCostIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldIn(FieldPVCost, vs...))
 }
 
-// PvCostNotIn applies the NotIn predicate on the "pv_cost" field.
-func PvCostNotIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNotIn(FieldPvCost, vs...))
+// PVCostNotIn applies the NotIn predicate on the "pv_cost" field.
+func PVCostNotIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNotIn(FieldPVCost, vs...))
 }
 
-// PvCostGT applies the GT predicate on the "pv_cost" field.
-func PvCostGT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGT(FieldPvCost, v))
+// PVCostGT applies the GT predicate on the "pv_cost" field.
+func PVCostGT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGT(FieldPVCost, v))
 }
 
-// PvCostGTE applies the GTE predicate on the "pv_cost" field.
-func PvCostGTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGTE(FieldPvCost, v))
+// PVCostGTE applies the GTE predicate on the "pv_cost" field.
+func PVCostGTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGTE(FieldPVCost, v))
 }
 
-// PvCostLT applies the LT predicate on the "pv_cost" field.
-func PvCostLT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLT(FieldPvCost, v))
+// PVCostLT applies the LT predicate on the "pv_cost" field.
+func PVCostLT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLT(FieldPVCost, v))
 }
 
-// PvCostLTE applies the LTE predicate on the "pv_cost" field.
-func PvCostLTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLTE(FieldPvCost, v))
+// PVCostLTE applies the LTE predicate on the "pv_cost" field.
+func PVCostLTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLTE(FieldPVCost, v))
 }
 
-// PvBytesEQ applies the EQ predicate on the "pv_bytes" field.
-func PvBytesEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldEQ(FieldPvBytes, v))
+// PVBytesEQ applies the EQ predicate on the "pv_bytes" field.
+func PVBytesEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldEQ(FieldPVBytes, v))
 }
 
-// PvBytesNEQ applies the NEQ predicate on the "pv_bytes" field.
-func PvBytesNEQ(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNEQ(FieldPvBytes, v))
+// PVBytesNEQ applies the NEQ predicate on the "pv_bytes" field.
+func PVBytesNEQ(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNEQ(FieldPVBytes, v))
 }
 
-// PvBytesIn applies the In predicate on the "pv_bytes" field.
-func PvBytesIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldIn(FieldPvBytes, vs...))
+// PVBytesIn applies the In predicate on the "pv_bytes" field.
+func PVBytesIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldIn(FieldPVBytes, vs...))
 }
 
-// PvBytesNotIn applies the NotIn predicate on the "pv_bytes" field.
-func PvBytesNotIn(vs ...float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldNotIn(FieldPvBytes, vs...))
+// PVBytesNotIn applies the NotIn predicate on the "pv_bytes" field.
+func PVBytesNotIn(vs ...float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldNotIn(FieldPVBytes, vs...))
 }
 
-// PvBytesGT applies the GT predicate on the "pv_bytes" field.
-func PvBytesGT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGT(FieldPvBytes, v))
+// PVBytesGT applies the GT predicate on the "pv_bytes" field.
+func PVBytesGT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGT(FieldPVBytes, v))
 }
 
-// PvBytesGTE applies the GTE predicate on the "pv_bytes" field.
-func PvBytesGTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldGTE(FieldPvBytes, v))
+// PVBytesGTE applies the GTE predicate on the "pv_bytes" field.
+func PVBytesGTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldGTE(FieldPVBytes, v))
 }
 
-// PvBytesLT applies the LT predicate on the "pv_bytes" field.
-func PvBytesLT(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLT(FieldPvBytes, v))
+// PVBytesLT applies the LT predicate on the "pv_bytes" field.
+func PVBytesLT(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLT(FieldPVBytes, v))
 }
 
-// PvBytesLTE applies the LTE predicate on the "pv_bytes" field.
-func PvBytesLTE(v float64) predicate.CostReport {
-	return predicate.CostReport(sql.FieldLTE(FieldPvBytes, v))
+// PVBytesLTE applies the LTE predicate on the "pv_bytes" field.
+func PVBytesLTE(v float64) predicate.CostReport {
+	return predicate.CostReport(sql.FieldLTE(FieldPVBytes, v))
 }
 
 // LoadBalancerCostEQ applies the EQ predicate on the "load_balancer_cost" field.

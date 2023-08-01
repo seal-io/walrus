@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/role"
@@ -15,13 +16,17 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// RoleCreateInput holds the creation input of the Role entity.
+// RoleCreateInput holds the creation input of the Role entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type RoleCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Kind        string             `uri:"-" query:"-" json:"kind,omitempty"`
-	Description string             `uri:"-" query:"-" json:"description,omitempty"`
-	Policies    types.RolePolicies `uri:"-" query:"-" json:"policies,omitempty"`
+	// The kind of the role.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The detail of the role.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// The policy list of the role.
+	Policies types.RolePolicies `path:"-" query:"-" json:"policies,omitempty"`
 }
 
 // Model returns the Role entity for creating,
@@ -40,19 +45,17 @@ func (rci *RoleCreateInput) Model() *Role {
 	return _r
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rci *RoleCreateInput) Load() error {
+// Validate checks the RoleCreateInput entity.
+func (rci *RoleCreateInput) Validate() error {
 	if rci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rci.LoadWith(rci.inputConfig.Context, rci.inputConfig.ClientSet)
+	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rci *RoleCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleCreateInput entity with the given context and client set.
+func (rci *RoleCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rci == nil {
 		return errors.New("nil receiver")
 	}
@@ -62,16 +65,30 @@ func (rci *RoleCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err err
 
 // RoleCreateInputs holds the creation input item of the Role entities.
 type RoleCreateInputsItem struct {
-	Kind        string             `uri:"-" query:"-" json:"kind,omitempty"`
-	Description string             `uri:"-" query:"-" json:"description,omitempty"`
-	Policies    types.RolePolicies `uri:"-" query:"-" json:"policies,omitempty"`
+	// The kind of the role.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The detail of the role.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// The policy list of the role.
+	Policies types.RolePolicies `path:"-" query:"-" json:"policies,omitempty"`
 }
 
-// RoleCreateInputs holds the creation input of the Role entities.
-type RoleCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the RoleCreateInputsItem entity with the given context and client set.
+func (rci *RoleCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if rci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*RoleCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// RoleCreateInputs holds the creation input of the Role entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type RoleCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*RoleCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Role entities for creating,
@@ -96,19 +113,17 @@ func (rci *RoleCreateInputs) Model() []*Role {
 	return _rs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rci *RoleCreateInputs) Load() error {
+// Validate checks the RoleCreateInputs entity .
+func (rci *RoleCreateInputs) Validate() error {
 	if rci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rci.LoadWith(rci.inputConfig.Context, rci.inputConfig.ClientSet)
+	return rci.ValidateWith(rci.inputConfig.Context, rci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rci *RoleCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleCreateInputs entity with the given context and client set.
+func (rci *RoleCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rci == nil {
 		return errors.New("nil receiver")
 	}
@@ -117,22 +132,36 @@ func (rci *RoleCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err er
 		return errors.New("empty items")
 	}
 
+	for i := range rci.Items {
+		if rci.Items[i] == nil {
+			continue
+		}
+
+		if err := rci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// RoleDeleteInput holds the deletion input of the Role entity.
+// RoleDeleteInput holds the deletion input of the Role entity,
+// please tags with `path:",inline"` if embedding.
 type RoleDeleteInput = RoleQueryInput
 
 // RoleDeleteInputs holds the deletion input item of the Role entities.
 type RoleDeleteInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+	// ID of the Role entity.
+	ID string `path:"-" query:"-" json:"id"`
 }
 
-// RoleDeleteInputs holds the deletion input of the Role entities.
+// RoleDeleteInputs holds the deletion input of the Role entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type RoleDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*RoleDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*RoleDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Role entities for deleting,
@@ -151,19 +180,31 @@ func (rdi *RoleDeleteInputs) Model() []*Role {
 	return _rs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rdi *RoleDeleteInputs) Load() error {
+// IDs returns the ID list of the Role entities for deleting,
+// after validating.
+func (rdi *RoleDeleteInputs) IDs() []string {
+	if rdi == nil || len(rdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]string, len(rdi.Items))
+	for i := range rdi.Items {
+		ids[i] = rdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the RoleDeleteInputs entity.
+func (rdi *RoleDeleteInputs) Validate() error {
 	if rdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rdi.LoadWith(rdi.inputConfig.Context, rdi.inputConfig.ClientSet)
+	return rdi.ValidateWith(rdi.inputConfig.Context, rdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rdi *RoleDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleDeleteInputs entity with the given context and client set.
+func (rdi *RoleDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -188,7 +229,9 @@ func (rdi *RoleDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err er
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(role.IDIn(ids...)).
 		Count(ctx)
@@ -196,19 +239,22 @@ func (rdi *RoleDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err er
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// RoleQueryInput holds the query input of the Role entity.
+// RoleQueryInput holds the query input of the Role entity,
+// please tags with `path:",inline"` if embedding.
 type RoleQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"role,default=\"\"" query:"-" json:"-"`
-	ID    string        `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Role entity.
+	Refer *object.Refer `path:"role,default=" query:"-" json:"-"`
+	// ID of the Role entity.
+	ID string `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the Role entity for querying,
@@ -223,25 +269,23 @@ func (rqi *RoleQueryInput) Model() *Role {
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rqi *RoleQueryInput) Load() error {
+// Validate checks the RoleQueryInput entity.
+func (rqi *RoleQueryInput) Validate() error {
 	if rqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rqi.LoadWith(rqi.inputConfig.Context, rqi.inputConfig.ClientSet)
+	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rqi *RoleQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleQueryInput entity with the given context and client set.
+func (rqi *RoleQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if rqi.Refer != nil && *rqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", role.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Roles().Query()
@@ -260,41 +304,44 @@ func (rqi *RoleQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err erro
 		return errors.New("invalid identify of role")
 	}
 
+	var err error
 	rqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// RoleQueryInputs holds the query input of the Role entities.
+// RoleQueryInputs holds the query input of the Role entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type RoleQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rqi *RoleQueryInputs) Load() error {
+// Validate checks the RoleQueryInputs entity.
+func (rqi *RoleQueryInputs) Validate() error {
 	if rqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rqi.LoadWith(rqi.inputConfig.Context, rqi.inputConfig.ClientSet)
+	return rqi.ValidateWith(rqi.inputConfig.Context, rqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rqi *RoleQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleQueryInputs entity with the given context and client set.
+func (rqi *RoleQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// RoleUpdateInput holds the modification input of the Role entity.
+// RoleUpdateInput holds the modification input of the Role entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type RoleUpdateInput struct {
-	RoleQueryInput `uri:",inline" query:"-" json:",inline"`
+	RoleQueryInput `path:",inline" query:"-" json:"-"`
 
-	Description string             `uri:"-" query:"-" json:"description,omitempty"`
-	Policies    types.RolePolicies `uri:"-" query:"-" json:"policies,omitempty"`
+	// The detail of the role.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// The policy list of the role.
+	Policies types.RolePolicies `path:"-" query:"-" json:"policies,omitempty"`
 }
 
 // Model returns the Role entity for modifying,
@@ -313,19 +360,51 @@ func (rui *RoleUpdateInput) Model() *Role {
 	return _r
 }
 
-// RoleUpdateInputs holds the modification input item of the Role entities.
-type RoleUpdateInputsItem struct {
-	ID string `uri:"-" query:"-" json:"id"`
+// Validate checks the RoleUpdateInput entity.
+func (rui *RoleUpdateInput) Validate() error {
+	if rui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Description string             `uri:"-" query:"-" json:"description,omitempty"`
-	Policies    types.RolePolicies `uri:"-" query:"-" json:"policies,omitempty"`
+	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client)
 }
 
-// RoleUpdateInputs holds the modification input of the Role entities.
-type RoleUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the RoleUpdateInput entity with the given context and client set.
+func (rui *RoleUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := rui.RoleQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*RoleUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// RoleUpdateInputs holds the modification input item of the Role entities.
+type RoleUpdateInputsItem struct {
+	// ID of the Role entity.
+	ID string `path:"-" query:"-" json:"id"`
+
+	// The detail of the role.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// The policy list of the role.
+	Policies types.RolePolicies `path:"-" query:"-" json:"policies"`
+}
+
+// ValidateWith checks the RoleUpdateInputsItem entity with the given context and client set.
+func (rui *RoleUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if rui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// RoleUpdateInputs holds the modification input of the Role entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type RoleUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*RoleUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Role entities for modifying,
@@ -350,19 +429,31 @@ func (rui *RoleUpdateInputs) Model() []*Role {
 	return _rs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (rui *RoleUpdateInputs) Load() error {
+// IDs returns the ID list of the Role entities for modifying,
+// after validating.
+func (rui *RoleUpdateInputs) IDs() []string {
+	if rui == nil || len(rui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]string, len(rui.Items))
+	for i := range rui.Items {
+		ids[i] = rui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the RoleUpdateInputs entity.
+func (rui *RoleUpdateInputs) Validate() error {
 	if rui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return rui.LoadWith(rui.inputConfig.Context, rui.inputConfig.ClientSet)
+	return rui.ValidateWith(rui.inputConfig.Context, rui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (rui *RoleUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the RoleUpdateInputs entity with the given context and client set.
+func (rui *RoleUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if rui == nil {
 		return errors.New("nil receiver")
 	}
@@ -387,7 +478,9 @@ func (rui *RoleUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err er
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(role.IDIn(ids...)).
 		Count(ctx)
@@ -395,8 +488,18 @@ func (rui *RoleUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err er
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range rui.Items {
+		if rui.Items[i] == nil {
+			continue
+		}
+
+		if err := rui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -413,12 +516,12 @@ type RoleOutput struct {
 	Builtin     bool               `json:"builtin,omitempty"`
 }
 
-// View returns the output of Role.
+// View returns the output of Role entity.
 func (_r *Role) View() *RoleOutput {
 	return ExposeRole(_r)
 }
 
-// View returns the output of Roles.
+// View returns the output of Role entities.
 func (_rs Roles) View() []*RoleOutput {
 	return ExposeRoles(_rs)
 }

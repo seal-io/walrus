@@ -8,18 +8,26 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// SubjectRoleRelationshipCreateInput holds the creation input of the SubjectRoleRelationship entity.
+// SubjectRoleRelationshipCreateInput holds the creation input of the SubjectRoleRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectRoleRelationshipCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject,omitempty"`
-	Role    *RoleQueryInput    `uri:"-" query:"-" json:"role,omitempty"`
+	// Project indicates to create SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Subject specifies full inserting the new Subject entity of the SubjectRoleRelationship entity.
+	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject"`
+	// Role specifies full inserting the new Role entity of the SubjectRoleRelationship entity.
+	Role *RoleQueryInput `uri:"-" query:"-" json:"role"`
 }
 
 // Model returns the SubjectRoleRelationship entity for creating,
@@ -31,6 +39,10 @@ func (srrci *SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationshi
 
 	_srr := &SubjectRoleRelationship{}
 
+	if srrci.Project != nil {
+		_srr.ProjectID = srrci.Project.ID
+	}
+
 	if srrci.Subject != nil {
 		_srr.SubjectID = srrci.Subject.ID
 	}
@@ -40,49 +52,103 @@ func (srrci *SubjectRoleRelationshipCreateInput) Model() *SubjectRoleRelationshi
 	return _srr
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrci *SubjectRoleRelationshipCreateInput) Load() error {
+// Validate checks the SubjectRoleRelationshipCreateInput entity.
+func (srrci *SubjectRoleRelationshipCreateInput) Validate() error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.LoadWith(srrci.inputConfig.Context, srrci.inputConfig.ClientSet)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrci *SubjectRoleRelationshipCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipCreateInput entity with the given context and client set.
+func (srrci *SubjectRoleRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
+	}
+
+	// Validate when creating under the Project route.
+	if srrci.Project != nil {
+		if err := srrci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Project = nil
+			}
+		}
 	}
 
 	if srrci.Subject != nil {
-		err = srrci.Subject.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := srrci.Subject.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Subject = nil
+			}
 		}
 	}
+
 	if srrci.Role != nil {
-		err = srrci.Role.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := srrci.Role.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Role = nil
+			}
 		}
 	}
+
 	return nil
 }
 
 // SubjectRoleRelationshipCreateInputs holds the creation input item of the SubjectRoleRelationship entities.
 type SubjectRoleRelationshipCreateInputsItem struct {
-	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject,omitempty"`
-	Role    *RoleQueryInput    `uri:"-" query:"-" json:"role,omitempty"`
+
+	// Subject specifies full inserting the new Subject entity.
+	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject"`
+	// Role specifies full inserting the new Role entity.
+	Role *RoleQueryInput `uri:"-" query:"-" json:"role"`
 }
 
-// SubjectRoleRelationshipCreateInputs holds the creation input of the SubjectRoleRelationship entities.
-type SubjectRoleRelationshipCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SubjectRoleRelationshipCreateInputsItem entity with the given context and client set.
+func (srrci *SubjectRoleRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srrci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*SubjectRoleRelationshipCreateInputsItem `uri:"-" query:"-" json:"items"`
+	if srrci.Subject != nil {
+		if err := srrci.Subject.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Subject = nil
+			}
+		}
+	}
+
+	if srrci.Role != nil {
+		if err := srrci.Role.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Role = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectRoleRelationshipCreateInputs holds the creation input of the SubjectRoleRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectRoleRelationshipCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to create SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectRoleRelationshipCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the SubjectRoleRelationship entities for creating,
@@ -97,6 +163,10 @@ func (srrci *SubjectRoleRelationshipCreateInputs) Model() []*SubjectRoleRelation
 	for i := range srrci.Items {
 		_srr := &SubjectRoleRelationship{}
 
+		if srrci.Project != nil {
+			_srr.ProjectID = srrci.Project.ID
+		}
+
 		if srrci.Items[i].Subject != nil {
 			_srr.SubjectID = srrci.Items[i].Subject.ID
 		}
@@ -110,19 +180,17 @@ func (srrci *SubjectRoleRelationshipCreateInputs) Model() []*SubjectRoleRelation
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrci *SubjectRoleRelationshipCreateInputs) Load() error {
+// Validate checks the SubjectRoleRelationshipCreateInputs entity .
+func (srrci *SubjectRoleRelationshipCreateInputs) Validate() error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.LoadWith(srrci.inputConfig.Context, srrci.inputConfig.ClientSet)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrci *SubjectRoleRelationshipCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipCreateInputs entity with the given context and client set.
+func (srrci *SubjectRoleRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -131,22 +199,50 @@ func (srrci *SubjectRoleRelationshipCreateInputs) LoadWith(ctx context.Context, 
 		return errors.New("empty items")
 	}
 
+	// Validate when creating under the Project route.
+	if srrci.Project != nil {
+		if err := srrci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Project = nil
+			}
+		}
+	}
+
+	for i := range srrci.Items {
+		if srrci.Items[i] == nil {
+			continue
+		}
+
+		if err := srrci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// SubjectRoleRelationshipDeleteInput holds the deletion input of the SubjectRoleRelationship entity.
+// SubjectRoleRelationshipDeleteInput holds the deletion input of the SubjectRoleRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type SubjectRoleRelationshipDeleteInput = SubjectRoleRelationshipQueryInput
 
 // SubjectRoleRelationshipDeleteInputs holds the deletion input item of the SubjectRoleRelationship entities.
 type SubjectRoleRelationshipDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the SubjectRoleRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// SubjectRoleRelationshipDeleteInputs holds the deletion input of the SubjectRoleRelationship entities.
+// SubjectRoleRelationshipDeleteInputs holds the deletion input of the SubjectRoleRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectRoleRelationshipDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*SubjectRoleRelationshipDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Project indicates to delete SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectRoleRelationshipDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the SubjectRoleRelationship entities for deleting,
@@ -165,19 +261,31 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) Model() []*SubjectRoleRelation
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrdi *SubjectRoleRelationshipDeleteInputs) Load() error {
+// IDs returns the ID list of the SubjectRoleRelationship entities for deleting,
+// after validating.
+func (srrdi *SubjectRoleRelationshipDeleteInputs) IDs() []object.ID {
+	if srrdi == nil || len(srrdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srrdi.Items))
+	for i := range srrdi.Items {
+		ids[i] = srrdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SubjectRoleRelationshipDeleteInputs entity.
+func (srrdi *SubjectRoleRelationshipDeleteInputs) Validate() error {
 	if srrdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrdi.LoadWith(srrdi.inputConfig.Context, srrdi.inputConfig.ClientSet)
+	return srrdi.ValidateWith(srrdi.inputConfig.Context, srrdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrdi *SubjectRoleRelationshipDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipDeleteInputs entity with the given context and client set.
+func (srrdi *SubjectRoleRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -187,6 +295,26 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) LoadWith(ctx context.Context, 
 	}
 
 	q := cs.SubjectRoleRelationships().Query()
+
+	// Validate when deleting under the Project route.
+	if srrdi.Project != nil {
+		if err := srrdi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrdi.Project = nil
+				q.Where(
+					subjectrolerelationship.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				subjectrolerelationship.ProjectID(srrdi.Project.ID))
+		}
+	} else {
+		q.Where(
+			subjectrolerelationship.ProjectIDIsNil())
+	}
 
 	ids := make([]object.ID, 0, len(srrdi.Items))
 
@@ -202,7 +330,9 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) LoadWith(ctx context.Context, 
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(subjectrolerelationship.IDIn(ids...)).
 		Count(ctx)
@@ -210,19 +340,25 @@ func (srrdi *SubjectRoleRelationshipDeleteInputs) LoadWith(ctx context.Context, 
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// SubjectRoleRelationshipQueryInput holds the query input of the SubjectRoleRelationship entity.
+// SubjectRoleRelationshipQueryInput holds the query input of the SubjectRoleRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type SubjectRoleRelationshipQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"subjectrolerelationship,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Project indicates to query SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project,omitempty"`
+
+	// Refer holds the route path reference of the SubjectRoleRelationship entity.
+	Refer *object.Refer `path:"subjectrolerelationship,default=" query:"-" json:"-"`
+	// ID of the SubjectRoleRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the SubjectRoleRelationship entity for querying,
@@ -237,28 +373,46 @@ func (srrqi *SubjectRoleRelationshipQueryInput) Model() *SubjectRoleRelationship
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrqi *SubjectRoleRelationshipQueryInput) Load() error {
+// Validate checks the SubjectRoleRelationshipQueryInput entity.
+func (srrqi *SubjectRoleRelationshipQueryInput) Validate() error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.LoadWith(srrqi.inputConfig.Context, srrqi.inputConfig.ClientSet)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrqi *SubjectRoleRelationshipQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipQueryInput entity with the given context and client set.
+func (srrqi *SubjectRoleRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if srrqi.Refer != nil && *srrqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", subjectrolerelationship.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.SubjectRoleRelationships().Query()
+
+	// Validate when querying under the Project route.
+	if srrqi.Project != nil {
+		if err := srrqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrqi.Project = nil
+				q.Where(
+					subjectrolerelationship.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				subjectrolerelationship.ProjectID(srrqi.Project.ID))
+		}
+	} else {
+		q.Where(
+			subjectrolerelationship.ProjectIDIsNil())
+	}
 
 	if srrqi.Refer != nil {
 		if srrqi.Refer.IsID() {
@@ -274,41 +428,58 @@ func (srrqi *SubjectRoleRelationshipQueryInput) LoadWith(ctx context.Context, cs
 		return errors.New("invalid identify of subjectrolerelationship")
 	}
 
+	var err error
 	srrqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// SubjectRoleRelationshipQueryInputs holds the query input of the SubjectRoleRelationship entities.
+// SubjectRoleRelationshipQueryInputs holds the query input of the SubjectRoleRelationship entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type SubjectRoleRelationshipQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to query SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrqi *SubjectRoleRelationshipQueryInputs) Load() error {
+// Validate checks the SubjectRoleRelationshipQueryInputs entity.
+func (srrqi *SubjectRoleRelationshipQueryInputs) Validate() error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.LoadWith(srrqi.inputConfig.Context, srrqi.inputConfig.ClientSet)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrqi *SubjectRoleRelationshipQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipQueryInputs entity with the given context and client set.
+func (srrqi *SubjectRoleRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	// Validate when querying under the Project route.
+	if srrqi.Project != nil {
+		if err := srrqi.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrqi.Project = nil
+			}
+		}
+	}
+
+	return nil
 }
 
-// SubjectRoleRelationshipUpdateInput holds the modification input of the SubjectRoleRelationship entity.
+// SubjectRoleRelationshipUpdateInput holds the modification input of the SubjectRoleRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectRoleRelationshipUpdateInput struct {
-	SubjectRoleRelationshipQueryInput `uri:",inline" query:"-" json:",inline"`
+	SubjectRoleRelationshipQueryInput `path:",inline" query:"-" json:"-"`
 
-	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject,omitempty"`
-	Role    *RoleQueryInput    `uri:"-" query:"-" json:"role,omitempty"`
+	// Subject indicates replacing the stale Subject entity.
+	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject"`
+	// Role indicates replacing the stale Role entity.
+	Role *RoleQueryInput `uri:"-" query:"-" json:"role"`
 }
 
 // Model returns the SubjectRoleRelationship entity for modifying,
@@ -331,19 +502,94 @@ func (srrui *SubjectRoleRelationshipUpdateInput) Model() *SubjectRoleRelationshi
 	return _srr
 }
 
-// SubjectRoleRelationshipUpdateInputs holds the modification input item of the SubjectRoleRelationship entities.
-type SubjectRoleRelationshipUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the SubjectRoleRelationshipUpdateInput entity.
+func (srrui *SubjectRoleRelationshipUpdateInput) Validate() error {
+	if srrui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject,omitempty"`
-	Role    *RoleQueryInput    `uri:"-" query:"-" json:"role,omitempty"`
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
 }
 
-// SubjectRoleRelationshipUpdateInputs holds the modification input of the SubjectRoleRelationship entities.
-type SubjectRoleRelationshipUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SubjectRoleRelationshipUpdateInput entity with the given context and client set.
+func (srrui *SubjectRoleRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := srrui.SubjectRoleRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*SubjectRoleRelationshipUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	if srrui.Subject != nil {
+		if err := srrui.Subject.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Subject = nil
+			}
+		}
+	}
+
+	if srrui.Role != nil {
+		if err := srrui.Role.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Role = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectRoleRelationshipUpdateInputs holds the modification input item of the SubjectRoleRelationship entities.
+type SubjectRoleRelationshipUpdateInputsItem struct {
+	// ID of the SubjectRoleRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
+
+	// Subject indicates replacing the stale Subject entity.
+	Subject *SubjectQueryInput `uri:"-" query:"-" json:"subject"`
+	// Role indicates replacing the stale Role entity.
+	Role *RoleQueryInput `uri:"-" query:"-" json:"role"`
+}
+
+// ValidateWith checks the SubjectRoleRelationshipUpdateInputsItem entity with the given context and client set.
+func (srrui *SubjectRoleRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srrui == nil {
+		return errors.New("nil receiver")
+	}
+
+	if srrui.Subject != nil {
+		if err := srrui.Subject.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Subject = nil
+			}
+		}
+	}
+
+	if srrui.Role != nil {
+		if err := srrui.Role.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Role = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectRoleRelationshipUpdateInputs holds the modification input of the SubjectRoleRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectRoleRelationshipUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Project indicates to update SubjectRoleRelationship entity CAN under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectRoleRelationshipUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the SubjectRoleRelationship entities for modifying,
@@ -373,19 +619,31 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) Model() []*SubjectRoleRelation
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrui *SubjectRoleRelationshipUpdateInputs) Load() error {
+// IDs returns the ID list of the SubjectRoleRelationship entities for modifying,
+// after validating.
+func (srrui *SubjectRoleRelationshipUpdateInputs) IDs() []object.ID {
+	if srrui == nil || len(srrui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srrui.Items))
+	for i := range srrui.Items {
+		ids[i] = srrui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SubjectRoleRelationshipUpdateInputs entity.
+func (srrui *SubjectRoleRelationshipUpdateInputs) Validate() error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrui.LoadWith(srrui.inputConfig.Context, srrui.inputConfig.ClientSet)
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrui *SubjectRoleRelationshipUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectRoleRelationshipUpdateInputs entity with the given context and client set.
+func (srrui *SubjectRoleRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -395,6 +653,26 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) LoadWith(ctx context.Context, 
 	}
 
 	q := cs.SubjectRoleRelationships().Query()
+
+	// Validate when updating under the Project route.
+	if srrui.Project != nil {
+		if err := srrui.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Project = nil
+				q.Where(
+					subjectrolerelationship.ProjectIDIsNil())
+			}
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				subjectrolerelationship.ProjectID(srrui.Project.ID))
+		}
+	} else {
+		q.Where(
+			subjectrolerelationship.ProjectIDIsNil())
+	}
 
 	ids := make([]object.ID, 0, len(srrui.Items))
 
@@ -410,7 +688,9 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) LoadWith(ctx context.Context, 
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(subjectrolerelationship.IDIn(ids...)).
 		Count(ctx)
@@ -418,8 +698,18 @@ func (srrui *SubjectRoleRelationshipUpdateInputs) LoadWith(ctx context.Context, 
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range srrui.Items {
+		if srrui.Items[i] == nil {
+			continue
+		}
+
+		if err := srrui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -435,12 +725,12 @@ type SubjectRoleRelationshipOutput struct {
 	Role    *RoleOutput    `json:"role,omitempty"`
 }
 
-// View returns the output of SubjectRoleRelationship.
+// View returns the output of SubjectRoleRelationship entity.
 func (_srr *SubjectRoleRelationship) View() *SubjectRoleRelationshipOutput {
 	return ExposeSubjectRoleRelationship(_srr)
 }
 
-// View returns the output of SubjectRoleRelationships.
+// View returns the output of SubjectRoleRelationship entities.
 func (_srrs SubjectRoleRelationships) View() []*SubjectRoleRelationshipOutput {
 	return ExposeSubjectRoleRelationships(_srrs)
 }

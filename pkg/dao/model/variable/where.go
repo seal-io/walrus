@@ -77,6 +77,11 @@ func ProjectID(v object.ID) predicate.Variable {
 	return predicate.Variable(sql.FieldEQ(FieldProjectID, v))
 }
 
+// EnvironmentID applies equality check predicate on the "environment_id" field. It's identical to EnvironmentIDEQ.
+func EnvironmentID(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Variable {
 	return predicate.Variable(sql.FieldEQ(FieldName, v))
@@ -95,11 +100,6 @@ func Sensitive(v bool) predicate.Variable {
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Variable {
 	return predicate.Variable(sql.FieldEQ(FieldDescription, v))
-}
-
-// EnvironmentID applies equality check predicate on the "environment_id" field. It's identical to EnvironmentIDEQ.
-func EnvironmentID(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -260,6 +260,86 @@ func ProjectIDEqualFold(v object.ID) predicate.Variable {
 func ProjectIDContainsFold(v object.ID) predicate.Variable {
 	vc := string(v)
 	return predicate.Variable(sql.FieldContainsFold(FieldProjectID, vc))
+}
+
+// EnvironmentIDEQ applies the EQ predicate on the "environment_id" field.
+func EnvironmentIDEQ(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldEQ(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDNEQ applies the NEQ predicate on the "environment_id" field.
+func EnvironmentIDNEQ(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldNEQ(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDIn applies the In predicate on the "environment_id" field.
+func EnvironmentIDIn(vs ...object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldIn(FieldEnvironmentID, vs...))
+}
+
+// EnvironmentIDNotIn applies the NotIn predicate on the "environment_id" field.
+func EnvironmentIDNotIn(vs ...object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldNotIn(FieldEnvironmentID, vs...))
+}
+
+// EnvironmentIDGT applies the GT predicate on the "environment_id" field.
+func EnvironmentIDGT(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldGT(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDGTE applies the GTE predicate on the "environment_id" field.
+func EnvironmentIDGTE(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldGTE(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDLT applies the LT predicate on the "environment_id" field.
+func EnvironmentIDLT(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldLT(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDLTE applies the LTE predicate on the "environment_id" field.
+func EnvironmentIDLTE(v object.ID) predicate.Variable {
+	return predicate.Variable(sql.FieldLTE(FieldEnvironmentID, v))
+}
+
+// EnvironmentIDContains applies the Contains predicate on the "environment_id" field.
+func EnvironmentIDContains(v object.ID) predicate.Variable {
+	vc := string(v)
+	return predicate.Variable(sql.FieldContains(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environment_id" field.
+func EnvironmentIDHasPrefix(v object.ID) predicate.Variable {
+	vc := string(v)
+	return predicate.Variable(sql.FieldHasPrefix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environment_id" field.
+func EnvironmentIDHasSuffix(v object.ID) predicate.Variable {
+	vc := string(v)
+	return predicate.Variable(sql.FieldHasSuffix(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDIsNil applies the IsNil predicate on the "environment_id" field.
+func EnvironmentIDIsNil() predicate.Variable {
+	return predicate.Variable(sql.FieldIsNull(FieldEnvironmentID))
+}
+
+// EnvironmentIDNotNil applies the NotNil predicate on the "environment_id" field.
+func EnvironmentIDNotNil() predicate.Variable {
+	return predicate.Variable(sql.FieldNotNull(FieldEnvironmentID))
+}
+
+// EnvironmentIDEqualFold applies the EqualFold predicate on the "environment_id" field.
+func EnvironmentIDEqualFold(v object.ID) predicate.Variable {
+	vc := string(v)
+	return predicate.Variable(sql.FieldEqualFold(FieldEnvironmentID, vc))
+}
+
+// EnvironmentIDContainsFold applies the ContainsFold predicate on the "environment_id" field.
+func EnvironmentIDContainsFold(v object.ID) predicate.Variable {
+	vc := string(v)
+	return predicate.Variable(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -480,86 +560,6 @@ func DescriptionEqualFold(v string) predicate.Variable {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Variable {
 	return predicate.Variable(sql.FieldContainsFold(FieldDescription, v))
-}
-
-// EnvironmentIDEQ applies the EQ predicate on the "environment_id" field.
-func EnvironmentIDEQ(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldEQ(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDNEQ applies the NEQ predicate on the "environment_id" field.
-func EnvironmentIDNEQ(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldNEQ(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDIn applies the In predicate on the "environment_id" field.
-func EnvironmentIDIn(vs ...object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldIn(FieldEnvironmentID, vs...))
-}
-
-// EnvironmentIDNotIn applies the NotIn predicate on the "environment_id" field.
-func EnvironmentIDNotIn(vs ...object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldNotIn(FieldEnvironmentID, vs...))
-}
-
-// EnvironmentIDGT applies the GT predicate on the "environment_id" field.
-func EnvironmentIDGT(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldGT(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDGTE applies the GTE predicate on the "environment_id" field.
-func EnvironmentIDGTE(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldGTE(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDLT applies the LT predicate on the "environment_id" field.
-func EnvironmentIDLT(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldLT(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDLTE applies the LTE predicate on the "environment_id" field.
-func EnvironmentIDLTE(v object.ID) predicate.Variable {
-	return predicate.Variable(sql.FieldLTE(FieldEnvironmentID, v))
-}
-
-// EnvironmentIDContains applies the Contains predicate on the "environment_id" field.
-func EnvironmentIDContains(v object.ID) predicate.Variable {
-	vc := string(v)
-	return predicate.Variable(sql.FieldContains(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDHasPrefix applies the HasPrefix predicate on the "environment_id" field.
-func EnvironmentIDHasPrefix(v object.ID) predicate.Variable {
-	vc := string(v)
-	return predicate.Variable(sql.FieldHasPrefix(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDHasSuffix applies the HasSuffix predicate on the "environment_id" field.
-func EnvironmentIDHasSuffix(v object.ID) predicate.Variable {
-	vc := string(v)
-	return predicate.Variable(sql.FieldHasSuffix(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDIsNil applies the IsNil predicate on the "environment_id" field.
-func EnvironmentIDIsNil() predicate.Variable {
-	return predicate.Variable(sql.FieldIsNull(FieldEnvironmentID))
-}
-
-// EnvironmentIDNotNil applies the NotNil predicate on the "environment_id" field.
-func EnvironmentIDNotNil() predicate.Variable {
-	return predicate.Variable(sql.FieldNotNull(FieldEnvironmentID))
-}
-
-// EnvironmentIDEqualFold applies the EqualFold predicate on the "environment_id" field.
-func EnvironmentIDEqualFold(v object.ID) predicate.Variable {
-	vc := string(v)
-	return predicate.Variable(sql.FieldEqualFold(FieldEnvironmentID, vc))
-}
-
-// EnvironmentIDContainsFold applies the ContainsFold predicate on the "environment_id" field.
-func EnvironmentIDContainsFold(v object.ID) predicate.Variable {
-	vc := string(v)
-	return predicate.Variable(sql.FieldContainsFold(FieldEnvironmentID, vc))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

@@ -8,27 +8,38 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-// ServiceCreateInput holds the creation input of the Service entity.
+// ServiceCreateInput holds the creation input of the Service entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
+	// Project indicates to create Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Template    types.TemplateVersionRef `uri:"-" query:"-" json:"template"`
-	Name        string                   `uri:"-" query:"-" json:"name"`
-	Description string                   `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string        `uri:"-" query:"-" json:"labels,omitempty"`
-	Attributes  property.Values          `uri:"-" query:"-" json:"attributes,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+
+	// Template specifies full inserting the new TemplateVersion entity of the Service entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
 }
 
 // Model returns the Service entity for creating,
@@ -39,7 +50,6 @@ func (sci *ServiceCreateInput) Model() *Service {
 	}
 
 	_s := &Service{
-		Template:    sci.Template,
 		Name:        sci.Name,
 		Description: sci.Description,
 		Labels:      sci.Labels,
@@ -53,36 +63,47 @@ func (sci *ServiceCreateInput) Model() *Service {
 		_s.EnvironmentID = sci.Environment.ID
 	}
 
+	if sci.Template != nil {
+		_s.TemplateID = sci.Template.ID
+	}
 	return _s
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *ServiceCreateInput) Load() error {
+// Validate checks the ServiceCreateInput entity.
+func (sci *ServiceCreateInput) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *ServiceCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceCreateInput entity with the given context and client set.
+func (sci *ServiceCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when creating under the Project route.
 	if sci.Project != nil {
-		err = sci.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sci.Project.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+	// Validate when creating under the Environment route.
 	if sci.Environment != nil {
-		err = sci.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sci.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		}
+	}
+
+	if sci.Template != nil {
+		if err := sci.Template.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Template = nil
+			}
 		}
 	}
 
@@ -91,21 +112,50 @@ func (sci *ServiceCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 
 // ServiceCreateInputs holds the creation input item of the Service entities.
 type ServiceCreateInputsItem struct {
-	Template    types.TemplateVersionRef `uri:"-" query:"-" json:"template"`
-	Name        string                   `uri:"-" query:"-" json:"name"`
-	Description string                   `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string        `uri:"-" query:"-" json:"labels,omitempty"`
-	Attributes  property.Values          `uri:"-" query:"-" json:"attributes,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+
+	// Template specifies full inserting the new TemplateVersion entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
 }
 
-// ServiceCreateInputs holds the creation input of the Service entities.
+// ValidateWith checks the ServiceCreateInputsItem entity with the given context and client set.
+func (sci *ServiceCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sci == nil {
+		return errors.New("nil receiver")
+	}
+
+	if sci.Template != nil {
+		if err := sci.Template.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Template = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceCreateInputs holds the creation input of the Service entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
+	// Project indicates to create Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceCreateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Service entities for creating,
@@ -119,7 +169,6 @@ func (sci *ServiceCreateInputs) Model() []*Service {
 
 	for i := range sci.Items {
 		_s := &Service{
-			Template:    sci.Items[i].Template,
 			Name:        sci.Items[i].Name,
 			Description: sci.Items[i].Description,
 			Labels:      sci.Items[i].Labels,
@@ -133,25 +182,27 @@ func (sci *ServiceCreateInputs) Model() []*Service {
 			_s.EnvironmentID = sci.Environment.ID
 		}
 
+		if sci.Items[i].Template != nil {
+			_s.TemplateID = sci.Items[i].Template.ID
+		}
+
 		_ss[i] = _s
 	}
 
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *ServiceCreateInputs) Load() error {
+// Validate checks the ServiceCreateInputs entity .
+func (sci *ServiceCreateInputs) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *ServiceCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceCreateInputs entity with the given context and client set.
+func (sci *ServiceCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -160,37 +211,64 @@ func (sci *ServiceCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		return errors.New("empty items")
 	}
 
+	// Validate when creating under the Project route.
 	if sci.Project != nil {
-		err = sci.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := sci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Project = nil
+			}
 		}
 	}
+	// Validate when creating under the Environment route.
 	if sci.Environment != nil {
-		err = sci.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sci.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Environment = nil
+			}
+		}
+	}
+
+	for i := range sci.Items {
+		if sci.Items[i] == nil {
+			continue
+		}
+
+		if err := sci.Items[i].ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ServiceDeleteInput holds the deletion input of the Service entity.
+// ServiceDeleteInput holds the deletion input of the Service entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceDeleteInput = ServiceQueryInput
 
 // ServiceDeleteInputs holds the deletion input item of the Service entities.
 type ServiceDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Service entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Service entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// ServiceDeleteInputs holds the deletion input of the Service entities.
+// ServiceDeleteInputs holds the deletion input of the Service entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
+	// Project indicates to delete Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to delete Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Service entities for deleting,
@@ -209,19 +287,31 @@ func (sdi *ServiceDeleteInputs) Model() []*Service {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sdi *ServiceDeleteInputs) Load() error {
+// IDs returns the ID list of the Service entities for deleting,
+// after validating.
+func (sdi *ServiceDeleteInputs) IDs() []object.ID {
+	if sdi == nil || len(sdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sdi.Items))
+	for i := range sdi.Items {
+		ids[i] = sdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceDeleteInputs entity.
+func (sdi *ServiceDeleteInputs) Validate() error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sdi.LoadWith(sdi.inputConfig.Context, sdi.inputConfig.ClientSet)
+	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sdi *ServiceDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceDeleteInputs entity with the given context and client set.
+func (sdi *ServiceDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -232,25 +322,29 @@ func (sdi *ServiceDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 	q := cs.Services().Query()
 
+	// Validate when deleting under the Project route.
 	if sdi.Project != nil {
-		err = sdi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sdi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				service.ProjectID(sdi.Project.ID))
 		}
-		q.Where(
-			service.ProjectID(sdi.Project.ID))
 	}
 
+	// Validate when deleting under the Environment route.
 	if sdi.Environment != nil {
-		err = sdi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sdi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				service.EnvironmentID(sdi.Environment.ID))
 		}
-		q.Where(
-			service.EnvironmentID(sdi.Environment.ID))
 	}
 
 	ids := make([]object.ID, 0, len(sdi.Items))
+	ors := make([]predicate.Service, 0, len(sdi.Items))
 
 	for i := range sdi.Items {
 		if sdi.Items[i] == nil {
@@ -259,35 +353,59 @@ func (sdi *ServiceDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if sdi.Items[i].ID != "" {
 			ids = append(ids, sdi.Items[i].ID)
+			ors = append(ors, service.ID(sdi.Items[i].ID))
+		} else if sdi.Items[i].Name != "" {
+			ors = append(ors, service.And(
+				service.Name(sdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := service.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = service.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(service.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			service.FieldID,
+			service.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sdi.Items[i].ID = es[i].ID
+		sdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// ServiceQueryInput holds the query input of the Service entity.
+// ServiceQueryInput holds the query input of the Service entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"-"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"-"`
+	// Project indicates to query Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project"`
+	// Environment indicates to query Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"environment"`
 
-	Refer *object.Refer `uri:"service,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Service entity.
+	Refer *object.Refer `path:"service,default=" query:"-" json:"-"`
+	// ID of the Service entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Service entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Service entity for querying,
@@ -298,120 +416,143 @@ func (sqi *ServiceQueryInput) Model() *Service {
 	}
 
 	return &Service{
-		ID: sqi.ID,
+		ID:   sqi.ID,
+		Name: sqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *ServiceQueryInput) Load() error {
+// Validate checks the ServiceQueryInput entity.
+func (sqi *ServiceQueryInput) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *ServiceQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceQueryInput entity with the given context and client set.
+func (sqi *ServiceQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if sqi.Refer != nil && *sqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", service.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Services().Query()
 
+	// Validate when querying under the Project route.
 	if sqi.Project != nil {
-		err = sqi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sqi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				service.ProjectID(sqi.Project.ID))
 		}
-		q.Where(
-			service.ProjectID(sqi.Project.ID))
 	}
 
+	// Validate when querying under the Environment route.
 	if sqi.Environment != nil {
-		err = sqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sqi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				service.EnvironmentID(sqi.Environment.ID))
 		}
-		q.Where(
-			service.EnvironmentID(sqi.Environment.ID))
 	}
 
 	if sqi.Refer != nil {
 		if sqi.Refer.IsID() {
 			q.Where(
 				service.ID(sqi.Refer.ID()))
+		} else if refers := sqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				service.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of service")
 		}
 	} else if sqi.ID != "" {
 		q.Where(
 			service.ID(sqi.ID))
+	} else if sqi.Name != "" {
+		q.Where(
+			service.Name(sqi.Name))
 	} else {
 		return errors.New("invalid identify of service")
 	}
 
-	sqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			service.FieldID,
+			service.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		sqi.ID = e.ID
+		sqi.Name = e.Name
+	}
 	return err
 }
 
-// ServiceQueryInputs holds the query input of the Service entities.
+// ServiceQueryInputs holds the query input of the Service entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type ServiceQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
+	// Project indicates to query Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to query Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *ServiceQueryInputs) Load() error {
+// Validate checks the ServiceQueryInputs entity.
+func (sqi *ServiceQueryInputs) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *ServiceQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceQueryInputs entity with the given context and client set.
+func (sqi *ServiceQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when querying under the Project route.
 	if sqi.Project != nil {
-		err = sqi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sqi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
 
+	// Validate when querying under the Environment route.
 	if sqi.Environment != nil {
-		err = sqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sqi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
 
-	return err
+	return nil
 }
 
-// ServiceUpdateInput holds the modification input of the Service entity.
+// ServiceUpdateInput holds the modification input of the Service entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceUpdateInput struct {
-	ServiceQueryInput `uri:",inline" query:"-" json:",inline"`
+	ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name        string                   `uri:"-" query:"-" json:"name,omitempty"`
-	Description string                   `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string        `uri:"-" query:"-" json:"labels,omitempty"`
-	Template    types.TemplateVersionRef `uri:"-" query:"-" json:"template,omitempty"`
-	Attributes  property.Values          `uri:"-" query:"-" json:"attributes,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+
+	// Template indicates replacing the stale TemplateVersion entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
 }
 
 // Model returns the Service entity for modifying,
@@ -423,35 +564,94 @@ func (sui *ServiceUpdateInput) Model() *Service {
 
 	_s := &Service{
 		ID:          sui.ID,
-		Name:        sui.Name,
 		Description: sui.Description,
 		Labels:      sui.Labels,
-		Template:    sui.Template,
 		Attributes:  sui.Attributes,
 	}
 
+	if sui.Template != nil {
+		_s.TemplateID = sui.Template.ID
+	}
 	return _s
+}
+
+// Validate checks the ServiceUpdateInput entity.
+func (sui *ServiceUpdateInput) Validate() error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
+}
+
+// ValidateWith checks the ServiceUpdateInput entity with the given context and client set.
+func (sui *ServiceUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := sui.ServiceQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
+
+	if sui.Template != nil {
+		if err := sui.Template.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sui.Template = nil
+			}
+		}
+	}
+
+	return nil
 }
 
 // ServiceUpdateInputs holds the modification input item of the Service entities.
 type ServiceUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Service entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Service entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 
-	Name        string                   `uri:"-" query:"-" json:"name,omitempty"`
-	Description string                   `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string        `uri:"-" query:"-" json:"labels,omitempty"`
-	Template    types.TemplateVersionRef `uri:"-" query:"-" json:"template,omitempty"`
-	Attributes  property.Values          `uri:"-" query:"-" json:"attributes,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+
+	// Template indicates replacing the stale TemplateVersion entity.
+	Template *TemplateVersionQueryInput `uri:"-" query:"-" json:"template"`
 }
 
-// ServiceUpdateInputs holds the modification input of the Service entities.
+// ValidateWith checks the ServiceUpdateInputsItem entity with the given context and client set.
+func (sui *ServiceUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
+
+	if sui.Template != nil {
+		if err := sui.Template.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sui.Template = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceUpdateInputs holds the modification input of the Service entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
+	// Project indicates to update Service entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to update Service entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Service entities for modifying,
@@ -466,11 +666,13 @@ func (sui *ServiceUpdateInputs) Model() []*Service {
 	for i := range sui.Items {
 		_s := &Service{
 			ID:          sui.Items[i].ID,
-			Name:        sui.Items[i].Name,
 			Description: sui.Items[i].Description,
 			Labels:      sui.Items[i].Labels,
-			Template:    sui.Items[i].Template,
 			Attributes:  sui.Items[i].Attributes,
+		}
+
+		if sui.Items[i].Template != nil {
+			_s.TemplateID = sui.Items[i].Template.ID
 		}
 
 		_ss[i] = _s
@@ -479,19 +681,31 @@ func (sui *ServiceUpdateInputs) Model() []*Service {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sui *ServiceUpdateInputs) Load() error {
+// IDs returns the ID list of the Service entities for modifying,
+// after validating.
+func (sui *ServiceUpdateInputs) IDs() []object.ID {
+	if sui == nil || len(sui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sui.Items))
+	for i := range sui.Items {
+		ids[i] = sui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceUpdateInputs entity.
+func (sui *ServiceUpdateInputs) Validate() error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sui.LoadWith(sui.inputConfig.Context, sui.inputConfig.ClientSet)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sui *ServiceUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceUpdateInputs entity with the given context and client set.
+func (sui *ServiceUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
@@ -502,25 +716,29 @@ func (sui *ServiceUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 	q := cs.Services().Query()
 
+	// Validate when updating under the Project route.
 	if sui.Project != nil {
-		err = sui.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sui.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				service.ProjectID(sui.Project.ID))
 		}
-		q.Where(
-			service.ProjectID(sui.Project.ID))
 	}
 
+	// Validate when updating under the Environment route.
 	if sui.Environment != nil {
-		err = sui.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := sui.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				service.EnvironmentID(sui.Environment.ID))
 		}
-		q.Where(
-			service.EnvironmentID(sui.Environment.ID))
 	}
 
 	ids := make([]object.ID, 0, len(sui.Items))
+	ors := make([]predicate.Service, 0, len(sui.Items))
 
 	for i := range sui.Items {
 		if sui.Items[i] == nil {
@@ -529,21 +747,48 @@ func (sui *ServiceUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if sui.Items[i].ID != "" {
 			ids = append(ids, sui.Items[i].ID)
+			ors = append(ors, service.ID(sui.Items[i].ID))
+		} else if sui.Items[i].Name != "" {
+			ors = append(ors, service.And(
+				service.Name(sui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := service.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = service.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(service.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			service.FieldID,
+			service.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sui.Items[i].ID = es[i].ID
+		sui.Items[i].Name = es[i].Name
+	}
+
+	for i := range sui.Items {
+		if sui.Items[i] == nil {
+			continue
+		}
+
+		if err := sui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -551,26 +796,26 @@ func (sui *ServiceUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 // ServiceOutput holds the output of the Service entity.
 type ServiceOutput struct {
-	ID          object.ID                `json:"id,omitempty"`
-	Name        string                   `json:"name,omitempty"`
-	Description string                   `json:"description,omitempty"`
-	Labels      map[string]string        `json:"labels,omitempty"`
-	CreateTime  *time.Time               `json:"createTime,omitempty"`
-	UpdateTime  *time.Time               `json:"updateTime,omitempty"`
-	Status      status.Status            `json:"status,omitempty"`
-	Template    types.TemplateVersionRef `json:"template,omitempty"`
-	Attributes  property.Values          `json:"attributes,omitempty"`
+	ID          object.ID         `json:"id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	CreateTime  *time.Time        `json:"createTime,omitempty"`
+	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
+	Status      status.Status     `json:"status,omitempty"`
+	Attributes  property.Values   `json:"attributes,omitempty"`
 
-	Project     *ProjectOutput     `json:"project,omitempty"`
-	Environment *EnvironmentOutput `json:"environment,omitempty"`
+	Project     *ProjectOutput         `json:"project,omitempty"`
+	Environment *EnvironmentOutput     `json:"environment,omitempty"`
+	Template    *TemplateVersionOutput `json:"template,omitempty"`
 }
 
-// View returns the output of Service.
+// View returns the output of Service entity.
 func (_s *Service) View() *ServiceOutput {
 	return ExposeService(_s)
 }
 
-// View returns the output of Services.
+// View returns the output of Service entities.
 func (_ss Services) View() []*ServiceOutput {
 	return ExposeServices(_ss)
 }
@@ -589,7 +834,6 @@ func ExposeService(_s *Service) *ServiceOutput {
 		CreateTime:  _s.CreateTime,
 		UpdateTime:  _s.UpdateTime,
 		Status:      _s.Status,
-		Template:    _s.Template,
 		Attributes:  _s.Attributes,
 	}
 
@@ -605,6 +849,13 @@ func ExposeService(_s *Service) *ServiceOutput {
 	} else if _s.EnvironmentID != "" {
 		so.Environment = &EnvironmentOutput{
 			ID: _s.EnvironmentID,
+		}
+	}
+	if _s.Edges.Template != nil {
+		so.Template = ExposeTemplateVersion(_s.Edges.Template)
+	} else if _s.TemplateID != "" {
+		so.Template = &TemplateVersionOutput{
+			ID: _s.TemplateID,
 		}
 	}
 	return so

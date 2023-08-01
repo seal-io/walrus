@@ -16,7 +16,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -40,14 +40,14 @@ type Service struct {
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
-	// ID of the project to belong.
-	ProjectID object.ID `json:"project_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
+	// ID of the project to belong.
+	ProjectID object.ID `json:"project_id,omitempty"`
 	// ID of the environment to which the service deploys.
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
-	// Template ID and version.
-	Template types.TemplateVersionRef `json:"template,omitempty"`
+	// ID of the template version to which the service belong.
+	TemplateID object.ID `json:"template_id,omitempty"`
 	// Attributes to configure the template.
 	Attributes property.Values `json:"attributes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -62,6 +62,8 @@ type ServiceEdges struct {
 	Project *Project `json:"project,omitempty"`
 	// Environment to which the service belongs.
 	Environment *Environment `json:"environment,omitempty"`
+	// Template to which the service belongs.
+	Template *TemplateVersion `json:"template,omitempty"`
 	// Revisions that belong to the service.
 	Revisions []*ServiceRevision `json:"revisions,omitempty"`
 	// Resources that belong to the service.
@@ -70,7 +72,7 @@ type ServiceEdges struct {
 	Dependencies []*ServiceRelationship `json:"dependencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ProjectOrErr returns the Project value or an error if the edge
@@ -99,10 +101,23 @@ func (e ServiceEdges) EnvironmentOrErr() (*Environment, error) {
 	return nil, &NotLoadedError{edge: "environment"}
 }
 
+// TemplateOrErr returns the Template value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEdges) TemplateOrErr() (*TemplateVersion, error) {
+	if e.loadedTypes[2] {
+		if e.Template == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: templateversion.Label}
+		}
+		return e.Template, nil
+	}
+	return nil, &NotLoadedError{edge: "template"}
+}
+
 // RevisionsOrErr returns the Revisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceEdges) RevisionsOrErr() ([]*ServiceRevision, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Revisions, nil
 	}
 	return nil, &NotLoadedError{edge: "revisions"}
@@ -111,7 +126,7 @@ func (e ServiceEdges) RevisionsOrErr() ([]*ServiceRevision, error) {
 // ResourcesOrErr returns the Resources value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceEdges) ResourcesOrErr() ([]*ServiceResource, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Resources, nil
 	}
 	return nil, &NotLoadedError{edge: "resources"}
@@ -120,7 +135,7 @@ func (e ServiceEdges) ResourcesOrErr() ([]*ServiceResource, error) {
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceEdges) DependenciesOrErr() ([]*ServiceRelationship, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -131,9 +146,9 @@ func (*Service) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus, service.FieldTemplate:
+		case service.FieldLabels, service.FieldAnnotations, service.FieldStatus:
 			values[i] = new([]byte)
-		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID:
+		case service.FieldID, service.FieldProjectID, service.FieldEnvironmentID, service.FieldTemplateID:
 			values[i] = new(object.ID)
 		case service.FieldAttributes:
 			values[i] = new(property.Values)
@@ -204,12 +219,6 @@ func (s *Service) assignValues(columns []string, values []any) error {
 				s.UpdateTime = new(time.Time)
 				*s.UpdateTime = value.Time
 			}
-		case service.FieldProjectID:
-			if value, ok := values[i].(*object.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field project_id", values[i])
-			} else if value != nil {
-				s.ProjectID = *value
-			}
 		case service.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -218,19 +227,23 @@ func (s *Service) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
 			}
+		case service.FieldProjectID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field project_id", values[i])
+			} else if value != nil {
+				s.ProjectID = *value
+			}
 		case service.FieldEnvironmentID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
 			} else if value != nil {
 				s.EnvironmentID = *value
 			}
-		case service.FieldTemplate:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field template", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &s.Template); err != nil {
-					return fmt.Errorf("unmarshal field template: %w", err)
-				}
+		case service.FieldTemplateID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field template_id", values[i])
+			} else if value != nil {
+				s.TemplateID = *value
 			}
 		case service.FieldAttributes:
 			if value, ok := values[i].(*property.Values); !ok {
@@ -259,6 +272,11 @@ func (s *Service) QueryProject() *ProjectQuery {
 // QueryEnvironment queries the "environment" edge of the Service entity.
 func (s *Service) QueryEnvironment() *EnvironmentQuery {
 	return NewServiceClient(s.config).QueryEnvironment(s)
+}
+
+// QueryTemplate queries the "template" edge of the Service entity.
+func (s *Service) QueryTemplate() *TemplateVersionQuery {
+	return NewServiceClient(s.config).QueryTemplate(s)
 }
 
 // QueryRevisions queries the "revisions" edge of the Service entity.
@@ -321,17 +339,17 @@ func (s *Service) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("project_id=")
-	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
-	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", s.Status))
+	builder.WriteString(", ")
+	builder.WriteString("project_id=")
+	builder.WriteString(fmt.Sprintf("%v", s.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("environment_id=")
 	builder.WriteString(fmt.Sprintf("%v", s.EnvironmentID))
 	builder.WriteString(", ")
-	builder.WriteString("template=")
-	builder.WriteString(fmt.Sprintf("%v", s.Template))
+	builder.WriteString("template_id=")
+	builder.WriteString(fmt.Sprintf("%v", s.TemplateID))
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", s.Attributes))

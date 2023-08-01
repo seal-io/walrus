@@ -23,7 +23,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -99,12 +99,6 @@ func (sc *ServiceCreate) SetNillableUpdateTime(t *time.Time) *ServiceCreate {
 	return sc
 }
 
-// SetProjectID sets the "project_id" field.
-func (sc *ServiceCreate) SetProjectID(o object.ID) *ServiceCreate {
-	sc.mutation.SetProjectID(o)
-	return sc
-}
-
 // SetStatus sets the "status" field.
 func (sc *ServiceCreate) SetStatus(s status.Status) *ServiceCreate {
 	sc.mutation.SetStatus(s)
@@ -119,15 +113,21 @@ func (sc *ServiceCreate) SetNillableStatus(s *status.Status) *ServiceCreate {
 	return sc
 }
 
+// SetProjectID sets the "project_id" field.
+func (sc *ServiceCreate) SetProjectID(o object.ID) *ServiceCreate {
+	sc.mutation.SetProjectID(o)
+	return sc
+}
+
 // SetEnvironmentID sets the "environment_id" field.
 func (sc *ServiceCreate) SetEnvironmentID(o object.ID) *ServiceCreate {
 	sc.mutation.SetEnvironmentID(o)
 	return sc
 }
 
-// SetTemplate sets the "template" field.
-func (sc *ServiceCreate) SetTemplate(tvr types.TemplateVersionRef) *ServiceCreate {
-	sc.mutation.SetTemplate(tvr)
+// SetTemplateID sets the "template_id" field.
+func (sc *ServiceCreate) SetTemplateID(o object.ID) *ServiceCreate {
+	sc.mutation.SetTemplateID(o)
 	return sc
 }
 
@@ -151,6 +151,11 @@ func (sc *ServiceCreate) SetProject(p *Project) *ServiceCreate {
 // SetEnvironment sets the "environment" edge to the Environment entity.
 func (sc *ServiceCreate) SetEnvironment(e *Environment) *ServiceCreate {
 	return sc.SetEnvironmentID(e.ID)
+}
+
+// SetTemplate sets the "template" edge to the TemplateVersion entity.
+func (sc *ServiceCreate) SetTemplate(t *TemplateVersion) *ServiceCreate {
+	return sc.SetTemplateID(t.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
@@ -292,14 +297,22 @@ func (sc *ServiceCreate) check() error {
 			return &ValidationError{Name: "environment_id", err: fmt.Errorf(`model: validator failed for field "Service.environment_id": %w`, err)}
 		}
 	}
-	if _, ok := sc.mutation.Template(); !ok {
-		return &ValidationError{Name: "template", err: errors.New(`model: missing required field "Service.template"`)}
+	if _, ok := sc.mutation.TemplateID(); !ok {
+		return &ValidationError{Name: "template_id", err: errors.New(`model: missing required field "Service.template_id"`)}
+	}
+	if v, ok := sc.mutation.TemplateID(); ok {
+		if err := service.TemplateIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Service.template_id": %w`, err)}
+		}
 	}
 	if _, ok := sc.mutation.ProjectID(); !ok {
 		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "Service.project"`)}
 	}
 	if _, ok := sc.mutation.EnvironmentID(); !ok {
 		return &ValidationError{Name: "environment", err: errors.New(`model: missing required edge "Service.environment"`)}
+	}
+	if _, ok := sc.mutation.TemplateID(); !ok {
+		return &ValidationError{Name: "template", err: errors.New(`model: missing required edge "Service.template"`)}
 	}
 	return nil
 }
@@ -366,10 +379,6 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 		_spec.SetField(service.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
 	}
-	if value, ok := sc.mutation.Template(); ok {
-		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
-		_node.Template = value
-	}
 	if value, ok := sc.mutation.Attributes(); ok {
 		_spec.SetField(service.FieldAttributes, field.TypeOther, value)
 		_node.Attributes = value
@@ -408,6 +417,24 @@ func (sc *ServiceCreate) createSpec() (*Service, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.EnvironmentID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.TemplateTable,
+			Columns: []string{service.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = sc.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.TemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.mutation.RevisionsIDs(); len(nodes) > 0 {
@@ -487,7 +514,7 @@ func (sc *ServiceCreate) Set(obj *Service) *ServiceCreate {
 	sc.SetName(obj.Name)
 	sc.SetProjectID(obj.ProjectID)
 	sc.SetEnvironmentID(obj.EnvironmentID)
-	sc.SetTemplate(obj.Template)
+	sc.SetTemplateID(obj.TemplateID)
 
 	// Optional.
 	if obj.Description != "" {
@@ -545,6 +572,18 @@ func (sc *ServiceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 	}
 
 	mc := sc.getClientSet()
+	if sc.fromUpsert {
+		q := mc.Services().Query().
+			Where(
+				service.ProjectID(obj.ProjectID),
+				service.EnvironmentID(obj.EnvironmentID),
+				service.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Service entity: %w", err)
+		}
+	}
 
 	if x := sc.object; x != nil {
 		if _, set := sc.mutation.Field(service.FieldName); set {
@@ -553,17 +592,17 @@ func (sc *ServiceCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 		if _, set := sc.mutation.Field(service.FieldDescription); set {
 			obj.Description = x.Description
 		}
-		if _, set := sc.mutation.Field(service.FieldProjectID); set {
-			obj.ProjectID = x.ProjectID
-		}
 		if _, set := sc.mutation.Field(service.FieldStatus); set {
 			obj.Status = x.Status
+		}
+		if _, set := sc.mutation.Field(service.FieldProjectID); set {
+			obj.ProjectID = x.ProjectID
 		}
 		if _, set := sc.mutation.Field(service.FieldEnvironmentID); set {
 			obj.EnvironmentID = x.EnvironmentID
 		}
-		if _, set := sc.mutation.Field(service.FieldTemplate); set {
-			obj.Template = x.Template
+		if _, set := sc.mutation.Field(service.FieldTemplateID); set {
+			obj.TemplateID = x.TemplateID
 		}
 		if _, set := sc.mutation.Field(service.FieldAttributes); set {
 			obj.Attributes = x.Attributes
@@ -664,6 +703,21 @@ func (scb *ServiceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 	}
 
 	mc := scb.getClientSet()
+	if scb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Services().Query().
+				Where(
+					service.ProjectID(obj.ProjectID),
+					service.EnvironmentID(obj.EnvironmentID),
+					service.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Service entity: %w", err)
+			}
+		}
+	}
 
 	if x := scb.objects; x != nil {
 		for i := range x {
@@ -673,17 +727,17 @@ func (scb *ServiceCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 			if _, set := scb.builders[i].mutation.Field(service.FieldDescription); set {
 				objs[i].Description = x[i].Description
 			}
-			if _, set := scb.builders[i].mutation.Field(service.FieldProjectID); set {
-				objs[i].ProjectID = x[i].ProjectID
-			}
 			if _, set := scb.builders[i].mutation.Field(service.FieldStatus); set {
 				objs[i].Status = x[i].Status
+			}
+			if _, set := scb.builders[i].mutation.Field(service.FieldProjectID); set {
+				objs[i].ProjectID = x[i].ProjectID
 			}
 			if _, set := scb.builders[i].mutation.Field(service.FieldEnvironmentID); set {
 				objs[i].EnvironmentID = x[i].EnvironmentID
 			}
-			if _, set := scb.builders[i].mutation.Field(service.FieldTemplate); set {
-				objs[i].Template = x[i].Template
+			if _, set := scb.builders[i].mutation.Field(service.FieldTemplateID); set {
+				objs[i].TemplateID = x[i].TemplateID
 			}
 			if _, set := scb.builders[i].mutation.Field(service.FieldAttributes); set {
 				objs[i].Attributes = x[i].Attributes
@@ -814,18 +868,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *ServiceUpsert) SetName(v string) *ServiceUpsert {
-	u.Set(service.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ServiceUpsert) UpdateName() *ServiceUpsert {
-	u.SetExcluded(service.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *ServiceUpsert) SetDescription(v string) *ServiceUpsert {
 	u.Set(service.FieldDescription, v)
@@ -910,15 +952,15 @@ func (u *ServiceUpsert) ClearStatus() *ServiceUpsert {
 	return u
 }
 
-// SetTemplate sets the "template" field.
-func (u *ServiceUpsert) SetTemplate(v types.TemplateVersionRef) *ServiceUpsert {
-	u.Set(service.FieldTemplate, v)
+// SetTemplateID sets the "template_id" field.
+func (u *ServiceUpsert) SetTemplateID(v object.ID) *ServiceUpsert {
+	u.Set(service.FieldTemplateID, v)
 	return u
 }
 
-// UpdateTemplate sets the "template" field to the value that was provided on create.
-func (u *ServiceUpsert) UpdateTemplate() *ServiceUpsert {
-	u.SetExcluded(service.FieldTemplate)
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ServiceUpsert) UpdateTemplateID() *ServiceUpsert {
+	u.SetExcluded(service.FieldTemplateID)
 	return u
 }
 
@@ -956,6 +998,9 @@ func (u *ServiceUpsertOne) UpdateNewValues() *ServiceUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(service.FieldID)
+		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(service.FieldName)
 		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(service.FieldCreateTime)
@@ -995,20 +1040,6 @@ func (u *ServiceUpsertOne) Update(set func(*ServiceUpsert)) *ServiceUpsertOne {
 		set(&ServiceUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ServiceUpsertOne) SetName(v string) *ServiceUpsertOne {
-	return u.Update(func(s *ServiceUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ServiceUpsertOne) UpdateName() *ServiceUpsertOne {
-	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1109,17 +1140,17 @@ func (u *ServiceUpsertOne) ClearStatus() *ServiceUpsertOne {
 	})
 }
 
-// SetTemplate sets the "template" field.
-func (u *ServiceUpsertOne) SetTemplate(v types.TemplateVersionRef) *ServiceUpsertOne {
+// SetTemplateID sets the "template_id" field.
+func (u *ServiceUpsertOne) SetTemplateID(v object.ID) *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
-		s.SetTemplate(v)
+		s.SetTemplateID(v)
 	})
 }
 
-// UpdateTemplate sets the "template" field to the value that was provided on create.
-func (u *ServiceUpsertOne) UpdateTemplate() *ServiceUpsertOne {
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ServiceUpsertOne) UpdateTemplateID() *ServiceUpsertOne {
 	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateTemplate()
+		s.UpdateTemplateID()
 	})
 }
 
@@ -1325,6 +1356,9 @@ func (u *ServiceUpsertBulk) UpdateNewValues() *ServiceUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(service.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(service.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(service.FieldCreateTime)
 			}
@@ -1364,20 +1398,6 @@ func (u *ServiceUpsertBulk) Update(set func(*ServiceUpsert)) *ServiceUpsertBulk 
 		set(&ServiceUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ServiceUpsertBulk) SetName(v string) *ServiceUpsertBulk {
-	return u.Update(func(s *ServiceUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ServiceUpsertBulk) UpdateName() *ServiceUpsertBulk {
-	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1478,17 +1498,17 @@ func (u *ServiceUpsertBulk) ClearStatus() *ServiceUpsertBulk {
 	})
 }
 
-// SetTemplate sets the "template" field.
-func (u *ServiceUpsertBulk) SetTemplate(v types.TemplateVersionRef) *ServiceUpsertBulk {
+// SetTemplateID sets the "template_id" field.
+func (u *ServiceUpsertBulk) SetTemplateID(v object.ID) *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
-		s.SetTemplate(v)
+		s.SetTemplateID(v)
 	})
 }
 
-// UpdateTemplate sets the "template" field to the value that was provided on create.
-func (u *ServiceUpsertBulk) UpdateTemplate() *ServiceUpsertBulk {
+// UpdateTemplateID sets the "template_id" field to the value that was provided on create.
+func (u *ServiceUpsertBulk) UpdateTemplateID() *ServiceUpsertBulk {
 	return u.Update(func(s *ServiceUpsert) {
-		s.UpdateTemplate()
+		s.UpdateTemplateID()
 	})
 }
 

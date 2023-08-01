@@ -31,6 +31,8 @@ type Variable struct {
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 	// ID of the project to belong, empty means for all projects.
 	ProjectID object.ID `json:"project_id,omitempty"`
+	// ID of the environment to which the variable belongs to.
+	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// The name of variable.
 	Name string `json:"name,omitempty"`
 	// The value of variable, store in string.
@@ -39,8 +41,6 @@ type Variable struct {
 	Sensitive bool `json:"sensitive,omitempty"`
 	// Description of the variable.
 	Description string `json:"description,omitempty"`
-	// ID of the environment to which the variable belongs to.
-	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VariableQuery when eager-loading is set.
 	Edges        VariableEdges `json:"edges,omitempty"`
@@ -140,6 +140,12 @@ func (v *Variable) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				v.ProjectID = *value
 			}
+		case variable.FieldEnvironmentID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
+			} else if value != nil {
+				v.EnvironmentID = *value
+			}
 		case variable.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -163,12 +169,6 @@ func (v *Variable) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				v.Description = value.String
-			}
-		case variable.FieldEnvironmentID:
-			if value, ok := values[i].(*object.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field environment_id", values[i])
-			} else if value != nil {
-				v.EnvironmentID = *value
 			}
 		default:
 			v.selectValues.Set(columns[i], values[i])
@@ -229,6 +229,9 @@ func (v *Variable) String() string {
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", v.ProjectID))
 	builder.WriteString(", ")
+	builder.WriteString("environment_id=")
+	builder.WriteString(fmt.Sprintf("%v", v.EnvironmentID))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(v.Name)
 	builder.WriteString(", ")
@@ -240,9 +243,6 @@ func (v *Variable) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(v.Description)
-	builder.WriteString(", ")
-	builder.WriteString("environment_id=")
-	builder.WriteString(fmt.Sprintf("%v", v.EnvironmentID))
 	builder.WriteByte(')')
 	return builder.String()
 }

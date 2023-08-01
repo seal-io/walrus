@@ -437,6 +437,35 @@ func HasServicesWith(preds ...predicate.Service) predicate.Project {
 	})
 }
 
+// HasServiceResources applies the HasEdge predicate on the "service_resources" edge.
+func HasServiceResources() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServiceResourcesTable, ServiceResourcesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasServiceResourcesWith applies the HasEdge predicate on the "service_resources" edge with a given conditions (other predicates).
+func HasServiceResourcesWith(preds ...predicate.ServiceResource) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newServiceResourcesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasServiceRevisions applies the HasEdge predicate on the "service_revisions" edge.
 func HasServiceRevisions() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {

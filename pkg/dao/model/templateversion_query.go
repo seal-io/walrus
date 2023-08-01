@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -17,6 +18,7 @@ import (
 
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
+	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -30,6 +32,7 @@ type TemplateVersionQuery struct {
 	inters       []Interceptor
 	predicates   []predicate.TemplateVersion
 	withTemplate *TemplateQuery
+	withServices *ServiceQuery
 	modifiers    []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -86,6 +89,31 @@ func (tvq *TemplateVersionQuery) QueryTemplate() *TemplateQuery {
 		schemaConfig := tvq.schemaConfig
 		step.To.Schema = schemaConfig.Template
 		step.Edge.Schema = schemaConfig.TemplateVersion
+		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryServices chains the current query on the "services" edge.
+func (tvq *TemplateVersionQuery) QueryServices() *ServiceQuery {
+	query := (&ServiceClient{config: tvq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tvq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tvq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, selector),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, templateversion.ServicesTable, templateversion.ServicesColumn),
+		)
+		schemaConfig := tvq.schemaConfig
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
 		fromU = sqlgraph.SetNeighbors(tvq.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -285,6 +313,7 @@ func (tvq *TemplateVersionQuery) Clone() *TemplateVersionQuery {
 		inters:       append([]Interceptor{}, tvq.inters...),
 		predicates:   append([]predicate.TemplateVersion{}, tvq.predicates...),
 		withTemplate: tvq.withTemplate.Clone(),
+		withServices: tvq.withServices.Clone(),
 		// clone intermediate query.
 		sql:  tvq.sql.Clone(),
 		path: tvq.path,
@@ -299,6 +328,17 @@ func (tvq *TemplateVersionQuery) WithTemplate(opts ...func(*TemplateQuery)) *Tem
 		opt(query)
 	}
 	tvq.withTemplate = query
+	return tvq
+}
+
+// WithServices tells the query-builder to eager-load the nodes that are connected to
+// the "services" edge. The optional arguments are used to configure the query builder of the edge.
+func (tvq *TemplateVersionQuery) WithServices(opts ...func(*ServiceQuery)) *TemplateVersionQuery {
+	query := (&ServiceClient{config: tvq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tvq.withServices = query
 	return tvq
 }
 
@@ -380,8 +420,9 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*TemplateVersion{}
 		_spec       = tvq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			tvq.withTemplate != nil,
+			tvq.withServices != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -410,6 +451,13 @@ func (tvq *TemplateVersionQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if query := tvq.withTemplate; query != nil {
 		if err := tvq.loadTemplate(ctx, query, nodes, nil,
 			func(n *TemplateVersion, e *Template) { n.Edges.Template = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tvq.withServices; query != nil {
+		if err := tvq.loadServices(ctx, query, nodes,
+			func(n *TemplateVersion) { n.Edges.Services = []*Service{} },
+			func(n *TemplateVersion, e *Service) { n.Edges.Services = append(n.Edges.Services, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -442,6 +490,36 @@ func (tvq *TemplateVersionQuery) loadTemplate(ctx context.Context, query *Templa
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (tvq *TemplateVersionQuery) loadServices(ctx context.Context, query *ServiceQuery, nodes []*TemplateVersion, init func(*TemplateVersion), assign func(*TemplateVersion, *Service)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[object.ID]*TemplateVersion)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(service.FieldTemplateID)
+	}
+	query.Where(predicate.Service(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(templateversion.ServicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TemplateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "template_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

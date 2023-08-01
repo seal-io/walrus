@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -24,6 +25,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
+	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
+	FieldEnvironmentID = "environment_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldValue holds the string denoting the value field in the database.
@@ -32,8 +35,6 @@ const (
 	FieldSensitive = "sensitive"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldEnvironmentID holds the string denoting the environment_id field in the database.
-	FieldEnvironmentID = "environment_id"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironment holds the string denoting the environment edge name in mutations.
@@ -62,11 +63,11 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldProjectID,
+	FieldEnvironmentID,
 	FieldName,
 	FieldValue,
 	FieldSensitive,
 	FieldDescription,
-	FieldEnvironmentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -85,8 +86,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks        [3]ent.Hook
-	Interceptors [1]ent.Interceptor
+	Hooks [1]ent.Hook
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -124,6 +124,11 @@ func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
+// ByEnvironmentID orders the results by the environment_id field.
+func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
+}
+
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
@@ -142,11 +147,6 @@ func BySensitive(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
-}
-
-// ByEnvironmentID orders the results by the environment_id field.
-func ByEnvironmentID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEnvironmentID, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.
@@ -180,7 +180,7 @@ func newEnvironmentStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

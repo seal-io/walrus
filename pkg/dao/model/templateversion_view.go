@@ -8,22 +8,28 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// TemplateVersionCreateInput holds the creation input of the TemplateVersion entity.
+// TemplateVersionCreateInput holds the creation input of the TemplateVersion entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"template"`
-
-	Source  string                `uri:"-" query:"-" json:"source"`
-	Version string                `uri:"-" query:"-" json:"version"`
-	Schema  *types.TemplateSchema `uri:"-" query:"-" json:"schema,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source"`
+	// Version of the template.
+	Version string `path:"-" query:"-" json:"version"`
+	// Name of the template.
+	Name string `path:"-" query:"-" json:"name"`
+	// Schema of the template.
+	Schema *types.TemplateSchema `path:"-" query:"-" json:"schema,omitempty"`
 }
 
 // Model returns the TemplateVersion entity for creating,
@@ -36,38 +42,26 @@ func (tvci *TemplateVersionCreateInput) Model() *TemplateVersion {
 	_tv := &TemplateVersion{
 		Source:  tvci.Source,
 		Version: tvci.Version,
+		Name:    tvci.Name,
 		Schema:  tvci.Schema,
-	}
-
-	if tvci.Template != nil {
-		_tv.TemplateID = tvci.Template.ID
 	}
 
 	return _tv
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvci *TemplateVersionCreateInput) Load() error {
+// Validate checks the TemplateVersionCreateInput entity.
+func (tvci *TemplateVersionCreateInput) Validate() error {
 	if tvci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvci.LoadWith(tvci.inputConfig.Context, tvci.inputConfig.ClientSet)
+	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvci *TemplateVersionCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionCreateInput entity with the given context and client set.
+func (tvci *TemplateVersionCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvci == nil {
 		return errors.New("nil receiver")
-	}
-
-	if tvci.Template != nil {
-		err = tvci.Template.LoadWith(ctx, cs)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -75,18 +69,32 @@ func (tvci *TemplateVersionCreateInput) LoadWith(ctx context.Context, cs ClientS
 
 // TemplateVersionCreateInputs holds the creation input item of the TemplateVersion entities.
 type TemplateVersionCreateInputsItem struct {
-	Source  string                `uri:"-" query:"-" json:"source"`
-	Version string                `uri:"-" query:"-" json:"version"`
-	Schema  *types.TemplateSchema `uri:"-" query:"-" json:"schema,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source"`
+	// Version of the template.
+	Version string `path:"-" query:"-" json:"version"`
+	// Name of the template.
+	Name string `path:"-" query:"-" json:"name"`
+	// Schema of the template.
+	Schema *types.TemplateSchema `path:"-" query:"-" json:"schema,omitempty"`
 }
 
-// TemplateVersionCreateInputs holds the creation input of the TemplateVersion entities.
+// ValidateWith checks the TemplateVersionCreateInputsItem entity with the given context and client set.
+func (tvci *TemplateVersionCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tvci == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// TemplateVersionCreateInputs holds the creation input of the TemplateVersion entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"template"`
-
-	Items []*TemplateVersionCreateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateVersionCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the TemplateVersion entities for creating,
@@ -102,11 +110,8 @@ func (tvci *TemplateVersionCreateInputs) Model() []*TemplateVersion {
 		_tv := &TemplateVersion{
 			Source:  tvci.Items[i].Source,
 			Version: tvci.Items[i].Version,
+			Name:    tvci.Items[i].Name,
 			Schema:  tvci.Items[i].Schema,
-		}
-
-		if tvci.Template != nil {
-			_tv.TemplateID = tvci.Template.ID
 		}
 
 		_tvs[i] = _tv
@@ -115,19 +120,17 @@ func (tvci *TemplateVersionCreateInputs) Model() []*TemplateVersion {
 	return _tvs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvci *TemplateVersionCreateInputs) Load() error {
+// Validate checks the TemplateVersionCreateInputs entity .
+func (tvci *TemplateVersionCreateInputs) Validate() error {
 	if tvci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvci.LoadWith(tvci.inputConfig.Context, tvci.inputConfig.ClientSet)
+	return tvci.ValidateWith(tvci.inputConfig.Context, tvci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvci *TemplateVersionCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionCreateInputs entity with the given context and client set.
+func (tvci *TemplateVersionCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvci == nil {
 		return errors.New("nil receiver")
 	}
@@ -136,30 +139,40 @@ func (tvci *TemplateVersionCreateInputs) LoadWith(ctx context.Context, cs Client
 		return errors.New("empty items")
 	}
 
-	if tvci.Template != nil {
-		err = tvci.Template.LoadWith(ctx, cs)
-		if err != nil {
+	for i := range tvci.Items {
+		if tvci.Items[i] == nil {
+			continue
+		}
+
+		if err := tvci.Items[i].ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// TemplateVersionDeleteInput holds the deletion input of the TemplateVersion entity.
+// TemplateVersionDeleteInput holds the deletion input of the TemplateVersion entity,
+// please tags with `path:",inline"` if embedding.
 type TemplateVersionDeleteInput = TemplateVersionQueryInput
 
 // TemplateVersionDeleteInputs holds the deletion input item of the TemplateVersion entities.
 type TemplateVersionDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the TemplateVersion entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the TemplateVersion entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Version of the TemplateVersion entity, a part of the unique index.
+	Version string `path:"-" query:"-" json:"version,omitempty"`
 }
 
-// TemplateVersionDeleteInputs holds the deletion input of the TemplateVersion entities.
+// TemplateVersionDeleteInputs holds the deletion input of the TemplateVersion entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"template"`
-
-	Items []*TemplateVersionDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateVersionDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the TemplateVersion entities for deleting,
@@ -178,19 +191,31 @@ func (tvdi *TemplateVersionDeleteInputs) Model() []*TemplateVersion {
 	return _tvs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvdi *TemplateVersionDeleteInputs) Load() error {
+// IDs returns the ID list of the TemplateVersion entities for deleting,
+// after validating.
+func (tvdi *TemplateVersionDeleteInputs) IDs() []object.ID {
+	if tvdi == nil || len(tvdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tvdi.Items))
+	for i := range tvdi.Items {
+		ids[i] = tvdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TemplateVersionDeleteInputs entity.
+func (tvdi *TemplateVersionDeleteInputs) Validate() error {
 	if tvdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvdi.LoadWith(tvdi.inputConfig.Context, tvdi.inputConfig.ClientSet)
+	return tvdi.ValidateWith(tvdi.inputConfig.Context, tvdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvdi *TemplateVersionDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionDeleteInputs entity with the given context and client set.
+func (tvdi *TemplateVersionDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -201,16 +226,8 @@ func (tvdi *TemplateVersionDeleteInputs) LoadWith(ctx context.Context, cs Client
 
 	q := cs.TemplateVersions().Query()
 
-	if tvdi.Template != nil {
-		err = tvdi.Template.LoadWith(ctx, cs)
-		if err != nil {
-			return err
-		}
-		q.Where(
-			templateversion.TemplateID(tvdi.Template.ID))
-	}
-
 	ids := make([]object.ID, 0, len(tvdi.Items))
+	ors := make([]predicate.TemplateVersion, 0, len(tvdi.Items))
 
 	for i := range tvdi.Items {
 		if tvdi.Items[i] == nil {
@@ -219,34 +236,58 @@ func (tvdi *TemplateVersionDeleteInputs) LoadWith(ctx context.Context, cs Client
 
 		if tvdi.Items[i].ID != "" {
 			ids = append(ids, tvdi.Items[i].ID)
+			ors = append(ors, templateversion.ID(tvdi.Items[i].ID))
+		} else if (tvdi.Items[i].Name != "") && (tvdi.Items[i].Version != "") {
+			ors = append(ors, templateversion.And(
+				templateversion.Name(tvdi.Items[i].Name), templateversion.Version(tvdi.Items[i].Version)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := templateversion.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = templateversion.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(templateversion.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			templateversion.FieldID,
+			templateversion.FieldName,
+			templateversion.FieldVersion,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		tvdi.Items[i].ID = es[i].ID
+		tvdi.Items[i].Name = es[i].Name
+		tvdi.Items[i].Version = es[i].Version
 	}
 
 	return nil
 }
 
-// TemplateVersionQueryInput holds the query input of the TemplateVersion entity.
+// TemplateVersionQueryInput holds the query input of the TemplateVersion entity,
+// please tags with `path:",inline"` if embedding.
 type TemplateVersionQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"-"`
-
-	Refer *object.Refer `uri:"templateversion,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the TemplateVersion entity.
+	Refer *object.Refer `path:"templateversion,default=" query:"-" json:"-"`
+	// ID of the TemplateVersion entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the TemplateVersion entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Version of the TemplateVersion entity, a part of the unique index.
+	Version string `path:"-" query:"-" json:"version,omitempty"`
 }
 
 // Model returns the TemplateVersion entity for querying,
@@ -257,99 +298,100 @@ func (tvqi *TemplateVersionQueryInput) Model() *TemplateVersion {
 	}
 
 	return &TemplateVersion{
-		ID: tvqi.ID,
+		ID:      tvqi.ID,
+		Name:    tvqi.Name,
+		Version: tvqi.Version,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvqi *TemplateVersionQueryInput) Load() error {
+// Validate checks the TemplateVersionQueryInput entity.
+func (tvqi *TemplateVersionQueryInput) Validate() error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvqi.LoadWith(tvqi.inputConfig.Context, tvqi.inputConfig.ClientSet)
+	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvqi *TemplateVersionQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionQueryInput entity with the given context and client set.
+func (tvqi *TemplateVersionQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tvqi.Refer != nil && *tvqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", templateversion.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.TemplateVersions().Query()
-
-	if tvqi.Template != nil {
-		err = tvqi.Template.LoadWith(ctx, cs)
-		if err != nil {
-			return err
-		}
-		q.Where(
-			templateversion.TemplateID(tvqi.Template.ID))
-	}
 
 	if tvqi.Refer != nil {
 		if tvqi.Refer.IsID() {
 			q.Where(
 				templateversion.ID(tvqi.Refer.ID()))
+		} else if refers := tvqi.Refer.Split(2); len(refers) == 2 {
+			q.Where(
+				templateversion.Name(refers[0].String()),
+				templateversion.Version(refers[1].String()))
 		} else {
 			return errors.New("invalid identify refer of templateversion")
 		}
 	} else if tvqi.ID != "" {
 		q.Where(
 			templateversion.ID(tvqi.ID))
+	} else if (tvqi.Name != "") && (tvqi.Version != "") {
+		q.Where(
+			templateversion.Name(tvqi.Name), templateversion.Version(tvqi.Version))
 	} else {
 		return errors.New("invalid identify of templateversion")
 	}
 
-	tvqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			templateversion.FieldID,
+			templateversion.FieldName,
+			templateversion.FieldVersion,
+		).
+		Only(ctx)
+	if err == nil {
+		tvqi.ID = e.ID
+		tvqi.Name = e.Name
+		tvqi.Version = e.Version
+	}
 	return err
 }
 
-// TemplateVersionQueryInputs holds the query input of the TemplateVersion entities.
+// TemplateVersionQueryInputs holds the query input of the TemplateVersion entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type TemplateVersionQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
-
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"template"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvqi *TemplateVersionQueryInputs) Load() error {
+// Validate checks the TemplateVersionQueryInputs entity.
+func (tvqi *TemplateVersionQueryInputs) Validate() error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvqi.LoadWith(tvqi.inputConfig.Context, tvqi.inputConfig.ClientSet)
+	return tvqi.ValidateWith(tvqi.inputConfig.Context, tvqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvqi *TemplateVersionQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionQueryInputs entity with the given context and client set.
+func (tvqi *TemplateVersionQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	if tvqi.Template != nil {
-		err = tvqi.Template.LoadWith(ctx, cs)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return nil
 }
 
-// TemplateVersionUpdateInput holds the modification input of the TemplateVersion entity.
+// TemplateVersionUpdateInput holds the modification input of the TemplateVersion entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionUpdateInput struct {
-	TemplateVersionQueryInput `uri:",inline" query:"-" json:",inline"`
+	TemplateVersionQueryInput `path:",inline" query:"-" json:"-"`
 
-	Schema *types.TemplateSchema `uri:"-" query:"-" json:"schema,omitempty"`
+	// Schema of the template.
+	Schema *types.TemplateSchema `path:"-" query:"-" json:"schema,omitempty"`
 }
 
 // Model returns the TemplateVersion entity for modifying,
@@ -367,20 +409,53 @@ func (tvui *TemplateVersionUpdateInput) Model() *TemplateVersion {
 	return _tv
 }
 
-// TemplateVersionUpdateInputs holds the modification input item of the TemplateVersion entities.
-type TemplateVersionUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the TemplateVersionUpdateInput entity.
+func (tvui *TemplateVersionUpdateInput) Validate() error {
+	if tvui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Schema *types.TemplateSchema `uri:"-" query:"-" json:"schema,omitempty"`
+	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client)
 }
 
-// TemplateVersionUpdateInputs holds the modification input of the TemplateVersion entities.
+// ValidateWith checks the TemplateVersionUpdateInput entity with the given context and client set.
+func (tvui *TemplateVersionUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := tvui.TemplateVersionQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TemplateVersionUpdateInputs holds the modification input item of the TemplateVersion entities.
+type TemplateVersionUpdateInputsItem struct {
+	// ID of the TemplateVersion entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the TemplateVersion entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// Version of the TemplateVersion entity, a part of the unique index.
+	Version string `path:"-" query:"-" json:"version,omitempty"`
+
+	// Schema of the template.
+	Schema *types.TemplateSchema `path:"-" query:"-" json:"schema"`
+}
+
+// ValidateWith checks the TemplateVersionUpdateInputsItem entity with the given context and client set.
+func (tvui *TemplateVersionUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tvui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// TemplateVersionUpdateInputs holds the modification input of the TemplateVersion entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateVersionUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Template *TemplateQueryInput `uri:",inline" query:"-" json:"template"`
-
-	Items []*TemplateVersionUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateVersionUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the TemplateVersion entities for modifying,
@@ -404,19 +479,31 @@ func (tvui *TemplateVersionUpdateInputs) Model() []*TemplateVersion {
 	return _tvs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tvui *TemplateVersionUpdateInputs) Load() error {
+// IDs returns the ID list of the TemplateVersion entities for modifying,
+// after validating.
+func (tvui *TemplateVersionUpdateInputs) IDs() []object.ID {
+	if tvui == nil || len(tvui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tvui.Items))
+	for i := range tvui.Items {
+		ids[i] = tvui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TemplateVersionUpdateInputs entity.
+func (tvui *TemplateVersionUpdateInputs) Validate() error {
 	if tvui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tvui.LoadWith(tvui.inputConfig.Context, tvui.inputConfig.ClientSet)
+	return tvui.ValidateWith(tvui.inputConfig.Context, tvui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tvui *TemplateVersionUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateVersionUpdateInputs entity with the given context and client set.
+func (tvui *TemplateVersionUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tvui == nil {
 		return errors.New("nil receiver")
 	}
@@ -427,16 +514,8 @@ func (tvui *TemplateVersionUpdateInputs) LoadWith(ctx context.Context, cs Client
 
 	q := cs.TemplateVersions().Query()
 
-	if tvui.Template != nil {
-		err = tvui.Template.LoadWith(ctx, cs)
-		if err != nil {
-			return err
-		}
-		q.Where(
-			templateversion.TemplateID(tvui.Template.ID))
-	}
-
 	ids := make([]object.ID, 0, len(tvui.Items))
+	ors := make([]predicate.TemplateVersion, 0, len(tvui.Items))
 
 	for i := range tvui.Items {
 		if tvui.Items[i] == nil {
@@ -445,21 +524,50 @@ func (tvui *TemplateVersionUpdateInputs) LoadWith(ctx context.Context, cs Client
 
 		if tvui.Items[i].ID != "" {
 			ids = append(ids, tvui.Items[i].ID)
+			ors = append(ors, templateversion.ID(tvui.Items[i].ID))
+		} else if (tvui.Items[i].Name != "") && (tvui.Items[i].Version != "") {
+			ors = append(ors, templateversion.And(
+				templateversion.Name(tvui.Items[i].Name), templateversion.Version(tvui.Items[i].Version)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := templateversion.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = templateversion.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(templateversion.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			templateversion.FieldID,
+			templateversion.FieldName,
+			templateversion.FieldVersion,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		tvui.Items[i].ID = es[i].ID
+		tvui.Items[i].Name = es[i].Name
+		tvui.Items[i].Version = es[i].Version
+	}
+
+	for i := range tvui.Items {
+		if tvui.Items[i] == nil {
+			continue
+		}
+
+		if err := tvui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -470,6 +578,7 @@ type TemplateVersionOutput struct {
 	ID         object.ID             `json:"id,omitempty"`
 	CreateTime *time.Time            `json:"createTime,omitempty"`
 	UpdateTime *time.Time            `json:"updateTime,omitempty"`
+	Name       string                `json:"name,omitempty"`
 	Version    string                `json:"version,omitempty"`
 	Source     string                `json:"source,omitempty"`
 	Schema     *types.TemplateSchema `json:"schema,omitempty"`
@@ -477,12 +586,12 @@ type TemplateVersionOutput struct {
 	Template *TemplateOutput `json:"template,omitempty"`
 }
 
-// View returns the output of TemplateVersion.
+// View returns the output of TemplateVersion entity.
 func (_tv *TemplateVersion) View() *TemplateVersionOutput {
 	return ExposeTemplateVersion(_tv)
 }
 
-// View returns the output of TemplateVersions.
+// View returns the output of TemplateVersion entities.
 func (_tvs TemplateVersions) View() []*TemplateVersionOutput {
 	return ExposeTemplateVersions(_tvs)
 }
@@ -497,6 +606,7 @@ func ExposeTemplateVersion(_tv *TemplateVersion) *TemplateVersionOutput {
 		ID:         _tv.ID,
 		CreateTime: _tv.CreateTime,
 		UpdateTime: _tv.UpdateTime,
+		Name:       _tv.Name,
 		Version:    _tv.Version,
 		Source:     _tv.Source,
 		Schema:     _tv.Schema,

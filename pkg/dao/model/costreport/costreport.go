@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -56,18 +57,18 @@ const (
 	FieldCPUCost = "cpu_cost"
 	// FieldCPUCoreRequest holds the string denoting the cpu_core_request field in the database.
 	FieldCPUCoreRequest = "cpu_core_request"
-	// FieldGpuCost holds the string denoting the gpu_cost field in the database.
-	FieldGpuCost = "gpu_cost"
-	// FieldGpuCount holds the string denoting the gpu_count field in the database.
-	FieldGpuCount = "gpu_count"
+	// FieldGPUCost holds the string denoting the gpu_cost field in the database.
+	FieldGPUCost = "gpu_cost"
+	// FieldGPUCount holds the string denoting the gpu_count field in the database.
+	FieldGPUCount = "gpu_count"
 	// FieldRAMCost holds the string denoting the ram_cost field in the database.
 	FieldRAMCost = "ram_cost"
 	// FieldRAMByteRequest holds the string denoting the ram_byte_request field in the database.
 	FieldRAMByteRequest = "ram_byte_request"
-	// FieldPvCost holds the string denoting the pv_cost field in the database.
-	FieldPvCost = "pv_cost"
-	// FieldPvBytes holds the string denoting the pv_bytes field in the database.
-	FieldPvBytes = "pv_bytes"
+	// FieldPVCost holds the string denoting the pv_cost field in the database.
+	FieldPVCost = "pv_cost"
+	// FieldPVBytes holds the string denoting the pv_bytes field in the database.
+	FieldPVBytes = "pv_bytes"
 	// FieldLoadBalancerCost holds the string denoting the load_balancer_cost field in the database.
 	FieldLoadBalancerCost = "load_balancer_cost"
 	// FieldCPUCoreUsageAverage holds the string denoting the cpu_core_usage_average field in the database.
@@ -113,12 +114,12 @@ var Columns = []string{
 	FieldCurrency,
 	FieldCPUCost,
 	FieldCPUCoreRequest,
-	FieldGpuCost,
-	FieldGpuCount,
+	FieldGPUCost,
+	FieldGPUCount,
 	FieldRAMCost,
 	FieldRAMByteRequest,
-	FieldPvCost,
-	FieldPvBytes,
+	FieldPVCost,
+	FieldPVBytes,
 	FieldLoadBalancerCost,
 	FieldCPUCoreUsageAverage,
 	FieldCPUCoreUsageMax,
@@ -155,18 +156,18 @@ var (
 	DefaultCPUCost float64
 	// DefaultCPUCoreRequest holds the default value on creation for the "cpu_core_request" field.
 	DefaultCPUCoreRequest float64
-	// DefaultGpuCost holds the default value on creation for the "gpu_cost" field.
-	DefaultGpuCost float64
-	// DefaultGpuCount holds the default value on creation for the "gpu_count" field.
-	DefaultGpuCount float64
+	// DefaultGPUCost holds the default value on creation for the "gpu_cost" field.
+	DefaultGPUCost float64
+	// DefaultGPUCount holds the default value on creation for the "gpu_count" field.
+	DefaultGPUCount float64
 	// DefaultRAMCost holds the default value on creation for the "ram_cost" field.
 	DefaultRAMCost float64
 	// DefaultRAMByteRequest holds the default value on creation for the "ram_byte_request" field.
 	DefaultRAMByteRequest float64
-	// DefaultPvCost holds the default value on creation for the "pv_cost" field.
-	DefaultPvCost float64
-	// DefaultPvBytes holds the default value on creation for the "pv_bytes" field.
-	DefaultPvBytes float64
+	// DefaultPVCost holds the default value on creation for the "pv_cost" field.
+	DefaultPVCost float64
+	// DefaultPVBytes holds the default value on creation for the "pv_bytes" field.
+	DefaultPVBytes float64
 	// DefaultLoadBalancerCost holds the default value on creation for the "load_balancer_cost" field.
 	DefaultLoadBalancerCost float64
 	// DefaultCPUCoreUsageAverage holds the default value on creation for the "cpu_core_usage_average" field.
@@ -272,14 +273,14 @@ func ByCPUCoreRequest(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCPUCoreRequest, opts...).ToFunc()
 }
 
-// ByGpuCost orders the results by the gpu_cost field.
-func ByGpuCost(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldGpuCost, opts...).ToFunc()
+// ByGPUCost orders the results by the gpu_cost field.
+func ByGPUCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGPUCost, opts...).ToFunc()
 }
 
-// ByGpuCount orders the results by the gpu_count field.
-func ByGpuCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldGpuCount, opts...).ToFunc()
+// ByGPUCount orders the results by the gpu_count field.
+func ByGPUCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGPUCount, opts...).ToFunc()
 }
 
 // ByRAMCost orders the results by the ram_cost field.
@@ -292,14 +293,14 @@ func ByRAMByteRequest(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRAMByteRequest, opts...).ToFunc()
 }
 
-// ByPvCost orders the results by the pv_cost field.
-func ByPvCost(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPvCost, opts...).ToFunc()
+// ByPVCost orders the results by the pv_cost field.
+func ByPVCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPVCost, opts...).ToFunc()
 }
 
-// ByPvBytes orders the results by the pv_bytes field.
-func ByPvBytes(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPvBytes, opts...).ToFunc()
+// ByPVBytes orders the results by the pv_bytes field.
+func ByPVBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPVBytes, opts...).ToFunc()
 }
 
 // ByLoadBalancerCost orders the results by the load_balancer_cost field.
@@ -344,7 +345,7 @@ func newConnectorStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

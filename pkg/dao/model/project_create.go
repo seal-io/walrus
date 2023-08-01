@@ -21,6 +21,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
@@ -161,6 +162,21 @@ func (pc *ProjectCreate) AddServices(s ...*Service) *ProjectCreate {
 		ids[i] = s[i].ID
 	}
 	return pc.AddServiceIDs(ids...)
+}
+
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (pc *ProjectCreate) AddServiceResourceIDs(ids ...object.ID) *ProjectCreate {
+	pc.mutation.AddServiceResourceIDs(ids...)
+	return pc
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (pc *ProjectCreate) AddServiceResources(s ...*ServiceResource) *ProjectCreate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pc.AddServiceResourceIDs(ids...)
 }
 
 // AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
@@ -400,6 +416,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := pc.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pc.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := pc.mutation.ServiceRevisionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -509,6 +542,16 @@ func (pc *ProjectCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 	}
 
 	mc := pc.getClientSet()
+	if pc.fromUpsert {
+		q := mc.Projects().Query().
+			Where(
+				project.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Project entity: %w", err)
+		}
+	}
 
 	if x := pc.object; x != nil {
 		if _, set := pc.mutation.Field(project.FieldName); set {
@@ -613,6 +656,19 @@ func (pcb *ProjectCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 	}
 
 	mc := pcb.getClientSet()
+	if pcb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Projects().Query().
+				Where(
+					project.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Project entity: %w", err)
+			}
+		}
+	}
 
 	if x := pcb.objects; x != nil {
 		for i := range x {
@@ -748,18 +804,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *ProjectUpsert) SetName(v string) *ProjectUpsert {
-	u.Set(project.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ProjectUpsert) UpdateName() *ProjectUpsert {
-	u.SetExcluded(project.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *ProjectUpsert) SetDescription(v string) *ProjectUpsert {
 	u.Set(project.FieldDescription, v)
@@ -843,6 +887,9 @@ func (u *ProjectUpsertOne) UpdateNewValues() *ProjectUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(project.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(project.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(project.FieldCreateTime)
 		}
@@ -875,20 +922,6 @@ func (u *ProjectUpsertOne) Update(set func(*ProjectUpsert)) *ProjectUpsertOne {
 		set(&ProjectUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ProjectUpsertOne) SetName(v string) *ProjectUpsertOne {
-	return u.Update(func(s *ProjectUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ProjectUpsertOne) UpdateName() *ProjectUpsertOne {
-	return u.Update(func(s *ProjectUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1149,6 +1182,9 @@ func (u *ProjectUpsertBulk) UpdateNewValues() *ProjectUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(project.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(project.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(project.FieldCreateTime)
 			}
@@ -1182,20 +1218,6 @@ func (u *ProjectUpsertBulk) Update(set func(*ProjectUpsert)) *ProjectUpsertBulk 
 		set(&ProjectUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *ProjectUpsertBulk) SetName(v string) *ProjectUpsertBulk {
-	return u.Update(func(s *ProjectUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *ProjectUpsertBulk) UpdateName() *ProjectUpsertBulk {
-	return u.Update(func(s *ProjectUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.

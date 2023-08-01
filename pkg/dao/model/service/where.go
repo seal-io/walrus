@@ -92,6 +92,11 @@ func EnvironmentID(v object.ID) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldEnvironmentID, v))
 }
 
+// TemplateID applies equality check predicate on the "template_id" field. It's identical to TemplateIDEQ.
+func TemplateID(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldEQ(FieldTemplateID, v))
+}
+
 // Attributes applies equality check predicate on the "attributes" field. It's identical to AttributesEQ.
 func Attributes(v property.Values) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldAttributes, v))
@@ -337,6 +342,16 @@ func UpdateTimeLTE(v time.Time) predicate.Service {
 	return predicate.Service(sql.FieldLTE(FieldUpdateTime, v))
 }
 
+// StatusIsNil applies the IsNil predicate on the "status" field.
+func StatusIsNil() predicate.Service {
+	return predicate.Service(sql.FieldIsNull(FieldStatus))
+}
+
+// StatusNotNil applies the NotNil predicate on the "status" field.
+func StatusNotNil() predicate.Service {
+	return predicate.Service(sql.FieldNotNull(FieldStatus))
+}
+
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
 func ProjectIDEQ(v object.ID) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldProjectID, v))
@@ -407,16 +422,6 @@ func ProjectIDContainsFold(v object.ID) predicate.Service {
 	return predicate.Service(sql.FieldContainsFold(FieldProjectID, vc))
 }
 
-// StatusIsNil applies the IsNil predicate on the "status" field.
-func StatusIsNil() predicate.Service {
-	return predicate.Service(sql.FieldIsNull(FieldStatus))
-}
-
-// StatusNotNil applies the NotNil predicate on the "status" field.
-func StatusNotNil() predicate.Service {
-	return predicate.Service(sql.FieldNotNull(FieldStatus))
-}
-
 // EnvironmentIDEQ applies the EQ predicate on the "environment_id" field.
 func EnvironmentIDEQ(v object.ID) predicate.Service {
 	return predicate.Service(sql.FieldEQ(FieldEnvironmentID, v))
@@ -485,6 +490,76 @@ func EnvironmentIDEqualFold(v object.ID) predicate.Service {
 func EnvironmentIDContainsFold(v object.ID) predicate.Service {
 	vc := string(v)
 	return predicate.Service(sql.FieldContainsFold(FieldEnvironmentID, vc))
+}
+
+// TemplateIDEQ applies the EQ predicate on the "template_id" field.
+func TemplateIDEQ(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldEQ(FieldTemplateID, v))
+}
+
+// TemplateIDNEQ applies the NEQ predicate on the "template_id" field.
+func TemplateIDNEQ(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldNEQ(FieldTemplateID, v))
+}
+
+// TemplateIDIn applies the In predicate on the "template_id" field.
+func TemplateIDIn(vs ...object.ID) predicate.Service {
+	return predicate.Service(sql.FieldIn(FieldTemplateID, vs...))
+}
+
+// TemplateIDNotIn applies the NotIn predicate on the "template_id" field.
+func TemplateIDNotIn(vs ...object.ID) predicate.Service {
+	return predicate.Service(sql.FieldNotIn(FieldTemplateID, vs...))
+}
+
+// TemplateIDGT applies the GT predicate on the "template_id" field.
+func TemplateIDGT(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldGT(FieldTemplateID, v))
+}
+
+// TemplateIDGTE applies the GTE predicate on the "template_id" field.
+func TemplateIDGTE(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldGTE(FieldTemplateID, v))
+}
+
+// TemplateIDLT applies the LT predicate on the "template_id" field.
+func TemplateIDLT(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldLT(FieldTemplateID, v))
+}
+
+// TemplateIDLTE applies the LTE predicate on the "template_id" field.
+func TemplateIDLTE(v object.ID) predicate.Service {
+	return predicate.Service(sql.FieldLTE(FieldTemplateID, v))
+}
+
+// TemplateIDContains applies the Contains predicate on the "template_id" field.
+func TemplateIDContains(v object.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldContains(FieldTemplateID, vc))
+}
+
+// TemplateIDHasPrefix applies the HasPrefix predicate on the "template_id" field.
+func TemplateIDHasPrefix(v object.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldHasPrefix(FieldTemplateID, vc))
+}
+
+// TemplateIDHasSuffix applies the HasSuffix predicate on the "template_id" field.
+func TemplateIDHasSuffix(v object.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldHasSuffix(FieldTemplateID, vc))
+}
+
+// TemplateIDEqualFold applies the EqualFold predicate on the "template_id" field.
+func TemplateIDEqualFold(v object.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldEqualFold(FieldTemplateID, vc))
+}
+
+// TemplateIDContainsFold applies the ContainsFold predicate on the "template_id" field.
+func TemplateIDContainsFold(v object.ID) predicate.Service {
+	vc := string(v)
+	return predicate.Service(sql.FieldContainsFold(FieldTemplateID, vc))
 }
 
 // AttributesEQ applies the EQ predicate on the "attributes" field.
@@ -586,6 +661,35 @@ func HasEnvironmentWith(preds ...predicate.Environment) predicate.Service {
 		step := newEnvironmentStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Service
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTemplate applies the HasEdge predicate on the "template" edge.
+func HasTemplate() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TemplateTable, TemplateColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TemplateVersion
+		step.Edge.Schema = schemaConfig.Service
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTemplateWith applies the HasEdge predicate on the "template" edge with a given conditions (other predicates).
+func HasTemplateWith(preds ...predicate.TemplateVersion) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := newTemplateStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.Service
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

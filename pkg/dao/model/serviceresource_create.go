@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresourcerelationship"
@@ -157,6 +158,11 @@ func (src *ServiceResourceCreate) SetNillableStatus(trs *types.ServiceResourceSt
 func (src *ServiceResourceCreate) SetID(o object.ID) *ServiceResourceCreate {
 	src.mutation.SetID(o)
 	return src
+}
+
+// SetProject sets the "project" edge to the Project entity.
+func (src *ServiceResourceCreate) SetProject(p *Project) *ServiceResourceCreate {
+	return src.SetProjectID(p.ID)
 }
 
 // SetService sets the "service" edge to the Service entity.
@@ -350,6 +356,9 @@ func (src *ServiceResourceCreate) check() error {
 			return &ValidationError{Name: "shape", err: fmt.Errorf(`model: validator failed for field "ServiceResource.shape": %w`, err)}
 		}
 	}
+	if _, ok := src.mutation.ProjectID(); !ok {
+		return &ValidationError{Name: "project", err: errors.New(`model: missing required edge "ServiceResource.project"`)}
+	}
 	if _, ok := src.mutation.ServiceID(); !ok {
 		return &ValidationError{Name: "service", err: errors.New(`model: missing required edge "ServiceResource.service"`)}
 	}
@@ -401,10 +410,6 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 		_spec.SetField(serviceresource.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := src.mutation.ProjectID(); ok {
-		_spec.SetField(serviceresource.FieldProjectID, field.TypeString, value)
-		_node.ProjectID = value
-	}
 	if value, ok := src.mutation.Mode(); ok {
 		_spec.SetField(serviceresource.FieldMode, field.TypeString, value)
 		_node.Mode = value
@@ -428,6 +433,24 @@ func (src *ServiceResourceCreate) createSpec() (*ServiceResource, *sqlgraph.Crea
 	if value, ok := src.mutation.Status(); ok {
 		_spec.SetField(serviceresource.FieldStatus, field.TypeJSON, value)
 		_node.Status = value
+	}
+	if nodes := src.mutation.ProjectIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceresource.ProjectTable,
+			Columns: []string{serviceresource.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = src.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProjectID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := src.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

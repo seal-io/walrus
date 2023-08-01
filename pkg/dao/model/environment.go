@@ -51,7 +51,7 @@ type EnvironmentEdges struct {
 	// Connectors holds the value of the connectors edge.
 	Connectors []*EnvironmentConnectorRelationship `json:"connectors,omitempty"`
 	// Services that belong to the environment.
-	Services []*Service `json:"services,omitempty"`
+	Services []*Service `json:"services,omitempty,cli-ignore"`
 	// ServicesRevisions that belong to the environment.
 	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
 	// Variables that belong to the environment.

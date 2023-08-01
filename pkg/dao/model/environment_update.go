@@ -43,12 +43,6 @@ func (eu *EnvironmentUpdate) Where(ps ...predicate.Environment) *EnvironmentUpda
 	return eu
 }
 
-// SetName sets the "name" field.
-func (eu *EnvironmentUpdate) SetName(s string) *EnvironmentUpdate {
-	eu.mutation.SetName(s)
-	return eu
-}
-
 // SetDescription sets the "description" field.
 func (eu *EnvironmentUpdate) SetDescription(s string) *EnvironmentUpdate {
 	eu.mutation.SetDescription(s)
@@ -292,11 +286,6 @@ func (eu *EnvironmentUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (eu *EnvironmentUpdate) check() error {
-	if v, ok := eu.mutation.Name(); ok {
-		if err := environment.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
-		}
-	}
 	if _, ok := eu.mutation.ProjectID(); eu.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Environment.project"`)
 	}
@@ -336,7 +325,6 @@ func (eu *EnvironmentUpdate) check() error {
 //	}
 func (eu *EnvironmentUpdate) Set(obj *Environment) *EnvironmentUpdate {
 	// Without Default.
-	eu.SetName(obj.Name)
 	if obj.Description != "" {
 		eu.SetDescription(obj.Description)
 	} else {
@@ -379,9 +367,6 @@ func (eu *EnvironmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := eu.mutation.Name(); ok {
-		_spec.SetField(environment.FieldName, field.TypeString, value)
 	}
 	if value, ok := eu.mutation.Description(); ok {
 		_spec.SetField(environment.FieldDescription, field.TypeString, value)
@@ -619,12 +604,6 @@ type EnvironmentUpdateOne struct {
 	mutation  *EnvironmentMutation
 	modifiers []func(*sql.UpdateBuilder)
 	object    *Environment
-}
-
-// SetName sets the "name" field.
-func (euo *EnvironmentUpdateOne) SetName(s string) *EnvironmentUpdateOne {
-	euo.mutation.SetName(s)
-	return euo
 }
 
 // SetDescription sets the "description" field.
@@ -883,11 +862,6 @@ func (euo *EnvironmentUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (euo *EnvironmentUpdateOne) check() error {
-	if v, ok := euo.mutation.Name(); ok {
-		if err := environment.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Environment.name": %w`, err)}
-		}
-	}
 	if _, ok := euo.mutation.ProjectID(); euo.mutation.ProjectCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Environment.project"`)
 	}
@@ -937,9 +911,6 @@ func (euo *EnvironmentUpdateOne) Set(obj *Environment) *EnvironmentUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				euo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					euo.SetDescription(obj.Description)
@@ -1009,9 +980,6 @@ func (euo *EnvironmentUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx cont
 	if obj == nil {
 		obj = euo.object
 	} else if x := euo.object; x != nil {
-		if _, set := euo.mutation.Field(environment.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := euo.mutation.Field(environment.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -1090,9 +1058,6 @@ func (euo *EnvironmentUpdateOne) sqlSave(ctx context.Context) (_node *Environmen
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := euo.mutation.Name(); ok {
-		_spec.SetField(environment.FieldName, field.TypeString, value)
 	}
 	if value, ok := euo.mutation.Description(); ok {
 		_spec.SetField(environment.FieldDescription, field.TypeString, value)

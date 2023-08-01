@@ -8,18 +8,22 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/setting"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// SettingCreateInput holds the creation input of the Setting entity.
+// SettingCreateInput holds the creation input of the Setting entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SettingCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Value crypto.String `uri:"-" query:"-" json:"value"`
+	// The value of system setting, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
 }
 
 // Model returns the Setting entity for creating,
@@ -36,19 +40,17 @@ func (sci *SettingCreateInput) Model() *Setting {
 	return _s
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *SettingCreateInput) Load() error {
+// Validate checks the SettingCreateInput entity.
+func (sci *SettingCreateInput) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *SettingCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingCreateInput entity with the given context and client set.
+func (sci *SettingCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -58,14 +60,26 @@ func (sci *SettingCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 
 // SettingCreateInputs holds the creation input item of the Setting entities.
 type SettingCreateInputsItem struct {
-	Value crypto.String `uri:"-" query:"-" json:"value"`
+	// The value of system setting, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
 }
 
-// SettingCreateInputs holds the creation input of the Setting entities.
-type SettingCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SettingCreateInputsItem entity with the given context and client set.
+func (sci *SettingCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*SettingCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// SettingCreateInputs holds the creation input of the Setting entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SettingCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SettingCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Setting entities for creating,
@@ -88,19 +102,17 @@ func (sci *SettingCreateInputs) Model() []*Setting {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *SettingCreateInputs) Load() error {
+// Validate checks the SettingCreateInputs entity .
+func (sci *SettingCreateInputs) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *SettingCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingCreateInputs entity with the given context and client set.
+func (sci *SettingCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -109,22 +121,38 @@ func (sci *SettingCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		return errors.New("empty items")
 	}
 
+	for i := range sci.Items {
+		if sci.Items[i] == nil {
+			continue
+		}
+
+		if err := sci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// SettingDeleteInput holds the deletion input of the Setting entity.
+// SettingDeleteInput holds the deletion input of the Setting entity,
+// please tags with `path:",inline"` if embedding.
 type SettingDeleteInput = SettingQueryInput
 
 // SettingDeleteInputs holds the deletion input item of the Setting entities.
 type SettingDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Setting entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Setting entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// SettingDeleteInputs holds the deletion input of the Setting entities.
+// SettingDeleteInputs holds the deletion input of the Setting entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SettingDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*SettingDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SettingDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Setting entities for deleting,
@@ -143,19 +171,31 @@ func (sdi *SettingDeleteInputs) Model() []*Setting {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sdi *SettingDeleteInputs) Load() error {
+// IDs returns the ID list of the Setting entities for deleting,
+// after validating.
+func (sdi *SettingDeleteInputs) IDs() []object.ID {
+	if sdi == nil || len(sdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sdi.Items))
+	for i := range sdi.Items {
+		ids[i] = sdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SettingDeleteInputs entity.
+func (sdi *SettingDeleteInputs) Validate() error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sdi.LoadWith(sdi.inputConfig.Context, sdi.inputConfig.ClientSet)
+	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sdi *SettingDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingDeleteInputs entity with the given context and client set.
+func (sdi *SettingDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -167,6 +207,7 @@ func (sdi *SettingDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Settings().Query()
 
 	ids := make([]object.ID, 0, len(sdi.Items))
+	ors := make([]predicate.Setting, 0, len(sdi.Items))
 
 	for i := range sdi.Items {
 		if sdi.Items[i] == nil {
@@ -175,32 +216,54 @@ func (sdi *SettingDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if sdi.Items[i].ID != "" {
 			ids = append(ids, sdi.Items[i].ID)
+			ors = append(ors, setting.ID(sdi.Items[i].ID))
+		} else if sdi.Items[i].Name != "" {
+			ors = append(ors, setting.And(
+				setting.Name(sdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := setting.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = setting.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(setting.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			setting.FieldID,
+			setting.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sdi.Items[i].ID = es[i].ID
+		sdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// SettingQueryInput holds the query input of the Setting entity.
+// SettingQueryInput holds the query input of the Setting entity,
+// please tags with `path:",inline"` if embedding.
 type SettingQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"setting,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Setting entity.
+	Refer *object.Refer `path:"setting,default=" query:"-" json:"-"`
+	// ID of the Setting entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Setting entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Setting entity for querying,
@@ -211,29 +274,28 @@ func (sqi *SettingQueryInput) Model() *Setting {
 	}
 
 	return &Setting{
-		ID: sqi.ID,
+		ID:   sqi.ID,
+		Name: sqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *SettingQueryInput) Load() error {
+// Validate checks the SettingQueryInput entity.
+func (sqi *SettingQueryInput) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *SettingQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingQueryInput entity with the given context and client set.
+func (sqi *SettingQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if sqi.Refer != nil && *sqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", setting.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Settings().Query()
@@ -242,51 +304,68 @@ func (sqi *SettingQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err e
 		if sqi.Refer.IsID() {
 			q.Where(
 				setting.ID(sqi.Refer.ID()))
+		} else if refers := sqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				setting.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of setting")
 		}
 	} else if sqi.ID != "" {
 		q.Where(
 			setting.ID(sqi.ID))
+	} else if sqi.Name != "" {
+		q.Where(
+			setting.Name(sqi.Name))
 	} else {
 		return errors.New("invalid identify of setting")
 	}
 
-	sqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			setting.FieldID,
+			setting.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		sqi.ID = e.ID
+		sqi.Name = e.Name
+	}
 	return err
 }
 
-// SettingQueryInputs holds the query input of the Setting entities.
+// SettingQueryInputs holds the query input of the Setting entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type SettingQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *SettingQueryInputs) Load() error {
+// Validate checks the SettingQueryInputs entity.
+func (sqi *SettingQueryInputs) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *SettingQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingQueryInputs entity with the given context and client set.
+func (sqi *SettingQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// SettingUpdateInput holds the modification input of the Setting entity.
+// SettingUpdateInput holds the modification input of the Setting entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SettingUpdateInput struct {
-	SettingQueryInput `uri:",inline" query:"-" json:",inline"`
+	SettingQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name  string        `uri:"-" query:"-" json:"name,omitempty"`
-	Value crypto.String `uri:"-" query:"-" json:"value,omitempty"`
+	// The name of system setting.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The value of system setting, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value,omitempty"`
 }
 
 // Model returns the Setting entity for modifying,
@@ -305,19 +384,51 @@ func (sui *SettingUpdateInput) Model() *Setting {
 	return _s
 }
 
-// SettingUpdateInputs holds the modification input item of the Setting entities.
-type SettingUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the SettingUpdateInput entity.
+func (sui *SettingUpdateInput) Validate() error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name  string        `uri:"-" query:"-" json:"name,omitempty"`
-	Value crypto.String `uri:"-" query:"-" json:"value,omitempty"`
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
 }
 
-// SettingUpdateInputs holds the modification input of the Setting entities.
-type SettingUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SettingUpdateInput entity with the given context and client set.
+func (sui *SettingUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := sui.SettingQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*SettingUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// SettingUpdateInputs holds the modification input item of the Setting entities.
+type SettingUpdateInputsItem struct {
+	// ID of the Setting entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Setting entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// The value of system setting, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+}
+
+// ValidateWith checks the SettingUpdateInputsItem entity with the given context and client set.
+func (sui *SettingUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// SettingUpdateInputs holds the modification input of the Setting entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SettingUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SettingUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Setting entities for modifying,
@@ -342,19 +453,31 @@ func (sui *SettingUpdateInputs) Model() []*Setting {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sui *SettingUpdateInputs) Load() error {
+// IDs returns the ID list of the Setting entities for modifying,
+// after validating.
+func (sui *SettingUpdateInputs) IDs() []object.ID {
+	if sui == nil || len(sui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sui.Items))
+	for i := range sui.Items {
+		ids[i] = sui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SettingUpdateInputs entity.
+func (sui *SettingUpdateInputs) Validate() error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sui.LoadWith(sui.inputConfig.Context, sui.inputConfig.ClientSet)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sui *SettingUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SettingUpdateInputs entity with the given context and client set.
+func (sui *SettingUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
@@ -366,6 +489,7 @@ func (sui *SettingUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Settings().Query()
 
 	ids := make([]object.ID, 0, len(sui.Items))
+	ors := make([]predicate.Setting, 0, len(sui.Items))
 
 	for i := range sui.Items {
 		if sui.Items[i] == nil {
@@ -374,21 +498,48 @@ func (sui *SettingUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if sui.Items[i].ID != "" {
 			ids = append(ids, sui.Items[i].ID)
+			ors = append(ors, setting.ID(sui.Items[i].ID))
+		} else if sui.Items[i].Name != "" {
+			ors = append(ors, setting.And(
+				setting.Name(sui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := setting.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = setting.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(setting.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			setting.FieldID,
+			setting.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sui.Items[i].ID = es[i].ID
+		sui.Items[i].Name = es[i].Name
+	}
+
+	for i := range sui.Items {
+		if sui.Items[i] == nil {
+			continue
+		}
+
+		if err := sui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -404,14 +555,15 @@ type SettingOutput struct {
 	Hidden     *bool         `json:"hidden,omitempty"`
 	Editable   *bool         `json:"editable,omitempty"`
 	Sensitive  *bool         `json:"sensitive,omitempty"`
+	Configured bool          `json:"configured,omitempty"`
 }
 
-// View returns the output of Setting.
+// View returns the output of Setting entity.
 func (_s *Setting) View() *SettingOutput {
 	return ExposeSetting(_s)
 }
 
-// View returns the output of Settings.
+// View returns the output of Setting entities.
 func (_ss Settings) View() []*SettingOutput {
 	return ExposeSettings(_ss)
 }
@@ -431,6 +583,7 @@ func ExposeSetting(_s *Setting) *SettingOutput {
 		Hidden:     _s.Hidden,
 		Editable:   _s.Editable,
 		Sensitive:  _s.Sensitive,
+		Configured: _s.Configured,
 	}
 
 	return so

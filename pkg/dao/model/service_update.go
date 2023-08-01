@@ -24,7 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
-	"github.com/seal-io/seal/pkg/dao/types"
+	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 	"github.com/seal-io/seal/pkg/dao/types/status"
@@ -42,12 +42,6 @@ type ServiceUpdate struct {
 // Where appends a list predicates to the ServiceUpdate builder.
 func (su *ServiceUpdate) Where(ps ...predicate.Service) *ServiceUpdate {
 	su.mutation.Where(ps...)
-	return su
-}
-
-// SetName sets the "name" field.
-func (su *ServiceUpdate) SetName(s string) *ServiceUpdate {
-	su.mutation.SetName(s)
 	return su
 }
 
@@ -121,9 +115,9 @@ func (su *ServiceUpdate) ClearStatus() *ServiceUpdate {
 	return su
 }
 
-// SetTemplate sets the "template" field.
-func (su *ServiceUpdate) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdate {
-	su.mutation.SetTemplate(tvr)
+// SetTemplateID sets the "template_id" field.
+func (su *ServiceUpdate) SetTemplateID(o object.ID) *ServiceUpdate {
+	su.mutation.SetTemplateID(o)
 	return su
 }
 
@@ -137,6 +131,11 @@ func (su *ServiceUpdate) SetAttributes(pr property.Values) *ServiceUpdate {
 func (su *ServiceUpdate) ClearAttributes() *ServiceUpdate {
 	su.mutation.ClearAttributes()
 	return su
+}
+
+// SetTemplate sets the "template" edge to the TemplateVersion entity.
+func (su *ServiceUpdate) SetTemplate(t *TemplateVersion) *ServiceUpdate {
+	return su.SetTemplateID(t.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
@@ -187,6 +186,12 @@ func (su *ServiceUpdate) AddDependencies(s ...*ServiceRelationship) *ServiceUpda
 // Mutation returns the ServiceMutation object of the builder.
 func (su *ServiceUpdate) Mutation() *ServiceMutation {
 	return su.mutation
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (su *ServiceUpdate) ClearTemplate() *ServiceUpdate {
+	su.mutation.ClearTemplate()
+	return su
 }
 
 // ClearRevisions clears all "revisions" edges to the ServiceRevision entity.
@@ -296,9 +301,9 @@ func (su *ServiceUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (su *ServiceUpdate) check() error {
-	if v, ok := su.mutation.Name(); ok {
-		if err := service.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
+	if v, ok := su.mutation.TemplateID(); ok {
+		if err := service.TemplateIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Service.template_id": %w`, err)}
 		}
 	}
 	if _, ok := su.mutation.ProjectID(); su.mutation.ProjectCleared() && !ok {
@@ -306,6 +311,9 @@ func (su *ServiceUpdate) check() error {
 	}
 	if _, ok := su.mutation.EnvironmentID(); su.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.environment"`)
+	}
+	if _, ok := su.mutation.TemplateID(); su.mutation.TemplateCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Service.template"`)
 	}
 	return nil
 }
@@ -343,7 +351,6 @@ func (su *ServiceUpdate) check() error {
 //	}
 func (su *ServiceUpdate) Set(obj *Service) *ServiceUpdate {
 	// Without Default.
-	su.SetName(obj.Name)
 	if obj.Description != "" {
 		su.SetDescription(obj.Description)
 	} else {
@@ -360,7 +367,7 @@ func (su *ServiceUpdate) Set(obj *Service) *ServiceUpdate {
 	if !reflect.ValueOf(obj.Status).IsZero() {
 		su.SetStatus(obj.Status)
 	}
-	su.SetTemplate(obj.Template)
+	su.SetTemplateID(obj.TemplateID)
 	if !reflect.ValueOf(obj.Attributes).IsZero() {
 		su.SetAttributes(obj.Attributes)
 	} else {
@@ -396,9 +403,6 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := su.mutation.Name(); ok {
-		_spec.SetField(service.FieldName, field.TypeString, value)
-	}
 	if value, ok := su.mutation.Description(); ok {
 		_spec.SetField(service.FieldDescription, field.TypeString, value)
 	}
@@ -426,14 +430,42 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.mutation.StatusCleared() {
 		_spec.ClearField(service.FieldStatus, field.TypeJSON)
 	}
-	if value, ok := su.mutation.Template(); ok {
-		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
-	}
 	if value, ok := su.mutation.Attributes(); ok {
 		_spec.SetField(service.FieldAttributes, field.TypeOther, value)
 	}
 	if su.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
+	}
+	if su.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.TemplateTable,
+			Columns: []string{service.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.Service
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.TemplateTable,
+			Columns: []string{service.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = su.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if su.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -604,12 +636,6 @@ type ServiceUpdateOne struct {
 	object    *Service
 }
 
-// SetName sets the "name" field.
-func (suo *ServiceUpdateOne) SetName(s string) *ServiceUpdateOne {
-	suo.mutation.SetName(s)
-	return suo
-}
-
 // SetDescription sets the "description" field.
 func (suo *ServiceUpdateOne) SetDescription(s string) *ServiceUpdateOne {
 	suo.mutation.SetDescription(s)
@@ -680,9 +706,9 @@ func (suo *ServiceUpdateOne) ClearStatus() *ServiceUpdateOne {
 	return suo
 }
 
-// SetTemplate sets the "template" field.
-func (suo *ServiceUpdateOne) SetTemplate(tvr types.TemplateVersionRef) *ServiceUpdateOne {
-	suo.mutation.SetTemplate(tvr)
+// SetTemplateID sets the "template_id" field.
+func (suo *ServiceUpdateOne) SetTemplateID(o object.ID) *ServiceUpdateOne {
+	suo.mutation.SetTemplateID(o)
 	return suo
 }
 
@@ -696,6 +722,11 @@ func (suo *ServiceUpdateOne) SetAttributes(pr property.Values) *ServiceUpdateOne
 func (suo *ServiceUpdateOne) ClearAttributes() *ServiceUpdateOne {
 	suo.mutation.ClearAttributes()
 	return suo
+}
+
+// SetTemplate sets the "template" edge to the TemplateVersion entity.
+func (suo *ServiceUpdateOne) SetTemplate(t *TemplateVersion) *ServiceUpdateOne {
+	return suo.SetTemplateID(t.ID)
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by IDs.
@@ -746,6 +777,12 @@ func (suo *ServiceUpdateOne) AddDependencies(s ...*ServiceRelationship) *Service
 // Mutation returns the ServiceMutation object of the builder.
 func (suo *ServiceUpdateOne) Mutation() *ServiceMutation {
 	return suo.mutation
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (suo *ServiceUpdateOne) ClearTemplate() *ServiceUpdateOne {
+	suo.mutation.ClearTemplate()
+	return suo
 }
 
 // ClearRevisions clears all "revisions" edges to the ServiceRevision entity.
@@ -868,9 +905,9 @@ func (suo *ServiceUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (suo *ServiceUpdateOne) check() error {
-	if v, ok := suo.mutation.Name(); ok {
-		if err := service.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Service.name": %w`, err)}
+	if v, ok := suo.mutation.TemplateID(); ok {
+		if err := service.TemplateIDValidator(string(v)); err != nil {
+			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "Service.template_id": %w`, err)}
 		}
 	}
 	if _, ok := suo.mutation.ProjectID(); suo.mutation.ProjectCleared() && !ok {
@@ -878,6 +915,9 @@ func (suo *ServiceUpdateOne) check() error {
 	}
 	if _, ok := suo.mutation.EnvironmentID(); suo.mutation.EnvironmentCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "Service.environment"`)
+	}
+	if _, ok := suo.mutation.TemplateID(); suo.mutation.TemplateCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "Service.template"`)
 	}
 	return nil
 }
@@ -925,9 +965,6 @@ func (suo *ServiceUpdateOne) Set(obj *Service) *ServiceUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				suo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					suo.SetDescription(obj.Description)
@@ -952,8 +989,8 @@ func (suo *ServiceUpdateOne) Set(obj *Service) *ServiceUpdateOne {
 					suo.SetStatus(obj.Status)
 				}
 			}
-			if !reflect.DeepEqual(db.Template, obj.Template) {
-				suo.SetTemplate(obj.Template)
+			if db.TemplateID != obj.TemplateID {
+				suo.SetTemplateID(obj.TemplateID)
 			}
 			if !reflect.ValueOf(obj.Attributes).IsZero() {
 				if !reflect.DeepEqual(db.Attributes, obj.Attributes) {
@@ -1012,9 +1049,6 @@ func (suo *ServiceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 	if obj == nil {
 		obj = suo.object
 	} else if x := suo.object; x != nil {
-		if _, set := suo.mutation.Field(service.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := suo.mutation.Field(service.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -1027,8 +1061,8 @@ func (suo *ServiceUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 		if _, set := suo.mutation.Field(service.FieldStatus); set {
 			obj.Status = x.Status
 		}
-		if _, set := suo.mutation.Field(service.FieldTemplate); set {
-			obj.Template = x.Template
+		if _, set := suo.mutation.Field(service.FieldTemplateID); set {
+			obj.TemplateID = x.TemplateID
 		}
 		if _, set := suo.mutation.Field(service.FieldAttributes); set {
 			obj.Attributes = x.Attributes
@@ -1103,9 +1137,6 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 			}
 		}
 	}
-	if value, ok := suo.mutation.Name(); ok {
-		_spec.SetField(service.FieldName, field.TypeString, value)
-	}
 	if value, ok := suo.mutation.Description(); ok {
 		_spec.SetField(service.FieldDescription, field.TypeString, value)
 	}
@@ -1133,14 +1164,42 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (_node *Service, err e
 	if suo.mutation.StatusCleared() {
 		_spec.ClearField(service.FieldStatus, field.TypeJSON)
 	}
-	if value, ok := suo.mutation.Template(); ok {
-		_spec.SetField(service.FieldTemplate, field.TypeJSON, value)
-	}
 	if value, ok := suo.mutation.Attributes(); ok {
 		_spec.SetField(service.FieldAttributes, field.TypeOther, value)
 	}
 	if suo.mutation.AttributesCleared() {
 		_spec.ClearField(service.FieldAttributes, field.TypeOther)
+	}
+	if suo.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.TemplateTable,
+			Columns: []string{service.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.Service
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   service.TemplateTable,
+			Columns: []string{service.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(templateversion.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = suo.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if suo.mutation.RevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -24,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
+	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
 	"github.com/seal-io/seal/pkg/dao/model/subjectrolerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/variable"
@@ -42,12 +43,6 @@ type ProjectUpdate struct {
 // Where appends a list predicates to the ProjectUpdate builder.
 func (pu *ProjectUpdate) Where(ps ...predicate.Project) *ProjectUpdate {
 	pu.mutation.Where(ps...)
-	return pu
-}
-
-// SetName sets the "name" field.
-func (pu *ProjectUpdate) SetName(s string) *ProjectUpdate {
-	pu.mutation.SetName(s)
 	return pu
 }
 
@@ -159,6 +154,21 @@ func (pu *ProjectUpdate) AddServices(s ...*Service) *ProjectUpdate {
 		ids[i] = s[i].ID
 	}
 	return pu.AddServiceIDs(ids...)
+}
+
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (pu *ProjectUpdate) AddServiceResourceIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.AddServiceResourceIDs(ids...)
+	return pu
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (pu *ProjectUpdate) AddServiceResources(s ...*ServiceResource) *ProjectUpdate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.AddServiceResourceIDs(ids...)
 }
 
 // AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
@@ -280,6 +290,27 @@ func (pu *ProjectUpdate) RemoveServices(s ...*Service) *ProjectUpdate {
 	return pu.RemoveServiceIDs(ids...)
 }
 
+// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
+func (pu *ProjectUpdate) ClearServiceResources() *ProjectUpdate {
+	pu.mutation.ClearServiceResources()
+	return pu
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
+func (pu *ProjectUpdate) RemoveServiceResourceIDs(ids ...object.ID) *ProjectUpdate {
+	pu.mutation.RemoveServiceResourceIDs(ids...)
+	return pu
+}
+
+// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
+func (pu *ProjectUpdate) RemoveServiceResources(s ...*ServiceResource) *ProjectUpdate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pu.RemoveServiceResourceIDs(ids...)
+}
+
 // ClearServiceRevisions clears all "service_revisions" edges to the ServiceRevision entity.
 func (pu *ProjectUpdate) ClearServiceRevisions() *ProjectUpdate {
 	pu.mutation.ClearServiceRevisions()
@@ -364,16 +395,6 @@ func (pu *ProjectUpdate) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (pu *ProjectUpdate) check() error {
-	if v, ok := pu.mutation.Name(); ok {
-		if err := project.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -407,7 +428,6 @@ func (pu *ProjectUpdate) check() error {
 //	}
 func (pu *ProjectUpdate) Set(obj *Project) *ProjectUpdate {
 	// Without Default.
-	pu.SetName(obj.Name)
 	if obj.Description != "" {
 		pu.SetDescription(obj.Description)
 	} else {
@@ -440,9 +460,6 @@ func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Projec
 }
 
 func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := pu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeString))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -450,9 +467,6 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := pu.mutation.Name(); ok {
-		_spec.SetField(project.FieldName, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Description(); ok {
 		_spec.SetField(project.FieldDescription, field.TypeString, value)
@@ -667,6 +681,54 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ServiceResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !pu.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = pu.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if pu.mutation.ServiceRevisionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -788,12 +850,6 @@ type ProjectUpdateOne struct {
 	object    *Project
 }
 
-// SetName sets the "name" field.
-func (puo *ProjectUpdateOne) SetName(s string) *ProjectUpdateOne {
-	puo.mutation.SetName(s)
-	return puo
-}
-
 // SetDescription sets the "description" field.
 func (puo *ProjectUpdateOne) SetDescription(s string) *ProjectUpdateOne {
 	puo.mutation.SetDescription(s)
@@ -902,6 +958,21 @@ func (puo *ProjectUpdateOne) AddServices(s ...*Service) *ProjectUpdateOne {
 		ids[i] = s[i].ID
 	}
 	return puo.AddServiceIDs(ids...)
+}
+
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by IDs.
+func (puo *ProjectUpdateOne) AddServiceResourceIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.AddServiceResourceIDs(ids...)
+	return puo
+}
+
+// AddServiceResources adds the "service_resources" edges to the ServiceResource entity.
+func (puo *ProjectUpdateOne) AddServiceResources(s ...*ServiceResource) *ProjectUpdateOne {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.AddServiceResourceIDs(ids...)
 }
 
 // AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by IDs.
@@ -1023,6 +1094,27 @@ func (puo *ProjectUpdateOne) RemoveServices(s ...*Service) *ProjectUpdateOne {
 	return puo.RemoveServiceIDs(ids...)
 }
 
+// ClearServiceResources clears all "service_resources" edges to the ServiceResource entity.
+func (puo *ProjectUpdateOne) ClearServiceResources() *ProjectUpdateOne {
+	puo.mutation.ClearServiceResources()
+	return puo
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to ServiceResource entities by IDs.
+func (puo *ProjectUpdateOne) RemoveServiceResourceIDs(ids ...object.ID) *ProjectUpdateOne {
+	puo.mutation.RemoveServiceResourceIDs(ids...)
+	return puo
+}
+
+// RemoveServiceResources removes "service_resources" edges to ServiceResource entities.
+func (puo *ProjectUpdateOne) RemoveServiceResources(s ...*ServiceResource) *ProjectUpdateOne {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return puo.RemoveServiceResourceIDs(ids...)
+}
+
 // ClearServiceRevisions clears all "service_revisions" edges to the ServiceRevision entity.
 func (puo *ProjectUpdateOne) ClearServiceRevisions() *ProjectUpdateOne {
 	puo.mutation.ClearServiceRevisions()
@@ -1120,16 +1212,6 @@ func (puo *ProjectUpdateOne) defaults() error {
 	return nil
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (puo *ProjectUpdateOne) check() error {
-	if v, ok := puo.mutation.Name(); ok {
-		if err := project.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Project.name": %w`, err)}
-		}
-	}
-	return nil
-}
-
 // Set is different from other Set* methods,
 // it sets the value by judging the definition of each field within the entire object.
 //
@@ -1173,9 +1255,6 @@ func (puo *ProjectUpdateOne) Set(obj *Project) *ProjectUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				puo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					puo.SetDescription(obj.Description)
@@ -1245,9 +1324,6 @@ func (puo *ProjectUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 	if obj == nil {
 		obj = puo.object
 	} else if x := puo.object; x != nil {
-		if _, set := puo.mutation.Field(project.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := puo.mutation.Field(project.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -1299,9 +1375,6 @@ func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Pr
 }
 
 func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err error) {
-	if err := puo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeString))
 	id, ok := puo.mutation.ID()
 	if !ok {
@@ -1326,9 +1399,6 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := puo.mutation.Name(); ok {
-		_spec.SetField(project.FieldName, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Description(); ok {
 		_spec.SetField(project.FieldDescription, field.TypeString, value)
@@ -1538,6 +1608,54 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			},
 		}
 		edge.Schema = puo.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ServiceResource
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedServiceResourcesIDs(); len(nodes) > 0 && !puo.mutation.ServiceResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ServiceResource
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.ServiceResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ServiceResourcesTable,
+			Columns: []string{project.ServiceResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(serviceresource.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = puo.schemaConfig.ServiceResource
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

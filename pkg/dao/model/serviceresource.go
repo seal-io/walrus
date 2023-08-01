@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/project"
 	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -64,6 +65,8 @@ type ServiceResource struct {
 
 // ServiceResourceEdges holds the relations/edges for other nodes in the graph.
 type ServiceResourceEdges struct {
+	// Project to which the resource belongs.
+	Project *Project `json:"project,omitempty"`
 	// Service to which the resource belongs.
 	Service *Service `json:"service,omitempty"`
 	// Connector to which the resource deploys.
@@ -80,13 +83,26 @@ type ServiceResourceEdges struct {
 	Dependencies []*ServiceResourceRelationship `json:"dependencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceResourceEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[0] {
+		if e.Project == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ServiceOrErr() (*Service, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.Service == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: service.Label}
@@ -99,7 +115,7 @@ func (e ServiceResourceEdges) ServiceOrErr() (*Service, error) {
 // ConnectorOrErr returns the Connector value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ConnectorOrErr() (*Connector, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Connector == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: connector.Label}
@@ -112,7 +128,7 @@ func (e ServiceResourceEdges) ConnectorOrErr() (*Connector, error) {
 // CompositionOrErr returns the Composition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) CompositionOrErr() (*ServiceResource, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.Composition == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: serviceresource.Label}
@@ -125,7 +141,7 @@ func (e ServiceResourceEdges) CompositionOrErr() (*ServiceResource, error) {
 // ComponentsOrErr returns the Components value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) ComponentsOrErr() ([]*ServiceResource, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Components, nil
 	}
 	return nil, &NotLoadedError{edge: "components"}
@@ -134,7 +150,7 @@ func (e ServiceResourceEdges) ComponentsOrErr() ([]*ServiceResource, error) {
 // ClassOrErr returns the Class value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceResourceEdges) ClassOrErr() (*ServiceResource, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		if e.Class == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: serviceresource.Label}
@@ -147,7 +163,7 @@ func (e ServiceResourceEdges) ClassOrErr() (*ServiceResource, error) {
 // InstancesOrErr returns the Instances value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) InstancesOrErr() ([]*ServiceResource, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Instances, nil
 	}
 	return nil, &NotLoadedError{edge: "instances"}
@@ -156,7 +172,7 @@ func (e ServiceResourceEdges) InstancesOrErr() ([]*ServiceResource, error) {
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ServiceResourceEdges) DependenciesOrErr() ([]*ServiceResourceRelationship, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -289,6 +305,11 @@ func (sr *ServiceResource) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (sr *ServiceResource) Value(name string) (ent.Value, error) {
 	return sr.selectValues.Get(name)
+}
+
+// QueryProject queries the "project" edge of the ServiceResource entity.
+func (sr *ServiceResource) QueryProject() *ProjectQuery {
+	return NewServiceResourceClient(sr.config).QueryProject(sr)
 }
 
 // QueryService queries the "service" edge of the ServiceResource entity.

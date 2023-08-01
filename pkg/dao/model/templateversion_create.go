@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/model/service"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -66,9 +67,9 @@ func (tvc *TemplateVersionCreate) SetTemplateID(o object.ID) *TemplateVersionCre
 	return tvc
 }
 
-// SetTemplateName sets the "template_name" field.
-func (tvc *TemplateVersionCreate) SetTemplateName(s string) *TemplateVersionCreate {
-	tvc.mutation.SetTemplateName(s)
+// SetName sets the "name" field.
+func (tvc *TemplateVersionCreate) SetName(s string) *TemplateVersionCreate {
+	tvc.mutation.SetName(s)
 	return tvc
 }
 
@@ -99,6 +100,21 @@ func (tvc *TemplateVersionCreate) SetID(o object.ID) *TemplateVersionCreate {
 // SetTemplate sets the "template" edge to the Template entity.
 func (tvc *TemplateVersionCreate) SetTemplate(t *Template) *TemplateVersionCreate {
 	return tvc.SetTemplateID(t.ID)
+}
+
+// AddServiceIDs adds the "services" edge to the Service entity by IDs.
+func (tvc *TemplateVersionCreate) AddServiceIDs(ids ...object.ID) *TemplateVersionCreate {
+	tvc.mutation.AddServiceIDs(ids...)
+	return tvc
+}
+
+// AddServices adds the "services" edges to the Service entity.
+func (tvc *TemplateVersionCreate) AddServices(s ...*Service) *TemplateVersionCreate {
+	ids := make([]object.ID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return tvc.AddServiceIDs(ids...)
 }
 
 // Mutation returns the TemplateVersionMutation object of the builder.
@@ -175,12 +191,12 @@ func (tvc *TemplateVersionCreate) check() error {
 			return &ValidationError{Name: "template_id", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.template_id": %w`, err)}
 		}
 	}
-	if _, ok := tvc.mutation.TemplateName(); !ok {
-		return &ValidationError{Name: "template_name", err: errors.New(`model: missing required field "TemplateVersion.template_name"`)}
+	if _, ok := tvc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`model: missing required field "TemplateVersion.name"`)}
 	}
-	if v, ok := tvc.mutation.TemplateName(); ok {
-		if err := templateversion.TemplateNameValidator(v); err != nil {
-			return &ValidationError{Name: "template_name", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.template_name": %w`, err)}
+	if v, ok := tvc.mutation.Name(); ok {
+		if err := templateversion.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "TemplateVersion.name": %w`, err)}
 		}
 	}
 	if _, ok := tvc.mutation.Version(); !ok {
@@ -250,9 +266,9 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_spec.SetField(templateversion.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = &value
 	}
-	if value, ok := tvc.mutation.TemplateName(); ok {
-		_spec.SetField(templateversion.FieldTemplateName, field.TypeString, value)
-		_node.TemplateName = value
+	if value, ok := tvc.mutation.Name(); ok {
+		_spec.SetField(templateversion.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if value, ok := tvc.mutation.Version(); ok {
 		_spec.SetField(templateversion.FieldVersion, field.TypeString, value)
@@ -284,6 +300,23 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 		_node.TemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := tvc.mutation.ServicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   templateversion.ServicesTable,
+			Columns: []string{templateversion.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(service.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = tvc.schemaConfig.Service
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -308,7 +341,7 @@ func (tvc *TemplateVersionCreate) createSpec() (*TemplateVersion, *sqlgraph.Crea
 func (tvc *TemplateVersionCreate) Set(obj *TemplateVersion) *TemplateVersionCreate {
 	// Required.
 	tvc.SetTemplateID(obj.TemplateID)
-	tvc.SetTemplateName(obj.TemplateName)
+	tvc.SetName(obj.Name)
 	tvc.SetVersion(obj.Version)
 	tvc.SetSource(obj.Source)
 	tvc.SetSchema(obj.Schema)
@@ -354,13 +387,24 @@ func (tvc *TemplateVersionCreate) SaveE(ctx context.Context, cbs ...func(ctx con
 	}
 
 	mc := tvc.getClientSet()
+	if tvc.fromUpsert {
+		q := mc.TemplateVersions().Query().
+			Where(
+				templateversion.Name(obj.Name),
+				templateversion.Version(obj.Version),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of TemplateVersion entity: %w", err)
+		}
+	}
 
 	if x := tvc.object; x != nil {
 		if _, set := tvc.mutation.Field(templateversion.FieldTemplateID); set {
 			obj.TemplateID = x.TemplateID
 		}
-		if _, set := tvc.mutation.Field(templateversion.FieldTemplateName); set {
-			obj.TemplateName = x.TemplateName
+		if _, set := tvc.mutation.Field(templateversion.FieldName); set {
+			obj.Name = x.Name
 		}
 		if _, set := tvc.mutation.Field(templateversion.FieldVersion); set {
 			obj.Version = x.Version
@@ -464,14 +508,28 @@ func (tvcb *TemplateVersionCreateBulk) SaveE(ctx context.Context, cbs ...func(ct
 	}
 
 	mc := tvcb.getClientSet()
+	if tvcb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.TemplateVersions().Query().
+				Where(
+					templateversion.Name(obj.Name),
+					templateversion.Version(obj.Version),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of TemplateVersion entity: %w", err)
+			}
+		}
+	}
 
 	if x := tvcb.objects; x != nil {
 		for i := range x {
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldTemplateID); set {
 				objs[i].TemplateID = x[i].TemplateID
 			}
-			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldTemplateName); set {
-				objs[i].TemplateName = x[i].TemplateName
+			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldName); set {
+				objs[i].Name = x[i].Name
 			}
 			if _, set := tvcb.builders[i].mutation.Field(templateversion.FieldVersion); set {
 				objs[i].Version = x[i].Version
@@ -652,8 +710,8 @@ func (u *TemplateVersionUpsertOne) UpdateNewValues() *TemplateVersionUpsertOne {
 		if _, exists := u.create.mutation.TemplateID(); exists {
 			s.SetIgnore(templateversion.FieldTemplateID)
 		}
-		if _, exists := u.create.mutation.TemplateName(); exists {
-			s.SetIgnore(templateversion.FieldTemplateName)
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(templateversion.FieldName)
 		}
 		if _, exists := u.create.mutation.Version(); exists {
 			s.SetIgnore(templateversion.FieldVersion)
@@ -907,8 +965,8 @@ func (u *TemplateVersionUpsertBulk) UpdateNewValues() *TemplateVersionUpsertBulk
 			if _, exists := b.mutation.TemplateID(); exists {
 				s.SetIgnore(templateversion.FieldTemplateID)
 			}
-			if _, exists := b.mutation.TemplateName(); exists {
-				s.SetIgnore(templateversion.FieldTemplateName)
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(templateversion.FieldName)
 			}
 			if _, exists := b.mutation.Version(); exists {
 				s.SetIgnore(templateversion.FieldVersion)

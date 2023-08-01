@@ -51,13 +51,15 @@ type ProjectEdges struct {
 	SubjectRoles []*SubjectRoleRelationship `json:"subject_roles,omitempty"`
 	// Services that belong to the project.
 	Services []*Service `json:"services,omitempty"`
+	// ServiceResources that belong to the project.
+	ServiceResources []*ServiceResource `json:"service_resources,omitempty"`
 	// ServiceRevisions that belong to the project.
 	ServiceRevisions []*ServiceRevision `json:"service_revisions,omitempty"`
 	// Variables that belong to the project.
 	Variables []*Variable `json:"variables,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // EnvironmentsOrErr returns the Environments value or an error if the edge
@@ -96,10 +98,19 @@ func (e ProjectEdges) ServicesOrErr() ([]*Service, error) {
 	return nil, &NotLoadedError{edge: "services"}
 }
 
+// ServiceResourcesOrErr returns the ServiceResources value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) ServiceResourcesOrErr() ([]*ServiceResource, error) {
+	if e.loadedTypes[4] {
+		return e.ServiceResources, nil
+	}
+	return nil, &NotLoadedError{edge: "service_resources"}
+}
+
 // ServiceRevisionsOrErr returns the ServiceRevisions value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.ServiceRevisions, nil
 	}
 	return nil, &NotLoadedError{edge: "service_revisions"}
@@ -108,7 +119,7 @@ func (e ProjectEdges) ServiceRevisionsOrErr() ([]*ServiceRevision, error) {
 // VariablesOrErr returns the Variables value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) VariablesOrErr() ([]*Variable, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Variables, nil
 	}
 	return nil, &NotLoadedError{edge: "variables"}
@@ -221,6 +232,11 @@ func (pr *Project) QuerySubjectRoles() *SubjectRoleRelationshipQuery {
 // QueryServices queries the "services" edge of the Project entity.
 func (pr *Project) QueryServices() *ServiceQuery {
 	return NewProjectClient(pr.config).QueryServices(pr)
+}
+
+// QueryServiceResources queries the "service_resources" edge of the Project entity.
+func (pr *Project) QueryServiceResources() *ServiceResourceQuery {
+	return NewProjectClient(pr.config).QueryServiceResources(pr)
 }
 
 // QueryServiceRevisions queries the "service_revisions" edge of the Project entity.

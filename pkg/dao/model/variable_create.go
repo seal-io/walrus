@@ -75,6 +75,20 @@ func (vc *VariableCreate) SetNillableProjectID(o *object.ID) *VariableCreate {
 	return vc
 }
 
+// SetEnvironmentID sets the "environment_id" field.
+func (vc *VariableCreate) SetEnvironmentID(o object.ID) *VariableCreate {
+	vc.mutation.SetEnvironmentID(o)
+	return vc
+}
+
+// SetNillableEnvironmentID sets the "environment_id" field if the given value is not nil.
+func (vc *VariableCreate) SetNillableEnvironmentID(o *object.ID) *VariableCreate {
+	if o != nil {
+		vc.SetEnvironmentID(*o)
+	}
+	return vc
+}
+
 // SetName sets the "name" field.
 func (vc *VariableCreate) SetName(s string) *VariableCreate {
 	vc.mutation.SetName(s)
@@ -111,20 +125,6 @@ func (vc *VariableCreate) SetDescription(s string) *VariableCreate {
 func (vc *VariableCreate) SetNillableDescription(s *string) *VariableCreate {
 	if s != nil {
 		vc.SetDescription(*s)
-	}
-	return vc
-}
-
-// SetEnvironmentID sets the "environment_id" field.
-func (vc *VariableCreate) SetEnvironmentID(o object.ID) *VariableCreate {
-	vc.mutation.SetEnvironmentID(o)
-	return vc
-}
-
-// SetNillableEnvironmentID sets the "environment_id" field if the given value is not nil.
-func (vc *VariableCreate) SetNillableEnvironmentID(o *object.ID) *VariableCreate {
-	if o != nil {
-		vc.SetEnvironmentID(*o)
 	}
 	return vc
 }
@@ -364,11 +364,11 @@ func (vc *VariableCreate) Set(obj *Variable) *VariableCreate {
 	if obj.ProjectID != "" {
 		vc.SetProjectID(obj.ProjectID)
 	}
-	if obj.Description != "" {
-		vc.SetDescription(obj.Description)
-	}
 	if obj.EnvironmentID != "" {
 		vc.SetEnvironmentID(obj.EnvironmentID)
+	}
+	if obj.Description != "" {
+		vc.SetDescription(obj.Description)
 	}
 
 	// Record the given object.
@@ -429,6 +429,9 @@ func (vc *VariableCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		if _, set := vc.mutation.Field(variable.FieldProjectID); set {
 			obj.ProjectID = x.ProjectID
 		}
+		if _, set := vc.mutation.Field(variable.FieldEnvironmentID); set {
+			obj.EnvironmentID = x.EnvironmentID
+		}
 		if _, set := vc.mutation.Field(variable.FieldName); set {
 			obj.Name = x.Name
 		}
@@ -437,9 +440,6 @@ func (vc *VariableCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Con
 		}
 		if _, set := vc.mutation.Field(variable.FieldDescription); set {
 			obj.Description = x.Description
-		}
-		if _, set := vc.mutation.Field(variable.FieldEnvironmentID); set {
-			obj.EnvironmentID = x.EnvironmentID
 		}
 		obj.Edges = x.Edges
 	}
@@ -566,6 +566,9 @@ func (vcb *VariableCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			if _, set := vcb.builders[i].mutation.Field(variable.FieldProjectID); set {
 				objs[i].ProjectID = x[i].ProjectID
 			}
+			if _, set := vcb.builders[i].mutation.Field(variable.FieldEnvironmentID); set {
+				objs[i].EnvironmentID = x[i].EnvironmentID
+			}
 			if _, set := vcb.builders[i].mutation.Field(variable.FieldName); set {
 				objs[i].Name = x[i].Name
 			}
@@ -574,9 +577,6 @@ func (vcb *VariableCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx contex
 			}
 			if _, set := vcb.builders[i].mutation.Field(variable.FieldDescription); set {
 				objs[i].Description = x[i].Description
-			}
-			if _, set := vcb.builders[i].mutation.Field(variable.FieldEnvironmentID); set {
-				objs[i].EnvironmentID = x[i].EnvironmentID
 			}
 			objs[i].Edges = x[i].Edges
 		}
@@ -781,11 +781,11 @@ func (u *VariableUpsertOne) UpdateNewValues() *VariableUpsertOne {
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(variable.FieldProjectID)
 		}
-		if _, exists := u.create.mutation.Name(); exists {
-			s.SetIgnore(variable.FieldName)
-		}
 		if _, exists := u.create.mutation.EnvironmentID(); exists {
 			s.SetIgnore(variable.FieldEnvironmentID)
+		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(variable.FieldName)
 		}
 	}))
 	return u
@@ -1068,11 +1068,11 @@ func (u *VariableUpsertBulk) UpdateNewValues() *VariableUpsertBulk {
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(variable.FieldProjectID)
 			}
-			if _, exists := b.mutation.Name(); exists {
-				s.SetIgnore(variable.FieldName)
-			}
 			if _, exists := b.mutation.EnvironmentID(); exists {
 				s.SetIgnore(variable.FieldEnvironmentID)
+			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(variable.FieldName)
 			}
 		}
 	}))

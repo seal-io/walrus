@@ -1773,6 +1773,25 @@ func (c *ProjectClient) QueryServices(pr *Project) *ServiceQuery {
 	return query
 }
 
+// QueryServiceResources queries the service_resources edge of a Project.
+func (c *ProjectClient) QueryServiceResources(pr *Project) *ServiceResourceQuery {
+	query := (&ServiceResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(serviceresource.Table, serviceresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ServiceResourcesTable, project.ServiceResourcesColumn),
+		)
+		schemaConfig := pr.schemaConfig
+		step.To.Schema = schemaConfig.ServiceResource
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryServiceRevisions queries the service_revisions edge of a Project.
 func (c *ProjectClient) QueryServiceRevisions(pr *Project) *ServiceRevisionQuery {
 	query := (&ServiceRevisionClient{config: c.config}).Query()
@@ -1819,7 +1838,8 @@ func (c *ProjectClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *ProjectClient) Interceptors() []Interceptor {
-	return c.inters.Project
+	inters := c.inters.Project
+	return append(inters[:len(inters):len(inters)], project.Interceptors[:]...)
 }
 
 func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, error) {
@@ -2099,6 +2119,25 @@ func (c *ServiceClient) QueryEnvironment(s *Service) *EnvironmentQuery {
 		)
 		schemaConfig := s.schemaConfig
 		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Service
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplate queries the template edge of a Service.
+func (c *ServiceClient) QueryTemplate(s *Service) *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, id),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, service.TemplateTable, service.TemplateColumn),
+		)
+		schemaConfig := s.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.Service
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -2438,6 +2477,25 @@ func (c *ServiceResourceClient) GetX(ctx context.Context, id object.ID) *Service
 		panic(err)
 	}
 	return obj
+}
+
+// QueryProject queries the project edge of a ServiceResource.
+func (c *ServiceResourceClient) QueryProject(sr *ServiceResource) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceresource.Table, serviceresource.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceresource.ProjectTable, serviceresource.ProjectColumn),
+		)
+		schemaConfig := sr.schemaConfig
+		step.To.Schema = schemaConfig.Project
+		step.Edge.Schema = schemaConfig.ServiceResource
+		fromV = sqlgraph.Neighbors(sr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryService queries the service edge of a ServiceResource.
@@ -3656,6 +3714,25 @@ func (c *TemplateVersionClient) QueryTemplate(tv *TemplateVersion) *TemplateQuer
 	return query
 }
 
+// QueryServices queries the services edge of a TemplateVersion.
+func (c *TemplateVersionClient) QueryServices(tv *TemplateVersion) *ServiceQuery {
+	query := (&ServiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(templateversion.Table, templateversion.FieldID, id),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, templateversion.ServicesTable, templateversion.ServicesColumn),
+		)
+		schemaConfig := tv.schemaConfig
+		step.To.Schema = schemaConfig.Service
+		step.Edge.Schema = schemaConfig.Service
+		fromV = sqlgraph.Neighbors(tv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TemplateVersionClient) Hooks() []Hook {
 	hooks := c.hooks.TemplateVersion
@@ -3960,8 +4037,7 @@ func (c *VariableClient) Hooks() []Hook {
 
 // Interceptors returns the client interceptors.
 func (c *VariableClient) Interceptors() []Interceptor {
-	inters := c.inters.Variable
-	return append(inters[:len(inters):len(inters)], variable.Interceptors[:]...)
+	return c.inters.Variable
 }
 
 func (c *VariableClient) mutate(ctx context.Context, m *VariableMutation) (Value, error) {

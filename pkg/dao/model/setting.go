@@ -40,6 +40,10 @@ type Setting struct {
 	// Indicate the system setting should be exposed or not, default is exposed.
 	Private      *bool `json:"private,omitempty"`
 	selectValues sql.SelectValues
+
+	// Configured indicates the setting whether to be configured.
+	// Configured does not store in the database.
+	Configured bool `json:"configured,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
