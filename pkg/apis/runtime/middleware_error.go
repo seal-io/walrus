@@ -13,37 +13,31 @@ import (
 	"github.com/seal-io/seal/utils/log"
 )
 
-// Erroring is a gin middleware,
+// erroring is a gin middleware,
 // which converts the chain calling error into response.
-func Erroring() Handle {
-	logger := log.WithName("api")
+func erroring(c *gin.Context) {
+	c.Next()
 
-	return func(c *gin.Context) {
-		c.Next()
-
-		if len(c.Errors) == 0 {
-			if c.Writer.Status() >= 400 && c.Writer.Written() && c.Writer.Size() == 0 {
-				_ = c.Error(Errorc(c.Writer.Status())).
-					SetType(gin.ErrorTypePublic)
-			} else {
-				return
-			}
-		}
-
-		// Log private errors.
-		if me := c.Errors.ByType(gin.ErrorTypePrivate); len(me) != 0 {
-			reqPath := c.Request.URL.Path
-			if raw := c.Request.URL.RawQuery; raw != "" {
-				reqPath = reqPath + "?" + raw
-			}
-
-			logger.Errorf("error requesting %s: %v", reqPath, me[len(me)-1])
-		}
-
-		// Get last error from chain and parse into response.
-		he := getHttpError(c)
-		c.AbortWithStatusJSON(he.code, he) // TODO negotiate.
+	if len(c.Errors) == 0 || c.Writer.Written() {
+		return
 	}
+
+	// Log private errors.
+	if me := c.Errors.ByType(gin.ErrorTypePrivate); len(me) != 0 {
+		reqMethod := c.Request.Method
+
+		reqPath := c.Request.URL.Path
+		if raw := c.Request.URL.RawQuery; raw != "" {
+			reqPath = reqPath + "?" + raw
+		}
+
+		log.WithName("api").
+			Errorf("error requesting %s %s: %v", reqMethod, reqPath, me[len(me)-1])
+	}
+
+	// Get last error from chain and parse into response.
+	he := getHttpError(c)
+	c.AbortWithStatusJSON(he.code, he)
 }
 
 func getHttpError(c *gin.Context) (he httpError) {
@@ -84,9 +78,10 @@ func diagnoseError(ge *gin.Error) (int, string) {
 	var b strings.Builder
 
 	if ge.Meta != nil {
-		m, ok := ge.Meta.(RouteResourceHandleErrorMetadata)
+		m, ok := ge.Meta.(string)
 		if ok {
-			b.WriteString(m.String())
+			b.WriteString("failed to ")
+			b.WriteString(m)
 		}
 	}
 

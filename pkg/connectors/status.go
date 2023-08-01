@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/seal-io/seal/pkg/costs/deployer"
 	"github.com/seal-io/seal/pkg/costs/syncer"
 	"github.com/seal-io/seal/pkg/dao/model"
@@ -14,7 +16,6 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/status"
 	"github.com/seal-io/seal/pkg/operator"
 	optypes "github.com/seal-io/seal/pkg/operator/types"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 type StatusSyncer struct {
@@ -154,7 +155,7 @@ func (in *StatusSyncer) syncFinOpsData(ctx context.Context, conn model.Connector
 }
 
 func (in *StatusSyncer) checkReachable(ctx context.Context, conn model.Connector) (bool, error) {
-	if !slice.ContainsAny(
+	if !slices.Contains(
 		[]string{
 			types.ConnectorCategoryCloudProvider,
 			types.ConnectorCategoryKubernetes,

@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	costvalidation "github.com/seal-io/seal/pkg/apis/cost/validation"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/validation"
 )
 
@@ -64,9 +65,9 @@ func (r *CostReportRequest) Validate() error {
 
 func (r *CostReportRequest) validateTimeRange() error {
 	switch {
-	case slice.ContainsAny([]types.GroupByField{types.GroupByFieldDay, types.GroupByFieldWeek}, r.GroupBy):
+	case slices.Contains([]types.GroupByField{types.GroupByFieldDay, types.GroupByFieldWeek}, r.GroupBy):
 		return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
-	case slice.ContainsAny([]types.Step{types.StepDay, types.StepWeek}, r.Step):
+	case slices.Contains([]types.Step{types.StepDay, types.StepWeek}, r.Step):
 		return validation.TimeRangeWithinYear(r.StartTime, r.EndTime)
 	case r.GroupBy == types.GroupByFieldMonth:
 		return validation.TimeRangeWithinDecade(r.StartTime, r.EndTime)

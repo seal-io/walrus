@@ -1,6 +1,6 @@
 package types
 
-import "github.com/seal-io/seal/utils/slice"
+import "golang.org/x/exp/slices"
 
 const (
 	SubjectKindUser  = "user"
@@ -13,7 +13,7 @@ var SubjectKinds = []string{
 }
 
 func IsSubjectKind(s string) bool {
-	return slice.ContainsAny(SubjectKinds, s)
+	return slices.Contains(SubjectKinds, s)
 }
 
 const SubjectDomainBuiltin = "builtin"

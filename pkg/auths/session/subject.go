@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 type Role struct {
@@ -221,7 +221,7 @@ func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
 	// Check actions.
 	switch len(p.Actions) {
 	default:
-		if !slice.ContainsAny(p.Actions, act) {
+		if !slices.Contains(p.Actions, act) {
 			// Unexpected action.
 			return false
 		}
@@ -238,7 +238,7 @@ func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
 	// Check resources.
 	switch len(p.Resources) {
 	default:
-		if !slice.ContainsAny(p.Resources, res) {
+		if !slices.Contains(p.Resources, res) {
 			// Unexpected resource.
 			return false
 		}
@@ -253,13 +253,13 @@ func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
 		// Check resource ids.
 		switch len(p.ObjectIDs) {
 		default:
-			if !slice.ContainsAny(p.ObjectIDs, rid) {
+			if !slices.Contains(p.ObjectIDs, rid) {
 				// Unexpected resource id.
 				return false
 			}
 		case 1:
 			if p.ObjectIDs[0] == "*" {
-				if slice.ContainsAny(p.ObjectIDExcludes, rid) {
+				if slices.Contains(p.ObjectIDExcludes, rid) {
 					// Excluded resource id.
 					return false
 				}
@@ -275,5 +275,5 @@ func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
 	}
 
 	// Check none resource urls.
-	return slice.ContainsAny(p.Paths, path)
+	return slices.Contains(p.Paths, path)
 }

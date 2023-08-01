@@ -1,8 +1,9 @@
 package cron
 
 import (
+	"golang.org/x/exp/slices"
+
 	"github.com/seal-io/seal/utils/cron"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 type (
@@ -32,7 +33,7 @@ func CurrentJobs() map[string]cron.Job {
 
 	for n := range js {
 		for _, j := range rj {
-			if slice.ContainsAny(j.Tags(), n) {
+			if slices.Contains(j.Tags(), n) {
 				cj[n] = j
 			}
 		}

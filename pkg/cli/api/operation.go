@@ -12,12 +12,12 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/cli/config"
 	"github.com/seal-io/seal/pkg/cli/formatter"
 	"github.com/seal-io/seal/utils/json"
 	"github.com/seal-io/seal/utils/log"
-	"github.com/seal-io/seal/utils/slice"
 )
 
 // Operation represents an API action, e.g. list-things or create-user.
@@ -218,7 +218,7 @@ func (o Operation) Request(
 
 func (o Operation) format(sc *config.Config) string {
 	if len(o.Formats) != 0 {
-		if slice.ContainsAny(o.Formats, sc.Format) {
+		if slices.Contains(o.Formats, sc.Format) {
 			return sc.Format
 		}
 

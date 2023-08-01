@@ -9,13 +9,13 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/enttest"
 	_ "github.com/seal-io/seal/pkg/dao/model/runtime"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
-	"github.com/seal-io/seal/utils/slice"
 	"github.com/seal-io/seal/utils/timex"
 )
 
@@ -686,7 +686,7 @@ func testAc(name string, startTime time.Time, totalCost float64, conn *model.Con
 		RAMByteUsageMax:     300,
 	}
 
-	if slice.ContainsAny(
+	if slices.Contains(
 		[]string{
 			types.IdleCostItemName,
 			types.ManagementCostItemName,

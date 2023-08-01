@@ -50,9 +50,12 @@ func If(match func(*gin.Context) bool, then Handle) Handle {
 	}
 
 	return func(c *gin.Context) {
-		if match(c) {
-			then(c)
+		if !match(c) {
+			c.Next()
+			return
 		}
+
+		then(c)
 	}
 }
 
