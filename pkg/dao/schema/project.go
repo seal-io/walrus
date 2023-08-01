@@ -3,10 +3,12 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 )
 
@@ -53,6 +55,12 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.NoAction),
 				entx.SkipIO()),
+		// Project 1-* ServiceResources.
+		edge.To("service_resources", ServiceResource.Type).
+			Comment("ServiceResources that belong to the project.").
+			Annotations(
+				entsql.OnDelete(entsql.NoAction),
+				entx.SkipIO()),
 		// Project 1-* ServiceRevisions.
 		edge.To("service_revisions", ServiceRevision.Type).
 			Comment("ServiceRevisions that belong to the project.").
@@ -65,5 +73,17 @@ func (Project) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
+	}
+}
+
+func (Project) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entx.ValidateContext(intercept.WithProjectInterceptor),
+	}
+}
+
+func (Project) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("id"),
 	}
 }

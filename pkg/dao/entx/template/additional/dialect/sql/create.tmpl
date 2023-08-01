@@ -90,7 +90,7 @@ func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ct
             {{- range $f := $indexFields }}
                 {{- if not $f.Optional }}
                     {{- $fn := $f.StructField }}
-                    {{ $util }}.{{ $fn }}(obj.{{ $fn }}),
+                    {{ $util }}.{{ $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }}),
                 {{- end }}
             {{- end }}
             )
@@ -98,7 +98,7 @@ func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ct
             {{- if $f.Optional }}
                 {{- $fn := $f.StructField }}
                 if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
-                    q.Where({{ $util }}.{{ $fn }}(obj.{{ $fn }}))
+                    q.Where({{ $util }}.{{ $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }}))
                 } else {
                     q.Where({{ $util }}.{{ $fn }}IsNil())
                 }
@@ -232,7 +232,7 @@ func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ct
                 {{- range $f := $indexFields }}
                     {{- if not $f.Optional }}
                         {{- $fn := $f.StructField }}
-                        {{ $util }}.{{ $fn }}(obj.{{ $fn }}),
+                        {{ $util }}.{{ $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }}),
                     {{- end }}
                 {{- end }}
                 )
@@ -240,7 +240,7 @@ func ({{ $receiver }} *{{ $builder }}) SaveE(ctx context.Context, cbs ...func(ct
                 {{- if $f.Optional }}
                     {{- $fn := $f.StructField }}
                     if {{ xtemplate "helper/introspection/is-not-zero" $f }} {
-                        q.Where({{ $util }}.{{ $fn }}(obj.{{ $fn }}))
+                        q.Where({{ $util }}.{{ $fn }}({{ if $f.NillableValue }}*{{ end }}obj.{{ $fn }}))
                     } else {
                         q.Where({{ $util }}.{{ $fn }}IsNil())
                     }

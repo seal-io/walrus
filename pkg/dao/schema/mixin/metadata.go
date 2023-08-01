@@ -49,7 +49,8 @@ func (i metadata) Fields() []ent.Field {
 		object.IDField("id").
 			Immutable(),
 		field.String("name").
-			NotEmpty(),
+			NotEmpty().
+			Immutable(),
 	}
 
 	if !i.withoutDescription {

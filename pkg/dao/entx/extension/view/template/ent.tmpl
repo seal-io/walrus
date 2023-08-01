@@ -28,23 +28,27 @@
 {{ $singular := printf "%sCreateInput" $.Name }}
 {{ $receiver := receiver $singular }}
 
-// {{ $singular }} holds the creation input of the {{ $.Name }} entity.
+// {{ $singular }} holds the creation input of the {{ $.Name }} entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $singular }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
+        // {{ $en }} indicates to create {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"-"`
     {{- end }}
 
     {{ range $f := $input.Fields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }}{{ if or $f.Optional $f.Default }},omitempty{{ end }}"`
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" {{ getStructTag $f "json" "Create" }}`
     {{- end }}
 
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
-        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" json:"{{ camel $en }},omitempty"`
+        // {{ $en }} specifies full inserting the new {{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }} {{ if not $e.Unique }}entities{{ else }}entity{{ end }} of the {{ $.Name }} entity.
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" {{ getStructTag $e "json" "Create" }}`
     {{- end }}
 }
 
@@ -67,9 +71,10 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
     {{ range $f := $input.PrerequisiteFields }}
         {{- $fn := $f.StructField }}
         {{- $e := $f.Edge }}
+        {{- $ef := $e.Field }}
         {{- $en := pascal (singular $e.Name) }}
         if {{ $receiver }}.{{ $en }} != nil {
-            {{ $modelReceiver }}.{{ $fn }} = {{ $receiver }}.{{ $en }}.ID
+            {{ $modelReceiver }}.{{ $fn }} = {{ if and $ef $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
         }
     {{- end }}
 
@@ -84,10 +89,10 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
                     {{ $receiver }}.{{ $en }}[j].Model())
             }
         {{- else }}
-		    {{- $ef := $e.Field }}
+            {{- $ef := $e.Field }}
             if {{ $receiver }}.{{ $en }} != nil {
             {{- if $ef }}
-                {{ $modelReceiver }}.{{ $ef.StructField }} = {{ $receiver }}.{{ $en }}.ID
+                {{ $modelReceiver }}.{{ $ef.StructField }} = {{ if $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
             {{- else }}
                 {{ $modelReceiver }}.Edges.{{ $en }} = {{ $receiver }}.{{ $en }}.Model()
             {{- end }}
@@ -97,19 +102,17 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
     return {{ $modelReceiver }}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $singular }}) Load() error {
+// Validate checks the {{ $singular }} entity.
+func ({{ $receiver }} *{{ $singular }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $singular }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $singular }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
@@ -118,35 +121,56 @@ func ({{ $receiver }} *{{ $singular }}) LoadWith(ctx context.Context, cs ClientS
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
+        {{- $f := $e.Field }}
+        // Validate when creating under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
             }
         }
     {{- end }}
 
     {{ range $e := $input.AdditionalEdges }}
-        {{- $en := $e.StructField }}
+        {{ $en := $e.StructField }}
         {{- if not $e.Unique }}
             for i := range {{ $receiver }}.{{ $en }} {
                 if {{ $receiver }}.{{ $en }}[i] == nil {
                     continue
                 }
-                err = {{ $receiver }}.{{ $en }}[i].LoadWith(ctx, cs)
-                if err != nil {
-                    return err
+                
+                if err := {{ $receiver }}.{{ $en }}[i].ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }}[i] = nil
+                    }
                 }
             }
         {{- else }}
             if {{ $receiver }}.{{ $en }} != nil {
-                err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-                if err != nil {
-                    return err
+                if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
                 }
             }
         {{- end }}
     {{- end }}
+
     return nil
 }
 
@@ -155,27 +179,70 @@ func ({{ $receiver }} *{{ $singular }}) LoadWith(ctx context.Context, cs ClientS
 
 // {{ $plural }} holds the creation input item of the {{ $.Name }} entities.
 type {{ $plural }}Item struct {
-    {{ range $f := $input.Fields }}
+    {{- range $f := $input.Fields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }}{{ if or $f.Optional $f.Default }},omitempty{{ end }}"`
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" {{ getStructTag $f "json" "Create" }}`
     {{- end }}
 
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
-        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" json:"{{ camel $en }},omitempty"`
+        // {{ $en }} specifies full inserting the new {{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }} {{ if not $e.Unique }}entities{{ else }}entity{{ end }}.
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" {{ getStructTag $e "json" "Create" }}`
     {{- end }}
 }
 
-// {{ $plural }} holds the creation input of the {{ $.Name }} entities.
+// ValidateWith checks the {{ $plural }}Item entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}Item) ValidateWith(ctx context.Context, cs ClientSet) error {
+    if {{ $receiver }} == nil {
+        return errors.New("nil receiver")
+    }
+
+    {{ range $e := $input.AdditionalEdges }}
+        {{ $en := $e.StructField }}
+        {{- if not $e.Unique }}
+            for i := range {{ $receiver }}.{{ $en }} {
+                if {{ $receiver }}.{{ $en }}[i] == nil {
+                    continue
+                }
+                
+                if err := {{ $receiver }}.{{ $en }}[i].ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }}[i] = nil
+                    }
+                }
+            }
+        {{- else }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                }
+            }
+        {{- end }}
+    {{- end }}
+
+    return nil
+}
+
+// {{ $plural }} holds the creation input of the {{ $.Name }} entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $plural }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
+        // {{ $en }} indicates to create {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"-"`
     {{- end }}
 
-    Items []*{{ $plural }}Item `uri:"-" query:"-" json:"items"`
+    // Items holds the entities to create, which MUST not be empty.
+    Items []*{{ $plural }}Item `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the {{ $.Name }} entities for creating,
@@ -200,9 +267,10 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
         {{ range $f := $input.PrerequisiteFields }}
             {{- $fn := $f.StructField }}
             {{- $e := $f.Edge }}
+            {{- $ef := $e.Field }}
             {{- $en := pascal (singular $e.Name) }}
             if {{ $receiver }}.{{ $en }} != nil {
-                {{ $modelReceiver }}.{{ $fn }} = {{ $receiver }}.{{ $en }}.ID
+                {{ $modelReceiver }}.{{ $fn }} = {{ if and $ef $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
             }
         {{- end }}
 
@@ -217,10 +285,10 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
                         {{ $receiver }}.Items[i].{{ $en }}[j].Model())
                 }
             {{- else }}
-			    {{- $ef := $e.Field }}
+                {{- $ef := $e.Field }}
                 if {{ $receiver }}.Items[i].{{ $en }} != nil {
                 {{- if $ef }}
-                    {{ $modelReceiver }}.{{ $ef.StructField }} = {{ $receiver }}.Items[i].{{ $en }}.ID
+                    {{ $modelReceiver }}.{{ $ef.StructField }} = {{ if $ef.NillableValue }}&{{ end }}{{ $receiver }}.Items[i].{{ $en }}.ID
                 {{- else }}
                     {{ $modelReceiver }}.Edges.{{ $en }} = {{ $receiver }}.Items[i].{{ $en }}.Model()
                 {{- end }}
@@ -234,19 +302,17 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
     return {{ $modelsReceiver }}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) Load() error {
+// Validate checks the {{ $plural }} entity .
+func ({{ $receiver }} *{{ $plural }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $plural }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
@@ -257,13 +323,28 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
+        // Validate when creating under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                if !IsBlankResourceReferError(err) {
+                    return err
+                } else {
+                    {{ $receiver }}.{{ $en }} = nil
+                }
             }
         }
     {{- end }}
+
+    for i := range {{ $receiver }}.Items {
+        if {{ $receiver }}.Items[i] == nil {
+            continue
+        }
+
+        if err := {{ $receiver }}.Items[i].ValidateWith(ctx, cs); err != nil {
+            return err
+        }
+    }
+
     return nil
 }
 
@@ -278,7 +359,8 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 
 {{ $singular := printf "%sDeleteInput" $.Name }}
 
-// {{ $singular }} holds the deletion input of the {{ $.Name }} entity.
+// {{ $singular }} holds the deletion input of the {{ $.Name }} entity,
+// please tags with `path:",inline"` if embedding.
 type {{ $singular }} = {{ printf "%sQueryInput" $.Name }}
 
 {{ $plural := plural $singular }}
@@ -286,23 +368,28 @@ type {{ $singular }} = {{ printf "%sQueryInput" $.Name }}
 
 // {{ $plural }} holds the deletion input item of the {{ $.Name }} entities.
 type {{ $plural }}Item struct {
-    ID {{ $.ID.Type }} `uri:"-" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"`
+    // ID of the {{ $.Name }} entity{{ if ne (len $input.IndexFields) 0 }}, tries to retrieve the entity with the following unique index parts if no ID provided{{ end }}.
+    ID {{ $.ID.Type }} `path:"-" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"`
     {{- range $f := $input.IndexFields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+        // {{ $fn }} of the {{ $.Name }} entity, a part of the unique index.
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" json:"{{ camel $fn }},omitempty"`
     {{- end }}
 }
 
-// {{ $plural }} holds the deletion input of the {{ $.Name }} entities.
+// {{ $plural }} holds the deletion input of the {{ $.Name }} entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $plural }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
+        // {{ $en }} indicates to delete {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"-"`
     {{- end }}
 
-    Items []*{{ $plural }}Item `uri:"-" query:"-" json:"items"`
+    // Items holds the entities to create, which MUST not be empty.
+    Items []*{{ $plural }}Item `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the {{ $.Name }} entities for deleting,
@@ -323,19 +410,31 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
     return {{ $modelsReceiver }}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) Load() error {
+// IDs returns the ID list of the {{ $.Name }} entities for deleting,
+// after validating.
+func ({{ $receiver }} *{{ $plural }}) IDs() []{{ $.ID.Type }} {
+    if {{ $receiver }} == nil || len({{ $receiver }}.Items) == 0 {
+        return nil
+    }
+
+    ids := make([]{{ $.ID.Type }}, len({{ $receiver }}.Items))
+    for i := range {{ $receiver }}.Items {
+        ids[i] = {{ $receiver }}.Items[i].ID
+    }
+    return ids
+}
+
+// Validate checks the {{ $plural }} entity.
+func ({{ $receiver }} *{{ $plural }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $plural }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
@@ -351,21 +450,52 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
         {{- $f := $e.Field }}
+        // Validate when deleting under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                        {{- if $f }}
+                            q.Where(
+                                {{ $util }}.{{ $f.StructField }}IsNil())
+                        {{- else }}
+                            q.Where(
+                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                        {{- end }}
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
+            } else {
+                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if and $f (not $e.M2M) }}
+                    q.Where(
+                        {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
+                {{- else if and (not $f) (not $e.M2M) }}
+                    q.Where(
+                        predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                {{- else }}
+                    q.Where(
+                        {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                {{- end }}
             }
-            {{- if and $f (not $e.M2M) }}
+        {{- if $optional }}
+        } else {
+            {{- if $f }}
                 q.Where(
-                    {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
-            {{- else if and (not $f) (not $e.M2M) }}
-                q.Where(
-                    predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                    {{ $util }}.{{ $f.StructField }}IsNil())
             {{- else }}
                 q.Where(
-                    {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
             {{- end }}
+        {{- end }}
         }
     {{ end }}
 
@@ -418,27 +548,43 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
         }
     }
 
-    idsLen := len(ids)
+    {{ $ants := extractAnnotation $ }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
 
-    {{- if gt (len $input.IndexFields) 0 }}
-    if idsLen != cap(ids) {
-        ids, err = q.Where({{ $util }}.Or(ors...)).
-            IDs(ctx)
-        if err != nil {
-            return err
-        }
-
-        if len(ids) != idsLen {
-            return errors.New("found unrecognized item")
-        }
-
-        for i := range ids {
-            {{ $receiver }}.Items[i].ID = ids[i]
-        }
-
-        return nil
+    {{ if gt (len $input.IndexFields) 0 }}
+    p := {{ $util }}.IDIn(ids...)
+    if len(ids) != cap(ids) {
+        p = {{ $util }}.Or(ors...)
     }
-    {{- end }}
+
+    es, err := q.
+        Where(p).
+        Select(
+            {{ $util }}.FieldID,
+            {{- range $idx, $f := $input.IndexFields }}
+                {{- $fn := $f.StructField }}
+                {{ $util }}.Field{{ $fn }},
+            {{- end }}
+        ).
+        All(ctx)
+    if err != nil {
+        return err
+    }
+
+    if len(es) != cap(ids) {
+        return errors.New("found unrecognized item")
+    }
+
+    for i := range es {
+        {{ $receiver }}.Items[i].ID = es[i].ID
+        {{- range $idx, $f := $input.IndexFields }}
+            {{- $fn := $f.StructField }}
+            {{ $receiver }}.Items[i].{{ $fn }} = es[i].{{ $fn }}
+        {{- end }}
+    }
+    {{- else }}
+    if len(ids) != cap(ids) {
+        return errors.New("found unrecognized item")
+    }
 
     idsCnt, err := q.Where({{ $util }}.IDIn(ids...)).
         Count(ctx)
@@ -446,9 +592,10 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
         return err
     }
 
-    if idsCnt != idsLen {
+    if idsCnt != cap(ids) {
         return errors.New("found unrecognized item")
     }
+    {{- end }}
 
     return nil
 }
@@ -465,25 +612,26 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 {{ $singular := printf "%sQueryInput" $.Name }}
 {{ $receiver := receiver $singular }}
 
-// {{ $singular }} holds the query input of the {{ $.Name }} entity.
+// {{ $singular }} holds the query input of the {{ $.Name }} entity, 
+// please tags with `path:",inline"` if embedding.
 type {{ $singular }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ if $e.Optional }}{{ camel $en }},omitempty{{ else }}-{{ end }}"`
+        // {{ $en }} indicates to query {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
     {{- end }}
 
-    Refer *object.Refer `uri:"{{ lower $.Name }},default=\"\"" query:"-" json:"-"`
-    ID {{ $.ID.Type }} `uri:"id" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+    // Refer holds the route path reference of the {{ $.Name }} entity.
+    Refer *object.Refer `path:"{{ lower $.Name }},default=" query:"-" json:"-"`
+    // ID of the {{ $.Name }} entity{{ if ne (len $input.IndexFields) 0 }}, tries to retrieve the entity with the following unique index parts if no ID provided{{ end }}.
+    ID {{ $.ID.Type }} `path:"-" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"`
     {{- range $f := $input.IndexFields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+        // {{ $fn }} of the {{ $.Name }} entity, a part of the unique index.
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" json:"{{ camel $fn }},omitempty"`
     {{- end }}
-	{{ range $f := $input.Fields -}}
-        {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"{{ camel $fn }},omitempty" json:"-"`
-	{{- end -}}
 }
 
 // Model returns the {{ $.Name }} entity for querying,
@@ -495,66 +643,85 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
 
     return &{{ $.Name }}{
         ID: {{ $receiver }}.ID,
+        {{- range $f := $input.IndexFields }}
+            {{- $fn := $f.StructField }}
+            {{ $fn }}: {{ $receiver }}.{{ $fn }},
+        {{- end }}
     }
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $singular }}) Load() error {
+// Validate checks the {{ $singular }} entity.
+func ({{ $receiver }} *{{ $singular }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $singular }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $singular }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
-    }
-
-    if {{ $receiver }}.Refer != nil && *{{ $receiver }}.Refer == "" {
-        return nil
     }
 
     {{ $util := lower $.Name -}}
+
+    if {{ $receiver }}.Refer != nil && *{{ $receiver }}.Refer == "" {
+        return fmt.Errorf("model: %s : %w", {{ $util }}.Label, ErrBlankResourceRefer)
+    }
 
     q := cs.{{ plural $.Name }}().Query()
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
         {{- $f := $e.Field }}
+        // Validate when querying under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                        {{- if $f }}
+                            q.Where(
+                                {{ $util }}.{{ $f.StructField }}IsNil())
+                        {{- else }}
+                            q.Where(
+                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                        {{- end }}
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
+            } else {
+                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if and $f (not $e.M2M) }}
+                    q.Where(
+                        {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
+                {{- else if and (not $f) (not $e.M2M) }}
+                    q.Where(
+                        predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                {{- else }}
+                    q.Where(
+                        {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                {{- end }}
             }
-            {{- if and $f (not $e.M2M) }}
+        {{- if $optional }}
+        } else {
+            {{- if $f }}
                 q.Where(
-                    {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
-            {{- else if and (not $f) (not $e.M2M) }}
-                q.Where(
-                    predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                    {{ $util }}.{{ $f.StructField }}IsNil())
             {{- else }}
                 q.Where(
-                    {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
-            {{- end }}
-        {{- $optional := $e.Optional }}
-        {{- if $e.Through }}
-		    {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
-        {{- end }}
-        {{- if $optional }}
-		} else {
-			{{- if $f }}
-			    q.Where(
-                    {{ $util }}.{{ $f.StructField }}IsNil())
-			{{- else }}
-                q.Where(
                     predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
-			{{- end }}
-		{{- end }}
+            {{- end }}
+        {{- end }}
         }
     {{ end }}
 
@@ -634,55 +801,90 @@ func ({{ $receiver }} *{{ $singular }}) LoadWith(ctx context.Context, cs ClientS
         return errors.New("invalid identify of {{ lower $.Name }}")
     }
 
+    {{ $ants := extractAnnotation $ }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+
+    {{ if gt (len $input.IndexFields) 0 }}
+    e, err := q.
+        Select(
+            {{ $util }}.FieldID,
+            {{- range $idx, $f := $input.IndexFields }}
+                {{- $fn := $f.StructField }}
+                {{ $util }}.Field{{ $fn }},
+            {{- end }}
+        ).
+        Only(ctx)
+    if err == nil {
+        {{ $receiver }}.ID = e.ID
+        {{- range $idx, $f := $input.IndexFields }}
+            {{- $fn := $f.StructField }}
+            {{ $receiver }}.{{ $fn }} = e.{{ $fn }}
+        {{- end }}
+    }
+    {{- else }}
+    var err error
     {{ $receiver }}.ID, err = q.OnlyID(ctx)
+    {{- end }}
     return err
 }
 
 {{ $plural := plural $singular }}
 {{ $receiver = receiver $plural }}
 
-// {{ $plural }} holds the query input of the {{ $.Name }} entities.
+// {{ $plural }} holds the query input of the {{ $.Name }} entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type {{ $plural }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
+        // {{ $en }} indicates to query {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"-"`
     {{- end }}
 
     {{ range $f := $input.Fields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"{{ camel $fn }},omitempty" json:"-"`
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"{{ camel $fn }},omitempty" json:"-"`
     {{- end }}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) Load() error {
+// Validate checks the {{ $plural }} entity.
+func ({{ $receiver }} *{{ $plural }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $plural }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
+        // Validate when querying under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
             }
         }
     {{ end }}
-    return err
+    return nil
 }
 
 {{ end }}
@@ -697,18 +899,21 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 {{ $singular := printf "%sUpdateInput" $.Name }}
 {{ $receiver := receiver $singular }}
 
-// {{ $singular }} holds the modification input of the {{ $.Name }} entity.
+// {{ $singular }} holds the modification input of the {{ $.Name }} entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $singular }} struct {
-    {{ printf "%sQueryInput" $.Name }} `uri:",inline" query:"-" json:",inline"`
+    {{ printf "%sQueryInput" $.Name }} `path:",inline" query:"-" json:"-"`
 
     {{ range $f := $input.Fields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" json:"{{ camel $fn }},omitempty"`
     {{- end }}
 
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
-        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}UpdateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" json:"{{ camel $en }},omitempty"`
+        // {{ $en }} indicates replacing the stale {{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }} {{ if not $e.Unique }}entities{{ else }}entity{{ end }}.
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" {{ getStructTag $e "json" "Update" }}`
     {{- end }}
 }
 
@@ -749,10 +954,10 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
                     {{ $receiver }}.{{ $en }}[j].Model())
             }
         {{- else }}
-		    {{- $ef := $e.Field }}
+            {{- $ef := $e.Field }}
             if {{ $receiver }}.{{ $en }} != nil {
             {{- if $ef }}
-                {{ $modelReceiver }}.{{ $ef.StructField }} = {{ $receiver }}.{{ $en }}.ID
+                {{ $modelReceiver }}.{{ $ef.StructField }} = {{ if $ef.NillableValue }}&{{ end }}{{ $receiver }}.{{ $en }}.ID
             {{- else }}
                 {{ $modelReceiver }}.Edges.{{ $en }} = {{ $receiver }}.{{ $en }}.Model()
             {{- end }}
@@ -762,38 +967,131 @@ func ({{ $receiver }} *{{ $singular }}) Model() *{{ $.Name }} {
     return {{ $modelReceiver }}
 }
 
+// Validate checks the {{ $singular }} entity.
+func ({{ $receiver }} *{{ $singular }}) Validate() error {
+    if {{ $receiver }} == nil {
+        return errors.New("nil receiver")
+    }
+
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
+}
+
+// ValidateWith checks the {{ $singular }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $singular }}) ValidateWith(ctx context.Context, cs ClientSet) error {
+    if err := {{ $receiver }}.{{ printf "%sQueryInput" $.Name }}.ValidateWith(ctx, cs); err != nil {
+        return err
+    }
+
+    {{ range $e := $input.AdditionalEdges }}
+        {{ $en := $e.StructField }}
+        {{- if not $e.Unique }}
+            for i := range {{ $receiver }}.{{ $en }} {
+                if {{ $receiver }}.{{ $en }}[i] == nil {
+                    continue
+                }
+                
+                if err := {{ $receiver }}.{{ $en }}[i].ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }}[i] = nil
+                    }
+                }
+            }
+        {{- else }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                }
+            }
+        {{- end }}
+    {{- end }}
+
+
+    return nil
+}
+
 {{ $plural := plural $singular }}
 {{ $receiver = receiver $plural }}
 
 // {{ $plural }} holds the modification input item of the {{ $.Name }} entities.
 type {{ $plural }}Item struct {
-    ID {{ $.ID.Type }} `uri:"-" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"`
+    // ID of the {{ $.Name }} entity{{ if ne (len $input.IndexFields) 0 }}, tries to retrieve the entity with the following unique index parts if no ID provided{{ end }}.
+    ID {{ $.ID.Type }} `path:"-" query:"-" json:"id{{ if ne (len $input.IndexFields) 0 }},omitempty{{ end }}"`
     {{- range $f := $input.IndexFields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+        // {{ $fn }} of the {{ $.Name }} entity, a part of the unique index.
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" json:"{{ camel $fn }},omitempty"`
     {{- end }}
 
     {{ range $f := $input.FieldsWithoutIndexing }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `uri:"-" query:"-" json:"{{ camel $fn }},omitempty"`
+        {{- template "comment" $f }}
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `path:"-" query:"-" {{ getStructTag $f "json" "Update" }}`
     {{- end }}
 
     {{ range $e := $input.AdditionalEdges }}
         {{- $en := $e.StructField }}
-        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}UpdateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" json:"{{ camel $en }},omitempty"`
+        // {{ $en }} indicates replacing the stale {{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }} {{ if not $e.Unique }}entities{{ else }}entity{{ end }}.
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}{{ if or $e.M2M $e.O2M }}CreateInput{{ else }}QueryInput{{ end }} `uri:"-" query:"-" {{ getStructTag $e "json" "Update" }}`
     {{- end }}
 }
 
-// {{ $plural }} holds the modification input of the {{ $.Name }} entities.
+// ValidateWith checks the {{ $plural }}Item entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}Item) ValidateWith(ctx context.Context, cs ClientSet) error {
+    if {{ $receiver }} == nil {
+        return errors.New("nil receiver")
+    }
+
+    {{ range $e := $input.AdditionalEdges }}
+        {{ $en := $e.StructField }}
+        {{- if not $e.Unique }}
+            for i := range {{ $receiver }}.{{ $en }} {
+                if {{ $receiver }}.{{ $en }}[i] == nil {
+                    continue
+                }
+                
+                if err := {{ $receiver }}.{{ $en }}[i].ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }}[i] = nil
+                    }
+                }
+            }
+        {{- else }}
+            if {{ $receiver }}.{{ $en }} != nil {
+                if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                    }
+                }
+            }
+        {{- end }}
+    {{- end }}
+
+    return nil
+}
+
+// {{ $plural }} holds the modification input of the {{ $.Name }} entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type {{ $plural }} struct {
-    inputConfig `uri:"-" query:"-" json:"-"`
+    inputConfig `path:"-" query:"-" json:"-"`
 
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
-        {{ $en }} *{{ $e.Type.Name }}QueryInput `uri:",inline" query:"-" json:"{{ camel $en }}{{ if $e.Optional }},omitempty{{ end }}"`
+        // {{ $en }} indicates to update {{ $.Name }} entity {{ if $e.Optional }}CAN{{ else }}MUST{{ end }} under the {{ $en }} route.
+        {{ $en }} *{{ $e.Type.Name }}QueryInput `path:",inline" query:"-" json:"-"`
     {{- end }}
 
-    Items []*{{ $plural }}Item `uri:"-" query:"-" json:"items"`
+    // Items holds the entities to create, which MUST not be empty.
+    Items []*{{ $plural }}Item `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the {{ $.Name }} entities for modifying,
@@ -839,8 +1137,8 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
                 {{- $ef := $e.Field }}
                 if {{ $receiver }}.Items[i].{{ $en }} != nil {
                 {{- if $ef }}
-                    {{ $modelReceiver }}.{{ $ef.StructField }} = {{ $receiver }}.Items[i].{{ $en }}.ID
-				{{- else }}
+                    {{ $modelReceiver }}.{{ $ef.StructField }} = {{ if $ef.NillableValue }}&{{ end }}{{ $receiver }}.Items[i].{{ $en }}.ID
+                {{- else }}
                     {{ $modelReceiver }}.Edges.{{ $en }} = {{ $receiver }}.Items[i].{{ $en }}.Model()
                 {{- end }}
                 }
@@ -853,19 +1151,31 @@ func ({{ $receiver }} *{{ $plural }}) Model() []*{{ $.Name }} {
     return {{ $modelsReceiver }}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) Load() error {
+// IDs returns the ID list of the {{ $.Name }} entities for modifying,
+// after validating.
+func ({{ $receiver }} *{{ $plural }}) IDs() []{{ $.ID.Type }} {
+    if {{ $receiver }} == nil || len({{ $receiver }}.Items) == 0 {
+        return nil
+    }
+
+    ids := make([]{{ $.ID.Type }}, len({{ $receiver }}.Items))
+    for i := range {{ $receiver }}.Items {
+        ids[i] = {{ $receiver }}.Items[i].ID
+    }
+    return ids
+}
+
+// Validate checks the {{ $plural }} entity.
+func ({{ $receiver }} *{{ $plural }}) Validate() error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
 
-    return {{ $receiver }}.LoadWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.ClientSet)
+    return {{ $receiver }}.ValidateWith({{ $receiver }}.inputConfig.Context, {{ $receiver }}.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the {{ $plural }} entity with the given context and client set.
+func ({{ $receiver }} *{{ $plural }}) ValidateWith(ctx context.Context, cs ClientSet) error {
     if {{ $receiver }} == nil {
         return errors.New("nil receiver")
     }
@@ -881,21 +1191,52 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
     {{ range $e := $input.PrerequisiteEdges }}
         {{- $en := pascal (singular $e.Name) }}
         {{- $f := $e.Field }}
+        // Validate when updating under the {{ $en }} route.
         if {{ $receiver }}.{{ $en }} != nil {
-            err = {{ $receiver }}.{{ $en }}.LoadWith(ctx, cs)
-            if err != nil {
-                return err
+            {{- $optional := $e.Optional }}
+            {{- if $e.Through }}
+                {{- range $te := $e.Through.Edges }} {{ if eq $e.Type $te.Type }} {{ $optional = $te.Optional }} {{ end }} {{ end }}
+            {{- end }}
+            if err := {{ $receiver }}.{{ $en }}.ValidateWith(ctx, cs); err != nil {
+                {{- if $optional }}
+                    if !IsBlankResourceReferError(err) {
+                        return err
+                    } else {
+                        {{ $receiver }}.{{ $en }} = nil
+                        {{- if $f }}
+                            q.Where(
+                                {{ $util }}.{{ $f.StructField }}IsNil())
+                        {{- else }}
+                            q.Where(
+                                predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
+                        {{- end }}
+                    }
+                {{- else }}
+                    return err
+                {{- end }}
+            } else {
+                {{- $ants := extractAnnotation $e }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
+                {{- if and $f (not $e.M2M) }}
+                    q.Where(
+                        {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
+                {{- else if and (not $f) (not $e.M2M) }}
+                    q.Where(
+                        predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                {{- else }}
+                    q.Where(
+                        {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                {{- end }}
             }
-            {{- if and $f (not $e.M2M) }}
+        {{- if $optional }}
+        } else {
+            {{- if $f }}
                 q.Where(
-                    {{ $util }}.{{ $f.StructField }}({{ $receiver }}.{{ $en }}.ID))
-            {{- else if and (not $f) (not $e.M2M) }}
-                q.Where(
-                    predicate.{{ $.Name }}(sql.FieldEQ({{ $util }}.{{ $en }}Column, {{ $receiver }}.{{ $en }}.ID)))
+                    {{ $util }}.{{ $f.StructField }}IsNil())
             {{- else }}
                 q.Where(
-                    {{ $util }}.Has{{ pascal $e.Name }}With({{ if $e.Through }}{{ lower $e.Through.Name }}.{{ $e.Type.Name }}ID{{ else }}{{ lower $e.Owner.Name }}.ID{{ end }}({{ $receiver }}.{{ $en }}.ID)))
+                    predicate.{{ $.Name }}(sql.FieldIsNull({{ $util }}.{{ $en }}Column)))
             {{- end }}
+        {{- end }}
         }
     {{ end }}
 
@@ -948,27 +1289,43 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
         }
     }
 
-    idsLen := len(ids)
+    {{ $ants := extractAnnotation $ }}{{ if $ants.ValidateContextFuncs }}ctx = valueContext(ctx, {{ join $ants.ValidateContextFuncs ", " }}){{ end }}
 
-    {{- if gt (len $input.IndexFields) 0 }}
-    if idsLen != cap(ids) {
-        ids, err = q.Where({{ $util }}.Or(ors...)).
-            IDs(ctx)
-        if err != nil {
-            return err
-        }
-
-        if len(ids) != idsLen {
-            return errors.New("found unrecognized item")
-        }
-
-        for i := range ids {
-            {{ $receiver }}.Items[i].ID = ids[i]
-        }
-
-        return nil
+    {{ if gt (len $input.IndexFields) 0 }}
+    p := {{ $util }}.IDIn(ids...)
+    if len(ids) != cap(ids) {
+        p = {{ $util }}.Or(ors...)
     }
-    {{- end }}
+
+    es, err := q.
+        Where(p).
+        Select(
+            {{ $util }}.FieldID,
+            {{- range $idx, $f := $input.IndexFields }}
+                {{- $fn := $f.StructField }}
+                {{ $util }}.Field{{ $fn }},
+            {{- end }}
+        ).
+        All(ctx)
+    if err != nil {
+        return err
+    }
+
+    if len(es) != cap(ids) {
+        return errors.New("found unrecognized item")
+    }
+
+    for i := range es {
+        {{ $receiver }}.Items[i].ID = es[i].ID
+        {{- range $idx, $f := $input.IndexFields }}
+            {{- $fn := $f.StructField }}
+            {{ $receiver }}.Items[i].{{ $fn }} = es[i].{{ $fn }}
+        {{- end }}
+    }
+    {{- else }}
+    if len(ids) != cap(ids) {
+        return errors.New("found unrecognized item")
+    }
 
     idsCnt, err := q.Where({{ $util }}.IDIn(ids...)).
         Count(ctx)
@@ -976,8 +1333,19 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
         return err
     }
 
-    if idsCnt != idsLen {
+    if idsCnt != cap(ids) {
         return errors.New("found unrecognized item")
+    }
+    {{- end }}
+
+    for i := range {{ $receiver }}.Items {
+        if {{ $receiver }}.Items[i] == nil {
+            continue
+        }
+
+        if err := {{ $receiver }}.Items[i].ValidateWith(ctx, cs); err != nil {
+            return err
+        }
     }
 
     return nil
@@ -990,7 +1358,7 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 {{- /* Output */}}
 {{ define "output" }}
 
-{{ $input := getOutput $ }}
+{{ $output := getOutput $ }}
 
 {{ $singular := printf "%sOutput" $.Name }}
 {{ $receiver := receiver $singular }}
@@ -998,27 +1366,27 @@ func ({{ $receiver }} *{{ $plural }}) LoadWith(ctx context.Context, cs ClientSet
 // {{ $singular }} holds the output of the {{ $.Name }} entity.
 type {{ $singular }} struct {
     ID {{ $.ID.Type }} `json:"id,omitempty"`
-    {{- range $f := $input.Fields }}
+    {{- range $f := $output.Fields }}
         {{- $fn := $f.StructField }}
-        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `json:"{{ camel $fn }},omitempty"`
+        {{ $fn }} {{ if $f.NillableValue }}*{{ end }}{{ $f.Type }} `{{ getStructTag $f "json" "Output" }}`
     {{- end }}
 
-    {{ range $e := $input.Edges }}
+    {{ range $e := $output.Edges }}
         {{- $en := pascal $e.Name }}
-        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}Output `json:"{{ camel $en }},omitempty"`
+        {{ $en }} {{ if not $e.Unique }}[]{{ end }}*{{ if $e.Through }}{{ $e.Through.Name }}{{ else }}{{ $e.Type.Name }}{{ end }}Output `{{ getStructTag $e "json" "Output" }}`
     {{- end }}
 }
 
 {{- $modelReceiver := printf "_%s" $.Receiver  }}
 
-// View returns the output of {{ $.Name }}.
+// View returns the output of {{ $.Name }} entity.
 func ({{ $modelReceiver }} *{{ $.Name }}) View() *{{ $singular }} {
     return Expose{{ $.Name }}({{ $modelReceiver }})
 }
 
 {{- $modelsReceiver := printf "%ss" $modelReceiver }}
 
-// View returns the output of {{ plural $.Name }}.
+// View returns the output of {{ $.Name }} entities.
 func ({{ $modelsReceiver }} {{ plural $.Name }}) View() []*{{ $singular }} {
     return Expose{{ plural $.Name }}({{ $modelsReceiver }})
 }
@@ -1031,13 +1399,13 @@ func Expose{{ $.Name }}({{ $modelReceiver }} *{{ $.Name }}) *{{ $singular }} {
 
     {{ $receiver }} := &{{ $singular }}{
         ID: {{ $modelReceiver }}.ID,
-        {{- range $f := $input.Fields }}
+        {{- range $f := $output.Fields }}
             {{- $fn := $f.StructField }}
             {{ $fn }}: {{ $modelReceiver }}.{{ $fn }},
         {{- end }}
     }
 
-    {{ range $e := $input.Edges }}
+    {{ range $e := $output.Edges }}
         {{- $en := pascal $e.Name }}
         {{- $etns := pascal $e.Type.Name }}
         {{- $etnp := pascal (plural $e.Type.Name) }}
@@ -1049,12 +1417,12 @@ func Expose{{ $.Name }}({{ $modelReceiver }} *{{ $.Name }}) *{{ $singular }} {
         if {{ $modelReceiver }}.Edges.{{ $en }} != nil {
             {{ $receiver }}.{{ $en }} = Expose{{ if not $e.Unique }}{{ $etnp }}{{ else }}{{ $etns }}{{ end }}({{ $modelReceiver }}.Edges.{{ $en }})
         {{- if $ef }}
-		} else if {{ $modelReceiver }}.{{ $ef.StructField }} != {{ if $ef.NillableValue }}nil{{ else if or $ef.IsInt $ef.IsInt64 }}0{{ else }}""{{ end }} {
+        } else if {{ $modelReceiver }}.{{ $ef.StructField }} != {{ if $ef.NillableValue }}nil{{ else if or $ef.IsInt $ef.IsInt64 }}0{{ else }}""{{ end }} {
             {{ $receiver }}.{{ $en }} = &{{ $etns }}Output{
-			    ID: {{ $modelReceiver }}.{{ $ef.StructField }},
+                ID: {{ if $ef.NillableValue }}*{{ end }}{{ $modelReceiver }}.{{ $ef.StructField }},
             }
         {{- end }}
-		}
+        }
     {{- end }}
     return {{ $receiver }}
 }

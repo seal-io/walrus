@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
@@ -20,12 +21,15 @@ func (ServiceResource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time(),
-		mixin.OwnByProject(),
 	}
 }
 
 func (ServiceResource) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong.").
+			NotEmpty().
+			Immutable(),
 		object.IDField("service_id").
 			Comment("ID of the service to which the resource belongs.").
 			NotEmpty().
@@ -82,6 +86,16 @@ func (ServiceResource) Fields() []ent.Field {
 
 func (ServiceResource) Edges() []ent.Edge {
 	return []ent.Edge{
+		// Project 1-* ServiceResources.
+		edge.From("project", Project.Type).
+			Ref("service_resources").
+			Field("project_id").
+			Comment("Project to which the resource belongs.").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Service 1-* ServiceResources.
 		edge.From("service", Service.Type).
 			Ref("resources").
@@ -122,5 +136,11 @@ func (ServiceResource) Edges() []ent.Edge {
 		edge.To("dependencies", ServiceResource.Type).
 			Comment("Dependencies that requires for the service resource.").
 			Through("service_resource_relationships", ServiceResourceRelationship.Type),
+	}
+}
+
+func (ServiceResource) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }

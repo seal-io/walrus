@@ -19,10 +19,10 @@ var (
 
 func init() {
 	for _, w := range []string{
-		"ACL", "API", "ACME", "ASCII", "AWS", "CPU", "CSS", "DNS", "EOF", "GB", "GUID",
+		"ACL", "API", "ACME", "ASCII", "AWS", "GPU", "CPU", "CSS", "DNS", "EOF", "GB", "GUID",
 		"HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "KB", "LHS", "MAC", "MB",
 		"QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SQL", "SSH", "SSO", "TCP",
-		"TLS", "TTL", "UDP", "UI", "UID", "URI", "URL", "UTF8", "UUID", "VM",
+		"TLS", "TTL", "UDP", "UI", "UID", "URI", "URL", "UTF8", "UUID", "VM", "PV",
 		"XML", "XMPP", "XSRF", "XSS",
 	} {
 		globalRuleset.AddAcronym(w)
@@ -34,6 +34,11 @@ func init() {
 	} {
 		globalRuleset.AddIrregular(s, p)
 	}
+}
+
+// Acronyms returns the list of acronyms.
+func Acronyms() []string {
+	return acronymSet.UnsortedList()
 }
 
 // Pluralize returns the plural form of a word.

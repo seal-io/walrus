@@ -2,10 +2,12 @@ package entx
 
 import (
 	"bytes"
+	"sort"
 	"strings"
 	"text/template"
 
 	"entgo.io/ent/entc/gen"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/entx/annotation"
 	"github.com/seal-io/seal/pkg/dao/entx/extension/view"
@@ -16,6 +18,7 @@ func loadHooks() []gen.Hook {
 		preHook(generateExtensionView),
 		preHook(generateBuilderFields),
 		preHook(generateNotStoredFields),
+		preHook(clipM2MEdgeIndexes),
 		preHook(flattenM2MEdges),
 	}
 }
@@ -183,8 +186,61 @@ func generateNotStoredFields(g *gen.Graph) error {
 	return nil
 }
 
+func clipM2MEdgeIndexes(g *gen.Graph) error {
+	for _, n := range g.Nodes {
+		for _, e := range n.Edges {
+			if !e.M2M() {
+				continue
+			}
+
+			if e.Through == nil {
+				continue
+			}
+
+			t := e.Through
+
+			// Get the M2M edge unique indexes to discard.
+			var discardIndexes []int
+
+			for i, idx := range t.Indexes {
+				if !idx.Unique || len(idx.Columns) < 2 {
+					continue
+				}
+
+				if !slices.Contains(idx.Columns, e.Rel.Columns[0]) ||
+					!slices.Contains(idx.Columns, e.Rel.Columns[1]) ||
+					idx.Annotations != nil {
+					continue
+				}
+
+				discardIndexes = append(discardIndexes, i)
+			}
+
+			if len(discardIndexes) <= 1 {
+				continue
+			}
+
+			// Discard the M2M edge unique indexes.
+			sort.Slice(discardIndexes, func(i, j int) bool {
+				return len(t.Indexes[i].Columns) > len(t.Indexes[j].Columns)
+			})
+
+			switch x := discardIndexes[0]; x {
+			case 0:
+				t.Indexes = t.Indexes[1:]
+			case len(t.Indexes) - 1:
+				t.Indexes = t.Indexes[:x]
+			default:
+				t.Indexes = append(t.Indexes[:x], t.Indexes[x+1:]...)
+			}
+		}
+	}
+
+	return nil
+}
+
 // flattenM2MEdges handles the M2M edges that are created by M2M through edge.
-func flattenM2MEdges(g *gen.Graph) (err error) {
+func flattenM2MEdges(g *gen.Graph) error {
 	for _, n := range g.Nodes {
 		// Index O2M edges.
 		o2mEdgesIndex := make(map[string]*gen.Edge, 0)

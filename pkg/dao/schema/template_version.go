@@ -2,8 +2,10 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
@@ -22,6 +24,13 @@ func (TemplateVersion) Mixin() []ent.Mixin {
 	}
 }
 
+func (TemplateVersion) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name", "version").
+			Unique(),
+	}
+}
+
 func (TemplateVersion) Fields() []ent.Field {
 	return []ent.Field{
 		object.IDField("template_id").
@@ -29,13 +38,12 @@ func (TemplateVersion) Fields() []ent.Field {
 			NotEmpty().
 			Immutable(),
 		// Redundant template name reduce the number of queries.
-		field.String("template_name").
+		field.String("name").
 			Comment("Name of the template.").
 			NotEmpty().
-			Immutable().
-			Annotations(entx.SkipIO()),
+			Immutable(),
 		field.String("version").
-			Comment("Template version.").
+			Comment("Version of the template.").
 			NotEmpty().
 			Immutable(),
 		// This is the normalized terraform module source that can be directly applied to terraform configuration.
@@ -43,7 +51,7 @@ func (TemplateVersion) Fields() []ent.Field {
 		//   Template.Source = "github.com/foo/bar"
 		//   TemplateVersion.Source = "github.com/foo/bar/1.0.0"
 		field.String("source").
-			Comment("Template version source.").
+			Comment("Source of the template.").
 			NotEmpty().
 			Immutable(),
 		field.JSON("schema", &types.TemplateSchema{}).
@@ -58,8 +66,17 @@ func (TemplateVersion) Edges() []ent.Edge {
 		edge.From("template", Template.Type).
 			Ref("versions").
 			Field("template_id").
+			Comment("Template to which the template version belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.SkipInput()),
+		// TemplateVersion 1-* Services.
+		edge.To("services", Service.Type).
+			Comment("Services that belong to the template version.").
+			Annotations(
+				entsql.OnDelete(entsql.Restrict),
+				entx.SkipIO()),
 	}
 }

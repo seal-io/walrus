@@ -35,7 +35,8 @@ func (Template) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("icon").
 			Comment("A URL to an SVG or PNG image to be used as an icon.").
-			Annotations(entx.SkipInput()).
+			Annotations(
+				entx.SkipInput()).
 			Optional(),
 		// For terraform deployer, this is a superset of terraform module git source.
 		field.String("source").
@@ -52,7 +53,7 @@ func (Template) Edges() []ent.Edge {
 	return []ent.Edge{
 		// Template 1-* TemplateVersions.
 		edge.To("versions", TemplateVersion.Type).
-			Comment("Versions of the template.").
+			Comment("Versions that belong to the template.").
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
@@ -63,6 +64,7 @@ func (Template) Edges() []ent.Edge {
 			Comment("Catalog to which the template belongs.").
 			Unique().
 			Immutable().
-			Annotations(entx.SkipInput()),
+			Annotations(
+				entx.SkipInput()),
 	}
 }
