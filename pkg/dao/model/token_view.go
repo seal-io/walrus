@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/token"
@@ -15,14 +16,19 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// TokenCreateInput holds the creation input of the Token entity.
+// TokenCreateInput holds the creation input of the Token entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TokenCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Value      crypto.String `uri:"-" query:"-" json:"value"`
-	Name       string        `uri:"-" query:"-" json:"name"`
-	Kind       string        `uri:"-" query:"-" json:"kind,omitempty"`
-	Expiration *time.Time    `uri:"-" query:"-" json:"expiration,omitempty"`
+	// The value of token, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+	// The name of token.
+	Name string `path:"-" query:"-" json:"name"`
+	// The kind of token.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `path:"-" query:"-" json:"expiration,omitempty"`
 }
 
 // Model returns the Token entity for creating,
@@ -42,19 +48,17 @@ func (tci *TokenCreateInput) Model() *Token {
 	return _t
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tci *TokenCreateInput) Load() error {
+// Validate checks the TokenCreateInput entity.
+func (tci *TokenCreateInput) Validate() error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tci.LoadWith(tci.inputConfig.Context, tci.inputConfig.ClientSet)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tci *TokenCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenCreateInput entity with the given context and client set.
+func (tci *TokenCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -64,17 +68,32 @@ func (tci *TokenCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err er
 
 // TokenCreateInputs holds the creation input item of the Token entities.
 type TokenCreateInputsItem struct {
-	Value      crypto.String `uri:"-" query:"-" json:"value"`
-	Name       string        `uri:"-" query:"-" json:"name"`
-	Kind       string        `uri:"-" query:"-" json:"kind,omitempty"`
-	Expiration *time.Time    `uri:"-" query:"-" json:"expiration,omitempty"`
+	// The value of token, store in string.
+	Value crypto.String `path:"-" query:"-" json:"value"`
+	// The name of token.
+	Name string `path:"-" query:"-" json:"name"`
+	// The kind of token.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The time of expiration, empty means forever.
+	Expiration *time.Time `path:"-" query:"-" json:"expiration,omitempty"`
 }
 
-// TokenCreateInputs holds the creation input of the Token entities.
-type TokenCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the TokenCreateInputsItem entity with the given context and client set.
+func (tci *TokenCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*TokenCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// TokenCreateInputs holds the creation input of the Token entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TokenCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TokenCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Token entities for creating,
@@ -100,19 +119,17 @@ func (tci *TokenCreateInputs) Model() []*Token {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tci *TokenCreateInputs) Load() error {
+// Validate checks the TokenCreateInputs entity .
+func (tci *TokenCreateInputs) Validate() error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tci.LoadWith(tci.inputConfig.Context, tci.inputConfig.ClientSet)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tci *TokenCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenCreateInputs entity with the given context and client set.
+func (tci *TokenCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -121,22 +138,36 @@ func (tci *TokenCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err e
 		return errors.New("empty items")
 	}
 
+	for i := range tci.Items {
+		if tci.Items[i] == nil {
+			continue
+		}
+
+		if err := tci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// TokenDeleteInput holds the deletion input of the Token entity.
+// TokenDeleteInput holds the deletion input of the Token entity,
+// please tags with `path:",inline"` if embedding.
 type TokenDeleteInput = TokenQueryInput
 
 // TokenDeleteInputs holds the deletion input item of the Token entities.
 type TokenDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Token entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// TokenDeleteInputs holds the deletion input of the Token entities.
+// TokenDeleteInputs holds the deletion input of the Token entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TokenDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*TokenDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TokenDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Token entities for deleting,
@@ -155,19 +186,31 @@ func (tdi *TokenDeleteInputs) Model() []*Token {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tdi *TokenDeleteInputs) Load() error {
+// IDs returns the ID list of the Token entities for deleting,
+// after validating.
+func (tdi *TokenDeleteInputs) IDs() []object.ID {
+	if tdi == nil || len(tdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tdi.Items))
+	for i := range tdi.Items {
+		ids[i] = tdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TokenDeleteInputs entity.
+func (tdi *TokenDeleteInputs) Validate() error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tdi.LoadWith(tdi.inputConfig.Context, tdi.inputConfig.ClientSet)
+	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tdi *TokenDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenDeleteInputs entity with the given context and client set.
+func (tdi *TokenDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -192,7 +235,9 @@ func (tdi *TokenDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err e
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(token.IDIn(ids...)).
 		Count(ctx)
@@ -200,19 +245,22 @@ func (tdi *TokenDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err e
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// TokenQueryInput holds the query input of the Token entity.
+// TokenQueryInput holds the query input of the Token entity,
+// please tags with `path:",inline"` if embedding.
 type TokenQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"token,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Token entity.
+	Refer *object.Refer `path:"token,default=" query:"-" json:"-"`
+	// ID of the Token entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the Token entity for querying,
@@ -227,25 +275,23 @@ func (tqi *TokenQueryInput) Model() *Token {
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tqi *TokenQueryInput) Load() error {
+// Validate checks the TokenQueryInput entity.
+func (tqi *TokenQueryInput) Validate() error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.LoadWith(tqi.inputConfig.Context, tqi.inputConfig.ClientSet)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tqi *TokenQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenQueryInput entity with the given context and client set.
+func (tqi *TokenQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tqi.Refer != nil && *tqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", token.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Tokens().Query()
@@ -264,38 +310,39 @@ func (tqi *TokenQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err err
 		return errors.New("invalid identify of token")
 	}
 
+	var err error
 	tqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// TokenQueryInputs holds the query input of the Token entities.
+// TokenQueryInputs holds the query input of the Token entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type TokenQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tqi *TokenQueryInputs) Load() error {
+// Validate checks the TokenQueryInputs entity.
+func (tqi *TokenQueryInputs) Validate() error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.LoadWith(tqi.inputConfig.Context, tqi.inputConfig.ClientSet)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tqi *TokenQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenQueryInputs entity with the given context and client set.
+func (tqi *TokenQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// TokenUpdateInput holds the modification input of the Token entity.
+// TokenUpdateInput holds the modification input of the Token entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TokenUpdateInput struct {
-	TokenQueryInput `uri:",inline" query:"-" json:",inline"`
+	TokenQueryInput `path:",inline" query:"-" json:"-"`
 }
 
 // Model returns the Token entity for modifying,
@@ -312,16 +359,46 @@ func (tui *TokenUpdateInput) Model() *Token {
 	return _t
 }
 
-// TokenUpdateInputs holds the modification input item of the Token entities.
-type TokenUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the TokenUpdateInput entity.
+func (tui *TokenUpdateInput) Validate() error {
+	if tui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
 }
 
-// TokenUpdateInputs holds the modification input of the Token entities.
-type TokenUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the TokenUpdateInput entity with the given context and client set.
+func (tui *TokenUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := tui.TokenQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*TokenUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// TokenUpdateInputs holds the modification input item of the Token entities.
+type TokenUpdateInputsItem struct {
+	// ID of the Token entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
+}
+
+// ValidateWith checks the TokenUpdateInputsItem entity with the given context and client set.
+func (tui *TokenUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// TokenUpdateInputs holds the modification input of the Token entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TokenUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TokenUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Token entities for modifying,
@@ -344,19 +421,31 @@ func (tui *TokenUpdateInputs) Model() []*Token {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tui *TokenUpdateInputs) Load() error {
+// IDs returns the ID list of the Token entities for modifying,
+// after validating.
+func (tui *TokenUpdateInputs) IDs() []object.ID {
+	if tui == nil || len(tui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tui.Items))
+	for i := range tui.Items {
+		ids[i] = tui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TokenUpdateInputs entity.
+func (tui *TokenUpdateInputs) Validate() error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tui.LoadWith(tui.inputConfig.Context, tui.inputConfig.ClientSet)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tui *TokenUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TokenUpdateInputs entity with the given context and client set.
+func (tui *TokenUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
@@ -381,7 +470,9 @@ func (tui *TokenUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err e
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(token.IDIn(ids...)).
 		Count(ctx)
@@ -389,8 +480,18 @@ func (tui *TokenUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err e
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range tui.Items {
+		if tui.Items[i] == nil {
+			continue
+		}
+
+		if err := tui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -408,12 +509,12 @@ type TokenOutput struct {
 	Subject *SubjectOutput `json:"subject,omitempty"`
 }
 
-// View returns the output of Token.
+// View returns the output of Token entity.
 func (_t *Token) View() *TokenOutput {
 	return ExposeToken(_t)
 }
 
-// View returns the output of Tokens.
+// View returns the output of Token entities.
 func (_ts Tokens) View() []*TokenOutput {
 	return ExposeTokens(_ts)
 }

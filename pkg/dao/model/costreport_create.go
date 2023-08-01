@@ -233,30 +233,30 @@ func (crc *CostReportCreate) SetNillableCPUCoreRequest(f *float64) *CostReportCr
 	return crc
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (crc *CostReportCreate) SetGpuCost(f float64) *CostReportCreate {
-	crc.mutation.SetGpuCost(f)
+// SetGPUCost sets the "gpu_cost" field.
+func (crc *CostReportCreate) SetGPUCost(f float64) *CostReportCreate {
+	crc.mutation.SetGPUCost(f)
 	return crc
 }
 
-// SetNillableGpuCost sets the "gpu_cost" field if the given value is not nil.
-func (crc *CostReportCreate) SetNillableGpuCost(f *float64) *CostReportCreate {
+// SetNillableGPUCost sets the "gpu_cost" field if the given value is not nil.
+func (crc *CostReportCreate) SetNillableGPUCost(f *float64) *CostReportCreate {
 	if f != nil {
-		crc.SetGpuCost(*f)
+		crc.SetGPUCost(*f)
 	}
 	return crc
 }
 
-// SetGpuCount sets the "gpu_count" field.
-func (crc *CostReportCreate) SetGpuCount(f float64) *CostReportCreate {
-	crc.mutation.SetGpuCount(f)
+// SetGPUCount sets the "gpu_count" field.
+func (crc *CostReportCreate) SetGPUCount(f float64) *CostReportCreate {
+	crc.mutation.SetGPUCount(f)
 	return crc
 }
 
-// SetNillableGpuCount sets the "gpu_count" field if the given value is not nil.
-func (crc *CostReportCreate) SetNillableGpuCount(f *float64) *CostReportCreate {
+// SetNillableGPUCount sets the "gpu_count" field if the given value is not nil.
+func (crc *CostReportCreate) SetNillableGPUCount(f *float64) *CostReportCreate {
 	if f != nil {
-		crc.SetGpuCount(*f)
+		crc.SetGPUCount(*f)
 	}
 	return crc
 }
@@ -289,30 +289,30 @@ func (crc *CostReportCreate) SetNillableRAMByteRequest(f *float64) *CostReportCr
 	return crc
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (crc *CostReportCreate) SetPvCost(f float64) *CostReportCreate {
-	crc.mutation.SetPvCost(f)
+// SetPVCost sets the "pv_cost" field.
+func (crc *CostReportCreate) SetPVCost(f float64) *CostReportCreate {
+	crc.mutation.SetPVCost(f)
 	return crc
 }
 
-// SetNillablePvCost sets the "pv_cost" field if the given value is not nil.
-func (crc *CostReportCreate) SetNillablePvCost(f *float64) *CostReportCreate {
+// SetNillablePVCost sets the "pv_cost" field if the given value is not nil.
+func (crc *CostReportCreate) SetNillablePVCost(f *float64) *CostReportCreate {
 	if f != nil {
-		crc.SetPvCost(*f)
+		crc.SetPVCost(*f)
 	}
 	return crc
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (crc *CostReportCreate) SetPvBytes(f float64) *CostReportCreate {
-	crc.mutation.SetPvBytes(f)
+// SetPVBytes sets the "pv_bytes" field.
+func (crc *CostReportCreate) SetPVBytes(f float64) *CostReportCreate {
+	crc.mutation.SetPVBytes(f)
 	return crc
 }
 
-// SetNillablePvBytes sets the "pv_bytes" field if the given value is not nil.
-func (crc *CostReportCreate) SetNillablePvBytes(f *float64) *CostReportCreate {
+// SetNillablePVBytes sets the "pv_bytes" field if the given value is not nil.
+func (crc *CostReportCreate) SetNillablePVBytes(f *float64) *CostReportCreate {
 	if f != nil {
-		crc.SetPvBytes(*f)
+		crc.SetPVBytes(*f)
 	}
 	return crc
 }
@@ -449,13 +449,13 @@ func (crc *CostReportCreate) defaults() error {
 		v := costreport.DefaultCPUCoreRequest
 		crc.mutation.SetCPUCoreRequest(v)
 	}
-	if _, ok := crc.mutation.GpuCost(); !ok {
-		v := costreport.DefaultGpuCost
-		crc.mutation.SetGpuCost(v)
+	if _, ok := crc.mutation.GPUCost(); !ok {
+		v := costreport.DefaultGPUCost
+		crc.mutation.SetGPUCost(v)
 	}
-	if _, ok := crc.mutation.GpuCount(); !ok {
-		v := costreport.DefaultGpuCount
-		crc.mutation.SetGpuCount(v)
+	if _, ok := crc.mutation.GPUCount(); !ok {
+		v := costreport.DefaultGPUCount
+		crc.mutation.SetGPUCount(v)
 	}
 	if _, ok := crc.mutation.RAMCost(); !ok {
 		v := costreport.DefaultRAMCost
@@ -465,13 +465,13 @@ func (crc *CostReportCreate) defaults() error {
 		v := costreport.DefaultRAMByteRequest
 		crc.mutation.SetRAMByteRequest(v)
 	}
-	if _, ok := crc.mutation.PvCost(); !ok {
-		v := costreport.DefaultPvCost
-		crc.mutation.SetPvCost(v)
+	if _, ok := crc.mutation.PVCost(); !ok {
+		v := costreport.DefaultPVCost
+		crc.mutation.SetPVCost(v)
 	}
-	if _, ok := crc.mutation.PvBytes(); !ok {
-		v := costreport.DefaultPvBytes
-		crc.mutation.SetPvBytes(v)
+	if _, ok := crc.mutation.PVBytes(); !ok {
+		v := costreport.DefaultPVBytes
+		crc.mutation.SetPVBytes(v)
 	}
 	if _, ok := crc.mutation.LoadBalancerCost(); !ok {
 		v := costreport.DefaultLoadBalancerCost
@@ -536,10 +536,10 @@ func (crc *CostReportCreate) check() error {
 	if _, ok := crc.mutation.CPUCoreRequest(); !ok {
 		return &ValidationError{Name: "cpu_core_request", err: errors.New(`model: missing required field "CostReport.cpu_core_request"`)}
 	}
-	if _, ok := crc.mutation.GpuCost(); !ok {
+	if _, ok := crc.mutation.GPUCost(); !ok {
 		return &ValidationError{Name: "gpu_cost", err: errors.New(`model: missing required field "CostReport.gpu_cost"`)}
 	}
-	if _, ok := crc.mutation.GpuCount(); !ok {
+	if _, ok := crc.mutation.GPUCount(); !ok {
 		return &ValidationError{Name: "gpu_count", err: errors.New(`model: missing required field "CostReport.gpu_count"`)}
 	}
 	if _, ok := crc.mutation.RAMCost(); !ok {
@@ -548,10 +548,10 @@ func (crc *CostReportCreate) check() error {
 	if _, ok := crc.mutation.RAMByteRequest(); !ok {
 		return &ValidationError{Name: "ram_byte_request", err: errors.New(`model: missing required field "CostReport.ram_byte_request"`)}
 	}
-	if _, ok := crc.mutation.PvCost(); !ok {
+	if _, ok := crc.mutation.PVCost(); !ok {
 		return &ValidationError{Name: "pv_cost", err: errors.New(`model: missing required field "CostReport.pv_cost"`)}
 	}
-	if _, ok := crc.mutation.PvBytes(); !ok {
+	if _, ok := crc.mutation.PVBytes(); !ok {
 		return &ValidationError{Name: "pv_bytes", err: errors.New(`model: missing required field "CostReport.pv_bytes"`)}
 	}
 	if _, ok := crc.mutation.LoadBalancerCost(); !ok {
@@ -672,13 +672,13 @@ func (crc *CostReportCreate) createSpec() (*CostReport, *sqlgraph.CreateSpec) {
 		_spec.SetField(costreport.FieldCPUCoreRequest, field.TypeFloat64, value)
 		_node.CPUCoreRequest = value
 	}
-	if value, ok := crc.mutation.GpuCost(); ok {
-		_spec.SetField(costreport.FieldGpuCost, field.TypeFloat64, value)
-		_node.GpuCost = value
+	if value, ok := crc.mutation.GPUCost(); ok {
+		_spec.SetField(costreport.FieldGPUCost, field.TypeFloat64, value)
+		_node.GPUCost = value
 	}
-	if value, ok := crc.mutation.GpuCount(); ok {
-		_spec.SetField(costreport.FieldGpuCount, field.TypeFloat64, value)
-		_node.GpuCount = value
+	if value, ok := crc.mutation.GPUCount(); ok {
+		_spec.SetField(costreport.FieldGPUCount, field.TypeFloat64, value)
+		_node.GPUCount = value
 	}
 	if value, ok := crc.mutation.RAMCost(); ok {
 		_spec.SetField(costreport.FieldRAMCost, field.TypeFloat64, value)
@@ -688,13 +688,13 @@ func (crc *CostReportCreate) createSpec() (*CostReport, *sqlgraph.CreateSpec) {
 		_spec.SetField(costreport.FieldRAMByteRequest, field.TypeFloat64, value)
 		_node.RAMByteRequest = value
 	}
-	if value, ok := crc.mutation.PvCost(); ok {
-		_spec.SetField(costreport.FieldPvCost, field.TypeFloat64, value)
-		_node.PvCost = value
+	if value, ok := crc.mutation.PVCost(); ok {
+		_spec.SetField(costreport.FieldPVCost, field.TypeFloat64, value)
+		_node.PVCost = value
 	}
-	if value, ok := crc.mutation.PvBytes(); ok {
-		_spec.SetField(costreport.FieldPvBytes, field.TypeFloat64, value)
-		_node.PvBytes = value
+	if value, ok := crc.mutation.PVBytes(); ok {
+		_spec.SetField(costreport.FieldPVBytes, field.TypeFloat64, value)
+		_node.PVBytes = value
 	}
 	if value, ok := crc.mutation.LoadBalancerCost(); ok {
 		_spec.SetField(costreport.FieldLoadBalancerCost, field.TypeFloat64, value)
@@ -768,12 +768,12 @@ func (crc *CostReportCreate) Set(obj *CostReport) *CostReportCreate {
 	crc.SetTotalCost(obj.TotalCost)
 	crc.SetCPUCost(obj.CPUCost)
 	crc.SetCPUCoreRequest(obj.CPUCoreRequest)
-	crc.SetGpuCost(obj.GpuCost)
-	crc.SetGpuCount(obj.GpuCount)
+	crc.SetGPUCost(obj.GPUCost)
+	crc.SetGPUCount(obj.GPUCount)
 	crc.SetRAMCost(obj.RAMCost)
 	crc.SetRAMByteRequest(obj.RAMByteRequest)
-	crc.SetPvCost(obj.PvCost)
-	crc.SetPvBytes(obj.PvBytes)
+	crc.SetPVCost(obj.PVCost)
+	crc.SetPVBytes(obj.PVBytes)
 	crc.SetLoadBalancerCost(obj.LoadBalancerCost)
 	crc.SetCPUCoreUsageAverage(obj.CPUCoreUsageAverage)
 	crc.SetCPUCoreUsageMax(obj.CPUCoreUsageMax)
@@ -1210,21 +1210,21 @@ func (u *CostReportUpsert) AddCPUCost(v float64) *CostReportUpsert {
 	return u
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (u *CostReportUpsert) SetGpuCost(v float64) *CostReportUpsert {
-	u.Set(costreport.FieldGpuCost, v)
+// SetGPUCost sets the "gpu_cost" field.
+func (u *CostReportUpsert) SetGPUCost(v float64) *CostReportUpsert {
+	u.Set(costreport.FieldGPUCost, v)
 	return u
 }
 
-// UpdateGpuCost sets the "gpu_cost" field to the value that was provided on create.
-func (u *CostReportUpsert) UpdateGpuCost() *CostReportUpsert {
-	u.SetExcluded(costreport.FieldGpuCost)
+// UpdateGPUCost sets the "gpu_cost" field to the value that was provided on create.
+func (u *CostReportUpsert) UpdateGPUCost() *CostReportUpsert {
+	u.SetExcluded(costreport.FieldGPUCost)
 	return u
 }
 
-// AddGpuCost adds v to the "gpu_cost" field.
-func (u *CostReportUpsert) AddGpuCost(v float64) *CostReportUpsert {
-	u.Add(costreport.FieldGpuCost, v)
+// AddGPUCost adds v to the "gpu_cost" field.
+func (u *CostReportUpsert) AddGPUCost(v float64) *CostReportUpsert {
+	u.Add(costreport.FieldGPUCost, v)
 	return u
 }
 
@@ -1246,39 +1246,39 @@ func (u *CostReportUpsert) AddRAMCost(v float64) *CostReportUpsert {
 	return u
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (u *CostReportUpsert) SetPvCost(v float64) *CostReportUpsert {
-	u.Set(costreport.FieldPvCost, v)
+// SetPVCost sets the "pv_cost" field.
+func (u *CostReportUpsert) SetPVCost(v float64) *CostReportUpsert {
+	u.Set(costreport.FieldPVCost, v)
 	return u
 }
 
-// UpdatePvCost sets the "pv_cost" field to the value that was provided on create.
-func (u *CostReportUpsert) UpdatePvCost() *CostReportUpsert {
-	u.SetExcluded(costreport.FieldPvCost)
+// UpdatePVCost sets the "pv_cost" field to the value that was provided on create.
+func (u *CostReportUpsert) UpdatePVCost() *CostReportUpsert {
+	u.SetExcluded(costreport.FieldPVCost)
 	return u
 }
 
-// AddPvCost adds v to the "pv_cost" field.
-func (u *CostReportUpsert) AddPvCost(v float64) *CostReportUpsert {
-	u.Add(costreport.FieldPvCost, v)
+// AddPVCost adds v to the "pv_cost" field.
+func (u *CostReportUpsert) AddPVCost(v float64) *CostReportUpsert {
+	u.Add(costreport.FieldPVCost, v)
 	return u
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (u *CostReportUpsert) SetPvBytes(v float64) *CostReportUpsert {
-	u.Set(costreport.FieldPvBytes, v)
+// SetPVBytes sets the "pv_bytes" field.
+func (u *CostReportUpsert) SetPVBytes(v float64) *CostReportUpsert {
+	u.Set(costreport.FieldPVBytes, v)
 	return u
 }
 
-// UpdatePvBytes sets the "pv_bytes" field to the value that was provided on create.
-func (u *CostReportUpsert) UpdatePvBytes() *CostReportUpsert {
-	u.SetExcluded(costreport.FieldPvBytes)
+// UpdatePVBytes sets the "pv_bytes" field to the value that was provided on create.
+func (u *CostReportUpsert) UpdatePVBytes() *CostReportUpsert {
+	u.SetExcluded(costreport.FieldPVBytes)
 	return u
 }
 
-// AddPvBytes adds v to the "pv_bytes" field.
-func (u *CostReportUpsert) AddPvBytes(v float64) *CostReportUpsert {
-	u.Add(costreport.FieldPvBytes, v)
+// AddPVBytes adds v to the "pv_bytes" field.
+func (u *CostReportUpsert) AddPVBytes(v float64) *CostReportUpsert {
+	u.Add(costreport.FieldPVBytes, v)
 	return u
 }
 
@@ -1431,8 +1431,8 @@ func (u *CostReportUpsertOne) UpdateNewValues() *CostReportUpsertOne {
 		if _, exists := u.create.mutation.CPUCoreRequest(); exists {
 			s.SetIgnore(costreport.FieldCPUCoreRequest)
 		}
-		if _, exists := u.create.mutation.GpuCount(); exists {
-			s.SetIgnore(costreport.FieldGpuCount)
+		if _, exists := u.create.mutation.GPUCount(); exists {
+			s.SetIgnore(costreport.FieldGPUCount)
 		}
 		if _, exists := u.create.mutation.RAMByteRequest(); exists {
 			s.SetIgnore(costreport.FieldRAMByteRequest)
@@ -1538,24 +1538,24 @@ func (u *CostReportUpsertOne) UpdateCPUCost() *CostReportUpsertOne {
 	})
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (u *CostReportUpsertOne) SetGpuCost(v float64) *CostReportUpsertOne {
+// SetGPUCost sets the "gpu_cost" field.
+func (u *CostReportUpsertOne) SetGPUCost(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetGpuCost(v)
+		s.SetGPUCost(v)
 	})
 }
 
-// AddGpuCost adds v to the "gpu_cost" field.
-func (u *CostReportUpsertOne) AddGpuCost(v float64) *CostReportUpsertOne {
+// AddGPUCost adds v to the "gpu_cost" field.
+func (u *CostReportUpsertOne) AddGPUCost(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddGpuCost(v)
+		s.AddGPUCost(v)
 	})
 }
 
-// UpdateGpuCost sets the "gpu_cost" field to the value that was provided on create.
-func (u *CostReportUpsertOne) UpdateGpuCost() *CostReportUpsertOne {
+// UpdateGPUCost sets the "gpu_cost" field to the value that was provided on create.
+func (u *CostReportUpsertOne) UpdateGPUCost() *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdateGpuCost()
+		s.UpdateGPUCost()
 	})
 }
 
@@ -1580,45 +1580,45 @@ func (u *CostReportUpsertOne) UpdateRAMCost() *CostReportUpsertOne {
 	})
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (u *CostReportUpsertOne) SetPvCost(v float64) *CostReportUpsertOne {
+// SetPVCost sets the "pv_cost" field.
+func (u *CostReportUpsertOne) SetPVCost(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetPvCost(v)
+		s.SetPVCost(v)
 	})
 }
 
-// AddPvCost adds v to the "pv_cost" field.
-func (u *CostReportUpsertOne) AddPvCost(v float64) *CostReportUpsertOne {
+// AddPVCost adds v to the "pv_cost" field.
+func (u *CostReportUpsertOne) AddPVCost(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddPvCost(v)
+		s.AddPVCost(v)
 	})
 }
 
-// UpdatePvCost sets the "pv_cost" field to the value that was provided on create.
-func (u *CostReportUpsertOne) UpdatePvCost() *CostReportUpsertOne {
+// UpdatePVCost sets the "pv_cost" field to the value that was provided on create.
+func (u *CostReportUpsertOne) UpdatePVCost() *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdatePvCost()
+		s.UpdatePVCost()
 	})
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (u *CostReportUpsertOne) SetPvBytes(v float64) *CostReportUpsertOne {
+// SetPVBytes sets the "pv_bytes" field.
+func (u *CostReportUpsertOne) SetPVBytes(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetPvBytes(v)
+		s.SetPVBytes(v)
 	})
 }
 
-// AddPvBytes adds v to the "pv_bytes" field.
-func (u *CostReportUpsertOne) AddPvBytes(v float64) *CostReportUpsertOne {
+// AddPVBytes adds v to the "pv_bytes" field.
+func (u *CostReportUpsertOne) AddPVBytes(v float64) *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddPvBytes(v)
+		s.AddPVBytes(v)
 	})
 }
 
-// UpdatePvBytes sets the "pv_bytes" field to the value that was provided on create.
-func (u *CostReportUpsertOne) UpdatePvBytes() *CostReportUpsertOne {
+// UpdatePVBytes sets the "pv_bytes" field to the value that was provided on create.
+func (u *CostReportUpsertOne) UpdatePVBytes() *CostReportUpsertOne {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdatePvBytes()
+		s.UpdatePVBytes()
 	})
 }
 
@@ -1949,8 +1949,8 @@ func (u *CostReportUpsertBulk) UpdateNewValues() *CostReportUpsertBulk {
 			if _, exists := b.mutation.CPUCoreRequest(); exists {
 				s.SetIgnore(costreport.FieldCPUCoreRequest)
 			}
-			if _, exists := b.mutation.GpuCount(); exists {
-				s.SetIgnore(costreport.FieldGpuCount)
+			if _, exists := b.mutation.GPUCount(); exists {
+				s.SetIgnore(costreport.FieldGPUCount)
 			}
 			if _, exists := b.mutation.RAMByteRequest(); exists {
 				s.SetIgnore(costreport.FieldRAMByteRequest)
@@ -2057,24 +2057,24 @@ func (u *CostReportUpsertBulk) UpdateCPUCost() *CostReportUpsertBulk {
 	})
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (u *CostReportUpsertBulk) SetGpuCost(v float64) *CostReportUpsertBulk {
+// SetGPUCost sets the "gpu_cost" field.
+func (u *CostReportUpsertBulk) SetGPUCost(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetGpuCost(v)
+		s.SetGPUCost(v)
 	})
 }
 
-// AddGpuCost adds v to the "gpu_cost" field.
-func (u *CostReportUpsertBulk) AddGpuCost(v float64) *CostReportUpsertBulk {
+// AddGPUCost adds v to the "gpu_cost" field.
+func (u *CostReportUpsertBulk) AddGPUCost(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddGpuCost(v)
+		s.AddGPUCost(v)
 	})
 }
 
-// UpdateGpuCost sets the "gpu_cost" field to the value that was provided on create.
-func (u *CostReportUpsertBulk) UpdateGpuCost() *CostReportUpsertBulk {
+// UpdateGPUCost sets the "gpu_cost" field to the value that was provided on create.
+func (u *CostReportUpsertBulk) UpdateGPUCost() *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdateGpuCost()
+		s.UpdateGPUCost()
 	})
 }
 
@@ -2099,45 +2099,45 @@ func (u *CostReportUpsertBulk) UpdateRAMCost() *CostReportUpsertBulk {
 	})
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (u *CostReportUpsertBulk) SetPvCost(v float64) *CostReportUpsertBulk {
+// SetPVCost sets the "pv_cost" field.
+func (u *CostReportUpsertBulk) SetPVCost(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetPvCost(v)
+		s.SetPVCost(v)
 	})
 }
 
-// AddPvCost adds v to the "pv_cost" field.
-func (u *CostReportUpsertBulk) AddPvCost(v float64) *CostReportUpsertBulk {
+// AddPVCost adds v to the "pv_cost" field.
+func (u *CostReportUpsertBulk) AddPVCost(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddPvCost(v)
+		s.AddPVCost(v)
 	})
 }
 
-// UpdatePvCost sets the "pv_cost" field to the value that was provided on create.
-func (u *CostReportUpsertBulk) UpdatePvCost() *CostReportUpsertBulk {
+// UpdatePVCost sets the "pv_cost" field to the value that was provided on create.
+func (u *CostReportUpsertBulk) UpdatePVCost() *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdatePvCost()
+		s.UpdatePVCost()
 	})
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (u *CostReportUpsertBulk) SetPvBytes(v float64) *CostReportUpsertBulk {
+// SetPVBytes sets the "pv_bytes" field.
+func (u *CostReportUpsertBulk) SetPVBytes(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.SetPvBytes(v)
+		s.SetPVBytes(v)
 	})
 }
 
-// AddPvBytes adds v to the "pv_bytes" field.
-func (u *CostReportUpsertBulk) AddPvBytes(v float64) *CostReportUpsertBulk {
+// AddPVBytes adds v to the "pv_bytes" field.
+func (u *CostReportUpsertBulk) AddPVBytes(v float64) *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.AddPvBytes(v)
+		s.AddPVBytes(v)
 	})
 }
 
-// UpdatePvBytes sets the "pv_bytes" field to the value that was provided on create.
-func (u *CostReportUpsertBulk) UpdatePvBytes() *CostReportUpsertBulk {
+// UpdatePVBytes sets the "pv_bytes" field to the value that was provided on create.
+func (u *CostReportUpsertBulk) UpdatePVBytes() *CostReportUpsertBulk {
 	return u.Update(func(s *CostReportUpsert) {
-		s.UpdatePvBytes()
+		s.UpdatePVBytes()
 	})
 }
 

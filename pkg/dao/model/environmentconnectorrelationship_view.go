@@ -8,17 +8,20 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// EnvironmentConnectorRelationshipCreateInput holds the creation input of the EnvironmentConnectorRelationship entity.
+// EnvironmentConnectorRelationshipCreateInput holds the creation input of the EnvironmentConnectorRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type EnvironmentConnectorRelationshipCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector,omitempty"`
+	// Connector specifies full inserting the new Connector entity of the EnvironmentConnectorRelationship entity.
+	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entity for creating,
@@ -36,42 +39,67 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInput) Model() *EnvironmentCo
 	return _ecr
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrci *EnvironmentConnectorRelationshipCreateInput) Load() error {
+// Validate checks the EnvironmentConnectorRelationshipCreateInput entity.
+func (ecrci *EnvironmentConnectorRelationshipCreateInput) Validate() error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrci.LoadWith(ecrci.inputConfig.Context, ecrci.inputConfig.ClientSet)
+	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrci *EnvironmentConnectorRelationshipCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipCreateInput entity with the given context and client set.
+func (ecrci *EnvironmentConnectorRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
 
 	if ecrci.Connector != nil {
-		err = ecrci.Connector.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := ecrci.Connector.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				ecrci.Connector = nil
+			}
 		}
 	}
+
 	return nil
 }
 
 // EnvironmentConnectorRelationshipCreateInputs holds the creation input item of the EnvironmentConnectorRelationship entities.
 type EnvironmentConnectorRelationshipCreateInputsItem struct {
-	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector,omitempty"`
+
+	// Connector specifies full inserting the new Connector entity.
+	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector"`
 }
 
-// EnvironmentConnectorRelationshipCreateInputs holds the creation input of the EnvironmentConnectorRelationship entities.
-type EnvironmentConnectorRelationshipCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the EnvironmentConnectorRelationshipCreateInputsItem entity with the given context and client set.
+func (ecrci *EnvironmentConnectorRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if ecrci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*EnvironmentConnectorRelationshipCreateInputsItem `uri:"-" query:"-" json:"items"`
+	if ecrci.Connector != nil {
+		if err := ecrci.Connector.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				ecrci.Connector = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// EnvironmentConnectorRelationshipCreateInputs holds the creation input of the EnvironmentConnectorRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type EnvironmentConnectorRelationshipCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*EnvironmentConnectorRelationshipCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entities for creating,
@@ -96,19 +124,17 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) Model() []*Environmen
 	return _ecrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrci *EnvironmentConnectorRelationshipCreateInputs) Load() error {
+// Validate checks the EnvironmentConnectorRelationshipCreateInputs entity .
+func (ecrci *EnvironmentConnectorRelationshipCreateInputs) Validate() error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrci.LoadWith(ecrci.inputConfig.Context, ecrci.inputConfig.ClientSet)
+	return ecrci.ValidateWith(ecrci.inputConfig.Context, ecrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrci *EnvironmentConnectorRelationshipCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipCreateInputs entity with the given context and client set.
+func (ecrci *EnvironmentConnectorRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -117,22 +143,36 @@ func (ecrci *EnvironmentConnectorRelationshipCreateInputs) LoadWith(ctx context.
 		return errors.New("empty items")
 	}
 
+	for i := range ecrci.Items {
+		if ecrci.Items[i] == nil {
+			continue
+		}
+
+		if err := ecrci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// EnvironmentConnectorRelationshipDeleteInput holds the deletion input of the EnvironmentConnectorRelationship entity.
+// EnvironmentConnectorRelationshipDeleteInput holds the deletion input of the EnvironmentConnectorRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type EnvironmentConnectorRelationshipDeleteInput = EnvironmentConnectorRelationshipQueryInput
 
 // EnvironmentConnectorRelationshipDeleteInputs holds the deletion input item of the EnvironmentConnectorRelationship entities.
 type EnvironmentConnectorRelationshipDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the EnvironmentConnectorRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// EnvironmentConnectorRelationshipDeleteInputs holds the deletion input of the EnvironmentConnectorRelationship entities.
+// EnvironmentConnectorRelationshipDeleteInputs holds the deletion input of the EnvironmentConnectorRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type EnvironmentConnectorRelationshipDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*EnvironmentConnectorRelationshipDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*EnvironmentConnectorRelationshipDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entities for deleting,
@@ -151,19 +191,31 @@ func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) Model() []*Environmen
 	return _ecrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) Load() error {
+// IDs returns the ID list of the EnvironmentConnectorRelationship entities for deleting,
+// after validating.
+func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) IDs() []object.ID {
+	if ecrdi == nil || len(ecrdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(ecrdi.Items))
+	for i := range ecrdi.Items {
+		ids[i] = ecrdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the EnvironmentConnectorRelationshipDeleteInputs entity.
+func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) Validate() error {
 	if ecrdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrdi.LoadWith(ecrdi.inputConfig.Context, ecrdi.inputConfig.ClientSet)
+	return ecrdi.ValidateWith(ecrdi.inputConfig.Context, ecrdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipDeleteInputs entity with the given context and client set.
+func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -188,7 +240,9 @@ func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) LoadWith(ctx context.
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(environmentconnectorrelationship.IDIn(ids...)).
 		Count(ctx)
@@ -196,19 +250,22 @@ func (ecrdi *EnvironmentConnectorRelationshipDeleteInputs) LoadWith(ctx context.
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// EnvironmentConnectorRelationshipQueryInput holds the query input of the EnvironmentConnectorRelationship entity.
+// EnvironmentConnectorRelationshipQueryInput holds the query input of the EnvironmentConnectorRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type EnvironmentConnectorRelationshipQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"environmentconnectorrelationship,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the EnvironmentConnectorRelationship entity.
+	Refer *object.Refer `path:"environmentconnectorrelationship,default=" query:"-" json:"-"`
+	// ID of the EnvironmentConnectorRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entity for querying,
@@ -223,25 +280,23 @@ func (ecrqi *EnvironmentConnectorRelationshipQueryInput) Model() *EnvironmentCon
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInput) Load() error {
+// Validate checks the EnvironmentConnectorRelationshipQueryInput entity.
+func (ecrqi *EnvironmentConnectorRelationshipQueryInput) Validate() error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrqi.LoadWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.ClientSet)
+	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipQueryInput entity with the given context and client set.
+func (ecrqi *EnvironmentConnectorRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if ecrqi.Refer != nil && *ecrqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", environmentconnectorrelationship.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.EnvironmentConnectorRelationships().Query()
@@ -260,40 +315,42 @@ func (ecrqi *EnvironmentConnectorRelationshipQueryInput) LoadWith(ctx context.Co
 		return errors.New("invalid identify of environmentconnectorrelationship")
 	}
 
+	var err error
 	ecrqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// EnvironmentConnectorRelationshipQueryInputs holds the query input of the EnvironmentConnectorRelationship entities.
+// EnvironmentConnectorRelationshipQueryInputs holds the query input of the EnvironmentConnectorRelationship entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type EnvironmentConnectorRelationshipQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) Load() error {
+// Validate checks the EnvironmentConnectorRelationshipQueryInputs entity.
+func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) Validate() error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrqi.LoadWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.ClientSet)
+	return ecrqi.ValidateWith(ecrqi.inputConfig.Context, ecrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipQueryInputs entity with the given context and client set.
+func (ecrqi *EnvironmentConnectorRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// EnvironmentConnectorRelationshipUpdateInput holds the modification input of the EnvironmentConnectorRelationship entity.
+// EnvironmentConnectorRelationshipUpdateInput holds the modification input of the EnvironmentConnectorRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type EnvironmentConnectorRelationshipUpdateInput struct {
-	EnvironmentConnectorRelationshipQueryInput `uri:",inline" query:"-" json:",inline"`
+	EnvironmentConnectorRelationshipQueryInput `path:",inline" query:"-" json:"-"`
 
-	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector,omitempty"`
+	// Connector indicates replacing the stale Connector entity.
+	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entity for modifying,
@@ -313,18 +370,69 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInput) Model() *EnvironmentCo
 	return _ecr
 }
 
-// EnvironmentConnectorRelationshipUpdateInputs holds the modification input item of the EnvironmentConnectorRelationship entities.
-type EnvironmentConnectorRelationshipUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the EnvironmentConnectorRelationshipUpdateInput entity.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInput) Validate() error {
+	if ecrui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector,omitempty"`
+	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client)
 }
 
-// EnvironmentConnectorRelationshipUpdateInputs holds the modification input of the EnvironmentConnectorRelationship entities.
-type EnvironmentConnectorRelationshipUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the EnvironmentConnectorRelationshipUpdateInput entity with the given context and client set.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := ecrui.EnvironmentConnectorRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*EnvironmentConnectorRelationshipUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	if ecrui.Connector != nil {
+		if err := ecrui.Connector.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				ecrui.Connector = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// EnvironmentConnectorRelationshipUpdateInputs holds the modification input item of the EnvironmentConnectorRelationship entities.
+type EnvironmentConnectorRelationshipUpdateInputsItem struct {
+	// ID of the EnvironmentConnectorRelationship entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
+
+	// Connector indicates replacing the stale Connector entity.
+	Connector *ConnectorQueryInput `uri:"-" query:"-" json:"connector"`
+}
+
+// ValidateWith checks the EnvironmentConnectorRelationshipUpdateInputsItem entity with the given context and client set.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if ecrui == nil {
+		return errors.New("nil receiver")
+	}
+
+	if ecrui.Connector != nil {
+		if err := ecrui.Connector.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				ecrui.Connector = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// EnvironmentConnectorRelationshipUpdateInputs holds the modification input of the EnvironmentConnectorRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type EnvironmentConnectorRelationshipUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*EnvironmentConnectorRelationshipUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the EnvironmentConnectorRelationship entities for modifying,
@@ -351,19 +459,31 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) Model() []*Environmen
 	return _ecrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) Load() error {
+// IDs returns the ID list of the EnvironmentConnectorRelationship entities for modifying,
+// after validating.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) IDs() []object.ID {
+	if ecrui == nil || len(ecrui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(ecrui.Items))
+	for i := range ecrui.Items {
+		ids[i] = ecrui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the EnvironmentConnectorRelationshipUpdateInputs entity.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) Validate() error {
 	if ecrui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return ecrui.LoadWith(ecrui.inputConfig.Context, ecrui.inputConfig.ClientSet)
+	return ecrui.ValidateWith(ecrui.inputConfig.Context, ecrui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the EnvironmentConnectorRelationshipUpdateInputs entity with the given context and client set.
+func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if ecrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -388,7 +508,9 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) LoadWith(ctx context.
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(environmentconnectorrelationship.IDIn(ids...)).
 		Count(ctx)
@@ -396,8 +518,18 @@ func (ecrui *EnvironmentConnectorRelationshipUpdateInputs) LoadWith(ctx context.
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range ecrui.Items {
+		if ecrui.Items[i] == nil {
+			continue
+		}
+
+		if err := ecrui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -411,12 +543,12 @@ type EnvironmentConnectorRelationshipOutput struct {
 	Connector *ConnectorOutput `json:"connector,omitempty"`
 }
 
-// View returns the output of EnvironmentConnectorRelationship.
+// View returns the output of EnvironmentConnectorRelationship entity.
 func (_ecr *EnvironmentConnectorRelationship) View() *EnvironmentConnectorRelationshipOutput {
 	return ExposeEnvironmentConnectorRelationship(_ecr)
 }
 
-// View returns the output of EnvironmentConnectorRelationships.
+// View returns the output of EnvironmentConnectorRelationship entities.
 func (_ecrs EnvironmentConnectorRelationships) View() []*EnvironmentConnectorRelationshipOutput {
 	return ExposeEnvironmentConnectorRelationships(_ecrs)
 }

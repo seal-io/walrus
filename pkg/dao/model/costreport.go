@@ -64,17 +64,17 @@ type CostReport struct {
 	// Cpu core requested.
 	CPUCoreRequest float64 `json:"cpu_core_request,omitempty"`
 	// GPU cost for current cost.
-	GpuCost float64 `json:"gpu_cost,omitempty"`
+	GPUCost float64 `json:"gpu_cost,omitempty"`
 	// GPU core count.
-	GpuCount float64 `json:"gpu_count,omitempty"`
+	GPUCount float64 `json:"gpu_count,omitempty"`
 	// Ram cost for current cost.
 	RAMCost float64 `json:"ram_cost,omitempty"`
 	// Ram requested in byte.
 	RAMByteRequest float64 `json:"ram_byte_request,omitempty"`
 	// PV cost for current cost linked.
-	PvCost float64 `json:"pv_cost,omitempty"`
+	PVCost float64 `json:"pv_cost,omitempty"`
 	// PV bytes for current cost linked.
-	PvBytes float64 `json:"pv_bytes,omitempty"`
+	PVBytes float64 `json:"pv_bytes,omitempty"`
 	// LoadBalancer cost for current cost linked.
 	LoadBalancerCost float64 `json:"load_balancer_cost,omitempty"`
 	// CPU core average usage.
@@ -122,7 +122,7 @@ func (*CostReport) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case costreport.FieldConnectorID:
 			values[i] = new(object.ID)
-		case costreport.FieldMinutes, costreport.FieldTotalCost, costreport.FieldCPUCost, costreport.FieldCPUCoreRequest, costreport.FieldGpuCost, costreport.FieldGpuCount, costreport.FieldRAMCost, costreport.FieldRAMByteRequest, costreport.FieldPvCost, costreport.FieldPvBytes, costreport.FieldLoadBalancerCost, costreport.FieldCPUCoreUsageAverage, costreport.FieldCPUCoreUsageMax, costreport.FieldRAMByteUsageAverage, costreport.FieldRAMByteUsageMax:
+		case costreport.FieldMinutes, costreport.FieldTotalCost, costreport.FieldCPUCost, costreport.FieldCPUCoreRequest, costreport.FieldGPUCost, costreport.FieldGPUCount, costreport.FieldRAMCost, costreport.FieldRAMByteRequest, costreport.FieldPVCost, costreport.FieldPVBytes, costreport.FieldLoadBalancerCost, costreport.FieldCPUCoreUsageAverage, costreport.FieldCPUCoreUsageMax, costreport.FieldRAMByteUsageAverage, costreport.FieldRAMByteUsageMax:
 			values[i] = new(sql.NullFloat64)
 		case costreport.FieldID, costreport.FieldCurrency:
 			values[i] = new(sql.NullInt64)
@@ -269,17 +269,17 @@ func (cr *CostReport) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				cr.CPUCoreRequest = value.Float64
 			}
-		case costreport.FieldGpuCost:
+		case costreport.FieldGPUCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field gpu_cost", values[i])
 			} else if value.Valid {
-				cr.GpuCost = value.Float64
+				cr.GPUCost = value.Float64
 			}
-		case costreport.FieldGpuCount:
+		case costreport.FieldGPUCount:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field gpu_count", values[i])
 			} else if value.Valid {
-				cr.GpuCount = value.Float64
+				cr.GPUCount = value.Float64
 			}
 		case costreport.FieldRAMCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -293,17 +293,17 @@ func (cr *CostReport) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				cr.RAMByteRequest = value.Float64
 			}
-		case costreport.FieldPvCost:
+		case costreport.FieldPVCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field pv_cost", values[i])
 			} else if value.Valid {
-				cr.PvCost = value.Float64
+				cr.PVCost = value.Float64
 			}
-		case costreport.FieldPvBytes:
+		case costreport.FieldPVBytes:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field pv_bytes", values[i])
 			} else if value.Valid {
-				cr.PvBytes = value.Float64
+				cr.PVBytes = value.Float64
 			}
 		case costreport.FieldLoadBalancerCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -434,10 +434,10 @@ func (cr *CostReport) String() string {
 	builder.WriteString(fmt.Sprintf("%v", cr.CPUCoreRequest))
 	builder.WriteString(", ")
 	builder.WriteString("gpu_cost=")
-	builder.WriteString(fmt.Sprintf("%v", cr.GpuCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.GPUCost))
 	builder.WriteString(", ")
 	builder.WriteString("gpu_count=")
-	builder.WriteString(fmt.Sprintf("%v", cr.GpuCount))
+	builder.WriteString(fmt.Sprintf("%v", cr.GPUCount))
 	builder.WriteString(", ")
 	builder.WriteString("ram_cost=")
 	builder.WriteString(fmt.Sprintf("%v", cr.RAMCost))
@@ -446,10 +446,10 @@ func (cr *CostReport) String() string {
 	builder.WriteString(fmt.Sprintf("%v", cr.RAMByteRequest))
 	builder.WriteString(", ")
 	builder.WriteString("pv_cost=")
-	builder.WriteString(fmt.Sprintf("%v", cr.PvCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.PVCost))
 	builder.WriteString(", ")
 	builder.WriteString("pv_bytes=")
-	builder.WriteString(fmt.Sprintf("%v", cr.PvBytes))
+	builder.WriteString(fmt.Sprintf("%v", cr.PVBytes))
 	builder.WriteString(", ")
 	builder.WriteString("load_balancer_cost=")
 	builder.WriteString(fmt.Sprintf("%v", cr.LoadBalancerCost))

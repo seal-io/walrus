@@ -42,12 +42,6 @@ func (cu *CatalogUpdate) Where(ps ...predicate.Catalog) *CatalogUpdate {
 	return cu
 }
 
-// SetName sets the "name" field.
-func (cu *CatalogUpdate) SetName(s string) *CatalogUpdate {
-	cu.mutation.SetName(s)
-	return cu
-}
-
 // SetDescription sets the "description" field.
 func (cu *CatalogUpdate) SetDescription(s string) *CatalogUpdate {
 	cu.mutation.SetDescription(s)
@@ -221,11 +215,6 @@ func (cu *CatalogUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *CatalogUpdate) check() error {
-	if v, ok := cu.mutation.Name(); ok {
-		if err := catalog.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Catalog.name": %w`, err)}
-		}
-	}
 	if v, ok := cu.mutation.Source(); ok {
 		if err := catalog.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Catalog.source": %w`, err)}
@@ -267,7 +256,6 @@ func (cu *CatalogUpdate) check() error {
 //	}
 func (cu *CatalogUpdate) Set(obj *Catalog) *CatalogUpdate {
 	// Without Default.
-	cu.SetName(obj.Name)
 	if obj.Description != "" {
 		cu.SetDescription(obj.Description)
 	} else {
@@ -317,9 +305,6 @@ func (cu *CatalogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := cu.mutation.Name(); ok {
-		_spec.SetField(catalog.FieldName, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.Description(); ok {
 		_spec.SetField(catalog.FieldDescription, field.TypeString, value)
@@ -428,12 +413,6 @@ type CatalogUpdateOne struct {
 	mutation  *CatalogMutation
 	modifiers []func(*sql.UpdateBuilder)
 	object    *Catalog
-}
-
-// SetName sets the "name" field.
-func (cuo *CatalogUpdateOne) SetName(s string) *CatalogUpdateOne {
-	cuo.mutation.SetName(s)
-	return cuo
 }
 
 // SetDescription sets the "description" field.
@@ -622,11 +601,6 @@ func (cuo *CatalogUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *CatalogUpdateOne) check() error {
-	if v, ok := cuo.mutation.Name(); ok {
-		if err := catalog.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Catalog.name": %w`, err)}
-		}
-	}
 	if v, ok := cuo.mutation.Source(); ok {
 		if err := catalog.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Catalog.source": %w`, err)}
@@ -678,9 +652,6 @@ func (cuo *CatalogUpdateOne) Set(obj *Catalog) *CatalogUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				cuo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					cuo.SetDescription(obj.Description)
@@ -763,9 +734,6 @@ func (cuo *CatalogUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context.
 	if obj == nil {
 		obj = cuo.object
 	} else if x := cuo.object; x != nil {
-		if _, set := cuo.mutation.Field(catalog.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := cuo.mutation.Field(catalog.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -853,9 +821,6 @@ func (cuo *CatalogUpdateOne) sqlSave(ctx context.Context) (_node *Catalog, err e
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := cuo.mutation.Name(); ok {
-		_spec.SetField(catalog.FieldName, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.Description(); ok {
 		_spec.SetField(catalog.FieldDescription, field.TypeString, value)

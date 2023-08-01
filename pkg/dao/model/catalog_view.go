@@ -8,23 +8,31 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/catalog"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-// CatalogCreateInput holds the creation input of the Catalog entity.
+// CatalogCreateInput holds the creation input of the Catalog entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type CatalogCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Source      string            `uri:"-" query:"-" json:"source"`
-	Type        string            `uri:"-" query:"-" json:"type"`
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Source of the catalog.
+	Source string `path:"-" query:"-" json:"source"`
+	// Type of the catalog.
+	Type string `path:"-" query:"-" json:"type"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
 // Model returns the Catalog entity for creating,
@@ -45,19 +53,17 @@ func (cci *CatalogCreateInput) Model() *Catalog {
 	return _c
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cci *CatalogCreateInput) Load() error {
+// Validate checks the CatalogCreateInput entity.
+func (cci *CatalogCreateInput) Validate() error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cci.LoadWith(cci.inputConfig.Context, cci.inputConfig.ClientSet)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cci *CatalogCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogCreateInput entity with the given context and client set.
+func (cci *CatalogCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
@@ -67,18 +73,34 @@ func (cci *CatalogCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 
 // CatalogCreateInputs holds the creation input item of the Catalog entities.
 type CatalogCreateInputsItem struct {
-	Source      string            `uri:"-" query:"-" json:"source"`
-	Type        string            `uri:"-" query:"-" json:"type"`
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Source of the catalog.
+	Source string `path:"-" query:"-" json:"source"`
+	// Type of the catalog.
+	Type string `path:"-" query:"-" json:"type"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
-// CatalogCreateInputs holds the creation input of the Catalog entities.
-type CatalogCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the CatalogCreateInputsItem entity with the given context and client set.
+func (cci *CatalogCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if cci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*CatalogCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// CatalogCreateInputs holds the creation input of the Catalog entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type CatalogCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*CatalogCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Catalog entities for creating,
@@ -105,19 +127,17 @@ func (cci *CatalogCreateInputs) Model() []*Catalog {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cci *CatalogCreateInputs) Load() error {
+// Validate checks the CatalogCreateInputs entity .
+func (cci *CatalogCreateInputs) Validate() error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cci.LoadWith(cci.inputConfig.Context, cci.inputConfig.ClientSet)
+	return cci.ValidateWith(cci.inputConfig.Context, cci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cci *CatalogCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogCreateInputs entity with the given context and client set.
+func (cci *CatalogCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cci == nil {
 		return errors.New("nil receiver")
 	}
@@ -126,22 +146,38 @@ func (cci *CatalogCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		return errors.New("empty items")
 	}
 
+	for i := range cci.Items {
+		if cci.Items[i] == nil {
+			continue
+		}
+
+		if err := cci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// CatalogDeleteInput holds the deletion input of the Catalog entity.
+// CatalogDeleteInput holds the deletion input of the Catalog entity,
+// please tags with `path:",inline"` if embedding.
 type CatalogDeleteInput = CatalogQueryInput
 
 // CatalogDeleteInputs holds the deletion input item of the Catalog entities.
 type CatalogDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Catalog entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Catalog entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// CatalogDeleteInputs holds the deletion input of the Catalog entities.
+// CatalogDeleteInputs holds the deletion input of the Catalog entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type CatalogDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*CatalogDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*CatalogDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Catalog entities for deleting,
@@ -160,19 +196,31 @@ func (cdi *CatalogDeleteInputs) Model() []*Catalog {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cdi *CatalogDeleteInputs) Load() error {
+// IDs returns the ID list of the Catalog entities for deleting,
+// after validating.
+func (cdi *CatalogDeleteInputs) IDs() []object.ID {
+	if cdi == nil || len(cdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(cdi.Items))
+	for i := range cdi.Items {
+		ids[i] = cdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the CatalogDeleteInputs entity.
+func (cdi *CatalogDeleteInputs) Validate() error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cdi.LoadWith(cdi.inputConfig.Context, cdi.inputConfig.ClientSet)
+	return cdi.ValidateWith(cdi.inputConfig.Context, cdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cdi *CatalogDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogDeleteInputs entity with the given context and client set.
+func (cdi *CatalogDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -184,6 +232,7 @@ func (cdi *CatalogDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Catalogs().Query()
 
 	ids := make([]object.ID, 0, len(cdi.Items))
+	ors := make([]predicate.Catalog, 0, len(cdi.Items))
 
 	for i := range cdi.Items {
 		if cdi.Items[i] == nil {
@@ -192,32 +241,54 @@ func (cdi *CatalogDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if cdi.Items[i].ID != "" {
 			ids = append(ids, cdi.Items[i].ID)
+			ors = append(ors, catalog.ID(cdi.Items[i].ID))
+		} else if cdi.Items[i].Name != "" {
+			ors = append(ors, catalog.And(
+				catalog.Name(cdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := catalog.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = catalog.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(catalog.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			catalog.FieldID,
+			catalog.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		cdi.Items[i].ID = es[i].ID
+		cdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// CatalogQueryInput holds the query input of the Catalog entity.
+// CatalogQueryInput holds the query input of the Catalog entity,
+// please tags with `path:",inline"` if embedding.
 type CatalogQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"catalog,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Catalog entity.
+	Refer *object.Refer `path:"catalog,default=" query:"-" json:"-"`
+	// ID of the Catalog entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Catalog entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Catalog entity for querying,
@@ -228,29 +299,28 @@ func (cqi *CatalogQueryInput) Model() *Catalog {
 	}
 
 	return &Catalog{
-		ID: cqi.ID,
+		ID:   cqi.ID,
+		Name: cqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cqi *CatalogQueryInput) Load() error {
+// Validate checks the CatalogQueryInput entity.
+func (cqi *CatalogQueryInput) Validate() error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.LoadWith(cqi.inputConfig.Context, cqi.inputConfig.ClientSet)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cqi *CatalogQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogQueryInput entity with the given context and client set.
+func (cqi *CatalogQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if cqi.Refer != nil && *cqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", catalog.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Catalogs().Query()
@@ -259,53 +329,70 @@ func (cqi *CatalogQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err e
 		if cqi.Refer.IsID() {
 			q.Where(
 				catalog.ID(cqi.Refer.ID()))
+		} else if refers := cqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				catalog.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of catalog")
 		}
 	} else if cqi.ID != "" {
 		q.Where(
 			catalog.ID(cqi.ID))
+	} else if cqi.Name != "" {
+		q.Where(
+			catalog.Name(cqi.Name))
 	} else {
 		return errors.New("invalid identify of catalog")
 	}
 
-	cqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			catalog.FieldID,
+			catalog.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		cqi.ID = e.ID
+		cqi.Name = e.Name
+	}
 	return err
 }
 
-// CatalogQueryInputs holds the query input of the Catalog entities.
+// CatalogQueryInputs holds the query input of the Catalog entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type CatalogQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cqi *CatalogQueryInputs) Load() error {
+// Validate checks the CatalogQueryInputs entity.
+func (cqi *CatalogQueryInputs) Validate() error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cqi.LoadWith(cqi.inputConfig.Context, cqi.inputConfig.ClientSet)
+	return cqi.ValidateWith(cqi.inputConfig.Context, cqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cqi *CatalogQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogQueryInputs entity with the given context and client set.
+func (cqi *CatalogQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// CatalogUpdateInput holds the modification input of the Catalog entity.
+// CatalogUpdateInput holds the modification input of the Catalog entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type CatalogUpdateInput struct {
-	CatalogQueryInput `uri:",inline" query:"-" json:",inline"`
+	CatalogQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Source of the catalog.
+	Source string `path:"-" query:"-" json:"source,omitempty"`
 }
 
 // Model returns the Catalog entity for modifying,
@@ -317,7 +404,6 @@ func (cui *CatalogUpdateInput) Model() *Catalog {
 
 	_c := &Catalog{
 		ID:          cui.ID,
-		Name:        cui.Name,
 		Description: cui.Description,
 		Labels:      cui.Labels,
 		Source:      cui.Source,
@@ -326,21 +412,55 @@ func (cui *CatalogUpdateInput) Model() *Catalog {
 	return _c
 }
 
-// CatalogUpdateInputs holds the modification input item of the Catalog entities.
-type CatalogUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the CatalogUpdateInput entity.
+func (cui *CatalogUpdateInput) Validate() error {
+	if cui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
 }
 
-// CatalogUpdateInputs holds the modification input of the Catalog entities.
-type CatalogUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the CatalogUpdateInput entity with the given context and client set.
+func (cui *CatalogUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := cui.CatalogQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*CatalogUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// CatalogUpdateInputs holds the modification input item of the Catalog entities.
+type CatalogUpdateInputsItem struct {
+	// ID of the Catalog entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Catalog entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Source of the catalog.
+	Source string `path:"-" query:"-" json:"source"`
+}
+
+// ValidateWith checks the CatalogUpdateInputsItem entity with the given context and client set.
+func (cui *CatalogUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if cui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// CatalogUpdateInputs holds the modification input of the Catalog entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type CatalogUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*CatalogUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Catalog entities for modifying,
@@ -355,7 +475,6 @@ func (cui *CatalogUpdateInputs) Model() []*Catalog {
 	for i := range cui.Items {
 		_c := &Catalog{
 			ID:          cui.Items[i].ID,
-			Name:        cui.Items[i].Name,
 			Description: cui.Items[i].Description,
 			Labels:      cui.Items[i].Labels,
 			Source:      cui.Items[i].Source,
@@ -367,19 +486,31 @@ func (cui *CatalogUpdateInputs) Model() []*Catalog {
 	return _cs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (cui *CatalogUpdateInputs) Load() error {
+// IDs returns the ID list of the Catalog entities for modifying,
+// after validating.
+func (cui *CatalogUpdateInputs) IDs() []object.ID {
+	if cui == nil || len(cui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(cui.Items))
+	for i := range cui.Items {
+		ids[i] = cui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the CatalogUpdateInputs entity.
+func (cui *CatalogUpdateInputs) Validate() error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return cui.LoadWith(cui.inputConfig.Context, cui.inputConfig.ClientSet)
+	return cui.ValidateWith(cui.inputConfig.Context, cui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (cui *CatalogUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the CatalogUpdateInputs entity with the given context and client set.
+func (cui *CatalogUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if cui == nil {
 		return errors.New("nil receiver")
 	}
@@ -391,6 +522,7 @@ func (cui *CatalogUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Catalogs().Query()
 
 	ids := make([]object.ID, 0, len(cui.Items))
+	ors := make([]predicate.Catalog, 0, len(cui.Items))
 
 	for i := range cui.Items {
 		if cui.Items[i] == nil {
@@ -399,21 +531,48 @@ func (cui *CatalogUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if cui.Items[i].ID != "" {
 			ids = append(ids, cui.Items[i].ID)
+			ors = append(ors, catalog.ID(cui.Items[i].ID))
+		} else if cui.Items[i].Name != "" {
+			ors = append(ors, catalog.And(
+				catalog.Name(cui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := catalog.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = catalog.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(catalog.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			catalog.FieldID,
+			catalog.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		cui.Items[i].ID = es[i].ID
+		cui.Items[i].Name = es[i].Name
+	}
+
+	for i := range cui.Items {
+		if cui.Items[i] == nil {
+			continue
+		}
+
+		if err := cui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -433,12 +592,12 @@ type CatalogOutput struct {
 	Sync        *types.CatalogSync `json:"sync,omitempty"`
 }
 
-// View returns the output of Catalog.
+// View returns the output of Catalog entity.
 func (_c *Catalog) View() *CatalogOutput {
 	return ExposeCatalog(_c)
 }
 
-// View returns the output of Catalogs.
+// View returns the output of Catalog entities.
 func (_cs Catalogs) View() []*CatalogOutput {
 	return ExposeCatalogs(_cs)
 }

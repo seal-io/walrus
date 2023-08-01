@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -15,13 +16,16 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// ServiceResourceRelationshipCreateInput holds the creation input of the ServiceResourceRelationship entity.
+// ServiceResourceRelationshipCreateInput holds the creation input of the ServiceResourceRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceResourceRelationshipCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Type string `uri:"-" query:"-" json:"type"`
+	// Type of the relationship.
+	Type string `path:"-" query:"-" json:"type"`
 
-	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency,omitempty"`
+	// Dependency specifies full inserting the new ServiceResource entity of the ServiceResourceRelationship entity.
+	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency"`
 }
 
 // Model returns the ServiceResourceRelationship entity for creating,
@@ -41,44 +45,69 @@ func (srrci *ServiceResourceRelationshipCreateInput) Model() *ServiceResourceRel
 	return _srr
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrci *ServiceResourceRelationshipCreateInput) Load() error {
+// Validate checks the ServiceResourceRelationshipCreateInput entity.
+func (srrci *ServiceResourceRelationshipCreateInput) Validate() error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.LoadWith(srrci.inputConfig.Context, srrci.inputConfig.ClientSet)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrci *ServiceResourceRelationshipCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipCreateInput entity with the given context and client set.
+func (srrci *ServiceResourceRelationshipCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
 	if srrci.Dependency != nil {
-		err = srrci.Dependency.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := srrci.Dependency.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Dependency = nil
+			}
 		}
 	}
+
 	return nil
 }
 
 // ServiceResourceRelationshipCreateInputs holds the creation input item of the ServiceResourceRelationship entities.
 type ServiceResourceRelationshipCreateInputsItem struct {
-	Type string `uri:"-" query:"-" json:"type"`
+	// Type of the relationship.
+	Type string `path:"-" query:"-" json:"type"`
 
-	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency,omitempty"`
+	// Dependency specifies full inserting the new ServiceResource entity.
+	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency"`
 }
 
-// ServiceResourceRelationshipCreateInputs holds the creation input of the ServiceResourceRelationship entities.
-type ServiceResourceRelationshipCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the ServiceResourceRelationshipCreateInputsItem entity with the given context and client set.
+func (srrci *ServiceResourceRelationshipCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srrci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*ServiceResourceRelationshipCreateInputsItem `uri:"-" query:"-" json:"items"`
+	if srrci.Dependency != nil {
+		if err := srrci.Dependency.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrci.Dependency = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceResourceRelationshipCreateInputs holds the creation input of the ServiceResourceRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ServiceResourceRelationshipCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceResourceRelationshipCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceResourceRelationship entities for creating,
@@ -105,19 +134,17 @@ func (srrci *ServiceResourceRelationshipCreateInputs) Model() []*ServiceResource
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrci *ServiceResourceRelationshipCreateInputs) Load() error {
+// Validate checks the ServiceResourceRelationshipCreateInputs entity .
+func (srrci *ServiceResourceRelationshipCreateInputs) Validate() error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrci.LoadWith(srrci.inputConfig.Context, srrci.inputConfig.ClientSet)
+	return srrci.ValidateWith(srrci.inputConfig.Context, srrci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrci *ServiceResourceRelationshipCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipCreateInputs entity with the given context and client set.
+func (srrci *ServiceResourceRelationshipCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrci == nil {
 		return errors.New("nil receiver")
 	}
@@ -126,23 +153,38 @@ func (srrci *ServiceResourceRelationshipCreateInputs) LoadWith(ctx context.Conte
 		return errors.New("empty items")
 	}
 
+	for i := range srrci.Items {
+		if srrci.Items[i] == nil {
+			continue
+		}
+
+		if err := srrci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// ServiceResourceRelationshipDeleteInput holds the deletion input of the ServiceResourceRelationship entity.
+// ServiceResourceRelationshipDeleteInput holds the deletion input of the ServiceResourceRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceResourceRelationshipDeleteInput = ServiceResourceRelationshipQueryInput
 
 // ServiceResourceRelationshipDeleteInputs holds the deletion input item of the ServiceResourceRelationship entities.
 type ServiceResourceRelationshipDeleteInputsItem struct {
-	ID   object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Type string    `uri:"-" query:"-" json:"type,omitempty"`
+	// ID of the ServiceResourceRelationship entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Type of the ServiceResourceRelationship entity, a part of the unique index.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 }
 
-// ServiceResourceRelationshipDeleteInputs holds the deletion input of the ServiceResourceRelationship entities.
+// ServiceResourceRelationshipDeleteInputs holds the deletion input of the ServiceResourceRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceResourceRelationshipDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*ServiceResourceRelationshipDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceResourceRelationshipDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceResourceRelationship entities for deleting,
@@ -161,19 +203,31 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) Model() []*ServiceResource
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrdi *ServiceResourceRelationshipDeleteInputs) Load() error {
+// IDs returns the ID list of the ServiceResourceRelationship entities for deleting,
+// after validating.
+func (srrdi *ServiceResourceRelationshipDeleteInputs) IDs() []object.ID {
+	if srrdi == nil || len(srrdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srrdi.Items))
+	for i := range srrdi.Items {
+		ids[i] = srrdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceResourceRelationshipDeleteInputs entity.
+func (srrdi *ServiceResourceRelationshipDeleteInputs) Validate() error {
 	if srrdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrdi.LoadWith(srrdi.inputConfig.Context, srrdi.inputConfig.ClientSet)
+	return srrdi.ValidateWith(srrdi.inputConfig.Context, srrdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrdi *ServiceResourceRelationshipDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipDeleteInputs entity with the given context and client set.
+func (srrdi *ServiceResourceRelationshipDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -203,45 +257,45 @@ func (srrdi *ServiceResourceRelationshipDeleteInputs) LoadWith(ctx context.Conte
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(serviceresourcerelationship.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			srrdi.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := serviceresourcerelationship.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = serviceresourcerelationship.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(serviceresourcerelationship.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			serviceresourcerelationship.FieldID,
+			serviceresourcerelationship.FieldType,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		srrdi.Items[i].ID = es[i].ID
+		srrdi.Items[i].Type = es[i].Type
 	}
 
 	return nil
 }
 
-// ServiceResourceRelationshipQueryInput holds the query input of the ServiceResourceRelationship entity.
+// ServiceResourceRelationshipQueryInput holds the query input of the ServiceResourceRelationship entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceResourceRelationshipQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"serviceresourcerelationship,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id,omitempty"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
-	Type  string        `uri:"-" query:"-" json:"type,omitempty"`
+	// Refer holds the route path reference of the ServiceResourceRelationship entity.
+	Refer *object.Refer `path:"serviceresourcerelationship,default=" query:"-" json:"-"`
+	// ID of the ServiceResourceRelationship entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Type of the ServiceResourceRelationship entity, a part of the unique index.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
 }
 
 // Model returns the ServiceResourceRelationship entity for querying,
@@ -252,29 +306,28 @@ func (srrqi *ServiceResourceRelationshipQueryInput) Model() *ServiceResourceRela
 	}
 
 	return &ServiceResourceRelationship{
-		ID: srrqi.ID,
+		ID:   srrqi.ID,
+		Type: srrqi.Type,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrqi *ServiceResourceRelationshipQueryInput) Load() error {
+// Validate checks the ServiceResourceRelationshipQueryInput entity.
+func (srrqi *ServiceResourceRelationshipQueryInput) Validate() error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.LoadWith(srrqi.inputConfig.Context, srrqi.inputConfig.ClientSet)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrqi *ServiceResourceRelationshipQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipQueryInput entity with the given context and client set.
+func (srrqi *ServiceResourceRelationshipQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if srrqi.Refer != nil && *srrqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", serviceresourcerelationship.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.ServiceResourceRelationships().Query()
@@ -299,40 +352,50 @@ func (srrqi *ServiceResourceRelationshipQueryInput) LoadWith(ctx context.Context
 		return errors.New("invalid identify of serviceresourcerelationship")
 	}
 
-	srrqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			serviceresourcerelationship.FieldID,
+			serviceresourcerelationship.FieldType,
+		).
+		Only(ctx)
+	if err == nil {
+		srrqi.ID = e.ID
+		srrqi.Type = e.Type
+	}
 	return err
 }
 
-// ServiceResourceRelationshipQueryInputs holds the query input of the ServiceResourceRelationship entities.
+// ServiceResourceRelationshipQueryInputs holds the query input of the ServiceResourceRelationship entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type ServiceResourceRelationshipQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrqi *ServiceResourceRelationshipQueryInputs) Load() error {
+// Validate checks the ServiceResourceRelationshipQueryInputs entity.
+func (srrqi *ServiceResourceRelationshipQueryInputs) Validate() error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrqi.LoadWith(srrqi.inputConfig.Context, srrqi.inputConfig.ClientSet)
+	return srrqi.ValidateWith(srrqi.inputConfig.Context, srrqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrqi *ServiceResourceRelationshipQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipQueryInputs entity with the given context and client set.
+func (srrqi *ServiceResourceRelationshipQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// ServiceResourceRelationshipUpdateInput holds the modification input of the ServiceResourceRelationship entity.
+// ServiceResourceRelationshipUpdateInput holds the modification input of the ServiceResourceRelationship entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceResourceRelationshipUpdateInput struct {
-	ServiceResourceRelationshipQueryInput `uri:",inline" query:"-" json:",inline"`
+	ServiceResourceRelationshipQueryInput `path:",inline" query:"-" json:"-"`
 
-	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency,omitempty"`
+	// Dependency indicates replacing the stale ServiceResource entity.
+	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency"`
 }
 
 // Model returns the ServiceResourceRelationship entity for modifying,
@@ -352,19 +415,71 @@ func (srrui *ServiceResourceRelationshipUpdateInput) Model() *ServiceResourceRel
 	return _srr
 }
 
-// ServiceResourceRelationshipUpdateInputs holds the modification input item of the ServiceResourceRelationship entities.
-type ServiceResourceRelationshipUpdateInputsItem struct {
-	ID   object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Type string    `uri:"-" query:"-" json:"type,omitempty"`
+// Validate checks the ServiceResourceRelationshipUpdateInput entity.
+func (srrui *ServiceResourceRelationshipUpdateInput) Validate() error {
+	if srrui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency,omitempty"`
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
 }
 
-// ServiceResourceRelationshipUpdateInputs holds the modification input of the ServiceResourceRelationship entities.
-type ServiceResourceRelationshipUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the ServiceResourceRelationshipUpdateInput entity with the given context and client set.
+func (srrui *ServiceResourceRelationshipUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := srrui.ServiceResourceRelationshipQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*ServiceResourceRelationshipUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	if srrui.Dependency != nil {
+		if err := srrui.Dependency.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Dependency = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceResourceRelationshipUpdateInputs holds the modification input item of the ServiceResourceRelationship entities.
+type ServiceResourceRelationshipUpdateInputsItem struct {
+	// ID of the ServiceResourceRelationship entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Type of the ServiceResourceRelationship entity, a part of the unique index.
+	Type string `path:"-" query:"-" json:"type,omitempty"`
+
+	// Dependency indicates replacing the stale ServiceResource entity.
+	Dependency *ServiceResourceQueryInput `uri:"-" query:"-" json:"dependency"`
+}
+
+// ValidateWith checks the ServiceResourceRelationshipUpdateInputsItem entity with the given context and client set.
+func (srrui *ServiceResourceRelationshipUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srrui == nil {
+		return errors.New("nil receiver")
+	}
+
+	if srrui.Dependency != nil {
+		if err := srrui.Dependency.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srrui.Dependency = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceResourceRelationshipUpdateInputs holds the modification input of the ServiceResourceRelationship entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ServiceResourceRelationshipUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceResourceRelationshipUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceResourceRelationship entities for modifying,
@@ -391,19 +506,31 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) Model() []*ServiceResource
 	return _srrs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srrui *ServiceResourceRelationshipUpdateInputs) Load() error {
+// IDs returns the ID list of the ServiceResourceRelationship entities for modifying,
+// after validating.
+func (srrui *ServiceResourceRelationshipUpdateInputs) IDs() []object.ID {
+	if srrui == nil || len(srrui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srrui.Items))
+	for i := range srrui.Items {
+		ids[i] = srrui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceResourceRelationshipUpdateInputs entity.
+func (srrui *ServiceResourceRelationshipUpdateInputs) Validate() error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srrui.LoadWith(srrui.inputConfig.Context, srrui.inputConfig.ClientSet)
+	return srrui.ValidateWith(srrui.inputConfig.Context, srrui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srrui *ServiceResourceRelationshipUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceResourceRelationshipUpdateInputs entity with the given context and client set.
+func (srrui *ServiceResourceRelationshipUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srrui == nil {
 		return errors.New("nil receiver")
 	}
@@ -433,33 +560,39 @@ func (srrui *ServiceResourceRelationshipUpdateInputs) LoadWith(ctx context.Conte
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(serviceresourcerelationship.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			srrui.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := serviceresourcerelationship.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = serviceresourcerelationship.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(serviceresourcerelationship.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			serviceresourcerelationship.FieldID,
+			serviceresourcerelationship.FieldType,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		srrui.Items[i].ID = es[i].ID
+		srrui.Items[i].Type = es[i].Type
+	}
+
+	for i := range srrui.Items {
+		if srrui.Items[i] == nil {
+			continue
+		}
+
+		if err := srrui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -474,12 +607,12 @@ type ServiceResourceRelationshipOutput struct {
 	Dependency *ServiceResourceOutput `json:"dependency,omitempty"`
 }
 
-// View returns the output of ServiceResourceRelationship.
+// View returns the output of ServiceResourceRelationship entity.
 func (_srr *ServiceResourceRelationship) View() *ServiceResourceRelationshipOutput {
 	return ExposeServiceResourceRelationship(_srr)
 }
 
-// View returns the output of ServiceResourceRelationships.
+// View returns the output of ServiceResourceRelationship entities.
 func (_srrs ServiceResourceRelationships) View() []*ServiceResourceRelationshipOutput {
 	return ExposeServiceResourceRelationships(_srrs)
 }

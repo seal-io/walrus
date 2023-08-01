@@ -1098,12 +1098,12 @@ type ConnectorMutation struct {
 	create_time            *time.Time
 	update_time            *time.Time
 	status                 *status.Status
+	category               *string
 	_type                  *string
 	config_version         *string
 	config_data            *crypto.Properties
 	enable_fin_ops         *bool
 	fin_ops_custom_pricing **types.FinOpsCustomPricing
-	category               *string
 	clearedFields          map[string]struct{}
 	project                *object.ID
 	clearedproject         bool
@@ -1480,6 +1480,55 @@ func (m *ConnectorMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *ConnectorMutation) SetStatus(s status.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ConnectorMutation) Status() (r status.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Connector entity.
+// If the Connector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConnectorMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ClearStatus clears the value of the "status" field.
+func (m *ConnectorMutation) ClearStatus() {
+	m.status = nil
+	m.clearedFields[connector.FieldStatus] = struct{}{}
+}
+
+// StatusCleared returns if the "status" field was cleared in this mutation.
+func (m *ConnectorMutation) StatusCleared() bool {
+	_, ok := m.clearedFields[connector.FieldStatus]
+	return ok
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ConnectorMutation) ResetStatus() {
+	m.status = nil
+	delete(m.clearedFields, connector.FieldStatus)
+}
+
 // SetProjectID sets the "project_id" field.
 func (m *ConnectorMutation) SetProjectID(o object.ID) {
 	m.project = &o
@@ -1529,53 +1578,40 @@ func (m *ConnectorMutation) ResetProjectID() {
 	delete(m.clearedFields, connector.FieldProjectID)
 }
 
-// SetStatus sets the "status" field.
-func (m *ConnectorMutation) SetStatus(s status.Status) {
-	m.status = &s
+// SetCategory sets the "category" field.
+func (m *ConnectorMutation) SetCategory(s string) {
+	m.category = &s
 }
 
-// Status returns the value of the "status" field in the mutation.
-func (m *ConnectorMutation) Status() (r status.Status, exists bool) {
-	v := m.status
+// Category returns the value of the "category" field in the mutation.
+func (m *ConnectorMutation) Category() (r string, exists bool) {
+	v := m.category
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the Connector entity.
+// OldCategory returns the old "category" field's value of the Connector entity.
 // If the Connector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldStatus(ctx context.Context) (v status.Status, err error) {
+func (m *ConnectorMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
+		return v, errors.New("OldCategory requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
 	}
-	return oldValue.Status, nil
+	return oldValue.Category, nil
 }
 
-// ClearStatus clears the value of the "status" field.
-func (m *ConnectorMutation) ClearStatus() {
-	m.status = nil
-	m.clearedFields[connector.FieldStatus] = struct{}{}
-}
-
-// StatusCleared returns if the "status" field was cleared in this mutation.
-func (m *ConnectorMutation) StatusCleared() bool {
-	_, ok := m.clearedFields[connector.FieldStatus]
-	return ok
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *ConnectorMutation) ResetStatus() {
-	m.status = nil
-	delete(m.clearedFields, connector.FieldStatus)
+// ResetCategory resets all changes to the "category" field.
+func (m *ConnectorMutation) ResetCategory() {
+	m.category = nil
 }
 
 // SetType sets the "type" field.
@@ -1782,42 +1818,6 @@ func (m *ConnectorMutation) FinOpsCustomPricingCleared() bool {
 func (m *ConnectorMutation) ResetFinOpsCustomPricing() {
 	m.fin_ops_custom_pricing = nil
 	delete(m.clearedFields, connector.FieldFinOpsCustomPricing)
-}
-
-// SetCategory sets the "category" field.
-func (m *ConnectorMutation) SetCategory(s string) {
-	m.category = &s
-}
-
-// Category returns the value of the "category" field in the mutation.
-func (m *ConnectorMutation) Category() (r string, exists bool) {
-	v := m.category
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCategory returns the old "category" field's value of the Connector entity.
-// If the Connector object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ConnectorMutation) OldCategory(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCategory requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
-	}
-	return oldValue.Category, nil
-}
-
-// ResetCategory resets all changes to the "category" field.
-func (m *ConnectorMutation) ResetCategory() {
-	m.category = nil
 }
 
 // ClearProject clears the "project" edge to the Project entity.
@@ -2061,11 +2061,14 @@ func (m *ConnectorMutation) Fields() []string {
 	if m.update_time != nil {
 		fields = append(fields, connector.FieldUpdateTime)
 	}
+	if m.status != nil {
+		fields = append(fields, connector.FieldStatus)
+	}
 	if m.project != nil {
 		fields = append(fields, connector.FieldProjectID)
 	}
-	if m.status != nil {
-		fields = append(fields, connector.FieldStatus)
+	if m.category != nil {
+		fields = append(fields, connector.FieldCategory)
 	}
 	if m._type != nil {
 		fields = append(fields, connector.FieldType)
@@ -2081,9 +2084,6 @@ func (m *ConnectorMutation) Fields() []string {
 	}
 	if m.fin_ops_custom_pricing != nil {
 		fields = append(fields, connector.FieldFinOpsCustomPricing)
-	}
-	if m.category != nil {
-		fields = append(fields, connector.FieldCategory)
 	}
 	return fields
 }
@@ -2105,10 +2105,12 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case connector.FieldUpdateTime:
 		return m.UpdateTime()
-	case connector.FieldProjectID:
-		return m.ProjectID()
 	case connector.FieldStatus:
 		return m.Status()
+	case connector.FieldProjectID:
+		return m.ProjectID()
+	case connector.FieldCategory:
+		return m.Category()
 	case connector.FieldType:
 		return m.GetType()
 	case connector.FieldConfigVersion:
@@ -2119,8 +2121,6 @@ func (m *ConnectorMutation) Field(name string) (ent.Value, bool) {
 		return m.EnableFinOps()
 	case connector.FieldFinOpsCustomPricing:
 		return m.FinOpsCustomPricing()
-	case connector.FieldCategory:
-		return m.Category()
 	}
 	return nil, false
 }
@@ -2142,10 +2142,12 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCreateTime(ctx)
 	case connector.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case connector.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case connector.FieldStatus:
 		return m.OldStatus(ctx)
+	case connector.FieldProjectID:
+		return m.OldProjectID(ctx)
+	case connector.FieldCategory:
+		return m.OldCategory(ctx)
 	case connector.FieldType:
 		return m.OldType(ctx)
 	case connector.FieldConfigVersion:
@@ -2156,8 +2158,6 @@ func (m *ConnectorMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldEnableFinOps(ctx)
 	case connector.FieldFinOpsCustomPricing:
 		return m.OldFinOpsCustomPricing(ctx)
-	case connector.FieldCategory:
-		return m.OldCategory(ctx)
 	}
 	return nil, fmt.Errorf("unknown Connector field %s", name)
 }
@@ -2209,6 +2209,13 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
+	case connector.FieldStatus:
+		v, ok := value.(status.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	case connector.FieldProjectID:
 		v, ok := value.(object.ID)
 		if !ok {
@@ -2216,12 +2223,12 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectID(v)
 		return nil
-	case connector.FieldStatus:
-		v, ok := value.(status.Status)
+	case connector.FieldCategory:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStatus(v)
+		m.SetCategory(v)
 		return nil
 	case connector.FieldType:
 		v, ok := value.(string)
@@ -2257,13 +2264,6 @@ func (m *ConnectorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFinOpsCustomPricing(v)
-		return nil
-	case connector.FieldCategory:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCategory(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)
@@ -2304,11 +2304,11 @@ func (m *ConnectorMutation) ClearedFields() []string {
 	if m.FieldCleared(connector.FieldAnnotations) {
 		fields = append(fields, connector.FieldAnnotations)
 	}
-	if m.FieldCleared(connector.FieldProjectID) {
-		fields = append(fields, connector.FieldProjectID)
-	}
 	if m.FieldCleared(connector.FieldStatus) {
 		fields = append(fields, connector.FieldStatus)
+	}
+	if m.FieldCleared(connector.FieldProjectID) {
+		fields = append(fields, connector.FieldProjectID)
 	}
 	if m.FieldCleared(connector.FieldConfigData) {
 		fields = append(fields, connector.FieldConfigData)
@@ -2339,11 +2339,11 @@ func (m *ConnectorMutation) ClearField(name string) error {
 	case connector.FieldAnnotations:
 		m.ClearAnnotations()
 		return nil
-	case connector.FieldProjectID:
-		m.ClearProjectID()
-		return nil
 	case connector.FieldStatus:
 		m.ClearStatus()
+		return nil
+	case connector.FieldProjectID:
+		m.ClearProjectID()
 		return nil
 	case connector.FieldConfigData:
 		m.ClearConfigData()
@@ -2377,11 +2377,14 @@ func (m *ConnectorMutation) ResetField(name string) error {
 	case connector.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
+	case connector.FieldStatus:
+		m.ResetStatus()
+		return nil
 	case connector.FieldProjectID:
 		m.ResetProjectID()
 		return nil
-	case connector.FieldStatus:
-		m.ResetStatus()
+	case connector.FieldCategory:
+		m.ResetCategory()
 		return nil
 	case connector.FieldType:
 		m.ResetType()
@@ -2397,9 +2400,6 @@ func (m *ConnectorMutation) ResetField(name string) error {
 		return nil
 	case connector.FieldFinOpsCustomPricing:
 		m.ResetFinOpsCustomPricing()
-		return nil
-	case connector.FieldCategory:
-		m.ResetCategory()
 		return nil
 	}
 	return fmt.Errorf("unknown Connector field %s", name)
@@ -3605,14 +3605,14 @@ func (m *CostReportMutation) ResetCPUCoreRequest() {
 	m.addcpu_core_request = nil
 }
 
-// SetGpuCost sets the "gpu_cost" field.
-func (m *CostReportMutation) SetGpuCost(f float64) {
+// SetGPUCost sets the "gpu_cost" field.
+func (m *CostReportMutation) SetGPUCost(f float64) {
 	m.gpu_cost = &f
 	m.addgpu_cost = nil
 }
 
-// GpuCost returns the value of the "gpu_cost" field in the mutation.
-func (m *CostReportMutation) GpuCost() (r float64, exists bool) {
+// GPUCost returns the value of the "gpu_cost" field in the mutation.
+func (m *CostReportMutation) GPUCost() (r float64, exists bool) {
 	v := m.gpu_cost
 	if v == nil {
 		return
@@ -3620,25 +3620,25 @@ func (m *CostReportMutation) GpuCost() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldGpuCost returns the old "gpu_cost" field's value of the CostReport entity.
+// OldGPUCost returns the old "gpu_cost" field's value of the CostReport entity.
 // If the CostReport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CostReportMutation) OldGpuCost(ctx context.Context) (v float64, err error) {
+func (m *CostReportMutation) OldGPUCost(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGpuCost is only allowed on UpdateOne operations")
+		return v, errors.New("OldGPUCost is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGpuCost requires an ID field in the mutation")
+		return v, errors.New("OldGPUCost requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGpuCost: %w", err)
+		return v, fmt.Errorf("querying old value for OldGPUCost: %w", err)
 	}
-	return oldValue.GpuCost, nil
+	return oldValue.GPUCost, nil
 }
 
-// AddGpuCost adds f to the "gpu_cost" field.
-func (m *CostReportMutation) AddGpuCost(f float64) {
+// AddGPUCost adds f to the "gpu_cost" field.
+func (m *CostReportMutation) AddGPUCost(f float64) {
 	if m.addgpu_cost != nil {
 		*m.addgpu_cost += f
 	} else {
@@ -3646,8 +3646,8 @@ func (m *CostReportMutation) AddGpuCost(f float64) {
 	}
 }
 
-// AddedGpuCost returns the value that was added to the "gpu_cost" field in this mutation.
-func (m *CostReportMutation) AddedGpuCost() (r float64, exists bool) {
+// AddedGPUCost returns the value that was added to the "gpu_cost" field in this mutation.
+func (m *CostReportMutation) AddedGPUCost() (r float64, exists bool) {
 	v := m.addgpu_cost
 	if v == nil {
 		return
@@ -3655,20 +3655,20 @@ func (m *CostReportMutation) AddedGpuCost() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetGpuCost resets all changes to the "gpu_cost" field.
-func (m *CostReportMutation) ResetGpuCost() {
+// ResetGPUCost resets all changes to the "gpu_cost" field.
+func (m *CostReportMutation) ResetGPUCost() {
 	m.gpu_cost = nil
 	m.addgpu_cost = nil
 }
 
-// SetGpuCount sets the "gpu_count" field.
-func (m *CostReportMutation) SetGpuCount(f float64) {
+// SetGPUCount sets the "gpu_count" field.
+func (m *CostReportMutation) SetGPUCount(f float64) {
 	m.gpu_count = &f
 	m.addgpu_count = nil
 }
 
-// GpuCount returns the value of the "gpu_count" field in the mutation.
-func (m *CostReportMutation) GpuCount() (r float64, exists bool) {
+// GPUCount returns the value of the "gpu_count" field in the mutation.
+func (m *CostReportMutation) GPUCount() (r float64, exists bool) {
 	v := m.gpu_count
 	if v == nil {
 		return
@@ -3676,25 +3676,25 @@ func (m *CostReportMutation) GpuCount() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldGpuCount returns the old "gpu_count" field's value of the CostReport entity.
+// OldGPUCount returns the old "gpu_count" field's value of the CostReport entity.
 // If the CostReport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CostReportMutation) OldGpuCount(ctx context.Context) (v float64, err error) {
+func (m *CostReportMutation) OldGPUCount(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGpuCount is only allowed on UpdateOne operations")
+		return v, errors.New("OldGPUCount is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGpuCount requires an ID field in the mutation")
+		return v, errors.New("OldGPUCount requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGpuCount: %w", err)
+		return v, fmt.Errorf("querying old value for OldGPUCount: %w", err)
 	}
-	return oldValue.GpuCount, nil
+	return oldValue.GPUCount, nil
 }
 
-// AddGpuCount adds f to the "gpu_count" field.
-func (m *CostReportMutation) AddGpuCount(f float64) {
+// AddGPUCount adds f to the "gpu_count" field.
+func (m *CostReportMutation) AddGPUCount(f float64) {
 	if m.addgpu_count != nil {
 		*m.addgpu_count += f
 	} else {
@@ -3702,8 +3702,8 @@ func (m *CostReportMutation) AddGpuCount(f float64) {
 	}
 }
 
-// AddedGpuCount returns the value that was added to the "gpu_count" field in this mutation.
-func (m *CostReportMutation) AddedGpuCount() (r float64, exists bool) {
+// AddedGPUCount returns the value that was added to the "gpu_count" field in this mutation.
+func (m *CostReportMutation) AddedGPUCount() (r float64, exists bool) {
 	v := m.addgpu_count
 	if v == nil {
 		return
@@ -3711,8 +3711,8 @@ func (m *CostReportMutation) AddedGpuCount() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetGpuCount resets all changes to the "gpu_count" field.
-func (m *CostReportMutation) ResetGpuCount() {
+// ResetGPUCount resets all changes to the "gpu_count" field.
+func (m *CostReportMutation) ResetGPUCount() {
 	m.gpu_count = nil
 	m.addgpu_count = nil
 }
@@ -3829,14 +3829,14 @@ func (m *CostReportMutation) ResetRAMByteRequest() {
 	m.addram_byte_request = nil
 }
 
-// SetPvCost sets the "pv_cost" field.
-func (m *CostReportMutation) SetPvCost(f float64) {
+// SetPVCost sets the "pv_cost" field.
+func (m *CostReportMutation) SetPVCost(f float64) {
 	m.pv_cost = &f
 	m.addpv_cost = nil
 }
 
-// PvCost returns the value of the "pv_cost" field in the mutation.
-func (m *CostReportMutation) PvCost() (r float64, exists bool) {
+// PVCost returns the value of the "pv_cost" field in the mutation.
+func (m *CostReportMutation) PVCost() (r float64, exists bool) {
 	v := m.pv_cost
 	if v == nil {
 		return
@@ -3844,25 +3844,25 @@ func (m *CostReportMutation) PvCost() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldPvCost returns the old "pv_cost" field's value of the CostReport entity.
+// OldPVCost returns the old "pv_cost" field's value of the CostReport entity.
 // If the CostReport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CostReportMutation) OldPvCost(ctx context.Context) (v float64, err error) {
+func (m *CostReportMutation) OldPVCost(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPvCost is only allowed on UpdateOne operations")
+		return v, errors.New("OldPVCost is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPvCost requires an ID field in the mutation")
+		return v, errors.New("OldPVCost requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPvCost: %w", err)
+		return v, fmt.Errorf("querying old value for OldPVCost: %w", err)
 	}
-	return oldValue.PvCost, nil
+	return oldValue.PVCost, nil
 }
 
-// AddPvCost adds f to the "pv_cost" field.
-func (m *CostReportMutation) AddPvCost(f float64) {
+// AddPVCost adds f to the "pv_cost" field.
+func (m *CostReportMutation) AddPVCost(f float64) {
 	if m.addpv_cost != nil {
 		*m.addpv_cost += f
 	} else {
@@ -3870,8 +3870,8 @@ func (m *CostReportMutation) AddPvCost(f float64) {
 	}
 }
 
-// AddedPvCost returns the value that was added to the "pv_cost" field in this mutation.
-func (m *CostReportMutation) AddedPvCost() (r float64, exists bool) {
+// AddedPVCost returns the value that was added to the "pv_cost" field in this mutation.
+func (m *CostReportMutation) AddedPVCost() (r float64, exists bool) {
 	v := m.addpv_cost
 	if v == nil {
 		return
@@ -3879,20 +3879,20 @@ func (m *CostReportMutation) AddedPvCost() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetPvCost resets all changes to the "pv_cost" field.
-func (m *CostReportMutation) ResetPvCost() {
+// ResetPVCost resets all changes to the "pv_cost" field.
+func (m *CostReportMutation) ResetPVCost() {
 	m.pv_cost = nil
 	m.addpv_cost = nil
 }
 
-// SetPvBytes sets the "pv_bytes" field.
-func (m *CostReportMutation) SetPvBytes(f float64) {
+// SetPVBytes sets the "pv_bytes" field.
+func (m *CostReportMutation) SetPVBytes(f float64) {
 	m.pv_bytes = &f
 	m.addpv_bytes = nil
 }
 
-// PvBytes returns the value of the "pv_bytes" field in the mutation.
-func (m *CostReportMutation) PvBytes() (r float64, exists bool) {
+// PVBytes returns the value of the "pv_bytes" field in the mutation.
+func (m *CostReportMutation) PVBytes() (r float64, exists bool) {
 	v := m.pv_bytes
 	if v == nil {
 		return
@@ -3900,25 +3900,25 @@ func (m *CostReportMutation) PvBytes() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldPvBytes returns the old "pv_bytes" field's value of the CostReport entity.
+// OldPVBytes returns the old "pv_bytes" field's value of the CostReport entity.
 // If the CostReport object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CostReportMutation) OldPvBytes(ctx context.Context) (v float64, err error) {
+func (m *CostReportMutation) OldPVBytes(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPvBytes is only allowed on UpdateOne operations")
+		return v, errors.New("OldPVBytes is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPvBytes requires an ID field in the mutation")
+		return v, errors.New("OldPVBytes requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPvBytes: %w", err)
+		return v, fmt.Errorf("querying old value for OldPVBytes: %w", err)
 	}
-	return oldValue.PvBytes, nil
+	return oldValue.PVBytes, nil
 }
 
-// AddPvBytes adds f to the "pv_bytes" field.
-func (m *CostReportMutation) AddPvBytes(f float64) {
+// AddPVBytes adds f to the "pv_bytes" field.
+func (m *CostReportMutation) AddPVBytes(f float64) {
 	if m.addpv_bytes != nil {
 		*m.addpv_bytes += f
 	} else {
@@ -3926,8 +3926,8 @@ func (m *CostReportMutation) AddPvBytes(f float64) {
 	}
 }
 
-// AddedPvBytes returns the value that was added to the "pv_bytes" field in this mutation.
-func (m *CostReportMutation) AddedPvBytes() (r float64, exists bool) {
+// AddedPVBytes returns the value that was added to the "pv_bytes" field in this mutation.
+func (m *CostReportMutation) AddedPVBytes() (r float64, exists bool) {
 	v := m.addpv_bytes
 	if v == nil {
 		return
@@ -3935,8 +3935,8 @@ func (m *CostReportMutation) AddedPvBytes() (r float64, exists bool) {
 	return *v, true
 }
 
-// ResetPvBytes resets all changes to the "pv_bytes" field.
-func (m *CostReportMutation) ResetPvBytes() {
+// ResetPVBytes resets all changes to the "pv_bytes" field.
+func (m *CostReportMutation) ResetPVBytes() {
 	m.pv_bytes = nil
 	m.addpv_bytes = nil
 }
@@ -4340,10 +4340,10 @@ func (m *CostReportMutation) Fields() []string {
 		fields = append(fields, costreport.FieldCPUCoreRequest)
 	}
 	if m.gpu_cost != nil {
-		fields = append(fields, costreport.FieldGpuCost)
+		fields = append(fields, costreport.FieldGPUCost)
 	}
 	if m.gpu_count != nil {
-		fields = append(fields, costreport.FieldGpuCount)
+		fields = append(fields, costreport.FieldGPUCount)
 	}
 	if m.ram_cost != nil {
 		fields = append(fields, costreport.FieldRAMCost)
@@ -4352,10 +4352,10 @@ func (m *CostReportMutation) Fields() []string {
 		fields = append(fields, costreport.FieldRAMByteRequest)
 	}
 	if m.pv_cost != nil {
-		fields = append(fields, costreport.FieldPvCost)
+		fields = append(fields, costreport.FieldPVCost)
 	}
 	if m.pv_bytes != nil {
-		fields = append(fields, costreport.FieldPvBytes)
+		fields = append(fields, costreport.FieldPVBytes)
 	}
 	if m.load_balancer_cost != nil {
 		fields = append(fields, costreport.FieldLoadBalancerCost)
@@ -4418,18 +4418,18 @@ func (m *CostReportMutation) Field(name string) (ent.Value, bool) {
 		return m.CPUCost()
 	case costreport.FieldCPUCoreRequest:
 		return m.CPUCoreRequest()
-	case costreport.FieldGpuCost:
-		return m.GpuCost()
-	case costreport.FieldGpuCount:
-		return m.GpuCount()
+	case costreport.FieldGPUCost:
+		return m.GPUCost()
+	case costreport.FieldGPUCount:
+		return m.GPUCount()
 	case costreport.FieldRAMCost:
 		return m.RAMCost()
 	case costreport.FieldRAMByteRequest:
 		return m.RAMByteRequest()
-	case costreport.FieldPvCost:
-		return m.PvCost()
-	case costreport.FieldPvBytes:
-		return m.PvBytes()
+	case costreport.FieldPVCost:
+		return m.PVCost()
+	case costreport.FieldPVBytes:
+		return m.PVBytes()
 	case costreport.FieldLoadBalancerCost:
 		return m.LoadBalancerCost()
 	case costreport.FieldCPUCoreUsageAverage:
@@ -4487,18 +4487,18 @@ func (m *CostReportMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCPUCost(ctx)
 	case costreport.FieldCPUCoreRequest:
 		return m.OldCPUCoreRequest(ctx)
-	case costreport.FieldGpuCost:
-		return m.OldGpuCost(ctx)
-	case costreport.FieldGpuCount:
-		return m.OldGpuCount(ctx)
+	case costreport.FieldGPUCost:
+		return m.OldGPUCost(ctx)
+	case costreport.FieldGPUCount:
+		return m.OldGPUCount(ctx)
 	case costreport.FieldRAMCost:
 		return m.OldRAMCost(ctx)
 	case costreport.FieldRAMByteRequest:
 		return m.OldRAMByteRequest(ctx)
-	case costreport.FieldPvCost:
-		return m.OldPvCost(ctx)
-	case costreport.FieldPvBytes:
-		return m.OldPvBytes(ctx)
+	case costreport.FieldPVCost:
+		return m.OldPVCost(ctx)
+	case costreport.FieldPVBytes:
+		return m.OldPVBytes(ctx)
 	case costreport.FieldLoadBalancerCost:
 		return m.OldLoadBalancerCost(ctx)
 	case costreport.FieldCPUCoreUsageAverage:
@@ -4651,19 +4651,19 @@ func (m *CostReportMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCPUCoreRequest(v)
 		return nil
-	case costreport.FieldGpuCost:
+	case costreport.FieldGPUCost:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetGpuCost(v)
+		m.SetGPUCost(v)
 		return nil
-	case costreport.FieldGpuCount:
+	case costreport.FieldGPUCount:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetGpuCount(v)
+		m.SetGPUCount(v)
 		return nil
 	case costreport.FieldRAMCost:
 		v, ok := value.(float64)
@@ -4679,19 +4679,19 @@ func (m *CostReportMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRAMByteRequest(v)
 		return nil
-	case costreport.FieldPvCost:
+	case costreport.FieldPVCost:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetPvCost(v)
+		m.SetPVCost(v)
 		return nil
-	case costreport.FieldPvBytes:
+	case costreport.FieldPVBytes:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetPvBytes(v)
+		m.SetPVBytes(v)
 		return nil
 	case costreport.FieldLoadBalancerCost:
 		v, ok := value.(float64)
@@ -4752,10 +4752,10 @@ func (m *CostReportMutation) AddedFields() []string {
 		fields = append(fields, costreport.FieldCPUCoreRequest)
 	}
 	if m.addgpu_cost != nil {
-		fields = append(fields, costreport.FieldGpuCost)
+		fields = append(fields, costreport.FieldGPUCost)
 	}
 	if m.addgpu_count != nil {
-		fields = append(fields, costreport.FieldGpuCount)
+		fields = append(fields, costreport.FieldGPUCount)
 	}
 	if m.addram_cost != nil {
 		fields = append(fields, costreport.FieldRAMCost)
@@ -4764,10 +4764,10 @@ func (m *CostReportMutation) AddedFields() []string {
 		fields = append(fields, costreport.FieldRAMByteRequest)
 	}
 	if m.addpv_cost != nil {
-		fields = append(fields, costreport.FieldPvCost)
+		fields = append(fields, costreport.FieldPVCost)
 	}
 	if m.addpv_bytes != nil {
-		fields = append(fields, costreport.FieldPvBytes)
+		fields = append(fields, costreport.FieldPVBytes)
 	}
 	if m.addload_balancer_cost != nil {
 		fields = append(fields, costreport.FieldLoadBalancerCost)
@@ -4802,18 +4802,18 @@ func (m *CostReportMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedCPUCost()
 	case costreport.FieldCPUCoreRequest:
 		return m.AddedCPUCoreRequest()
-	case costreport.FieldGpuCost:
-		return m.AddedGpuCost()
-	case costreport.FieldGpuCount:
-		return m.AddedGpuCount()
+	case costreport.FieldGPUCost:
+		return m.AddedGPUCost()
+	case costreport.FieldGPUCount:
+		return m.AddedGPUCount()
 	case costreport.FieldRAMCost:
 		return m.AddedRAMCost()
 	case costreport.FieldRAMByteRequest:
 		return m.AddedRAMByteRequest()
-	case costreport.FieldPvCost:
-		return m.AddedPvCost()
-	case costreport.FieldPvBytes:
-		return m.AddedPvBytes()
+	case costreport.FieldPVCost:
+		return m.AddedPVCost()
+	case costreport.FieldPVBytes:
+		return m.AddedPVBytes()
 	case costreport.FieldLoadBalancerCost:
 		return m.AddedLoadBalancerCost()
 	case costreport.FieldCPUCoreUsageAverage:
@@ -4868,19 +4868,19 @@ func (m *CostReportMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCPUCoreRequest(v)
 		return nil
-	case costreport.FieldGpuCost:
+	case costreport.FieldGPUCost:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddGpuCost(v)
+		m.AddGPUCost(v)
 		return nil
-	case costreport.FieldGpuCount:
+	case costreport.FieldGPUCount:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddGpuCount(v)
+		m.AddGPUCount(v)
 		return nil
 	case costreport.FieldRAMCost:
 		v, ok := value.(float64)
@@ -4896,19 +4896,19 @@ func (m *CostReportMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddRAMByteRequest(v)
 		return nil
-	case costreport.FieldPvCost:
+	case costreport.FieldPVCost:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddPvCost(v)
+		m.AddPVCost(v)
 		return nil
-	case costreport.FieldPvBytes:
+	case costreport.FieldPVBytes:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddPvBytes(v)
+		m.AddPVBytes(v)
 		return nil
 	case costreport.FieldLoadBalancerCost:
 		v, ok := value.(float64)
@@ -5080,11 +5080,11 @@ func (m *CostReportMutation) ResetField(name string) error {
 	case costreport.FieldCPUCoreRequest:
 		m.ResetCPUCoreRequest()
 		return nil
-	case costreport.FieldGpuCost:
-		m.ResetGpuCost()
+	case costreport.FieldGPUCost:
+		m.ResetGPUCost()
 		return nil
-	case costreport.FieldGpuCount:
-		m.ResetGpuCount()
+	case costreport.FieldGPUCount:
+		m.ResetGPUCount()
 		return nil
 	case costreport.FieldRAMCost:
 		m.ResetRAMCost()
@@ -5092,11 +5092,11 @@ func (m *CostReportMutation) ResetField(name string) error {
 	case costreport.FieldRAMByteRequest:
 		m.ResetRAMByteRequest()
 		return nil
-	case costreport.FieldPvCost:
-		m.ResetPvCost()
+	case costreport.FieldPVCost:
+		m.ResetPVCost()
 		return nil
-	case costreport.FieldPvBytes:
-		m.ResetPvBytes()
+	case costreport.FieldPVBytes:
+		m.ResetPVBytes()
 		return nil
 	case costreport.FieldLoadBalancerCost:
 		m.ResetLoadBalancerCost()
@@ -8119,6 +8119,9 @@ type ProjectMutation struct {
 	services                 map[object.ID]struct{}
 	removedservices          map[object.ID]struct{}
 	clearedservices          bool
+	service_resources        map[object.ID]struct{}
+	removedservice_resources map[object.ID]struct{}
+	clearedservice_resources bool
 	service_revisions        map[object.ID]struct{}
 	removedservice_revisions map[object.ID]struct{}
 	clearedservice_revisions bool
@@ -8705,6 +8708,60 @@ func (m *ProjectMutation) ResetServices() {
 	m.removedservices = nil
 }
 
+// AddServiceResourceIDs adds the "service_resources" edge to the ServiceResource entity by ids.
+func (m *ProjectMutation) AddServiceResourceIDs(ids ...object.ID) {
+	if m.service_resources == nil {
+		m.service_resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.service_resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearServiceResources clears the "service_resources" edge to the ServiceResource entity.
+func (m *ProjectMutation) ClearServiceResources() {
+	m.clearedservice_resources = true
+}
+
+// ServiceResourcesCleared reports if the "service_resources" edge to the ServiceResource entity was cleared.
+func (m *ProjectMutation) ServiceResourcesCleared() bool {
+	return m.clearedservice_resources
+}
+
+// RemoveServiceResourceIDs removes the "service_resources" edge to the ServiceResource entity by IDs.
+func (m *ProjectMutation) RemoveServiceResourceIDs(ids ...object.ID) {
+	if m.removedservice_resources == nil {
+		m.removedservice_resources = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.service_resources, ids[i])
+		m.removedservice_resources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedServiceResources returns the removed IDs of the "service_resources" edge to the ServiceResource entity.
+func (m *ProjectMutation) RemovedServiceResourcesIDs() (ids []object.ID) {
+	for id := range m.removedservice_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ServiceResourcesIDs returns the "service_resources" edge IDs in the mutation.
+func (m *ProjectMutation) ServiceResourcesIDs() (ids []object.ID) {
+	for id := range m.service_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetServiceResources resets all changes to the "service_resources" edge.
+func (m *ProjectMutation) ResetServiceResources() {
+	m.service_resources = nil
+	m.clearedservice_resources = false
+	m.removedservice_resources = nil
+}
+
 // AddServiceRevisionIDs adds the "service_revisions" edge to the ServiceRevision entity by ids.
 func (m *ProjectMutation) AddServiceRevisionIDs(ids ...object.ID) {
 	if m.service_revisions == nil {
@@ -9052,7 +9109,7 @@ func (m *ProjectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.environments != nil {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9064,6 +9121,9 @@ func (m *ProjectMutation) AddedEdges() []string {
 	}
 	if m.services != nil {
 		edges = append(edges, project.EdgeServices)
+	}
+	if m.service_resources != nil {
+		edges = append(edges, project.EdgeServiceResources)
 	}
 	if m.service_revisions != nil {
 		edges = append(edges, project.EdgeServiceRevisions)
@@ -9102,6 +9162,12 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeServiceResources:
+		ids := make([]ent.Value, 0, len(m.service_resources))
+		for id := range m.service_resources {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeServiceRevisions:
 		ids := make([]ent.Value, 0, len(m.service_revisions))
 		for id := range m.service_revisions {
@@ -9120,7 +9186,7 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedenvironments != nil {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9132,6 +9198,9 @@ func (m *ProjectMutation) RemovedEdges() []string {
 	}
 	if m.removedservices != nil {
 		edges = append(edges, project.EdgeServices)
+	}
+	if m.removedservice_resources != nil {
+		edges = append(edges, project.EdgeServiceResources)
 	}
 	if m.removedservice_revisions != nil {
 		edges = append(edges, project.EdgeServiceRevisions)
@@ -9170,6 +9239,12 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeServiceResources:
+		ids := make([]ent.Value, 0, len(m.removedservice_resources))
+		for id := range m.removedservice_resources {
+			ids = append(ids, id)
+		}
+		return ids
 	case project.EdgeServiceRevisions:
 		ids := make([]ent.Value, 0, len(m.removedservice_revisions))
 		for id := range m.removedservice_revisions {
@@ -9188,7 +9263,7 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedenvironments {
 		edges = append(edges, project.EdgeEnvironments)
 	}
@@ -9200,6 +9275,9 @@ func (m *ProjectMutation) ClearedEdges() []string {
 	}
 	if m.clearedservices {
 		edges = append(edges, project.EdgeServices)
+	}
+	if m.clearedservice_resources {
+		edges = append(edges, project.EdgeServiceResources)
 	}
 	if m.clearedservice_revisions {
 		edges = append(edges, project.EdgeServiceRevisions)
@@ -9222,6 +9300,8 @@ func (m *ProjectMutation) EdgeCleared(name string) bool {
 		return m.clearedsubject_roles
 	case project.EdgeServices:
 		return m.clearedservices
+	case project.EdgeServiceResources:
+		return m.clearedservice_resources
 	case project.EdgeServiceRevisions:
 		return m.clearedservice_revisions
 	case project.EdgeVariables:
@@ -9253,6 +9333,9 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 		return nil
 	case project.EdgeServices:
 		m.ResetServices()
+		return nil
+	case project.EdgeServiceResources:
+		m.ResetServiceResources()
 		return nil
 	case project.EdgeServiceRevisions:
 		m.ResetServiceRevisions()
@@ -10064,13 +10147,14 @@ type ServiceMutation struct {
 	create_time         *time.Time
 	update_time         *time.Time
 	status              *status.Status
-	template            *types.TemplateVersionRef
 	attributes          *property.Values
 	clearedFields       map[string]struct{}
 	project             *object.ID
 	clearedproject      bool
 	environment         *object.ID
 	clearedenvironment  bool
+	template            *object.ID
+	clearedtemplate     bool
 	revisions           map[object.ID]struct{}
 	removedrevisions    map[object.ID]struct{}
 	clearedrevisions    bool
@@ -10444,42 +10528,6 @@ func (m *ServiceMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// SetProjectID sets the "project_id" field.
-func (m *ServiceMutation) SetProjectID(o object.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "project_id" field in the mutation.
-func (m *ServiceMutation) ProjectID() (r object.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "project_id" field's value of the Service entity.
-// If the Service object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ResetProjectID resets all changes to the "project_id" field.
-func (m *ServiceMutation) ResetProjectID() {
-	m.project = nil
-}
-
 // SetStatus sets the "status" field.
 func (m *ServiceMutation) SetStatus(s status.Status) {
 	m.status = &s
@@ -10529,6 +10577,42 @@ func (m *ServiceMutation) ResetStatus() {
 	delete(m.clearedFields, service.FieldStatus)
 }
 
+// SetProjectID sets the "project_id" field.
+func (m *ServiceMutation) SetProjectID(o object.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "project_id" field in the mutation.
+func (m *ServiceMutation) ProjectID() (r object.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "project_id" field's value of the Service entity.
+// If the Service object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ResetProjectID resets all changes to the "project_id" field.
+func (m *ServiceMutation) ResetProjectID() {
+	m.project = nil
+}
+
 // SetEnvironmentID sets the "environment_id" field.
 func (m *ServiceMutation) SetEnvironmentID(o object.ID) {
 	m.environment = &o
@@ -10565,13 +10649,13 @@ func (m *ServiceMutation) ResetEnvironmentID() {
 	m.environment = nil
 }
 
-// SetTemplate sets the "template" field.
-func (m *ServiceMutation) SetTemplate(tvr types.TemplateVersionRef) {
-	m.template = &tvr
+// SetTemplateID sets the "template_id" field.
+func (m *ServiceMutation) SetTemplateID(o object.ID) {
+	m.template = &o
 }
 
-// Template returns the value of the "template" field in the mutation.
-func (m *ServiceMutation) Template() (r types.TemplateVersionRef, exists bool) {
+// TemplateID returns the value of the "template_id" field in the mutation.
+func (m *ServiceMutation) TemplateID() (r object.ID, exists bool) {
 	v := m.template
 	if v == nil {
 		return
@@ -10579,25 +10663,25 @@ func (m *ServiceMutation) Template() (r types.TemplateVersionRef, exists bool) {
 	return *v, true
 }
 
-// OldTemplate returns the old "template" field's value of the Service entity.
+// OldTemplateID returns the old "template_id" field's value of the Service entity.
 // If the Service object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceMutation) OldTemplate(ctx context.Context) (v types.TemplateVersionRef, err error) {
+func (m *ServiceMutation) OldTemplateID(ctx context.Context) (v object.ID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTemplate is only allowed on UpdateOne operations")
+		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTemplate requires an ID field in the mutation")
+		return v, errors.New("OldTemplateID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTemplate: %w", err)
+		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
 	}
-	return oldValue.Template, nil
+	return oldValue.TemplateID, nil
 }
 
-// ResetTemplate resets all changes to the "template" field.
-func (m *ServiceMutation) ResetTemplate() {
+// ResetTemplateID resets all changes to the "template_id" field.
+func (m *ServiceMutation) ResetTemplateID() {
 	m.template = nil
 }
 
@@ -10700,6 +10784,32 @@ func (m *ServiceMutation) EnvironmentIDs() (ids []object.ID) {
 func (m *ServiceMutation) ResetEnvironment() {
 	m.environment = nil
 	m.clearedenvironment = false
+}
+
+// ClearTemplate clears the "template" edge to the TemplateVersion entity.
+func (m *ServiceMutation) ClearTemplate() {
+	m.clearedtemplate = true
+}
+
+// TemplateCleared reports if the "template" edge to the TemplateVersion entity was cleared.
+func (m *ServiceMutation) TemplateCleared() bool {
+	return m.clearedtemplate
+}
+
+// TemplateIDs returns the "template" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TemplateID instead. It exists only for internal usage by the builders.
+func (m *ServiceMutation) TemplateIDs() (ids []object.ID) {
+	if id := m.template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTemplate resets all changes to the "template" edge.
+func (m *ServiceMutation) ResetTemplate() {
+	m.template = nil
+	m.clearedtemplate = false
 }
 
 // AddRevisionIDs adds the "revisions" edge to the ServiceRevision entity by ids.
@@ -10917,17 +11027,17 @@ func (m *ServiceMutation) Fields() []string {
 	if m.update_time != nil {
 		fields = append(fields, service.FieldUpdateTime)
 	}
-	if m.project != nil {
-		fields = append(fields, service.FieldProjectID)
-	}
 	if m.status != nil {
 		fields = append(fields, service.FieldStatus)
+	}
+	if m.project != nil {
+		fields = append(fields, service.FieldProjectID)
 	}
 	if m.environment != nil {
 		fields = append(fields, service.FieldEnvironmentID)
 	}
 	if m.template != nil {
-		fields = append(fields, service.FieldTemplate)
+		fields = append(fields, service.FieldTemplateID)
 	}
 	if m.attributes != nil {
 		fields = append(fields, service.FieldAttributes)
@@ -10952,14 +11062,14 @@ func (m *ServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case service.FieldUpdateTime:
 		return m.UpdateTime()
-	case service.FieldProjectID:
-		return m.ProjectID()
 	case service.FieldStatus:
 		return m.Status()
+	case service.FieldProjectID:
+		return m.ProjectID()
 	case service.FieldEnvironmentID:
 		return m.EnvironmentID()
-	case service.FieldTemplate:
-		return m.Template()
+	case service.FieldTemplateID:
+		return m.TemplateID()
 	case service.FieldAttributes:
 		return m.Attributes()
 	}
@@ -10983,14 +11093,14 @@ func (m *ServiceMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreateTime(ctx)
 	case service.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case service.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case service.FieldStatus:
 		return m.OldStatus(ctx)
+	case service.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case service.FieldEnvironmentID:
 		return m.OldEnvironmentID(ctx)
-	case service.FieldTemplate:
-		return m.OldTemplate(ctx)
+	case service.FieldTemplateID:
+		return m.OldTemplateID(ctx)
 	case service.FieldAttributes:
 		return m.OldAttributes(ctx)
 	}
@@ -11044,19 +11154,19 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
-	case service.FieldProjectID:
-		v, ok := value.(object.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case service.FieldStatus:
 		v, ok := value.(status.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case service.FieldProjectID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case service.FieldEnvironmentID:
 		v, ok := value.(object.ID)
@@ -11065,12 +11175,12 @@ func (m *ServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnvironmentID(v)
 		return nil
-	case service.FieldTemplate:
-		v, ok := value.(types.TemplateVersionRef)
+	case service.FieldTemplateID:
+		v, ok := value.(object.ID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTemplate(v)
+		m.SetTemplateID(v)
 		return nil
 	case service.FieldAttributes:
 		v, ok := value.(property.Values)
@@ -11179,17 +11289,17 @@ func (m *ServiceMutation) ResetField(name string) error {
 	case service.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case service.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case service.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case service.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case service.FieldEnvironmentID:
 		m.ResetEnvironmentID()
 		return nil
-	case service.FieldTemplate:
-		m.ResetTemplate()
+	case service.FieldTemplateID:
+		m.ResetTemplateID()
 		return nil
 	case service.FieldAttributes:
 		m.ResetAttributes()
@@ -11200,12 +11310,15 @@ func (m *ServiceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.project != nil {
 		edges = append(edges, service.EdgeProject)
 	}
 	if m.environment != nil {
 		edges = append(edges, service.EdgeEnvironment)
+	}
+	if m.template != nil {
+		edges = append(edges, service.EdgeTemplate)
 	}
 	if m.revisions != nil {
 		edges = append(edges, service.EdgeRevisions)
@@ -11229,6 +11342,10 @@ func (m *ServiceMutation) AddedIDs(name string) []ent.Value {
 		}
 	case service.EdgeEnvironment:
 		if id := m.environment; id != nil {
+			return []ent.Value{*id}
+		}
+	case service.EdgeTemplate:
+		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
 	case service.EdgeRevisions:
@@ -11255,7 +11372,7 @@ func (m *ServiceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ServiceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedrevisions != nil {
 		edges = append(edges, service.EdgeRevisions)
 	}
@@ -11296,12 +11413,15 @@ func (m *ServiceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedproject {
 		edges = append(edges, service.EdgeProject)
 	}
 	if m.clearedenvironment {
 		edges = append(edges, service.EdgeEnvironment)
+	}
+	if m.clearedtemplate {
+		edges = append(edges, service.EdgeTemplate)
 	}
 	if m.clearedrevisions {
 		edges = append(edges, service.EdgeRevisions)
@@ -11323,6 +11443,8 @@ func (m *ServiceMutation) EdgeCleared(name string) bool {
 		return m.clearedproject
 	case service.EdgeEnvironment:
 		return m.clearedenvironment
+	case service.EdgeTemplate:
+		return m.clearedtemplate
 	case service.EdgeRevisions:
 		return m.clearedrevisions
 	case service.EdgeResources:
@@ -11343,6 +11465,9 @@ func (m *ServiceMutation) ClearEdge(name string) error {
 	case service.EdgeEnvironment:
 		m.ClearEnvironment()
 		return nil
+	case service.EdgeTemplate:
+		m.ClearTemplate()
+		return nil
 	}
 	return fmt.Errorf("unknown Service unique edge %s", name)
 }
@@ -11356,6 +11481,9 @@ func (m *ServiceMutation) ResetEdge(name string) error {
 		return nil
 	case service.EdgeEnvironment:
 		m.ResetEnvironment()
+		return nil
+	case service.EdgeTemplate:
+		m.ResetTemplate()
 		return nil
 	case service.EdgeRevisions:
 		m.ResetRevisions()
@@ -12040,7 +12168,6 @@ type ServiceResourceMutation struct {
 	id                  *object.ID
 	create_time         *time.Time
 	update_time         *time.Time
-	project_id          *object.ID
 	mode                *string
 	_type               *string
 	name                *string
@@ -12048,6 +12175,8 @@ type ServiceResourceMutation struct {
 	shape               *string
 	status              *types.ServiceResourceStatus
 	clearedFields       map[string]struct{}
+	project             *object.ID
+	clearedproject      bool
 	service             *object.ID
 	clearedservice      bool
 	connector           *object.ID
@@ -12248,12 +12377,12 @@ func (m *ServiceResourceMutation) ResetUpdateTime() {
 
 // SetProjectID sets the "project_id" field.
 func (m *ServiceResourceMutation) SetProjectID(o object.ID) {
-	m.project_id = &o
+	m.project = &o
 }
 
 // ProjectID returns the value of the "project_id" field in the mutation.
 func (m *ServiceResourceMutation) ProjectID() (r object.ID, exists bool) {
-	v := m.project_id
+	v := m.project
 	if v == nil {
 		return
 	}
@@ -12279,7 +12408,7 @@ func (m *ServiceResourceMutation) OldProjectID(ctx context.Context) (v object.ID
 
 // ResetProjectID resets all changes to the "project_id" field.
 func (m *ServiceResourceMutation) ResetProjectID() {
-	m.project_id = nil
+	m.project = nil
 }
 
 // SetServiceID sets the "service_id" field.
@@ -12681,6 +12810,32 @@ func (m *ServiceResourceMutation) ResetStatus() {
 	delete(m.clearedFields, serviceresource.FieldStatus)
 }
 
+// ClearProject clears the "project" edge to the Project entity.
+func (m *ServiceResourceMutation) ClearProject() {
+	m.clearedproject = true
+}
+
+// ProjectCleared reports if the "project" edge to the Project entity was cleared.
+func (m *ServiceResourceMutation) ProjectCleared() bool {
+	return m.clearedproject
+}
+
+// ProjectIDs returns the "project" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *ServiceResourceMutation) ProjectIDs() (ids []object.ID) {
+	if id := m.project; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProject resets all changes to the "project" edge.
+func (m *ServiceResourceMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
+}
+
 // ClearService clears the "service" edge to the Service entity.
 func (m *ServiceResourceMutation) ClearService() {
 	m.clearedservice = true
@@ -12988,7 +13143,7 @@ func (m *ServiceResourceMutation) Fields() []string {
 	if m.update_time != nil {
 		fields = append(fields, serviceresource.FieldUpdateTime)
 	}
-	if m.project_id != nil {
+	if m.project != nil {
 		fields = append(fields, serviceresource.FieldProjectID)
 	}
 	if m.service != nil {
@@ -13305,7 +13460,10 @@ func (m *ServiceResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ServiceResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.project != nil {
+		edges = append(edges, serviceresource.EdgeProject)
+	}
 	if m.service != nil {
 		edges = append(edges, serviceresource.EdgeService)
 	}
@@ -13334,6 +13492,10 @@ func (m *ServiceResourceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ServiceResourceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case serviceresource.EdgeProject:
+		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
 	case serviceresource.EdgeService:
 		if id := m.service; id != nil {
 			return []ent.Value{*id}
@@ -13374,7 +13536,7 @@ func (m *ServiceResourceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ServiceResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedcomponents != nil {
 		edges = append(edges, serviceresource.EdgeComponents)
 	}
@@ -13415,7 +13577,10 @@ func (m *ServiceResourceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ServiceResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
+	if m.clearedproject {
+		edges = append(edges, serviceresource.EdgeProject)
+	}
 	if m.clearedservice {
 		edges = append(edges, serviceresource.EdgeService)
 	}
@@ -13444,6 +13609,8 @@ func (m *ServiceResourceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ServiceResourceMutation) EdgeCleared(name string) bool {
 	switch name {
+	case serviceresource.EdgeProject:
+		return m.clearedproject
 	case serviceresource.EdgeService:
 		return m.clearedservice
 	case serviceresource.EdgeConnector:
@@ -13466,6 +13633,9 @@ func (m *ServiceResourceMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ServiceResourceMutation) ClearEdge(name string) error {
 	switch name {
+	case serviceresource.EdgeProject:
+		m.ClearProject()
+		return nil
 	case serviceresource.EdgeService:
 		m.ClearService()
 		return nil
@@ -13486,6 +13656,9 @@ func (m *ServiceResourceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ServiceResourceMutation) ResetEdge(name string) error {
 	switch name {
+	case serviceresource.EdgeProject:
+		m.ResetProject()
+		return nil
 	case serviceresource.EdgeService:
 		m.ResetService()
 		return nil
@@ -14277,42 +14450,6 @@ func (m *ServiceRevisionMutation) ResetCreateTime() {
 	m.create_time = nil
 }
 
-// SetProjectID sets the "project_id" field.
-func (m *ServiceRevisionMutation) SetProjectID(o object.ID) {
-	m.project = &o
-}
-
-// ProjectID returns the value of the "project_id" field in the mutation.
-func (m *ServiceRevisionMutation) ProjectID() (r object.ID, exists bool) {
-	v := m.project
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProjectID returns the old "project_id" field's value of the ServiceRevision entity.
-// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ServiceRevisionMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProjectID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
-	}
-	return oldValue.ProjectID, nil
-}
-
-// ResetProjectID resets all changes to the "project_id" field.
-func (m *ServiceRevisionMutation) ResetProjectID() {
-	m.project = nil
-}
-
 // SetStatus sets the "status" field.
 func (m *ServiceRevisionMutation) SetStatus(s string) {
 	m.status = &s
@@ -14409,6 +14546,42 @@ func (m *ServiceRevisionMutation) StatusMessageCleared() bool {
 func (m *ServiceRevisionMutation) ResetStatusMessage() {
 	m.status_message = nil
 	delete(m.clearedFields, servicerevision.FieldStatusMessage)
+}
+
+// SetProjectID sets the "project_id" field.
+func (m *ServiceRevisionMutation) SetProjectID(o object.ID) {
+	m.project = &o
+}
+
+// ProjectID returns the value of the "project_id" field in the mutation.
+func (m *ServiceRevisionMutation) ProjectID() (r object.ID, exists bool) {
+	v := m.project
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectID returns the old "project_id" field's value of the ServiceRevision entity.
+// If the ServiceRevision object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ServiceRevisionMutation) OldProjectID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectID: %w", err)
+	}
+	return oldValue.ProjectID, nil
+}
+
+// ResetProjectID resets all changes to the "project_id" field.
+func (m *ServiceRevisionMutation) ResetProjectID() {
+	m.project = nil
 }
 
 // SetEnvironmentID sets the "environment_id" field.
@@ -15022,14 +15195,14 @@ func (m *ServiceRevisionMutation) Fields() []string {
 	if m.create_time != nil {
 		fields = append(fields, servicerevision.FieldCreateTime)
 	}
-	if m.project != nil {
-		fields = append(fields, servicerevision.FieldProjectID)
-	}
 	if m.status != nil {
 		fields = append(fields, servicerevision.FieldStatus)
 	}
 	if m.status_message != nil {
 		fields = append(fields, servicerevision.FieldStatusMessage)
+	}
+	if m.project != nil {
+		fields = append(fields, servicerevision.FieldProjectID)
 	}
 	if m.environment != nil {
 		fields = append(fields, servicerevision.FieldEnvironmentID)
@@ -15077,12 +15250,12 @@ func (m *ServiceRevisionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case servicerevision.FieldCreateTime:
 		return m.CreateTime()
-	case servicerevision.FieldProjectID:
-		return m.ProjectID()
 	case servicerevision.FieldStatus:
 		return m.Status()
 	case servicerevision.FieldStatusMessage:
 		return m.StatusMessage()
+	case servicerevision.FieldProjectID:
+		return m.ProjectID()
 	case servicerevision.FieldEnvironmentID:
 		return m.EnvironmentID()
 	case servicerevision.FieldServiceID:
@@ -15118,12 +15291,12 @@ func (m *ServiceRevisionMutation) OldField(ctx context.Context, name string) (en
 	switch name {
 	case servicerevision.FieldCreateTime:
 		return m.OldCreateTime(ctx)
-	case servicerevision.FieldProjectID:
-		return m.OldProjectID(ctx)
 	case servicerevision.FieldStatus:
 		return m.OldStatus(ctx)
 	case servicerevision.FieldStatusMessage:
 		return m.OldStatusMessage(ctx)
+	case servicerevision.FieldProjectID:
+		return m.OldProjectID(ctx)
 	case servicerevision.FieldEnvironmentID:
 		return m.OldEnvironmentID(ctx)
 	case servicerevision.FieldServiceID:
@@ -15164,13 +15337,6 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreateTime(v)
 		return nil
-	case servicerevision.FieldProjectID:
-		v, ok := value.(object.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProjectID(v)
-		return nil
 	case servicerevision.FieldStatus:
 		v, ok := value.(string)
 		if !ok {
@@ -15184,6 +15350,13 @@ func (m *ServiceRevisionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatusMessage(v)
+		return nil
+	case servicerevision.FieldProjectID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectID(v)
 		return nil
 	case servicerevision.FieldEnvironmentID:
 		v, ok := value.(object.ID)
@@ -15357,14 +15530,14 @@ func (m *ServiceRevisionMutation) ResetField(name string) error {
 	case servicerevision.FieldCreateTime:
 		m.ResetCreateTime()
 		return nil
-	case servicerevision.FieldProjectID:
-		m.ResetProjectID()
-		return nil
 	case servicerevision.FieldStatus:
 		m.ResetStatus()
 		return nil
 	case servicerevision.FieldStatusMessage:
 		m.ResetStatusMessage()
+		return nil
+	case servicerevision.FieldProjectID:
+		m.ResetProjectID()
 		return nil
 	case servicerevision.FieldEnvironmentID:
 		m.ResetEnvironmentID()
@@ -18826,13 +18999,16 @@ type TemplateVersionMutation struct {
 	id              *object.ID
 	create_time     *time.Time
 	update_time     *time.Time
-	template_name   *string
+	name            *string
 	version         *string
 	source          *string
 	schema          **types.TemplateSchema
 	clearedFields   map[string]struct{}
 	template        *object.ID
 	clearedtemplate bool
+	services        map[object.ID]struct{}
+	removedservices map[object.ID]struct{}
+	clearedservices bool
 	done            bool
 	oldValue        func(context.Context) (*TemplateVersion, error)
 	predicates      []predicate.TemplateVersion
@@ -19050,40 +19226,40 @@ func (m *TemplateVersionMutation) ResetTemplateID() {
 	m.template = nil
 }
 
-// SetTemplateName sets the "template_name" field.
-func (m *TemplateVersionMutation) SetTemplateName(s string) {
-	m.template_name = &s
+// SetName sets the "name" field.
+func (m *TemplateVersionMutation) SetName(s string) {
+	m.name = &s
 }
 
-// TemplateName returns the value of the "template_name" field in the mutation.
-func (m *TemplateVersionMutation) TemplateName() (r string, exists bool) {
-	v := m.template_name
+// Name returns the value of the "name" field in the mutation.
+func (m *TemplateVersionMutation) Name() (r string, exists bool) {
+	v := m.name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTemplateName returns the old "template_name" field's value of the TemplateVersion entity.
+// OldName returns the old "name" field's value of the TemplateVersion entity.
 // If the TemplateVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TemplateVersionMutation) OldTemplateName(ctx context.Context) (v string, err error) {
+func (m *TemplateVersionMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTemplateName is only allowed on UpdateOne operations")
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTemplateName requires an ID field in the mutation")
+		return v, errors.New("OldName requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTemplateName: %w", err)
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
 	}
-	return oldValue.TemplateName, nil
+	return oldValue.Name, nil
 }
 
-// ResetTemplateName resets all changes to the "template_name" field.
-func (m *TemplateVersionMutation) ResetTemplateName() {
-	m.template_name = nil
+// ResetName resets all changes to the "name" field.
+func (m *TemplateVersionMutation) ResetName() {
+	m.name = nil
 }
 
 // SetVersion sets the "version" field.
@@ -19220,6 +19396,60 @@ func (m *TemplateVersionMutation) ResetTemplate() {
 	m.clearedtemplate = false
 }
 
+// AddServiceIDs adds the "services" edge to the Service entity by ids.
+func (m *TemplateVersionMutation) AddServiceIDs(ids ...object.ID) {
+	if m.services == nil {
+		m.services = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		m.services[ids[i]] = struct{}{}
+	}
+}
+
+// ClearServices clears the "services" edge to the Service entity.
+func (m *TemplateVersionMutation) ClearServices() {
+	m.clearedservices = true
+}
+
+// ServicesCleared reports if the "services" edge to the Service entity was cleared.
+func (m *TemplateVersionMutation) ServicesCleared() bool {
+	return m.clearedservices
+}
+
+// RemoveServiceIDs removes the "services" edge to the Service entity by IDs.
+func (m *TemplateVersionMutation) RemoveServiceIDs(ids ...object.ID) {
+	if m.removedservices == nil {
+		m.removedservices = make(map[object.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.services, ids[i])
+		m.removedservices[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedServices returns the removed IDs of the "services" edge to the Service entity.
+func (m *TemplateVersionMutation) RemovedServicesIDs() (ids []object.ID) {
+	for id := range m.removedservices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ServicesIDs returns the "services" edge IDs in the mutation.
+func (m *TemplateVersionMutation) ServicesIDs() (ids []object.ID) {
+	for id := range m.services {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetServices resets all changes to the "services" edge.
+func (m *TemplateVersionMutation) ResetServices() {
+	m.services = nil
+	m.clearedservices = false
+	m.removedservices = nil
+}
+
 // Where appends a list predicates to the TemplateVersionMutation builder.
 func (m *TemplateVersionMutation) Where(ps ...predicate.TemplateVersion) {
 	m.predicates = append(m.predicates, ps...)
@@ -19264,8 +19494,8 @@ func (m *TemplateVersionMutation) Fields() []string {
 	if m.template != nil {
 		fields = append(fields, templateversion.FieldTemplateID)
 	}
-	if m.template_name != nil {
-		fields = append(fields, templateversion.FieldTemplateName)
+	if m.name != nil {
+		fields = append(fields, templateversion.FieldName)
 	}
 	if m.version != nil {
 		fields = append(fields, templateversion.FieldVersion)
@@ -19290,8 +19520,8 @@ func (m *TemplateVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case templateversion.FieldTemplateID:
 		return m.TemplateID()
-	case templateversion.FieldTemplateName:
-		return m.TemplateName()
+	case templateversion.FieldName:
+		return m.Name()
 	case templateversion.FieldVersion:
 		return m.Version()
 	case templateversion.FieldSource:
@@ -19313,8 +19543,8 @@ func (m *TemplateVersionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldUpdateTime(ctx)
 	case templateversion.FieldTemplateID:
 		return m.OldTemplateID(ctx)
-	case templateversion.FieldTemplateName:
-		return m.OldTemplateName(ctx)
+	case templateversion.FieldName:
+		return m.OldName(ctx)
 	case templateversion.FieldVersion:
 		return m.OldVersion(ctx)
 	case templateversion.FieldSource:
@@ -19351,12 +19581,12 @@ func (m *TemplateVersionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTemplateID(v)
 		return nil
-	case templateversion.FieldTemplateName:
+	case templateversion.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTemplateName(v)
+		m.SetName(v)
 		return nil
 	case templateversion.FieldVersion:
 		v, ok := value.(string)
@@ -19437,8 +19667,8 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 	case templateversion.FieldTemplateID:
 		m.ResetTemplateID()
 		return nil
-	case templateversion.FieldTemplateName:
-		m.ResetTemplateName()
+	case templateversion.FieldName:
+		m.ResetName()
 		return nil
 	case templateversion.FieldVersion:
 		m.ResetVersion()
@@ -19455,9 +19685,12 @@ func (m *TemplateVersionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TemplateVersionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.template != nil {
 		edges = append(edges, templateversion.EdgeTemplate)
+	}
+	if m.services != nil {
+		edges = append(edges, templateversion.EdgeServices)
 	}
 	return edges
 }
@@ -19470,27 +19703,47 @@ func (m *TemplateVersionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
+	case templateversion.EdgeServices:
+		ids := make([]ent.Value, 0, len(m.services))
+		for id := range m.services {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TemplateVersionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedservices != nil {
+		edges = append(edges, templateversion.EdgeServices)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *TemplateVersionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case templateversion.EdgeServices:
+		ids := make([]ent.Value, 0, len(m.removedservices))
+		for id := range m.removedservices {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TemplateVersionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedtemplate {
 		edges = append(edges, templateversion.EdgeTemplate)
+	}
+	if m.clearedservices {
+		edges = append(edges, templateversion.EdgeServices)
 	}
 	return edges
 }
@@ -19501,6 +19754,8 @@ func (m *TemplateVersionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case templateversion.EdgeTemplate:
 		return m.clearedtemplate
+	case templateversion.EdgeServices:
+		return m.clearedservices
 	}
 	return false
 }
@@ -19522,6 +19777,9 @@ func (m *TemplateVersionMutation) ResetEdge(name string) error {
 	switch name {
 	case templateversion.EdgeTemplate:
 		m.ResetTemplate()
+		return nil
+	case templateversion.EdgeServices:
+		m.ResetServices()
 		return nil
 	}
 	return fmt.Errorf("unknown TemplateVersion edge %s", name)
@@ -20451,6 +20709,55 @@ func (m *VariableMutation) ResetProjectID() {
 	delete(m.clearedFields, variable.FieldProjectID)
 }
 
+// SetEnvironmentID sets the "environment_id" field.
+func (m *VariableMutation) SetEnvironmentID(o object.ID) {
+	m.environment = &o
+}
+
+// EnvironmentID returns the value of the "environment_id" field in the mutation.
+func (m *VariableMutation) EnvironmentID() (r object.ID, exists bool) {
+	v := m.environment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnvironmentID returns the old "environment_id" field's value of the Variable entity.
+// If the Variable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VariableMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
+	}
+	return oldValue.EnvironmentID, nil
+}
+
+// ClearEnvironmentID clears the value of the "environment_id" field.
+func (m *VariableMutation) ClearEnvironmentID() {
+	m.environment = nil
+	m.clearedFields[variable.FieldEnvironmentID] = struct{}{}
+}
+
+// EnvironmentIDCleared returns if the "environment_id" field was cleared in this mutation.
+func (m *VariableMutation) EnvironmentIDCleared() bool {
+	_, ok := m.clearedFields[variable.FieldEnvironmentID]
+	return ok
+}
+
+// ResetEnvironmentID resets all changes to the "environment_id" field.
+func (m *VariableMutation) ResetEnvironmentID() {
+	m.environment = nil
+	delete(m.clearedFields, variable.FieldEnvironmentID)
+}
+
 // SetName sets the "name" field.
 func (m *VariableMutation) SetName(s string) {
 	m.name = &s
@@ -20608,55 +20915,6 @@ func (m *VariableMutation) ResetDescription() {
 	delete(m.clearedFields, variable.FieldDescription)
 }
 
-// SetEnvironmentID sets the "environment_id" field.
-func (m *VariableMutation) SetEnvironmentID(o object.ID) {
-	m.environment = &o
-}
-
-// EnvironmentID returns the value of the "environment_id" field in the mutation.
-func (m *VariableMutation) EnvironmentID() (r object.ID, exists bool) {
-	v := m.environment
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnvironmentID returns the old "environment_id" field's value of the Variable entity.
-// If the Variable object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *VariableMutation) OldEnvironmentID(ctx context.Context) (v object.ID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnvironmentID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnvironmentID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnvironmentID: %w", err)
-	}
-	return oldValue.EnvironmentID, nil
-}
-
-// ClearEnvironmentID clears the value of the "environment_id" field.
-func (m *VariableMutation) ClearEnvironmentID() {
-	m.environment = nil
-	m.clearedFields[variable.FieldEnvironmentID] = struct{}{}
-}
-
-// EnvironmentIDCleared returns if the "environment_id" field was cleared in this mutation.
-func (m *VariableMutation) EnvironmentIDCleared() bool {
-	_, ok := m.clearedFields[variable.FieldEnvironmentID]
-	return ok
-}
-
-// ResetEnvironmentID resets all changes to the "environment_id" field.
-func (m *VariableMutation) ResetEnvironmentID() {
-	m.environment = nil
-	delete(m.clearedFields, variable.FieldEnvironmentID)
-}
-
 // ClearProject clears the "project" edge to the Project entity.
 func (m *VariableMutation) ClearProject() {
 	m.clearedproject = true
@@ -20753,6 +21011,9 @@ func (m *VariableMutation) Fields() []string {
 	if m.project != nil {
 		fields = append(fields, variable.FieldProjectID)
 	}
+	if m.environment != nil {
+		fields = append(fields, variable.FieldEnvironmentID)
+	}
 	if m.name != nil {
 		fields = append(fields, variable.FieldName)
 	}
@@ -20764,9 +21025,6 @@ func (m *VariableMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, variable.FieldDescription)
-	}
-	if m.environment != nil {
-		fields = append(fields, variable.FieldEnvironmentID)
 	}
 	return fields
 }
@@ -20782,6 +21040,8 @@ func (m *VariableMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case variable.FieldProjectID:
 		return m.ProjectID()
+	case variable.FieldEnvironmentID:
+		return m.EnvironmentID()
 	case variable.FieldName:
 		return m.Name()
 	case variable.FieldValue:
@@ -20790,8 +21050,6 @@ func (m *VariableMutation) Field(name string) (ent.Value, bool) {
 		return m.Sensitive()
 	case variable.FieldDescription:
 		return m.Description()
-	case variable.FieldEnvironmentID:
-		return m.EnvironmentID()
 	}
 	return nil, false
 }
@@ -20807,6 +21065,8 @@ func (m *VariableMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldUpdateTime(ctx)
 	case variable.FieldProjectID:
 		return m.OldProjectID(ctx)
+	case variable.FieldEnvironmentID:
+		return m.OldEnvironmentID(ctx)
 	case variable.FieldName:
 		return m.OldName(ctx)
 	case variable.FieldValue:
@@ -20815,8 +21075,6 @@ func (m *VariableMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldSensitive(ctx)
 	case variable.FieldDescription:
 		return m.OldDescription(ctx)
-	case variable.FieldEnvironmentID:
-		return m.OldEnvironmentID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Variable field %s", name)
 }
@@ -20847,6 +21105,13 @@ func (m *VariableMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectID(v)
 		return nil
+	case variable.FieldEnvironmentID:
+		v, ok := value.(object.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnvironmentID(v)
+		return nil
 	case variable.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -20874,13 +21139,6 @@ func (m *VariableMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
-		return nil
-	case variable.FieldEnvironmentID:
-		v, ok := value.(object.ID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnvironmentID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Variable field %s", name)
@@ -20915,11 +21173,11 @@ func (m *VariableMutation) ClearedFields() []string {
 	if m.FieldCleared(variable.FieldProjectID) {
 		fields = append(fields, variable.FieldProjectID)
 	}
-	if m.FieldCleared(variable.FieldDescription) {
-		fields = append(fields, variable.FieldDescription)
-	}
 	if m.FieldCleared(variable.FieldEnvironmentID) {
 		fields = append(fields, variable.FieldEnvironmentID)
+	}
+	if m.FieldCleared(variable.FieldDescription) {
+		fields = append(fields, variable.FieldDescription)
 	}
 	return fields
 }
@@ -20938,11 +21196,11 @@ func (m *VariableMutation) ClearField(name string) error {
 	case variable.FieldProjectID:
 		m.ClearProjectID()
 		return nil
-	case variable.FieldDescription:
-		m.ClearDescription()
-		return nil
 	case variable.FieldEnvironmentID:
 		m.ClearEnvironmentID()
+		return nil
+	case variable.FieldDescription:
+		m.ClearDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown Variable nullable field %s", name)
@@ -20961,6 +21219,9 @@ func (m *VariableMutation) ResetField(name string) error {
 	case variable.FieldProjectID:
 		m.ResetProjectID()
 		return nil
+	case variable.FieldEnvironmentID:
+		m.ResetEnvironmentID()
+		return nil
 	case variable.FieldName:
 		m.ResetName()
 		return nil
@@ -20972,9 +21233,6 @@ func (m *VariableMutation) ResetField(name string) error {
 		return nil
 	case variable.FieldDescription:
 		m.ResetDescription()
-		return nil
-	case variable.FieldEnvironmentID:
-		m.ResetEnvironmentID()
 		return nil
 	}
 	return fmt.Errorf("unknown Variable field %s", name)

@@ -32,10 +32,10 @@ type TemplateVersion struct {
 	// ID of the template.
 	TemplateID object.ID `json:"template_id,omitempty"`
 	// Name of the template.
-	TemplateName string `json:"template_name,omitempty"`
-	// Template version.
+	Name string `json:"name,omitempty"`
+	// Version of the template.
 	Version string `json:"version,omitempty"`
-	// Template version source.
+	// Source of the template.
 	Source string `json:"source,omitempty"`
 	// Schema of the template.
 	Schema *types.TemplateSchema `json:"schema,omitempty"`
@@ -47,11 +47,13 @@ type TemplateVersion struct {
 
 // TemplateVersionEdges holds the relations/edges for other nodes in the graph.
 type TemplateVersionEdges struct {
-	// Template holds the value of the template edge.
+	// Template to which the template version belongs.
 	Template *Template `json:"template,omitempty"`
+	// Services that belong to the template version.
+	Services []*Service `json:"services,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TemplateOrErr returns the Template value or an error if the edge
@@ -67,6 +69,15 @@ func (e TemplateVersionEdges) TemplateOrErr() (*Template, error) {
 	return nil, &NotLoadedError{edge: "template"}
 }
 
+// ServicesOrErr returns the Services value or an error if the edge
+// was not loaded in eager-loading.
+func (e TemplateVersionEdges) ServicesOrErr() ([]*Service, error) {
+	if e.loadedTypes[1] {
+		return e.Services, nil
+	}
+	return nil, &NotLoadedError{edge: "services"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -76,7 +87,7 @@ func (*TemplateVersion) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case templateversion.FieldID, templateversion.FieldTemplateID:
 			values[i] = new(object.ID)
-		case templateversion.FieldTemplateName, templateversion.FieldVersion, templateversion.FieldSource:
+		case templateversion.FieldName, templateversion.FieldVersion, templateversion.FieldSource:
 			values[i] = new(sql.NullString)
 		case templateversion.FieldCreateTime, templateversion.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -121,11 +132,11 @@ func (tv *TemplateVersion) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				tv.TemplateID = *value
 			}
-		case templateversion.FieldTemplateName:
+		case templateversion.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field template_name", values[i])
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				tv.TemplateName = value.String
+				tv.Name = value.String
 			}
 		case templateversion.FieldVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -165,6 +176,11 @@ func (tv *TemplateVersion) QueryTemplate() *TemplateQuery {
 	return NewTemplateVersionClient(tv.config).QueryTemplate(tv)
 }
 
+// QueryServices queries the "services" edge of the TemplateVersion entity.
+func (tv *TemplateVersion) QueryServices() *ServiceQuery {
+	return NewTemplateVersionClient(tv.config).QueryServices(tv)
+}
+
 // Update returns a builder for updating this TemplateVersion.
 // Note that you need to call TemplateVersion.Unwrap() before calling this method if this TemplateVersion
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -201,8 +217,8 @@ func (tv *TemplateVersion) String() string {
 	builder.WriteString("template_id=")
 	builder.WriteString(fmt.Sprintf("%v", tv.TemplateID))
 	builder.WriteString(", ")
-	builder.WriteString("template_name=")
-	builder.WriteString(tv.TemplateName)
+	builder.WriteString("name=")
+	builder.WriteString(tv.Name)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(tv.Version)

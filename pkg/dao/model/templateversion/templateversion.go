@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -26,8 +27,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
-	// FieldTemplateName holds the string denoting the template_name field in the database.
-	FieldTemplateName = "template_name"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldSource holds the string denoting the source field in the database.
@@ -36,6 +37,8 @@ const (
 	FieldSchema = "schema"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
 	EdgeTemplate = "template"
+	// EdgeServices holds the string denoting the services edge name in mutations.
+	EdgeServices = "services"
 	// Table holds the table name of the templateversion in the database.
 	Table = "template_versions"
 	// TemplateTable is the table that holds the template relation/edge.
@@ -45,6 +48,13 @@ const (
 	TemplateInverseTable = "templates"
 	// TemplateColumn is the table column denoting the template relation/edge.
 	TemplateColumn = "template_id"
+	// ServicesTable is the table that holds the services relation/edge.
+	ServicesTable = "services"
+	// ServicesInverseTable is the table name for the Service entity.
+	// It exists in this package in order to avoid circular dependency with the "service" package.
+	ServicesInverseTable = "services"
+	// ServicesColumn is the table column denoting the services relation/edge.
+	ServicesColumn = "template_id"
 )
 
 // Columns holds all SQL columns for templateversion fields.
@@ -53,7 +63,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldTemplateID,
-	FieldTemplateName,
+	FieldName,
 	FieldVersion,
 	FieldSource,
 	FieldSchema,
@@ -84,8 +94,8 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	TemplateIDValidator func(string) error
-	// TemplateNameValidator is a validator for the "template_name" field. It is called by the builders before save.
-	TemplateNameValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 	// VersionValidator is a validator for the "version" field. It is called by the builders before save.
 	VersionValidator func(string) error
 	// SourceValidator is a validator for the "source" field. It is called by the builders before save.
@@ -117,9 +127,9 @@ func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
 }
 
-// ByTemplateName orders the results by the template_name field.
-func ByTemplateName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTemplateName, opts...).ToFunc()
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.
@@ -138,6 +148,20 @@ func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByServicesCount orders the results by services count.
+func ByServicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServicesStep(), opts...)
+	}
+}
+
+// ByServices orders the results by services terms.
+func ByServices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTemplateStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -145,11 +169,18 @@ func newTemplateStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, TemplateTable, TemplateColumn),
 	)
 }
+func newServicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServicesTable, ServicesColumn),
+	)
+}
 
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

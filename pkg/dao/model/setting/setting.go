@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -136,7 +137,7 @@ func ByPrivate(opts ...sql.OrderTermOption) OrderOption {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

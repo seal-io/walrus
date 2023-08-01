@@ -41,12 +41,6 @@ func (tu *TemplateUpdate) Where(ps ...predicate.Template) *TemplateUpdate {
 	return tu
 }
 
-// SetName sets the "name" field.
-func (tu *TemplateUpdate) SetName(s string) *TemplateUpdate {
-	tu.mutation.SetName(s)
-	return tu
-}
-
 // SetDescription sets the "description" field.
 func (tu *TemplateUpdate) SetDescription(s string) *TemplateUpdate {
 	tu.mutation.SetDescription(s)
@@ -216,11 +210,6 @@ func (tu *TemplateUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tu *TemplateUpdate) check() error {
-	if v, ok := tu.mutation.Name(); ok {
-		if err := template.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Template.name": %w`, err)}
-		}
-	}
 	if v, ok := tu.mutation.Source(); ok {
 		if err := template.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
@@ -262,7 +251,6 @@ func (tu *TemplateUpdate) check() error {
 //	}
 func (tu *TemplateUpdate) Set(obj *Template) *TemplateUpdate {
 	// Without Default.
-	tu.SetName(obj.Name)
 	if obj.Description != "" {
 		tu.SetDescription(obj.Description)
 	} else {
@@ -309,9 +297,6 @@ func (tu *TemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := tu.mutation.Name(); ok {
-		_spec.SetField(template.FieldName, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)
@@ -414,12 +399,6 @@ type TemplateUpdateOne struct {
 	mutation  *TemplateMutation
 	modifiers []func(*sql.UpdateBuilder)
 	object    *Template
-}
-
-// SetName sets the "name" field.
-func (tuo *TemplateUpdateOne) SetName(s string) *TemplateUpdateOne {
-	tuo.mutation.SetName(s)
-	return tuo
 }
 
 // SetDescription sets the "description" field.
@@ -604,11 +583,6 @@ func (tuo *TemplateUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (tuo *TemplateUpdateOne) check() error {
-	if v, ok := tuo.mutation.Name(); ok {
-		if err := template.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Template.name": %w`, err)}
-		}
-	}
 	if v, ok := tuo.mutation.Source(); ok {
 		if err := template.SourceValidator(v); err != nil {
 			return &ValidationError{Name: "source", err: fmt.Errorf(`model: validator failed for field "Template.source": %w`, err)}
@@ -660,9 +634,6 @@ func (tuo *TemplateUpdateOne) Set(obj *Template) *TemplateUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				tuo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					tuo.SetDescription(obj.Description)
@@ -740,9 +711,6 @@ func (tuo *TemplateUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx context
 	if obj == nil {
 		obj = tuo.object
 	} else if x := tuo.object; x != nil {
-		if _, set := tuo.mutation.Field(template.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := tuo.mutation.Field(template.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -827,9 +795,6 @@ func (tuo *TemplateUpdateOne) sqlSave(ctx context.Context) (_node *Template, err
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := tuo.mutation.Name(); ok {
-		_spec.SetField(template.FieldName, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.Description(); ok {
 		_spec.SetField(template.FieldDescription, field.TypeString, value)

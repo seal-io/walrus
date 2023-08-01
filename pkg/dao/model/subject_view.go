@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -15,16 +16,23 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// SubjectCreateInput holds the creation input of the Subject entity.
+// SubjectCreateInput holds the creation input of the Subject entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Name        string `uri:"-" query:"-" json:"name"`
-	Kind        string `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain      string `uri:"-" query:"-" json:"domain,omitempty"`
-	Description string `uri:"-" query:"-" json:"description,omitempty"`
-	Builtin     bool   `uri:"-" query:"-" json:"builtin,omitempty"`
+	// The name of the subject.
+	Name string `path:"-" query:"-" json:"name"`
+	// The kind of the subject.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The domain of the subject.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// The detail of the subject.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Indicate whether the subject is builtin, decide when creating.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
 
+	// Roles specifies full inserting the new SubjectRoleRelationship entities of the Subject entity.
 	Roles []*SubjectRoleRelationshipCreateInput `uri:"-" query:"-" json:"roles,omitempty"`
 }
 
@@ -53,19 +61,17 @@ func (sci *SubjectCreateInput) Model() *Subject {
 	return _s
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *SubjectCreateInput) Load() error {
+// Validate checks the SubjectCreateInput entity.
+func (sci *SubjectCreateInput) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *SubjectCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectCreateInput entity with the given context and client set.
+func (sci *SubjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -74,30 +80,66 @@ func (sci *SubjectCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 		if sci.Roles[i] == nil {
 			continue
 		}
-		err = sci.Roles[i].LoadWith(ctx, cs)
-		if err != nil {
-			return err
+
+		if err := sci.Roles[i].ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Roles[i] = nil
+			}
 		}
 	}
+
 	return nil
 }
 
 // SubjectCreateInputs holds the creation input item of the Subject entities.
 type SubjectCreateInputsItem struct {
-	Name        string `uri:"-" query:"-" json:"name"`
-	Kind        string `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain      string `uri:"-" query:"-" json:"domain,omitempty"`
-	Description string `uri:"-" query:"-" json:"description,omitempty"`
-	Builtin     bool   `uri:"-" query:"-" json:"builtin,omitempty"`
+	// The name of the subject.
+	Name string `path:"-" query:"-" json:"name"`
+	// The kind of the subject.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The domain of the subject.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// The detail of the subject.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Indicate whether the subject is builtin, decide when creating.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
 
+	// Roles specifies full inserting the new SubjectRoleRelationship entities.
 	Roles []*SubjectRoleRelationshipCreateInput `uri:"-" query:"-" json:"roles,omitempty"`
 }
 
-// SubjectCreateInputs holds the creation input of the Subject entities.
-type SubjectCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SubjectCreateInputsItem entity with the given context and client set.
+func (sci *SubjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*SubjectCreateInputsItem `uri:"-" query:"-" json:"items"`
+	for i := range sci.Roles {
+		if sci.Roles[i] == nil {
+			continue
+		}
+
+		if err := sci.Roles[i].ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sci.Roles[i] = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectCreateInputs holds the creation input of the Subject entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Subject entities for creating,
@@ -132,19 +174,17 @@ func (sci *SubjectCreateInputs) Model() []*Subject {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sci *SubjectCreateInputs) Load() error {
+// Validate checks the SubjectCreateInputs entity .
+func (sci *SubjectCreateInputs) Validate() error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sci.LoadWith(sci.inputConfig.Context, sci.inputConfig.ClientSet)
+	return sci.ValidateWith(sci.inputConfig.Context, sci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sci *SubjectCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectCreateInputs entity with the given context and client set.
+func (sci *SubjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sci == nil {
 		return errors.New("nil receiver")
 	}
@@ -153,25 +193,42 @@ func (sci *SubjectCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		return errors.New("empty items")
 	}
 
+	for i := range sci.Items {
+		if sci.Items[i] == nil {
+			continue
+		}
+
+		if err := sci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// SubjectDeleteInput holds the deletion input of the Subject entity.
+// SubjectDeleteInput holds the deletion input of the Subject entity,
+// please tags with `path:",inline"` if embedding.
 type SubjectDeleteInput = SubjectQueryInput
 
 // SubjectDeleteInputs holds the deletion input item of the Subject entities.
 type SubjectDeleteInputsItem struct {
-	ID     object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Kind   string    `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain string    `uri:"-" query:"-" json:"domain,omitempty"`
-	Name   string    `uri:"-" query:"-" json:"name,omitempty"`
+	// ID of the Subject entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Kind of the Subject entity, a part of the unique index.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// Domain of the Subject entity, a part of the unique index.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// Name of the Subject entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// SubjectDeleteInputs holds the deletion input of the Subject entities.
+// SubjectDeleteInputs holds the deletion input of the Subject entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*SubjectDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Subject entities for deleting,
@@ -190,19 +247,31 @@ func (sdi *SubjectDeleteInputs) Model() []*Subject {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sdi *SubjectDeleteInputs) Load() error {
+// IDs returns the ID list of the Subject entities for deleting,
+// after validating.
+func (sdi *SubjectDeleteInputs) IDs() []object.ID {
+	if sdi == nil || len(sdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sdi.Items))
+	for i := range sdi.Items {
+		ids[i] = sdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SubjectDeleteInputs entity.
+func (sdi *SubjectDeleteInputs) Validate() error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sdi.LoadWith(sdi.inputConfig.Context, sdi.inputConfig.ClientSet)
+	return sdi.ValidateWith(sdi.inputConfig.Context, sdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sdi *SubjectDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectDeleteInputs entity with the given context and client set.
+func (sdi *SubjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -232,47 +301,53 @@ func (sdi *SubjectDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(subject.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			sdi.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := subject.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = subject.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(subject.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			subject.FieldID,
+			subject.FieldKind,
+			subject.FieldDomain,
+			subject.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sdi.Items[i].ID = es[i].ID
+		sdi.Items[i].Kind = es[i].Kind
+		sdi.Items[i].Domain = es[i].Domain
+		sdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// SubjectQueryInput holds the query input of the Subject entity.
+// SubjectQueryInput holds the query input of the Subject entity,
+// please tags with `path:",inline"` if embedding.
 type SubjectQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer  *object.Refer `uri:"subject,default=\"\"" query:"-" json:"-"`
-	ID     object.ID     `uri:"id" query:"-" json:"id,omitempty"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
-	Kind   string        `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain string        `uri:"-" query:"-" json:"domain,omitempty"`
-	Name   string        `uri:"-" query:"-" json:"name,omitempty"`
+	// Refer holds the route path reference of the Subject entity.
+	Refer *object.Refer `path:"subject,default=" query:"-" json:"-"`
+	// ID of the Subject entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Kind of the Subject entity, a part of the unique index.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// Domain of the Subject entity, a part of the unique index.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// Name of the Subject entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Subject entity for querying,
@@ -283,29 +358,30 @@ func (sqi *SubjectQueryInput) Model() *Subject {
 	}
 
 	return &Subject{
-		ID: sqi.ID,
+		ID:     sqi.ID,
+		Kind:   sqi.Kind,
+		Domain: sqi.Domain,
+		Name:   sqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *SubjectQueryInput) Load() error {
+// Validate checks the SubjectQueryInput entity.
+func (sqi *SubjectQueryInput) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *SubjectQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectQueryInput entity with the given context and client set.
+func (sqi *SubjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if sqi.Refer != nil && *sqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", subject.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Subjects().Query()
@@ -332,45 +408,63 @@ func (sqi *SubjectQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err e
 		return errors.New("invalid identify of subject")
 	}
 
-	sqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			subject.FieldID,
+			subject.FieldKind,
+			subject.FieldDomain,
+			subject.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		sqi.ID = e.ID
+		sqi.Kind = e.Kind
+		sqi.Domain = e.Domain
+		sqi.Name = e.Name
+	}
 	return err
 }
 
-// SubjectQueryInputs holds the query input of the Subject entities.
+// SubjectQueryInputs holds the query input of the Subject entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type SubjectQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sqi *SubjectQueryInputs) Load() error {
+// Validate checks the SubjectQueryInputs entity.
+func (sqi *SubjectQueryInputs) Validate() error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sqi.LoadWith(sqi.inputConfig.Context, sqi.inputConfig.ClientSet)
+	return sqi.ValidateWith(sqi.inputConfig.Context, sqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sqi *SubjectQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectQueryInputs entity with the given context and client set.
+func (sqi *SubjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// SubjectUpdateInput holds the modification input of the Subject entity.
+// SubjectUpdateInput holds the modification input of the Subject entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type SubjectUpdateInput struct {
-	SubjectQueryInput `uri:",inline" query:"-" json:",inline"`
+	SubjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Kind        string `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain      string `uri:"-" query:"-" json:"domain,omitempty"`
-	Name        string `uri:"-" query:"-" json:"name,omitempty"`
-	Description string `uri:"-" query:"-" json:"description,omitempty"`
+	// The kind of the subject.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// The domain of the subject.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// The name of the subject.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+	// The detail of the subject.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
 
-	Roles []*SubjectRoleRelationshipUpdateInput `uri:"-" query:"-" json:"roles,omitempty"`
+	// Roles indicates replacing the stale SubjectRoleRelationship entities.
+	Roles []*SubjectRoleRelationshipCreateInput `uri:"-" query:"-" json:"roles,omitempty"`
 }
 
 // Model returns the Subject entity for modifying,
@@ -398,23 +492,86 @@ func (sui *SubjectUpdateInput) Model() *Subject {
 	return _s
 }
 
-// SubjectUpdateInputs holds the modification input item of the Subject entities.
-type SubjectUpdateInputsItem struct {
-	ID     object.ID `uri:"-" query:"-" json:"id,omitempty"`
-	Kind   string    `uri:"-" query:"-" json:"kind,omitempty"`
-	Domain string    `uri:"-" query:"-" json:"domain,omitempty"`
-	Name   string    `uri:"-" query:"-" json:"name,omitempty"`
+// Validate checks the SubjectUpdateInput entity.
+func (sui *SubjectUpdateInput) Validate() error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Description string `uri:"-" query:"-" json:"description,omitempty"`
-
-	Roles []*SubjectRoleRelationshipUpdateInput `uri:"-" query:"-" json:"roles,omitempty"`
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
 }
 
-// SubjectUpdateInputs holds the modification input of the Subject entities.
-type SubjectUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the SubjectUpdateInput entity with the given context and client set.
+func (sui *SubjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := sui.SubjectQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*SubjectUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	for i := range sui.Roles {
+		if sui.Roles[i] == nil {
+			continue
+		}
+
+		if err := sui.Roles[i].ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sui.Roles[i] = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectUpdateInputs holds the modification input item of the Subject entities.
+type SubjectUpdateInputsItem struct {
+	// ID of the Subject entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Kind of the Subject entity, a part of the unique index.
+	Kind string `path:"-" query:"-" json:"kind,omitempty"`
+	// Domain of the Subject entity, a part of the unique index.
+	Domain string `path:"-" query:"-" json:"domain,omitempty"`
+	// Name of the Subject entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// The detail of the subject.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+
+	// Roles indicates replacing the stale SubjectRoleRelationship entities.
+	Roles []*SubjectRoleRelationshipCreateInput `uri:"-" query:"-" json:"roles,omitempty"`
+}
+
+// ValidateWith checks the SubjectUpdateInputsItem entity with the given context and client set.
+func (sui *SubjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if sui == nil {
+		return errors.New("nil receiver")
+	}
+
+	for i := range sui.Roles {
+		if sui.Roles[i] == nil {
+			continue
+		}
+
+		if err := sui.Roles[i].ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				sui.Roles[i] = nil
+			}
+		}
+	}
+
+	return nil
+}
+
+// SubjectUpdateInputs holds the modification input of the Subject entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type SubjectUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*SubjectUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Subject entities for modifying,
@@ -449,19 +606,31 @@ func (sui *SubjectUpdateInputs) Model() []*Subject {
 	return _ss
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (sui *SubjectUpdateInputs) Load() error {
+// IDs returns the ID list of the Subject entities for modifying,
+// after validating.
+func (sui *SubjectUpdateInputs) IDs() []object.ID {
+	if sui == nil || len(sui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(sui.Items))
+	for i := range sui.Items {
+		ids[i] = sui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the SubjectUpdateInputs entity.
+func (sui *SubjectUpdateInputs) Validate() error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return sui.LoadWith(sui.inputConfig.Context, sui.inputConfig.ClientSet)
+	return sui.ValidateWith(sui.inputConfig.Context, sui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (sui *SubjectUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the SubjectUpdateInputs entity with the given context and client set.
+func (sui *SubjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if sui == nil {
 		return errors.New("nil receiver")
 	}
@@ -491,33 +660,43 @@ func (sui *SubjectUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		}
 	}
 
-	idsLen := len(ids)
-	if idsLen != cap(ids) {
-		ids, err = q.Where(subject.Or(ors...)).
-			IDs(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(ids) != idsLen {
-			return errors.New("found unrecognized item")
-		}
-
-		for i := range ids {
-			sui.Items[i].ID = ids[i]
-		}
-
-		return nil
+	p := subject.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = subject.Or(ors...)
 	}
 
-	idsCnt, err := q.Where(subject.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			subject.FieldID,
+			subject.FieldKind,
+			subject.FieldDomain,
+			subject.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		sui.Items[i].ID = es[i].ID
+		sui.Items[i].Kind = es[i].Kind
+		sui.Items[i].Domain = es[i].Domain
+		sui.Items[i].Name = es[i].Name
+	}
+
+	for i := range sui.Items {
+		if sui.Items[i] == nil {
+			continue
+		}
+
+		if err := sui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -537,12 +716,12 @@ type SubjectOutput struct {
 	Roles []*SubjectRoleRelationshipOutput `json:"roles,omitempty"`
 }
 
-// View returns the output of Subject.
+// View returns the output of Subject entity.
 func (_s *Subject) View() *SubjectOutput {
 	return ExposeSubject(_s)
 }
 
-// View returns the output of Subjects.
+// View returns the output of Subject entities.
 func (_ss Subjects) View() []*SubjectOutput {
 	return ExposeSubjects(_ss)
 }

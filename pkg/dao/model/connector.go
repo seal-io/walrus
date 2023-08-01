@@ -39,10 +39,12 @@ type Connector struct {
 	CreateTime *time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime *time.Time `json:"update_time,omitempty"`
-	// ID of the project to belong, empty means for all projects.
-	ProjectID object.ID `json:"project_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status status.Status `json:"status,omitempty"`
+	// ID of the project to belong, empty means for all projects.
+	ProjectID object.ID `json:"project_id,omitempty"`
+	// Category of the connector.
+	Category string `json:"category,omitempty"`
 	// Type of the connector.
 	Type string `json:"type,omitempty"`
 	// Connector config version.
@@ -53,8 +55,6 @@ type Connector struct {
 	EnableFinOps bool `json:"enable_fin_ops,omitempty"`
 	// Custom pricing user defined.
 	FinOpsCustomPricing *types.FinOpsCustomPricing `json:"fin_ops_custom_pricing,omitempty"`
-	// Category of the connector.
-	Category string `json:"category,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConnectorQuery when eager-loading is set.
 	Edges        ConnectorEdges `json:"edges,omitempty"`
@@ -129,7 +129,7 @@ func (*Connector) scanValues(columns []string) ([]any, error) {
 			values[i] = new(object.ID)
 		case connector.FieldEnableFinOps:
 			values[i] = new(sql.NullBool)
-		case connector.FieldName, connector.FieldDescription, connector.FieldType, connector.FieldConfigVersion, connector.FieldCategory:
+		case connector.FieldName, connector.FieldDescription, connector.FieldCategory, connector.FieldType, connector.FieldConfigVersion:
 			values[i] = new(sql.NullString)
 		case connector.FieldCreateTime, connector.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -196,12 +196,6 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				c.UpdateTime = new(time.Time)
 				*c.UpdateTime = value.Time
 			}
-		case connector.FieldProjectID:
-			if value, ok := values[i].(*object.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field project_id", values[i])
-			} else if value != nil {
-				c.ProjectID = *value
-			}
 		case connector.FieldStatus:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -209,6 +203,18 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &c.Status); err != nil {
 					return fmt.Errorf("unmarshal field status: %w", err)
 				}
+			}
+		case connector.FieldProjectID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field project_id", values[i])
+			} else if value != nil {
+				c.ProjectID = *value
+			}
+		case connector.FieldCategory:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field category", values[i])
+			} else if value.Valid {
+				c.Category = value.String
 			}
 		case connector.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -241,12 +247,6 @@ func (c *Connector) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &c.FinOpsCustomPricing); err != nil {
 					return fmt.Errorf("unmarshal field fin_ops_custom_pricing: %w", err)
 				}
-			}
-		case connector.FieldCategory:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field category", values[i])
-			} else if value.Valid {
-				c.Category = value.String
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -326,11 +326,14 @@ func (c *Connector) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", c.Status))
+	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", c.ProjectID))
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", c.Status))
+	builder.WriteString("category=")
+	builder.WriteString(c.Category)
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(c.Type)
@@ -346,9 +349,6 @@ func (c *Connector) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("fin_ops_custom_pricing=")
 	builder.WriteString(fmt.Sprintf("%v", c.FinOpsCustomPricing))
-	builder.WriteString(", ")
-	builder.WriteString("category=")
-	builder.WriteString(c.Category)
 	builder.WriteByte(')')
 	return builder.String()
 }

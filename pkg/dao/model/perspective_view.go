@@ -8,24 +8,34 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/perspective"
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// PerspectiveCreateInput holds the creation input of the Perspective entity.
+// PerspectiveCreateInput holds the creation input of the Perspective entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type PerspectiveCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	EndTime     string                 `uri:"-" query:"-" json:"endTime"`
-	StartTime   string                 `uri:"-" query:"-" json:"startTime"`
-	Name        string                 `uri:"-" query:"-" json:"name"`
-	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
+	// End time for the perspective.
+	EndTime string `path:"-" query:"-" json:"endTime"`
+	// Start time for the perspective.
+	StartTime string `path:"-" query:"-" json:"startTime"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Is builtin perspective.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries []types.QueryCondition `path:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // Model returns the Perspective entity for creating,
@@ -48,19 +58,17 @@ func (pci *PerspectiveCreateInput) Model() *Perspective {
 	return _p
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pci *PerspectiveCreateInput) Load() error {
+// Validate checks the PerspectiveCreateInput entity.
+func (pci *PerspectiveCreateInput) Validate() error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pci.LoadWith(pci.inputConfig.Context, pci.inputConfig.ClientSet)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pci *PerspectiveCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveCreateInput entity with the given context and client set.
+func (pci *PerspectiveCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -70,20 +78,38 @@ func (pci *PerspectiveCreateInput) LoadWith(ctx context.Context, cs ClientSet) (
 
 // PerspectiveCreateInputs holds the creation input item of the Perspective entities.
 type PerspectiveCreateInputsItem struct {
-	EndTime     string                 `uri:"-" query:"-" json:"endTime"`
-	StartTime   string                 `uri:"-" query:"-" json:"startTime"`
-	Name        string                 `uri:"-" query:"-" json:"name"`
-	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
+	// End time for the perspective.
+	EndTime string `path:"-" query:"-" json:"endTime"`
+	// Start time for the perspective.
+	StartTime string `path:"-" query:"-" json:"startTime"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Is builtin perspective.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries []types.QueryCondition `path:"-" query:"-" json:"costQueries,omitempty"`
 }
 
-// PerspectiveCreateInputs holds the creation input of the Perspective entities.
-type PerspectiveCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the PerspectiveCreateInputsItem entity with the given context and client set.
+func (pci *PerspectiveCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if pci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*PerspectiveCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// PerspectiveCreateInputs holds the creation input of the Perspective entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type PerspectiveCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*PerspectiveCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Perspective entities for creating,
@@ -112,19 +138,17 @@ func (pci *PerspectiveCreateInputs) Model() []*Perspective {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pci *PerspectiveCreateInputs) Load() error {
+// Validate checks the PerspectiveCreateInputs entity .
+func (pci *PerspectiveCreateInputs) Validate() error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pci.LoadWith(pci.inputConfig.Context, pci.inputConfig.ClientSet)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pci *PerspectiveCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveCreateInputs entity with the given context and client set.
+func (pci *PerspectiveCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -133,22 +157,38 @@ func (pci *PerspectiveCreateInputs) LoadWith(ctx context.Context, cs ClientSet) 
 		return errors.New("empty items")
 	}
 
+	for i := range pci.Items {
+		if pci.Items[i] == nil {
+			continue
+		}
+
+		if err := pci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// PerspectiveDeleteInput holds the deletion input of the Perspective entity.
+// PerspectiveDeleteInput holds the deletion input of the Perspective entity,
+// please tags with `path:",inline"` if embedding.
 type PerspectiveDeleteInput = PerspectiveQueryInput
 
 // PerspectiveDeleteInputs holds the deletion input item of the Perspective entities.
 type PerspectiveDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Perspective entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Perspective entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// PerspectiveDeleteInputs holds the deletion input of the Perspective entities.
+// PerspectiveDeleteInputs holds the deletion input of the Perspective entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type PerspectiveDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*PerspectiveDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*PerspectiveDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Perspective entities for deleting,
@@ -167,19 +207,31 @@ func (pdi *PerspectiveDeleteInputs) Model() []*Perspective {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pdi *PerspectiveDeleteInputs) Load() error {
+// IDs returns the ID list of the Perspective entities for deleting,
+// after validating.
+func (pdi *PerspectiveDeleteInputs) IDs() []object.ID {
+	if pdi == nil || len(pdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(pdi.Items))
+	for i := range pdi.Items {
+		ids[i] = pdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the PerspectiveDeleteInputs entity.
+func (pdi *PerspectiveDeleteInputs) Validate() error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pdi.LoadWith(pdi.inputConfig.Context, pdi.inputConfig.ClientSet)
+	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pdi *PerspectiveDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveDeleteInputs entity with the given context and client set.
+func (pdi *PerspectiveDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -191,6 +243,7 @@ func (pdi *PerspectiveDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) 
 	q := cs.Perspectives().Query()
 
 	ids := make([]object.ID, 0, len(pdi.Items))
+	ors := make([]predicate.Perspective, 0, len(pdi.Items))
 
 	for i := range pdi.Items {
 		if pdi.Items[i] == nil {
@@ -199,32 +252,54 @@ func (pdi *PerspectiveDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) 
 
 		if pdi.Items[i].ID != "" {
 			ids = append(ids, pdi.Items[i].ID)
+			ors = append(ors, perspective.ID(pdi.Items[i].ID))
+		} else if pdi.Items[i].Name != "" {
+			ors = append(ors, perspective.And(
+				perspective.Name(pdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := perspective.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = perspective.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(perspective.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			perspective.FieldID,
+			perspective.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		pdi.Items[i].ID = es[i].ID
+		pdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// PerspectiveQueryInput holds the query input of the Perspective entity.
+// PerspectiveQueryInput holds the query input of the Perspective entity,
+// please tags with `path:",inline"` if embedding.
 type PerspectiveQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"perspective,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Perspective entity.
+	Refer *object.Refer `path:"perspective,default=" query:"-" json:"-"`
+	// ID of the Perspective entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Perspective entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Perspective entity for querying,
@@ -235,29 +310,28 @@ func (pqi *PerspectiveQueryInput) Model() *Perspective {
 	}
 
 	return &Perspective{
-		ID: pqi.ID,
+		ID:   pqi.ID,
+		Name: pqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pqi *PerspectiveQueryInput) Load() error {
+// Validate checks the PerspectiveQueryInput entity.
+func (pqi *PerspectiveQueryInput) Validate() error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.LoadWith(pqi.inputConfig.Context, pqi.inputConfig.ClientSet)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pqi *PerspectiveQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveQueryInput entity with the given context and client set.
+func (pqi *PerspectiveQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if pqi.Refer != nil && *pqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", perspective.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Perspectives().Query()
@@ -266,56 +340,76 @@ func (pqi *PerspectiveQueryInput) LoadWith(ctx context.Context, cs ClientSet) (e
 		if pqi.Refer.IsID() {
 			q.Where(
 				perspective.ID(pqi.Refer.ID()))
+		} else if refers := pqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				perspective.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of perspective")
 		}
 	} else if pqi.ID != "" {
 		q.Where(
 			perspective.ID(pqi.ID))
+	} else if pqi.Name != "" {
+		q.Where(
+			perspective.Name(pqi.Name))
 	} else {
 		return errors.New("invalid identify of perspective")
 	}
 
-	pqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			perspective.FieldID,
+			perspective.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		pqi.ID = e.ID
+		pqi.Name = e.Name
+	}
 	return err
 }
 
-// PerspectiveQueryInputs holds the query input of the Perspective entities.
+// PerspectiveQueryInputs holds the query input of the Perspective entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type PerspectiveQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pqi *PerspectiveQueryInputs) Load() error {
+// Validate checks the PerspectiveQueryInputs entity.
+func (pqi *PerspectiveQueryInputs) Validate() error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.LoadWith(pqi.inputConfig.Context, pqi.inputConfig.ClientSet)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pqi *PerspectiveQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveQueryInputs entity with the given context and client set.
+func (pqi *PerspectiveQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// PerspectiveUpdateInput holds the modification input of the Perspective entity.
+// PerspectiveUpdateInput holds the modification input of the Perspective entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type PerspectiveUpdateInput struct {
-	PerspectiveQueryInput `uri:",inline" query:"-" json:",inline"`
+	PerspectiveQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name        string                 `uri:"-" query:"-" json:"name,omitempty"`
-	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	StartTime   string                 `uri:"-" query:"-" json:"startTime,omitempty"`
-	EndTime     string                 `uri:"-" query:"-" json:"endTime,omitempty"`
-	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Start time for the perspective.
+	StartTime string `path:"-" query:"-" json:"startTime,omitempty"`
+	// End time for the perspective.
+	EndTime string `path:"-" query:"-" json:"endTime,omitempty"`
+	// Is builtin perspective.
+	Builtin bool `path:"-" query:"-" json:"builtin,omitempty"`
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries []types.QueryCondition `path:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // Model returns the Perspective entity for modifying,
@@ -327,7 +421,6 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 
 	_p := &Perspective{
 		ID:          pui.ID,
-		Name:        pui.Name,
 		Description: pui.Description,
 		Labels:      pui.Labels,
 		StartTime:   pui.StartTime,
@@ -339,24 +432,61 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 	return _p
 }
 
-// PerspectiveUpdateInputs holds the modification input item of the Perspective entities.
-type PerspectiveUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the PerspectiveUpdateInput entity.
+func (pui *PerspectiveUpdateInput) Validate() error {
+	if pui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name        string                 `uri:"-" query:"-" json:"name,omitempty"`
-	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	StartTime   string                 `uri:"-" query:"-" json:"startTime,omitempty"`
-	EndTime     string                 `uri:"-" query:"-" json:"endTime,omitempty"`
-	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
 }
 
-// PerspectiveUpdateInputs holds the modification input of the Perspective entities.
-type PerspectiveUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the PerspectiveUpdateInput entity with the given context and client set.
+func (pui *PerspectiveUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := pui.PerspectiveQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*PerspectiveUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// PerspectiveUpdateInputs holds the modification input item of the Perspective entities.
+type PerspectiveUpdateInputsItem struct {
+	// ID of the Perspective entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Perspective entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Start time for the perspective.
+	StartTime string `path:"-" query:"-" json:"startTime"`
+	// End time for the perspective.
+	EndTime string `path:"-" query:"-" json:"endTime"`
+	// Is builtin perspective.
+	Builtin bool `path:"-" query:"-" json:"builtin"`
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries []types.QueryCondition `path:"-" query:"-" json:"costQueries"`
+}
+
+// ValidateWith checks the PerspectiveUpdateInputsItem entity with the given context and client set.
+func (pui *PerspectiveUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if pui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// PerspectiveUpdateInputs holds the modification input of the Perspective entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type PerspectiveUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*PerspectiveUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Perspective entities for modifying,
@@ -371,7 +501,6 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 	for i := range pui.Items {
 		_p := &Perspective{
 			ID:          pui.Items[i].ID,
-			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
 			Labels:      pui.Items[i].Labels,
 			StartTime:   pui.Items[i].StartTime,
@@ -386,19 +515,31 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pui *PerspectiveUpdateInputs) Load() error {
+// IDs returns the ID list of the Perspective entities for modifying,
+// after validating.
+func (pui *PerspectiveUpdateInputs) IDs() []object.ID {
+	if pui == nil || len(pui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(pui.Items))
+	for i := range pui.Items {
+		ids[i] = pui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the PerspectiveUpdateInputs entity.
+func (pui *PerspectiveUpdateInputs) Validate() error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pui.LoadWith(pui.inputConfig.Context, pui.inputConfig.ClientSet)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pui *PerspectiveUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the PerspectiveUpdateInputs entity with the given context and client set.
+func (pui *PerspectiveUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
@@ -410,6 +551,7 @@ func (pui *PerspectiveUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) 
 	q := cs.Perspectives().Query()
 
 	ids := make([]object.ID, 0, len(pui.Items))
+	ors := make([]predicate.Perspective, 0, len(pui.Items))
 
 	for i := range pui.Items {
 		if pui.Items[i] == nil {
@@ -418,21 +560,48 @@ func (pui *PerspectiveUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) 
 
 		if pui.Items[i].ID != "" {
 			ids = append(ids, pui.Items[i].ID)
+			ors = append(ors, perspective.ID(pui.Items[i].ID))
+		} else if pui.Items[i].Name != "" {
+			ors = append(ors, perspective.And(
+				perspective.Name(pui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := perspective.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = perspective.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(perspective.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			perspective.FieldID,
+			perspective.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		pui.Items[i].ID = es[i].ID
+		pui.Items[i].Name = es[i].Name
+	}
+
+	for i := range pui.Items {
+		if pui.Items[i] == nil {
+			continue
+		}
+
+		if err := pui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -452,12 +621,12 @@ type PerspectiveOutput struct {
 	CostQueries []types.QueryCondition `json:"costQueries,omitempty"`
 }
 
-// View returns the output of Perspective.
+// View returns the output of Perspective entity.
 func (_p *Perspective) View() *PerspectiveOutput {
 	return ExposePerspective(_p)
 }
 
-// View returns the output of Perspectives.
+// View returns the output of Perspective entities.
 func (_ps Perspectives) View() []*PerspectiveOutput {
 	return ExposePerspectives(_ps)
 }

@@ -8,21 +8,28 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/template"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/status"
 )
 
-// TemplateCreateInput holds the creation input of the Template entity.
+// TemplateCreateInput holds the creation input of the Template entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Source      string            `uri:"-" query:"-" json:"source"`
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
 // Model returns the Template entity for creating,
@@ -42,19 +49,17 @@ func (tci *TemplateCreateInput) Model() *Template {
 	return _t
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tci *TemplateCreateInput) Load() error {
+// Validate checks the TemplateCreateInput entity.
+func (tci *TemplateCreateInput) Validate() error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tci.LoadWith(tci.inputConfig.Context, tci.inputConfig.ClientSet)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tci *TemplateCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateCreateInput entity with the given context and client set.
+func (tci *TemplateCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -64,17 +69,32 @@ func (tci *TemplateCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err
 
 // TemplateCreateInputs holds the creation input item of the Template entities.
 type TemplateCreateInputsItem struct {
-	Source      string            `uri:"-" query:"-" json:"source"`
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
-// TemplateCreateInputs holds the creation input of the Template entities.
-type TemplateCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the TemplateCreateInputsItem entity with the given context and client set.
+func (tci *TemplateCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*TemplateCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// TemplateCreateInputs holds the creation input of the Template entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TemplateCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Template entities for creating,
@@ -100,19 +120,17 @@ func (tci *TemplateCreateInputs) Model() []*Template {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tci *TemplateCreateInputs) Load() error {
+// Validate checks the TemplateCreateInputs entity .
+func (tci *TemplateCreateInputs) Validate() error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tci.LoadWith(tci.inputConfig.Context, tci.inputConfig.ClientSet)
+	return tci.ValidateWith(tci.inputConfig.Context, tci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tci *TemplateCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateCreateInputs entity with the given context and client set.
+func (tci *TemplateCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tci == nil {
 		return errors.New("nil receiver")
 	}
@@ -121,22 +139,38 @@ func (tci *TemplateCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 		return errors.New("empty items")
 	}
 
+	for i := range tci.Items {
+		if tci.Items[i] == nil {
+			continue
+		}
+
+		if err := tci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// TemplateDeleteInput holds the deletion input of the Template entity.
+// TemplateDeleteInput holds the deletion input of the Template entity,
+// please tags with `path:",inline"` if embedding.
 type TemplateDeleteInput = TemplateQueryInput
 
 // TemplateDeleteInputs holds the deletion input item of the Template entities.
 type TemplateDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Template entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Template entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// TemplateDeleteInputs holds the deletion input of the Template entities.
+// TemplateDeleteInputs holds the deletion input of the Template entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*TemplateDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Template entities for deleting,
@@ -155,19 +189,31 @@ func (tdi *TemplateDeleteInputs) Model() []*Template {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tdi *TemplateDeleteInputs) Load() error {
+// IDs returns the ID list of the Template entities for deleting,
+// after validating.
+func (tdi *TemplateDeleteInputs) IDs() []object.ID {
+	if tdi == nil || len(tdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tdi.Items))
+	for i := range tdi.Items {
+		ids[i] = tdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TemplateDeleteInputs entity.
+func (tdi *TemplateDeleteInputs) Validate() error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tdi.LoadWith(tdi.inputConfig.Context, tdi.inputConfig.ClientSet)
+	return tdi.ValidateWith(tdi.inputConfig.Context, tdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tdi *TemplateDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateDeleteInputs entity with the given context and client set.
+func (tdi *TemplateDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -179,6 +225,7 @@ func (tdi *TemplateDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 	q := cs.Templates().Query()
 
 	ids := make([]object.ID, 0, len(tdi.Items))
+	ors := make([]predicate.Template, 0, len(tdi.Items))
 
 	for i := range tdi.Items {
 		if tdi.Items[i] == nil {
@@ -187,32 +234,54 @@ func (tdi *TemplateDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 		if tdi.Items[i].ID != "" {
 			ids = append(ids, tdi.Items[i].ID)
+			ors = append(ors, template.ID(tdi.Items[i].ID))
+		} else if tdi.Items[i].Name != "" {
+			ors = append(ors, template.And(
+				template.Name(tdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := template.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = template.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(template.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			template.FieldID,
+			template.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		tdi.Items[i].ID = es[i].ID
+		tdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// TemplateQueryInput holds the query input of the Template entity.
+// TemplateQueryInput holds the query input of the Template entity,
+// please tags with `path:",inline"` if embedding.
 type TemplateQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"template,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Template entity.
+	Refer *object.Refer `path:"template,default=" query:"-" json:"-"`
+	// ID of the Template entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Template entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Template entity for querying,
@@ -223,29 +292,28 @@ func (tqi *TemplateQueryInput) Model() *Template {
 	}
 
 	return &Template{
-		ID: tqi.ID,
+		ID:   tqi.ID,
+		Name: tqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tqi *TemplateQueryInput) Load() error {
+// Validate checks the TemplateQueryInput entity.
+func (tqi *TemplateQueryInput) Validate() error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.LoadWith(tqi.inputConfig.Context, tqi.inputConfig.ClientSet)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tqi *TemplateQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateQueryInput entity with the given context and client set.
+func (tqi *TemplateQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if tqi.Refer != nil && *tqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", template.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Templates().Query()
@@ -254,53 +322,70 @@ func (tqi *TemplateQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 		if tqi.Refer.IsID() {
 			q.Where(
 				template.ID(tqi.Refer.ID()))
+		} else if refers := tqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				template.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of template")
 		}
 	} else if tqi.ID != "" {
 		q.Where(
 			template.ID(tqi.ID))
+	} else if tqi.Name != "" {
+		q.Where(
+			template.Name(tqi.Name))
 	} else {
 		return errors.New("invalid identify of template")
 	}
 
-	tqi.ID, err = q.OnlyID(ctx)
+	e, err := q.
+		Select(
+			template.FieldID,
+			template.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		tqi.ID = e.ID
+		tqi.Name = e.Name
+	}
 	return err
 }
 
-// TemplateQueryInputs holds the query input of the Template entities.
+// TemplateQueryInputs holds the query input of the Template entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type TemplateQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tqi *TemplateQueryInputs) Load() error {
+// Validate checks the TemplateQueryInputs entity.
+func (tqi *TemplateQueryInputs) Validate() error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tqi.LoadWith(tqi.inputConfig.Context, tqi.inputConfig.ClientSet)
+	return tqi.ValidateWith(tqi.inputConfig.Context, tqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tqi *TemplateQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateQueryInputs entity with the given context and client set.
+func (tqi *TemplateQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// TemplateUpdateInput holds the modification input of the Template entity.
+// TemplateUpdateInput holds the modification input of the Template entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type TemplateUpdateInput struct {
-	TemplateQueryInput `uri:",inline" query:"-" json:",inline"`
+	TemplateQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source,omitempty"`
 }
 
 // Model returns the Template entity for modifying,
@@ -312,7 +397,6 @@ func (tui *TemplateUpdateInput) Model() *Template {
 
 	_t := &Template{
 		ID:          tui.ID,
-		Name:        tui.Name,
 		Description: tui.Description,
 		Labels:      tui.Labels,
 		Source:      tui.Source,
@@ -321,21 +405,55 @@ func (tui *TemplateUpdateInput) Model() *Template {
 	return _t
 }
 
-// TemplateUpdateInputs holds the modification input item of the Template entities.
-type TemplateUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the TemplateUpdateInput entity.
+func (tui *TemplateUpdateInput) Validate() error {
+	if tui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
-	Source      string            `uri:"-" query:"-" json:"source,omitempty"`
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
 }
 
-// TemplateUpdateInputs holds the modification input of the Template entities.
-type TemplateUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the TemplateUpdateInput entity with the given context and client set.
+func (tui *TemplateUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := tui.TemplateQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*TemplateUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// TemplateUpdateInputs holds the modification input item of the Template entities.
+type TemplateUpdateInputsItem struct {
+	// ID of the Template entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Template entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+	// Source of the template.
+	Source string `path:"-" query:"-" json:"source"`
+}
+
+// ValidateWith checks the TemplateUpdateInputsItem entity with the given context and client set.
+func (tui *TemplateUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if tui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// TemplateUpdateInputs holds the modification input of the Template entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type TemplateUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*TemplateUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Template entities for modifying,
@@ -350,7 +468,6 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 	for i := range tui.Items {
 		_t := &Template{
 			ID:          tui.Items[i].ID,
-			Name:        tui.Items[i].Name,
 			Description: tui.Items[i].Description,
 			Labels:      tui.Items[i].Labels,
 			Source:      tui.Items[i].Source,
@@ -362,19 +479,31 @@ func (tui *TemplateUpdateInputs) Model() []*Template {
 	return _ts
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (tui *TemplateUpdateInputs) Load() error {
+// IDs returns the ID list of the Template entities for modifying,
+// after validating.
+func (tui *TemplateUpdateInputs) IDs() []object.ID {
+	if tui == nil || len(tui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(tui.Items))
+	for i := range tui.Items {
+		ids[i] = tui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the TemplateUpdateInputs entity.
+func (tui *TemplateUpdateInputs) Validate() error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return tui.LoadWith(tui.inputConfig.Context, tui.inputConfig.ClientSet)
+	return tui.ValidateWith(tui.inputConfig.Context, tui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (tui *TemplateUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the TemplateUpdateInputs entity with the given context and client set.
+func (tui *TemplateUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if tui == nil {
 		return errors.New("nil receiver")
 	}
@@ -386,6 +515,7 @@ func (tui *TemplateUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 	q := cs.Templates().Query()
 
 	ids := make([]object.ID, 0, len(tui.Items))
+	ors := make([]predicate.Template, 0, len(tui.Items))
 
 	for i := range tui.Items {
 		if tui.Items[i] == nil {
@@ -394,21 +524,48 @@ func (tui *TemplateUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (er
 
 		if tui.Items[i].ID != "" {
 			ids = append(ids, tui.Items[i].ID)
+			ors = append(ors, template.ID(tui.Items[i].ID))
+		} else if tui.Items[i].Name != "" {
+			ors = append(ors, template.And(
+				template.Name(tui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	p := template.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = template.Or(ors...)
+	}
 
-	idsCnt, err := q.Where(template.IDIn(ids...)).
-		Count(ctx)
+	es, err := q.
+		Where(p).
+		Select(
+			template.FieldID,
+			template.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		tui.Items[i].ID = es[i].ID
+		tui.Items[i].Name = es[i].Name
+	}
+
+	for i := range tui.Items {
+		if tui.Items[i] == nil {
+			continue
+		}
+
+		if err := tui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -429,12 +586,12 @@ type TemplateOutput struct {
 	Catalog *CatalogOutput `json:"catalog,omitempty"`
 }
 
-// View returns the output of Template.
+// View returns the output of Template entity.
 func (_t *Template) View() *TemplateOutput {
 	return ExposeTemplate(_t)
 }
 
-// View returns the output of Templates.
+// View returns the output of Template entities.
 func (_ts Templates) View() []*TemplateOutput {
 	return ExposeTemplates(_ts)
 }

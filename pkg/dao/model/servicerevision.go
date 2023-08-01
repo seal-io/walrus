@@ -31,12 +31,12 @@ type ServiceRevision struct {
 	ID object.ID `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime *time.Time `json:"create_time,omitempty"`
-	// ID of the project to belong.
-	ProjectID object.ID `json:"project_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// StatusMessage holds the value of the "status_message" field.
 	StatusMessage string `json:"status_message,omitempty"`
+	// ID of the project to belong.
+	ProjectID object.ID `json:"project_id,omitempty"`
 	// ID of the environment to which the service deploys.
 	EnvironmentID object.ID `json:"environment_id,omitempty"`
 	// ID of the service to which the revision belongs.
@@ -166,12 +166,6 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				sr.CreateTime = new(time.Time)
 				*sr.CreateTime = value.Time
 			}
-		case servicerevision.FieldProjectID:
-			if value, ok := values[i].(*object.ID); !ok {
-				return fmt.Errorf("unexpected type %T for field project_id", values[i])
-			} else if value != nil {
-				sr.ProjectID = *value
-			}
 		case servicerevision.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -183,6 +177,12 @@ func (sr *ServiceRevision) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field status_message", values[i])
 			} else if value.Valid {
 				sr.StatusMessage = value.String
+			}
+		case servicerevision.FieldProjectID:
+			if value, ok := values[i].(*object.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field project_id", values[i])
+			} else if value != nil {
+				sr.ProjectID = *value
 			}
 		case servicerevision.FieldEnvironmentID:
 			if value, ok := values[i].(*object.ID); !ok {
@@ -316,14 +316,14 @@ func (sr *ServiceRevision) String() string {
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("project_id=")
-	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
-	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(sr.Status)
 	builder.WriteString(", ")
 	builder.WriteString("status_message=")
 	builder.WriteString(sr.StatusMessage)
+	builder.WriteString(", ")
+	builder.WriteString("project_id=")
+	builder.WriteString(fmt.Sprintf("%v", sr.ProjectID))
 	builder.WriteString(", ")
 	builder.WriteString("environment_id=")
 	builder.WriteString(fmt.Sprintf("%v", sr.EnvironmentID))

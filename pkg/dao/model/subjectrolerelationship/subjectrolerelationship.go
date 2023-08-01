@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -82,7 +83,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks        [3]ent.Hook
+	Hooks        [1]ent.Hook
 	Interceptors [1]ent.Interceptor
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
@@ -165,7 +166,7 @@ func newRoleStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

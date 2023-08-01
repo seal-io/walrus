@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 )
@@ -32,10 +33,12 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
-	// FieldProjectID holds the string denoting the project_id field in the database.
-	FieldProjectID = "project_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldProjectID holds the string denoting the project_id field in the database.
+	FieldProjectID = "project_id"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldConfigVersion holds the string denoting the config_version field in the database.
@@ -46,8 +49,6 @@ const (
 	FieldEnableFinOps = "enable_fin_ops"
 	// FieldFinOpsCustomPricing holds the string denoting the fin_ops_custom_pricing field in the database.
 	FieldFinOpsCustomPricing = "fin_ops_custom_pricing"
-	// FieldCategory holds the string denoting the category field in the database.
-	FieldCategory = "category"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeEnvironments holds the string denoting the environments edge name in mutations.
@@ -97,14 +98,14 @@ var Columns = []string{
 	FieldAnnotations,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldProjectID,
 	FieldStatus,
+	FieldProjectID,
+	FieldCategory,
 	FieldType,
 	FieldConfigVersion,
 	FieldConfigData,
 	FieldEnableFinOps,
 	FieldFinOpsCustomPricing,
-	FieldCategory,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -123,7 +124,7 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks        [4]ent.Hook
+	Hooks        [2]ent.Hook
 	Interceptors [1]ent.Interceptor
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
@@ -137,14 +138,14 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	CategoryValidator func(string) error
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 	// ConfigVersionValidator is a validator for the "config_version" field. It is called by the builders before save.
 	ConfigVersionValidator func(string) error
 	// DefaultConfigData holds the default value on creation for the "config_data" field.
 	DefaultConfigData crypto.Properties
-	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
-	CategoryValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the Connector queries.
@@ -180,6 +181,11 @@ func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
 }
 
+// ByCategory orders the results by the category field.
+func ByCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
@@ -198,11 +204,6 @@ func ByConfigData(opts ...sql.OrderTermOption) OrderOption {
 // ByEnableFinOps orders the results by the enable_fin_ops field.
 func ByEnableFinOps(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnableFinOps, opts...).ToFunc()
-}
-
-// ByCategory orders the results by the category field.
-func ByCategory(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCategory, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.
@@ -285,7 +286,7 @@ func newCostReportsStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

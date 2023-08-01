@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -184,7 +185,7 @@ func newCatalogStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

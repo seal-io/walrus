@@ -24,6 +24,7 @@ import (
 	"github.com/seal-io/seal/pkg/dao/model/servicerelationship"
 	"github.com/seal-io/seal/pkg/dao/model/serviceresource"
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/model/templateversion"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
@@ -36,6 +37,7 @@ type ServiceQuery struct {
 	predicates       []predicate.Service
 	withProject      *ProjectQuery
 	withEnvironment  *EnvironmentQuery
+	withTemplate     *TemplateVersionQuery
 	withRevisions    *ServiceRevisionQuery
 	withResources    *ServiceResourceQuery
 	withDependencies *ServiceRelationshipQuery
@@ -119,6 +121,31 @@ func (sq *ServiceQuery) QueryEnvironment() *EnvironmentQuery {
 		)
 		schemaConfig := sq.schemaConfig
 		step.To.Schema = schemaConfig.Environment
+		step.Edge.Schema = schemaConfig.Service
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTemplate chains the current query on the "template" edge.
+func (sq *ServiceQuery) QueryTemplate() *TemplateVersionQuery {
+	query := (&TemplateVersionClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, selector),
+			sqlgraph.To(templateversion.Table, templateversion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, service.TemplateTable, service.TemplateColumn),
+		)
+		schemaConfig := sq.schemaConfig
+		step.To.Schema = schemaConfig.TemplateVersion
 		step.Edge.Schema = schemaConfig.Service
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -395,6 +422,7 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		predicates:       append([]predicate.Service{}, sq.predicates...),
 		withProject:      sq.withProject.Clone(),
 		withEnvironment:  sq.withEnvironment.Clone(),
+		withTemplate:     sq.withTemplate.Clone(),
 		withRevisions:    sq.withRevisions.Clone(),
 		withResources:    sq.withResources.Clone(),
 		withDependencies: sq.withDependencies.Clone(),
@@ -423,6 +451,17 @@ func (sq *ServiceQuery) WithEnvironment(opts ...func(*EnvironmentQuery)) *Servic
 		opt(query)
 	}
 	sq.withEnvironment = query
+	return sq
+}
+
+// WithTemplate tells the query-builder to eager-load the nodes that are connected to
+// the "template" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithTemplate(opts ...func(*TemplateVersionQuery)) *ServiceQuery {
+	query := (&TemplateVersionClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withTemplate = query
 	return sq
 }
 
@@ -537,9 +576,10 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	var (
 		nodes       = []*Service{}
 		_spec       = sq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			sq.withProject != nil,
 			sq.withEnvironment != nil,
+			sq.withTemplate != nil,
 			sq.withRevisions != nil,
 			sq.withResources != nil,
 			sq.withDependencies != nil,
@@ -577,6 +617,12 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Serv
 	if query := sq.withEnvironment; query != nil {
 		if err := sq.loadEnvironment(ctx, query, nodes, nil,
 			func(n *Service, e *Environment) { n.Edges.Environment = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withTemplate; query != nil {
+		if err := sq.loadTemplate(ctx, query, nodes, nil,
+			func(n *Service, e *TemplateVersion) { n.Edges.Template = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -655,6 +701,35 @@ func (sq *ServiceQuery) loadEnvironment(ctx context.Context, query *EnvironmentQ
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "environment_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (sq *ServiceQuery) loadTemplate(ctx context.Context, query *TemplateVersionQuery, nodes []*Service, init func(*Service), assign func(*Service, *TemplateVersion)) error {
+	ids := make([]object.ID, 0, len(nodes))
+	nodeids := make(map[object.ID][]*Service)
+	for i := range nodes {
+		fk := nodes[i].TemplateID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(templateversion.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "template_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -788,6 +863,9 @@ func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if sq.withEnvironment != nil {
 			_spec.Node.AddColumnOnce(service.FieldEnvironmentID)
+		}
+		if sq.withTemplate != nil {
+			_spec.Node.AddColumnOnce(service.FieldTemplateID)
 		}
 	}
 	if ps := sq.predicates; len(ps) > 0 {

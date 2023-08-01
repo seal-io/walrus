@@ -418,6 +418,16 @@ func (cc *CatalogCreate) SaveE(ctx context.Context, cbs ...func(ctx context.Cont
 	}
 
 	mc := cc.getClientSet()
+	if cc.fromUpsert {
+		q := mc.Catalogs().Query().
+			Where(
+				catalog.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Catalog entity: %w", err)
+		}
+	}
 
 	if x := cc.object; x != nil {
 		if _, set := cc.mutation.Field(catalog.FieldName); set {
@@ -534,6 +544,19 @@ func (ccb *CatalogCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx context
 	}
 
 	mc := ccb.getClientSet()
+	if ccb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Catalogs().Query().
+				Where(
+					catalog.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Catalog entity: %w", err)
+			}
+		}
+	}
 
 	if x := ccb.objects; x != nil {
 		for i := range x {
@@ -681,18 +704,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *CatalogUpsert) SetName(v string) *CatalogUpsert {
-	u.Set(catalog.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *CatalogUpsert) UpdateName() *CatalogUpsert {
-	u.SetExcluded(catalog.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *CatalogUpsert) SetDescription(v string) *CatalogUpsert {
 	u.Set(catalog.FieldDescription, v)
@@ -824,6 +835,9 @@ func (u *CatalogUpsertOne) UpdateNewValues() *CatalogUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(catalog.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(catalog.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(catalog.FieldCreateTime)
 		}
@@ -859,20 +873,6 @@ func (u *CatalogUpsertOne) Update(set func(*CatalogUpsert)) *CatalogUpsertOne {
 		set(&CatalogUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *CatalogUpsertOne) SetName(v string) *CatalogUpsertOne {
-	return u.Update(func(s *CatalogUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *CatalogUpsertOne) UpdateName() *CatalogUpsertOne {
-	return u.Update(func(s *CatalogUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1189,6 +1189,9 @@ func (u *CatalogUpsertBulk) UpdateNewValues() *CatalogUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(catalog.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(catalog.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(catalog.FieldCreateTime)
 			}
@@ -1225,20 +1228,6 @@ func (u *CatalogUpsertBulk) Update(set func(*CatalogUpsert)) *CatalogUpsertBulk 
 		set(&CatalogUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *CatalogUpsertBulk) SetName(v string) *CatalogUpsertBulk {
-	return u.Update(func(s *CatalogUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *CatalogUpsertBulk) UpdateName() *CatalogUpsertBulk {
-	return u.Update(func(s *CatalogUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.

@@ -49,12 +49,12 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
+		{Name: "category", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "config_version", Type: field.TypeString},
 		{Name: "config_data", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "blob", "postgres": "bytea", "sqlite3": "blob"}},
 		{Name: "enable_fin_ops", Type: field.TypeBool},
 		{Name: "fin_ops_custom_pricing", Type: field.TypeJSON, Nullable: true},
-		{Name: "category", Type: field.TypeString},
 		{Name: "project_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ConnectorsTable holds the schema information for the "connectors" table.
@@ -146,7 +146,7 @@ var (
 	}
 	// DistributeLocksColumns holds the columns for the "distribute_locks" table.
 	DistributeLocksColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "expire_at", Type: field.TypeInt64},
 	}
 	// DistributeLocksTable holds the schema information for the "distribute_locks" table.
@@ -154,13 +154,6 @@ var (
 		Name:       "distribute_locks",
 		Columns:    DistributeLocksColumns,
 		PrimaryKey: []*schema.Column{DistributeLocksColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "distributelock_id",
-				Unique:  true,
-				Columns: []*schema.Column{DistributeLocksColumns[0]},
-			},
-		},
 	}
 	// EnvironmentsColumns holds the columns for the "environments" table.
 	EnvironmentsColumns = []*schema.Column{
@@ -317,10 +310,10 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
-		{Name: "template", Type: field.TypeJSON},
 		{Name: "attributes", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"mysql": "json", "postgres": "jsonb", "sqlite3": "text"}},
 		{Name: "environment_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "template_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 	}
 	// ServicesTable holds the schema information for the "services" table.
 	ServicesTable = &schema.Table{
@@ -330,22 +323,28 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "services_environments_services",
-				Columns:    []*schema.Column{ServicesColumns[10]},
+				Columns:    []*schema.Column{ServicesColumns[9]},
 				RefColumns: []*schema.Column{EnvironmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "services_projects_services",
-				Columns:    []*schema.Column{ServicesColumns[11]},
+				Columns:    []*schema.Column{ServicesColumns[10]},
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "services_template_versions_services",
+				Columns:    []*schema.Column{ServicesColumns[11]},
+				RefColumns: []*schema.Column{TemplateVersionsColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "service_project_id_environment_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{ServicesColumns[11], ServicesColumns[10], ServicesColumns[1]},
+				Columns: []*schema.Column{ServicesColumns[10], ServicesColumns[9], ServicesColumns[1]},
 			},
 		},
 	}
@@ -388,11 +387,6 @@ var (
 				Unique:  true,
 				Columns: []*schema.Column{ServiceRelationshipsColumns[4], ServiceRelationshipsColumns[5], ServiceRelationshipsColumns[2]},
 			},
-			{
-				Name:    "servicerelationship_service_id_dependency_id",
-				Unique:  true,
-				Columns: []*schema.Column{ServiceRelationshipsColumns[4], ServiceRelationshipsColumns[5]},
-			},
 		},
 	}
 	// ServiceResourcesColumns holds the columns for the "service_resources" table.
@@ -400,7 +394,6 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "mode", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
@@ -408,6 +401,7 @@ var (
 		{Name: "shape", Type: field.TypeString},
 		{Name: "status", Type: field.TypeJSON, Nullable: true},
 		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+		{Name: "project_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "service_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "composition_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "class_id", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -420,9 +414,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "service_resources_connectors_resources",
-				Columns:    []*schema.Column{ServiceResourcesColumns[10]},
+				Columns:    []*schema.Column{ServiceResourcesColumns[9]},
 				RefColumns: []*schema.Column{ConnectorsColumns[0]},
 				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "service_resources_projects_service_resources",
+				Columns:    []*schema.Column{ServiceResourcesColumns[10]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "service_resources_services_resources",
@@ -488,11 +488,6 @@ var (
 				Name:    "serviceresourcerelationship_service_resource_id_dependency_id_type",
 				Unique:  true,
 				Columns: []*schema.Column{ServiceResourceRelationshipsColumns[3], ServiceResourceRelationshipsColumns[4], ServiceResourceRelationshipsColumns[2]},
-			},
-			{
-				Name:    "serviceresourcerelationship_service_resource_id_dependency_id",
-				Unique:  true,
-				Columns: []*schema.Column{ServiceResourceRelationshipsColumns[3], ServiceResourceRelationshipsColumns[4]},
 			},
 		},
 	}
@@ -704,7 +699,7 @@ var (
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "template_name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
 		{Name: "version", Type: field.TypeString},
 		{Name: "source", Type: field.TypeString},
 		{Name: "schema", Type: field.TypeJSON},
@@ -728,6 +723,11 @@ var (
 				Name:    "templateversion_create_time",
 				Unique:  false,
 				Columns: []*schema.Column{TemplateVersionsColumns[1]},
+			},
+			{
+				Name:    "templateversion_name_version",
+				Unique:  true,
+				Columns: []*schema.Column{TemplateVersionsColumns[3], TemplateVersionsColumns[4]},
 			},
 		},
 	}
@@ -859,12 +859,14 @@ func init() {
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
 	ServicesTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	ServicesTable.ForeignKeys[1].RefTable = ProjectsTable
+	ServicesTable.ForeignKeys[2].RefTable = TemplateVersionsTable
 	ServiceRelationshipsTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceRelationshipsTable.ForeignKeys[1].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[0].RefTable = ConnectorsTable
-	ServiceResourcesTable.ForeignKeys[1].RefTable = ServicesTable
-	ServiceResourcesTable.ForeignKeys[2].RefTable = ServiceResourcesTable
+	ServiceResourcesTable.ForeignKeys[1].RefTable = ProjectsTable
+	ServiceResourcesTable.ForeignKeys[2].RefTable = ServicesTable
 	ServiceResourcesTable.ForeignKeys[3].RefTable = ServiceResourcesTable
+	ServiceResourcesTable.ForeignKeys[4].RefTable = ServiceResourcesTable
 	ServiceResourceRelationshipsTable.ForeignKeys[0].RefTable = ServiceResourcesTable
 	ServiceResourceRelationshipsTable.ForeignKeys[1].RefTable = ServiceResourcesTable
 	ServiceRevisionsTable.ForeignKeys[0].RefTable = EnvironmentsTable

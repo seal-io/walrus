@@ -394,6 +394,16 @@ func (pc *PerspectiveCreate) SaveE(ctx context.Context, cbs ...func(ctx context.
 	}
 
 	mc := pc.getClientSet()
+	if pc.fromUpsert {
+		q := mc.Perspectives().Query().
+			Where(
+				perspective.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Perspective entity: %w", err)
+		}
+	}
 
 	if x := pc.object; x != nil {
 		if _, set := pc.mutation.Field(perspective.FieldName); set {
@@ -503,6 +513,19 @@ func (pcb *PerspectiveCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx con
 	}
 
 	mc := pcb.getClientSet()
+	if pcb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Perspectives().Query().
+				Where(
+					perspective.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Perspective entity: %w", err)
+			}
+		}
+	}
 
 	if x := pcb.objects; x != nil {
 		for i := range x {
@@ -643,18 +666,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *PerspectiveUpsert) SetName(v string) *PerspectiveUpsert {
-	u.Set(perspective.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *PerspectiveUpsert) UpdateName() *PerspectiveUpsert {
-	u.SetExcluded(perspective.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *PerspectiveUpsert) SetDescription(v string) *PerspectiveUpsert {
 	u.Set(perspective.FieldDescription, v)
@@ -786,6 +797,9 @@ func (u *PerspectiveUpsertOne) UpdateNewValues() *PerspectiveUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(perspective.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(perspective.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(perspective.FieldCreateTime)
 		}
@@ -818,20 +832,6 @@ func (u *PerspectiveUpsertOne) Update(set func(*PerspectiveUpsert)) *Perspective
 		set(&PerspectiveUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *PerspectiveUpsertOne) SetName(v string) *PerspectiveUpsertOne {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *PerspectiveUpsertOne) UpdateName() *PerspectiveUpsertOne {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1148,6 +1148,9 @@ func (u *PerspectiveUpsertBulk) UpdateNewValues() *PerspectiveUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(perspective.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(perspective.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(perspective.FieldCreateTime)
 			}
@@ -1181,20 +1184,6 @@ func (u *PerspectiveUpsertBulk) Update(set func(*PerspectiveUpsert)) *Perspectiv
 		set(&PerspectiveUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *PerspectiveUpsertBulk) SetName(v string) *PerspectiveUpsertBulk {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *PerspectiveUpsertBulk) UpdateName() *PerspectiveUpsertBulk {
-	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.

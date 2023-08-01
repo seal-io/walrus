@@ -45,12 +45,6 @@ func (cu *ConnectorUpdate) Where(ps ...predicate.Connector) *ConnectorUpdate {
 	return cu
 }
 
-// SetName sets the "name" field.
-func (cu *ConnectorUpdate) SetName(s string) *ConnectorUpdate {
-	cu.mutation.SetName(s)
-	return cu
-}
-
 // SetDescription sets the "description" field.
 func (cu *ConnectorUpdate) SetDescription(s string) *ConnectorUpdate {
 	cu.mutation.SetDescription(s)
@@ -154,12 +148,6 @@ func (cu *ConnectorUpdate) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPricin
 // ClearFinOpsCustomPricing clears the value of the "fin_ops_custom_pricing" field.
 func (cu *ConnectorUpdate) ClearFinOpsCustomPricing() *ConnectorUpdate {
 	cu.mutation.ClearFinOpsCustomPricing()
-	return cu
-}
-
-// SetCategory sets the "category" field.
-func (cu *ConnectorUpdate) SetCategory(s string) *ConnectorUpdate {
-	cu.mutation.SetCategory(s)
 	return cu
 }
 
@@ -320,19 +308,9 @@ func (cu *ConnectorUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *ConnectorUpdate) check() error {
-	if v, ok := cu.mutation.Name(); ok {
-		if err := connector.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
-		}
-	}
 	if v, ok := cu.mutation.ConfigVersion(); ok {
 		if err := connector.ConfigVersionValidator(v); err != nil {
 			return &ValidationError{Name: "config_version", err: fmt.Errorf(`model: validator failed for field "Connector.config_version": %w`, err)}
-		}
-	}
-	if v, ok := cu.mutation.Category(); ok {
-		if err := connector.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
 		}
 	}
 	return nil
@@ -371,7 +349,6 @@ func (cu *ConnectorUpdate) check() error {
 //	}
 func (cu *ConnectorUpdate) Set(obj *Connector) *ConnectorUpdate {
 	// Without Default.
-	cu.SetName(obj.Name)
 	if obj.Description != "" {
 		cu.SetDescription(obj.Description)
 	} else {
@@ -396,7 +373,6 @@ func (cu *ConnectorUpdate) Set(obj *Connector) *ConnectorUpdate {
 	if obj.FinOpsCustomPricing != nil && !obj.FinOpsCustomPricing.IsZero() {
 		cu.SetFinOpsCustomPricing(obj.FinOpsCustomPricing)
 	}
-	cu.SetCategory(obj.Category)
 
 	// With Default.
 	if obj.UpdateTime != nil {
@@ -426,9 +402,6 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := cu.mutation.Name(); ok {
-		_spec.SetField(connector.FieldName, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.Description(); ok {
 		_spec.SetField(connector.FieldDescription, field.TypeString, value)
@@ -474,9 +447,6 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.FinOpsCustomPricingCleared() {
 		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
-	}
-	if value, ok := cu.mutation.Category(); ok {
-		_spec.SetField(connector.FieldCategory, field.TypeString, value)
 	}
 	if cu.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -647,12 +617,6 @@ type ConnectorUpdateOne struct {
 	object    *Connector
 }
 
-// SetName sets the "name" field.
-func (cuo *ConnectorUpdateOne) SetName(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetName(s)
-	return cuo
-}
-
 // SetDescription sets the "description" field.
 func (cuo *ConnectorUpdateOne) SetDescription(s string) *ConnectorUpdateOne {
 	cuo.mutation.SetDescription(s)
@@ -756,12 +720,6 @@ func (cuo *ConnectorUpdateOne) SetFinOpsCustomPricing(tocp *types.FinOpsCustomPr
 // ClearFinOpsCustomPricing clears the value of the "fin_ops_custom_pricing" field.
 func (cuo *ConnectorUpdateOne) ClearFinOpsCustomPricing() *ConnectorUpdateOne {
 	cuo.mutation.ClearFinOpsCustomPricing()
-	return cuo
-}
-
-// SetCategory sets the "category" field.
-func (cuo *ConnectorUpdateOne) SetCategory(s string) *ConnectorUpdateOne {
-	cuo.mutation.SetCategory(s)
 	return cuo
 }
 
@@ -935,19 +893,9 @@ func (cuo *ConnectorUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *ConnectorUpdateOne) check() error {
-	if v, ok := cuo.mutation.Name(); ok {
-		if err := connector.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`model: validator failed for field "Connector.name": %w`, err)}
-		}
-	}
 	if v, ok := cuo.mutation.ConfigVersion(); ok {
 		if err := connector.ConfigVersionValidator(v); err != nil {
 			return &ValidationError{Name: "config_version", err: fmt.Errorf(`model: validator failed for field "Connector.config_version": %w`, err)}
-		}
-	}
-	if v, ok := cuo.mutation.Category(); ok {
-		if err := connector.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`model: validator failed for field "Connector.category": %w`, err)}
 		}
 	}
 	return nil
@@ -996,9 +944,6 @@ func (cuo *ConnectorUpdateOne) Set(obj *Connector) *ConnectorUpdateOne {
 			}
 
 			// Without Default.
-			if db.Name != obj.Name {
-				cuo.SetName(obj.Name)
-			}
 			if obj.Description != "" {
 				if db.Description != obj.Description {
 					cuo.SetDescription(obj.Description)
@@ -1038,9 +983,6 @@ func (cuo *ConnectorUpdateOne) Set(obj *Connector) *ConnectorUpdateOne {
 				if !reflect.DeepEqual(db.FinOpsCustomPricing, obj.FinOpsCustomPricing) {
 					cuo.SetFinOpsCustomPricing(obj.FinOpsCustomPricing)
 				}
-			}
-			if db.Category != obj.Category {
-				cuo.SetCategory(obj.Category)
 			}
 
 			// With Default.
@@ -1092,9 +1034,6 @@ func (cuo *ConnectorUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx contex
 	if obj == nil {
 		obj = cuo.object
 	} else if x := cuo.object; x != nil {
-		if _, set := cuo.mutation.Field(connector.FieldName); set {
-			obj.Name = x.Name
-		}
 		if _, set := cuo.mutation.Field(connector.FieldDescription); set {
 			obj.Description = x.Description
 		}
@@ -1118,9 +1057,6 @@ func (cuo *ConnectorUpdateOne) SaveE(ctx context.Context, cbs ...func(ctx contex
 		}
 		if _, set := cuo.mutation.Field(connector.FieldFinOpsCustomPricing); set {
 			obj.FinOpsCustomPricing = x.FinOpsCustomPricing
-		}
-		if _, set := cuo.mutation.Field(connector.FieldCategory); set {
-			obj.Category = x.Category
 		}
 		obj.Edges = x.Edges
 	}
@@ -1192,9 +1128,6 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 			}
 		}
 	}
-	if value, ok := cuo.mutation.Name(); ok {
-		_spec.SetField(connector.FieldName, field.TypeString, value)
-	}
 	if value, ok := cuo.mutation.Description(); ok {
 		_spec.SetField(connector.FieldDescription, field.TypeString, value)
 	}
@@ -1239,9 +1172,6 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 	}
 	if cuo.mutation.FinOpsCustomPricingCleared() {
 		_spec.ClearField(connector.FieldFinOpsCustomPricing, field.TypeJSON)
-	}
-	if value, ok := cuo.mutation.Category(); ok {
-		_spec.SetField(connector.FieldCategory, field.TypeString, value)
 	}
 	if cuo.mutation.EnvironmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

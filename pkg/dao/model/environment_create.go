@@ -485,6 +485,17 @@ func (ec *EnvironmentCreate) SaveE(ctx context.Context, cbs ...func(ctx context.
 	}
 
 	mc := ec.getClientSet()
+	if ec.fromUpsert {
+		q := mc.Environments().Query().
+			Where(
+				environment.ProjectID(obj.ProjectID),
+				environment.Name(obj.Name),
+			)
+		obj.ID, err = q.OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("model: failed to query id of Environment entity: %w", err)
+		}
+	}
 
 	if x := ec.object; x != nil {
 		if _, set := ec.mutation.Field(environment.FieldName); set {
@@ -592,6 +603,20 @@ func (ecb *EnvironmentCreateBulk) SaveE(ctx context.Context, cbs ...func(ctx con
 	}
 
 	mc := ecb.getClientSet()
+	if ecb.fromUpsert {
+		for i := range objs {
+			obj := objs[i]
+			q := mc.Environments().Query().
+				Where(
+					environment.ProjectID(obj.ProjectID),
+					environment.Name(obj.Name),
+				)
+			objs[i].ID, err = q.OnlyID(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("model: failed to query id of Environment entity: %w", err)
+			}
+		}
+	}
 
 	if x := ecb.objects; x != nil {
 		for i := range x {
@@ -730,18 +755,6 @@ type (
 	}
 )
 
-// SetName sets the "name" field.
-func (u *EnvironmentUpsert) SetName(v string) *EnvironmentUpsert {
-	u.Set(environment.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *EnvironmentUpsert) UpdateName() *EnvironmentUpsert {
-	u.SetExcluded(environment.FieldName)
-	return u
-}
-
 // SetDescription sets the "description" field.
 func (u *EnvironmentUpsert) SetDescription(v string) *EnvironmentUpsert {
 	u.Set(environment.FieldDescription, v)
@@ -825,6 +838,9 @@ func (u *EnvironmentUpsertOne) UpdateNewValues() *EnvironmentUpsertOne {
 		if _, exists := u.create.mutation.ID(); exists {
 			s.SetIgnore(environment.FieldID)
 		}
+		if _, exists := u.create.mutation.Name(); exists {
+			s.SetIgnore(environment.FieldName)
+		}
 		if _, exists := u.create.mutation.CreateTime(); exists {
 			s.SetIgnore(environment.FieldCreateTime)
 		}
@@ -860,20 +876,6 @@ func (u *EnvironmentUpsertOne) Update(set func(*EnvironmentUpsert)) *Environment
 		set(&EnvironmentUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *EnvironmentUpsertOne) SetName(v string) *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *EnvironmentUpsertOne) UpdateName() *EnvironmentUpsertOne {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.
@@ -1134,6 +1136,9 @@ func (u *EnvironmentUpsertBulk) UpdateNewValues() *EnvironmentUpsertBulk {
 			if _, exists := b.mutation.ID(); exists {
 				s.SetIgnore(environment.FieldID)
 			}
+			if _, exists := b.mutation.Name(); exists {
+				s.SetIgnore(environment.FieldName)
+			}
 			if _, exists := b.mutation.CreateTime(); exists {
 				s.SetIgnore(environment.FieldCreateTime)
 			}
@@ -1170,20 +1175,6 @@ func (u *EnvironmentUpsertBulk) Update(set func(*EnvironmentUpsert)) *Environmen
 		set(&EnvironmentUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetName sets the "name" field.
-func (u *EnvironmentUpsertBulk) SetName(v string) *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *EnvironmentUpsertBulk) UpdateName() *EnvironmentUpsertBulk {
-	return u.Update(func(s *EnvironmentUpsert) {
-		s.UpdateName()
-	})
 }
 
 // SetDescription sets the "description" field.

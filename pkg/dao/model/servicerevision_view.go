@@ -8,33 +8,49 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/seal-io/seal/pkg/dao/model/servicerevision"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
 
-// ServiceRevisionCreateInput holds the creation input of the ServiceRevision entity.
+// ServiceRevisionCreateInput holds the creation input of the ServiceRevision entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceRevisionCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"service"`
+	// Project indicates to create ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+	// Service indicates to create ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
-	Output                    string                      `uri:"-" query:"-" json:"output"`
-	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan"`
-	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion"`
-	TemplateName              string                      `uri:"-" query:"-" json:"templateName"`
-	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
-	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
-	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
-	Duration                  int                         `uri:"-" query:"-" json:"duration,omitempty"`
-	PreviousRequiredProviders []types.ProviderRequirement `uri:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	Tags                      []string                    `uri:"-" query:"-" json:"tags,omitempty"`
+	// Output of the revision.
+	Output string `path:"-" query:"-" json:"output"`
+	// Input plan of the revision.
+	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Version of the template.
+	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
+	// Name of the template.
+	TemplateName string `path:"-" query:"-" json:"templateName"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
+	// Duration in seconds of the revision deploying.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 }
 
 // Model returns the ServiceRevision entity for creating,
@@ -70,38 +86,36 @@ func (srci *ServiceRevisionCreateInput) Model() *ServiceRevision {
 	return _sr
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srci *ServiceRevisionCreateInput) Load() error {
+// Validate checks the ServiceRevisionCreateInput entity.
+func (srci *ServiceRevisionCreateInput) Validate() error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srci.LoadWith(srci.inputConfig.Context, srci.inputConfig.ClientSet)
+	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srci *ServiceRevisionCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionCreateInput entity with the given context and client set.
+func (srci *ServiceRevisionCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when creating under the Project route.
 	if srci.Project != nil {
-		err = srci.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srci.Project.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+	// Validate when creating under the Environment route.
 	if srci.Environment != nil {
-		err = srci.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srci.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+	// Validate when creating under the Service route.
 	if srci.Service != nil {
-		err = srci.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srci.Service.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
@@ -111,27 +125,51 @@ func (srci *ServiceRevisionCreateInput) LoadWith(ctx context.Context, cs ClientS
 
 // ServiceRevisionCreateInputs holds the creation input item of the ServiceRevision entities.
 type ServiceRevisionCreateInputsItem struct {
-	Output                    string                      `uri:"-" query:"-" json:"output"`
-	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan"`
-	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion"`
-	TemplateName              string                      `uri:"-" query:"-" json:"templateName"`
-	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
-	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
-	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
-	Duration                  int                         `uri:"-" query:"-" json:"duration,omitempty"`
-	PreviousRequiredProviders []types.ProviderRequirement `uri:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	Tags                      []string                    `uri:"-" query:"-" json:"tags,omitempty"`
+	// Output of the revision.
+	Output string `path:"-" query:"-" json:"output"`
+	// Input plan of the revision.
+	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Version of the template.
+	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
+	// Name of the template.
+	TemplateName string `path:"-" query:"-" json:"templateName"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
+	// Duration in seconds of the revision deploying.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 }
 
-// ServiceRevisionCreateInputs holds the creation input of the ServiceRevision entities.
+// ValidateWith checks the ServiceRevisionCreateInputsItem entity with the given context and client set.
+func (srci *ServiceRevisionCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srci == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// ServiceRevisionCreateInputs holds the creation input of the ServiceRevision entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceRevisionCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"service"`
+	// Project indicates to create ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to create ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+	// Service indicates to create ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceRevisionCreateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceRevisionCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceRevision entities for creating,
@@ -173,19 +211,17 @@ func (srci *ServiceRevisionCreateInputs) Model() []*ServiceRevision {
 	return _srs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srci *ServiceRevisionCreateInputs) Load() error {
+// Validate checks the ServiceRevisionCreateInputs entity .
+func (srci *ServiceRevisionCreateInputs) Validate() error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srci.LoadWith(srci.inputConfig.Context, srci.inputConfig.ClientSet)
+	return srci.ValidateWith(srci.inputConfig.Context, srci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srci *ServiceRevisionCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionCreateInputs entity with the given context and client set.
+func (srci *ServiceRevisionCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srci == nil {
 		return errors.New("nil receiver")
 	}
@@ -194,44 +230,74 @@ func (srci *ServiceRevisionCreateInputs) LoadWith(ctx context.Context, cs Client
 		return errors.New("empty items")
 	}
 
+	// Validate when creating under the Project route.
 	if srci.Project != nil {
-		err = srci.Project.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := srci.Project.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srci.Project = nil
+			}
 		}
 	}
+	// Validate when creating under the Environment route.
 	if srci.Environment != nil {
-		err = srci.Environment.LoadWith(ctx, cs)
-		if err != nil {
-			return err
+		if err := srci.Environment.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srci.Environment = nil
+			}
 		}
 	}
+	// Validate when creating under the Service route.
 	if srci.Service != nil {
-		err = srci.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srci.Service.ValidateWith(ctx, cs); err != nil {
+			if !IsBlankResourceReferError(err) {
+				return err
+			} else {
+				srci.Service = nil
+			}
+		}
+	}
+
+	for i := range srci.Items {
+		if srci.Items[i] == nil {
+			continue
+		}
+
+		if err := srci.Items[i].ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-// ServiceRevisionDeleteInput holds the deletion input of the ServiceRevision entity.
+// ServiceRevisionDeleteInput holds the deletion input of the ServiceRevision entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceRevisionDeleteInput = ServiceRevisionQueryInput
 
 // ServiceRevisionDeleteInputs holds the deletion input item of the ServiceRevision entities.
 type ServiceRevisionDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the ServiceRevision entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
-// ServiceRevisionDeleteInputs holds the deletion input of the ServiceRevision entities.
+// ServiceRevisionDeleteInputs holds the deletion input of the ServiceRevision entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceRevisionDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"service"`
+	// Project indicates to delete ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to delete ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+	// Service indicates to delete ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceRevisionDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceRevisionDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceRevision entities for deleting,
@@ -250,19 +316,31 @@ func (srdi *ServiceRevisionDeleteInputs) Model() []*ServiceRevision {
 	return _srs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srdi *ServiceRevisionDeleteInputs) Load() error {
+// IDs returns the ID list of the ServiceRevision entities for deleting,
+// after validating.
+func (srdi *ServiceRevisionDeleteInputs) IDs() []object.ID {
+	if srdi == nil || len(srdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srdi.Items))
+	for i := range srdi.Items {
+		ids[i] = srdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceRevisionDeleteInputs entity.
+func (srdi *ServiceRevisionDeleteInputs) Validate() error {
 	if srdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srdi.LoadWith(srdi.inputConfig.Context, srdi.inputConfig.ClientSet)
+	return srdi.ValidateWith(srdi.inputConfig.Context, srdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srdi *ServiceRevisionDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionDeleteInputs entity with the given context and client set.
+func (srdi *ServiceRevisionDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -273,31 +351,35 @@ func (srdi *ServiceRevisionDeleteInputs) LoadWith(ctx context.Context, cs Client
 
 	q := cs.ServiceRevisions().Query()
 
+	// Validate when deleting under the Project route.
 	if srdi.Project != nil {
-		err = srdi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srdi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				servicerevision.ProjectID(srdi.Project.ID))
 		}
-		q.Where(
-			servicerevision.ProjectID(srdi.Project.ID))
 	}
 
+	// Validate when deleting under the Environment route.
 	if srdi.Environment != nil {
-		err = srdi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srdi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.EnvironmentID(srdi.Environment.ID))
 		}
-		q.Where(
-			servicerevision.EnvironmentID(srdi.Environment.ID))
 	}
 
+	// Validate when deleting under the Service route.
 	if srdi.Service != nil {
-		err = srdi.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srdi.Service.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.ServiceID(srdi.Service.ID))
 		}
-		q.Where(
-			servicerevision.ServiceID(srdi.Service.ID))
 	}
 
 	ids := make([]object.ID, 0, len(srdi.Items))
@@ -314,7 +396,9 @@ func (srdi *ServiceRevisionDeleteInputs) LoadWith(ctx context.Context, cs Client
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(servicerevision.IDIn(ids...)).
 		Count(ctx)
@@ -322,23 +406,29 @@ func (srdi *ServiceRevisionDeleteInputs) LoadWith(ctx context.Context, cs Client
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
 	}
 
 	return nil
 }
 
-// ServiceRevisionQueryInput holds the query input of the ServiceRevision entity.
+// ServiceRevisionQueryInput holds the query input of the ServiceRevision entity,
+// please tags with `path:",inline"` if embedding.
 type ServiceRevisionQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"-"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"-"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"-"`
+	// Project indicates to query ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"project"`
+	// Environment indicates to query ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"environment"`
+	// Service indicates to query ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"service"`
 
-	Refer *object.Refer `uri:"servicerevision,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the ServiceRevision entity.
+	Refer *object.Refer `path:"servicerevision,default=" query:"-" json:"-"`
+	// ID of the ServiceRevision entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
 }
 
 // Model returns the ServiceRevision entity for querying,
@@ -353,54 +443,56 @@ func (srqi *ServiceRevisionQueryInput) Model() *ServiceRevision {
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srqi *ServiceRevisionQueryInput) Load() error {
+// Validate checks the ServiceRevisionQueryInput entity.
+func (srqi *ServiceRevisionQueryInput) Validate() error {
 	if srqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srqi.LoadWith(srqi.inputConfig.Context, srqi.inputConfig.ClientSet)
+	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srqi *ServiceRevisionQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionQueryInput entity with the given context and client set.
+func (srqi *ServiceRevisionQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if srqi.Refer != nil && *srqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", servicerevision.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.ServiceRevisions().Query()
 
+	// Validate when querying under the Project route.
 	if srqi.Project != nil {
-		err = srqi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				servicerevision.ProjectID(srqi.Project.ID))
 		}
-		q.Where(
-			servicerevision.ProjectID(srqi.Project.ID))
 	}
 
+	// Validate when querying under the Environment route.
 	if srqi.Environment != nil {
-		err = srqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.EnvironmentID(srqi.Environment.ID))
 		}
-		q.Where(
-			servicerevision.EnvironmentID(srqi.Environment.ID))
 	}
 
+	// Validate when querying under the Service route.
 	if srqi.Service != nil {
-		err = srqi.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Service.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.ServiceID(srqi.Service.ID))
 		}
-		q.Where(
-			servicerevision.ServiceID(srqi.Service.ID))
 	}
 
 	if srqi.Refer != nil {
@@ -417,73 +509,86 @@ func (srqi *ServiceRevisionQueryInput) LoadWith(ctx context.Context, cs ClientSe
 		return errors.New("invalid identify of servicerevision")
 	}
 
+	var err error
 	srqi.ID, err = q.OnlyID(ctx)
 	return err
 }
 
-// ServiceRevisionQueryInputs holds the query input of the ServiceRevision entities.
+// ServiceRevisionQueryInputs holds the query input of the ServiceRevision entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type ServiceRevisionQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"service"`
+	// Project indicates to query ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to query ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+	// Service indicates to query ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srqi *ServiceRevisionQueryInputs) Load() error {
+// Validate checks the ServiceRevisionQueryInputs entity.
+func (srqi *ServiceRevisionQueryInputs) Validate() error {
 	if srqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srqi.LoadWith(srqi.inputConfig.Context, srqi.inputConfig.ClientSet)
+	return srqi.ValidateWith(srqi.inputConfig.Context, srqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srqi *ServiceRevisionQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionQueryInputs entity with the given context and client set.
+func (srqi *ServiceRevisionQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srqi == nil {
 		return errors.New("nil receiver")
 	}
 
+	// Validate when querying under the Project route.
 	if srqi.Project != nil {
-		err = srqi.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Project.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
 
+	// Validate when querying under the Environment route.
 	if srqi.Environment != nil {
-		err = srqi.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
 
+	// Validate when querying under the Service route.
 	if srqi.Service != nil {
-		err = srqi.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srqi.Service.ValidateWith(ctx, cs); err != nil {
 			return err
 		}
 	}
 
-	return err
+	return nil
 }
 
-// ServiceRevisionUpdateInput holds the modification input of the ServiceRevision entity.
+// ServiceRevisionUpdateInput holds the modification input of the ServiceRevision entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceRevisionUpdateInput struct {
-	ServiceRevisionQueryInput `uri:",inline" query:"-" json:",inline"`
+	ServiceRevisionQueryInput `path:",inline" query:"-" json:"-"`
 
-	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion,omitempty"`
-	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
-	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
-	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan,omitempty"`
-	Output                    string                      `uri:"-" query:"-" json:"output,omitempty"`
-	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
-	Duration                  int                         `uri:"-" query:"-" json:"duration,omitempty"`
-	PreviousRequiredProviders []types.ProviderRequirement `uri:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	Tags                      []string                    `uri:"-" query:"-" json:"tags,omitempty"`
+	// Version of the template.
+	TemplateVersion string `path:"-" query:"-" json:"templateVersion,omitempty"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables,omitempty"`
+	// Input plan of the revision.
+	InputPlan string `path:"-" query:"-" json:"inputPlan,omitempty"`
+	// Output of the revision.
+	Output string `path:"-" query:"-" json:"output,omitempty"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType,omitempty"`
+	// Duration in seconds of the revision deploying.
+	Duration int `path:"-" query:"-" json:"duration,omitempty"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders,omitempty"`
+	// Tags of the revision.
+	Tags []string `path:"-" query:"-" json:"tags,omitempty"`
 }
 
 // Model returns the ServiceRevision entity for modifying,
@@ -509,30 +614,72 @@ func (srui *ServiceRevisionUpdateInput) Model() *ServiceRevision {
 	return _sr
 }
 
-// ServiceRevisionUpdateInputs holds the modification input item of the ServiceRevision entities.
-type ServiceRevisionUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the ServiceRevisionUpdateInput entity.
+func (srui *ServiceRevisionUpdateInput) Validate() error {
+	if srui == nil {
+		return errors.New("nil receiver")
+	}
 
-	TemplateVersion           string                      `uri:"-" query:"-" json:"templateVersion,omitempty"`
-	Attributes                property.Values             `uri:"-" query:"-" json:"attributes,omitempty"`
-	Variables                 crypto.Map[string, string]  `uri:"-" query:"-" json:"variables,omitempty"`
-	InputPlan                 string                      `uri:"-" query:"-" json:"inputPlan,omitempty"`
-	Output                    string                      `uri:"-" query:"-" json:"output,omitempty"`
-	DeployerType              string                      `uri:"-" query:"-" json:"deployerType,omitempty"`
-	Duration                  int                         `uri:"-" query:"-" json:"duration,omitempty"`
-	PreviousRequiredProviders []types.ProviderRequirement `uri:"-" query:"-" json:"previousRequiredProviders,omitempty"`
-	Tags                      []string                    `uri:"-" query:"-" json:"tags,omitempty"`
+	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client)
 }
 
-// ServiceRevisionUpdateInputs holds the modification input of the ServiceRevision entities.
+// ValidateWith checks the ServiceRevisionUpdateInput entity with the given context and client set.
+func (srui *ServiceRevisionUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := srui.ServiceRevisionQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ServiceRevisionUpdateInputs holds the modification input item of the ServiceRevision entities.
+type ServiceRevisionUpdateInputsItem struct {
+	// ID of the ServiceRevision entity.
+	ID object.ID `path:"-" query:"-" json:"id"`
+
+	// Version of the template.
+	TemplateVersion string `path:"-" query:"-" json:"templateVersion"`
+	// Attributes to configure the template.
+	Attributes property.Values `path:"-" query:"-" json:"attributes,omitempty"`
+	// Variables of the revision.
+	Variables crypto.Map[string, string] `path:"-" query:"-" json:"variables"`
+	// Input plan of the revision.
+	InputPlan string `path:"-" query:"-" json:"inputPlan"`
+	// Output of the revision.
+	Output string `path:"-" query:"-" json:"output"`
+	// Type of deployer.
+	DeployerType string `path:"-" query:"-" json:"deployerType"`
+	// Duration in seconds of the revision deploying.
+	Duration int `path:"-" query:"-" json:"duration"`
+	// Previous provider requirement of the revision.
+	PreviousRequiredProviders []types.ProviderRequirement `path:"-" query:"-" json:"previousRequiredProviders"`
+	// Tags of the revision.
+	Tags []string `path:"-" query:"-" json:"tags"`
+}
+
+// ValidateWith checks the ServiceRevisionUpdateInputsItem entity with the given context and client set.
+func (srui *ServiceRevisionUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if srui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// ServiceRevisionUpdateInputs holds the modification input of the ServiceRevision entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ServiceRevisionUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Project     *ProjectQueryInput     `uri:",inline" query:"-" json:"project"`
-	Environment *EnvironmentQueryInput `uri:",inline" query:"-" json:"environment"`
-	Service     *ServiceQueryInput     `uri:",inline" query:"-" json:"service"`
+	// Project indicates to update ServiceRevision entity MUST under the Project route.
+	Project *ProjectQueryInput `path:",inline" query:"-" json:"-"`
+	// Environment indicates to update ServiceRevision entity MUST under the Environment route.
+	Environment *EnvironmentQueryInput `path:",inline" query:"-" json:"-"`
+	// Service indicates to update ServiceRevision entity MUST under the Service route.
+	Service *ServiceQueryInput `path:",inline" query:"-" json:"-"`
 
-	Items []*ServiceRevisionUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ServiceRevisionUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the ServiceRevision entities for modifying,
@@ -564,19 +711,31 @@ func (srui *ServiceRevisionUpdateInputs) Model() []*ServiceRevision {
 	return _srs
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (srui *ServiceRevisionUpdateInputs) Load() error {
+// IDs returns the ID list of the ServiceRevision entities for modifying,
+// after validating.
+func (srui *ServiceRevisionUpdateInputs) IDs() []object.ID {
+	if srui == nil || len(srui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(srui.Items))
+	for i := range srui.Items {
+		ids[i] = srui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ServiceRevisionUpdateInputs entity.
+func (srui *ServiceRevisionUpdateInputs) Validate() error {
 	if srui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return srui.LoadWith(srui.inputConfig.Context, srui.inputConfig.ClientSet)
+	return srui.ValidateWith(srui.inputConfig.Context, srui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (srui *ServiceRevisionUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ServiceRevisionUpdateInputs entity with the given context and client set.
+func (srui *ServiceRevisionUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if srui == nil {
 		return errors.New("nil receiver")
 	}
@@ -587,31 +746,35 @@ func (srui *ServiceRevisionUpdateInputs) LoadWith(ctx context.Context, cs Client
 
 	q := cs.ServiceRevisions().Query()
 
+	// Validate when updating under the Project route.
 	if srui.Project != nil {
-		err = srui.Project.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srui.Project.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+			q.Where(
+				servicerevision.ProjectID(srui.Project.ID))
 		}
-		q.Where(
-			servicerevision.ProjectID(srui.Project.ID))
 	}
 
+	// Validate when updating under the Environment route.
 	if srui.Environment != nil {
-		err = srui.Environment.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srui.Environment.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.EnvironmentID(srui.Environment.ID))
 		}
-		q.Where(
-			servicerevision.EnvironmentID(srui.Environment.ID))
 	}
 
+	// Validate when updating under the Service route.
 	if srui.Service != nil {
-		err = srui.Service.LoadWith(ctx, cs)
-		if err != nil {
+		if err := srui.Service.ValidateWith(ctx, cs); err != nil {
 			return err
+		} else {
+			q.Where(
+				servicerevision.ServiceID(srui.Service.ID))
 		}
-		q.Where(
-			servicerevision.ServiceID(srui.Service.ID))
 	}
 
 	ids := make([]object.ID, 0, len(srui.Items))
@@ -628,7 +791,9 @@ func (srui *ServiceRevisionUpdateInputs) LoadWith(ctx context.Context, cs Client
 		}
 	}
 
-	idsLen := len(ids)
+	if len(ids) != cap(ids) {
+		return errors.New("found unrecognized item")
+	}
 
 	idsCnt, err := q.Where(servicerevision.IDIn(ids...)).
 		Count(ctx)
@@ -636,8 +801,18 @@ func (srui *ServiceRevisionUpdateInputs) LoadWith(ctx context.Context, cs Client
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if idsCnt != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range srui.Items {
+		if srui.Items[i] == nil {
+			continue
+		}
+
+		if err := srui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -663,12 +838,12 @@ type ServiceRevisionOutput struct {
 	Service     *ServiceOutput     `json:"service,omitempty"`
 }
 
-// View returns the output of ServiceRevision.
+// View returns the output of ServiceRevision entity.
 func (_sr *ServiceRevision) View() *ServiceRevisionOutput {
 	return ExposeServiceRevision(_sr)
 }
 
-// View returns the output of ServiceRevisions.
+// View returns the output of ServiceRevision entities.
 func (_srs ServiceRevisions) View() []*ServiceRevisionOutput {
 	return ExposeServiceRevisions(_srs)
 }

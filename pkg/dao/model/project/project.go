@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -38,6 +39,8 @@ const (
 	EdgeSubjectRoles = "subject_roles"
 	// EdgeServices holds the string denoting the services edge name in mutations.
 	EdgeServices = "services"
+	// EdgeServiceResources holds the string denoting the service_resources edge name in mutations.
+	EdgeServiceResources = "service_resources"
 	// EdgeServiceRevisions holds the string denoting the service_revisions edge name in mutations.
 	EdgeServiceRevisions = "service_revisions"
 	// EdgeVariables holds the string denoting the variables edge name in mutations.
@@ -72,6 +75,13 @@ const (
 	ServicesInverseTable = "services"
 	// ServicesColumn is the table column denoting the services relation/edge.
 	ServicesColumn = "project_id"
+	// ServiceResourcesTable is the table that holds the service_resources relation/edge.
+	ServiceResourcesTable = "service_resources"
+	// ServiceResourcesInverseTable is the table name for the ServiceResource entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceresource" package.
+	ServiceResourcesInverseTable = "service_resources"
+	// ServiceResourcesColumn is the table column denoting the service_resources relation/edge.
+	ServiceResourcesColumn = "project_id"
 	// ServiceRevisionsTable is the table that holds the service_revisions relation/edge.
 	ServiceRevisionsTable = "service_revisions"
 	// ServiceRevisionsInverseTable is the table name for the ServiceRevision entity.
@@ -115,7 +125,8 @@ func ValidColumn(column string) bool {
 //
 //	import _ "github.com/seal-io/seal/pkg/dao/model/runtime"
 var (
-	Hooks [1]ent.Hook
+	Hooks        [1]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultLabels holds the default value on creation for the "labels" field.
@@ -214,6 +225,20 @@ func ByServices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByServiceResourcesCount orders the results by service_resources count.
+func ByServiceResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newServiceResourcesStep(), opts...)
+	}
+}
+
+// ByServiceResources orders the results by service_resources terms.
+func ByServiceResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServiceResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByServiceRevisionsCount orders the results by service_revisions count.
 func ByServiceRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -269,6 +294,13 @@ func newServicesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, ServicesTable, ServicesColumn),
 	)
 }
+func newServiceResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServiceResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ServiceResourcesTable, ServiceResourcesColumn),
+	)
+}
 func newServiceRevisionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -287,7 +319,7 @@ func newVariablesStep() *sqlgraph.Step {
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
 	if len(ignores) == 0 {
-		return Columns
+		return slices.Clone(Columns)
 	}
 
 	var s = make(map[string]bool, len(ignores))

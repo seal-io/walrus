@@ -8,19 +8,26 @@ package model
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/seal-io/seal/pkg/dao/model/predicate"
 	"github.com/seal-io/seal/pkg/dao/model/project"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
-// ProjectCreateInput holds the creation input of the Project entity.
+// ProjectCreateInput holds the creation input of the Project entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ProjectCreateInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
 // Model returns the Project entity for creating,
@@ -39,19 +46,17 @@ func (pci *ProjectCreateInput) Model() *Project {
 	return _p
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pci *ProjectCreateInput) Load() error {
+// Validate checks the ProjectCreateInput entity.
+func (pci *ProjectCreateInput) Validate() error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pci.LoadWith(pci.inputConfig.Context, pci.inputConfig.ClientSet)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pci *ProjectCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectCreateInput entity with the given context and client set.
+func (pci *ProjectCreateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -61,16 +66,30 @@ func (pci *ProjectCreateInput) LoadWith(ctx context.Context, cs ClientSet) (err 
 
 // ProjectCreateInputs holds the creation input item of the Project entities.
 type ProjectCreateInputsItem struct {
-	Name        string            `uri:"-" query:"-" json:"name"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `path:"-" query:"-" json:"name"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
-// ProjectCreateInputs holds the creation input of the Project entities.
-type ProjectCreateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the ProjectCreateInputsItem entity with the given context and client set.
+func (pci *ProjectCreateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if pci == nil {
+		return errors.New("nil receiver")
+	}
 
-	Items []*ProjectCreateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// ProjectCreateInputs holds the creation input of the Project entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ProjectCreateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ProjectCreateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Project entities for creating,
@@ -95,19 +114,17 @@ func (pci *ProjectCreateInputs) Model() []*Project {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pci *ProjectCreateInputs) Load() error {
+// Validate checks the ProjectCreateInputs entity .
+func (pci *ProjectCreateInputs) Validate() error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pci.LoadWith(pci.inputConfig.Context, pci.inputConfig.ClientSet)
+	return pci.ValidateWith(pci.inputConfig.Context, pci.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pci *ProjectCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectCreateInputs entity with the given context and client set.
+func (pci *ProjectCreateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pci == nil {
 		return errors.New("nil receiver")
 	}
@@ -116,22 +133,38 @@ func (pci *ProjectCreateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 		return errors.New("empty items")
 	}
 
+	for i := range pci.Items {
+		if pci.Items[i] == nil {
+			continue
+		}
+
+		if err := pci.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// ProjectDeleteInput holds the deletion input of the Project entity.
+// ProjectDeleteInput holds the deletion input of the Project entity,
+// please tags with `path:",inline"` if embedding.
 type ProjectDeleteInput = ProjectQueryInput
 
 // ProjectDeleteInputs holds the deletion input item of the Project entities.
 type ProjectDeleteInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+	// ID of the Project entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Project entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
-// ProjectDeleteInputs holds the deletion input of the Project entities.
+// ProjectDeleteInputs holds the deletion input of the Project entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ProjectDeleteInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Items []*ProjectDeleteInputsItem `uri:"-" query:"-" json:"items"`
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ProjectDeleteInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Project entities for deleting,
@@ -150,19 +183,31 @@ func (pdi *ProjectDeleteInputs) Model() []*Project {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pdi *ProjectDeleteInputs) Load() error {
+// IDs returns the ID list of the Project entities for deleting,
+// after validating.
+func (pdi *ProjectDeleteInputs) IDs() []object.ID {
+	if pdi == nil || len(pdi.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(pdi.Items))
+	for i := range pdi.Items {
+		ids[i] = pdi.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ProjectDeleteInputs entity.
+func (pdi *ProjectDeleteInputs) Validate() error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pdi.LoadWith(pdi.inputConfig.Context, pdi.inputConfig.ClientSet)
+	return pdi.ValidateWith(pdi.inputConfig.Context, pdi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pdi *ProjectDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectDeleteInputs entity with the given context and client set.
+func (pdi *ProjectDeleteInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pdi == nil {
 		return errors.New("nil receiver")
 	}
@@ -174,6 +219,7 @@ func (pdi *ProjectDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Projects().Query()
 
 	ids := make([]object.ID, 0, len(pdi.Items))
+	ors := make([]predicate.Project, 0, len(pdi.Items))
 
 	for i := range pdi.Items {
 		if pdi.Items[i] == nil {
@@ -182,32 +228,56 @@ func (pdi *ProjectDeleteInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if pdi.Items[i].ID != "" {
 			ids = append(ids, pdi.Items[i].ID)
+			ors = append(ors, project.ID(pdi.Items[i].ID))
+		} else if pdi.Items[i].Name != "" {
+			ors = append(ors, project.And(
+				project.Name(pdi.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 
-	idsCnt, err := q.Where(project.IDIn(ids...)).
-		Count(ctx)
+	p := project.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = project.Or(ors...)
+	}
+
+	es, err := q.
+		Where(p).
+		Select(
+			project.FieldID,
+			project.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		pdi.Items[i].ID = es[i].ID
+		pdi.Items[i].Name = es[i].Name
 	}
 
 	return nil
 }
 
-// ProjectQueryInput holds the query input of the Project entity.
+// ProjectQueryInput holds the query input of the Project entity,
+// please tags with `path:",inline"` if embedding.
 type ProjectQueryInput struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 
-	Refer *object.Refer `uri:"project,default=\"\"" query:"-" json:"-"`
-	ID    object.ID     `uri:"id" query:"-" json:"id"` // TODO(thxCode): remove the uri:"id" after supporting hierarchical routes.
+	// Refer holds the route path reference of the Project entity.
+	Refer *object.Refer `path:"project,default=" query:"-" json:"-"`
+	// ID of the Project entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Project entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
 }
 
 // Model returns the Project entity for querying,
@@ -218,29 +288,28 @@ func (pqi *ProjectQueryInput) Model() *Project {
 	}
 
 	return &Project{
-		ID: pqi.ID,
+		ID:   pqi.ID,
+		Name: pqi.Name,
 	}
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pqi *ProjectQueryInput) Load() error {
+// Validate checks the ProjectQueryInput entity.
+func (pqi *ProjectQueryInput) Validate() error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.LoadWith(pqi.inputConfig.Context, pqi.inputConfig.ClientSet)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pqi *ProjectQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectQueryInput entity with the given context and client set.
+func (pqi *ProjectQueryInput) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
 	if pqi.Refer != nil && *pqi.Refer == "" {
-		return nil
+		return fmt.Errorf("model: %s : %w", project.Label, ErrBlankResourceRefer)
 	}
 
 	q := cs.Projects().Query()
@@ -249,52 +318,70 @@ func (pqi *ProjectQueryInput) LoadWith(ctx context.Context, cs ClientSet) (err e
 		if pqi.Refer.IsID() {
 			q.Where(
 				project.ID(pqi.Refer.ID()))
+		} else if refers := pqi.Refer.Split(1); len(refers) == 1 {
+			q.Where(
+				project.Name(refers[0].String()))
 		} else {
 			return errors.New("invalid identify refer of project")
 		}
 	} else if pqi.ID != "" {
 		q.Where(
 			project.ID(pqi.ID))
+	} else if pqi.Name != "" {
+		q.Where(
+			project.Name(pqi.Name))
 	} else {
 		return errors.New("invalid identify of project")
 	}
 
-	pqi.ID, err = q.OnlyID(ctx)
+	ctx = valueContext(ctx, intercept.WithProjectInterceptor)
+
+	e, err := q.
+		Select(
+			project.FieldID,
+			project.FieldName,
+		).
+		Only(ctx)
+	if err == nil {
+		pqi.ID = e.ID
+		pqi.Name = e.Name
+	}
 	return err
 }
 
-// ProjectQueryInputs holds the query input of the Project entities.
+// ProjectQueryInputs holds the query input of the Project entities,
+// please tags with `path:",inline" query:",inline"` if embedding.
 type ProjectQueryInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+	inputConfig `path:"-" query:"-" json:"-"`
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pqi *ProjectQueryInputs) Load() error {
+// Validate checks the ProjectQueryInputs entity.
+func (pqi *ProjectQueryInputs) Validate() error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pqi.LoadWith(pqi.inputConfig.Context, pqi.inputConfig.ClientSet)
+	return pqi.ValidateWith(pqi.inputConfig.Context, pqi.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pqi *ProjectQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectQueryInputs entity with the given context and client set.
+func (pqi *ProjectQueryInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pqi == nil {
 		return errors.New("nil receiver")
 	}
 
-	return err
+	return nil
 }
 
-// ProjectUpdateInput holds the modification input of the Project entity.
+// ProjectUpdateInput holds the modification input of the Project entity,
+// please tags with `path:",inline" json:",inline"` if embedding.
 type ProjectUpdateInput struct {
-	ProjectQueryInput `uri:",inline" query:"-" json:",inline"`
+	ProjectQueryInput `path:",inline" query:"-" json:"-"`
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
 }
 
 // Model returns the Project entity for modifying,
@@ -306,7 +393,6 @@ func (pui *ProjectUpdateInput) Model() *Project {
 
 	_p := &Project{
 		ID:          pui.ID,
-		Name:        pui.Name,
 		Description: pui.Description,
 		Labels:      pui.Labels,
 	}
@@ -314,20 +400,53 @@ func (pui *ProjectUpdateInput) Model() *Project {
 	return _p
 }
 
-// ProjectUpdateInputs holds the modification input item of the Project entities.
-type ProjectUpdateInputsItem struct {
-	ID object.ID `uri:"-" query:"-" json:"id"`
+// Validate checks the ProjectUpdateInput entity.
+func (pui *ProjectUpdateInput) Validate() error {
+	if pui == nil {
+		return errors.New("nil receiver")
+	}
 
-	Name        string            `uri:"-" query:"-" json:"name,omitempty"`
-	Description string            `uri:"-" query:"-" json:"description,omitempty"`
-	Labels      map[string]string `uri:"-" query:"-" json:"labels,omitempty"`
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
 }
 
-// ProjectUpdateInputs holds the modification input of the Project entities.
-type ProjectUpdateInputs struct {
-	inputConfig `uri:"-" query:"-" json:"-"`
+// ValidateWith checks the ProjectUpdateInput entity with the given context and client set.
+func (pui *ProjectUpdateInput) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if err := pui.ProjectQueryInput.ValidateWith(ctx, cs); err != nil {
+		return err
+	}
 
-	Items []*ProjectUpdateInputsItem `uri:"-" query:"-" json:"items"`
+	return nil
+}
+
+// ProjectUpdateInputs holds the modification input item of the Project entities.
+type ProjectUpdateInputsItem struct {
+	// ID of the Project entity, tries to retrieve the entity with the following unique index parts if no ID provided.
+	ID object.ID `path:"-" query:"-" json:"id,omitempty"`
+	// Name of the Project entity, a part of the unique index.
+	Name string `path:"-" query:"-" json:"name,omitempty"`
+
+	// Description holds the value of the "description" field.
+	Description string `path:"-" query:"-" json:"description,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels map[string]string `path:"-" query:"-" json:"labels,omitempty"`
+}
+
+// ValidateWith checks the ProjectUpdateInputsItem entity with the given context and client set.
+func (pui *ProjectUpdateInputsItem) ValidateWith(ctx context.Context, cs ClientSet) error {
+	if pui == nil {
+		return errors.New("nil receiver")
+	}
+
+	return nil
+}
+
+// ProjectUpdateInputs holds the modification input of the Project entities,
+// please tags with `path:",inline" json:",inline"` if embedding.
+type ProjectUpdateInputs struct {
+	inputConfig `path:"-" query:"-" json:"-"`
+
+	// Items holds the entities to create, which MUST not be empty.
+	Items []*ProjectUpdateInputsItem `path:"-" query:"-" json:"items"`
 }
 
 // Model returns the Project entities for modifying,
@@ -342,7 +461,6 @@ func (pui *ProjectUpdateInputs) Model() []*Project {
 	for i := range pui.Items {
 		_p := &Project{
 			ID:          pui.Items[i].ID,
-			Name:        pui.Items[i].Name,
 			Description: pui.Items[i].Description,
 			Labels:      pui.Items[i].Labels,
 		}
@@ -353,19 +471,31 @@ func (pui *ProjectUpdateInputs) Model() []*Project {
 	return _ps
 }
 
-// Load checks the input.
-// TODO(thxCode): rename to Validate after supporting hierarchical routes.
-func (pui *ProjectUpdateInputs) Load() error {
+// IDs returns the ID list of the Project entities for modifying,
+// after validating.
+func (pui *ProjectUpdateInputs) IDs() []object.ID {
+	if pui == nil || len(pui.Items) == 0 {
+		return nil
+	}
+
+	ids := make([]object.ID, len(pui.Items))
+	for i := range pui.Items {
+		ids[i] = pui.Items[i].ID
+	}
+	return ids
+}
+
+// Validate checks the ProjectUpdateInputs entity.
+func (pui *ProjectUpdateInputs) Validate() error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
 
-	return pui.LoadWith(pui.inputConfig.Context, pui.inputConfig.ClientSet)
+	return pui.ValidateWith(pui.inputConfig.Context, pui.inputConfig.Client)
 }
 
-// LoadWith checks the input with the given context and client set.
-// TODO(thxCode): rename to ValidateWith after supporting hierarchical routes.
-func (pui *ProjectUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err error) {
+// ValidateWith checks the ProjectUpdateInputs entity with the given context and client set.
+func (pui *ProjectUpdateInputs) ValidateWith(ctx context.Context, cs ClientSet) error {
 	if pui == nil {
 		return errors.New("nil receiver")
 	}
@@ -377,6 +507,7 @@ func (pui *ProjectUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 	q := cs.Projects().Query()
 
 	ids := make([]object.ID, 0, len(pui.Items))
+	ors := make([]predicate.Project, 0, len(pui.Items))
 
 	for i := range pui.Items {
 		if pui.Items[i] == nil {
@@ -385,21 +516,50 @@ func (pui *ProjectUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) (err
 
 		if pui.Items[i].ID != "" {
 			ids = append(ids, pui.Items[i].ID)
+			ors = append(ors, project.ID(pui.Items[i].ID))
+		} else if pui.Items[i].Name != "" {
+			ors = append(ors, project.And(
+				project.Name(pui.Items[i].Name)))
 		} else {
 			return errors.New("found item hasn't identify")
 		}
 	}
 
-	idsLen := len(ids)
+	ctx = valueContext(ctx, intercept.WithProjectInterceptor)
 
-	idsCnt, err := q.Where(project.IDIn(ids...)).
-		Count(ctx)
+	p := project.IDIn(ids...)
+	if len(ids) != cap(ids) {
+		p = project.Or(ors...)
+	}
+
+	es, err := q.
+		Where(p).
+		Select(
+			project.FieldID,
+			project.FieldName,
+		).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	if idsCnt != idsLen {
+	if len(es) != cap(ids) {
 		return errors.New("found unrecognized item")
+	}
+
+	for i := range es {
+		pui.Items[i].ID = es[i].ID
+		pui.Items[i].Name = es[i].Name
+	}
+
+	for i := range pui.Items {
+		if pui.Items[i] == nil {
+			continue
+		}
+
+		if err := pui.Items[i].ValidateWith(ctx, cs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -415,12 +575,12 @@ type ProjectOutput struct {
 	UpdateTime  *time.Time        `json:"updateTime,omitempty"`
 }
 
-// View returns the output of Project.
+// View returns the output of Project entity.
 func (_p *Project) View() *ProjectOutput {
 	return ExposeProject(_p)
 }
 
-// View returns the output of Projects.
+// View returns the output of Project entities.
 func (_ps Projects) View() []*ProjectOutput {
 	return ExposeProjects(_ps)
 }

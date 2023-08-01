@@ -51,7 +51,7 @@ type Template struct {
 
 // TemplateEdges holds the relations/edges for other nodes in the graph.
 type TemplateEdges struct {
-	// Versions of the template.
+	// Versions that belong to the template.
 	Versions []*TemplateVersion `json:"versions,omitempty"`
 	// Catalog to which the template belongs.
 	Catalog *Catalog `json:"catalog,omitempty"`

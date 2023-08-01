@@ -224,6 +224,9 @@ func (sru *ServiceResourceUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (sru *ServiceResourceUpdate) check() error {
+	if _, ok := sru.mutation.ProjectID(); sru.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceResource.project"`)
+	}
 	if _, ok := sru.mutation.ServiceID(); sru.mutation.ServiceCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ServiceResource.service"`)
 	}
@@ -675,6 +678,9 @@ func (sruo *ServiceResourceUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (sruo *ServiceResourceUpdateOne) check() error {
+	if _, ok := sruo.mutation.ProjectID(); sruo.mutation.ProjectCleared() && !ok {
+		return errors.New(`model: clearing a required unique edge "ServiceResource.project"`)
+	}
 	if _, ok := sruo.mutation.ServiceID(); sruo.mutation.ServiceCleared() && !ok {
 		return errors.New(`model: clearing a required unique edge "ServiceResource.service"`)
 	}
