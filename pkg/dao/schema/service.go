@@ -4,12 +4,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
-	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
-	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/pkg/dao/types/property"
 )
@@ -21,7 +20,6 @@ type Service struct {
 func (Service) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Metadata(),
-		mixin.OwnByProject(),
 		mixin.Status(),
 	}
 }
@@ -35,12 +33,17 @@ func (Service) Indexes() []ent.Index {
 
 func (Service) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong.").
+			NotEmpty().
+			Immutable(),
 		object.IDField("environment_id").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
 			Immutable(),
-		field.JSON("template", types.TemplateVersionRef{}).
-			Comment("Template ID and version."),
+		object.IDField("template_id").
+			Comment("ID of the template version to which the service belong.").
+			NotEmpty(),
 		property.ValuesField("attributes").
 			Comment("Attributes to configure the template.").
 			Optional(),
@@ -56,7 +59,9 @@ func (Service) Edges() []ent.Edge {
 			Comment("Project to which the service belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environment 1-* Services.
 		edge.From("environment", Environment.Type).
 			Ref("services").
@@ -65,6 +70,16 @@ func (Service) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+		// TemplateVersion 1-* Services.
+		edge.From("template", TemplateVersion.Type).
+			Ref("services").
+			Field("template_id").
+			Comment("Template to which the service belongs.").
+			Unique().
+			Required().
+			Annotations(
+				entx.SkipInput(entx.WithQuery()),
+				entx.Input(entx.WithCreate(), entx.WithUpdate())),
 		// Service 1-* ServiceRevisions.
 		edge.To("revisions", ServiceRevision.Type).
 			Comment("Revisions that belong to the service.").
@@ -83,5 +98,11 @@ func (Service) Edges() []ent.Edge {
 			Through("service_relationships", ServiceRelationship.Type).
 			Annotations(
 				entx.SkipIO()),
+	}
+}
+
+func (Service) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }

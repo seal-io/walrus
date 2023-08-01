@@ -7,9 +7,11 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type Token struct {
@@ -20,12 +22,15 @@ func (Token) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
-		mixin.OwnBySubject(),
 	}
 }
 
 func (Token) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("subject_id").
+			Comment("ID of the subject to belong.").
+			NotEmpty().
+			Immutable(),
 		field.String("kind").
 			Comment("The kind of token.").
 			Default(types.TokenKindAPI).
@@ -64,7 +69,14 @@ func (Token) Edges() []ent.Edge {
 			Required().
 			Immutable().
 			Annotations(
-				entx.SkipInput()),
+				entx.SkipInput(),
+				entx.ValidateContext(intercept.WithSubjectInterceptor)),
+	}
+}
+
+func (Token) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.BySubject("subject_id"),
 	}
 }
 

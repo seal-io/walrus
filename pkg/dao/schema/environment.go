@@ -7,7 +7,9 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type Environment struct {
@@ -17,7 +19,6 @@ type Environment struct {
 func (Environment) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Metadata(),
-		mixin.OwnByProject(),
 	}
 }
 
@@ -25,6 +26,15 @@ func (Environment) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("project_id", "name").
 			Unique(),
+	}
+}
+
+func (Environment) Fields() []ent.Field {
+	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong.").
+			NotEmpty().
+			Immutable(),
 	}
 }
 
@@ -37,7 +47,9 @@ func (Environment) Edges() []ent.Edge {
 			Comment("Project to which the environment belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environments *-* Connectors.
 		edge.To("connectors", Connector.Type).
 			Comment("Connectors that configure to the environment.").
@@ -45,9 +57,11 @@ func (Environment) Edges() []ent.Edge {
 		// Environment 1-* Services.
 		edge.To("services", Service.Type).
 			Comment("Services that belong to the environment.").
+			StructTag(`json:"services,omitempty,cli-ignore"`).
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
-				entx.SkipIO()),
+				entx.SkipInput(entx.WithUpdate(), entx.WithQuery()),
+				entx.SkipOutput()),
 		// Environment 1-* ServiceRevisions.
 		edge.To("service_revisions", ServiceRevision.Type).
 			Comment("ServicesRevisions that belong to the environment.").
@@ -60,5 +74,11 @@ func (Environment) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 				entx.SkipIO()),
+	}
+}
+
+func (Environment) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
@@ -20,13 +22,16 @@ func (ServiceRevision) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
-		mixin.OwnByProject(),
 		mixin.LegacyStatus(),
 	}
 }
 
 func (ServiceRevision) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong.").
+			NotEmpty().
+			Immutable(),
 		object.IDField("environment_id").
 			Comment("ID of the environment to which the service deploys.").
 			NotEmpty().
@@ -78,7 +83,9 @@ func (ServiceRevision) Edges() []ent.Edge {
 			Comment("Project to which the revision belongs.").
 			Unique().
 			Required().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environment 1-* ServiceRevisions.
 		edge.From("environment", Environment.Type).
 			Ref("service_revisions").
@@ -95,5 +102,11 @@ func (ServiceRevision) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+	}
+}
+
+func (ServiceRevision) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }

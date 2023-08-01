@@ -30,9 +30,14 @@ type (
 		Input struct {
 			// Query generates the field into *QueryInput struct if true.
 			Query bool `json:"Query,omitempty"`
+			// Create generates the edge into *CreateInput struct if true.
+			Create bool `json:"Create,omitempty"`
 			// Update generates the immutable field or edge into *UpdateInput struct if true.
 			Update bool `json:"Update,omitempty"`
 		} `json:"Input,omitempty"`
+
+		// ValidateContextFuncs indicates funcs to call before validating *Input struct.
+		ValidateContextFuncs []string `json:"ValidateContextFuncs,omitempty"`
 
 		// SkipOutput skips generating the field or edge into *Output struct.
 		SkipOutput bool `json:"SkipOutput,omitempty"`
@@ -88,8 +93,16 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		a.Input.Query = true
 	}
 
+	if o.Input.Create {
+		a.Input.Create = true
+	}
+
 	if o.Input.Update {
 		a.Input.Update = true
+	}
+
+	if o.ValidateContextFuncs != nil {
+		a.ValidateContextFuncs = append(a.ValidateContextFuncs, o.ValidateContextFuncs...)
 	}
 
 	if o.SkipOutput {

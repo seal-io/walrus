@@ -4,7 +4,7 @@
 // WithoutFields returns the fields ignored the given list.
 func WithoutFields(ignores ...string) []string {
     if len(ignores) == 0 {
-        return Columns
+        return slices.Clone(Columns)
     }
 
     var s = make(map[string]bool, len(ignores))

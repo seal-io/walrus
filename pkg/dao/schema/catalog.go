@@ -42,7 +42,8 @@ func (Catalog) Fields() []ent.Field {
 		field.JSON("sync", &types.CatalogSync{}).
 			Comment("Sync information of the catalog.").
 			Optional().
-			Annotations(entx.SkipInput()),
+			Annotations(
+				entx.SkipInput()),
 	}
 }
 

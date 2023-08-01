@@ -19,6 +19,7 @@ import (
 func init() {
 	fixDefaultTemplates()
 	fixDefaultTemplateFuncs()
+	fixDefaultTemplateRulesetAcronyms()
 }
 
 type (

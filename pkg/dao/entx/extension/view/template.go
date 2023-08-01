@@ -6,12 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"sort"
+	"strings"
 
 	"entgo.io/ent/entc/gen"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/seal-io/seal/pkg/dao/entx/annotation"
+	"github.com/seal-io/seal/utils/strs"
 )
 
 var (
@@ -41,11 +44,13 @@ func loadTemplate() *gen.Template {
 	}
 
 	fn := map[string]any{
-		"xtemplate":     xtemplate,
-		"hasTemplate":   hasTemplate,
-		"matchTemplate": matchTemplate,
-		"getInput":      getInput,
-		"getOutput":     getOutput,
+		"xtemplate":         xtemplate,
+		"hasTemplate":       hasTemplate,
+		"matchTemplate":     matchTemplate,
+		"getInput":          getInput,
+		"getOutput":         getOutput,
+		"getStructTag":      getStructTag,
+		"extractAnnotation": extractAnnotation,
 	}
 
 	return gen.MustParse(gen.NewTemplate("view").
@@ -189,6 +194,13 @@ func getInput(v any, typ string) (r InputRef, err error) {
 				continue
 			}
 
+			switch {
+			case typ == inputTypeCreate && ea.Input.Create:
+				continue
+			case typ == inputTypeUpdate && ea.Input.Update:
+				continue
+			}
+
 			r.PrerequisiteFields = append(r.PrerequisiteFields, f)
 
 			continue
@@ -274,8 +286,15 @@ func getInput(v any, typ string) (r InputRef, err error) {
 			continue
 		}
 
-		if e.Type != e.Ref.Type && !ea.SkipInput.Query {
-			r.PrerequisiteEdges = append(r.PrerequisiteEdges, e)
+		if e.Type != e.Ref.Type {
+			switch {
+			case !ea.SkipInput.Query:
+				r.PrerequisiteEdges = append(r.PrerequisiteEdges, e)
+			case typ == inputTypeCreate && ea.Input.Create:
+				r.AdditionalEdges = append(r.AdditionalEdges, e)
+			case typ == inputTypeUpdate && ea.Input.Update:
+				r.AdditionalEdges = append(r.AdditionalEdges, e)
+			}
 		}
 	}
 
@@ -330,4 +349,101 @@ func getOutput(v any) (r OutputRef, err error) {
 	}
 
 	return r, nil
+}
+
+// getStructTag is a template function,
+// it returns the struct tag with the given tag name.
+func getStructTag(v any, tag, typ string) string {
+	var (
+		st        string
+		omitempty bool
+	)
+
+	switch t := v.(type) {
+	default:
+		return ""
+	case *gen.Field:
+		st = t.StructTag
+		omitempty = (typ != inputTypeCreate && typ != inputTypeUpdate) ||
+			(typ == inputTypeCreate && (t.Default || t.Optional)) ||
+			(typ == inputTypeUpdate && (t.UpdateDefault || t.Optional))
+	case gen.Field:
+		st = t.StructTag
+		omitempty = (typ != inputTypeCreate && typ != inputTypeUpdate) ||
+			(typ == inputTypeCreate && (t.Default || t.Optional)) ||
+			(typ == inputTypeUpdate && (t.UpdateDefault || t.Optional))
+	case *gen.Edge:
+		st = t.StructTag
+		omitempty = (typ != inputTypeCreate && typ != inputTypeUpdate) ||
+			(typ == inputTypeCreate && t.Optional) ||
+			(typ == inputTypeUpdate && t.Optional)
+	case gen.Edge:
+		st = t.StructTag
+		omitempty = (typ != inputTypeCreate && typ != inputTypeUpdate) ||
+			(typ == inputTypeCreate && t.Optional) ||
+			(typ == inputTypeUpdate && t.Optional)
+	}
+
+	attrs, ok := reflect.StructTag(st).Lookup(tag)
+	if !ok || attrs == "" || attrs == "-" {
+		return st
+	}
+
+	const (
+		sep           = ","
+		omitemptyAttr = "omitempty"
+	)
+
+	name, attrs, ok := strings.Cut(attrs, sep)
+	if !ok || name == "" {
+		return st
+	}
+	name = strs.CamelizeDownFirst(name)
+
+	as := strings.Split(attrs, sep)
+	for i := range as {
+		if as[i] != omitemptyAttr {
+			continue
+		}
+
+		switch i {
+		case 0:
+			as = as[1:]
+		case len(as) - 1:
+			as = as[:i]
+		default:
+			as = append(as[:i], as[i+1:]...)
+		}
+
+		break
+	}
+
+	if omitempty {
+		as = append(as, omitemptyAttr)
+	}
+
+	attrs = strings.Join(append([]string{name}, as...), sep)
+
+	return fmt.Sprintf(`%s:"%s"`, tag, attrs)
+}
+
+// extractAnnotation is a template function,
+// it returns the annotation.Annotation of the given value.
+func extractAnnotation(v any) (annotation.Annotation, error) {
+	switch t := v.(type) {
+	default:
+		return annotation.Annotation{}, nil
+	case *gen.Type:
+		return annotation.ExtractAnnotation(t.Annotations)
+	case gen.Type:
+		return annotation.ExtractAnnotation(t.Annotations)
+	case *gen.Field:
+		return annotation.ExtractAnnotation(t.Annotations)
+	case gen.Field:
+		return annotation.ExtractAnnotation(t.Annotations)
+	case *gen.Edge:
+		return annotation.ExtractAnnotation(t.Annotations)
+	case gen.Edge:
+		return annotation.ExtractAnnotation(t.Annotations)
+	}
 }

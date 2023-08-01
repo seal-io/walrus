@@ -6,21 +6,40 @@
 
 {{ template "import" $ }}
 
+var ErrBlankResourceRefer = errors.New("blank resource refer")
+
+// IsBlankResourceReferError reports whether the error is ErrBlankResourceRefer.
+func IsBlankResourceReferError(err error) bool {
+    for uerr := errors.Unwrap(err); uerr != nil; uerr = errors.Unwrap(err) {
+        err = uerr
+    }
+
+    return errors.Is(err, ErrBlankResourceRefer)
+}
+
 type inputConfig struct {
-    context.Context
-	ClientSet
+    Context *gin.Context
+    Client  *Client
 }
 
-func (ic *inputConfig) SetContext(ctx context.Context) {
-	if ic.Context == nil {
-		ic.Context = ctx
-    }
+func (ic *inputConfig) SetGinContext(ctx *gin.Context) {
+    ic.Context = ctx
 }
 
-func (ic *inputConfig) SetClientSet(cs ClientSet) {
-	if ic.ClientSet == nil {
-        ic.ClientSet = cs
+func (ic *inputConfig) SetModelClient(cli *Client) {
+    ic.Client = cli
+}
+
+func valueContext(ctx context.Context, withs ...func(context.Context) context.Context) context.Context {
+    for i := range withs {
+        if withs[i] == nil {
+            continue
+        }
+
+        ctx = withs[i](ctx)
     }
+
+    return ctx
 }
 
 {{ end }}

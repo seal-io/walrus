@@ -11,9 +11,11 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/crypto"
+	"github.com/seal-io/seal/pkg/dao/types/object"
 )
 
 type Connector struct {
@@ -23,7 +25,6 @@ type Connector struct {
 func (Connector) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Metadata(),
-		mixin.OwnByProject().Optional(),
 		mixin.Status(),
 	}
 }
@@ -46,12 +47,22 @@ func (Connector) Indexes() []ent.Index {
 
 func (Connector) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong, empty means for all projects.").
+			Immutable().
+			Optional(),
+		field.String("category").
+			Comment("Category of the connector.").
+			Immutable().
+			NotEmpty().
+			Annotations(
+				entx.Input()),
 		field.String("type").
 			Comment("Type of the connector.").
 			NotEmpty().
 			Immutable().
 			Annotations(
-				entx.Input(entx.WithUpdate())),
+				entx.Input()),
 		field.String("config_version").
 			Comment("Connector config version.").
 			NotEmpty(),
@@ -68,9 +79,6 @@ func (Connector) Fields() []ent.Field {
 			Optional().
 			Annotations(
 				entx.SkipClearingOptionalField()),
-		field.String("category").
-			Comment("Category of the connector.").
-			NotEmpty(),
 	}
 }
 
@@ -82,7 +90,9 @@ func (Connector) Edges() []ent.Edge {
 			Field("project_id").
 			Comment("Project to which the connector belongs.").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Environments *-* Connectors.
 		edge.From("environments", Environment.Type).
 			Ref("connectors").
@@ -129,5 +139,11 @@ func (Connector) Hooks() []ent.Hook {
 
 	return []ent.Hook{
 		defaultK8sFinOps,
+	}
+}
+
+func (Connector) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }

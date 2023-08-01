@@ -1,6 +1,11 @@
 package entx
 
 import (
+	"context"
+	"path"
+	"reflect"
+	"runtime"
+
 	"github.com/seal-io/seal/pkg/dao/entx/annotation"
 )
 
@@ -28,8 +33,8 @@ type (
 //	    }
 //	}
 //
-// By default, all reversible edges will generate into its *CreateInput struct as well,
-// to skip one reversible edge, for example:
+// By default, all reversible edges will generate into its *CreateInput struct
+// as a prerequisite condition, to skip one reversible edge, for example:
 //
 //	func (Todo) Edges() []ent.Edge {
 //	  return []ent.Edge{
@@ -41,8 +46,20 @@ type (
 //	    }
 //	}
 //
-// By default, all irreversible edges will not generate into its *CreateInput struct as well,
-// to generate one irreversible edge, for example:
+// By default, all reversible edges will generate into its *CreateInput struct
+// as a prerequisite condition, to generate as an additional field, for example:
+//
+//	func (Todo) Edges() []ent.Edge {
+//	  return []ent.Edge{
+//	     edge.From("template", TemplateVersion.Type).
+//	         Ref("services").
+//	         Annotations(
+//	            entx.Input(entx.WithCreate())),
+//	    }
+//	}
+//
+// By default, all irreversible edges will not generate into its *CreateInput struct
+// as an additional fields, to skip one irreversible edge, for example:
 //
 //	func (Todo) Edges() []ent.Edge {
 //	  return []ent.Edge{
@@ -58,12 +75,15 @@ func WithCreate() InputOption {
 		SkipInput: func(a *Annotation) {
 			a.SkipInput.Create = true
 		},
+		Input: func(a *Annotation) {
+			a.Input.Create = true
+		},
 	}
 }
 
 // WithQuery is an option works with SkipInput and Input.
 //
-// By default, all non-indexing fields don't be generated into *QueryInput struct,
+// By default, all non-indexing fields don't be generated into *QueryInput struct
 // to generate one non-indexing field, for example:
 //
 //	func (Todo) Fields() []ent.Field {
@@ -85,8 +105,8 @@ func WithCreate() InputOption {
 //	    }
 //	}
 //
-// By default, all reversible edges will generate into its *QueryInput struct as well,
-// to skip one reversible edge, for example:
+// By default, all reversible edges will generate into its *QueryInput struct
+// as a prerequisite condition, to skip one reversible edge, for example:
 //
 //	func (Todo) Edges() []ent.Edge {
 //	  return []ent.Edge{
@@ -134,8 +154,8 @@ func WithQuery() InputOption {
 //	    }
 //	}
 //
-// By default, all mutable reversible edges will generate into its *UpdateInput struct as well,
-// to skip one mutable reversible edge, for example:
+// By default, all reversible edges will generate into its *UpdateInput struct
+// as a prerequisite condition, to skip one reversible edge, for example:
 //
 //	func (Todo) Edges() []ent.Edge {
 //	  return []ent.Edge{
@@ -148,8 +168,20 @@ func WithQuery() InputOption {
 //	    }
 //	}
 //
-// By default, all mutable irreversible edges will not generate into its *UpdateInput struct as well,
-// to generate one mutable irreversible edge, for example:
+// By default, all reversible edges will generate into its *CreateInput struct
+// as a prerequisite condition, to generate as an additional field, for example:
+//
+//	func (Todo) Edges() []ent.Edge {
+//	  return []ent.Edge{
+//	     edge.From("template", TemplateVersion.Type).
+//	         Ref("services").
+//	         Annotations(
+//	            entx.Input(entx.WithUpdate())),
+//	    }
+//	}
+//
+// By default, all mutable irreversible edges will not generate into its *UpdateInput struct
+// as an additional fields, to generate one mutable irreversible edge, for example:
 //
 //	func (Todo) Edges() []ent.Edge {
 //	  return []ent.Edge{
@@ -187,16 +219,31 @@ func SkipInput(opts ...InputOption) (a Annotation) {
 	return
 }
 
-// Input generates the immutable field or edge into *UpdateInput/*QueryInput struct if no options are provided,
+// Input generates the immutable field or edge into *Input struct if no options are provided,
 // otherwise, it applies the given options.
 func Input(opts ...InputOption) (a Annotation) {
 	if len(opts) == 0 {
 		a.Input.Query = true
+		a.Input.Create = true
 		a.Input.Update = true
 	}
 
 	for _, opt := range opts {
 		opt.Input(&a)
+	}
+
+	return
+}
+
+// ValidateContext indicates to call the given functions before validating *Input struct.
+func ValidateContext(fns ...func(context.Context) context.Context) (a Annotation) {
+	for i := range fns {
+		if fns[i] == nil {
+			continue
+		}
+
+		fn := runtime.FuncForPC(reflect.ValueOf(fns[i]).Pointer()).Name()
+		a.ValidateContextFuncs = append(a.ValidateContextFuncs, path.Base(fn))
 	}
 
 	return

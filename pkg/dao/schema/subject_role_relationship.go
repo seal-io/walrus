@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/index"
 
 	"github.com/seal-io/seal/pkg/dao/entx"
+	"github.com/seal-io/seal/pkg/dao/schema/intercept"
 	"github.com/seal-io/seal/pkg/dao/schema/mixin"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 )
@@ -21,7 +22,6 @@ func (SubjectRoleRelationship) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time().WithoutUpdateTime(),
-		mixin.OwnByProject().Optional(),
 	}
 }
 
@@ -43,6 +43,10 @@ func (SubjectRoleRelationship) Indexes() []ent.Index {
 
 func (SubjectRoleRelationship) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong, empty means for all projects.").
+			Immutable().
+			Optional(),
 		object.IDField("subject_id").
 			Comment("ID of the subject to which the relationship connects.").
 			NotEmpty().
@@ -64,7 +68,7 @@ func (SubjectRoleRelationship) Edges() []ent.Edge {
 			Unique().
 			Immutable().
 			Annotations(
-				entx.SkipInput()),
+				entx.ValidateContext(intercept.WithProjectInterceptor)),
 		// Subject 1-1 Role.
 		edge.To("subject", Subject.Type).
 			Field("subject_id").
@@ -84,6 +88,12 @@ func (SubjectRoleRelationship) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 				entx.Input(entx.WithUpdate())),
+	}
+}
+
+func (SubjectRoleRelationship) Interceptors() []ent.Interceptor {
+	return []ent.Interceptor{
+		intercept.ByProject("project_id"),
 	}
 }
 

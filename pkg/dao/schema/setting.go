@@ -34,8 +34,10 @@ func (Setting) Fields() []ent.Field {
 		field.String("name").
 			Comment("The name of system setting.").
 			NotEmpty().
+			Immutable().
 			Annotations(
-				entx.SkipInput(entx.WithCreate())),
+				entx.SkipInput(entx.WithCreate()),
+				entx.Input(entx.WithUpdate())),
 		crypto.StringField("value").
 			Comment("The value of system setting, store in string."),
 		field.Bool("hidden").
@@ -66,6 +68,12 @@ func (Setting) Fields() []ent.Field {
 			Default(false).
 			Annotations(
 				entx.SkipIO()),
+		field.Bool("configured").
+			Comment("Configured indicates the setting whether to be configured.").
+			Optional().
+			Annotations(
+				entx.SkipInput(),
+				entx.SkipStoringField()),
 	}
 }
 

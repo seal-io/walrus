@@ -1,0 +1,13 @@
+{{/* gotype: entgo.io/ent/entc/gen.Type */}}
+
+{{- define "comment" }}
+
+{{- if $.Comment }}
+    {{- range $line := split $.Comment "\n" }}
+        // {{ $line }}
+    {{- end }}
+{{- else }}
+    // {{ $.StructField }} holds the value of the "{{ $.Name }}" field.
+{{- end }}
+
+{{- end }}

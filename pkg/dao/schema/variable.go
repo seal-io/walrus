@@ -20,7 +20,6 @@ func (Variable) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.ID(),
 		mixin.Time(),
-		mixin.OwnByProject().Optional(),
 	}
 }
 
@@ -43,6 +42,14 @@ func (Variable) Indexes() []ent.Index {
 
 func (Variable) Fields() []ent.Field {
 	return []ent.Field{
+		object.IDField("project_id").
+			Comment("ID of the project to belong, empty means for all projects.").
+			Immutable().
+			Optional(),
+		object.IDField("environment_id").
+			Comment("ID of the environment to which the variable belongs to.").
+			Immutable().
+			Optional(),
 		field.String("name").
 			Comment("The name of variable.").
 			NotEmpty().
@@ -56,10 +63,6 @@ func (Variable) Fields() []ent.Field {
 		field.String("description").
 			Comment("Description of the variable.").
 			Optional(),
-		object.IDField("environment_id").
-			Comment("ID of the environment to which the variable belongs to.").
-			Optional().
-			Immutable(),
 	}
 }
 
