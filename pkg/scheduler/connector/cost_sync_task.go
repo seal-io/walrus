@@ -2,6 +2,7 @@ package connector
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -44,28 +45,35 @@ func (in *CollectTask) Process(ctx context.Context, args ...interface{}) error {
 		in.logger.Debugf("processed in %v", time.Since(startTs))
 	}()
 
-	conns, err := in.modelClient.Connectors().Query().Where(
-		connector.TypeEQ(types.ConnectorTypeK8s)).All(ctx)
+	conns, err := in.modelClient.Connectors().Query().
+		Where(
+			connector.TypeEQ(types.ConnectorTypeK8s),
+			connector.EnableFinOps(true)).
+		All(ctx)
 	if err != nil {
 		return err
 	}
 
-	syncer := connectors.NewStatusSyncer(in.modelClient)
-
-	if err != nil {
-		return err
+	if len(conns) == 0 {
+		return nil
 	}
 
-	wg := gopool.Group()
+	var (
+		syncer = connectors.NewStatusSyncer(in.modelClient)
+		wg     = gopool.Group()
+	)
 
 	for i := range conns {
-		conn := conns[i]
-		if !conn.EnableFinOps {
-			continue
-		}
+		c := conns[i]
+
+		in.logger.Debugf("syncing cost of connector %q", c.ID)
 
 		wg.Go(func() error {
-			return syncer.SyncFinOpsStatus(ctx, conn)
+			if err := syncer.SyncFinOpsStatus(ctx, c); err != nil {
+				return fmt.Errorf("error sync cost of connector %s: %w", c.ID, err)
+			}
+
+			return nil
 		})
 	}
 

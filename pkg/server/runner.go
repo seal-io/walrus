@@ -9,6 +9,7 @@ import (
 	stdlog "log"
 	"net"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -70,9 +71,10 @@ type Server struct {
 	CacheSourceConnMaxIdle int
 	CacheSourceMaxLife     time.Duration
 
-	EnableAuthn         bool
-	AuthnSessionMaxIdle time.Duration
-	CasdoorServer       string
+	EnableAuthn           bool
+	AuthnSessionMaxIdle   time.Duration
+	CasdoorServer         string
+	CronJobMinBucketSizes map[string]int
 }
 
 func New() *Server {
@@ -82,6 +84,7 @@ func New() *Server {
 		TlsCertDir:            filepath.FromSlash(filepath.Join(consts.DataDir, "tls")),
 		ConnQPS:               10,
 		ConnBurst:             20,
+		GopoolWorkerFactor:    100,
 		KubeConnTimeout:       5 * time.Minute,
 		KubeConnQPS:           16,
 		KubeConnBurst:         64,
@@ -90,7 +93,7 @@ func New() *Server {
 		DataSourceConnMaxLife: 10 * time.Minute,
 		EnableAuthn:           true,
 		AuthnSessionMaxIdle:   30 * time.Minute,
-		GopoolWorkerFactor:    100,
+		CronJobMinBucketSizes: map[string]int{},
 	}
 }
 
@@ -340,10 +343,57 @@ func (r *Server) Flags(cmd *cli.Command) {
 		},
 		&cli.IntFlag{
 			Name: "gopool-worker-factor",
-			Usage: "The gopool worker factor determines the number of tasks of the goroutine worker pool," +
+			Usage: "The gopool worker factor determines the number of tasks of the goroutine worker pool, " +
 				"it is calculated by the number of CPU cores multiplied by this factor.",
+			Action: func(c *cli.Context, i int) error {
+				if i < 100 {
+					return errors.New("too small gopool-worker-factor: must be greater than 100")
+				}
+				return nil
+			},
 			Destination: &r.GopoolWorkerFactor,
 			Value:       r.GopoolWorkerFactor,
+		},
+		&cli.StringSliceFlag{
+			Name: "cron-job-min-bucket-sizes",
+			Usage: "The minimum bucket size of some specified cron jobs, " +
+				"in form of <job name>=<size in number>, e.g. \"resource-status-sync=100\". " +
+				"The resources within a bucket are processed serially, " +
+				"while resources between buckets are processed in parallel. " +
+				"Therefore, the larger the minimum bucket size, " +
+				"the more serial execution and the less parallel processing.",
+			Action: func(c *cli.Context, v []string) error {
+				for i := range v {
+					ss := strings.SplitN(strings.TrimSpace(v[i]), "=", 2)
+					if len(ss) != 2 {
+						return errors.New("--cron-job-min-bucket-sizes: must in form of <job name>=<size in number>")
+					}
+
+					bks, err := strconv.Atoi(ss[1])
+					if err != nil {
+						return errors.New(
+							"--cron-job-min-bucket-sizes: the given size in number is not a valid integer",
+						)
+					}
+
+					if bks <= 0 {
+						return errors.New(
+							"--cron-job-min-bucket-sizes: the given size in number must be greater than 0",
+						)
+					}
+
+					if r.CronJobMinBucketSizes == nil {
+						r.CronJobMinBucketSizes = make(map[string]int)
+					}
+
+					r.CronJobMinBucketSizes[ss[0]] = bks
+				}
+				return nil
+			},
+			Value: cli.NewStringSlice(
+				"resource-components-discover=100",
+				"resource-label-apply=100",
+				"resource-status-sync=100"),
 		},
 	}
 	for i := range flags {
@@ -486,12 +536,13 @@ func (r *Server) Run(c context.Context) error {
 	modelClient := getModelClient(databaseDrvDialect, databaseDrv)
 
 	initOpts := initOptions{
-		K8sConfig:      k8sCfg,
-		K8sCacheReady:  make(chan struct{}),
-		ModelClient:    modelClient,
-		SkipTLSVerify:  len(r.TlsAutoCertDomains) != 0,
-		DatabaseDriver: databaseDrv,
-		CacheDriver:    cacheDrv,
+		K8sConfig:             k8sCfg,
+		K8sCacheReady:         make(chan struct{}),
+		ModelClient:           modelClient,
+		SkipTLSVerify:         len(r.TlsAutoCertDomains) != 0,
+		DatabaseDriver:        databaseDrv,
+		CacheDriver:           cacheDrv,
+		CronJobMinBucketSizes: r.CronJobMinBucketSizes,
 	}
 	if err = r.init(ctx, initOpts); err != nil {
 		log.Errorf("error initializing: %v", err)
@@ -539,7 +590,7 @@ func (r *Server) Run(c context.Context) error {
 // configure performs necessary configuration to support the whole server running.
 func (r *Server) configure(_ context.Context) error {
 	// Configure gopool.
-	gopool.ResetPool(r.GopoolWorkerFactor)
+	gopool.Reset(r.GopoolWorkerFactor)
 
 	// Configure data encryption.
 	if r.DataSourceDataEncryptKey != nil {

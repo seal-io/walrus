@@ -50,8 +50,11 @@ func Label(ctx context.Context, op optypes.Operator, candidates []*model.Service
 		}
 
 		err := op.Label(ctx, candidates[i], ls)
-		if multierr.AppendInto(&berr, err) {
-			continue
+		berr = multierr.Append(berr, err)
+
+		if ctx.Err() != nil {
+			// Give up the loop if the context is canceled.
+			break
 		}
 	}
 

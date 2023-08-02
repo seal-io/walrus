@@ -23,3 +23,15 @@ func listCandidateConnectors(ctx context.Context, modelClient model.ClientSet) (
 			connector.CategoryNEQ(types.ConnectorCategoryVersionControl)).
 		All(ctx)
 }
+
+// getBucket returns the bucket count and size with the given counter.
+func getBucket(total, minBucketSize int) (bucketCount, bucketSize int) {
+	bucketSize = total >> 5
+	if bucketSize < minBucketSize {
+		bucketSize = minBucketSize
+	}
+
+	bucketCount = total/bucketSize + 1
+
+	return
+}

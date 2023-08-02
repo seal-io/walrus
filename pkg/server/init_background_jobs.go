@@ -17,13 +17,20 @@ import (
 
 func (r *Server) initBackgroundJobs(ctx context.Context, opts initOptions) error {
 	cs := cron.JobCreators{
-		settings.ConnectorCostCollectCronExpr.Name():    buildConnectorCostCollectJobCreator(opts.ModelClient),
-		settings.ConnectorStatusSyncCronExpr.Name():     buildConnectorStatusSyncJobCreator(opts.ModelClient),
-		settings.ResourceStatusSyncCronExpr.Name():      buildResourceStatusSyncJobCreator(opts.ModelClient),
-		settings.ResourceLabelApplyCronExpr.Name():      buildResourceLabelApplyJobCreator(opts.ModelClient),
+		settings.ConnectorCostCollectCronExpr.Name(): buildConnectorCostCollectJobCreator(opts.ModelClient),
+		settings.ConnectorStatusSyncCronExpr.Name():  buildConnectorStatusSyncJobCreator(opts.ModelClient),
+		settings.ResourceStatusSyncCronExpr.Name(): buildResourceStatusSyncJobCreator(
+			opts.ModelClient,
+			opts.CronJobMinBucketSizes,
+		),
+		settings.ResourceLabelApplyCronExpr.Name(): buildResourceLabelApplyJobCreator(
+			opts.ModelClient,
+			opts.CronJobMinBucketSizes,
+		),
 		settings.TelemetryPeriodicReportCronExpr.Name(): buildTelemetryPeriodicReportJobCreator(opts.ModelClient),
 		settings.ResourceComponentsDiscoverCronExpr.Name(): buildResourceComponentsDiscoverJobCreator(
 			opts.ModelClient,
+			opts.CronJobMinBucketSizes,
 		),
 		settings.TokenDeploymentExpiredCleanCronExpr.Name(): buildTokenDeploymentExpireCleanJobCreator(
 			opts.ModelClient,
@@ -60,9 +67,9 @@ func buildConnectorStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildResourceStatusSyncJobCreator(mc model.ClientSet, mbks map[string]int) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewStatusSyncTask(mc)
+		task, err := appresskd.NewStatusSyncTask(mc, mbks)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -71,9 +78,9 @@ func buildResourceStatusSyncJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildResourceLabelApplyJobCreator(mc model.ClientSet, mbks map[string]int) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewLabelApplyTask(mc)
+		task, err := appresskd.NewLabelApplyTask(mc, mbks)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -82,9 +89,9 @@ func buildResourceLabelApplyJobCreator(mc model.ClientSet) cron.JobCreator {
 	}
 }
 
-func buildResourceComponentsDiscoverJobCreator(mc model.ClientSet) cron.JobCreator {
+func buildResourceComponentsDiscoverJobCreator(mc model.ClientSet, mbks map[string]int) cron.JobCreator {
 	return func(ctx context.Context, name, expr string) (cron.Expr, cron.Task, error) {
-		task, err := appresskd.NewComponentsDiscoverTask(mc)
+		task, err := appresskd.NewComponentsDiscoverTask(mc, mbks)
 		if err != nil {
 			return nil, nil, err
 		}

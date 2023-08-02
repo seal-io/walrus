@@ -75,6 +75,11 @@ func State(
 			}
 			berr = multierr.Append(berr, err)
 		}
+
+		if ctx.Err() != nil {
+			// Give up the loop if the context is canceled.
+			break
+		}
 	}
 
 	return sr, berr
