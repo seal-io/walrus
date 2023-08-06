@@ -41,7 +41,7 @@ type (
 	  block1 = &Block{
 	  	Type: "provider",
 	      Labels: []string{"aws"},
-	  	Attributes: map[string]interface{}{
+	  	  Attributes: map[string]any{
 	  		"region": "us-east-1",
 	  	},
 	  },
@@ -53,8 +53,8 @@ type (
 
 	  block2 = &Block{
 	  	Type: "data",
-	  	Labels: []string{"lable1", "label2"},
-	  	Attributes: map[string]interface{}{
+	  	Labels: []string{"label1", "label2"},
+	  	Attributes: map[string]any{
 	  		"test": "test"
 	  	},
 	  }

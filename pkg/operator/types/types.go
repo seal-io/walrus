@@ -50,14 +50,16 @@ type Operator interface {
 type LogOptions struct {
 	// Out receives the output.
 	Out io.Writer
+	// WithoutFollow returns logs without following.
+	WithoutFollow bool
 	// Previous indicates to get the previous log of the accessing target.
 	Previous bool
-	// Tail indicates to get the tail log of the accessing target.
-	Tail bool
 	// SinceSeconds returns logs newer than a relative duration.
 	SinceSeconds *int64
 	// Timestamps returns logs with RFC3339 or RFC3339Nano timestamp.
 	Timestamps bool
+	// TailLines indicates to get the lines from end of the logs.
+	TailLines *int64
 }
 
 // ExecOptions holds the options of Operator's Exec action.

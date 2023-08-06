@@ -86,12 +86,6 @@ var (
 		initializeFromEnv("https://seal-ui-1303613262.cos.ap-guangzhou.myqcloud.com/latest/index.html"),
 		modifyWith(notBlank, anyUrl),
 	)
-	// ServeTemplateRefer keeps the branch name of github.com/seal-io/modules repo for serving templates.
-	ServeTemplateRefer = newValue(
-		"ServeTemplateRefer",
-		private,
-		initializeFromEnv("main"),
-		nil)
 	// DataEncryptionSentry keeps the sentry for indicating whether enables data encryption.
 	DataEncryptionSentry = newValue(
 		"DataEncryptionSentry",

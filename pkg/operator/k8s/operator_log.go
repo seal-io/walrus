@@ -9,7 +9,6 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/utils/pointer"
 
 	"github.com/seal-io/seal/pkg/operator/k8s/key"
 	"github.com/seal-io/seal/pkg/operator/k8s/kube"
@@ -44,13 +43,11 @@ func (op Operator) Log(ctx context.Context, k string, opts optypes.LogOptions) e
 	// Stream.
 	stmOpts := &core.PodLogOptions{
 		Container:    cn,
-		Follow:       kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}),
+		Follow:       !opts.WithoutFollow && kube.IsContainerRunning(p, kube.Container{Type: ct, Name: cn}),
 		Previous:     opts.Previous,
 		SinceSeconds: opts.SinceSeconds,
 		Timestamps:   opts.Timestamps,
-	}
-	if opts.Tail {
-		stmOpts.TailLines = pointer.Int64(10)
+		TailLines:    opts.TailLines,
 	}
 
 	return GetPodLogs(ctx, cli, ns, pn, opts.Out, stmOpts)

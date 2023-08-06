@@ -87,11 +87,6 @@ func wrapAccessToken(subjectID, tokenID object.ID, tokenValue string) (accessTok
 	return strs.EncodeBase64(ct), nil
 }
 
-type AccessToken struct {
-	Raw   *model.Token
-	Value string
-}
-
 // CreateAccessToken creates a token with the given kind, name and expiration in seconds.
 func CreateAccessToken(
 	ctx context.Context,
@@ -99,7 +94,7 @@ func CreateAccessToken(
 	subjectID object.ID,
 	kind, name string,
 	expirationSeconds *int,
-) (*AccessToken, error) {
+) (*model.Token, error) {
 	entity := &model.Token{
 		SubjectID: subjectID,
 		Kind:      kind,
@@ -124,8 +119,7 @@ func CreateAccessToken(
 		return nil, err
 	}
 
-	return &AccessToken{
-		Raw:   entity,
-		Value: at,
-	}, nil
+	entity.AccessToken = at
+
+	return entity, nil
 }

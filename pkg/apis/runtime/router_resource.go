@@ -147,7 +147,7 @@ func (rt *Router) Resource(handler IResourceHandler) IRouter {
 
 			// Render response.
 			if c.Request.Context().Err() != nil ||
-				c.Writer.Size() >= 0 ||
+				c.Writer.Written() ||
 				len(c.Errors) != 0 {
 				// Already render inside the above processing.
 				return

@@ -129,13 +129,13 @@ type RolePolicy struct {
 
 	// Resources specifies the including resource list of this policy.
 	Resources []string `json:"resources,omitempty"`
-	// ObjectIDs specifies the including object.ID list of this policy,
+	// ResourceRefers specifies the including object.Refer list of this policy,
 	// only works if the Resources specified as ["<a kind of resource>"].
-	ObjectIDs []string `json:"objectIDs,omitempty"`
-	// ObjectIDExcludes specifies the excluding object.ID list of this policy,
+	ResourceRefers []string `json:"resourceRefers,omitempty"`
+	// ResourceReferExcludes specifies the excluding object.Refer list of this policy,
 	// only works if the Resources specified as ["<a kind of resource>"]
-	// and ObjectIDs specified as ["*"].
-	ObjectIDExcludes []string `json:"objectIDExcludes,omitempty"`
+	// and ResourceRefers specified as ["*"].
+	ResourceReferExcludes []string `json:"resourceReferExcludes,omitempty"`
 
 	// Paths specifies the route-registered path list of this policy,
 	// i.e. /resources/:id, only works if the Resources has not been specified.
@@ -154,21 +154,21 @@ func (in RolePolicy) Normalize() RolePolicy {
 	}
 
 	if len(in.Resources) != 0 {
-		// Aggregate ObjectIDs if ObjectIDs has "*".
-		if len(in.ObjectIDs) > 1 {
-			in.ObjectIDs = aggregateList(&in.ObjectIDs)
+		// Aggregate ResourceRefers if ResourceRefers has "*".
+		if len(in.ResourceRefers) > 1 {
+			in.ResourceRefers = aggregateList(&in.ResourceRefers)
 		}
-		// Clean up ObjectIDExcludes if ObjectIDs is not ["*"].
-		if len(in.ObjectIDs) != 1 || in.ObjectIDs[0] != "*" {
-			in.ObjectIDExcludes = nil
+		// Clean up ResourceReferExcludes if ResourceRefers is not ["*"].
+		if len(in.ResourceRefers) != 1 || in.ResourceRefers[0] != "*" {
+			in.ResourceReferExcludes = nil
 		}
 		// Clean up Paths if Resources is not empty.
 		in.Paths = nil
 	} else {
-		// Clean up ObjectIDs if Resources is empty.
-		in.ObjectIDs = nil
-		// Clean up ObjectIDExcludes if Resources is empty.
-		in.ObjectIDExcludes = nil
+		// Clean up ResourceRefers if Resources is empty.
+		in.ResourceRefers = nil
+		// Clean up ResourceReferExcludes if Resources is empty.
+		in.ResourceReferExcludes = nil
 	}
 
 	return in
@@ -240,8 +240,8 @@ func (in RolePolicy) String() string {
 
 	appendAttributes(&sb, "actions", in.Actions)
 	appendAttributes(&sb, "resources", in.Resources)
-	appendAttributes(&sb, "objectIDs", in.ObjectIDs)
-	appendAttributes(&sb, "objectIDExcludes", in.ObjectIDExcludes)
+	appendAttributes(&sb, "resourceRefers", in.ResourceRefers)
+	appendAttributes(&sb, "resourceReferExcludes", in.ResourceReferExcludes)
 	appendAttributes(&sb, "paths", in.Paths)
 
 	return sb.String()

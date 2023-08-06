@@ -23,8 +23,8 @@ const (
 	// Connector is the topic for connector.
 	Connector topic.Topic = "Connector"
 
-	// Module is the topic for module.
-	Module topic.Topic = "Template"
+	// Template is the topic for module.
+	Template topic.Topic = "Template"
 )
 
 type Message[T any] struct {
@@ -37,7 +37,7 @@ var allowed = sets.New(
 	Service,
 	ServiceRevision,
 	Connector,
-	Module,
+	Template,
 )
 
 func IsAllowed(mutationType string) bool {

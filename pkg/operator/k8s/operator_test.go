@@ -128,8 +128,8 @@ func TestOperator(t *testing.T) {
 		defer cancel()
 
 		err := op.Log(ctx, p.Namespace+"/"+p.Name+"/run/nginx", optypes.LogOptions{
-			Out:  testLogWriter(t.Logf),
-			Tail: true,
+			Out:       testLogWriter(t.Logf),
+			TailLines: pointer.Int64(10),
 		})
 		if err != nil {
 			if !errors.Is(err, context.DeadlineExceeded) {

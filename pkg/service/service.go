@@ -187,7 +187,7 @@ func GetSubjectID(entity *model.Service) (object.ID, error) {
 }
 
 func SetSubjectID(ctx context.Context, services ...*model.Service) error {
-	subject, err := session.GetSubject(ctx)
+	sj, err := session.GetSubject(ctx)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func SetSubjectID(ctx context.Context, services ...*model.Service) error {
 		if services[i].Annotations == nil {
 			services[i].Annotations = make(map[string]string)
 		}
-		services[i].Annotations[annotationSubjectIDName] = string(subject.ID)
+		services[i].Annotations[annotationSubjectIDName] = string(sj.ID)
 	}
 
 	return nil

@@ -48,8 +48,13 @@ func (p Parser) ParseServiceRevision(revision *model.ServiceRevision) (
 // ParseState parse the terraform state to service resources,
 // returns list must not be `nil` unless unexpected input or raising error,
 // it can be used to clean stale items safety if got an empty list.
-func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
-	applicationResources model.ServiceResources, dependencies map[string][]string, err error,
+func (p Parser) ParseState(
+	stateStr string,
+	revision *model.ServiceRevision,
+) (
+	resources model.ServiceResources,
+	dependencies map[string][]string,
+	err error,
 ) {
 	logger := log.WithName("deployer").WithName("tf").WithName("parser")
 	dependencies = make(map[string][]string)
@@ -87,7 +92,8 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			continue
 		}
 
-		applicationResource := &model.ServiceResource{
+		classResource := &model.ServiceResource{
+			ProjectID:    revision.ProjectID,
 			ServiceID:    revision.ServiceID,
 			ConnectorID:  object.ID(connectorID),
 			Mode:         rs.Mode,
@@ -96,14 +102,14 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			DeployerType: revision.DeployerType,
 			Shape:        types.ServiceResourceShapeClass,
 		}
-		applicationResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
+		classResource.Edges.Instances = make(model.ServiceResources, len(rs.Instances))
 
 		// The module key is used to identify the terraform resource module.
 		mk := strs.Join(".", rs.Module, rs.Type, rs.Name)
 		if rs.Mode == types.ServiceResourceModeData {
 			mk = strs.Join(".", rs.Module, rs.Mode, rs.Type, rs.Name)
 		}
-		moduleResourceMap[mk] = applicationResource
+		moduleResourceMap[mk] = classResource
 
 		for i, is := range rs.Instances {
 			instanceID, err := ParseInstanceID(is)
@@ -138,7 +144,9 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 					instanceID = core.NamespaceDefault + "/" + instanceID
 				}
 			}
-			resource := &model.ServiceResource{
+
+			instanceResource := &model.ServiceResource{
+				ProjectID:    revision.ProjectID,
 				ServiceID:    revision.ServiceID,
 				ConnectorID:  object.ID(connectorID),
 				Mode:         rs.Mode,
@@ -149,16 +157,16 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 			}
 
 			// Assume that the first instance's dependencies are the dependencies of the class resource.
-			if _, ok := moduleResourceMap[key(applicationResource)]; !ok {
-				resourceDependencies[key(applicationResource)] = is.Dependencies
+			if _, ok := moduleResourceMap[key(classResource)]; !ok {
+				resourceDependencies[key(classResource)] = is.Dependencies
 			}
 
-			dependencies[key(resource)] = append(dependencies[key(resource)], key(applicationResource))
-			applicationResource.Edges.Instances[i] = resource
-			resourceDependencies[key(resource)] = is.Dependencies
+			dependencies[key(instanceResource)] = append(dependencies[key(instanceResource)], key(classResource))
+			classResource.Edges.Instances[i] = instanceResource
+			resourceDependencies[key(instanceResource)] = is.Dependencies
 		}
 
-		applicationResources = append(applicationResources, applicationResource)
+		resources = append(resources, classResource)
 	}
 
 	// Get resource dependencies.
@@ -174,7 +182,7 @@ func (p Parser) ParseState(stateStr string, revision *model.ServiceRevision) (
 		}
 	}
 
-	return applicationResources, dependencies, nil
+	return resources, dependencies, nil
 }
 
 func ParseStateOutputRawMap(revision *model.ServiceRevision) (map[string]OutputState, error) {

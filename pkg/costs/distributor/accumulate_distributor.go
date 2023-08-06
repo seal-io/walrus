@@ -7,7 +7,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -23,7 +22,7 @@ func (r *accumulateDistributor) distribute(
 	startTime,
 	endTime time.Time,
 	cond types.QueryCondition,
-) ([]view.Resource, int, error) {
+) ([]Resource, int, error) {
 	// Item costs.
 	itemCosts, count, err := r.itemCosts(ctx, startTime, endTime, cond)
 	if err != nil {
@@ -60,7 +59,7 @@ func (r *accumulateDistributor) distribute(
 }
 
 func applySharedCost(
-	itemCost *view.Resource,
+	itemCost *Resource,
 	sharedCosts *SharedCostConnectors,
 	calInfo *CalculateInfo,
 ) {
@@ -77,7 +76,7 @@ func applySharedCost(
 }
 
 func applySharedIdleCost(
-	itemCost *view.Resource,
+	itemCost *Resource,
 	opts *types.IdleShareOption,
 	calInfo *CalculateInfo,
 ) {
@@ -103,7 +102,7 @@ func applySharedIdleCost(
 }
 
 func applySharedManagementCost(
-	itemCost *view.Resource,
+	itemCost *Resource,
 	opts *types.ManagementShareOption,
 	calInfo *CalculateInfo,
 ) {
@@ -129,7 +128,7 @@ func applySharedManagementCost(
 }
 
 func applySharedItemCost(
-	itemCost *view.Resource,
+	itemCost *Resource,
 	sharedCosts []ItemSharedCost,
 	calInfo *CalculateInfo,
 ) {
@@ -165,7 +164,7 @@ func applySharedItemCost(
 }
 
 func applySharedStrategy(
-	itemCost *view.Resource,
+	itemCost *Resource,
 	strategy types.SharingStrategy,
 	sharedCost float64,
 	count int,
@@ -191,7 +190,7 @@ func (r *accumulateDistributor) itemCosts(
 	startTime,
 	endTime time.Time,
 	cond types.QueryCondition,
-) ([]view.Resource, int, error) {
+) ([]Resource, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
 
@@ -251,9 +250,9 @@ func (r *accumulateDistributor) itemCosts(
 					sql.Raw(fmt.Sprintf(`%s AS "itemName"`, groupBy)),
 					sql.Expr(model.As(model.Sum(costreport.FieldTotalCost), "totalCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldCPUCost), "cpuCost")(s)),
-					sql.Expr(model.As(model.Sum(costreport.FieldGpuCost), "gpuCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldGPUCost), "gpuCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldRAMCost), "ramCost")(s)),
-					sql.Expr(model.As(model.Sum(costreport.FieldPvCost), "pvCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldPVCost), "pvCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldLoadBalancerCost), "loadBalancerCost")(s)),
 				).
 				GroupBy(groupBy).
@@ -276,7 +275,7 @@ func (r *accumulateDistributor) itemCosts(
 		})
 	}
 
-	var items []view.Resource
+	var items []Resource
 	if err = query.Scan(ctx, &items); err != nil {
 		return nil, 0, fmt.Errorf("error query item cost: %w", err)
 	}
