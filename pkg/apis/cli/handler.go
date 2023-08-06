@@ -10,7 +10,7 @@ import (
 	"github.com/seal-io/seal/pkg/apis/runtime"
 )
 
-var (
+const (
 	cliPath = "/var/lib/seal/cli"
 	cli     = "seal"
 )

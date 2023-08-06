@@ -18,8 +18,3 @@ type TemplateSchema struct {
 	Outputs           property.Schemas      `json:"outputs"`
 	RequiredProviders []ProviderRequirement `json:"requiredProviders"`
 }
-
-type TemplateVersionRef struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-}

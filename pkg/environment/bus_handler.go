@@ -75,7 +75,9 @@ func createNamespaceIfNotExist(ctx context.Context, connector *model.Connector, 
 		return fmt.Errorf("error creating kubernetes core client: %w", err)
 	}
 
-	if _, err = corev1Client.Namespaces().Get(ctx, name, metav1.GetOptions{}); !kerrors.IsNotFound(err) {
+	_, err = corev1Client.Namespaces().
+		Get(ctx, name, metav1.GetOptions{ResourceVersion: "0"})
+	if !kerrors.IsNotFound(err) {
 		return nil
 	}
 
@@ -89,8 +91,11 @@ func createNamespaceIfNotExist(ctx context.Context, connector *model.Connector, 
 	}
 
 	_, err = corev1Client.Namespaces().Create(ctx, namespace, metav1.CreateOptions{})
+	if !kerrors.IsAlreadyExists(err) {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func deleteNamespace(ctx context.Context, connector *model.Connector, name string) error {

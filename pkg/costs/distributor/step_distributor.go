@@ -7,7 +7,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -24,7 +23,7 @@ func (r *stepDistributor) distribute(
 	startTime,
 	endTime time.Time,
 	cond types.QueryCondition,
-) ([]view.Resource, int, error) {
+) ([]Resource, int, error) {
 	// Item costs.
 	itemCosts, count, err := r.itemCost(ctx, startTime, endTime, cond)
 	if err != nil {
@@ -70,7 +69,7 @@ func (r *stepDistributor) itemCost(
 	startTime,
 	endTime time.Time,
 	cond types.QueryCondition,
-) ([]view.Resource, int, error) {
+) ([]Resource, int, error) {
 	// Condition.
 	_, offset := startTime.Zone()
 
@@ -148,9 +147,9 @@ func (r *stepDistributor) itemCost(
 					sql.Raw(fmt.Sprintf(`%s AS "startTime"`, dateTrunc)),
 					sql.Expr(model.As(model.Sum(costreport.FieldTotalCost), "totalCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldCPUCost), "cpuCost")(s)),
-					sql.Expr(model.As(model.Sum(costreport.FieldGpuCost), "gpuCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldGPUCost), "gpuCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldRAMCost), "ramCost")(s)),
-					sql.Expr(model.As(model.Sum(costreport.FieldPvCost), "pvCost")(s)),
+					sql.Expr(model.As(model.Sum(costreport.FieldPVCost), "pvCost")(s)),
 					sql.Expr(model.As(model.Sum(costreport.FieldLoadBalancerCost), "loadBalancerCost")(s)),
 				).
 				GroupBy(
@@ -177,7 +176,7 @@ func (r *stepDistributor) itemCost(
 		})
 	}
 
-	var items []view.Resource
+	var items []Resource
 	if err = query.Scan(ctx, &items); err != nil {
 		return nil, 0, fmt.Errorf("error query item cost: %w", err)
 	}

@@ -81,6 +81,10 @@ func (r *ecsInstance) Log(ctx context.Context, name string, opts optypes.LogOpti
 			r.lastContent = strs.LastContent(content, 20)
 		}
 
+		if opts.WithoutFollow {
+			return nil
+		}
+
 		time.Sleep(fetchLogPeriod)
 	}
 }

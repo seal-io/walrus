@@ -19,9 +19,9 @@ type Role struct {
 	Policies types.RolePolicies `json:"policies"`
 }
 
-func (r Role) enforce(res, act, rid, path string) bool {
+func (r Role) enforce(act, res, resRefer, path string) bool {
 	for i := range r.Policies {
-		if enforce(&r.Policies[i], res, act, rid, path) {
+		if enforce(&r.Policies[i], act, res, resRefer, path) {
 			return true
 		}
 	}
@@ -43,22 +43,17 @@ type ProjectRole struct {
 	Roles []Role `json:"roles"`
 }
 
-func (r ProjectRole) match(pid object.ID, pName string) bool {
-	if pid != "" && pName != "" {
-		// Expect either one is set.
+func (r ProjectRole) enforce(projRefer, act, res, resRefer, path string) bool {
+	if r.Project.ID.String() != projRefer && r.Project.Name != projRefer {
 		return false
 	}
 
-	return r.Project.ID == pid || r.Project.Name == pName
-}
-
-func (r ProjectRole) enforce(res, act, rid, path string) bool {
 	for i := range r.Roles {
 		if r.Roles[i].ID == types.ProjectRoleOwner {
 			return true
 		}
 
-		if r.Roles[i].enforce(res, act, rid, path) {
+		if r.Roles[i].enforce(act, res, resRefer, path) {
 			return true
 		}
 	}
@@ -100,17 +95,16 @@ func (s Subject) IsAdmin() bool {
 }
 
 // Enforce returns true if the given conditions if allowing.
-func (s Subject) Enforce(pid object.ID, pName, res, act, rid, path string) bool {
+func (s Subject) Enforce(projectRefer, action, resource, resourceRefer, path string) bool {
 	for i := range s.Roles {
 		if s.Roles[i].ID == types.SystemRoleAdmin {
 			return true
 		}
 	}
 
-	if pid != "" || pName != "" {
+	if projectRefer != "" {
 		for i := range s.ProjectRoles {
-			if s.ProjectRoles[i].match(pid, pName) &&
-				s.ProjectRoles[i].enforce(res, act, rid, path) {
+			if s.ProjectRoles[i].enforce(projectRefer, action, resource, resourceRefer, path) {
 				return true
 			}
 		}
@@ -119,34 +113,12 @@ func (s Subject) Enforce(pid object.ID, pName, res, act, rid, path string) bool 
 	}
 
 	for i := range s.Roles {
-		if s.Roles[i].enforce(res, act, rid, path) {
+		if s.Roles[i].enforce(action, resource, resourceRefer, path) {
 			return true
 		}
 	}
 
 	return false
-}
-
-const subjectIncognitoContextKey = "_subject_incognito_"
-
-// IncognitoOn opens incognito mode,
-// prevents the ent framework adopting the hooks or interceptors of mixin.Project.
-func (s Subject) IncognitoOn() {
-	if s.Ctx == nil {
-		return
-	}
-
-	s.Ctx.Set(subjectIncognitoContextKey, true)
-}
-
-// IncognitoOff closes incognito mode,
-// allows the ent framework adopting the hooks or interceptors of mixin.Project.
-func (s Subject) IncognitoOff() {
-	if s.Ctx == nil {
-		return
-	}
-
-	s.Ctx.Set(subjectIncognitoContextKey, false)
 }
 
 const subjectContextKey = "_subject_"
@@ -162,17 +134,11 @@ func SetSubject(ctx context.Context, subject Subject) {
 	c.Set(subjectContextKey, subject)
 }
 
-var ErrIncognitoOn = errors.New("incognito subject")
-
 // GetSubject gets the Subject from the given context.Context.
 func GetSubject(ctx context.Context) (Subject, error) {
 	c, err := getContext(ctx)
 	if err != nil {
 		return Subject{}, fmt.Errorf("failed to get context: %w", err)
-	}
-
-	if c.GetBool(subjectIncognitoContextKey) {
-		return Subject{}, ErrIncognitoOn
 	}
 
 	v, ok := c.Get(subjectContextKey)
@@ -217,7 +183,7 @@ func getContext(ctx context.Context) (*gin.Context, error) {
 	return nil, errors.New("not gin context")
 }
 
-func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
+func enforce(p *types.RolePolicy, act, res, resRefer, path string) bool {
 	// Check actions.
 	switch len(p.Actions) {
 	default:
@@ -250,21 +216,21 @@ func enforce(p *types.RolePolicy, res, act, rid, path string) bool {
 			return false
 		}
 
-		// Check resource ids.
-		switch len(p.ObjectIDs) {
+		// Check resource refers.
+		switch len(p.ResourceRefers) {
 		default:
-			if !slices.Contains(p.ObjectIDs, rid) {
-				// Unexpected resource id.
+			if !slices.Contains(p.ResourceRefers, resRefer) {
+				// Unexpected resource refer.
 				return false
 			}
 		case 1:
-			if p.ObjectIDs[0] == "*" {
-				if slices.Contains(p.ObjectIDExcludes, rid) {
-					// Excluded resource id.
+			if p.ResourceRefers[0] == "*" {
+				if slices.Contains(p.ResourceReferExcludes, resRefer) {
+					// Excluded resource refer.
 					return false
 				}
-			} else if p.ObjectIDs[0] != rid {
-				// Unexpected resource id.
+			} else if p.ResourceRefers[0] != resRefer {
+				// Unexpected resource refer.
 				return false
 			}
 		case 0:

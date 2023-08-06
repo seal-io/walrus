@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -15,6 +16,27 @@ import (
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/strs"
 	"github.com/seal-io/seal/utils/timex"
+)
+
+type (
+	Cost struct {
+		Currency         int     `json:"currency,omitempty"`
+		TotalCost        float64 `json:"totalCost,omitempty"`
+		SharedCost       float64 `json:"sharedCost,omitempty"`
+		CPUCost          float64 `json:"cpuCost,omitempty"`
+		GPUCost          float64 `json:"gpuCost,omitempty"`
+		RAMCost          float64 `json:"ramCost,omitempty"`
+		PVCost           float64 `json:"pvCost,omitempty"`
+		LoadBalancerCost float64 `json:"loadBalancerCost,omitempty"`
+	}
+
+	Resource struct {
+		Cost
+
+		ItemName  string     `json:"itemName,omitempty"`
+		StartTime *time.Time `json:"startTime,omitempty"`
+		EndTime   *time.Time `json:"endTime,omitempty"`
+	}
 )
 
 // orderBySQL generate the order by sql with groupBy field and timezone offset,

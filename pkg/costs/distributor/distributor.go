@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/types"
 )
@@ -35,7 +34,7 @@ func (d *Distributor) Distribute(
 	startTime,
 	endTime time.Time,
 	cond types.QueryCondition,
-) ([]view.Resource, int, error) {
+) ([]Resource, int, error) {
 	cond = wrappedCondition(cond)
 
 	switch {

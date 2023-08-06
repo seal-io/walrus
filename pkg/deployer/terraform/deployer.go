@@ -90,7 +90,7 @@ type CreateJobOptions struct {
 
 // _backendAPI the API path to terraform deploy backend.
 // Terraform will get and update deployment states from this API.
-const _backendAPI = "/v1/service-revisions/%s/terraform-states?projectID=%s"
+const _backendAPI = "/v1/projects/%s/environments/%s/services/%s/service-revisions/%s/terraform-states"
 
 // _variablePrefix the prefix of the variable name.
 const _variablePrefix = "_seal_var_"
@@ -384,12 +384,22 @@ func (d Deployer) CreateServiceRevision(
 	ctx context.Context,
 	opts CreateRevisionOptions,
 ) (*model.ServiceRevision, error) {
+	tv, err := d.modelClient.TemplateVersions().Query().
+		Where(templateversion.ID(opts.Service.TemplateID)).
+		Select(
+			templateversion.FieldName,
+			templateversion.FieldVersion).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := &model.ServiceRevision{
 		ProjectID:       opts.Service.ProjectID,
 		ServiceID:       opts.Service.ID,
 		EnvironmentID:   opts.Service.EnvironmentID,
-		TemplateName:    opts.Service.Template.Name,
-		TemplateVersion: opts.Service.Template.Version,
+		TemplateName:    tv.Name,
+		TemplateVersion: tv.Version,
 		Attributes:      opts.Service.Attributes,
 		Tags:            opts.Tags,
 		DeployerType:    DeployerType,
@@ -522,13 +532,17 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 		return nil, errors.New("server address is empty")
 	}
 	address := fmt.Sprintf("%s%s", serverAddress,
-		fmt.Sprintf(_backendAPI, opts.ServiceRevision.ID, opts.ProjectID))
+		fmt.Sprintf(_backendAPI,
+			opts.ProjectID,
+			opts.EnvironmentID,
+			opts.ServiceID,
+			opts.ServiceRevision.ID))
 
 	// Prepare API token for terraform backend.
-	const _30mins = 1800
+	const _30Min = 1800
 
 	at, err := auths.CreateAccessToken(ctx,
-		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_30mins))
+		d.modelClient, opts.SubjectID, types.TokenKindDeployment, string(opts.ServiceRevision.ID), pointer.Int(_30Min))
 	if err != nil {
 		return nil, err
 	}
@@ -542,7 +556,7 @@ func (d Deployer) LoadConfigsBytes(ctx context.Context, opts CreateSecretsOption
 	secretOptionMaps := map[string]config.CreateOptions{
 		config.FileMain: {
 			TerraformOptions: &config.TerraformOptions{
-				Token:                at.Value,
+				Token:                at.AccessToken,
 				Address:              address,
 				SkipTLSVerify:        opts.SkipTLSVerify,
 				ProviderRequirements: requiredProviders,
@@ -636,7 +650,7 @@ func (d Deployer) GetModuleConfig(
 	)
 
 	predicates = append(predicates, templateversion.And(
-		templateversion.TemplateName(opts.ServiceRevision.TemplateName),
+		templateversion.Name(opts.ServiceRevision.TemplateName),
 		templateversion.Version(opts.ServiceRevision.TemplateVersion),
 	))
 
@@ -645,6 +659,7 @@ func (d Deployer) GetModuleConfig(
 		Select(
 			templateversion.FieldID,
 			templateversion.FieldTemplateID,
+			templateversion.FieldName,
 			templateversion.FieldVersion,
 			templateversion.FieldSource,
 			templateversion.FieldSchema,
@@ -749,12 +764,6 @@ func (d Deployer) getVariables(
 		nameIn[i] = name
 	}
 
-	s, err := session.GetSubject(ctx)
-	if err == nil {
-		s.IncognitoOn()
-		defer s.IncognitoOff()
-	}
-
 	type scanVariable struct {
 		Name      string        `json:"name"`
 		Value     crypto.String `json:"value"`
@@ -764,7 +773,7 @@ func (d Deployer) getVariables(
 
 	var vars []scanVariable
 
-	err = d.modelClient.Variables().Query().
+	err := d.modelClient.Variables().Query().
 		Modify(func(s *sql.Selector) {
 			var (
 				envPs = sql.And(
@@ -865,7 +874,7 @@ func (d Deployer) getPreviousRequiredProviders(
 
 	templateVersion, err := d.modelClient.TemplateVersions().Query().
 		Where(
-			templateversion.TemplateName(entity.TemplateName),
+			templateversion.Name(entity.TemplateName),
 			templateversion.Version(entity.TemplateVersion),
 		).
 		Only(ctx)

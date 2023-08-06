@@ -175,11 +175,11 @@ func syncTemplateFromRef(
 	}
 
 	return createTemplateVersion(ctx, mc, &model.TemplateVersion{
-		TemplateID:   entity.ID,
-		TemplateName: entity.Name,
-		Version:      ref,
-		Source:       u.Host + u.Path + "?ref=" + repo.Reference,
-		Schema:       schema,
+		TemplateID: entity.ID,
+		Name:       entity.Name,
+		Version:    ref,
+		Source:     u.Host + u.Path + "?ref=" + repo.Reference,
+		Schema:     schema,
 	})
 }
 
@@ -334,11 +334,11 @@ func GetTemplateVersions(
 		}
 
 		tvs = append(tvs, &model.TemplateVersion{
-			TemplateID:   entity.ID,
-			TemplateName: entity.Name,
-			Version:      v.String(),
-			Source:       source + "?ref=" + tag,
-			Schema:       schema,
+			TemplateID: entity.ID,
+			Name:       entity.Name,
+			Version:    v.String(),
+			Source:     source + "?ref=" + tag,
+			Schema:     schema,
 		})
 	}
 

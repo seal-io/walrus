@@ -7,10 +7,23 @@ import (
 type EventType uint8
 
 const (
-	EventCreate = iota + 1
+	EventCreate EventType = iota + 1
 	EventUpdate
 	EventDelete
 )
+
+func (t EventType) String() string {
+	switch t {
+	case EventCreate:
+		return "create"
+	case EventUpdate:
+		return "update"
+	case EventDelete:
+		return "delete"
+	}
+
+	return "unknown"
+}
 
 func EventTypeFor(op model.Op) EventType {
 	switch {

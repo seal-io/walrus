@@ -3,7 +3,6 @@ package distributor
 import (
 	"context"
 
-	"github.com/seal-io/seal/pkg/apis/cost/view"
 	"github.com/seal-io/seal/pkg/dao/model"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
 	"github.com/seal-io/seal/pkg/dao/types"
@@ -19,7 +18,7 @@ func connectorIDs(ctx context.Context, client model.ClientSet) ([]object.ID, err
 func applyItemDisplayName(
 	ctx context.Context,
 	client model.ClientSet,
-	items []view.Resource,
+	items []Resource,
 	groupBy types.GroupByField,
 ) error {
 	if groupBy != types.GroupByFieldConnectorID {

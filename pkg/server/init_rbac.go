@@ -35,12 +35,16 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Policies: types.RolePolicies{
 				{
 					Actions: types.RolePolicyFields(http.MethodPost),
-					Paths:   types.RolePolicyFields("/account/login"),
+					Paths: types.RolePolicyFields(
+						"/account/login"),
 				},
 				{
-					Actions:   types.RolePolicyFields(http.MethodGet),
-					Resources: types.RolePolicyFields("settings"),
-					ObjectIDs: types.RolePolicyFields("BootPwdGainSource"),
+					Actions: types.RolePolicyFields(http.MethodGet),
+					Resources: types.RolePolicyFields(
+						"settings"),
+					ResourceRefers: types.RolePolicyFields(
+						"BootPwdGainSource",
+						"ServeUrl"),
 				},
 			},
 			Session: true,
@@ -54,27 +58,38 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Description: "The role who can manage its own projects.",
 			Policies: types.RolePolicies{
 				{
-					Actions:   types.RolePolicyFields("*"),
-					Resources: types.RolePolicyFields("projects", "tokens"),
+					Actions: types.RolePolicyFields("*"),
+					Resources: types.RolePolicyFields(
+						"projects"),
 				},
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"variables", "connectors", "environments", "catalogs",
-						"templates", "templateVersions", "templateCompletions",
-						"perspectives", "settings", "roles"),
+						"catalogs",
+						"connectors",
+						"environments",
+						"perspectives",
+						"roles",
+						"settings",
+						"templates",
+						"templateCompletions",
+						"variables"),
 				},
 				{
-					Actions:   types.RolePolicyFields(http.MethodPost, http.MethodGet),
-					Resources: types.RolePolicyFields("costs", "dashboards"), // POST for larger query body.
+					Actions: types.RolePolicyFields(http.MethodPost, http.MethodGet),
+					Resources: types.RolePolicyFields(
+						"costs",
+						"dashboards"), // POST for larger query body.
 				},
 				{
 					Actions: types.RolePolicyFields(http.MethodGet, http.MethodPost),
-					Paths:   types.RolePolicyFields("/account/info"),
+					Paths: types.RolePolicyFields(
+						"/account/info"),
 				},
 				{
 					Actions: types.RolePolicyFields(http.MethodPost),
-					Paths:   types.RolePolicyFields("/account/logout"),
+					Paths: types.RolePolicyFields(
+						"/account/logout"),
 				},
 			},
 			Session: true,
@@ -90,9 +105,12 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"variables", "connectors", "catalogs", "templates",
-						"templateVersions", "templateCompletions",
-						"settings"),
+						"catalogs",
+						"connectors",
+						"settings",
+						"templates",
+						"templateCompletions",
+						"variables"),
 				},
 			},
 			Session: false,
@@ -108,10 +126,18 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"variables", "connectors", "catalogs", "templates",
-						"templateVersions", "templateCompletions",
-						"settings", "roles", "subjects",
-						"subjectRoles", "perspectives"),
+						"catalogs",
+						"connectors",
+						"environments",
+						"perspectives",
+						"projects",
+						"projectSubjects",
+						"roles",
+						"settings",
+						"subjects",
+						"templates",
+						"templateCompletions",
+						"variables"),
 				},
 			},
 			Session: false,
@@ -127,8 +153,13 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 				{
 					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"projects", "services", "serviceRevisions",
-						"serviceResources", "environments", "connectors", "variables"),
+						"connectors",
+						"projects",
+						"environments",
+						"services",
+						"serviceResources",
+						"serviceRevisions",
+						"variables"),
 				},
 			},
 			Session: false,
@@ -142,14 +173,19 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Description: "The role who can manage the resources below the project, excluding rbac.",
 			Policies: types.RolePolicies{
 				{
-					Actions:   types.RolePolicyFields(http.MethodGet),
-					Resources: types.RolePolicyFields("projects"),
+					Actions: types.RolePolicyFields(http.MethodGet),
+					Resources: types.RolePolicyFields(
+						"connectors",
+						"projects"),
 				},
 				{
 					Actions: types.RolePolicyFields("*"),
 					Resources: types.RolePolicyFields(
-						"services", "serviceRevisions",
-						"serviceResources", "environments", "connectors", "variables"),
+						"environments",
+						"services",
+						"serviceResources",
+						"serviceRevisions",
+						"variables"),
 				},
 			},
 			Session: false,
@@ -163,16 +199,21 @@ func createRoles(ctx context.Context, mc model.ClientSet) error {
 			Description: "The role who can manage the whole project.",
 			Policies: types.RolePolicies{
 				{
-					Actions: types.RolePolicyFields("*"),
+					Actions: types.RolePolicyFields(http.MethodGet),
 					Resources: types.RolePolicyFields(
-						"projects", "services",
-						"serviceRevisions", "serviceResources",
-						"environments", "connectors", "variables",
-						"subjectRoles"),
+						"subjects"),
 				},
 				{
-					Actions:   types.RolePolicyFields(http.MethodGet),
-					Resources: types.RolePolicyFields("subjects"),
+					Actions: types.RolePolicyFields("*"),
+					Resources: types.RolePolicyFields(
+						"connectors",
+						"projects",
+						"projectSubjects",
+						"environments",
+						"services",
+						"serviceResources",
+						"serviceRevisions",
+						"variables"),
 				},
 			},
 			Session: false,
