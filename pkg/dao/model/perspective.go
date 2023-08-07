@@ -42,9 +42,9 @@ type Perspective struct {
 	EndTime string `json:"end_time,omitempty"`
 	// Is builtin perspective.
 	Builtin bool `json:"builtin,omitempty"`
-	// Indicated the perspective included allocation queries, record the used query condition.
-	AllocationQueries []types.QueryCondition `json:"allocation_queries,omitempty"`
-	selectValues      sql.SelectValues
+	// Indicated the perspective included cost queries, record the used query condition.
+	CostQueries  []types.QueryCondition `json:"cost_queries,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -52,7 +52,7 @@ func (*Perspective) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case perspective.FieldLabels, perspective.FieldAnnotations, perspective.FieldAllocationQueries:
+		case perspective.FieldLabels, perspective.FieldAnnotations, perspective.FieldCostQueries:
 			values[i] = new([]byte)
 		case perspective.FieldID:
 			values[i] = new(object.ID)
@@ -143,12 +143,12 @@ func (pe *Perspective) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pe.Builtin = value.Bool
 			}
-		case perspective.FieldAllocationQueries:
+		case perspective.FieldCostQueries:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field allocation_queries", values[i])
+				return fmt.Errorf("unexpected type %T for field cost_queries", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &pe.AllocationQueries); err != nil {
-					return fmt.Errorf("unmarshal field allocation_queries: %w", err)
+				if err := json.Unmarshal(*value, &pe.CostQueries); err != nil {
+					return fmt.Errorf("unmarshal field cost_queries: %w", err)
 				}
 			}
 		default:
@@ -218,8 +218,8 @@ func (pe *Perspective) String() string {
 	builder.WriteString("builtin=")
 	builder.WriteString(fmt.Sprintf("%v", pe.Builtin))
 	builder.WriteString(", ")
-	builder.WriteString("allocation_queries=")
-	builder.WriteString(fmt.Sprintf("%v", pe.AllocationQueries))
+	builder.WriteString("cost_queries=")
+	builder.WriteString(fmt.Sprintf("%v", pe.CostQueries))
 	builder.WriteByte(')')
 	return builder.String()
 }

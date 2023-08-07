@@ -19,13 +19,13 @@ import (
 type PerspectiveCreateInput struct {
 	inputConfig `uri:"-" query:"-" json:"-"`
 
-	EndTime           string                 `uri:"-" query:"-" json:"endTime"`
-	StartTime         string                 `uri:"-" query:"-" json:"startTime"`
-	Name              string                 `uri:"-" query:"-" json:"name"`
-	Description       string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels            map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	Builtin           bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	AllocationQueries []types.QueryCondition `uri:"-" query:"-" json:"allocationQueries,omitempty"`
+	EndTime     string                 `uri:"-" query:"-" json:"endTime"`
+	StartTime   string                 `uri:"-" query:"-" json:"startTime"`
+	Name        string                 `uri:"-" query:"-" json:"name"`
+	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
+	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
+	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
+	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // Model returns the Perspective entity for creating,
@@ -36,13 +36,13 @@ func (pci *PerspectiveCreateInput) Model() *Perspective {
 	}
 
 	p := &Perspective{
-		EndTime:           pci.EndTime,
-		StartTime:         pci.StartTime,
-		Name:              pci.Name,
-		Description:       pci.Description,
-		Labels:            pci.Labels,
-		Builtin:           pci.Builtin,
-		AllocationQueries: pci.AllocationQueries,
+		EndTime:     pci.EndTime,
+		StartTime:   pci.StartTime,
+		Name:        pci.Name,
+		Description: pci.Description,
+		Labels:      pci.Labels,
+		Builtin:     pci.Builtin,
+		CostQueries: pci.CostQueries,
 	}
 
 	return p
@@ -70,13 +70,13 @@ func (pci *PerspectiveCreateInput) LoadWith(ctx context.Context, cs ClientSet) (
 
 // PerspectiveCreateInputs holds the creation input item of the Perspective entities.
 type PerspectiveCreateInputsItem struct {
-	EndTime           string                 `uri:"-" query:"-" json:"endTime"`
-	StartTime         string                 `uri:"-" query:"-" json:"startTime"`
-	Name              string                 `uri:"-" query:"-" json:"name"`
-	Description       string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels            map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	Builtin           bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	AllocationQueries []types.QueryCondition `uri:"-" query:"-" json:"allocationQueries,omitempty"`
+	EndTime     string                 `uri:"-" query:"-" json:"endTime"`
+	StartTime   string                 `uri:"-" query:"-" json:"startTime"`
+	Name        string                 `uri:"-" query:"-" json:"name"`
+	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
+	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
+	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
+	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // PerspectiveCreateInputs holds the creation input of the Perspective entities.
@@ -97,13 +97,13 @@ func (pci *PerspectiveCreateInputs) Model() []*Perspective {
 
 	for i := range pci.Items {
 		p := &Perspective{
-			EndTime:           pci.Items[i].EndTime,
-			StartTime:         pci.Items[i].StartTime,
-			Name:              pci.Items[i].Name,
-			Description:       pci.Items[i].Description,
-			Labels:            pci.Items[i].Labels,
-			Builtin:           pci.Items[i].Builtin,
-			AllocationQueries: pci.Items[i].AllocationQueries,
+			EndTime:     pci.Items[i].EndTime,
+			StartTime:   pci.Items[i].StartTime,
+			Name:        pci.Items[i].Name,
+			Description: pci.Items[i].Description,
+			Labels:      pci.Items[i].Labels,
+			Builtin:     pci.Items[i].Builtin,
+			CostQueries: pci.Items[i].CostQueries,
 		}
 
 		ps[i] = p
@@ -309,13 +309,13 @@ func (pqi *PerspectiveQueryInputs) LoadWith(ctx context.Context, cs ClientSet) (
 type PerspectiveUpdateInput struct {
 	PerspectiveQueryInput `uri:",inline" query:"-" json:",inline"`
 
-	Name              string                 `uri:"-" query:"-" json:"name,omitempty"`
-	Description       string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels            map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	StartTime         string                 `uri:"-" query:"-" json:"startTime,omitempty"`
-	EndTime           string                 `uri:"-" query:"-" json:"endTime,omitempty"`
-	Builtin           bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	AllocationQueries []types.QueryCondition `uri:"-" query:"-" json:"allocationQueries,omitempty"`
+	Name        string                 `uri:"-" query:"-" json:"name,omitempty"`
+	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
+	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
+	StartTime   string                 `uri:"-" query:"-" json:"startTime,omitempty"`
+	EndTime     string                 `uri:"-" query:"-" json:"endTime,omitempty"`
+	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
+	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // Model returns the Perspective entity for modifying,
@@ -326,14 +326,14 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 	}
 
 	p := &Perspective{
-		ID:                pui.ID,
-		Name:              pui.Name,
-		Description:       pui.Description,
-		Labels:            pui.Labels,
-		StartTime:         pui.StartTime,
-		EndTime:           pui.EndTime,
-		Builtin:           pui.Builtin,
-		AllocationQueries: pui.AllocationQueries,
+		ID:          pui.ID,
+		Name:        pui.Name,
+		Description: pui.Description,
+		Labels:      pui.Labels,
+		StartTime:   pui.StartTime,
+		EndTime:     pui.EndTime,
+		Builtin:     pui.Builtin,
+		CostQueries: pui.CostQueries,
 	}
 
 	return p
@@ -343,13 +343,13 @@ func (pui *PerspectiveUpdateInput) Model() *Perspective {
 type PerspectiveUpdateInputsItem struct {
 	ID object.ID `uri:"-" query:"-" json:"id"`
 
-	Name              string                 `uri:"-" query:"-" json:"name,omitempty"`
-	Description       string                 `uri:"-" query:"-" json:"description,omitempty"`
-	Labels            map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
-	StartTime         string                 `uri:"-" query:"-" json:"startTime,omitempty"`
-	EndTime           string                 `uri:"-" query:"-" json:"endTime,omitempty"`
-	Builtin           bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
-	AllocationQueries []types.QueryCondition `uri:"-" query:"-" json:"allocationQueries,omitempty"`
+	Name        string                 `uri:"-" query:"-" json:"name,omitempty"`
+	Description string                 `uri:"-" query:"-" json:"description,omitempty"`
+	Labels      map[string]string      `uri:"-" query:"-" json:"labels,omitempty"`
+	StartTime   string                 `uri:"-" query:"-" json:"startTime,omitempty"`
+	EndTime     string                 `uri:"-" query:"-" json:"endTime,omitempty"`
+	Builtin     bool                   `uri:"-" query:"-" json:"builtin,omitempty"`
+	CostQueries []types.QueryCondition `uri:"-" query:"-" json:"costQueries,omitempty"`
 }
 
 // PerspectiveUpdateInputs holds the modification input of the Perspective entities.
@@ -370,14 +370,14 @@ func (pui *PerspectiveUpdateInputs) Model() []*Perspective {
 
 	for i := range pui.Items {
 		p := &Perspective{
-			ID:                pui.Items[i].ID,
-			Name:              pui.Items[i].Name,
-			Description:       pui.Items[i].Description,
-			Labels:            pui.Items[i].Labels,
-			StartTime:         pui.Items[i].StartTime,
-			EndTime:           pui.Items[i].EndTime,
-			Builtin:           pui.Items[i].Builtin,
-			AllocationQueries: pui.Items[i].AllocationQueries,
+			ID:          pui.Items[i].ID,
+			Name:        pui.Items[i].Name,
+			Description: pui.Items[i].Description,
+			Labels:      pui.Items[i].Labels,
+			StartTime:   pui.Items[i].StartTime,
+			EndTime:     pui.Items[i].EndTime,
+			Builtin:     pui.Items[i].Builtin,
+			CostQueries: pui.Items[i].CostQueries,
 		}
 
 		ps[i] = p
@@ -440,16 +440,16 @@ func (pui *PerspectiveUpdateInputs) LoadWith(ctx context.Context, cs ClientSet) 
 
 // PerspectiveOutput holds the output of the Perspective entity.
 type PerspectiveOutput struct {
-	ID                object.ID              `json:"id,omitempty"`
-	Name              string                 `json:"name,omitempty"`
-	Description       string                 `json:"description,omitempty"`
-	Labels            map[string]string      `json:"labels,omitempty"`
-	CreateTime        *time.Time             `json:"createTime,omitempty"`
-	UpdateTime        *time.Time             `json:"updateTime,omitempty"`
-	StartTime         string                 `json:"startTime,omitempty"`
-	EndTime           string                 `json:"endTime,omitempty"`
-	Builtin           bool                   `json:"builtin,omitempty"`
-	AllocationQueries []types.QueryCondition `json:"allocationQueries,omitempty"`
+	ID          object.ID              `json:"id,omitempty"`
+	Name        string                 `json:"name,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Labels      map[string]string      `json:"labels,omitempty"`
+	CreateTime  *time.Time             `json:"createTime,omitempty"`
+	UpdateTime  *time.Time             `json:"updateTime,omitempty"`
+	StartTime   string                 `json:"startTime,omitempty"`
+	EndTime     string                 `json:"endTime,omitempty"`
+	Builtin     bool                   `json:"builtin,omitempty"`
+	CostQueries []types.QueryCondition `json:"costQueries,omitempty"`
 }
 
 // View returns the output of Perspective.
@@ -469,16 +469,16 @@ func ExposePerspective(p *Perspective) *PerspectiveOutput {
 	}
 
 	po := &PerspectiveOutput{
-		ID:                p.ID,
-		Name:              p.Name,
-		Description:       p.Description,
-		Labels:            p.Labels,
-		CreateTime:        p.CreateTime,
-		UpdateTime:        p.UpdateTime,
-		StartTime:         p.StartTime,
-		EndTime:           p.EndTime,
-		Builtin:           p.Builtin,
-		AllocationQueries: p.AllocationQueries,
+		ID:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+		Labels:      p.Labels,
+		CreateTime:  p.CreateTime,
+		UpdateTime:  p.UpdateTime,
+		StartTime:   p.StartTime,
+		EndTime:     p.EndTime,
+		Builtin:     p.Builtin,
+		CostQueries: p.CostQueries,
 	}
 
 	return po

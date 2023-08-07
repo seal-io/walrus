@@ -12,9 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/seal-io/seal/pkg/dao/model"
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -92,60 +91,6 @@ func (f TraverseFunc) Traverse(ctx context.Context, q model.Query) error {
 	return f(ctx, query)
 }
 
-// The AllocationCostFunc type is an adapter to allow the use of ordinary function as a Querier.
-type AllocationCostFunc func(context.Context, *model.AllocationCostQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f AllocationCostFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.AllocationCostQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.AllocationCostQuery", q)
-}
-
-// The TraverseAllocationCost type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseAllocationCost func(context.Context, *model.AllocationCostQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseAllocationCost) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseAllocationCost) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.AllocationCostQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.AllocationCostQuery", q)
-}
-
-// The ClusterCostFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ClusterCostFunc func(context.Context, *model.ClusterCostQuery) (model.Value, error)
-
-// Query calls f(ctx, q).
-func (f ClusterCostFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
-	if q, ok := q.(*model.ClusterCostQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *model.ClusterCostQuery", q)
-}
-
-// The TraverseClusterCost type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseClusterCost func(context.Context, *model.ClusterCostQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseClusterCost) Intercept(next model.Querier) model.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseClusterCost) Traverse(ctx context.Context, q model.Query) error {
-	if q, ok := q.(*model.ClusterCostQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *model.ClusterCostQuery", q)
-}
-
 // The ConnectorFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ConnectorFunc func(context.Context, *model.ConnectorQuery) (model.Value, error)
 
@@ -171,6 +116,33 @@ func (f TraverseConnector) Traverse(ctx context.Context, q model.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *model.ConnectorQuery", q)
+}
+
+// The CostReportFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CostReportFunc func(context.Context, *model.CostReportQuery) (model.Value, error)
+
+// Query calls f(ctx, q).
+func (f CostReportFunc) Query(ctx context.Context, q model.Query) (model.Value, error) {
+	if q, ok := q.(*model.CostReportQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *model.CostReportQuery", q)
+}
+
+// The TraverseCostReport type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCostReport func(context.Context, *model.CostReportQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCostReport) Intercept(next model.Querier) model.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCostReport) Traverse(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.CostReportQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *model.CostReportQuery", q)
 }
 
 // The DistributeLockFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -662,12 +634,10 @@ func (f TraverseVariable) Traverse(ctx context.Context, q model.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q model.Query) (Query, error) {
 	switch q := q.(type) {
-	case *model.AllocationCostQuery:
-		return &query[*model.AllocationCostQuery, predicate.AllocationCost, allocationcost.OrderOption]{typ: model.TypeAllocationCost, tq: q}, nil
-	case *model.ClusterCostQuery:
-		return &query[*model.ClusterCostQuery, predicate.ClusterCost, clustercost.OrderOption]{typ: model.TypeClusterCost, tq: q}, nil
 	case *model.ConnectorQuery:
 		return &query[*model.ConnectorQuery, predicate.Connector, connector.OrderOption]{typ: model.TypeConnector, tq: q}, nil
+	case *model.CostReportQuery:
+		return &query[*model.CostReportQuery, predicate.CostReport, costreport.OrderOption]{typ: model.TypeCostReport, tq: q}, nil
 	case *model.DistributeLockQuery:
 		return &query[*model.DistributeLockQuery, predicate.DistributeLock, distributelock.OrderOption]{typ: model.TypeDistributeLock, tq: q}, nil
 	case *model.EnvironmentQuery:

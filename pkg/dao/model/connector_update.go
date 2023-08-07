@@ -18,9 +18,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
 	"github.com/seal-io/seal/pkg/dao/model/internal"
 	"github.com/seal-io/seal/pkg/dao/model/predicate"
@@ -188,34 +187,19 @@ func (cu *ConnectorUpdate) AddResources(s ...*ServiceResource) *ConnectorUpdate 
 	return cu.AddResourceIDs(ids...)
 }
 
-// AddClusterCostIDs adds the "cluster_costs" edge to the ClusterCost entity by IDs.
-func (cu *ConnectorUpdate) AddClusterCostIDs(ids ...int) *ConnectorUpdate {
-	cu.mutation.AddClusterCostIDs(ids...)
+// AddCostReportIDs adds the "cost_reports" edge to the CostReport entity by IDs.
+func (cu *ConnectorUpdate) AddCostReportIDs(ids ...int) *ConnectorUpdate {
+	cu.mutation.AddCostReportIDs(ids...)
 	return cu
 }
 
-// AddClusterCosts adds the "cluster_costs" edges to the ClusterCost entity.
-func (cu *ConnectorUpdate) AddClusterCosts(c ...*ClusterCost) *ConnectorUpdate {
+// AddCostReports adds the "cost_reports" edges to the CostReport entity.
+func (cu *ConnectorUpdate) AddCostReports(c ...*CostReport) *ConnectorUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cu.AddClusterCostIDs(ids...)
-}
-
-// AddAllocationCostIDs adds the "allocation_costs" edge to the AllocationCost entity by IDs.
-func (cu *ConnectorUpdate) AddAllocationCostIDs(ids ...int) *ConnectorUpdate {
-	cu.mutation.AddAllocationCostIDs(ids...)
-	return cu
-}
-
-// AddAllocationCosts adds the "allocation_costs" edges to the AllocationCost entity.
-func (cu *ConnectorUpdate) AddAllocationCosts(a ...*AllocationCost) *ConnectorUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cu.AddAllocationCostIDs(ids...)
+	return cu.AddCostReportIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -265,46 +249,25 @@ func (cu *ConnectorUpdate) RemoveResources(s ...*ServiceResource) *ConnectorUpda
 	return cu.RemoveResourceIDs(ids...)
 }
 
-// ClearClusterCosts clears all "cluster_costs" edges to the ClusterCost entity.
-func (cu *ConnectorUpdate) ClearClusterCosts() *ConnectorUpdate {
-	cu.mutation.ClearClusterCosts()
+// ClearCostReports clears all "cost_reports" edges to the CostReport entity.
+func (cu *ConnectorUpdate) ClearCostReports() *ConnectorUpdate {
+	cu.mutation.ClearCostReports()
 	return cu
 }
 
-// RemoveClusterCostIDs removes the "cluster_costs" edge to ClusterCost entities by IDs.
-func (cu *ConnectorUpdate) RemoveClusterCostIDs(ids ...int) *ConnectorUpdate {
-	cu.mutation.RemoveClusterCostIDs(ids...)
+// RemoveCostReportIDs removes the "cost_reports" edge to CostReport entities by IDs.
+func (cu *ConnectorUpdate) RemoveCostReportIDs(ids ...int) *ConnectorUpdate {
+	cu.mutation.RemoveCostReportIDs(ids...)
 	return cu
 }
 
-// RemoveClusterCosts removes "cluster_costs" edges to ClusterCost entities.
-func (cu *ConnectorUpdate) RemoveClusterCosts(c ...*ClusterCost) *ConnectorUpdate {
+// RemoveCostReports removes "cost_reports" edges to CostReport entities.
+func (cu *ConnectorUpdate) RemoveCostReports(c ...*CostReport) *ConnectorUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cu.RemoveClusterCostIDs(ids...)
-}
-
-// ClearAllocationCosts clears all "allocation_costs" edges to the AllocationCost entity.
-func (cu *ConnectorUpdate) ClearAllocationCosts() *ConnectorUpdate {
-	cu.mutation.ClearAllocationCosts()
-	return cu
-}
-
-// RemoveAllocationCostIDs removes the "allocation_costs" edge to AllocationCost entities by IDs.
-func (cu *ConnectorUpdate) RemoveAllocationCostIDs(ids ...int) *ConnectorUpdate {
-	cu.mutation.RemoveAllocationCostIDs(ids...)
-	return cu
-}
-
-// RemoveAllocationCosts removes "allocation_costs" edges to AllocationCost entities.
-func (cu *ConnectorUpdate) RemoveAllocationCosts(a ...*AllocationCost) *ConnectorUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cu.RemoveAllocationCostIDs(ids...)
+	return cu.RemoveCostReportIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -600,97 +563,49 @@ func (cu *ConnectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cu.mutation.ClusterCostsCleared() {
+	if cu.mutation.CostReportsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ClusterCost
+		edge.Schema = cu.schemaConfig.CostReport
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RemovedClusterCostsIDs(); len(nodes) > 0 && !cu.mutation.ClusterCostsCleared() {
+	if nodes := cu.mutation.RemovedCostReportsIDs(); len(nodes) > 0 && !cu.mutation.CostReportsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ClusterCost
+		edge.Schema = cu.schemaConfig.CostReport
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.ClusterCostsIDs(); len(nodes) > 0 {
+	if nodes := cu.mutation.CostReportsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cu.schemaConfig.ClusterCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if cu.mutation.AllocationCostsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cu.schemaConfig.AllocationCost
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.RemovedAllocationCostsIDs(); len(nodes) > 0 && !cu.mutation.AllocationCostsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cu.schemaConfig.AllocationCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.AllocationCostsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cu.schemaConfig.AllocationCost
+		edge.Schema = cu.schemaConfig.CostReport
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -863,34 +778,19 @@ func (cuo *ConnectorUpdateOne) AddResources(s ...*ServiceResource) *ConnectorUpd
 	return cuo.AddResourceIDs(ids...)
 }
 
-// AddClusterCostIDs adds the "cluster_costs" edge to the ClusterCost entity by IDs.
-func (cuo *ConnectorUpdateOne) AddClusterCostIDs(ids ...int) *ConnectorUpdateOne {
-	cuo.mutation.AddClusterCostIDs(ids...)
+// AddCostReportIDs adds the "cost_reports" edge to the CostReport entity by IDs.
+func (cuo *ConnectorUpdateOne) AddCostReportIDs(ids ...int) *ConnectorUpdateOne {
+	cuo.mutation.AddCostReportIDs(ids...)
 	return cuo
 }
 
-// AddClusterCosts adds the "cluster_costs" edges to the ClusterCost entity.
-func (cuo *ConnectorUpdateOne) AddClusterCosts(c ...*ClusterCost) *ConnectorUpdateOne {
+// AddCostReports adds the "cost_reports" edges to the CostReport entity.
+func (cuo *ConnectorUpdateOne) AddCostReports(c ...*CostReport) *ConnectorUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cuo.AddClusterCostIDs(ids...)
-}
-
-// AddAllocationCostIDs adds the "allocation_costs" edge to the AllocationCost entity by IDs.
-func (cuo *ConnectorUpdateOne) AddAllocationCostIDs(ids ...int) *ConnectorUpdateOne {
-	cuo.mutation.AddAllocationCostIDs(ids...)
-	return cuo
-}
-
-// AddAllocationCosts adds the "allocation_costs" edges to the AllocationCost entity.
-func (cuo *ConnectorUpdateOne) AddAllocationCosts(a ...*AllocationCost) *ConnectorUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cuo.AddAllocationCostIDs(ids...)
+	return cuo.AddCostReportIDs(ids...)
 }
 
 // Mutation returns the ConnectorMutation object of the builder.
@@ -940,46 +840,25 @@ func (cuo *ConnectorUpdateOne) RemoveResources(s ...*ServiceResource) *Connector
 	return cuo.RemoveResourceIDs(ids...)
 }
 
-// ClearClusterCosts clears all "cluster_costs" edges to the ClusterCost entity.
-func (cuo *ConnectorUpdateOne) ClearClusterCosts() *ConnectorUpdateOne {
-	cuo.mutation.ClearClusterCosts()
+// ClearCostReports clears all "cost_reports" edges to the CostReport entity.
+func (cuo *ConnectorUpdateOne) ClearCostReports() *ConnectorUpdateOne {
+	cuo.mutation.ClearCostReports()
 	return cuo
 }
 
-// RemoveClusterCostIDs removes the "cluster_costs" edge to ClusterCost entities by IDs.
-func (cuo *ConnectorUpdateOne) RemoveClusterCostIDs(ids ...int) *ConnectorUpdateOne {
-	cuo.mutation.RemoveClusterCostIDs(ids...)
+// RemoveCostReportIDs removes the "cost_reports" edge to CostReport entities by IDs.
+func (cuo *ConnectorUpdateOne) RemoveCostReportIDs(ids ...int) *ConnectorUpdateOne {
+	cuo.mutation.RemoveCostReportIDs(ids...)
 	return cuo
 }
 
-// RemoveClusterCosts removes "cluster_costs" edges to ClusterCost entities.
-func (cuo *ConnectorUpdateOne) RemoveClusterCosts(c ...*ClusterCost) *ConnectorUpdateOne {
+// RemoveCostReports removes "cost_reports" edges to CostReport entities.
+func (cuo *ConnectorUpdateOne) RemoveCostReports(c ...*CostReport) *ConnectorUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return cuo.RemoveClusterCostIDs(ids...)
-}
-
-// ClearAllocationCosts clears all "allocation_costs" edges to the AllocationCost entity.
-func (cuo *ConnectorUpdateOne) ClearAllocationCosts() *ConnectorUpdateOne {
-	cuo.mutation.ClearAllocationCosts()
-	return cuo
-}
-
-// RemoveAllocationCostIDs removes the "allocation_costs" edge to AllocationCost entities by IDs.
-func (cuo *ConnectorUpdateOne) RemoveAllocationCostIDs(ids ...int) *ConnectorUpdateOne {
-	cuo.mutation.RemoveAllocationCostIDs(ids...)
-	return cuo
-}
-
-// RemoveAllocationCosts removes "allocation_costs" edges to AllocationCost entities.
-func (cuo *ConnectorUpdateOne) RemoveAllocationCosts(a ...*AllocationCost) *ConnectorUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cuo.RemoveAllocationCostIDs(ids...)
+	return cuo.RemoveCostReportIDs(ids...)
 }
 
 // Where appends a list predicates to the ConnectorUpdate builder.
@@ -1438,97 +1317,49 @@ func (cuo *ConnectorUpdateOne) sqlSave(ctx context.Context) (_node *Connector, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cuo.mutation.ClusterCostsCleared() {
+	if cuo.mutation.CostReportsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ClusterCost
+		edge.Schema = cuo.schemaConfig.CostReport
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RemovedClusterCostsIDs(); len(nodes) > 0 && !cuo.mutation.ClusterCostsCleared() {
+	if nodes := cuo.mutation.RemovedCostReportsIDs(); len(nodes) > 0 && !cuo.mutation.CostReportsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ClusterCost
+		edge.Schema = cuo.schemaConfig.CostReport
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.ClusterCostsIDs(); len(nodes) > 0 {
+	if nodes := cuo.mutation.CostReportsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   connector.ClusterCostsTable,
-			Columns: []string{connector.ClusterCostsColumn},
+			Table:   connector.CostReportsTable,
+			Columns: []string{connector.CostReportsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(clustercost.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(costreport.FieldID, field.TypeInt),
 			},
 		}
-		edge.Schema = cuo.schemaConfig.ClusterCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if cuo.mutation.AllocationCostsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cuo.schemaConfig.AllocationCost
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.RemovedAllocationCostsIDs(); len(nodes) > 0 && !cuo.mutation.AllocationCostsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cuo.schemaConfig.AllocationCost
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.AllocationCostsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   connector.AllocationCostsTable,
-			Columns: []string{connector.AllocationCostsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(allocationcost.FieldID, field.TypeInt),
-			},
-		}
-		edge.Schema = cuo.schemaConfig.AllocationCost
+		edge.Schema = cuo.schemaConfig.CostReport
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

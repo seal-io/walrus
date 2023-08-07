@@ -13,15 +13,15 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/types"
 	"github.com/seal-io/seal/pkg/dao/types/object"
 	"github.com/seal-io/seal/utils/json"
 )
 
-// AllocationCost is the model entity for the AllocationCost schema.
-type AllocationCost struct {
+// CostReport is the model entity for the CostReport schema.
+type CostReport struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -86,14 +86,14 @@ type AllocationCost struct {
 	// Ram max usage in byte.
 	RAMByteUsageMax float64 `json:"ram_byte_usage_max,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the AllocationCostQuery when eager-loading is set.
-	Edges        AllocationCostEdges `json:"edges,omitempty"`
+	// The values are being populated by the CostReportQuery when eager-loading is set.
+	Edges        CostReportEdges `json:"edges,omitempty"`
 	selectValues sql.SelectValues
 }
 
-// AllocationCostEdges holds the relations/edges for other nodes in the graph.
-type AllocationCostEdges struct {
-	// Connector current cost linked.
+// CostReportEdges holds the relations/edges for other nodes in the graph.
+type CostReportEdges struct {
+	// Connector current cost item linked.
 	Connector *Connector `json:"connector,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -102,7 +102,7 @@ type AllocationCostEdges struct {
 
 // ConnectorOrErr returns the Connector value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AllocationCostEdges) ConnectorOrErr() (*Connector, error) {
+func (e CostReportEdges) ConnectorOrErr() (*Connector, error) {
 	if e.loadedTypes[0] {
 		if e.Connector == nil {
 			// Edge was loaded but was not found.
@@ -114,21 +114,21 @@ func (e AllocationCostEdges) ConnectorOrErr() (*Connector, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*AllocationCost) scanValues(columns []string) ([]any, error) {
+func (*CostReport) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case allocationcost.FieldPvs, allocationcost.FieldLabels:
+		case costreport.FieldPvs, costreport.FieldLabels:
 			values[i] = new([]byte)
-		case allocationcost.FieldConnectorID:
+		case costreport.FieldConnectorID:
 			values[i] = new(object.ID)
-		case allocationcost.FieldMinutes, allocationcost.FieldTotalCost, allocationcost.FieldCPUCost, allocationcost.FieldCPUCoreRequest, allocationcost.FieldGpuCost, allocationcost.FieldGpuCount, allocationcost.FieldRAMCost, allocationcost.FieldRAMByteRequest, allocationcost.FieldPvCost, allocationcost.FieldPvBytes, allocationcost.FieldLoadBalancerCost, allocationcost.FieldCPUCoreUsageAverage, allocationcost.FieldCPUCoreUsageMax, allocationcost.FieldRAMByteUsageAverage, allocationcost.FieldRAMByteUsageMax:
+		case costreport.FieldMinutes, costreport.FieldTotalCost, costreport.FieldCPUCost, costreport.FieldCPUCoreRequest, costreport.FieldGpuCost, costreport.FieldGpuCount, costreport.FieldRAMCost, costreport.FieldRAMByteRequest, costreport.FieldPvCost, costreport.FieldPvBytes, costreport.FieldLoadBalancerCost, costreport.FieldCPUCoreUsageAverage, costreport.FieldCPUCoreUsageMax, costreport.FieldRAMByteUsageAverage, costreport.FieldRAMByteUsageMax:
 			values[i] = new(sql.NullFloat64)
-		case allocationcost.FieldID, allocationcost.FieldCurrency:
+		case costreport.FieldID, costreport.FieldCurrency:
 			values[i] = new(sql.NullInt64)
-		case allocationcost.FieldName, allocationcost.FieldFingerprint, allocationcost.FieldClusterName, allocationcost.FieldNamespace, allocationcost.FieldNode, allocationcost.FieldController, allocationcost.FieldControllerKind, allocationcost.FieldPod, allocationcost.FieldContainer:
+		case costreport.FieldName, costreport.FieldFingerprint, costreport.FieldClusterName, costreport.FieldNamespace, costreport.FieldNode, costreport.FieldController, costreport.FieldControllerKind, costreport.FieldPod, costreport.FieldContainer:
 			values[i] = new(sql.NullString)
-		case allocationcost.FieldStartTime, allocationcost.FieldEndTime:
+		case costreport.FieldStartTime, costreport.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -138,336 +138,336 @@ func (*AllocationCost) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the AllocationCost fields.
-func (ac *AllocationCost) assignValues(columns []string, values []any) error {
+// to the CostReport fields.
+func (cr *CostReport) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case allocationcost.FieldID:
+		case costreport.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ac.ID = int(value.Int64)
-		case allocationcost.FieldStartTime:
+			cr.ID = int(value.Int64)
+		case costreport.FieldStartTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field start_time", values[i])
 			} else if value.Valid {
-				ac.StartTime = value.Time
+				cr.StartTime = value.Time
 			}
-		case allocationcost.FieldEndTime:
+		case costreport.FieldEndTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field end_time", values[i])
 			} else if value.Valid {
-				ac.EndTime = value.Time
+				cr.EndTime = value.Time
 			}
-		case allocationcost.FieldMinutes:
+		case costreport.FieldMinutes:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field minutes", values[i])
 			} else if value.Valid {
-				ac.Minutes = value.Float64
+				cr.Minutes = value.Float64
 			}
-		case allocationcost.FieldConnectorID:
+		case costreport.FieldConnectorID:
 			if value, ok := values[i].(*object.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field connector_id", values[i])
 			} else if value != nil {
-				ac.ConnectorID = *value
+				cr.ConnectorID = *value
 			}
-		case allocationcost.FieldName:
+		case costreport.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				ac.Name = value.String
+				cr.Name = value.String
 			}
-		case allocationcost.FieldFingerprint:
+		case costreport.FieldFingerprint:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field fingerprint", values[i])
 			} else if value.Valid {
-				ac.Fingerprint = value.String
+				cr.Fingerprint = value.String
 			}
-		case allocationcost.FieldClusterName:
+		case costreport.FieldClusterName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field cluster_name", values[i])
 			} else if value.Valid {
-				ac.ClusterName = value.String
+				cr.ClusterName = value.String
 			}
-		case allocationcost.FieldNamespace:
+		case costreport.FieldNamespace:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field namespace", values[i])
 			} else if value.Valid {
-				ac.Namespace = value.String
+				cr.Namespace = value.String
 			}
-		case allocationcost.FieldNode:
+		case costreport.FieldNode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field node", values[i])
 			} else if value.Valid {
-				ac.Node = value.String
+				cr.Node = value.String
 			}
-		case allocationcost.FieldController:
+		case costreport.FieldController:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field controller", values[i])
 			} else if value.Valid {
-				ac.Controller = value.String
+				cr.Controller = value.String
 			}
-		case allocationcost.FieldControllerKind:
+		case costreport.FieldControllerKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field controller_kind", values[i])
 			} else if value.Valid {
-				ac.ControllerKind = value.String
+				cr.ControllerKind = value.String
 			}
-		case allocationcost.FieldPod:
+		case costreport.FieldPod:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field pod", values[i])
 			} else if value.Valid {
-				ac.Pod = value.String
+				cr.Pod = value.String
 			}
-		case allocationcost.FieldContainer:
+		case costreport.FieldContainer:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field container", values[i])
 			} else if value.Valid {
-				ac.Container = value.String
+				cr.Container = value.String
 			}
-		case allocationcost.FieldPvs:
+		case costreport.FieldPvs:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field pvs", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &ac.Pvs); err != nil {
+				if err := json.Unmarshal(*value, &cr.Pvs); err != nil {
 					return fmt.Errorf("unmarshal field pvs: %w", err)
 				}
 			}
-		case allocationcost.FieldLabels:
+		case costreport.FieldLabels:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field labels", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &ac.Labels); err != nil {
+				if err := json.Unmarshal(*value, &cr.Labels); err != nil {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
-		case allocationcost.FieldTotalCost:
+		case costreport.FieldTotalCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field totalCost", values[i])
 			} else if value.Valid {
-				ac.TotalCost = value.Float64
+				cr.TotalCost = value.Float64
 			}
-		case allocationcost.FieldCurrency:
+		case costreport.FieldCurrency:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
 			} else if value.Valid {
-				ac.Currency = int(value.Int64)
+				cr.Currency = int(value.Int64)
 			}
-		case allocationcost.FieldCPUCost:
+		case costreport.FieldCPUCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field cpu_cost", values[i])
 			} else if value.Valid {
-				ac.CPUCost = value.Float64
+				cr.CPUCost = value.Float64
 			}
-		case allocationcost.FieldCPUCoreRequest:
+		case costreport.FieldCPUCoreRequest:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field cpu_core_request", values[i])
 			} else if value.Valid {
-				ac.CPUCoreRequest = value.Float64
+				cr.CPUCoreRequest = value.Float64
 			}
-		case allocationcost.FieldGpuCost:
+		case costreport.FieldGpuCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field gpu_cost", values[i])
 			} else if value.Valid {
-				ac.GpuCost = value.Float64
+				cr.GpuCost = value.Float64
 			}
-		case allocationcost.FieldGpuCount:
+		case costreport.FieldGpuCount:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field gpu_count", values[i])
 			} else if value.Valid {
-				ac.GpuCount = value.Float64
+				cr.GpuCount = value.Float64
 			}
-		case allocationcost.FieldRAMCost:
+		case costreport.FieldRAMCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field ram_cost", values[i])
 			} else if value.Valid {
-				ac.RAMCost = value.Float64
+				cr.RAMCost = value.Float64
 			}
-		case allocationcost.FieldRAMByteRequest:
+		case costreport.FieldRAMByteRequest:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field ram_byte_request", values[i])
 			} else if value.Valid {
-				ac.RAMByteRequest = value.Float64
+				cr.RAMByteRequest = value.Float64
 			}
-		case allocationcost.FieldPvCost:
+		case costreport.FieldPvCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field pv_cost", values[i])
 			} else if value.Valid {
-				ac.PvCost = value.Float64
+				cr.PvCost = value.Float64
 			}
-		case allocationcost.FieldPvBytes:
+		case costreport.FieldPvBytes:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field pv_bytes", values[i])
 			} else if value.Valid {
-				ac.PvBytes = value.Float64
+				cr.PvBytes = value.Float64
 			}
-		case allocationcost.FieldLoadBalancerCost:
+		case costreport.FieldLoadBalancerCost:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field load_balancer_cost", values[i])
 			} else if value.Valid {
-				ac.LoadBalancerCost = value.Float64
+				cr.LoadBalancerCost = value.Float64
 			}
-		case allocationcost.FieldCPUCoreUsageAverage:
+		case costreport.FieldCPUCoreUsageAverage:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field cpu_core_usage_average", values[i])
 			} else if value.Valid {
-				ac.CPUCoreUsageAverage = value.Float64
+				cr.CPUCoreUsageAverage = value.Float64
 			}
-		case allocationcost.FieldCPUCoreUsageMax:
+		case costreport.FieldCPUCoreUsageMax:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field cpu_core_usage_max", values[i])
 			} else if value.Valid {
-				ac.CPUCoreUsageMax = value.Float64
+				cr.CPUCoreUsageMax = value.Float64
 			}
-		case allocationcost.FieldRAMByteUsageAverage:
+		case costreport.FieldRAMByteUsageAverage:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field ram_byte_usage_average", values[i])
 			} else if value.Valid {
-				ac.RAMByteUsageAverage = value.Float64
+				cr.RAMByteUsageAverage = value.Float64
 			}
-		case allocationcost.FieldRAMByteUsageMax:
+		case costreport.FieldRAMByteUsageMax:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field ram_byte_usage_max", values[i])
 			} else if value.Valid {
-				ac.RAMByteUsageMax = value.Float64
+				cr.RAMByteUsageMax = value.Float64
 			}
 		default:
-			ac.selectValues.Set(columns[i], values[i])
+			cr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the AllocationCost.
+// Value returns the ent.Value that was dynamically selected and assigned to the CostReport.
 // This includes values selected through modifiers, order, etc.
-func (ac *AllocationCost) Value(name string) (ent.Value, error) {
-	return ac.selectValues.Get(name)
+func (cr *CostReport) Value(name string) (ent.Value, error) {
+	return cr.selectValues.Get(name)
 }
 
-// QueryConnector queries the "connector" edge of the AllocationCost entity.
-func (ac *AllocationCost) QueryConnector() *ConnectorQuery {
-	return NewAllocationCostClient(ac.config).QueryConnector(ac)
+// QueryConnector queries the "connector" edge of the CostReport entity.
+func (cr *CostReport) QueryConnector() *ConnectorQuery {
+	return NewCostReportClient(cr.config).QueryConnector(cr)
 }
 
-// Update returns a builder for updating this AllocationCost.
-// Note that you need to call AllocationCost.Unwrap() before calling this method if this AllocationCost
+// Update returns a builder for updating this CostReport.
+// Note that you need to call CostReport.Unwrap() before calling this method if this CostReport
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (ac *AllocationCost) Update() *AllocationCostUpdateOne {
-	return NewAllocationCostClient(ac.config).UpdateOne(ac)
+func (cr *CostReport) Update() *CostReportUpdateOne {
+	return NewCostReportClient(cr.config).UpdateOne(cr)
 }
 
-// Unwrap unwraps the AllocationCost entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the CostReport entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (ac *AllocationCost) Unwrap() *AllocationCost {
-	_tx, ok := ac.config.driver.(*txDriver)
+func (cr *CostReport) Unwrap() *CostReport {
+	_tx, ok := cr.config.driver.(*txDriver)
 	if !ok {
-		panic("model: AllocationCost is not a transactional entity")
+		panic("model: CostReport is not a transactional entity")
 	}
-	ac.config.driver = _tx.drv
-	return ac
+	cr.config.driver = _tx.drv
+	return cr
 }
 
 // String implements the fmt.Stringer.
-func (ac *AllocationCost) String() string {
+func (cr *CostReport) String() string {
 	var builder strings.Builder
-	builder.WriteString("AllocationCost(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", ac.ID))
+	builder.WriteString("CostReport(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", cr.ID))
 	builder.WriteString("start_time=")
-	builder.WriteString(ac.StartTime.Format(time.ANSIC))
+	builder.WriteString(cr.StartTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("end_time=")
-	builder.WriteString(ac.EndTime.Format(time.ANSIC))
+	builder.WriteString(cr.EndTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("minutes=")
-	builder.WriteString(fmt.Sprintf("%v", ac.Minutes))
+	builder.WriteString(fmt.Sprintf("%v", cr.Minutes))
 	builder.WriteString(", ")
 	builder.WriteString("connector_id=")
-	builder.WriteString(fmt.Sprintf("%v", ac.ConnectorID))
+	builder.WriteString(fmt.Sprintf("%v", cr.ConnectorID))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(ac.Name)
+	builder.WriteString(cr.Name)
 	builder.WriteString(", ")
 	builder.WriteString("fingerprint=")
-	builder.WriteString(ac.Fingerprint)
+	builder.WriteString(cr.Fingerprint)
 	builder.WriteString(", ")
 	builder.WriteString("cluster_name=")
-	builder.WriteString(ac.ClusterName)
+	builder.WriteString(cr.ClusterName)
 	builder.WriteString(", ")
 	builder.WriteString("namespace=")
-	builder.WriteString(ac.Namespace)
+	builder.WriteString(cr.Namespace)
 	builder.WriteString(", ")
 	builder.WriteString("node=")
-	builder.WriteString(ac.Node)
+	builder.WriteString(cr.Node)
 	builder.WriteString(", ")
 	builder.WriteString("controller=")
-	builder.WriteString(ac.Controller)
+	builder.WriteString(cr.Controller)
 	builder.WriteString(", ")
 	builder.WriteString("controller_kind=")
-	builder.WriteString(ac.ControllerKind)
+	builder.WriteString(cr.ControllerKind)
 	builder.WriteString(", ")
 	builder.WriteString("pod=")
-	builder.WriteString(ac.Pod)
+	builder.WriteString(cr.Pod)
 	builder.WriteString(", ")
 	builder.WriteString("container=")
-	builder.WriteString(ac.Container)
+	builder.WriteString(cr.Container)
 	builder.WriteString(", ")
 	builder.WriteString("pvs=")
-	builder.WriteString(fmt.Sprintf("%v", ac.Pvs))
+	builder.WriteString(fmt.Sprintf("%v", cr.Pvs))
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
-	builder.WriteString(fmt.Sprintf("%v", ac.Labels))
+	builder.WriteString(fmt.Sprintf("%v", cr.Labels))
 	builder.WriteString(", ")
 	builder.WriteString("totalCost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.TotalCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.TotalCost))
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
-	builder.WriteString(fmt.Sprintf("%v", ac.Currency))
+	builder.WriteString(fmt.Sprintf("%v", cr.Currency))
 	builder.WriteString(", ")
 	builder.WriteString("cpu_cost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.CPUCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.CPUCost))
 	builder.WriteString(", ")
 	builder.WriteString("cpu_core_request=")
-	builder.WriteString(fmt.Sprintf("%v", ac.CPUCoreRequest))
+	builder.WriteString(fmt.Sprintf("%v", cr.CPUCoreRequest))
 	builder.WriteString(", ")
 	builder.WriteString("gpu_cost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.GpuCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.GpuCost))
 	builder.WriteString(", ")
 	builder.WriteString("gpu_count=")
-	builder.WriteString(fmt.Sprintf("%v", ac.GpuCount))
+	builder.WriteString(fmt.Sprintf("%v", cr.GpuCount))
 	builder.WriteString(", ")
 	builder.WriteString("ram_cost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.RAMCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.RAMCost))
 	builder.WriteString(", ")
 	builder.WriteString("ram_byte_request=")
-	builder.WriteString(fmt.Sprintf("%v", ac.RAMByteRequest))
+	builder.WriteString(fmt.Sprintf("%v", cr.RAMByteRequest))
 	builder.WriteString(", ")
 	builder.WriteString("pv_cost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.PvCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.PvCost))
 	builder.WriteString(", ")
 	builder.WriteString("pv_bytes=")
-	builder.WriteString(fmt.Sprintf("%v", ac.PvBytes))
+	builder.WriteString(fmt.Sprintf("%v", cr.PvBytes))
 	builder.WriteString(", ")
 	builder.WriteString("load_balancer_cost=")
-	builder.WriteString(fmt.Sprintf("%v", ac.LoadBalancerCost))
+	builder.WriteString(fmt.Sprintf("%v", cr.LoadBalancerCost))
 	builder.WriteString(", ")
 	builder.WriteString("cpu_core_usage_average=")
-	builder.WriteString(fmt.Sprintf("%v", ac.CPUCoreUsageAverage))
+	builder.WriteString(fmt.Sprintf("%v", cr.CPUCoreUsageAverage))
 	builder.WriteString(", ")
 	builder.WriteString("cpu_core_usage_max=")
-	builder.WriteString(fmt.Sprintf("%v", ac.CPUCoreUsageMax))
+	builder.WriteString(fmt.Sprintf("%v", cr.CPUCoreUsageMax))
 	builder.WriteString(", ")
 	builder.WriteString("ram_byte_usage_average=")
-	builder.WriteString(fmt.Sprintf("%v", ac.RAMByteUsageAverage))
+	builder.WriteString(fmt.Sprintf("%v", cr.RAMByteUsageAverage))
 	builder.WriteString(", ")
 	builder.WriteString("ram_byte_usage_max=")
-	builder.WriteString(fmt.Sprintf("%v", ac.RAMByteUsageMax))
+	builder.WriteString(fmt.Sprintf("%v", cr.RAMByteUsageMax))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// AllocationCosts is a parsable slice of AllocationCost.
-type AllocationCosts []*AllocationCost
+// CostReports is a parsable slice of CostReport.
+type CostReports []*CostReport

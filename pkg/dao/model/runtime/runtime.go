@@ -8,9 +8,8 @@ package runtime
 import (
 	"time"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -39,140 +38,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	allocationcostHooks := schema.AllocationCost{}.Hooks()
-	allocationcost.Hooks[0] = allocationcostHooks[0]
-	allocationcostFields := schema.AllocationCost{}.Fields()
-	_ = allocationcostFields
-	// allocationcostDescConnectorID is the schema descriptor for connector_id field.
-	allocationcostDescConnectorID := allocationcostFields[3].Descriptor()
-	// allocationcost.ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
-	allocationcost.ConnectorIDValidator = allocationcostDescConnectorID.Validators[0].(func(string) error)
-	// allocationcostDescPvs is the schema descriptor for pvs field.
-	allocationcostDescPvs := allocationcostFields[13].Descriptor()
-	// allocationcost.DefaultPvs holds the default value on creation for the pvs field.
-	allocationcost.DefaultPvs = allocationcostDescPvs.Default.(map[string]types.PVCost)
-	// allocationcostDescLabels is the schema descriptor for labels field.
-	allocationcostDescLabels := allocationcostFields[14].Descriptor()
-	// allocationcost.DefaultLabels holds the default value on creation for the labels field.
-	allocationcost.DefaultLabels = allocationcostDescLabels.Default.(map[string]string)
-	// allocationcostDescTotalCost is the schema descriptor for totalCost field.
-	allocationcostDescTotalCost := allocationcostFields[15].Descriptor()
-	// allocationcost.DefaultTotalCost holds the default value on creation for the totalCost field.
-	allocationcost.DefaultTotalCost = allocationcostDescTotalCost.Default.(float64)
-	// allocationcost.TotalCostValidator is a validator for the "totalCost" field. It is called by the builders before save.
-	allocationcost.TotalCostValidator = allocationcostDescTotalCost.Validators[0].(func(float64) error)
-	// allocationcostDescCPUCost is the schema descriptor for cpu_cost field.
-	allocationcostDescCPUCost := allocationcostFields[17].Descriptor()
-	// allocationcost.DefaultCPUCost holds the default value on creation for the cpu_cost field.
-	allocationcost.DefaultCPUCost = allocationcostDescCPUCost.Default.(float64)
-	// allocationcost.CPUCostValidator is a validator for the "cpu_cost" field. It is called by the builders before save.
-	allocationcost.CPUCostValidator = allocationcostDescCPUCost.Validators[0].(func(float64) error)
-	// allocationcostDescCPUCoreRequest is the schema descriptor for cpu_core_request field.
-	allocationcostDescCPUCoreRequest := allocationcostFields[18].Descriptor()
-	// allocationcost.DefaultCPUCoreRequest holds the default value on creation for the cpu_core_request field.
-	allocationcost.DefaultCPUCoreRequest = allocationcostDescCPUCoreRequest.Default.(float64)
-	// allocationcost.CPUCoreRequestValidator is a validator for the "cpu_core_request" field. It is called by the builders before save.
-	allocationcost.CPUCoreRequestValidator = allocationcostDescCPUCoreRequest.Validators[0].(func(float64) error)
-	// allocationcostDescGpuCost is the schema descriptor for gpu_cost field.
-	allocationcostDescGpuCost := allocationcostFields[19].Descriptor()
-	// allocationcost.DefaultGpuCost holds the default value on creation for the gpu_cost field.
-	allocationcost.DefaultGpuCost = allocationcostDescGpuCost.Default.(float64)
-	// allocationcost.GpuCostValidator is a validator for the "gpu_cost" field. It is called by the builders before save.
-	allocationcost.GpuCostValidator = allocationcostDescGpuCost.Validators[0].(func(float64) error)
-	// allocationcostDescGpuCount is the schema descriptor for gpu_count field.
-	allocationcostDescGpuCount := allocationcostFields[20].Descriptor()
-	// allocationcost.DefaultGpuCount holds the default value on creation for the gpu_count field.
-	allocationcost.DefaultGpuCount = allocationcostDescGpuCount.Default.(float64)
-	// allocationcost.GpuCountValidator is a validator for the "gpu_count" field. It is called by the builders before save.
-	allocationcost.GpuCountValidator = allocationcostDescGpuCount.Validators[0].(func(float64) error)
-	// allocationcostDescRAMCost is the schema descriptor for ram_cost field.
-	allocationcostDescRAMCost := allocationcostFields[21].Descriptor()
-	// allocationcost.DefaultRAMCost holds the default value on creation for the ram_cost field.
-	allocationcost.DefaultRAMCost = allocationcostDescRAMCost.Default.(float64)
-	// allocationcost.RAMCostValidator is a validator for the "ram_cost" field. It is called by the builders before save.
-	allocationcost.RAMCostValidator = allocationcostDescRAMCost.Validators[0].(func(float64) error)
-	// allocationcostDescRAMByteRequest is the schema descriptor for ram_byte_request field.
-	allocationcostDescRAMByteRequest := allocationcostFields[22].Descriptor()
-	// allocationcost.DefaultRAMByteRequest holds the default value on creation for the ram_byte_request field.
-	allocationcost.DefaultRAMByteRequest = allocationcostDescRAMByteRequest.Default.(float64)
-	// allocationcost.RAMByteRequestValidator is a validator for the "ram_byte_request" field. It is called by the builders before save.
-	allocationcost.RAMByteRequestValidator = allocationcostDescRAMByteRequest.Validators[0].(func(float64) error)
-	// allocationcostDescPvCost is the schema descriptor for pv_cost field.
-	allocationcostDescPvCost := allocationcostFields[23].Descriptor()
-	// allocationcost.DefaultPvCost holds the default value on creation for the pv_cost field.
-	allocationcost.DefaultPvCost = allocationcostDescPvCost.Default.(float64)
-	// allocationcost.PvCostValidator is a validator for the "pv_cost" field. It is called by the builders before save.
-	allocationcost.PvCostValidator = allocationcostDescPvCost.Validators[0].(func(float64) error)
-	// allocationcostDescPvBytes is the schema descriptor for pv_bytes field.
-	allocationcostDescPvBytes := allocationcostFields[24].Descriptor()
-	// allocationcost.DefaultPvBytes holds the default value on creation for the pv_bytes field.
-	allocationcost.DefaultPvBytes = allocationcostDescPvBytes.Default.(float64)
-	// allocationcost.PvBytesValidator is a validator for the "pv_bytes" field. It is called by the builders before save.
-	allocationcost.PvBytesValidator = allocationcostDescPvBytes.Validators[0].(func(float64) error)
-	// allocationcostDescLoadBalancerCost is the schema descriptor for load_balancer_cost field.
-	allocationcostDescLoadBalancerCost := allocationcostFields[25].Descriptor()
-	// allocationcost.DefaultLoadBalancerCost holds the default value on creation for the load_balancer_cost field.
-	allocationcost.DefaultLoadBalancerCost = allocationcostDescLoadBalancerCost.Default.(float64)
-	// allocationcost.LoadBalancerCostValidator is a validator for the "load_balancer_cost" field. It is called by the builders before save.
-	allocationcost.LoadBalancerCostValidator = allocationcostDescLoadBalancerCost.Validators[0].(func(float64) error)
-	// allocationcostDescCPUCoreUsageAverage is the schema descriptor for cpu_core_usage_average field.
-	allocationcostDescCPUCoreUsageAverage := allocationcostFields[26].Descriptor()
-	// allocationcost.DefaultCPUCoreUsageAverage holds the default value on creation for the cpu_core_usage_average field.
-	allocationcost.DefaultCPUCoreUsageAverage = allocationcostDescCPUCoreUsageAverage.Default.(float64)
-	// allocationcost.CPUCoreUsageAverageValidator is a validator for the "cpu_core_usage_average" field. It is called by the builders before save.
-	allocationcost.CPUCoreUsageAverageValidator = allocationcostDescCPUCoreUsageAverage.Validators[0].(func(float64) error)
-	// allocationcostDescCPUCoreUsageMax is the schema descriptor for cpu_core_usage_max field.
-	allocationcostDescCPUCoreUsageMax := allocationcostFields[27].Descriptor()
-	// allocationcost.DefaultCPUCoreUsageMax holds the default value on creation for the cpu_core_usage_max field.
-	allocationcost.DefaultCPUCoreUsageMax = allocationcostDescCPUCoreUsageMax.Default.(float64)
-	// allocationcost.CPUCoreUsageMaxValidator is a validator for the "cpu_core_usage_max" field. It is called by the builders before save.
-	allocationcost.CPUCoreUsageMaxValidator = allocationcostDescCPUCoreUsageMax.Validators[0].(func(float64) error)
-	// allocationcostDescRAMByteUsageAverage is the schema descriptor for ram_byte_usage_average field.
-	allocationcostDescRAMByteUsageAverage := allocationcostFields[28].Descriptor()
-	// allocationcost.DefaultRAMByteUsageAverage holds the default value on creation for the ram_byte_usage_average field.
-	allocationcost.DefaultRAMByteUsageAverage = allocationcostDescRAMByteUsageAverage.Default.(float64)
-	// allocationcost.RAMByteUsageAverageValidator is a validator for the "ram_byte_usage_average" field. It is called by the builders before save.
-	allocationcost.RAMByteUsageAverageValidator = allocationcostDescRAMByteUsageAverage.Validators[0].(func(float64) error)
-	// allocationcostDescRAMByteUsageMax is the schema descriptor for ram_byte_usage_max field.
-	allocationcostDescRAMByteUsageMax := allocationcostFields[29].Descriptor()
-	// allocationcost.DefaultRAMByteUsageMax holds the default value on creation for the ram_byte_usage_max field.
-	allocationcost.DefaultRAMByteUsageMax = allocationcostDescRAMByteUsageMax.Default.(float64)
-	// allocationcost.RAMByteUsageMaxValidator is a validator for the "ram_byte_usage_max" field. It is called by the builders before save.
-	allocationcost.RAMByteUsageMaxValidator = allocationcostDescRAMByteUsageMax.Validators[0].(func(float64) error)
-	clustercostFields := schema.ClusterCost{}.Fields()
-	_ = clustercostFields
-	// clustercostDescConnectorID is the schema descriptor for connector_id field.
-	clustercostDescConnectorID := clustercostFields[3].Descriptor()
-	// clustercost.ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
-	clustercost.ConnectorIDValidator = clustercostDescConnectorID.Validators[0].(func(string) error)
-	// clustercostDescClusterName is the schema descriptor for cluster_name field.
-	clustercostDescClusterName := clustercostFields[4].Descriptor()
-	// clustercost.ClusterNameValidator is a validator for the "cluster_name" field. It is called by the builders before save.
-	clustercost.ClusterNameValidator = clustercostDescClusterName.Validators[0].(func(string) error)
-	// clustercostDescTotalCost is the schema descriptor for total_cost field.
-	clustercostDescTotalCost := clustercostFields[5].Descriptor()
-	// clustercost.DefaultTotalCost holds the default value on creation for the total_cost field.
-	clustercost.DefaultTotalCost = clustercostDescTotalCost.Default.(float64)
-	// clustercost.TotalCostValidator is a validator for the "total_cost" field. It is called by the builders before save.
-	clustercost.TotalCostValidator = clustercostDescTotalCost.Validators[0].(func(float64) error)
-	// clustercostDescAllocationCost is the schema descriptor for allocation_cost field.
-	clustercostDescAllocationCost := clustercostFields[7].Descriptor()
-	// clustercost.DefaultAllocationCost holds the default value on creation for the allocation_cost field.
-	clustercost.DefaultAllocationCost = clustercostDescAllocationCost.Default.(float64)
-	// clustercost.AllocationCostValidator is a validator for the "allocation_cost" field. It is called by the builders before save.
-	clustercost.AllocationCostValidator = clustercostDescAllocationCost.Validators[0].(func(float64) error)
-	// clustercostDescIdleCost is the schema descriptor for idle_cost field.
-	clustercostDescIdleCost := clustercostFields[8].Descriptor()
-	// clustercost.DefaultIdleCost holds the default value on creation for the idle_cost field.
-	clustercost.DefaultIdleCost = clustercostDescIdleCost.Default.(float64)
-	// clustercost.IdleCostValidator is a validator for the "idle_cost" field. It is called by the builders before save.
-	clustercost.IdleCostValidator = clustercostDescIdleCost.Validators[0].(func(float64) error)
-	// clustercostDescManagementCost is the schema descriptor for management_cost field.
-	clustercostDescManagementCost := clustercostFields[9].Descriptor()
-	// clustercost.DefaultManagementCost holds the default value on creation for the management_cost field.
-	clustercost.DefaultManagementCost = clustercostDescManagementCost.Default.(float64)
-	// clustercost.ManagementCostValidator is a validator for the "management_cost" field. It is called by the builders before save.
-	clustercost.ManagementCostValidator = clustercostDescManagementCost.Validators[0].(func(float64) error)
 	connectorMixin := schema.Connector{}.Mixin()
 	connectorMixinHooks0 := connectorMixin[0].Hooks()
 	connectorMixinHooks1 := connectorMixin[1].Hooks()
@@ -225,6 +90,106 @@ func init() {
 	connectorDescCategory := connectorFields[5].Descriptor()
 	// connector.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
 	connector.CategoryValidator = connectorDescCategory.Validators[0].(func(string) error)
+	costreportHooks := schema.CostReport{}.Hooks()
+	costreport.Hooks[0] = costreportHooks[0]
+	costreportFields := schema.CostReport{}.Fields()
+	_ = costreportFields
+	// costreportDescConnectorID is the schema descriptor for connector_id field.
+	costreportDescConnectorID := costreportFields[3].Descriptor()
+	// costreport.ConnectorIDValidator is a validator for the "connector_id" field. It is called by the builders before save.
+	costreport.ConnectorIDValidator = costreportDescConnectorID.Validators[0].(func(string) error)
+	// costreportDescPvs is the schema descriptor for pvs field.
+	costreportDescPvs := costreportFields[13].Descriptor()
+	// costreport.DefaultPvs holds the default value on creation for the pvs field.
+	costreport.DefaultPvs = costreportDescPvs.Default.(map[string]types.PVCost)
+	// costreportDescLabels is the schema descriptor for labels field.
+	costreportDescLabels := costreportFields[14].Descriptor()
+	// costreport.DefaultLabels holds the default value on creation for the labels field.
+	costreport.DefaultLabels = costreportDescLabels.Default.(map[string]string)
+	// costreportDescTotalCost is the schema descriptor for totalCost field.
+	costreportDescTotalCost := costreportFields[15].Descriptor()
+	// costreport.DefaultTotalCost holds the default value on creation for the totalCost field.
+	costreport.DefaultTotalCost = costreportDescTotalCost.Default.(float64)
+	// costreport.TotalCostValidator is a validator for the "totalCost" field. It is called by the builders before save.
+	costreport.TotalCostValidator = costreportDescTotalCost.Validators[0].(func(float64) error)
+	// costreportDescCPUCost is the schema descriptor for cpu_cost field.
+	costreportDescCPUCost := costreportFields[17].Descriptor()
+	// costreport.DefaultCPUCost holds the default value on creation for the cpu_cost field.
+	costreport.DefaultCPUCost = costreportDescCPUCost.Default.(float64)
+	// costreport.CPUCostValidator is a validator for the "cpu_cost" field. It is called by the builders before save.
+	costreport.CPUCostValidator = costreportDescCPUCost.Validators[0].(func(float64) error)
+	// costreportDescCPUCoreRequest is the schema descriptor for cpu_core_request field.
+	costreportDescCPUCoreRequest := costreportFields[18].Descriptor()
+	// costreport.DefaultCPUCoreRequest holds the default value on creation for the cpu_core_request field.
+	costreport.DefaultCPUCoreRequest = costreportDescCPUCoreRequest.Default.(float64)
+	// costreport.CPUCoreRequestValidator is a validator for the "cpu_core_request" field. It is called by the builders before save.
+	costreport.CPUCoreRequestValidator = costreportDescCPUCoreRequest.Validators[0].(func(float64) error)
+	// costreportDescGpuCost is the schema descriptor for gpu_cost field.
+	costreportDescGpuCost := costreportFields[19].Descriptor()
+	// costreport.DefaultGpuCost holds the default value on creation for the gpu_cost field.
+	costreport.DefaultGpuCost = costreportDescGpuCost.Default.(float64)
+	// costreport.GpuCostValidator is a validator for the "gpu_cost" field. It is called by the builders before save.
+	costreport.GpuCostValidator = costreportDescGpuCost.Validators[0].(func(float64) error)
+	// costreportDescGpuCount is the schema descriptor for gpu_count field.
+	costreportDescGpuCount := costreportFields[20].Descriptor()
+	// costreport.DefaultGpuCount holds the default value on creation for the gpu_count field.
+	costreport.DefaultGpuCount = costreportDescGpuCount.Default.(float64)
+	// costreport.GpuCountValidator is a validator for the "gpu_count" field. It is called by the builders before save.
+	costreport.GpuCountValidator = costreportDescGpuCount.Validators[0].(func(float64) error)
+	// costreportDescRAMCost is the schema descriptor for ram_cost field.
+	costreportDescRAMCost := costreportFields[21].Descriptor()
+	// costreport.DefaultRAMCost holds the default value on creation for the ram_cost field.
+	costreport.DefaultRAMCost = costreportDescRAMCost.Default.(float64)
+	// costreport.RAMCostValidator is a validator for the "ram_cost" field. It is called by the builders before save.
+	costreport.RAMCostValidator = costreportDescRAMCost.Validators[0].(func(float64) error)
+	// costreportDescRAMByteRequest is the schema descriptor for ram_byte_request field.
+	costreportDescRAMByteRequest := costreportFields[22].Descriptor()
+	// costreport.DefaultRAMByteRequest holds the default value on creation for the ram_byte_request field.
+	costreport.DefaultRAMByteRequest = costreportDescRAMByteRequest.Default.(float64)
+	// costreport.RAMByteRequestValidator is a validator for the "ram_byte_request" field. It is called by the builders before save.
+	costreport.RAMByteRequestValidator = costreportDescRAMByteRequest.Validators[0].(func(float64) error)
+	// costreportDescPvCost is the schema descriptor for pv_cost field.
+	costreportDescPvCost := costreportFields[23].Descriptor()
+	// costreport.DefaultPvCost holds the default value on creation for the pv_cost field.
+	costreport.DefaultPvCost = costreportDescPvCost.Default.(float64)
+	// costreport.PvCostValidator is a validator for the "pv_cost" field. It is called by the builders before save.
+	costreport.PvCostValidator = costreportDescPvCost.Validators[0].(func(float64) error)
+	// costreportDescPvBytes is the schema descriptor for pv_bytes field.
+	costreportDescPvBytes := costreportFields[24].Descriptor()
+	// costreport.DefaultPvBytes holds the default value on creation for the pv_bytes field.
+	costreport.DefaultPvBytes = costreportDescPvBytes.Default.(float64)
+	// costreport.PvBytesValidator is a validator for the "pv_bytes" field. It is called by the builders before save.
+	costreport.PvBytesValidator = costreportDescPvBytes.Validators[0].(func(float64) error)
+	// costreportDescLoadBalancerCost is the schema descriptor for load_balancer_cost field.
+	costreportDescLoadBalancerCost := costreportFields[25].Descriptor()
+	// costreport.DefaultLoadBalancerCost holds the default value on creation for the load_balancer_cost field.
+	costreport.DefaultLoadBalancerCost = costreportDescLoadBalancerCost.Default.(float64)
+	// costreport.LoadBalancerCostValidator is a validator for the "load_balancer_cost" field. It is called by the builders before save.
+	costreport.LoadBalancerCostValidator = costreportDescLoadBalancerCost.Validators[0].(func(float64) error)
+	// costreportDescCPUCoreUsageAverage is the schema descriptor for cpu_core_usage_average field.
+	costreportDescCPUCoreUsageAverage := costreportFields[26].Descriptor()
+	// costreport.DefaultCPUCoreUsageAverage holds the default value on creation for the cpu_core_usage_average field.
+	costreport.DefaultCPUCoreUsageAverage = costreportDescCPUCoreUsageAverage.Default.(float64)
+	// costreport.CPUCoreUsageAverageValidator is a validator for the "cpu_core_usage_average" field. It is called by the builders before save.
+	costreport.CPUCoreUsageAverageValidator = costreportDescCPUCoreUsageAverage.Validators[0].(func(float64) error)
+	// costreportDescCPUCoreUsageMax is the schema descriptor for cpu_core_usage_max field.
+	costreportDescCPUCoreUsageMax := costreportFields[27].Descriptor()
+	// costreport.DefaultCPUCoreUsageMax holds the default value on creation for the cpu_core_usage_max field.
+	costreport.DefaultCPUCoreUsageMax = costreportDescCPUCoreUsageMax.Default.(float64)
+	// costreport.CPUCoreUsageMaxValidator is a validator for the "cpu_core_usage_max" field. It is called by the builders before save.
+	costreport.CPUCoreUsageMaxValidator = costreportDescCPUCoreUsageMax.Validators[0].(func(float64) error)
+	// costreportDescRAMByteUsageAverage is the schema descriptor for ram_byte_usage_average field.
+	costreportDescRAMByteUsageAverage := costreportFields[28].Descriptor()
+	// costreport.DefaultRAMByteUsageAverage holds the default value on creation for the ram_byte_usage_average field.
+	costreport.DefaultRAMByteUsageAverage = costreportDescRAMByteUsageAverage.Default.(float64)
+	// costreport.RAMByteUsageAverageValidator is a validator for the "ram_byte_usage_average" field. It is called by the builders before save.
+	costreport.RAMByteUsageAverageValidator = costreportDescRAMByteUsageAverage.Validators[0].(func(float64) error)
+	// costreportDescRAMByteUsageMax is the schema descriptor for ram_byte_usage_max field.
+	costreportDescRAMByteUsageMax := costreportFields[29].Descriptor()
+	// costreport.DefaultRAMByteUsageMax holds the default value on creation for the ram_byte_usage_max field.
+	costreport.DefaultRAMByteUsageMax = costreportDescRAMByteUsageMax.Default.(float64)
+	// costreport.RAMByteUsageMaxValidator is a validator for the "ram_byte_usage_max" field. It is called by the builders before save.
+	costreport.RAMByteUsageMaxValidator = costreportDescRAMByteUsageMax.Validators[0].(func(float64) error)
 	distributelockFields := schema.DistributeLock{}.Fields()
 	_ = distributelockFields
 	// distributelockDescID is the schema descriptor for id field.
@@ -331,10 +296,10 @@ func init() {
 	perspectiveDescBuiltin := perspectiveFields[2].Descriptor()
 	// perspective.DefaultBuiltin holds the default value on creation for the builtin field.
 	perspective.DefaultBuiltin = perspectiveDescBuiltin.Default.(bool)
-	// perspectiveDescAllocationQueries is the schema descriptor for allocation_queries field.
-	perspectiveDescAllocationQueries := perspectiveFields[3].Descriptor()
-	// perspective.DefaultAllocationQueries holds the default value on creation for the allocation_queries field.
-	perspective.DefaultAllocationQueries = perspectiveDescAllocationQueries.Default.([]types.QueryCondition)
+	// perspectiveDescCostQueries is the schema descriptor for cost_queries field.
+	perspectiveDescCostQueries := perspectiveFields[3].Descriptor()
+	// perspective.DefaultCostQueries holds the default value on creation for the cost_queries field.
+	perspective.DefaultCostQueries = perspectiveDescCostQueries.Default.([]types.QueryCondition)
 	projectMixin := schema.Project{}.Mixin()
 	projectMixinHooks0 := projectMixin[0].Hooks()
 	project.Hooks[0] = projectMixinHooks0[0]

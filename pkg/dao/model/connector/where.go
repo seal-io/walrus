@@ -784,56 +784,27 @@ func HasResourcesWith(preds ...predicate.ServiceResource) predicate.Connector {
 	})
 }
 
-// HasClusterCosts applies the HasEdge predicate on the "cluster_costs" edge.
-func HasClusterCosts() predicate.Connector {
+// HasCostReports applies the HasEdge predicate on the "cost_reports" edge.
+func HasCostReports() predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClusterCostsTable, ClusterCostsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, CostReportsTable, CostReportsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ClusterCost
-		step.Edge.Schema = schemaConfig.ClusterCost
+		step.To.Schema = schemaConfig.CostReport
+		step.Edge.Schema = schemaConfig.CostReport
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasClusterCostsWith applies the HasEdge predicate on the "cluster_costs" edge with a given conditions (other predicates).
-func HasClusterCostsWith(preds ...predicate.ClusterCost) predicate.Connector {
+// HasCostReportsWith applies the HasEdge predicate on the "cost_reports" edge with a given conditions (other predicates).
+func HasCostReportsWith(preds ...predicate.CostReport) predicate.Connector {
 	return predicate.Connector(func(s *sql.Selector) {
-		step := newClusterCostsStep()
+		step := newCostReportsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ClusterCost
-		step.Edge.Schema = schemaConfig.ClusterCost
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAllocationCosts applies the HasEdge predicate on the "allocation_costs" edge.
-func HasAllocationCosts() predicate.Connector {
-	return predicate.Connector(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AllocationCostsTable, AllocationCostsColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.AllocationCost
-		step.Edge.Schema = schemaConfig.AllocationCost
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAllocationCostsWith applies the HasEdge predicate on the "allocation_costs" edge with a given conditions (other predicates).
-func HasAllocationCostsWith(preds ...predicate.AllocationCost) predicate.Connector {
-	return predicate.Connector(func(s *sql.Selector) {
-		step := newAllocationCostsStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.AllocationCost
-		step.Edge.Schema = schemaConfig.AllocationCost
+		step.To.Schema = schemaConfig.CostReport
+		step.Edge.Schema = schemaConfig.CostReport
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

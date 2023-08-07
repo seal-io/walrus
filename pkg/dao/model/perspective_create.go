@@ -118,9 +118,9 @@ func (pc *PerspectiveCreate) SetNillableBuiltin(b *bool) *PerspectiveCreate {
 	return pc
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (pc *PerspectiveCreate) SetAllocationQueries(tc []types.QueryCondition) *PerspectiveCreate {
-	pc.mutation.SetAllocationQueries(tc)
+// SetCostQueries sets the "cost_queries" field.
+func (pc *PerspectiveCreate) SetCostQueries(tc []types.QueryCondition) *PerspectiveCreate {
+	pc.mutation.SetCostQueries(tc)
 	return pc
 }
 
@@ -193,9 +193,9 @@ func (pc *PerspectiveCreate) defaults() error {
 		v := perspective.DefaultBuiltin
 		pc.mutation.SetBuiltin(v)
 	}
-	if _, ok := pc.mutation.AllocationQueries(); !ok {
-		v := perspective.DefaultAllocationQueries
-		pc.mutation.SetAllocationQueries(v)
+	if _, ok := pc.mutation.CostQueries(); !ok {
+		v := perspective.DefaultCostQueries
+		pc.mutation.SetCostQueries(v)
 	}
 	return nil
 }
@@ -235,8 +235,8 @@ func (pc *PerspectiveCreate) check() error {
 	if _, ok := pc.mutation.Builtin(); !ok {
 		return &ValidationError{Name: "builtin", err: errors.New(`model: missing required field "Perspective.builtin"`)}
 	}
-	if _, ok := pc.mutation.AllocationQueries(); !ok {
-		return &ValidationError{Name: "allocation_queries", err: errors.New(`model: missing required field "Perspective.allocation_queries"`)}
+	if _, ok := pc.mutation.CostQueries(); !ok {
+		return &ValidationError{Name: "cost_queries", err: errors.New(`model: missing required field "Perspective.cost_queries"`)}
 	}
 	return nil
 }
@@ -311,9 +311,9 @@ func (pc *PerspectiveCreate) createSpec() (*Perspective, *sqlgraph.CreateSpec) {
 		_spec.SetField(perspective.FieldBuiltin, field.TypeBool, value)
 		_node.Builtin = value
 	}
-	if value, ok := pc.mutation.AllocationQueries(); ok {
-		_spec.SetField(perspective.FieldAllocationQueries, field.TypeJSON, value)
-		_node.AllocationQueries = value
+	if value, ok := pc.mutation.CostQueries(); ok {
+		_spec.SetField(perspective.FieldCostQueries, field.TypeJSON, value)
+		_node.CostQueries = value
 	}
 	return _node, _spec
 }
@@ -342,7 +342,7 @@ func (pc *PerspectiveCreate) Set(obj *Perspective) *PerspectiveCreate {
 	pc.SetStartTime(obj.StartTime)
 	pc.SetEndTime(obj.EndTime)
 	pc.SetBuiltin(obj.Builtin)
-	pc.SetAllocationQueries(obj.AllocationQueries)
+	pc.SetCostQueries(obj.CostQueries)
 
 	// Optional.
 	if obj.Description != "" {
@@ -757,15 +757,15 @@ func (u *PerspectiveUpsert) UpdateBuiltin() *PerspectiveUpsert {
 	return u
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (u *PerspectiveUpsert) SetAllocationQueries(v []types.QueryCondition) *PerspectiveUpsert {
-	u.Set(perspective.FieldAllocationQueries, v)
+// SetCostQueries sets the "cost_queries" field.
+func (u *PerspectiveUpsert) SetCostQueries(v []types.QueryCondition) *PerspectiveUpsert {
+	u.Set(perspective.FieldCostQueries, v)
 	return u
 }
 
-// UpdateAllocationQueries sets the "allocation_queries" field to the value that was provided on create.
-func (u *PerspectiveUpsert) UpdateAllocationQueries() *PerspectiveUpsert {
-	u.SetExcluded(perspective.FieldAllocationQueries)
+// UpdateCostQueries sets the "cost_queries" field to the value that was provided on create.
+func (u *PerspectiveUpsert) UpdateCostQueries() *PerspectiveUpsert {
+	u.SetExcluded(perspective.FieldCostQueries)
 	return u
 }
 
@@ -953,17 +953,17 @@ func (u *PerspectiveUpsertOne) UpdateBuiltin() *PerspectiveUpsertOne {
 	})
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (u *PerspectiveUpsertOne) SetAllocationQueries(v []types.QueryCondition) *PerspectiveUpsertOne {
+// SetCostQueries sets the "cost_queries" field.
+func (u *PerspectiveUpsertOne) SetCostQueries(v []types.QueryCondition) *PerspectiveUpsertOne {
 	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetAllocationQueries(v)
+		s.SetCostQueries(v)
 	})
 }
 
-// UpdateAllocationQueries sets the "allocation_queries" field to the value that was provided on create.
-func (u *PerspectiveUpsertOne) UpdateAllocationQueries() *PerspectiveUpsertOne {
+// UpdateCostQueries sets the "cost_queries" field to the value that was provided on create.
+func (u *PerspectiveUpsertOne) UpdateCostQueries() *PerspectiveUpsertOne {
 	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateAllocationQueries()
+		s.UpdateCostQueries()
 	})
 }
 
@@ -1316,17 +1316,17 @@ func (u *PerspectiveUpsertBulk) UpdateBuiltin() *PerspectiveUpsertBulk {
 	})
 }
 
-// SetAllocationQueries sets the "allocation_queries" field.
-func (u *PerspectiveUpsertBulk) SetAllocationQueries(v []types.QueryCondition) *PerspectiveUpsertBulk {
+// SetCostQueries sets the "cost_queries" field.
+func (u *PerspectiveUpsertBulk) SetCostQueries(v []types.QueryCondition) *PerspectiveUpsertBulk {
 	return u.Update(func(s *PerspectiveUpsert) {
-		s.SetAllocationQueries(v)
+		s.SetCostQueries(v)
 	})
 }
 
-// UpdateAllocationQueries sets the "allocation_queries" field to the value that was provided on create.
-func (u *PerspectiveUpsertBulk) UpdateAllocationQueries() *PerspectiveUpsertBulk {
+// UpdateCostQueries sets the "cost_queries" field to the value that was provided on create.
+func (u *PerspectiveUpsertBulk) UpdateCostQueries() *PerspectiveUpsertBulk {
 	return u.Update(func(s *PerspectiveUpsert) {
-		s.UpdateAllocationQueries()
+		s.UpdateCostQueries()
 	})
 }
 

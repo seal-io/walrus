@@ -16,9 +16,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 
-	"github.com/seal-io/seal/pkg/dao/model/allocationcost"
-	"github.com/seal-io/seal/pkg/dao/model/clustercost"
 	"github.com/seal-io/seal/pkg/dao/model/connector"
+	"github.com/seal-io/seal/pkg/dao/model/costreport"
 	"github.com/seal-io/seal/pkg/dao/model/distributelock"
 	"github.com/seal-io/seal/pkg/dao/model/environment"
 	"github.com/seal-io/seal/pkg/dao/model/environmentconnectorrelationship"
@@ -97,9 +96,8 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			allocationcost.Table:                   allocationcost.ValidColumn,
-			clustercost.Table:                      clustercost.ValidColumn,
 			connector.Table:                        connector.ValidColumn,
+			costreport.Table:                       costreport.ValidColumn,
 			distributelock.Table:                   distributelock.ValidColumn,
 			environment.Table:                      environment.ValidColumn,
 			environmentconnectorrelationship.Table: environmentconnectorrelationship.ValidColumn,

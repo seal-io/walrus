@@ -54,10 +54,8 @@ const (
 	EdgeEnvironments = "environments"
 	// EdgeResources holds the string denoting the resources edge name in mutations.
 	EdgeResources = "resources"
-	// EdgeClusterCosts holds the string denoting the cluster_costs edge name in mutations.
-	EdgeClusterCosts = "cluster_costs"
-	// EdgeAllocationCosts holds the string denoting the allocation_costs edge name in mutations.
-	EdgeAllocationCosts = "allocation_costs"
+	// EdgeCostReports holds the string denoting the cost_reports edge name in mutations.
+	EdgeCostReports = "cost_reports"
 	// Table holds the table name of the connector in the database.
 	Table = "connectors"
 	// ProjectTable is the table that holds the project relation/edge.
@@ -81,20 +79,13 @@ const (
 	ResourcesInverseTable = "service_resources"
 	// ResourcesColumn is the table column denoting the resources relation/edge.
 	ResourcesColumn = "connector_id"
-	// ClusterCostsTable is the table that holds the cluster_costs relation/edge.
-	ClusterCostsTable = "cluster_costs"
-	// ClusterCostsInverseTable is the table name for the ClusterCost entity.
-	// It exists in this package in order to avoid circular dependency with the "clustercost" package.
-	ClusterCostsInverseTable = "cluster_costs"
-	// ClusterCostsColumn is the table column denoting the cluster_costs relation/edge.
-	ClusterCostsColumn = "connector_id"
-	// AllocationCostsTable is the table that holds the allocation_costs relation/edge.
-	AllocationCostsTable = "allocation_costs"
-	// AllocationCostsInverseTable is the table name for the AllocationCost entity.
-	// It exists in this package in order to avoid circular dependency with the "allocationcost" package.
-	AllocationCostsInverseTable = "allocation_costs"
-	// AllocationCostsColumn is the table column denoting the allocation_costs relation/edge.
-	AllocationCostsColumn = "connector_id"
+	// CostReportsTable is the table that holds the cost_reports relation/edge.
+	CostReportsTable = "cost_reports"
+	// CostReportsInverseTable is the table name for the CostReport entity.
+	// It exists in this package in order to avoid circular dependency with the "costreport" package.
+	CostReportsInverseTable = "cost_reports"
+	// CostReportsColumn is the table column denoting the cost_reports relation/edge.
+	CostReportsColumn = "connector_id"
 )
 
 // Columns holds all SQL columns for connector fields.
@@ -249,31 +240,17 @@ func ByResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByClusterCostsCount orders the results by cluster_costs count.
-func ByClusterCostsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByCostReportsCount orders the results by cost_reports count.
+func ByCostReportsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newClusterCostsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newCostReportsStep(), opts...)
 	}
 }
 
-// ByClusterCosts orders the results by cluster_costs terms.
-func ByClusterCosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByCostReports orders the results by cost_reports terms.
+func ByCostReports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newClusterCostsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByAllocationCostsCount orders the results by allocation_costs count.
-func ByAllocationCostsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAllocationCostsStep(), opts...)
-	}
-}
-
-// ByAllocationCosts orders the results by allocation_costs terms.
-func ByAllocationCosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAllocationCostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newCostReportsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newProjectStep() *sqlgraph.Step {
@@ -297,18 +274,11 @@ func newResourcesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, ResourcesTable, ResourcesColumn),
 	)
 }
-func newClusterCostsStep() *sqlgraph.Step {
+func newCostReportsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ClusterCostsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ClusterCostsTable, ClusterCostsColumn),
-	)
-}
-func newAllocationCostsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AllocationCostsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AllocationCostsTable, AllocationCostsColumn),
+		sqlgraph.To(CostReportsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CostReportsTable, CostReportsColumn),
 	)
 }
 

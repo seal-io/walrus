@@ -37,8 +37,8 @@ const (
 	FieldEndTime = "end_time"
 	// FieldBuiltin holds the string denoting the builtin field in the database.
 	FieldBuiltin = "builtin"
-	// FieldAllocationQueries holds the string denoting the allocation_queries field in the database.
-	FieldAllocationQueries = "allocation_queries"
+	// FieldCostQueries holds the string denoting the cost_queries field in the database.
+	FieldCostQueries = "cost_queries"
 	// Table holds the table name of the perspective in the database.
 	Table = "perspectives"
 )
@@ -55,7 +55,7 @@ var Columns = []string{
 	FieldStartTime,
 	FieldEndTime,
 	FieldBuiltin,
-	FieldAllocationQueries,
+	FieldCostQueries,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -93,8 +93,8 @@ var (
 	EndTimeValidator func(string) error
 	// DefaultBuiltin holds the default value on creation for the "builtin" field.
 	DefaultBuiltin bool
-	// DefaultAllocationQueries holds the default value on creation for the "allocation_queries" field.
-	DefaultAllocationQueries []types.QueryCondition
+	// DefaultCostQueries holds the default value on creation for the "cost_queries" field.
+	DefaultCostQueries []types.QueryCondition
 )
 
 // OrderOption defines the ordering options for the Perspective queries.

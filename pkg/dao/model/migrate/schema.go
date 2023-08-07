@@ -12,96 +12,6 @@ import (
 )
 
 var (
-	// AllocationCostsColumns holds the columns for the "allocation_costs" table.
-	AllocationCostsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "start_time", Type: field.TypeTime},
-		{Name: "end_time", Type: field.TypeTime},
-		{Name: "minutes", Type: field.TypeFloat64},
-		{Name: "name", Type: field.TypeString},
-		{Name: "fingerprint", Type: field.TypeString},
-		{Name: "cluster_name", Type: field.TypeString, Nullable: true},
-		{Name: "namespace", Type: field.TypeString, Nullable: true},
-		{Name: "node", Type: field.TypeString, Nullable: true},
-		{Name: "controller", Type: field.TypeString, Nullable: true},
-		{Name: "controller_kind", Type: field.TypeString, Nullable: true},
-		{Name: "pod", Type: field.TypeString, Nullable: true},
-		{Name: "container", Type: field.TypeString, Nullable: true},
-		{Name: "pvs", Type: field.TypeJSON},
-		{Name: "labels", Type: field.TypeJSON},
-		{Name: "total_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "currency", Type: field.TypeInt, Nullable: true},
-		{Name: "cpu_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "cpu_core_request", Type: field.TypeFloat64, Default: 0},
-		{Name: "gpu_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "gpu_count", Type: field.TypeFloat64, Default: 0},
-		{Name: "ram_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "ram_byte_request", Type: field.TypeFloat64, Default: 0},
-		{Name: "pv_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "pv_bytes", Type: field.TypeFloat64, Default: 0},
-		{Name: "load_balancer_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "cpu_core_usage_average", Type: field.TypeFloat64, Default: 0},
-		{Name: "cpu_core_usage_max", Type: field.TypeFloat64, Default: 0},
-		{Name: "ram_byte_usage_average", Type: field.TypeFloat64, Default: 0},
-		{Name: "ram_byte_usage_max", Type: field.TypeFloat64, Default: 0},
-		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// AllocationCostsTable holds the schema information for the "allocation_costs" table.
-	AllocationCostsTable = &schema.Table{
-		Name:       "allocation_costs",
-		Columns:    AllocationCostsColumns,
-		PrimaryKey: []*schema.Column{AllocationCostsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "allocation_costs_connectors_allocation_costs",
-				Columns:    []*schema.Column{AllocationCostsColumns[30]},
-				RefColumns: []*schema.Column{ConnectorsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "allocationcost_start_time_end_time_connector_id_fingerprint",
-				Unique:  true,
-				Columns: []*schema.Column{AllocationCostsColumns[1], AllocationCostsColumns[2], AllocationCostsColumns[30], AllocationCostsColumns[5]},
-			},
-		},
-	}
-	// ClusterCostsColumns holds the columns for the "cluster_costs" table.
-	ClusterCostsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "start_time", Type: field.TypeTime},
-		{Name: "end_time", Type: field.TypeTime},
-		{Name: "minutes", Type: field.TypeFloat64},
-		{Name: "cluster_name", Type: field.TypeString},
-		{Name: "total_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "currency", Type: field.TypeInt, Nullable: true},
-		{Name: "allocation_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "idle_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "management_cost", Type: field.TypeFloat64, Default: 0},
-		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
-	}
-	// ClusterCostsTable holds the schema information for the "cluster_costs" table.
-	ClusterCostsTable = &schema.Table{
-		Name:       "cluster_costs",
-		Columns:    ClusterCostsColumns,
-		PrimaryKey: []*schema.Column{ClusterCostsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "cluster_costs_connectors_cluster_costs",
-				Columns:    []*schema.Column{ClusterCostsColumns[10]},
-				RefColumns: []*schema.Column{ConnectorsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "clustercost_start_time_end_time_connector_id",
-				Unique:  true,
-				Columns: []*schema.Column{ClusterCostsColumns[1], ClusterCostsColumns[2], ClusterCostsColumns[10]},
-			},
-		},
-	}
 	// ConnectorsColumns holds the columns for the "connectors" table.
 	ConnectorsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
@@ -149,6 +59,61 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "project_id IS NULL",
 				},
+			},
+		},
+	}
+	// CostReportsColumns holds the columns for the "cost_reports" table.
+	CostReportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
+		{Name: "minutes", Type: field.TypeFloat64},
+		{Name: "name", Type: field.TypeString},
+		{Name: "fingerprint", Type: field.TypeString},
+		{Name: "cluster_name", Type: field.TypeString, Nullable: true},
+		{Name: "namespace", Type: field.TypeString, Nullable: true},
+		{Name: "node", Type: field.TypeString, Nullable: true},
+		{Name: "controller", Type: field.TypeString, Nullable: true},
+		{Name: "controller_kind", Type: field.TypeString, Nullable: true},
+		{Name: "pod", Type: field.TypeString, Nullable: true},
+		{Name: "container", Type: field.TypeString, Nullable: true},
+		{Name: "pvs", Type: field.TypeJSON},
+		{Name: "labels", Type: field.TypeJSON},
+		{Name: "total_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "currency", Type: field.TypeInt, Nullable: true},
+		{Name: "cpu_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "cpu_core_request", Type: field.TypeFloat64, Default: 0},
+		{Name: "gpu_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "gpu_count", Type: field.TypeFloat64, Default: 0},
+		{Name: "ram_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "ram_byte_request", Type: field.TypeFloat64, Default: 0},
+		{Name: "pv_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "pv_bytes", Type: field.TypeFloat64, Default: 0},
+		{Name: "load_balancer_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "cpu_core_usage_average", Type: field.TypeFloat64, Default: 0},
+		{Name: "cpu_core_usage_max", Type: field.TypeFloat64, Default: 0},
+		{Name: "ram_byte_usage_average", Type: field.TypeFloat64, Default: 0},
+		{Name: "ram_byte_usage_max", Type: field.TypeFloat64, Default: 0},
+		{Name: "connector_id", Type: field.TypeString, SchemaType: map[string]string{"mysql": "bigint", "postgres": "bigint", "sqlite3": "integer"}},
+	}
+	// CostReportsTable holds the schema information for the "cost_reports" table.
+	CostReportsTable = &schema.Table{
+		Name:       "cost_reports",
+		Columns:    CostReportsColumns,
+		PrimaryKey: []*schema.Column{CostReportsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cost_reports_connectors_cost_reports",
+				Columns:    []*schema.Column{CostReportsColumns[30]},
+				RefColumns: []*schema.Column{ConnectorsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "costreport_start_time_end_time_connector_id_fingerprint",
+				Unique:  true,
+				Columns: []*schema.Column{CostReportsColumns[1], CostReportsColumns[2], CostReportsColumns[30], CostReportsColumns[5]},
 			},
 		},
 	}
@@ -253,7 +218,7 @@ var (
 		{Name: "start_time", Type: field.TypeString},
 		{Name: "end_time", Type: field.TypeString},
 		{Name: "builtin", Type: field.TypeBool, Default: false},
-		{Name: "allocation_queries", Type: field.TypeJSON},
+		{Name: "cost_queries", Type: field.TypeJSON},
 	}
 	// PerspectivesTable holds the schema information for the "perspectives" table.
 	PerspectivesTable = &schema.Table{
@@ -825,9 +790,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		AllocationCostsTable,
-		ClusterCostsTable,
 		ConnectorsTable,
+		CostReportsTable,
 		DistributeLocksTable,
 		EnvironmentsTable,
 		EnvironmentConnectorRelationshipsTable,
@@ -850,9 +814,8 @@ var (
 )
 
 func init() {
-	AllocationCostsTable.ForeignKeys[0].RefTable = ConnectorsTable
-	ClusterCostsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	ConnectorsTable.ForeignKeys[0].RefTable = ProjectsTable
+	CostReportsTable.ForeignKeys[0].RefTable = ConnectorsTable
 	EnvironmentsTable.ForeignKeys[0].RefTable = ProjectsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[0].RefTable = EnvironmentsTable
 	EnvironmentConnectorRelationshipsTable.ForeignKeys[1].RefTable = ConnectorsTable
